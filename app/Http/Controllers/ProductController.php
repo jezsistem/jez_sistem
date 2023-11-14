@@ -257,12 +257,17 @@ class ProductController extends Controller
     public function getDatatablesItem(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight')
+                $query = Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight')
             ->join('brands', 'brands.id', '=', 'products.br_id')
             ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
             ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
-            ->where('p_delete', '!=', '1')
-            ->where('ps_id', '=', $request->ps_id))
+            ->where('p_delete', '!=', '1');
+
+            if(!empty($request->ps_id)){
+                $query->where('ps_id', '=', $request->ps_id);
+            }
+
+            return datatables()->of($query)
             ->editColumn('p_name_show', function($data){
                 return '<span style="white-space: nowrap;">'.$data->p_name.'</span>';
             })
