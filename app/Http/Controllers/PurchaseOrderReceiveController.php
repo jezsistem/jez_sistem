@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PurchaseOrderReceiveImportExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -375,14 +376,31 @@ class PurchaseOrderReceiveController extends Controller
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
-                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'), 'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'))
+                    $poad_data = PurchaseOrderArticleDetail::select(
+                        'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
+                        'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
+                        'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
+                        'product_stocks.ps_barcode')
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->groupBy('purchase_order_article_details.id')
                         ->where(['poa_id' => $poa->poa_id])->get();
                     if (!empty($poad_data)) {
+
+                        if(!empty($request->excelData))
+                        {
+                            foreach ($poad_data as $key => $poad) {
+                                foreach ($request->excelData as $excel) {
+                                    if ($poad->ps_barcode == $excel['barcode']) {
+                                        $poad['qty_import']= $excel['qty'];
+                                    }
+                                }
+                            }
+                        }
+
                         $poa->subitem = $poad_data;
+
                         array_push($get_product, $poa);
                     } else {
                         $get_product = null;
@@ -394,9 +412,11 @@ class PurchaseOrderReceiveController extends Controller
         } else {
             $get_product = null;
         }
+
         $data = [
             'product' => $get_product,
         ];
+//        return response()->json($data['product'][0]['subitem'][0]->ps_barcode);
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data'));
     }
 
@@ -522,5 +542,7 @@ class PurchaseOrderReceiveController extends Controller
         }
 
         return json_encode($r);
-    }
+}
+
+
 }

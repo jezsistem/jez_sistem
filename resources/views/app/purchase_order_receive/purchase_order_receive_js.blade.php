@@ -30,7 +30,7 @@
         $('#po_discount'+pid).prop('disabled', true);
     }
 
-    function reloadArticleDetail(id)
+    function reloadArticleDetail(id, excelData)
     {
         $.ajaxSetup({
             headers: {
@@ -40,7 +40,7 @@
         $.ajax({
             type: "POST",
             dataType: 'html',
-            data: {_po_id:id},
+            data: {_po_id:id, excelData:excelData},
             url: "{{ url('check_po_receive_detail')}}",
             success: function(r) {
                 $('#purchase_order_detail_content').html(r);
@@ -122,6 +122,7 @@
             swal("Tipe Stok", "Pilih Tipe Stok", "warning");
             return false;
         }
+
         var st_id = $('#st_id').val();
         var tax_id = $('#tax_id').val();
         var po_id = $('#_po_id').val();
@@ -875,6 +876,52 @@
                     return false;
                 }
             })
+        });
+
+        $(document).ready(function () {
+            // Open the second modal when the button is clicked
+            $("#ImportModalBtn").click(function () {
+                $("#ImportModal").modal("show");
+            });
+        });
+
+        $('#f_import').on('submit' , function (e) {
+            e.preventDefault();
+            $('#import_data_btn').html('Proses...');
+            $('#import_data_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var po_id = $('#_po_id').val();
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('por_import')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_import')[0].reset();
+                        reloadArticleDetail(po_id, data.data)
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
+                }
+            });
         });
 
         $('#save_purchase_order_btn').on('click', function(e) {

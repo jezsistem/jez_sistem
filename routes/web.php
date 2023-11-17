@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\POPurchaseReceiveImportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
@@ -141,7 +142,7 @@ Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAut
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
-Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_invoice');
+Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
 
 Route::group(['middleware' => 'auth'], function() {
     // Redirect
@@ -442,6 +443,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
     Route::get('std_export', [StockTransferDataController::class, 'exportData']);
+
     // Purchase Order
     Route::get('pembelian', [PurchaseOrderController::class, 'index'])->name('purchase_order');
     Route::get('purchase_order_datatables', [PurchaseOrderController::class, 'getDatatables']);
@@ -460,31 +462,39 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('po_description', [PurchaseOrderController::class, 'descriptionPo']);
     Route::post('po_save_draft', [PurchaseOrderController::class, 'poSaveDraft']);
     Route::post('po_detail', [PurchaseOrderController::class, 'poDetail']);
+
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
     Route::post('check_po_receive_detail', [PurchaseOrderReceiveController::class, 'checkPoReceiveDetail']);
     Route::post('po_receive_detail', [PurchaseOrderReceiveController::class, 'poReceiveDetail']);
     Route::post('po_export', [PurchaseOrderReceiveController::class, 'poExport']);
     Route::get('por_export', [PurchaseOrderReceiveController::class, 'exportData']);
+    Route::post('por_import', [POPurchaseReceiveImportController::class, 'importExcel']);
+
     // Purchase Order Article
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);
     Route::post('poa_save_discount', [PurchaseOrderArticleController::class, 'saveDiscount']);
     Route::post('poa_save_extra_discount', [PurchaseOrderArticleController::class, 'saveExtraDiscount']);
     Route::post('poa_save_reminder', [PurchaseOrderArticleController::class, 'saveReminder']);
+
     // Purchase Order Article Detail
     Route::post('poad_delete', [PurchaseOrderArticleDetailController::class, 'deleteData']);
     Route::post('poad_save_purchase_price', [PurchaseOrderArticleDetailController::class, 'savePurchasePrice']);
     Route::post('poad_save_qty_total', [PurchaseOrderArticleDetailController::class, 'saveQtyTotal']);
+
     // Purchase Order Article Detail Status
     Route::post('poads_save', [PurchaseOrderArticleDetailStatusController::class, 'storeData']);
     Route::get('poads_datatables', [PurchaseOrderArticleDetailStatusController::class, 'getDatatables']);
     Route::post('sv_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'revisionData']);
     Route::post('dl_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'deleteData']);
     Route::post('check_po_invoice', [PurchaseOrderArticleDetailStatusController::class, 'checkInvoice']);
+
 	// RESELLER POS
 	Route::get('reseller_pos', [PointOfSaleController::class, 'index'])->name('reseller_pos');
+
     // Bandung POS
     Route::get('bandung_point_of_sale', [BandungPosController::class, 'index'])->name('bandung_point_of_sale');
+
     // POS 
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
@@ -508,18 +518,21 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('check_complaint', [PointOfSaleController::class, 'checkComplaint']);
     Route::post('check_offline_complaint', [PointOfSaleController::class, 'checkOfflineComplaint']);
     Route::post('autocomplete_refund_invoice', [PointOfSaleController::class, 'fetchRefundInvoice']);
+
     // Account Type
     Route::get('jenis_akun', [AccountTypeController::class, 'index'])->name('account_type');
     Route::get('account_type_datatables', [AccountTypeController::class, 'getDatatables']);
     Route::post('at_save', [AccountTypeController::class, 'storeData']);
     Route::post('at_delete', [AccountTypeController::class, 'deleteData']);
     Route::post('check_exists_account_type', [AccountTypeController::class, 'checkExistsAccountType']);
+
     // Account Klasifikasi
     Route::get('klasifikasi_akun', [AccountClassificationController::class, 'index'])->name('account_classification');
     Route::get('account_classification_datatables', [AccountClassificationController::class, 'getDatatables']);
     Route::post('ac_save', [AccountClassificationController::class, 'storeData']);
     Route::post('ac_delete', [AccountClassificationController::class, 'deleteData']);
     Route::post('check_exists_account_classification', [AccountClassificationController::class, 'checkExistsAccountClassification']);
+
     // Account
     Route::get('data_akun', [AccountController::class, 'index'])->name('account');
     Route::get('account_datatables', [AccountController::class, 'getDatatables']);
@@ -527,11 +540,13 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('a_delete', [AccountController::class, 'deleteData']);
     Route::post('check_exists_account', [AccountController::class, 'checkExistsAccount']);
     Route::post('check_exists_account_code', [AccountController::class, 'checkExistsAccountCode']);
+
     // Group
     Route::get('group_datatables', [GroupController::class, 'getDatatables']);
     Route::get('reload_group', [GroupController::class, 'reloadGroup']);
     Route::post('gr_save', [GroupController::class, 'storeData']);
     Route::post('gr_delete', [GroupController::class, 'deleteData']);
+
     // UserController
     Route::get('load_user_store', [UserController::class, 'loadStore']);
     Route::get('data_user', [UserController::class, 'index']);
@@ -542,6 +557,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('autocomplete_menu', [UserController::class, 'autocompleteMenu']);
     Route::post('autocomplete_store', [UserController::class, 'autocompleteStore']);
     Route::post('load_user_menu', [UserController::class, 'loadUserMenu']);
+
     // Stock Tracking
     Route::get('stock_tracking', [StockTrackingController::class, 'index'])->name('stock_tracking');
     Route::get('stock_tracking_datatables', [StockTrackingController::class, 'getDatatables']);
@@ -552,6 +568,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('pickup_approval_item', [StockTrackingController::class, 'pickupApprovalItem']);
     Route::post('cancel_pickup_item', [StockTrackingController::class, 'cancelPickupItem']);
     Route::post('plst_delete', [StockTrackingController::class, 'deleteData']);
+
 	// Stock Summary
     Route::get('stok_summary', [StockSummaryController::class, 'index'])->name('stock_summary');
     // Invoice Tracking
@@ -560,13 +577,16 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('shipping_number_save', [InvoiceTrackingController::class, 'updateData']);
     Route::post('waybill_tracking', [InvoiceTrackingController::class, 'waybillTracking']);
     Route::post('all_waybill_tracking', [InvoiceTrackingController::class, 'allWaybillTracking']);
+
     // Invoice 
     Route::post('search_invoice', [InvoiceController::class, 'searchInvoice']);
+
     // Product Main Color
     Route::get('kurir_pengiriman', [CourierController::class, 'index'])->name('courier');
     Route::get('courier_datatables', [CourierController::class, 'getDatatables']);
     Route::post('cr_save', [CourierController::class, 'storeData']);
     Route::post('cr_delete', [CourierController::class, 'deleteData']);
+
     // Stock Data
     Route::get('data_stok', [StockDataController::class, 'index'])->name('stock_data');
     Route::get('stock_data_datatables', [StockDataController::class, 'getDatatables']);
@@ -577,6 +597,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('stock_data_reload_sub_sub_category', [StockDataController::class, 'reloadSubSubCategory']);
     Route::post('stock_data_reload_brand', [StockDataController::class, 'reloadBrand']);
     Route::post('stock_data_reload_size', [StockDataController::class, 'reloadSize']);
+
     // Target
     Route::get('target', [TargetController::class, 'index'])->name('target');
     Route::get('target_datatables', [TargetController::class, 'getDatatables']);
@@ -588,6 +609,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('sv_target_detail', [TargetController::class, 'saveTargetDetail']);
     Route::post('check_str', [TargetController::class, 'checkStr']);
     Route::post('edit_target', [TargetController::class, 'editTarget']);
+
     // Pos Summary
     Route::get('pos_summary', [PosSummaryController::class, 'index'])->name('pos_summary');
     Route::get('pos_summary_online_datatables', [PosSummaryController::class, 'onlineDatatables']);
@@ -596,6 +618,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('sales_item_detail_datatables', [PosSummaryController::class, 'salesItemDetailDatatables']);
     Route::post('target_chart', [PosSummaryController::class, 'targetChart']);
     Route::post('cross_chart', [PosSummaryController::class, 'crossChart']);
+
     // Adjustment
     Route::get('adjustment', [AdjustmentController::class, 'index'])->name('adjustment');
     Route::get('_datatables', [AdjustmentController::class, 'historyDatatables']);
@@ -608,20 +631,24 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('finish_adjustment', [AdjustmentController::class, 'finishAdjustment']);
     Route::post('add_article_adjustment', [AdjustmentController::class, 'addArticle']);
     Route::post('autocomplete_article', [AdjustmentController::class, 'fetchArticle']);
+
     // Nameset Data
     Route::get('data_nameset', [NamesetDataController::class, 'index'])->name('nameset_data');
     Route::get('nameset_datatables', [NamesetDataController::class, 'getDatatables']);
     Route::post('update_data', [NamesetDataController::class, 'updateData']);
+
     // Report 
     Route::get('laporan_penjualan', [SalesReportController::class, 'index'])->name('sales_report');
     Route::get('sales_report_datatables', [SalesReportController::class, 'getDatatables']);
     Route::get('check_hb_hj', [SalesReportController::class, 'hbhjDatatables']);
     Route::get('sales_export', [SalesReportController::class, 'exportData']);
     Route::post('cabang_summary', [SalesReportController::class, 'cabangSummary']);
+
     // Invoice Report
     Route::get('invoice_report_datatables', [InvoiceReportController::class, 'getDatatables']);
     Route::get('article_report_datatables', [ArticleReportController::class, 'getDatatables']);
     Route::get('article_cross_report_datatables', [ArticleReportController::class, 'getCrossDatatables']);
+
     // Debt List
     Route::get('daftar_hutang', [DebtListController::class, 'index'])->name('debt_list');
     Route::get('debt_list_datatables', [DebtListController::class, 'getDatatables']);
@@ -631,6 +658,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('dlp_save', [DebtListController::class, 'storeDataPayment']);
     Route::post('dlp_delete', [DebtListController::class, 'deleteDataPayment']);
     Route::post('debt_import', [DebtListController::class, 'importData']);
+
     // Product Discount
     Route::get('setup_diskon', [ProductDiscountController::class, 'index'])->name('product_discount');
     Route::get('product_discount_datatables', [ProductDiscountController::class, 'getDatatables']);
@@ -669,6 +697,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('b1g1_save', [B1g1Controller::class, 'storeData']);
     Route::post('b1g1_delete', [B1g1Controller::class, 'deleteData']);
     Route::post('b1g1_update', [B1g1Controller::class, 'updateData']);
+
     // User Rating
     Route::get('user_rating', [UserRatingController::class, 'index']);
     Route::get('rating_by_customer', [UserRatingController::class, 'customerIndex']);
@@ -732,6 +761,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('delete_main_image', [WebArticleController::class, 'deleteMainImage']);
     Route::post('delete_chart_image', [WebArticleController::class, 'deleteChartImage']);
     Route::post('delete_image', [WebArticleController::class, 'deleteImage']);
+
     // Topdeal
     Route::get('topdeals', [TopdealController::class, 'index']);
     Route::get('topdeals_datatables', [TopdealController::class, 'getDatatables']);
@@ -741,6 +771,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('td_delete', [TopdealController::class, 'deleteData']);
     Route::post('add_topdeals', [TopdealController::class, 'addTopdeals']);
     Route::post('delete_topdeals', [TopdealController::class, 'deleteTopdeals']);
+
     // Web Banner
     Route::get('web_banner', [WebBannerController::class, 'index']);
     Route::get('wb_datatables', [WebBannerController::class, 'getDatatables']);
@@ -753,51 +784,62 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('bb_delete', [WebBannerController::class, 'deleteDataBrand']);
     Route::post('bbd_save', [WebBannerController::class, 'storeDataArticle']);
     Route::post('bbd_delete', [WebBannerController::class, 'deleteDataArticle']);
+
     // Bank
     Route::get('bank', [BankController::class, 'index']);
     Route::get('bank_datatables', [BankController::class, 'getDatatables']);
     Route::post('bank_save', [BankController::class, 'storeData']);
     Route::post('bank_delete', [BankController::class, 'deleteData']);
     Route::post('check_exists_bank', [BankController::class, 'checkExistsBank']);
+
     // Web Category
     Route::get('kategori_slug', [WebCategoryController::class, 'index']);
     Route::get('web_category_datatables', [WebCategoryController::class, 'getDatatables']);
     Route::post('cs_save', [WebCategoryController::class, 'storeData']);
     Route::post('cs_delete', [WebCategoryController::class, 'deleteData']);
+
     // Web Brand
     Route::get('web_brand', [WebBrandController::class, 'index']);
+
     // Voucher
     Route::get('voucher', [VoucherController::class, 'index']);
     Route::get('voucher_datatables', [VoucherController::class, 'getDatatables']);
     Route::post('voucher_save', [VoucherController::class, 'storeData']);
     Route::post('voucher_delete', [VoucherController::class, 'deleteData']);
     Route::post('check_exists_voucher', [VoucherController::class, 'checkExistsVoucher']);
+
     // Web Sub Kategori
     Route::get('sub_kategori', [WebSubCategoryController::class, 'index']);
     Route::get('wsc_datatables', [WebSubCategoryController::class, 'getDatatables']);
     Route::post('wsc_save', [WebSubCategoryController::class, 'storeData']);
+
     // Free Shipping Controller
     Route::get('free_ongkir', [FreeShippingController::class, 'index']);
     Route::get('free_shipping_datatables', [FreeShippingController::class, 'getDatatables']);
     Route::post('fs_save', [FreeShippingController::class, 'storeData']);
     Route::post('fs_delete', [FreeShippingController::class, 'deleteData']);
+
     // Web TRANSACTION
     Route::get('website_transaction', [WebTransactionController::class, 'index']);
     Route::get('wt_datatables', [WebTransactionController::class, 'getDatatables']);
     Route::post('wt_save', [WebTransactionController::class, 'storeData']);
+
     // Web Confirmation
     Route::get('konfirmasi', [WebConfirmationController::class, 'index']);
     Route::get('konfirmasi_datatables', [WebConfirmationController::class, 'getDatatables']);
     Route::post('wbc_save', [WebConfirmationController::class, 'storeData']);
     Route::post('wbc_delete', [WebConfirmationController::class, 'deleteData']);
     Route::post('wbc_read', [WebConfirmationController::class, 'readData']);
+
     // Check Confirmation and CheckPaid 
     Route::get('check_web_confirmation', [PaymentCheckController::class, 'checkConfirmation']);
     Route::get('check_web_paid', [PaymentCheckController::class, 'checkPaid']);
     Route::post('print_web_paid', [PaymentCheckController::class, 'printPaid']);
+
     // Web Reminder
     Route::get('web_reminder', [WebReminderController::class, 'index']);
     Route::get('wr_datatables', [WebReminderController::class, 'getDatatables']);
+
     // Blog 
     Route::get('blog', [BlogController::class, 'index']);
     Route::get('bcc_datatables', [BlogController::class, 'getDetailDatatables']);
@@ -806,23 +848,28 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('bc_delete', [BlogController::class, 'deleteData']);
     Route::post('bcc_save', [BlogController::class, 'storeDetailData']);
     Route::post('bcc_delete', [BlogController::class, 'deleteDetailData']);
+
     // Whatsapp
     Route::get('whatsapp', [WhatsappController::class, 'index']);
     Route::get('whatsapp_datatables', [WhatsappController::class, 'getDatatables']);
     Route::post('send_wa', [WhatsappController::class, 'executeBlast']);
+
     // Laporan Artikel
     Route::get('laporan_artikel', [ArticleInformationController::class, 'index']);
     Route::get('ai_datatables', [ArticleInformationController::class, 'getDatatables']);
     Route::get('ai_history_datatables', [ArticleInformationController::class, 'getHistoryDatatables']);
     Route::post('ai_update', [ArticleInformationController::class, 'updateData']);
     Route::post('ai_daily_update', [ArticleInformationController::class, 'autoUpdateArticleInformation']);
+
     // Qty Exception
     Route::get('qty_exception', [QtyExceptionController::class, 'index']);
     Route::get('qe_datatables', [QtyExceptionController::class, 'getDatatables']);
     Route::post('qe_save', [QtyExceptionController::class, 'storeData']);
     Route::post('qe_delete', [QtyExceptionController::class, 'deleteData']);
+
     // Verify Voucher
     Route::post('verify_voucher', [PointOfSaleController::class, 'verifyVoucher']);
+
     // Shopee
     Route::get('shopee_data', [ShopeeController::class, 'index']);
     Route::get('shopee_datatables', [ShopeeController::class, 'getDatatables']);
@@ -830,6 +877,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('shopee_import', [ShopeeController::class, 'importData']);
     Route::post('shopee_export', [ShopeeController::class, 'exportData']);
     Route::post('shopee_update', [ShopeeController::class, 'updateData']);
+
     // Updated Dashboard
     Route::get('dashboards', [UpdatedDashboardController::class, 'index']);
     Route::get('get_cross_nettsales', [UpdatedDashboardController::class, 'getCrossNettSales']);
@@ -847,6 +895,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('load_graph', [UpdatedDashboardController::class, 'loadGraph']);
     Route::post('load_store', [UpdatedDashboardController::class, 'loadStore']);
     Route::post('export_table', [UpdatedDashboardController::class, 'exportTable']);
+
     // mass adjusmtnet
     Route::get('mass_adjustment', [MassAdjustmentController::class, 'index']);
     Route::get('mass_stock_datatables', [MassAdjustmentController::class, 'stockDatatables']);
@@ -861,6 +910,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('export_mass_adjustment_result', [MassAdjustmentController::class, 'exportResult']);
     Route::post('mass_adjustment_approval', [MassAdjustmentController::class, 'approvalData']);
     Route::post('mass_adjustment_exec', [MassAdjustmentController::class, 'execData']);
+
     // ScanAdjustmentController
     Route::get('scan_adjustment', [ScanAdjustmentController::class, 'index']);
     Route::get('scan_adjustment_datatables', [ScanAdjustmentController::class, 'getDatatables']);
@@ -894,6 +944,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('scan_adjustment_qty_update', [ScanAdjustmentController::class, 'updateQty']);
     
     Route::post('pos_barcode_scan', [PointOfSaleController::class, 'scanBarcode']);
+
     // POReceiveApprovalController
     Route::get('approval_penerimaan', [POReceiveApprovalController::class, 'index']);
     Route::get('ap_datatables', [POReceiveApprovalController::class, 'getDatatables']);
@@ -901,17 +952,20 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('ap_save', [POReceiveApprovalController::class, 'saveData']);
     Route::post('ap_delete', [POReceiveApprovalController::class, 'deleteData']);
     Route::post('apd_approve', [POReceiveApprovalController::class, 'approveData']);
+
     // Reseller
     Route::get('data_reseller', [ResellerController::class, 'index']);
     Route::get('rs_customer_datatables', [ResellerController::class, 'getDatatables']);
     Route::post('rs_save', [ResellerController::class, 'storeData']);
     Route::post('rs_delete', [ResellerController::class, 'deleteData']);
+
     // Reseller
     Route::get('reseller_deposit', [ResellerDepositController::class, 'index']);
     Route::get('rsd_datatables', [ResellerDepositController::class, 'getDatatables']);
     Route::get('rsdd_datatables', [ResellerDepositController::class, 'getDetailDatatables']);
     Route::post('rsd_save', [ResellerDepositController::class, 'saveData']);
     Route::post('rsdd_reload', [ResellerDepositController::class, 'reloadData']);
+
     // StockCardController
     Route::get('stock_card', [StockCardController::class, 'index']);
     Route::get('stc_article_datatables', [StockCardController::class, 'getADatatables']);
@@ -921,25 +975,30 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('stock_report_export', [StockCardController::class, 'exportData']);
     Route::post('stock_report_phase2', [StockCardController::class, 'phase2']);
     Route::post('stock_report_phase3', [StockCardController::class, 'phase3']);
+
     // ResellerLevelController
     Route::get('reseller_level', [ResellerLevelController::class, 'index']);
     Route::get('rl_datatables', [ResellerLevelController::class, 'getDatatables']);
     Route::post('rl_save', [ResellerLevelController::class, 'storeData']);
     Route::post('rl_delete', [ResellerLevelController::class, 'deleteData']);
+
     // ResellerAddDiscountController
     Route::get('reseller_additional_discount', [ResellerAddDiscountController::class, 'index']);
     Route::get('rad_datatables', [ResellerAddDiscountController::class, 'getDatatables']);
     Route::post('rad_save', [ResellerAddDiscountController::class, 'storeData']);
     Route::post('rad_delete', [ResellerAddDiscountController::class, 'deleteData']);
+
     // ResellerConfirmationController
     Route::get('reseller_konfirmasi', [ResellerConfirmationController::class, 'index']);
     Route::get('rc_datatables', [ResellerConfirmationController::class, 'getDatatables']);
     Route::post('rc_save', [ResellerConfirmationController::class, 'saveData']);
     Route::post('rc_delete', [ResellerConfirmationController::class, 'deleteData']);
+
     // ResellerBrandLevelController
     Route::get('reseller_brand_level', [ResellerBrandLevelController::class, 'index']);
     Route::get('rbl_datatables', [ResellerBrandLevelController::class, 'getDatatables']);
     Route::post('rbl_update', [ResellerBrandLevelController::class, 'updateData']);
+
     // ResellerTransactionController
     Route::get('reseller_transaction', [ResellerTransactionController::class, 'index']);
     Route::get('rt_datatables', [ResellerTransactionController::class, 'getDatatables']);
@@ -947,13 +1006,16 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('rt_min_qty', [ResellerTransactionController::class, 'minQty']);
     Route::post('rt_min_item_qty', [ResellerTransactionController::class, 'minItemQty']);
     Route::post('rt_update_status', [ResellerTransactionController::class, 'updateStatus']);
+
     // WebinarController
     Route::get('webinar', [WebinarController::class, 'index']);
     Route::get('wbr_datatables', [WebinarController::class, 'getDatatables']);
+
     // ResellerActivityController
     Route::get('reseller_activity', [ResellerActivityController::class, 'index']);
     Route::get('ra_datatables', [ResellerActivityController::class, 'getDatatables']);
     Route::get('ra_detail_datatables', [ResellerActivityController::class, 'getDetailDatatables']);
+
     // AssetDetailController
     Route::get('asset_detail', [AssetDetailController::class, 'index']);
     Route::get('ad_size_datatables', [AssetDetailController::class, 'getSizeDatatables']);
@@ -962,6 +1024,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('ad_load_data', [AssetDetailController::class, 'loadData']);
     Route::get('ad_export', [AssetDetailController::class, 'exportData']);
     Route::post('get_asset_sales_summaries', [AssetDetailController::class, 'getSummary']);
+
     // StoreAgingController
     Route::get('store_aging', [StoreAgingController::class, 'index']);
     Route::get('sta_datatables', [StoreAgingController::class, 'getDatatables']);
@@ -974,11 +1037,13 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('sta_checked', [StoreAgingController::class, 'updateChecked']);
     Route::post('oca_save', [StoreAgingController::class, 'storeOCAData']);
     Route::post('oca_delete', [StoreAgingController::class, 'deleteOCAData']);
+
     // InstockApprovalController
     Route::get('instock_approval', [InstockApprovalController::class, 'index']);
     Route::get('ia_datatables', [InstockApprovalController::class, 'getDatatables']);
     Route::post('ia_save', [InstockApprovalController::class, 'storeData']);
     Route::post('ia_delete', [InstockApprovalController::class, 'deleteData']);
+
     // InvoiceEditorController
     Route::get('invoice_editor', [InvoiceEditorController::class, 'index']);
     Route::get('ie_permission_datatables', [InvoiceEditorController::class, 'getPermissionDatatables']);
@@ -994,32 +1059,38 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('ie_permission_do_edit', [InvoiceEditorController::class, 'doEdit']);
     Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
     Route::post('ie_permission_cancel_invoice', [InvoiceEditorController::class, 'cancelInvoice']);
+
     // InstockListController
     Route::get('instock_list', [InstockListController::class, 'index']);
     Route::get('il_datatables', [InstockListController::class, 'getDatatables']);
     Route::get('il_history_datatables', [InstockListController::class, 'getHistoryDatatables']);
     Route::post('il_save', [InstockListController::class, 'storeData']);
+
     // UserManagementController
     Route::get('user_management', [UserManagementController::class, 'index']);
     Route::get('um_datatables', [UserManagementController::class, 'getDatatables']);
     Route::post('um_save', [UserManagementController::class, 'storeData']);
     Route::post('um_delete', [UserManagementController::class, 'deleteData']);
+
     // UserMenuAccessController
     Route::get('uma_datatables', [UserMenuAccessController::class, 'getDatatables']);
     Route::post('uma_save', [UserMenuAccessController::class, 'storeData']);
     Route::post('uma_delete', [UserMenuAccessController::class, 'deleteData']);
     Route::post('uma_default', [UserMenuAccessController::class, 'setDefault']);
+
     // MainMenuController
     Route::get('main_menu', [MainMenuController::class, 'index']);
     Route::get('mm_datatables', [MainMenuController::class, 'getDatatables']);
     Route::post('mm_save', [MainMenuController::class, 'storeData']);
     Route::post('mm_delete', [MainMenuController::class, 'deleteData']);
     Route::post('mm_update', [MainMenuController::class, 'updateData']);
+
     // MenuAccessController
     Route::get('menu_access', [MenuAccessController::class, 'index']);
     Route::get('ma_datatables', [MenuAccessController::class, 'getDatatables']);
     Route::post('ma_save', [MenuAccessController::class, 'storeData']);
     Route::post('ma_delete', [MenuAccessController::class, 'deleteData']);
+
     // WebConfigController
     Route::get('pengaturan_erp', [WebConfigController::class, 'index']);
     Route::get('perp_datatables', [WebConfigController::class, 'getDatatables']);

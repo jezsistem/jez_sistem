@@ -29,6 +29,7 @@
                 <input type="text" disabled style="width:65px;" value="Sub. Disc" readonly/><input disabled type="text" name="poa_sub_discount" id="poa_sub_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_sub_discount }}" onchange="return subDiscount( {{ $row->poa_id }} )"/>
             </td>
             <td style="white-space: nowrap;">
+
                     <input type="text" style="width:60px;" value="Sz" readonly/>
                     <input type="text" style="width:60px;" value="Ord" readonly/>
                     <input type="text" style="width:60px;" value="Krg" readonly/>
@@ -47,8 +48,10 @@
                         <input type="number" id="poads_qty_remain_{{ $row->poa_id }}_{{ $i }}" style="width:60px;" value="{{ ($srow->poad_qty-$srow->poads_qty) }}" readonly/>
                         @if ($srow->poad_qty-$srow->poads_qty == 0)
                             <input type="text" style="width:52px;" value="Full" disabled/>
+                        @elseif($srow->qty_import != null)
+                                <input type="text" id="poads_qty_{{ $row->poa_id }}_{{ $i }}" style="width:52px;" value="{{ $srow->qty_import }}" onchange="return receiveQty({{ $row->poa_id }}, {{ $i }} )" required/>
                         @else
-                            <input type="text" id="poads_qty_{{ $row->poa_id }}_{{ $i }}" style="width:52px;" value="" onchange="return receiveQty( {{ $row->poa_id }}, {{ $i }} )" required/>
+                            <input type="text" id="poads_qty_{{ $row->poa_id }}_{{ $i }}" style="width:52px;" value="" onchange="return receiveQty({{ $row->poa_id }}, {{ $i }} )" required/>
                         @endif
                         @if ($srow->ps_price_tag == null || $srow->ps_price_tag == 0)
                         <input type="text" style="width:80px;" id="price_tag_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($row->p_price_tag) }}" readonly/>
