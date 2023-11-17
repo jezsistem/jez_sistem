@@ -53,6 +53,11 @@ class POPurchaseReceiveImportController extends Controller
             $barcodeAndQty = $item[0];
 
             $explodedData = explode(',', $barcodeAndQty);
+            
+            if (count($explodedData) == 1) {
+                $explodedData[1] = 1;
+            }
+
 
             $barcode = $explodedData[0];
             $qty = $explodedData[1];
