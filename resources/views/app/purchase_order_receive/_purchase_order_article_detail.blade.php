@@ -49,7 +49,7 @@
                         @if ($srow->poad_qty-$srow->poads_qty == 0)
                             <input type="text" style="width:52px;" value="Full" disabled/>
                         @elseif($srow->qty_import != null)
-                                <input type="text" id="poads_qty_{{ $row->poa_id }}_{{ $i }}" style="width:52px;" value="{{ $srow->qty_import }}" onchange="return receiveQty({{ $row->poa_id }}, {{ $i }} )" required/>
+                            <input type="text" id="poads_qty_{{ $row->poa_id }}_{{ $i }}" style="width:52px;" value="{{ $srow->qty_import }}" onchange="return receiveQtyImport({{ $row->poa_id }}, {{ $i }}, {{ $srow->qty_import }} )" required/>
                         @else
                             <input type="text" id="poads_qty_{{ $row->poa_id }}_{{ $i }}" style="width:52px;" value="" onchange="return receiveQty({{ $row->poa_id }}, {{ $i }} )" required/>
                         @endif
@@ -58,9 +58,21 @@
                         @else
                         <input type="text" style="width:80px;" id="price_tag_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->ps_price_tag) }}" readonly/>
                         @endif
+                        @if($srow->qty_import != null || $srow->qty_import != 0)
+                            @if ($srow->ps_price_tag == null || $srow->ps_price_tag == 0)
+                                <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value="{{ number_format($srow->qty_import * $row->p_price_tag) }}"/>
+                            @else
+                                <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value="{{ number_format($srow->qty_import * $srow->ps_price_tag) }}"/>
+                            @endif
+                        @else
                         <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value=""/>
+                        @endif
                         <input type="text" style="width:80px;" id="total_purchase_price_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->poad_total_price) }}" readonly/>
+                        @if($srow->qty_import != null)
+                            <input type="text" style="width:90px;" id="total_purchase_price_receive{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->qty_import *  $srow->poad_total_price) }}" readonly/> <img data-img-poads id="savePoads{{ $a }}" onclick="return savePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}" ondblclick="return bulkSavePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}"/>
+                        @else
                         <input type="text" style="width:90px;" id="total_purchase_price_receive{{ $row->poa_id }}_{{ $i }}" value="" readonly/> <img data-img-poads id="savePoads{{ $a }}" onclick="return savePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}" ondblclick="return bulkSavePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}"/>
+                        @endif
                         <i class="fa fa-eye" data-p_name="[{{ $row->br_name }}] {{ $row->p_name }} {{ $row->p_color }} [{{ $srow->sz_name }}]" data-poad_id="{{ $srow->poad_id }}" id="receive_history"> </i>
                         <br/>
                         @php $i ++; $a++; $total_poad_price += $srow->poad_total_price; $total_poads_price += $srow->poads_total_price; @endphp

@@ -39,6 +39,10 @@ class POPurchaseReceiveImportController extends Controller
             }  else {
                 $r['status'] = '400';
             }
+
+//            delete file
+            unlink(public_path('excel/'.$nama_file));
+                
             return json_encode($r);
         } catch (\Exception $e) {
             throw $e;

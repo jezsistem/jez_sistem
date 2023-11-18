@@ -416,7 +416,7 @@ class PurchaseOrderReceiveController extends Controller
         $data = [
             'product' => $get_product,
         ];
-//        return response()->json($data['product'][0]['subitem'][0]->ps_barcode);
+
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data'));
     }
 
