@@ -57,23 +57,31 @@ class POPurchaseReceiveImportController extends Controller
             $barcodeAndQty = $item[0];
 
             $explodedData = explode(',', $barcodeAndQty);
-            
+
             if (count($explodedData) == 1) {
                 $explodedData[1] = 1;
             }
 
-
             $barcode = $explodedData[0];
             $qty = $explodedData[1];
 
-            $rowData = [
-                'barcode' => $barcode,
-                'qty' => $qty,
-            ];
+            // Check if barcode already exists in processedData
+            $existingKey = array_search($barcode, array_column($processedData, 'barcode'));
 
-            $processedData[] = $rowData;
+            if ($existingKey !== false) {
+                // If barcode exists, add the quantity to the existing entry
+                $processedData[$existingKey]['qty'] += $qty;
+            } else {
+                // If barcode doesn't exist, create a new entry
+                $rowData = [
+                    'barcode' => $barcode,
+                    'qty' => $qty,
+                ];
+                $processedData[] = $rowData;
+            }
         }
 
         return $processedData;
     }
+
 }
