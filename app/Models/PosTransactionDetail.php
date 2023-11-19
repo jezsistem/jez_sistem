@@ -19,7 +19,7 @@ class PosTransactionDetail extends Model
         'pos_td_sell_price',
         'pos_td_total_price',
         'pos_td_discount',
-        'pos_td_discount_price',
+        'pos_td_discount_number',
         'pos_td_discount_price',
         'pos_td_marketplace_price',
         'pos_td_nameset_price',

@@ -44,6 +44,7 @@
         var str = pl_id.replace(/\[|\]/g, '');
         var pls_qty = str.split(' ');
         var discount = jQuery('#reseller_disc'+row).val();
+        var discount_number = jQuery('#reseller_disc_number'+row).val();
 
         if (parseInt(item_qty) > parseInt(pls_qty[1]) || parseInt(item_qty) < 0) {
             swal('Melebihi Stok', 'Jumlah item tidak boleh melebihi atau kurang jumlah pada BIN', 'warning');
@@ -53,10 +54,21 @@
             jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(jQuery('#total_price_side').text()))+parseInt(total_nameset_side)+parseInt(shipping_cost_side)));
             return false;
         }
+
         if (discount == '' || discount == '-') {
             discount = 0;
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount))
+
+        // Pemeriksaan apakah discount_number terisi
+        if (discount_number !== '' && discount_number !== '-') {
+            // Menghitung subtotal dengan discount_number
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - parseFloat(discount_number));
+        } else {
+
+            // Menghitung subtotal dengan menggunakan logika sebelumnya jika discount_number tidak terisi
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount));
+        }
+
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item'+row).text('-'+addCommas(subtotal));
         } else {
@@ -92,6 +104,8 @@
         var shipping_cost_side = replaceComma(jQuery('#shipping_cost_side').text());
         var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
         var discount = jQuery('#reseller_disc'+row).val();
+        var discount_number = jQuery('#reseller_disc_number'+row).val();
+
         if (parseInt(Math.abs(item_qty)) > parseInt(qty)) {
             swal('Melebihi Pembelian', 'Jumlah item tidak boleh melebihi jumlah pada pembelian', 'warning');
             jQuery('#item_qty'+row).val(-Math.abs(qty));
@@ -100,7 +114,15 @@
         if (discount == '' || discount == '-') {
             discount = 0;
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount))
+        // Pemeriksaan apakah discount_number terisi
+        if (discount_number !== '' && discount_number !== '-') {
+            // Menghitung subtotal dengan discount_number
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - parseFloat(discount_number));
+        } else {
+            // Menghitung subtotal dengan menggunakan logika sebelumnya jika discount_number tidak terisi
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount));
+        }
+
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item'+row).text('-'+addCommas(subtotal));
         } else {
@@ -144,6 +166,46 @@
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item));
         } else {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item)) - (parseFloat(replaceComma(sell_price_item))/100 * parseFloat(discount));
+        }
+        jQuery('#item_qty'+index).val('1');
+        jQuery('#subtotal_item'+index).text(addCommas(subtotal_after_disc));
+        var final_price = 0;
+        var nameset = 0;
+        jQuery('#orderTable tr').each(function(index, row) {
+            if (jQuery(row).find('.subtotal_item').text() != '') {
+                var sbttl = parseFloat(replaceComma(jQuery(row).find('.subtotal_item').text()));
+                if (typeof sbttl === 'undefined' && sbttl == '') {
+                    sbttl = 0;
+                }
+                final_price += sbttl;
+            }
+            var nameset_value = jQuery(row).find('.nameset_price').val();
+            if (typeof nameset_value !== 'undefined' && nameset_value != '') {
+                nameset += parseFloat(nameset_value);
+            }
+        });
+        jQuery('#total_price_side').text(addCommas(final_price));
+        jQuery('#total_final_price_side').text(addCommas(final_price+parseFloat(replaceComma(shipping_cost_side))+nameset));
+    }
+
+    function resellerDiscNumber(index)
+    {
+        if (jQuery('#reseller_disc_number'+index).val() < 0) {
+            swal('Minus', 'diskon reseller tidak boleh minus', 'warning');
+            jQuery('#reseller_disc'+index).val('');
+            return false;
+        }
+        var discount = jQuery('#reseller_disc_number'+index).val();
+        var sell_price_item = jQuery('#sell_price_item'+index).text();
+        var subtotal_item = jQuery('#subtotal_item'+index).text();
+        var total_price_side = jQuery('#total_price_side').text();
+        var shipping_cost_side = jQuery('#shipping_cost_side').text();
+        var total_final_price_side = jQuery('#total_final_price_side').text();
+        var total_row = jQuery('tr[data-list-item]').length;
+        if (jQuery.trim(discount) == '' || jQuery.trim(discount) == 0) {
+            var subtotal_after_disc = parseFloat(replaceComma(sell_price_item));
+        } else {
+            var subtotal_after_disc = parseFloat(replaceComma(sell_price_item)) - discount;
         }
         jQuery('#item_qty'+index).val('1');
         jQuery('#subtotal_item'+index).text(addCommas(subtotal_after_disc));
@@ -345,6 +407,7 @@
         var pt_id = jQuery('#_pt_id').val();
         var pt_id_complaint = jQuery('#_pt_id_complaint').val();
         var discount = jQuery('#reseller_disc'+row).val();
+        var discount_number = jQuery('#reseller_disc_number'+row).val();
         var sell_price_item = jQuery('#sell_price_item'+row).text();
         var final_price = jQuery('#total_final_price_side').text();
         var subtotal_item = jQuery('#subtotal_item'+row).text();
@@ -381,6 +444,7 @@
                 _pst_id:pst_id,
                 _price:price,
                 _discount:discount,
+                _discount_number: discount_number,
                 _marketplace_price:marketplace_price,
                 _sell_price_item:replaceComma(sell_price_item),
                 _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
@@ -479,7 +543,7 @@
                 " <td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td>" +
                 " <td>"+bin+"</td>" +
                 " <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
-                " <td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                " <td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDiscNumber("+(total_row+1)+")'/></td>" +
                 " <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td>" +
                 " <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td>" +
                 " <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
@@ -491,8 +555,9 @@
             jQuery('#orderTable tr:last').after("" +
                 "<tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> " +
                 "<td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td>" +
-                "<td>"+bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
-                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                "<td>"+bin+"</td> " +
+                "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDiscNumber("+(total_row+1)+")'/></td>" +
                 "<td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td> " +
                 "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
                 "<td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
