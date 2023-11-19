@@ -115,7 +115,11 @@ class PointOfSaleController extends Controller
     public function refundReturDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'product_stocks.id as pst_id', 'pos_transactions.id as pt_id', 'ps_barcode', 'pos_invoice', 'p_name', 'pos_td_discount', 'ps_qty', 'pl_id', 'p_color', 'sz_name', 'br_name', 'pos_td_qty', 'pos_td_total_price', 'pos_td_sell_price', 'pos_td_nameset_price', 'pos_td_marketplace_price', 'pos_transactions.created_at as p_created')
+            return datatables()->of(PosTransactionDetail::
+            select('pos_transaction_details.id as ptd_id', 'product_stocks.id as pst_id', 'pos_transactions.id as pt_id',
+                'ps_barcode', 'pos_invoice', 'p_name', 'pos_td_discount', 'ps_qty', 'pl_id', 'p_color',
+                'sz_name', 'br_name', 'pos_td_qty', 'pos_td_total_price', 'pos_td_sell_price', 'pos_td_nameset_price',
+                'pos_td_marketplace_price', 'pos_transactions.created_at as p_created')
             ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')

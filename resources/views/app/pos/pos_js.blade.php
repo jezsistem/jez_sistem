@@ -33,6 +33,7 @@
 
     function changeQty(row, pst_id)
     {
+        console.log("init pst"+pst_id);
         var pl_id = jQuery('#orderList'+row).closest('tr').find("#pl_id option:selected").text();
         var item_qty = jQuery('#item_qty'+row).val();
         var sell_price_item = replaceComma(jQuery('#sell_price_item'+row).text());
@@ -43,6 +44,7 @@
         var str = pl_id.replace(/\[|\]/g, '');
         var pls_qty = str.split(' ');
         var discount = jQuery('#reseller_disc'+row).val();
+
         if (parseInt(item_qty) > parseInt(pls_qty[1]) || parseInt(item_qty) < 0) {
             swal('Melebihi Stok', 'Jumlah item tidak boleh melebihi atau kurang jumlah pada BIN', 'warning');
             jQuery('#item_qty'+row).val('0');
@@ -365,7 +367,23 @@
         jQuery.ajax({
             type:'POST',
             url: "{{ url('save_transaction_detail')}}",
-            data: {voc_pst_id:voc_pst_id, voc_value:value_price_voc, _cross:cross, _item_qty:item_qty, _plst_id:plst_id, _pt_id_complaint:pt_id_complaint, _final_price:parseFloat(replaceComma(final_price)), _exchange:exchange, _pt_id:pt_id, _pl_id:pl_id, _pst_id:pst_id, _price:price, _discount:discount, _marketplace_price:marketplace_price,_sell_price_item:replaceComma(sell_price_item), _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
+            data: {
+                voc_pst_id:voc_pst_id,
+                voc_value:value_price_voc,
+                _cross:cross,
+                _item_qty:item_qty,
+                _plst_id:plst_id,
+                _pt_id_complaint:pt_id_complaint,
+                _final_price:parseFloat(replaceComma(final_price)),
+                _exchange:exchange,
+                _pt_id:pt_id,
+                _pl_id:pl_id,
+                _pst_id:pst_id,
+                _price:price,
+                _discount:discount,
+                _marketplace_price:marketplace_price,
+                _sell_price_item:replaceComma(sell_price_item),
+                _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
             dataType: 'json',
             success: function(r) {
                 jQuery.noConflict();
@@ -456,9 +474,31 @@
         jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price)));
         var type = jQuery('#std_id option:selected').text();
         if (type != 'DROPSHIPPER' && type != 'RESELLER' && type != 'WHATSAPP' && type != 'WEBSITE') {
-            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td> <td>"+bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+            jQuery('#orderTable tr:last').after("" +
+                " <tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'>" +
+                " <td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td>" +
+                " <td>"+bin+"</td>" +
+                " <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                " <td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                " <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td>" +
+                " <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td>" +
+                " <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                " <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'>" +
+                " <i class='fa fa-eye' style='display:none;'></i></a> " +
+                " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
         } else {
-            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td> <td>"+bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+            jQuery('#orderTable tr:last').after("" +
+                "<tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> " +
+                "<td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td>" +
+                "<td>"+bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                "<td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td> " +
+                "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
+                "<td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
+                "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
         }
         if (jQuery('#voucher_code').val() != '') {
             var code = jQuery('#voucher_code').val();
@@ -636,7 +676,19 @@
                 jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
                 jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
                 addRefundExchangeList('add', plst_id, pt_id);
-                jQuery('#orderTable tr:last').after("<tr data-list-item class='bg-danger text-white pos_item_list"+(pst_id)+" mb-2' id='data_plst"+plst_id+"'> <td style='white-space: nowrap;'>"+p_name+"</td> <td><select class='text-white font-weight-bold' id='pl_id"+(total_row+1)+"' style='background-color:#986923; border-radius:10px;'><option value='"+pl_id+"' selected>DEFAULT</option></select></td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' value='"+reseller_disc+"' onchange='return resellerDisc("+(total_row+1)+")' readonly/></td> <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='-"+item_qty+"' onchange='return changeReturQty("+(total_row+1)+", "+pst_id+", "+item_qty+")'></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' value='"+nameset_price+"' onchange='return namesetPrice("+(total_row+1)+")' readonly/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' value='-"+marketplace_price+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
+                jQuery('#orderTable tr:last').after("" +
+                    "<tr data-list-item class='bg-danger text-white pos_item_list"+(pst_id)+" mb-2' id='data_plst"+plst_id+"'> " +
+                    "<td style='white-space: nowrap;'>"+p_name+"</td> " +
+                    "<td><select class='text-white font-weight-bold' id='pl_id"+(total_row+1)+"' style='background-color:#986923; border-radius:10px;'>" +
+                    "<option value='"+pl_id+"' selected>DEFAULT</option></select></td> " +
+                    "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' value='"+reseller_disc+"' onchange='return resellerDisc("+(total_row+1)+")' readonly/></td> " +
+                    "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                    "<td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='-"+item_qty+"' onchange='return changeReturQty("+(total_row+1)+", "+pst_id+", "+item_qty+")'></td> " +
+                    "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' value='"+nameset_price+"' onchange='return namesetPrice("+(total_row+1)+")' readonly/></td> " +
+                    "<td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' value='-"+marketplace_price+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
+                    "<td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(price)+"</span></td> " +
+                    "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> " +
+                    "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
             } else {
                 // jQuery('#_pt_id_complaint').val('');
                 addRefundExchangeList('remove', plst_id, pt_id);
@@ -1006,9 +1058,30 @@
                         toast('Ditambah', 'Item berhasil ditambah', 'success');
                         var type = jQuery('#std_id option:selected').text();
                         if (type != 'DROPSHIPPER' && type != 'RESELLER' && type != 'WHATSAPP' && type != 'WEBSITE') {
-                            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td>"+r.p_name+"</td> <td>"+r.bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                            jQuery('#orderTable tr:last').after("" +
+                                "<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' " + "id='orderList"+(total_row+1)+"'>" +
+                                "<td>"+r.p_name+"</td> " +
+                                "<td>"+r.bin+"</td> " +
+                                "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                                "<td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td>" +
+                                "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td>" +
+                                "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> " +
+                                "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                         } else {
-                            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td>"+r.p_name+"</td> <td>"+r.bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td>"+r.p_name+"</td>" +
+                                "<td>"+r.bin+"</td>" +
+                                "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                                "<td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td> " +
+                                "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
+                                "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                         }
                         return false;
                     } else if (r.status == '419') {
