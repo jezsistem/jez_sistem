@@ -207,8 +207,9 @@
     $(document).delegate('#f_password', 'submit', function(e) {
         e.preventDefault();
         var password = $('#password').val();
+        var old_password = $('#old_password').val();
         var confirm_password = $('#confirm_password').val();
-        if (password!=confirm_password) {
+        if (password !== confirm_password) {
             swal('Konfirmasi Password', 'Konfirmasi Password Tidak Sama', 'warning');
             return false;
         }
@@ -219,7 +220,10 @@
         });
         $.ajax({
             type: "POST",
-            data: {_password:password},
+            data: {
+                _password:password,
+                _old_password:old_password,
+            },
             dataType: 'json',
             url: "{{ url('change_password')}}",
             success: function(r) {
@@ -227,9 +231,10 @@
                 if (r.status == '200'){
                     $('#ChangePasswordModal').modal('hide');
                     $('#f_password')[0].reset();
-                    swal('Berhasil', 'Berhasil ganti password', 'success');
-                } else {
-                    swal('Gagal', 'Gagal ganti password', 'warning');
+                    swal('Berhasil', r.message, 'success');
+                }
+                else {
+                    swal('Gagal', r.message, 'warning');
                 }
             }
         });
