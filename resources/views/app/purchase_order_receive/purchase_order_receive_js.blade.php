@@ -409,9 +409,59 @@
         $('#poad_total_price_receive_'+id).text(addCommas(total_price));
     }
 
+    function receiveQtyImport(id, index, importQty)
+    {
+        var po_id = $('#_po_id').val();
+        var order_qty = $('#poads_qty_remain_'+id+'_'+index).val();
+        var qty = importQty;
+        var purchase_price = $('#poad_purchase_price_'+id+'_'+index).val();
+        var price_tag = $('#price_tag_'+id+'_'+index).val();
+        var total_purchase_price = $('#total_purchase_price_'+id+'_'+index).val();
+        var total_row = $('span[data-poa-'+id+']').length;
+        var discount = $('#poa_discount'+id).val();
+        var extra_discount = $('#poa_extra_discount'+id).val();
+        var total_price = 0;
+        var total = 0;
+
+        if (discount == '' || discount == 0) {
+            discount = 0;
+        }
+        price_tag = replaceComma(price_tag);
+        if (price_tag == '' || price_tag == 0) {
+            price_tag = replaceComma(total_purchase_price) / order_qty;
+        }
+        purchase_price = price_tag - (price_tag/100 * discount);
+        //alert(purchase_price +' '+price_tag+' '+discount);
+        $('#poad_purchase_price_'+id+'_'+index).val(addCommas(purchase_price));
+        if (qty == '') {
+            qty = 0;
+        }
+        total = parseFloat(qty) * parseFloat(purchase_price);
+
+        if (parseInt(qty) > parseInt(order_qty)) {
+            $('#poads_qty_'+id+'_'+index).val('');
+            swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
+            $('#total_purchase_price_receive'+id+'_'+index).val('')
+            return false;
+        }
+        $('#total_purchase_price_receive'+id+'_'+index).val(addCommas(total));
+        for (let i = 0; i < total_row; ++i) {
+            total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive'+id+'_'+i).val()));
+        }
+        $('#poad_total_price_receive_'+id).text(addCommas(total_price));
+    }
+
     function receivePurchasePrice(id, index)
     {
         var qty = $('#poads_qty_'+id+'_'+index).val();
+        var purchase_price = $('#poad_purchase_price_'+id+'_'+index).val();
+        var total = parseFloat(qty) * parseFloat(replaceComma(purchase_price));
+        $('#total_purchase_price_receive'+id+'_'+index).val(addCommas(total));
+    }
+
+    function receivePurchasePriceImport(id, index, qtyImport)
+    {
+        var qty = qtyImport;
         var purchase_price = $('#poad_purchase_price_'+id+'_'+index).val();
         var total = parseFloat(qty) * parseFloat(replaceComma(purchase_price));
         $('#total_purchase_price_receive'+id+'_'+index).val(addCommas(total));
