@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\ProductLocation;
 use App\Models\ProductLocationSetup;
+use Intervention\Image\Facades\Image;
 
 class PurchaseOrderArticleDetailStatusController extends Controller
 { 
@@ -48,6 +49,35 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             'created_at' => $receive_date.' '.date('H:i:s'),
             'updated_at' => $receive_date.' '.date('H:i:s'),
         ]);
+
+        if ($request->hasFile('invoiceImage')) {
+            $image = $request->file('invoiceImage');
+            $input['fileName'] = time().'.'.$image->getClientOriginalExtension();
+            $destinationPath = public_path('/upload/poads/receive');
+            $img = Image::make($image->path());
+            $img->resize(400, 400, function ($constraint) {
+                $constraint->aspectRatio();
+            })->save($destinationPath.'/'.$input['fileName']);
+
+            DB::table('purchase_order_article_detail_statuses')->where('id', $check)->update([
+                'invoice_image' => $input['fileName']
+            ]);
+        }
+
+        if($request->hasFile('packetImage')) {
+            $image = $request->file('packetImage');
+            $input['fileName'] = time().'.'.$image->getClientOriginalExtension();
+            $destinationPath = public_path('/upload/poads/receive');
+            $img = Image::make($image->path());
+            $img->resize(400, 400, function ($constraint) {
+                $constraint->aspectRatio();
+            })->save($destinationPath.'/'.$input['fileName']);
+
+            DB::table('purchase_order_article_detail_statuses')->where('id', $check)->update([
+                'packet_image' => $input['fileName']
+            ]);
+        }
+
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
@@ -133,5 +163,16 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    private function uploadImage($image, $path)
+    {
+        $input['fileName'] = time().'.'.$image->getClientOriginalExtension();
+        $destinationPath = public_path($path);
+        $img = Image::make($image->path());
+        $img->resize(400, 400, function ($constraint) {
+            $constraint->aspectRatio();
+        })->save($destinationPath.'/'.$input['fileName']);
+        return $input['fileName'];
     }
 }

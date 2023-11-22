@@ -40,7 +40,7 @@
             </div>
             <!--end::Dropdown-->
             </div>
-            <form id="f_po">
+            <form id="f_po" enctype="multipart/form-data">
             <input type="hidden" id="_mode" name="_mode"/>
             <input type="hidden" id="_po_id" name="_po_id"/>
             <div class="modal-body">
@@ -107,8 +107,8 @@
 
                             <div class="row mx-2 justify-content-between">
                                 <div class="input-group col-5">
-                                    <input type="file" class="form-control invisible" id="inputGroupFile02">
-                                    <label class="input-group-text" for="inputGroupFile02">
+                                    <input type="file" class="form-control invisible" id="invoiceImage">
+                                    <label class="input-group-text" for="invoiceImage">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -122,11 +122,10 @@
                                         </span>
                                         Invoice
                                     </label>
-
                                 </div>
                                 <div class="input-group col-5">
-                                    <input type="file" class="form-control invisible" id="inputGroupFile02">
-                                    <label class="input-group-text" for="inputGroupFile02">
+                                    <input type="file" class="form-control invisible" id="packetImage">
+                                    <label class="input-group-text" for="packetImage">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -140,7 +139,6 @@
                                         </span>
                                         Paket
                                     </label>
-
                                 </div>
                             </div>
                     </div>
@@ -203,7 +201,7 @@
 <div class="modal fade" id="EditPoadsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="overflow-y: auto;">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form id="f_poads">
+            <form id="f_poads" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="_poads_id" id="_poads_id" value="" />
             <div class="modal-header bg-light">
@@ -325,44 +323,6 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
                     <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Import</button>
-                </div>
-        </div>
-    </div>
-</div>
-</form>
-<!-- /Modal -->
-
-<!-- Modal-->
-<form id="f_upload_image" enctype="multipart/form-data">
-    @csrf
-    <div class="modal fade" id="UploadImageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title text-dark" id="exampleModalLabel">Upload Gambar</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <i aria-hidden="true" class="ki ki-close"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Upload Gambar Invoice</label>
-                                <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="importFile" id="importFile" required/>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Upload Gambar Paket</label>
-                                <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="importFile" id="importFile" required/>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Upload</button>
                 </div>
         </div>
     </div>

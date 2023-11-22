@@ -53,6 +53,7 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+
         if (receive_date == '') {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
             return false;
@@ -88,21 +89,48 @@
                 var poads_extra_discount = $('#poa_extra_discount'+poa_id).val();
                 var poads_purchase_price = replaceComma($('#poad_purchase_price_'+poa_id+'_'+index).val());
                 var poads_qty = $('#poads_qty_'+poa_id+'_'+index).val();
+
+                // create FormData object and append file data
+                var formData = new FormData();
+                formData.append('receive_date', receive_date);
+                formData.append('receive_invoice', receive_invoice);
+                formData.append('invoice_date', invoice_date);
+                formData.append('_st_id', st_id);
+                formData.append('_stkt_id', stkt_id);
+                formData.append('_tax_id', tax_id);
+                formData.append('_pst_id', pst_id);
+                formData.append('_poad_id', poad_id);
+                formData.append('_poads_qty', poads_qty);
+                formData.append('_poads_discount', poads_discount);
+                formData.append('_poads_extra_discount', poads_extra_discount);
+                formData.append('_poads_purchase_price', poads_purchase_price);
+
+                // appenda image file data
+                var invoiceImage = $('#invoiceImage')[0].files[0];
+                var packetImage = $('#packetImage')[0].files[0];
+
+                formData.append('invoiceImage', invoiceImage);
+                formData.append('packetImage', packetImage);
+
                 $.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 $.ajax({
                     type: "POST",
-                    data: {receive_date:receive_date, receive_invoice:receive_invoice, invoice_date:invoice_date, _st_id:st_id, _stkt_id:stkt_id, _tax_id:tax_id, _pst_id:pst_id, _poad_id:poad_id, _poads_qty:poads_qty, _poads_discount:poads_discount, _poads_extra_discount:poads_extra_discount, _poads_purchase_price:poads_purchase_price},
+                    data: formData,
                     dataType: 'json',
                     url: "{{ url('poads_save')}}",
                     success: function(r) {
+                        console.log(r)
                         if (r.status == '200'){
+                            console.log(r);
                             $('#receive_date').val('');
                             $('#receive_invoice').val('');
                             $('#invoice_date').val('');
+                            $('#invoiceImage').val('');
+                            $('#packetImage').val('');
                             reloadArticleDetail(po_id);
                             swal("Berhasil", "Data berhasil disimpan", "success");
                         } else {
@@ -133,6 +161,43 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+
+        var formData = new FormData();
+        formData.append('receive_date', receive_date);
+        formData.append('receive_invoice', receive_invoice);
+        formData.append('invoice_date', invoice_date);
+        formData.append('_st_id', st_id);
+        formData.append('_stkt_id', stkt_id);
+        formData.append('_tax_id', tax_id);
+        formData.append('_pst_id', pst_id);
+        formData.append('_poad_id', poad_id);
+        formData.append('_poads_qty', poads_qty);
+        formData.append('_poads_discount', poads_discount);
+        formData.append('_poads_extra_discount', poads_extra_discount);
+        formData.append('_poads_purchase_price', poads_purchase_price);
+
+        // appenda image file data
+        // var invoiceImage = $('#invoiceImage')[0].files[0];
+        // var packetImage = $('#packetImage')[0].files[0];
+        //
+        // formData.append('invoiceImage', invoiceImage);
+        // formData.append('packetImage', packetImage);
+
+        var invoiceImage = document.getElementById('invoiceImage');
+        var packetImage = document.getElementById('packetImage');
+
+        if(invoiceImage.files.length > 0)
+        {
+            formData.append('invoiceImage', invoiceImage.files[0]);
+        }
+
+        if(packetImage.files.length > 0)
+        {
+            formData.append('packetImage', packetImage.files[0]);
+        }
+
+
+
         $.ajaxSetup({
             headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -140,16 +205,18 @@
         });
         $.ajax({
             type: "POST",
-            data: {receive_date:receive_date, receive_invoice:receive_invoice, invoice_date:invoice_date, _st_id:st_id, _stkt_id:stkt_id, _tax_id:tax_id, _pst_id:pst_id, _poad_id:poad_id, _poads_qty:poads_qty, _poads_discount:poads_discount, _poads_extra_discount:poads_extra_discount, _poads_purchase_price:poads_purchase_price},
+            data: formData,
             dataType: 'json',
             url: "{{ url('poads_save')}}",
+            contentType: false,
+            processData: false,
             success: function(r) {
                 if (r.status == '200'){
                     toast("Berhasil", "Data berhasil disimpan", "success");
                 } else {
                     swal('Gagal', 'Gagal simpan data', 'error');
                 }
-            }
+            },
         });
         return false;
     }
