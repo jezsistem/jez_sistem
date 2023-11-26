@@ -12,6 +12,7 @@
     }
 
     function checkPurchasePrice(pid)
+
     {
         var discount = parseFloat($('#po_discount'+pid).val());
         var price_tag = parseFloat($('#po_price_tag'+pid).val());
@@ -990,6 +991,13 @@
                     return false;
                 }
             })
+        });
+
+        $(document).ready(function () {
+            // Open the second modal when the button is clicked
+            $("#ImportModalBtn").click(function () {
+                $("#ImportModal").modal("show");
+            });
         });
     });
 </script>

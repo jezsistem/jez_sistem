@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\POPurchaseReceiveImportController;
+use App\Http\Controllers\PurchaseOrderImportExcelController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
@@ -462,6 +463,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('po_description', [PurchaseOrderController::class, 'descriptionPo']);
     Route::post('po_save_draft', [PurchaseOrderController::class, 'poSaveDraft']);
     Route::post('po_detail', [PurchaseOrderController::class, 'poDetail']);
+    Route::post('po_import', [PurchaseOrderImportExcelController::class, 'importExcel']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
