@@ -529,6 +529,7 @@
             }
         });
 
+        var global_po_id ;
         var purchase_order_table = $('#PurchaseOrdertb').DataTable({
             destroy: true,
             processing: false,
@@ -758,6 +759,7 @@
 
         $('#PurchaseOrdertb tbody').on('click', 'tr', function () {
             var po_id = purchase_order_table.row(this).data().po_id;
+
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -770,6 +772,7 @@
                 url: "{{ url('po_detail')}}",
                 success: function(r) {
                     if (r.status == '200') {
+                        global_po_id = r.po_id;
                         jQuery.noConflict();
                         $('#f_po')[0].reset();
                         $('#PurchaseOrderModal').modal('show');
@@ -994,9 +997,47 @@
         });
 
         $(document).ready(function () {
-            // Open the second modal when the button is clicked
             $("#ImportModalBtn").click(function () {
                 $("#ImportModal").modal("show");
+            });
+        });
+
+        $('#f_import').on('submit' , function (e) {
+            e.preventDefault();
+            $('#import_data_btn').html('Proses...');
+            $('#import_data_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var po_id = global_po_id;
+
+            formData.append('_po_id', po_id)
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_import')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_import')[0].reset();
+                        reloadArticleDetail(po_id)
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
+                }
             });
         });
     });

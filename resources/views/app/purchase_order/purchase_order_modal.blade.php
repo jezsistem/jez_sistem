@@ -181,7 +181,7 @@
 <!-- /Modal -->
 
 <!-- Modal-->
-<form id="f_import" method="POST" action="{{ url('po_import') }}" enctype="multipart/form-data">
+<form id="f_import" enctype="multipart/form-data">
     @csrf
     <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -198,7 +198,6 @@
                             <label>Pilih template yang sudah diisi data</label>
                             <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="importFile" id="importFile" required/>
-                            <input type="hidden" id="_po_id" name="_po_id" value="test"/>
                         </div>
                     </div>
                 </div>
