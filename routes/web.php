@@ -243,6 +243,10 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('check_exists_customer', [CustomerController::class, 'checkExistsCustomer']);
     Route::post('check_customer', [CustomerController::class, 'checkCustomer']);
     Route::post('autocomplete_customer', [CustomerController::class, 'fetchCustomer']);
+    Route::get('store_traffic', [CustomerController::class, 'storeTraffic']);
+    Route::post('update_traffic_customer', [CustomerController::class, 'updateTrafficCustomer']);
+    Route::get('count_total_customer_type', [CustomerController::class, 'countTotalCustomerType']);
+
     // Tax
     Route::get('data_pajak', [TaxController::class, 'index'])->name('tax');
     Route::get('tax_datatables', [TaxController::class, 'getDatatables']);

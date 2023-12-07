@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomerTraffic;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -865,5 +867,71 @@ class CustomerController extends Controller
             'date_item' => $date_item,
         ];
         return view('app.customer._load_graph', compact('data'));
+    }
+
+    public function storeTraffic()
+    {
+        $this->validateAccess();
+
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id  
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        $data = [
+            'title' => $title,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1),
+            'ct_id' => CustomerType::where('ct_delete', '!=', '1')->orderByDesc('id')->pluck('ct_name', 'id'),
+            'cust_province' => DB::table('wilayah')->select('kode', 'nama')->whereRaw('length(kode) = 2')->orderBy('nama')->pluck('nama', 'kode'),
+        ];
+
+        $counts = CustomerTraffic::select('type', DB::raw('count(*) as total'))
+            ->whereDate('created_at', Carbon::today())
+            ->groupBy('type')
+            ->get();
+
+        $countsTotal = CustomerTraffic::select(DB::raw('count(*) as total'))
+            ->whereDate('created_at', Carbon::today())
+            ->get();
+
+        return view('app.customer.customer_traffic',[
+            'data' => $data,
+            'counts' => $counts,
+            'countsTotal' => $countsTotal
+        ]);
+    }
+
+    public function updateTrafficCustomer(Request $request)
+    {
+        $type = $request->input('gender');
+
+        CustomerTraffic::create([
+           'type' => $type
+        ]);
+
+        // count grouping by type and count total from today
+        $counts = CustomerTraffic::select('type', DB::raw('count(*) as total'))
+            ->whereDate('created_at', Carbon::today())
+            ->groupBy('type')
+            ->get();
+
+        $countsTotal = CustomerTraffic::select(DB::raw('count(*) as total'))
+            ->whereDate('created_at', Carbon::today())
+            ->get();
+        return response()->json([
+            'counts' => $counts,
+            'countsTotal' => $countsTotal
+        ]);
+
+//        return json_encode([
+//            'counts' => $counts,
+//            'countsTotal' => $countsTotal
+//        ]);
     }
 }
