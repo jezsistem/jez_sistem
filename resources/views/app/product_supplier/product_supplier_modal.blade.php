@@ -77,6 +77,14 @@
                         <input type="text" class="form-control" id="ps_address" name="ps_address" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Rekening</label>
+                        <input type="text" class="form-control" id="ps_rekening" name="ps_rekening"/>
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">NPWP</label>
+                        <input type="text" class="form-control" id="ps_rekening" name="ps_npwp"/>
+                    </div>
+                    <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Deskripsi</label>
                         <input type="text" class="form-control" id="ps_description" name="ps_description"/>
                     </div>

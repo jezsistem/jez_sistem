@@ -57,6 +57,8 @@
             var ps_email = product_supplier_table.row(this).data().ps_email;
             var ps_phone = product_supplier_table.row(this).data().ps_phone;
             var ps_address = product_supplier_table.row(this).data().ps_address;
+            var ps_npwp = product_supplier_table.row(this).data().ps_npwp;
+            var ps_rekening = product_supplier_table.row(this).data().ps_rekening;
             var ps_description = product_supplier_table.row(this).data().ps_description;
             jQuery.noConflict();
             $('#ProductSupplierModal').modal('show');
@@ -67,6 +69,8 @@
             $('#ps_phone').val(ps_phone);
             $('#ps_address').val(ps_address);
             $('#ps_description').val(ps_description);
+            $('#ps_npwp').val(ps_npwp);
+            $('#ps_rekening').val(ps_rekening);
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ( $data['user']->delete_access == '1' )

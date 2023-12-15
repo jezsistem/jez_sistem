@@ -116,6 +116,8 @@ class ProductSupplierController extends Controller
             'ps_phone' => $request->input('ps_phone'),
             'ps_address' => $request->input('ps_address'),
             'ps_description' => $request->input('ps_description'),
+            'ps_npwp' => $request->input('ps_npwp'),
+            'ps_rekening' => $request->input('ps_rekening'),
             'ps_delete' => '0',
         ];
 
