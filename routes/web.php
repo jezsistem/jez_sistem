@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\POPurchaseReceiveImportController;
+use App\Http\Controllers\ProductSubSubCategoryTestController;
 use App\Http\Controllers\PurchaseOrderImportExcelController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
@@ -334,6 +335,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('psc_import', [ProductSubCategoryController::class, 'importData']);
     Route::post('check_exists_product_sub_category', [ProductSubCategoryController::class, 'checkExistsProductSubCategory']);
     // Product Sub Sub Category
+    /**
     Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryController::class, 'index'])->name('product_sub_sub_category');
     Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryController::class, 'getDatatables']);
     Route::get('reload_product_sub_category', [ProductSubCategoryController::class, 'reloadProductSubCategory']);
@@ -342,6 +344,16 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('pssc_save', [ProductSubSubCategoryController::class, 'storeData']);
     Route::post('pssc_delete', [ProductSubSubCategoryController::class, 'deleteData']);
     Route::post('pssc_import', [ProductSubSubCategoryController::class, 'importData']);
+     */
+    Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryTestController::class, 'index'])->name('product_sub_sub_category');
+    Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryTestController::class, 'getDatatables']);
+    Route::get('reload_product_sub_category', [ProductSubCategoryController::class, 'reloadProductSubCategory']);
+    Route::get('reload_product_sub_sub_category', [ProductSubSubCategoryTestController::class, 'reloadProductSubSubCategory']);
+    Route::get('get_product_sub_sub_category', [ProductSubSubCategoryTestController::class, 'getProductSubSubCategory']);
+    Route::get('pssc_reload', [ProductSubSubCategoryTestController::class, 'reloadPssc']);
+    Route::post('pssc_save', [ProductSubSubCategoryTestController::class, 'storeData']);
+    Route::post('pssc_delete', [ProductSubSubCategoryTestController::class, 'deleteData']);
+    Route::post('pssc_import', [ProductSubSubCategoryTestController::class, 'importData']);
     // Marketplace Manager
     Route::get('marketplace_manager', [MarketplaceManagerController::class, 'index']);
     Route::get('marketplace_stock_datatables', [MarketplaceManagerController::class, 'stockDatatables']);
