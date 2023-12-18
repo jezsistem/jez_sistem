@@ -211,7 +211,6 @@
             contentType: false,
             processData: false,
             success: function(r) {
-                console.log(r);
                 if (r.status == '200'){
                     toast("Berhasil", "Data berhasil disimpan", "success");
                 } else {
