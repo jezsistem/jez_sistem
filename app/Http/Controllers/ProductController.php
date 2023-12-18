@@ -114,7 +114,12 @@ class ProductController extends Controller
     {
         if(request()->ajax()) {
             if ($request->pc_id == 'all') {
-                return datatables()->of(Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight')
+                return datatables()->of(Product::select(
+                'products.id as pid',
+                'br_id', 'pc_id',
+                'psc_id',
+                'pssc_id',
+                'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
                 ->join('brands', 'brands.id', '=', 'products.br_id')
                 ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
                 ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
@@ -181,7 +186,7 @@ class ProductController extends Controller
                 ->addIndexColumn()
                 ->make(true);
             } else {
-                return datatables()->of(Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_name', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight')
+                return datatables()->of(Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_name', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
                 ->join('brands', 'brands.id', '=', 'products.br_id')
                 ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
                 ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
@@ -650,4 +655,9 @@ class ProductController extends Controller
   	{
   		  return Excel::download(new ProductExport, 'product_data.xlsx');
   	}
+
+      public function exportData2(Request $request)
+      {
+          return Excel::download(new ProductExport, 'product_data.xlsx');
+      }
 }

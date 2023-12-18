@@ -298,15 +298,16 @@
                                 <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-                                        <th style="white-space: nowrap;" class="text-light">Nama</th>
-                                        <th style="white-space: nowrap;" class="text-light">Warna</th>
-                                        <th style="white-space: nowrap;" class="text-light">Brand</th>
-                                        <th style="white-space: nowrap;" class="text-light">Supplier</th>
-                                        <th style="white-space: nowrap;" class="text-light">Berat(gr)</th>
-                                        <th style="white-space: nowrap;" class="text-light">Harga Banderol</th>
-                                        <th style="white-space: nowrap;" class="text-light">Harga Beli</th>
-                                        <th style="white-space: nowrap;" class="text-light">Harga Jual</th>
-                                        <th style="white-space: nowrap;" class="text-light"></th>
+                                        <th style="white-space: nowrap;" class="text-dark">Nama</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Warna</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Brand</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Supplier</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Berat(gr)</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Harga Banderol</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Harga Beli</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Harga Jual</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Status</th>
+                                        <th style="white-space: nowrap;" class="text-dark"></th>
                                     </tr>
                                 </thead>
                                 <tbody>

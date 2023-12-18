@@ -113,7 +113,9 @@ class Product extends Model
                     ->leftJoin('genders', 'genders.id', '=', 'products.gn_id')
                     ->leftJoin('seasons', 'seasons.id', '=', 'products.ss_id')
                     ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')->get()->toArray();
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where('p_active','==', '1')
+                    ->get()->toArray();
         return $export;
     }
 }

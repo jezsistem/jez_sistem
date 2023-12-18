@@ -296,6 +296,7 @@
             { data: 'p_price_tag_show', name: 'p_price_tag' },
             { data: 'p_purchase_price_show', name: 'p_purchase_price' },
             { data: 'p_sell_price_show', name: 'p_sell_price' },
+            { data: 'p_active', name: 'p_active' },
             { data: 'p_detail', name: 'p_detail', sortable: false },
             ], 
             columnDefs: [
@@ -303,7 +304,18 @@
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
-            }],
+            },
+            {
+                targets: 9,
+                render: function (data, type, row) {
+                    if (row.p_active == '1') {
+                        return '<span class="badge badge-success">Aktif</span>';
+                    } else {
+                        return '<span class="badge badge-danger">Tidak Aktif</span>';
+                    }
+                }
+            }
+            ],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
                 "lengthMenu": "_MENU_",
