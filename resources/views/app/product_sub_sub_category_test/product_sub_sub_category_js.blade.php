@@ -33,6 +33,9 @@
                 url : "{{ url('product_sub_sub_category_datatables') }}",
                 data : function (d) {
                     d.search = $('#product_sub_sub_category_search').val();
+                    d.psc_id = $('#psc_id').val();
+                    console.log($('#product_sub_sub_category_search').val());
+                    console.log($('#psc_id').val());
                 }
             },
             columns: [
@@ -81,38 +84,18 @@
             product_sub_sub_category_table.draw();
         });
 
-        $('#pc_id').on('change', function() {
-            var label = $('#pc_id option:selected').text();
-            var pc_id = $('#pc_id').val();
-            if (label != '- Pilih -') {
-                $('#product_category_selected_label').text(label);
-                $.ajax({
-                    type: "GET",
-                    data: {_pc_id:pc_id},
-                    dataType: 'html',
-                    url: "{{ url('reload_product_sub_category')}}",
-                    success: function(r) {
-                        $('#psc_id').html(r);
-                    }
-                });
-            } else {
-                $('#product_category_selected_label').text('');
-                $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih -</option></select>");
-            }
-            $('#product_sub_category_selected_label').text('');
-            $('#product_sub_sub_category_display').fadeOut();
+        $('#psc_id').on('change', function() {
+            product_sub_sub_category_table.draw();
         });
 
-        $('#psc_id').on('change', function() {
-            var label = $('#psc_id option:selected').text();
-            if (label != '- Pilih Sub Kategori -') {
-                $('#product_sub_category_selected_label').text(label);
-                $('#product_sub_sub_category_display').fadeIn();
-                product_sub_sub_category_table.draw();
-            } else {
-                $('#product_sub_category_selected_label').text('');
-                $('#product_sub_sub_category_display').fadeOut();
-            }
+        $('#psc_id').select2({
+            width: "100%",
+            dropdownParent: $('#psc_id_parent')
+        });
+        $('#psc_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
         });
 
         $('#import_modal_btn').on('click', function() {

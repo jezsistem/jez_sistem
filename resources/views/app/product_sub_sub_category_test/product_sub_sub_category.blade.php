@@ -20,7 +20,37 @@
     </div>
     <!--end::Subheader-->
     <!--begin::Entry-->
+    <!--begin::Container-->
+    <div class="d-flex flex-column-fluid col-lg-12">
+        <!--begin::Container-->
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 col-xxl-12">
+                    <!--begin::Card-->
+                    <div class="card card-custom gutter-b">
+                        <div class="card-body">
+                            <!--begin: Datatable-->
+                            <div class="form-group mb-1 pb-1">
+                                <select class="form-control" id="psc_id" name="psc_id" required>
+                                    <option value="">- Pilih Sub Kategori -</option>
+                                    @foreach ($data['psc_id'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
+                                </select>
+                                <div id="psc_id_parent"></div>
+                            </div>
+                            <!--end: Datatable-->
+                        </div>
+                    </div>
+                    <!--end::Card-->
+                </div>
+            </div>
+        </div>
+        <!--end::Container-->
+    </div>
     <div class="d-flex flex-column-fluid">
+
+        <!--end::Container-->
         <!--begin::Container-->
         <div class="container">
             <div class="row">

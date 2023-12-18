@@ -106,6 +106,13 @@ class ProductSubSubCategoryTestController extends Controller
                         ->orWhere('pssc_description', 'LIKE', "%$search%");
                     });
                 }
+
+                if (!empty($request->get('psc_id'))) {
+                    $instance->where(function($w) use($request){
+                        $search = $request->get('psc_id');
+                        $w->orWhere('psc_id', '=', $search);
+                    });
+                }
             })
             ->addIndexColumn()
             ->make(true);
