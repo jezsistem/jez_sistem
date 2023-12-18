@@ -218,10 +218,6 @@
                     swal('Gagal', 'Gagal simpan data', 'error');
                 }
             },
-            error: function(r) {
-                console.log(r);
-                swal('Gagal', 'Gagal simpan data', 'error');
-            }
         });
         return false;
     }
