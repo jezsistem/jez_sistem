@@ -235,6 +235,15 @@
                                 <div id="sz_id_filter_parent"></div>
                             </div>
                             <!--end: Datatable-->
+                            <!--begin: Datatable-->
+                            <div class="form-group" style="padding-top:22px;">
+                                <select class="form-control" id="p_active_filter" name="p_active_filter" required>
+                                    <option value="">- Status -</option>
+                                    <option value="1">Aktif</option>
+                                    <option value="0">Tidak Aktif</option>
+                                </select>
+                            </div>
+                            <!--end: Datatable-->
                             <div class="card-toolbar">
                                 <!--begin::Dropdown-->
                                 <div class="dropdown dropdown-inline mr-2">

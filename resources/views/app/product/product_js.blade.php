@@ -284,6 +284,7 @@
                     d.ps_id_filter = $('#ps_id_filter').val();
                     d.mc_id_filter = $('#mc_id_filter').val();
                     d.sz_id_filter = $('#sz_id_filter').val();
+                    d.p_active_filter = $('#p_active_filter').val();
                 }
             },
             columns: [
@@ -328,7 +329,7 @@
             product_table.draw();
         });
 
-        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter').on('change', function() {
+        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_active_filter').on('change', function() {
             product_table.draw();
         });
 
@@ -466,6 +467,11 @@
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
+
+        $('#p_active_filter').select2({
+            width: "130px",
+        });
+
 
         $('#mc_id_filter').select2({
             width: "130px",
