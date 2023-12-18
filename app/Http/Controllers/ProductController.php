@@ -172,6 +172,15 @@ class ProductController extends Controller
                             $w->orWhere('sz_id', '=', $sz_id);
                         });
                     }
+                    if(!empty($request->get('p_active_filter'))) {
+                        if($request->get('p_active_filter') == '1') {
+                            $instance->where('p_active', '=', '1');
+                        }
+
+                        if ($request->get('p_active_filter') == '0') {
+                            $instance->where('p_active', '=', '0');
+                        }
+                    }
                     if (!empty($request->get('search'))) {
                         $instance->where(function($w) use($request){
                             $search = $request->get('search');
@@ -241,6 +250,16 @@ class ProductController extends Controller
                             $sz_id = $request->get('sz_id_filter');
                             $w->orWhere('sz_id', '=', $sz_id);
                         });
+                    }
+                    if(!empty($request->get('p_active_filter'))) {
+                        if($request->get('p_active_filter') == '1') {
+                            $instance->where('p_active', '=', '1');
+                        } elseif($request->get('p_active_filter') == '0') {
+                            $instance->where('p_active', '=', '0');
+                        } else {
+                            $instance->where('p_active', '!=', '1');
+                            $instance->where('p_active', '!=', '0');
+                        }
                     }
                     if (!empty($request->get('search'))) {
                         $instance->where(function($w) use($request){
