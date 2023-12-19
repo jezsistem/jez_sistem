@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PurchaseOrderInvoiceImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
 use App\Models\UserActivity;
+use Intervention\Image\Facades\Image;
 
 class PurchaseOrderController extends Controller
 {
@@ -482,6 +484,41 @@ class PurchaseOrderController extends Controller
             $r['stkt_id'] = $draft->stkt_id;
             $r['po_description'] = $draft->po_description;
             $r['po_invoice'] = $draft->po_invoice;
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function upladImageInvoice(Request $request)
+    {
+
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check)
+        {
+            if ($request->hasFile('imageInvoices'))
+            {
+                foreach($request->file('imageInvoices') as $file)
+                {
+                    $image = $file;
+                    $name = time().'.'.$image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_invoice');
+                    $img = Image::make($image->getRealPath());
+                    $img->resize(400, 400, function ($constraint) {
+                        $constraint->aspectRatio();
+                    })->save($destinationPath.'/'.$name);
+
+                    PurchaseOrderInvoiceImage::create([
+                        'purchase_order_id' => $po_id,
+                        'invoice_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
         } else {
             $r['status'] = '400';
         }

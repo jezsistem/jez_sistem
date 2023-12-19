@@ -4,7 +4,7 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Penerimaan PO #<span id="po_invoice_label"></span></h5>
-            <!--begin::Dropdown Import-->
+            <!--begin::Button Import-->
             <div class="mr-2">
                 <div class="dropdown dropdown-inline mr-2">
                     <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
@@ -104,10 +104,8 @@
                     </div>
                     <div class="col-4 mt-4 d-flex flex-column">
                         <label class="badge badge-primary">Bukti Gambar Invoice dan Paket</label>
-
                             <div class="row mx-2 justify-content-between">
-                                <div class="input-group col-5">
-                                    <input type="file" class="form-control invisible" id="invoiceImage">
+                                <a class="input-group col-5" type="button" id="InvoiceImagesBtn" aria-haspopup="true" aria-expanded="false">
                                     <label class="input-group-text" for="invoiceImage">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -122,7 +120,7 @@
                                         </span>
                                         Invoice
                                     </label>
-                                </div>
+                                </a>
                                 <div class="input-group col-5">
                                     <input type="file" class="form-control invisible" id="packetImage">
                                     <label class="input-group-text" for="packetImage">
@@ -329,3 +327,37 @@
 </div>
 </form>
 <!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="InvoiceImagesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Invoice Image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <div class="container">
+                        <table id="purchaseOrderInvoiceImagesTb" class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Image</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal-->

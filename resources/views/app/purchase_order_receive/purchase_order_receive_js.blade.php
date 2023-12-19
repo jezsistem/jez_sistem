@@ -606,6 +606,7 @@
         });
     });
 
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -719,6 +720,31 @@
                 "className": "text-center",
                 "width": "0%"
             }],
+            order: [[0, 'desc']],
+        });
+
+        var purchaseOrderInvoiceTable = $('#purchaseOrderInvoiceImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_invoice_image_datatable') }}",
+                data: function (d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [
+                { data: 'image', name: 'invoice_image', searchable: false },
+            ],
+            columnDefs: [
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
             order: [[0, 'desc']],
         });
 
@@ -858,6 +884,7 @@
             });
         });
 
+
         $('#Poadstb tbody').on('click', 'tr', function () {
             var id = poads_table.row(this).data().poads_id;
             var stkt_id = poads_table.row(this).data().stkt_id;
@@ -884,6 +911,12 @@
 
         $('#PurchaseOrdertb tbody').on('click', 'tr', function () {
             var po_id = purchase_order_table.row(this).data().po_id;
+            // Store the po_id for later use
+            $('#_po_id').val(po_id);
+
+            // Update DataTables AJAX configuration with the new po_id
+            purchaseOrderInvoiceTable.ajax.reload();
+
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1084,6 +1117,12 @@
             })
         });
 
+        $(document).ready(function () {
+            $("#InvoiceImagesBtn").click(function () {
+                $("#InvoiceImagesModal").modal("show");
+            });
+        });
+
         $('#export_btn').on('click', function() {
             $('#PoReporttb').find('tr:not(:has(th))').remove();
             var po_date = $('#po_date').val();
@@ -1188,4 +1227,21 @@
         cb(start, end, '');
 
     });
+
+    {{--$(document).ready(function() {--}}
+    {{--    $('#purchaseOrderInvoiceImagesTb').DataTable({--}}
+    {{--        processing: true,--}}
+    {{--        serverSide: true,--}}
+    {{--        ajax: {--}}
+    {{--            url: '{{ url("purchaseOrderInvoiceImagesTb") }}', // Set the default category value--}}
+    {{--            type: 'GET', // Use GET method--}}
+    {{--            data: function (d) {--}}
+    {{--                d.po_id = $('#_po_id').val(); // Pass the category value from a form input--}}
+    {{--            }--}}
+    {{--        },--}}
+    {{--        columns: [--}}
+    {{--            { data: 'invoice_image', name: 'invoice_image' },--}}
+    {{--        ]--}}
+    {{--    });--}}
+    {{--});--}}
 </script>

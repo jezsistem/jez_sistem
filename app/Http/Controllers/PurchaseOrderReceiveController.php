@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\PurchaseOrderReceiveImportExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -544,5 +545,32 @@ class PurchaseOrderReceiveController extends Controller
         return json_encode($r);
 }
 
+    public function getImageInvoiceDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id)
+            {
+                $images = PurchaseOrderInvoiceImage::select('invoice_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->invoice_image)) {
+                            return '<img src="'.asset('upload/image/no_image.png').'"/>';
+                        } else {
+                            return '<img src="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).'" width="400px" height="400px">';
+                        }
+                    })
+                    ->rawColumns(['image'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
 
 }

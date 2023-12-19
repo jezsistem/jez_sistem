@@ -480,6 +480,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('po_save_draft', [PurchaseOrderController::class, 'poSaveDraft']);
     Route::post('po_detail', [PurchaseOrderController::class, 'poDetail']);
     Route::post('po_import', [PurchaseOrderImportExcelController::class, 'importExcel']);
+    Route::post('po_invoice_image', [PurchaseOrderController::class, 'upladImageInvoice']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
@@ -488,6 +489,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('po_export', [PurchaseOrderReceiveController::class, 'poExport']);
     Route::get('por_export', [PurchaseOrderReceiveController::class, 'exportData']);
     Route::post('por_import', [POPurchaseReceiveImportController::class, 'importExcel']);
+    Route::get('po_invoice_image_datatable', [PurchaseOrderReceiveController::class, 'getImageInvoiceDatatables']);
 
     // Purchase Order Article
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);

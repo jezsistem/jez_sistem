@@ -1002,6 +1002,12 @@
             });
         });
 
+        $(document).ready(function () {
+            $("#UploadImageInvoiceBtn").click(function () {
+                $("#UploadImageInvoiceModal").modal("show");
+            });
+        });
+
         $('#f_import').on('submit' , function (e) {
             e.preventDefault();
             $('#import_data_btn').html('Proses...');
@@ -1037,6 +1043,46 @@
                 },
                 error: function(data){
                     swal('Error', data, 'error');
+                }
+            });
+        });
+
+        $('#f_upload_invoice_image').on('submit' , function (e) {
+            e.preventDefault();
+            $('#upload_image_invoice_btn').html('Proses...');
+            $('#upload_image_invoice_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var po_id = $('#_po_id').val();
+
+            formData.append('_po_id', po_id)
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_invoice_image')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#upload_image_invoice_btn").html('Upload');
+                    $("#upload_image_invoice_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_upload_invoice_image')[0].reset();
+                        reloadArticleDetail(po_id)
+                    } else if (data.status == '400') {
+                        $("#UploadImageInvoiceModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#UploadImageInvoiceModal").modal('hide');
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
+
                 }
             });
         });
