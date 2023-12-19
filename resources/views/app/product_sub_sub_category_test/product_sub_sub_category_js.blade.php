@@ -41,8 +41,11 @@
             columns: [
                 { data: 'DT_RowIndex', name: 'id', searchable: false },
                 { data: 'pssc_name', name: 'pssc_name' },
+                { data: 'psc_name', name: 'psc_name'},
+                { data: 'pc_name', name: 'pc_name'},
                 { data: 'pssc_weight', name: 'pssc_weight' },
                 { data: 'pssc_description', name: 'pssc_description' },
+
             ],
 
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],

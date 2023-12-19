@@ -116,6 +116,8 @@
                                 <tr>
                                     <th class="text-dark">No</th>
                                     <th class="text-dark">Sub on Sub Kategori Artikel</th>
+                                    <th class="text-dark">Sub Kategori Artikel</th>
+                                    <th class="text-dark">Kategori Artikel</th>
                                     <th class="text-dark">Berat (gr)</th>
                                     <th class="text-dark">Deskripsi</th>
                                 </tr>

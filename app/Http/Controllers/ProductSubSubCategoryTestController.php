@@ -96,7 +96,16 @@ class ProductSubSubCategoryTestController extends Controller
 //            ->make(true);
 //        }
         if(request()->ajax()) {
-            return datatables()->of(ProductSubSubCategory::select('product_sub_sub_categories.id as id', 'pssc_name', 'pssc_weight', 'pssc_description')
+            return datatables()->of(ProductSubSubCategory::select(
+                'product_sub_sub_categories.id as id',
+                'pssc_name',
+                'pssc_weight',
+                'pssc_description',
+                'psc_name',
+                'product_categories.pc_name as pc_name',
+                'product_sub_categories.psc_name as psc_name',)
+            ->join('product_sub_categories', 'product_sub_categories.id', '=', 'product_sub_sub_categories.psc_id')
+            ->join('product_categories', 'product_categories.id', '=', 'product_sub_categories.pc_id')
             ->where('pssc_delete', '!=', '1'))
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('search'))) {
