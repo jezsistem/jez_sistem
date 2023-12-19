@@ -25,33 +25,42 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'Brt<"text-right"ip>',
+            dom: 'lBrt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                { "extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs' }
             ],
+
             ajax: {
-                url : "{{ url('product_sub_sub_category_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_sub_sub_category_datatables') }}",
+                data: function (d) {
                     d.search = $('#product_sub_sub_category_search').val();
                     d.psc_id = $('#psc_id').val();
-                    console.log($('#product_sub_sub_category_search').val());
-                    console.log($('#psc_id').val());
                 }
             },
+
             columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'pssc_name', name: 'pssc_name' },
-            { data: 'pssc_weight', name: 'pssc_weight' },
-            { data: 'pssc_description', name: 'pssc_description' },
-            ], 
+                { data: 'DT_RowIndex', name: 'id', searchable: false },
+                { data: 'pssc_name', name: 'pssc_name' },
+                { data: 'pssc_weight', name: 'pssc_weight' },
+                { data: 'pssc_description', name: 'pssc_description' },
+            ],
+
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+
+            language: {
+                "lengthMenu": "_MENU_",
+            },
+
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }
+            ],
             order: [[0, 'desc']],
         });
+
 
         var articleTable = $('#ArticleSubSubCategorytb').DataTable({
             destroy: true,

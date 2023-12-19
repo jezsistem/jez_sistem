@@ -11,7 +11,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'Brt<"text-right"ip>',
+            dom: 'lBrt<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
@@ -20,6 +20,7 @@
                 data : function (d) {
                     d.search = $('#product_sub_category_search').val();
                     d.pc_id = $('#pc_id').val();
+
                 }
             },
             columns: [
@@ -34,6 +35,10 @@
                 "className": "text-center",
                 "width": "0%"
             }],
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            language: {
+                "lengthMenu": "_MENU_",
+            },
             order: [[0, 'desc']],
         });
 
@@ -53,6 +58,7 @@
         });
 
         $('#pc_id').on('change', function() {
+
             var label = $('#pc_id option:selected').text();
             if (label != '- Pilih -') {
                 $('#product_category_selected_label').text(label);
