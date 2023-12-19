@@ -672,11 +672,7 @@ class ProductController extends Controller
 
     public function exportData()
   	{
+          set_time_limit(300);
   		  return Excel::download(new ProductExport, 'product_data.xlsx');
   	}
-
-      public function exportData2(Request $request)
-      {
-          return Excel::download(new ProductExport, 'product_data.xlsx');
-      }
 }
