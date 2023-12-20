@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ProductArticleExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -673,6 +674,7 @@ class ProductController extends Controller
     public function exportData()
   	{
           set_time_limit(300);
-  		  return Excel::download(new ProductExport, 'product_data.xlsx');
+          return Excel::download(new ProductArticleExport, 'product_data.xlsx');
+//  		  return Excel::download(new ProductExport, 'product_data.xlsx');
   	}
 }
