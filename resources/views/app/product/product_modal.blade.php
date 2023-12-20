@@ -139,7 +139,7 @@
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Season <span class="text-danger">*</span></label>
-                            <select class="form-control" id="ss_id" name="ss_id" required>
+                            <select class="form-control" id="ss_id" name="ss_id">
                                 <option value="">- Pilih Season -</option>
                                 @foreach ($data['ss_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
@@ -165,13 +165,13 @@
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Aging <span class="text-danger">*</span></label>
-                            <input type="month" name="p_aging" id="p_aging" class="form-control" placeholder="Aging / Usia Artikel" required/>
+                            <input type="month" name="p_aging" id="p_aging" class="form-control" placeholder="Aging / Usia Artikel"/>
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-lg-4 pt-1">
-                            <label>Berat Artikel <span class="text-danger">*</span></label>
-                            <input type="number" name="p_weight" id="p_weight" class="form-control" placeholder="gram" required/>
+                            <label>Berat Items <span class="text-danger">*</span></label>
+                            <input type="number" name="p_weight" id="p_weight" class="form-control" placeholder="gram"/>
                         </div>
                     </div>
                     <div class="form-group row">
