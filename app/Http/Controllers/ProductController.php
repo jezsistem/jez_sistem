@@ -535,20 +535,30 @@ class ProductController extends Controller
             'p_delete' => '0'
         ];
         $save = $product->storeData($mode, $id, $data);
+
         if (!empty($save)) {
             if ($request->input('pc_id') !== $request->input('_current_pc_id')) {
                 DB::table('product_stocks')->where(['p_id' => $id])->delete();
             }
+
             $exp = explode('|', $request->_sz_id);
             $count = (Integer)count($exp);
+            $barcodeArray = explode('|', rtrim($request->input('_sz_barcode'), '|'));
             for ($i=0; $i<=$count; $i++) {
                 if (empty($exp[$i])) {
                     continue;
                 }
+
+                $barcodeItem = $barcodeArray[$i];
+
+                // Extracting ID and Barcode from the current element
+                 list($size_id, $barcode) = explode('-', $barcodeItem);
+
                 if ($mode == 'add') {
                     ProductStock::create([
                         'p_id' => $save,
-                        'sz_id' => $exp[$i],
+                        'sz_id' => $size_id,
+                        'ps_barcode' => $barcode,
                         'ps_qty' => '0',
                         'ps_running_code' => $this->generateRunningCode()
                     ]);
@@ -559,7 +569,7 @@ class ProductController extends Controller
                     } else {
                         ProductStock::create([
                             'p_id' => $id,
-                            'sz_id' => $exp[$i],
+                            'sz_id' => $size_id,
                             'ps_qty' => '0',
                             'ps_running_code' => $this->generateRunningCode()
                         ]);
@@ -600,6 +610,7 @@ class ProductController extends Controller
                     }
                 }
             }
+
             $r['status'] = '200';
         }
         return json_encode($r);
