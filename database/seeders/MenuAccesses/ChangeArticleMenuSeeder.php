@@ -15,8 +15,8 @@ class ChangeArticleMenuSeeder extends Seeder
     public function run()
     {
         DB::table('menu_accesses')
-            ->where('ma_title', 'like', '%Artikel%')
-            ->update(['ma_title' => DB::raw("REPLACE(ma_title, 'Artikel', 'Item Name')")]);
+            ->where('ma_title', 'like', '%Item Name%')
+            ->update(['ma_title' => DB::raw("REPLACE(ma_title, 'Item Name', 'Artikel')")]);
 
         DB::table('menu_accesses')
             ->where('ma_title', 'like', '%Size%')
