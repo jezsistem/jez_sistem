@@ -118,4 +118,14 @@ class Product extends Model
 //                    ->get()->toArray();
         return $export;
     }
+
+    public static function getArticleExport()
+    {
+        $export = DB::table('products')
+                    ->select('p_name', 'p_color', 'br_name', 'ps_name', 'p_aging', 'p_price_tag', 'p_purchase_price', 'p_sell_price')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
+                    ->get();
+        return $export;
+    }
 }
