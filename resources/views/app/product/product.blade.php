@@ -277,6 +277,12 @@
                                                     </span>
                                                     <span class="btn btn-primary btn-xs">Export All</span>
                                                 </a>
+                                                <a href="{{ url('p_export_barcode') }}" class="navi-link">
+                                                    <span class="navi-icon">
+                                                        <i class="la la-copy"></i>
+                                                    </span>
+                                                    <span class="btn btn-primary btn-xs">Export Barcode</span>
+                                                </a>
                                             </li>
                                         </ul>
                                         <!--end::Navigation-->

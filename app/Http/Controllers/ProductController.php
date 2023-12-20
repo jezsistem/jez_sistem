@@ -688,4 +688,10 @@ class ProductController extends Controller
           return Excel::download(new ProductArticleExport, 'product_data.xlsx');
 //  		  return Excel::download(new ProductExport, 'product_data.xlsx');
   	}
+
+      public function exportDataBarcode()
+      {
+          set_time_limit(300);
+          return Excel::download(new ProductExport, 'product_data.xlsx');
+      }
 }

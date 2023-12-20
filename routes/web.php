@@ -395,6 +395,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('data_produk', [ProductController::class, 'index'])->name('product');
     Route::get('product_datatables', [ProductController::class, 'getDatatables']);
     Route::get('p_export', [ProductController::class, 'exportData']);
+    Route::get('p_export_barcode', [ProductController::class, 'exportDataBarcode']);
     Route::post('product_detail', [ProductController::class, 'productDetail']);
     Route::post('p_save', [ProductController::class, 'storeData']);
     Route::post('p_delete', [ProductController::class, 'deleteData']);
