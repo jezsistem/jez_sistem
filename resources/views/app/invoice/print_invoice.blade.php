@@ -151,7 +151,9 @@
                                 </td>
                                 <td class="final-price">{{ number_format($srow->pos_td_qty * $srow->pos_td_sell_price) }}</td>
                                 @else 
-                                <td class="sell-price">{{ number_format($srow->pos_td_sell_price) }}
+                                <td class="sell-price">
+                                    {{ number_format($srow->productStock->ps_price_tag) }} <br/>
+                                    {{ number_format($srow->pos_td_sell_price) }}
                                     @if (!empty($srow->pos_td_discount))
                                     <br/>{{ $srow->pos_td_discount }}%
                                     @endif
@@ -182,7 +184,8 @@
                             $total_price += $srow->pos_td_total_price; 
 //                            $total_discount += $srow->pos_td_qty * ($srow->pos_td_sell_price/100 * $srow->pos_td_discount);
                             $total_discount += $srow->pos_td_discount_number;
-                            $total_marketplace += $srow->pos_td_marketplace_price; 
+//                            $total_marketplace += $srow->pos_td_marketplace_price;
+                            $total_marketplace+= ($srow->pos_td_qty * $srow->pos_td_sell_price);;
                         }
                         @endphp
                         @endforeach
@@ -220,7 +223,7 @@
                             <span class="text-red">
                             (
                             @if (!empty($total_discount))
-                            {{ (number_format($total_discount)) }}
+                            {{ ($total_discount) }}
                             @else 
                             0
                             @endif
@@ -283,13 +286,19 @@
                             <span style="float:right;">
                             @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WHATSAPP' AND $data['transaction']->dv_name != 'WEBSITE')
                                 @php 
-                                $totals = $total_marketplace+$nameset+$data['transaction']->pos_another_cost; 
+//                                $totals = $total_marketplace+$nameset+$data['transaction']->pos_another_cost;
+                                $totals = $total_marketplace+$nameset+$data['transaction']->pos_another_cost;
                                 if (!empty($data['transaction']->pos_discount)) {
-                                    $totals = $totals - ($totals/100 * $data['transaction']->pos_discount);
+                                    $totals = $totals - ($totals/100 * $data['transaction']->pos_discount_number);
                                 }
-                                if(!empty($data['transaction']->pos_discount_number)) {
-                                    $totals = $totals - $data['transaction']->pos_discount_number;
+//                                if(!empty($data['transaction']->pos_td_discount_number)) {
+//                                    $totals -= $total_discount;
+//                                }
+
+                                if ($total_discount > 0) {
+                                    $totals -= $total_discount;
                                 }
+
                                 @endphp
                                 {{ number_format($totals) }}
                             @else
@@ -305,6 +314,10 @@
                                 }
                                 if (!empty($data['transaction']->pos_discount)) {
                                     $totals = $totals - ($totals/100 * $data['transaction']->pos_discount);
+                                }
+
+                                if(!empty($data['transaction']->pos_discount_number)) {
+                                    $totals = $totals - $data['transaction']->pos_discount_number;
                                 }
                                 @endphp 
                                 {{ number_format($totals) }}

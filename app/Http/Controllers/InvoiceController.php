@@ -196,13 +196,15 @@ class InvoiceController extends Controller
         $cust_city = '';
         $cust_subdistrict = '';
         if ($check) {
-            $transaction = PosTransaction::select('pos_discount', 'is_website', 'pos_unique_code', 'pos_courier', 'pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created')
+            $transaction = PosTransaction::select(
+                'pos_discount', 'is_website', 'pos_unique_code', 'pos_courier', 'pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+            ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
             ->where(['pos_invoice' => $invoice])
             ->groupBy('pos_transactions.id')->get()->first();
             if (!empty($transaction)) {
@@ -232,7 +234,9 @@ class InvoiceController extends Controller
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->where(['pt_id' => $transaction->pt_id])
-                ->where('pos_td_reject', '!=', '1')->get();
+                ->where('pos_td_reject', '!=', '1')
+                ->with('productStock')
+                ->get();
             }
         }
         $data = [
@@ -247,6 +251,7 @@ class InvoiceController extends Controller
             'transaction_detail' => $transaction_detail,
             'segment' => request()->segment(1)
         ];
+
         return view('app.invoice.print_invoice', compact('data'));
     }
 

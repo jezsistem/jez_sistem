@@ -27,6 +27,11 @@ class PosTransactionDetail extends Model
         'created_at'
     ];
 
+    public function productStock()
+    {
+        return $this->belongsTo(ProductStock::class, 'pst_id', 'id');
+    }
+
     public function checkData($select, $where)
     {
         $affected = DB::table($this->table)
