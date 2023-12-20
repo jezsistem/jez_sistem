@@ -138,7 +138,7 @@
                             <div id="gn_id_parent"></div>
                         </div>
                         <div class="col-lg-4 pt-1">
-                            <label>Season <span class="text-danger">*</span></label>
+                            <label>Season </label>
                             <select class="form-control" id="ss_id" name="ss_id">
                                 <option value="">- Pilih Season -</option>
                                 @foreach ($data['ss_id'] as $key => $value)
@@ -164,13 +164,13 @@
                             <input type="text" name="p_color" id="p_color" class="form-control" placeholder="Warna artikel" required/>
                         </div>
                         <div class="col-lg-4 pt-1">
-                            <label>Aging <span class="text-danger">*</span></label>
+                            <label>Aging</label>
                             <input type="month" name="p_aging" id="p_aging" class="form-control" placeholder="Aging / Usia Artikel"/>
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-lg-4 pt-1">
-                            <label>Berat Items <span class="text-danger">*</span></label>
+                            <label>Berat Items </label>
                             <input type="number" name="p_weight" id="p_weight" class="form-control" placeholder="gram"/>
                         </div>
                     </div>
