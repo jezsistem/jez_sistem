@@ -68,6 +68,7 @@
             { data: 'sz_name', name: 'sz_name' },
             { data: 'stkt_name', name: 'stkt_name' },
             { data: 'poads_qty', name: 'poads_qty' },
+            { data: 'ps_qty', name: 'ps_qty' },
             { data: 'poads_purchase_price', name: 'poads_purchase_price' },
             { data: 'poads_total_price', name: 'poads_total_price' },
             { data: 'delete', name: 'poads_total_price' },

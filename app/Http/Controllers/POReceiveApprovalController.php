@@ -120,7 +120,9 @@ class POReceiveApprovalController extends Controller
     {
         if(request()->ajax()) {
             return datatables()->of(DB::table('purchase_order_article_detail_statuses')
-            ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, poads_purchase_price, poads_total_price, ts_purchase_order_article_detail_statuses.created_at")
+            ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
+            u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, poads_purchase_price, 
+            ts_product_stocks.ps_qty,poads_total_price, ts_purchase_order_article_detail_statuses.created_at")
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')

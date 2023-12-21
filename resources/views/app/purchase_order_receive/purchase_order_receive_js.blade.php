@@ -43,6 +43,7 @@
             data: {_po_id:id, excelData:excelData},
             url: "{{ url('check_po_receive_detail')}}",
             success: function(r) {
+                // console.log(r);
                 $('#purchase_order_detail_content').html(r);
             }
         });

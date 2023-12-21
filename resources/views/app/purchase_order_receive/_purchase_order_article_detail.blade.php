@@ -34,6 +34,7 @@
                     <input type="text" style="width:60px;" value="Ord" readonly/>
                     <input type="text" style="width:60px;" value="Krg" readonly/>
                     <input type="text" class="bg-primary text-white" style="width:52px;" value="Terima" readonly/>
+                    <input type="text" class="bg-primary text-white" style="width:62px;" value="InStock" readonly/>
                     <input type="text" style="width:80px;" value="Harga Bnd" readonly/>
                     <input type="text" style="width:80px;" value="Harga Beli" readonly/>
                     <input type="text" style="width:80px;" value="Total" readonly/>
@@ -53,6 +54,7 @@
                         @else
                             <input type="text" id="poads_qty_{{ $row->poa_id }}_{{ $i }}" style="width:52px;" value="" onchange="return receiveQty({{ $row->poa_id }}, {{ $i }} )" required/>
                         @endif
+                        <input type="text" disabled style="width:65px;" value="{{ $srow->ps_qty_stock }}" readonly/>
                         @if ($srow->ps_price_tag == null || $srow->ps_price_tag == 0)
                         <input type="text" style="width:80px;" id="price_tag_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($row->p_price_tag) }}" readonly/>
                         @else
