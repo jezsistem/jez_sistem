@@ -491,6 +491,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('por_export', [PurchaseOrderReceiveController::class, 'exportData']);
     Route::post('por_import', [POPurchaseReceiveImportController::class, 'importExcel']);
     Route::get('po_invoice_image_datatable', [PurchaseOrderReceiveController::class, 'getImageInvoiceDatatables']);
+    Route::post('po_delivery_order_image', [PurchaseOrderReceiveController::class, 'uploadDeliveryOrdersImage']);
 
     // Purchase Order Article
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);

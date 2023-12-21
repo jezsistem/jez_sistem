@@ -1,7 +1,25 @@
 <!-- DATERANGE -->
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.min.js"></script>
 <script>
+    Webcam.set({
+        width: 490,
+        height: 390,
+        image_format: 'jpeg',
+        jpeg_quality: 100
+    });
+
+    Webcam.attach( '#my_camera' );
+
+    function take_snapshot() {
+        Webcam.snap( function(data_uri) {
+            $("#image-tag").val(data_uri);
+            document.getElementById('results').innerHTML = '<img src="'+data_uri+'"/>';
+        } );
+    }
+
+
     function checkPurchasePrice(pid)
     {
         var discount = parseFloat($('#po_discount'+pid).val());
@@ -1075,6 +1093,40 @@
             });
         });
 
+        $('#f_take_photo').on('submit', function(e) {
+            e.preventDefault();
+            $('#take_photo_btn').html('Proses...');
+            $('#take_photo_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var po_id = $('#_po_id').val();
+            formData.append('po_id', po_id);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_delivery_order_image')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function (r) {
+                    console.log(r);
+                    $("#take_photo_btn").html('Submit');
+                    $("#take_photo_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if(r.status == '200'){
+                        $("#SuratJalanModal").modal('hide');
+                        swal('Berhasil', 'Foto berhasil diupload', 'success');
+                        $('#f_take_photo')[0].reset();
+                        reloadArticleDetail(po_id);
+                    } else {
+                        $("#SuratJalanModal").modal('hide');
+                        swal('Gagal', 'Foto gagal diupload', 'error');
+                    }
+                }
+            });
+        });
+
         $('#save_purchase_order_btn').on('click', function(e) {
             e.preventDefault();
             $('#PurchaseOrderModal').modal('hide');
@@ -1121,6 +1173,12 @@
         $(document).ready(function () {
             $("#InvoiceImagesBtn").click(function () {
                 $("#InvoiceImagesModal").modal("show");
+            });
+        });
+
+        $(document).ready(function () {
+            $("#SuratJalanBtn").click(function () {
+                $("#SuratJalanModal").modal("show");
             });
         });
 

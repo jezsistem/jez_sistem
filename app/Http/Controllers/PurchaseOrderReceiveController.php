@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PODeliveryOrder;
 use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\PurchaseOrderReceiveImportExcel;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ use App\Models\MainColor;
 use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
+use Intervention\Image\Facades\Image;
 
 class PurchaseOrderReceiveController extends Controller
 {
@@ -572,6 +574,40 @@ class PurchaseOrderReceiveController extends Controller
                     ->make(true);
             }
         }
+    }
+
+    public function uploadDeliveryOrdersImage(Request $request)
+    {
+
+        $po_id = $request->po_id;
+
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+
+        if ($check)
+        {
+            if ($request->has('deliveryOrderImage'))
+            {
+                $image_parts = explode(";base64,", $request->input('deliveryOrderImage'));
+                $image_type_aux = explode("image/", $image_parts[0]);
+                $image_type = $image_type_aux[1];
+
+                $image_base64 = base64_decode($image_parts[1]);
+
+                // Save the decoded image to the server
+                $name = time() . '.' . $image_type;
+                $destinationPath = public_path('/upload/purchase_order_delivery_order');
+                file_put_contents($destinationPath . '/' . $name, $image_base64);
+
+                // Save the image information to the database
+                PODeliveryOrder::create([
+                    'purchase_order_id' => $po_id,
+                    'delivery_orders_image' => $name,
+                ]);
+            }
+        }
+
+        $response = ['status' => $check ? '200' : '400'];
+        return json_encode($response);
     }
 
 }
