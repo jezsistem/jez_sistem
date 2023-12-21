@@ -105,6 +105,7 @@ class PointOfSaleController extends Controller
             'b1g1_bin' => DB::table('buy_one_get_ones')->select('product_locations.id as id', 'pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->orderBy('pl_code')->pluck('pl_code', 'id'),
         ];
+
         if (strtolower($user_data->stt_name) == 'online') {
             return view('app.pos.pos', compact('data'));
         } else {
@@ -1126,9 +1127,9 @@ class PointOfSaleController extends Controller
                     ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                     ->where('product_locations.st_id', '=', $st_id)
-                    ->where('pls_qty', '>', '0')
+//                    ->where('pls_qty', '>', '0')
                     ->whereNotIn('pl_code', $exception)
-                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
@@ -1139,7 +1140,7 @@ class PointOfSaleController extends Controller
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                     ->where('product_locations.st_id', '=', $st_id)
                     ->where('pst_id', $row->pst_id)
-                    ->where('pls_qty', '>', '0')
+//                    ->where('pls_qty', '>', '0')
                     ->whereNotIn('pl_code', $exception)->get();
                     $bin = '';
                     $bin_list = '';
