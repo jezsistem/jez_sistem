@@ -231,6 +231,11 @@
                 <div class="modal-body">
                     <div class="card-body">
                         <div class="form-group">
+                            <label>Download Template
+                                <span class="text-danger">*</span></label>
+                            <a href="{{ asset('upload/template/po_pembelian.csv') }}" class="btn btn-xs btn-primary">Download</a>
+                        </div>
+                        <div class="form-group">
                             <label>Pilih template yang sudah diisi data</label>
                             <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="importFile" id="importFile" required/>
