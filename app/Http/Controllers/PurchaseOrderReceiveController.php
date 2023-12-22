@@ -554,7 +554,7 @@ class PurchaseOrderReceiveController extends Controller
             $po_id = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
             if ($po_id)
             {
-                $images = PurchaseOrderInvoiceImage::select('invoice_image')
+                $images = PurchaseOrderInvoiceImage::select('id','invoice_image')
                     ->where('purchase_order_id', '=', $request->get('_po_id'));
 
                 return datatables()->of($images)
@@ -565,7 +565,10 @@ class PurchaseOrderReceiveController extends Controller
                             return '<img src="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).'" width="400px" height="400px">';
                         }
                     })
-                    ->rawColumns(['image'])
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm delete-image" data-id="'.$row->id.'">Delete</a>';
+                    })
+                    ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
                     ->make(true);
             } else {
@@ -607,6 +610,24 @@ class PurchaseOrderReceiveController extends Controller
         }
 
         $response = ['status' => $check ? '200' : '400'];
+        return json_encode($response);
+    }
+
+    public function deleteImageInvoice(Request $request)
+    {
+
+
+        $delete = PurchaseOrderInvoiceImage::where(['id' => $request->id])->first();
+
+        if($delete)
+        {
+            unlink(public_path('upload/purchase_order_invoice/' . $delete->invoice_image));
+
+
+            $delete = PurchaseOrderInvoiceImage::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
         return json_encode($response);
     }
 

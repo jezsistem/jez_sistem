@@ -575,6 +575,39 @@
             }
         });
     }
+    function deleteInvoiceImage(id)
+    {
+        swal({
+            title: "Hapus Gambar",
+            text: "Apakah anda yakin ingin menghapus gambar ini?",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        })
+        .then((willDelete) => {
+        if (willDelete) {
+                $.ajaxSetup({
+                    headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    data: {_id:id},
+                    dataType: 'json',
+                    url: "{{ url('po_invoice_image_delete')}}",
+                    success: function(r) {
+                        if (r.status == '200'){
+                            toast('Dihapus', 'Gambar berhasil dihapus' ,'success');
+                            $('#invoice_image_'+id).remove();
+                        } else {
+                            toast('Gagal', 'Gambar gagal dihapus' ,'warning');
+                        }
+                    }
+                });
+            }
+        });
+    }
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -757,10 +790,11 @@
 
             columns: [
                 { data: 'image', name: 'invoice_image', searchable: false },
+                { data: 'action', name: 'action', orderable: false, searchable: false },
             ],
             columnDefs: [
                 {
-                    "targets": 0,
+                    "targets": [0, 1],
                     "className": "text-center",
                     "width": "0%"
                 }],
@@ -903,6 +937,28 @@
             });
         });
 
+        // Add this code after initializing the DataTable
+        $('#purchaseOrderInvoiceImagesTb tbody').on('click', '.delete-image', function () {
+            var imageId = purchaseOrderInvoiceTable.row($(this).parents('tr')).data().id;
+
+            $.ajax({
+                url: "{{ url('po_invoice_image_delete') }}",
+                type: 'POST',
+                data: {
+                    id: imageId,
+                    // Add any additional data needed for deletion
+                },
+                success: function () {
+                    // Reload the DataTable after successful deletion
+                    swal('Sukses', 'Gambar berhasil dihapus', 'success');
+                    purchaseOrderInvoiceTable.ajax.reload();
+                },
+                error: function () {
+                    swal('Error', 'Gagal menghapus gambar', 'error');
+                }
+            });
+        });
+
 
         $('#Poadstb tbody').on('click', 'tr', function () {
             var id = poads_table.row(this).data().poads_id;
@@ -1025,6 +1081,44 @@
                     $.ajaxSetup({
                         headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {_id:$('#_poads_id').val()},
+                        dataType: 'json',
+                        url: "{{ url('dl_poads_revision')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                $('#EditPoadsModal').modal('hide');
+                                poads_table.draw(false);
+                                reloadArticleDetail($('#_po_id').val());
+                            } else {
+                                swal('Gagal', 'Gagal hapus penerimaan', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
+        });
+
+        $('#delete_po_invoice_btn').on('click', function(e) {
+            e.preventDefault();
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data gambar ini ?",
+                icon: "warning",
+                buttons: [
+                    'Jangan Hapus',
+                    'Hapus Penerimaan'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
