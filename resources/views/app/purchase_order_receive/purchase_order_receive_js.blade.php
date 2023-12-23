@@ -801,6 +801,32 @@
             order: [[0, 'desc']],
         });
 
+        var purchaseOrderDeliveryOrderImageTable = $('#purchaseOrderDeliveryOrderImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_delivery_order_image_datatable') }}",
+                data: function (d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [
+                { data: 'image', name: 'delivery_orders_image', searchable: false },
+                { data: 'action', name: 'action', orderable: false, searchable: false },
+            ],
+            columnDefs: [
+                {
+                    "targets": [0, 1],
+                    "className": "text-center",
+                    "width": "0%"
+                }],
+            order: [[0, 'desc']],
+        });
+
         purchase_order_table.buttons().container().appendTo($('#purchase_order_excel_btn' ));
         $('#purchase_order_search').on('keyup', function() {
             purchase_order_table.draw(false);
@@ -938,7 +964,7 @@
         });
 
         // Add this code after initializing the DataTable
-        $('#purchaseOrderInvoiceImagesTb tbody').on('click', '.delete-image', function () {
+        $('#purchaseOrderInvoiceImagesTb tbody').on('click', '#delete-image-invoice', function () {
             var imageId = purchaseOrderInvoiceTable.row($(this).parents('tr')).data().id;
 
             $.ajax({
@@ -946,12 +972,31 @@
                 type: 'POST',
                 data: {
                     id: imageId,
-                    // Add any additional data needed for deletion
                 },
                 success: function () {
                     // Reload the DataTable after successful deletion
                     swal('Sukses', 'Gambar berhasil dihapus', 'success');
                     purchaseOrderInvoiceTable.ajax.reload();
+                },
+                error: function () {
+                    swal('Error', 'Gagal menghapus gambar', 'error');
+                }
+            });
+        });
+
+        $('#purchaseOrderDeliveryOrderImagesTb tbody').on('click', '#delete-image-po-surat-jalan', function () {
+            var imageId = purchaseOrderDeliveryOrderImageTable.row($(this).parents('tr')).data().id;
+
+            $.ajax({
+                url: "{{ url('po_delivery_order_image_delete') }}",
+                type: 'POST',
+                data: {
+                    id: imageId,
+                },
+                success: function (data) {
+                    // Reload the DataTable after successful deletion
+                    swal('Sukses', 'Gambar berhasil dihapus', 'success');
+                    purchaseOrderDeliveryOrderImageTable.ajax.reload();
                 },
                 error: function () {
                     swal('Error', 'Gagal menghapus gambar', 'error');
@@ -991,6 +1036,7 @@
 
             // Update DataTables AJAX configuration with the new po_id
             purchaseOrderInvoiceTable.ajax.reload();
+            purchaseOrderDeliveryOrderImageTable.ajax.reload();
 
             $.ajaxSetup({
                 headers: {
@@ -1276,6 +1322,12 @@
             });
         });
 
+        $(document).ready(function () {
+            $("#SuratJalanImageBtn").click(function () {
+                $("#SuratJalanImageModal").modal("show");
+            });
+        });
+
         $('#export_btn').on('click', function() {
             $('#PoReporttb').find('tr:not(:has(th))').remove();
             var po_date = $('#po_date').val();
@@ -1380,21 +1432,4 @@
         cb(start, end, '');
 
     });
-
-    {{--$(document).ready(function() {--}}
-    {{--    $('#purchaseOrderInvoiceImagesTb').DataTable({--}}
-    {{--        processing: true,--}}
-    {{--        serverSide: true,--}}
-    {{--        ajax: {--}}
-    {{--            url: '{{ url("purchaseOrderInvoiceImagesTb") }}', // Set the default category value--}}
-    {{--            type: 'GET', // Use GET method--}}
-    {{--            data: function (d) {--}}
-    {{--                d.po_id = $('#_po_id').val(); // Pass the category value from a form input--}}
-    {{--            }--}}
-    {{--        },--}}
-    {{--        columns: [--}}
-    {{--            { data: 'invoice_image', name: 'invoice_image' },--}}
-    {{--        ]--}}
-    {{--    });--}}
-    {{--});--}}
 </script>

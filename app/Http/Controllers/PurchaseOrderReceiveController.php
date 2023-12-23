@@ -566,7 +566,38 @@ class PurchaseOrderReceiveController extends Controller
                         }
                     })
                     ->addColumn('action', function ($row) {
-                        return '<a href="#" class="btn btn-danger btn-sm delete-image" data-id="'.$row->id.'">Delete</a>';
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="'.$row->id.'">Delete</a>';
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
+    public function getImageDeliveryOrdersDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PODeliveryOrder::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id)
+            {
+                $images = PODeliveryOrder::select('id','delivery_orders_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->delivery_orders_image)) {
+                            return '<img src="'.asset('upload/image/no_image.png').'"/>';
+                        } else {
+                            return '<img src="'.asset('upload/purchase_order_delivery_order/'.$row->delivery_orders_image).'" width="400px" height="400px">';
+                        }
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm" id="delete-image-po-surat-jalan" data-id="'.$row->id.'">Delete</a>';
                     })
                     ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
@@ -631,4 +662,20 @@ class PurchaseOrderReceiveController extends Controller
         return json_encode($response);
     }
 
+
+    public function deleteImagePOSuratJalan(Request $request)
+    {
+//        return $request->all();
+        $delete = PODeliveryOrder::where(['id' => $request->id])->first();
+
+        if($delete) {
+            unlink(public_path('upload/purchase_order_delivery_order/' . $delete->delivery_orders_image));
+
+            $delete = PODeliveryOrder::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
+
+        return json_encode($response);
+    }
 }
