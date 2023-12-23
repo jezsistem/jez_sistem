@@ -25,6 +25,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $poad_id = $request->_poad_id;
         $poads_qty = $request->_poads_qty;
         $poads_discount = $request->_poads_discount;
+        $poads_cogs = $request->_poads_cogs;
         $poads_extra_discount = $request->_poads_extra_discount;
         $poads_purchase_price = $request->_poads_purchase_price;
         $poads_total_price = $poads_qty * $poads_purchase_price;
@@ -32,6 +33,8 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $receive_date = $request->receive_date;
         $receive_invoice = $request->receive_invoice;
         $invoice_date = $request->invoice_date;
+        $shipping_cost = $request->shipping_cost;
+
 
         $check = DB::table('purchase_order_article_detail_statuses')->insertGetId([
             'stkt_id' => $stkt_id,
@@ -46,6 +49,8 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             'u_id_receive' => Auth::user()->id,
             'poads_invoice' => $receive_invoice,
             'invoice_date' => $invoice_date,
+            'COGS' => $poads_cogs,
+            'shipping_cost' => $shipping_cost,
             'created_at' => $receive_date.' '.date('H:i:s'),
             'updated_at' => $receive_date.' '.date('H:i:s'),
         ]);

@@ -61,7 +61,6 @@
             data: {_po_id:id, excelData:excelData},
             url: "{{ url('check_po_receive_detail')}}",
             success: function(r) {
-                // console.log(r);
                 $('#purchase_order_detail_content').html(r);
             }
         });
@@ -108,12 +107,15 @@
                 var poads_extra_discount = $('#poa_extra_discount'+poa_id).val();
                 var poads_purchase_price = replaceComma($('#poad_purchase_price_'+poa_id+'_'+index).val());
                 var poads_qty = $('#poads_qty_'+poa_id+'_'+index).val();
+                var poads_cogs = replaceComma($('#cogs_'+poa_id+'_'+index).val());
+                var shipping_cost = $('#shipping_cost').val();
 
                 // create FormData object and append file data
                 var formData = new FormData();
                 formData.append('receive_date', receive_date);
                 formData.append('receive_invoice', receive_invoice);
                 formData.append('invoice_date', invoice_date);
+                formData.append('shipping_cost', shipping_cost);
                 formData.append('_st_id', st_id);
                 formData.append('_stkt_id', stkt_id);
                 formData.append('_tax_id', tax_id);
@@ -123,6 +125,7 @@
                 formData.append('_poads_discount', poads_discount);
                 formData.append('_poads_extra_discount', poads_extra_discount);
                 formData.append('_poads_purchase_price', poads_purchase_price);
+                formData.append('_poads_cogs', poads_cogs);
 
                 // appenda image file data
                 var invoiceImage = $('#invoiceImage')[0].files[0];
@@ -142,7 +145,6 @@
                     dataType: 'json',
                     url: "{{ url('poads_save')}}",
                     success: function(r) {
-                        console.log(r)
                         if (r.status == '200'){
                             console.log(r);
                             $('#receive_date').val('');
@@ -150,6 +152,7 @@
                             $('#invoice_date').val('');
                             $('#invoiceImage').val('');
                             $('#packetImage').val('');
+                            $('#shipping_cost').val('');
                             reloadArticleDetail(po_id);
                             swal("Berhasil", "Data berhasil disimpan", "success");
                         } else {
@@ -180,6 +183,9 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var shipping_cost = $('#shipping_cost').val();
+        var poads_cogs = replaceComma($('#cogs_'+poa_id+'_'+index).val());
+
 
         var formData = new FormData();
         formData.append('receive_date', receive_date);
@@ -194,28 +200,8 @@
         formData.append('_poads_discount', poads_discount);
         formData.append('_poads_extra_discount', poads_extra_discount);
         formData.append('_poads_purchase_price', poads_purchase_price);
-
-        // appenda image file data
-        // var invoiceImage = $('#invoiceImage')[0].files[0];
-        // var packetImage = $('#packetImage')[0].files[0];
-        //
-        // formData.append('invoiceImage', invoiceImage);
-        // formData.append('packetImage', packetImage);
-
-        var invoiceImage = document.getElementById('invoiceImage');
-        var packetImage = document.getElementById('packetImage');
-
-        if(invoiceImage.files.length > 0)
-        {
-            formData.append('invoiceImage', invoiceImage.files[0]);
-        }
-
-        if(packetImage.files.length > 0)
-        {
-            formData.append('packetImage', packetImage.files[0]);
-        }
-
-
+        formData.append('_poads_cogs', poads_cogs);
+        formData.append('shipping_cost', shipping_cost);
 
         $.ajaxSetup({
             headers: {
@@ -259,7 +245,7 @@
         }
         swal({
             title: "Simpan..?",
-            text: "Yakin simpan data penerimaan ini ?",
+            text: "Yakin 2 simpan data penerimaan ini ?",
             icon: "info",
             buttons: [
                 'Batalkan',
@@ -453,6 +439,43 @@
         return x1 + x2;
     }
 
+    function updateCogs() {
+        // Get the updated shipping cost value
+        var shipping_cost = $('#shipping_cost').val();
+
+        // Loop through all rows to update cogs for each row
+        $('[id^="cogs_"]').each(function () {
+            var id = this.id.split('_')[1]; // Extract the id from the element id
+            var total_qty = 0;
+
+            // Loop through all input fields with the specified ID format
+            $('input[id^="poads_qty_' + id + '"]').each(function () {
+                var qty_value = $(this).val();
+                // Check if the quantity is not empty and add it to the total_qty
+                if (qty_value !== "") {
+                    total_qty += parseFloat(qty_value);
+                }
+            });
+
+            // Check if total_qty is greater than 0 before updating cogs
+            if (total_qty > 0) {
+                var shipping_cost_pcs = shipping_cost / total_qty;
+
+                // Update cogs for the current row
+                var index = this.id.split('_')[2];
+                var total_purchase_price = parseFloat(replaceComma($('#total_purchase_price_receive' + id + '_' + index).val()));
+
+                // Check if the result is a valid number before updating cogs
+                if (!isNaN(total_purchase_price) && !isNaN(shipping_cost_pcs)) {
+                    var total_cogs = total_purchase_price + parseFloat(shipping_cost_pcs);
+                    $('#cogs_' + id + '_' + index).val(addCommas(total_cogs));
+                }
+            }
+        });
+    }
+
+
+
     function receiveQty(id, index)
     {
         var po_id = $('#_po_id').val();
@@ -464,8 +487,11 @@
         var total_row = $('span[data-poa-'+id+']').length;
         var discount = $('#poa_discount'+id).val();
         var extra_discount = $('#poa_extra_discount'+id).val();
+        var shipping_cost = $('#shipping_cost').val();
+
         var total_price = 0;
         var total = 0;
+        var total_qty = 0;
 
         if (discount == '' || discount == 0) {
             discount = 0;
@@ -492,6 +518,23 @@
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive'+id+'_'+i).val()));
         }
+
+        // Loop through all input fields with the specified ID format
+        $('input[id^="poads_qty_' + id + '"]').each(function () {
+            var qty_value = $(this).val();
+            // Check if the quantity is not empty and add it to the total_qty
+            if (qty_value !== "") {
+                total_qty += parseFloat(qty_value);
+            }
+        });
+
+        if(total_qty > 0) {
+            var shipping_cost_pcs = shipping_cost / total_qty;
+            var total_cogs = parseFloat(total) + parseFloat(shipping_cost_pcs);
+
+            $('#cogs_'+id+'_'+ index).val(addCommas(total_cogs));
+        }
+
         $('#poad_total_price_receive_'+id).text(addCommas(total_price));
     }
 
@@ -508,6 +551,7 @@
         var extra_discount = $('#poa_extra_discount'+id).val();
         var total_price = 0;
         var total = 0;
+        var shipping_cost = $('#shipping_cost').val();
 
         if (discount == '' || discount == 0) {
             discount = 0;
@@ -534,6 +578,12 @@
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive'+id+'_'+i).val()));
         }
+
+        var shipping_cost_pcs = shipping_cost / order_qty;
+
+        var total_cogs = parseFloat(total) + parseFloat(shipping_cost_pcs);
+
+        $('#cogs_'+id+'_'+ index).val(addCommas(total_cogs));
         $('#poad_total_price_receive_'+id).text(addCommas(total_price));
     }
 

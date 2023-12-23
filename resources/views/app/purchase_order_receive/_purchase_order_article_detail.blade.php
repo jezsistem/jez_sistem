@@ -37,6 +37,7 @@
                     <input type="text" class="bg-primary text-white" style="width:62px;" value="InStock" readonly/>
                     <input type="text" style="width:80px;" value="Harga Bnd" readonly/>
                     <input type="text" style="width:80px;" value="Harga Beli" readonly/>
+                    <input type="text" style="width:80px;" value="COGS" readonly/>
                     <input type="text" style="width:80px;" value="Total" readonly/>
                     <input type="text" style="width:90px;" value="Total Terima" readonly/>
                     <br/>
@@ -69,6 +70,7 @@
                         @else
                         <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value=""/>
                         @endif
+                        <input type="text" style="width:80px;" id="cogs_{{ $row->poa_id }}_{{ $i }}" value="" readonly/>
                         <input type="text" style="width:80px;" id="total_purchase_price_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->poad_total_price) }}" readonly/>
                         @if($srow->qty_import != null)
                             <input type="text" style="width:90px;" id="total_purchase_price_receive{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->qty_import *  $srow->poad_total_price) }}" readonly/> <img data-img-poads id="savePoads{{ $a }}" onclick="return savePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}" ondblclick="return bulkSavePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}"/>
