@@ -91,6 +91,8 @@
 												<th class="text-white">Produk</th>
 												<th class="text-white">Stok</th>
 												<th class="text-white">Qty</th>
+												<th class="text-white">Discount (%)</th>
+												<th class="text-white">Discount (Rp)</th>
 												<th class="text-white">Nameset</th>
 												<th class="text-white">Harga</th>
 												<th class="text-white">Subtotal</th>
