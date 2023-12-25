@@ -1086,5 +1086,11 @@
                 }
             });
         });
+
+        $(document).delegate('#ExportArticleData', 'click', function(e) {
+            e.preventDefault();
+            var po_id = $('#_po_id').val();
+            window.location.href = "{{ url('po_article_export') }}?po_id="+po_id;
+        });
     });
 </script>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PurchaseOrderArticleExport;
 use App\Models\PurchaseOrderInvoiceImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,7 @@ use App\Models\StockType;
 use App\Models\Tax;
 use App\Models\UserActivity;
 use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderController extends Controller
 {
@@ -523,5 +525,14 @@ class PurchaseOrderController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function exportPurchaseOrderArticleData(Request $request)
+    {
+        $po_id = $request->get('po_id');
+
+        $export = new PurchaseOrderArticleExport($po_id);
+
+        return Excel::download($export, 'purchase_order_article.xlsx');
     }
 }

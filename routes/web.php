@@ -482,6 +482,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('po_detail', [PurchaseOrderController::class, 'poDetail']);
     Route::post('po_import', [PurchaseOrderImportExcelController::class, 'importExcel']);
     Route::post('po_invoice_image', [PurchaseOrderController::class, 'upladImageInvoice']);
+    Route::get('po_article_export', [PurchaseOrderController::class, 'exportPurchaseOrderArticleData']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
