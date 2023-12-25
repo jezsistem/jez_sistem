@@ -125,6 +125,7 @@
                                 <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
+                                        <th class="text-dark">SKU</th>
                                         <th class="text-dark">BIN</th>
                                         <th class="text-dark">BRAND</th>
                                         <th class="text-dark">ARTIKEL</th>

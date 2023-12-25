@@ -94,7 +94,8 @@ class MassAdjustmentController extends Controller
         $exception = ExceptionLocation::select('pl_code')
         ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
         if(request()->ajax()) {
-            return datatables()->of(DB::table('product_location_setups')->selectRaw("ts_product_location_setups.id as id, pl_code, br_name, p_name, p_color, sz_name, psc_name,
+            return datatables()->of(DB::table('product_location_setups')->selectRaw(
+                "ts_product_location_setups.id as id, ts_product_stocks.ps_barcode as ps_barcode,pl_code, br_name, p_name, p_color, sz_name, psc_name,
             pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -151,6 +152,7 @@ class MassAdjustmentController extends Controller
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhere('pl_code', 'LIKE', "%$search%")
+                        ->orWhere('ps_barcode', 'LIKE', "%$search%")
                         ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
                     });
                 }
@@ -310,7 +312,7 @@ class MassAdjustmentController extends Controller
                     $w->where('product_location_setups.pls_qty', '>', '0');
                 }
             })
-            ->where('product_location_setups.pls_qty', '>', '0')
+//            ->where('product_location_setups.pls_qty', '>', '0')
             ->whereIn('stkt_id', ['1', '3'])
             ->groupBy('product_location_setups.id')
             ->get();
@@ -358,7 +360,7 @@ class MassAdjustmentController extends Controller
                     $w->where('product_location_setups.pls_qty', '>', '0');
                 }
             })
-            ->where('product_location_setups.pls_qty', '>', '0')
+//            ->where('product_location_setups.pls_qty', '>', '0')
             ->where('stkt_id', '=', '2')
             ->groupBy('product_location_setups.id')
             ->get();
