@@ -337,3 +337,66 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="ScanOutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Barang Keluar</h5>
+            </div>
+            <div class="modal-body table-responsive">
+                <div id="pl_id_out_parent"></div>
+                <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
+                <table class="table table-hover table-checkable table-striped" id="ScanOuttb">
+                    <thead class="bg-dark text-light">
+                    <tr>
+                        <th class="text-dark">Artikel</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_out_modal_finish">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="ScanInModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Barang Masuk</h5>
+            </div>
+            <div class="modal-body table-responsive">
+                <select class="form-control form-control-sm bg-info text-white" id="waiting_filter">
+                    <option value='WAITING OFFLINE'>Waiting Offline</option>
+                    <option value='WAITING ONLINE'>Waiting Online</option>
+                    <option value='REFUND'>Refund</option>
+                    <option value='EXCHANGE'>Exchange</option>
+                </select><br/>
+                <input type="search" class="form-control" id="scan_in_search" placeholder="Cari brand artikel"/>
+                <table class="table table-hover table-checkable table-striped" id="ScanIntb">
+                    <thead class="bg-dark text-light">
+                    <tr>
+                        <th class="text-dark">Artikel</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_in_modal_finish">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->

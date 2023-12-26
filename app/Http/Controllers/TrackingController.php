@@ -200,6 +200,37 @@ class TrackingController extends Controller
         } else {
             $r['status'] = '400';
         }
+
+        return json_encode($r);
+    }
+
+    public function scanSaveOutActivity(Request $request)
+    {
+        $pls_id = $request->_pls_id;
+        $plst_id = $request->_plst_id;
+        $secret_code = $request->_secret_code;
+        $u_id = Auth::user()->id;
+        $update = DB::table('product_location_setup_transactions')->where('id', $plst_id)
+            ->whereIn('plst_status', ['WAITING TO TAKE'])->update([
+                'u_id_helper' => $u_id,
+                'plst_type' => 'OUT',
+                'plst_status' => 'WAITING OFFLINE',
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+        if (!empty($update)) {
+            $pls = ProductLocationSetup::select('pst_id', 'pl_id')->where('id', $pls_id)->get()->first();
+            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('product_stocks.id', $pls->pst_id)
+                ->get()->first();
+            $pl_code = ProductLocation::select('pl_code')->where('id', $pls->pl_id)->get()->first()->pl_code;
+            $this->UserActivity($u_id, 'mengeluarkan artikel ['.$item->br_name.'] '.$item->p_name.' '.$item->p_color.' '.$item->sz_name.' dari BIN '.$pl_code);
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
         return json_encode($r);
     }
 
@@ -384,7 +415,9 @@ class TrackingController extends Controller
             ->where('plst_status', '=', 'WAITING TO TAKE'))
             ->editColumn('article', function($data){
                 $p_name = $data->p_name.' '.$data->p_color.' '.$data->sz_name;
-                return '<span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">'.$data->plst_status.'</span> <span style="white-space: nowrap; font-weight:bold;">['.$data->br_name.']<br/>'.$data->p_name.'<br/>'.$data->p_color.' ('.$data->sz_name.')</span><br/>
+                return '
+                <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">'.$data->plst_status.'</span>
+                <span style="white-space: nowrap; font-weight:bold;">['.$data->br_name.']<br/>'.$data->p_name.'<br/>'.$data->p_color.' ('.$data->sz_name.')</span><br/>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : '.$data->plst_qty.'</span>
                 <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">['.$data->pl_code.']</span>
                 <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="'.$data->plst_id.'" data-p_name="'.$p_name.'" data-qty="'.$data->pls_qty.'" data-pls_id="'.$data->pls_id.'" id="get_out_btn" style="font-weight:bold;">Keluar</a>';
@@ -396,11 +429,53 @@ class TrackingController extends Controller
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                        // create search by ps_barcode from product_stocks
+                        $w->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
                     });
                 }
             })
             ->addIndexColumn()
             ->make(true);
+        }
+    }
+
+    public function scanOutDatatables(Request $request)
+    {
+        if(request()->ajax()) {
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'pst_id', 'pls_qty', 'plst_qty', 'plst_status', 'pl_id','u_name', 'p_name', 'br_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created')
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function($w) {
+                    $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+                })
+                ->where('plst_status', '=', 'WAITING TO TAKE'))
+                ->editColumn('article', function($data){
+                    $p_name = $data->p_name.' '.$data->p_color.' '.$data->sz_name;
+                    return '
+                <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">'.$data->plst_status.'</span>
+                <span style="white-space: nowrap; font-weight:bold;">['.$data->br_name.']<br/>'.$data->p_name.'<br/>'.$data->p_color.' ('.$data->sz_name.')</span><br/>
+                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : '.$data->plst_qty.'</span>
+                <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">['.$data->pl_code.']</span>
+                <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="'.$data->plst_id.'" data-p_name="'.$p_name.'" data-qty="'.$data->pls_qty.'" data-pls_id="'.$data->pls_id.'" id="scan_get_out_btn" style="font-weight:bold;">Keluar</a>';
+
+                })
+                ->rawColumns(['article', 'bin', 'status', 'qty', 'action'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                            $w->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -456,6 +531,62 @@ class TrackingController extends Controller
             })
             ->addIndexColumn()
             ->make(true);
+        }
+    }
+
+    public function scanInDatatables(Request $request)
+    {
+        if(request()->ajax()) {
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'plst_status', 'p_name', 'br_name', 'p_color', 'pl_code', 'pl_name', 'sz_name')
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function($w) {
+                    $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+                })
+                ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'REJECT', 'EXCHANGE', 'REFUND']))
+                ->editColumn('article', function($data){
+                    $p_name = $data->p_name.' '.$data->p_color.' '.$data->sz_name;
+                    if ($data->plst_status == 'WAITING OFFLINE') {
+                        $btn = 'btn-warning';
+                    } else if ($data->plst_status == 'WAITING ONLINE') {
+                        $btn = 'btn-light-warning';
+                    } else if ($data->plst_status == 'WAITING FOR CHECKOUT') {
+                        $btn = 'btn-info';
+                    } else if ($data->plst_status == 'WAITING TO TAKE') {
+                        $btn = 'btn-info';
+                    } else if ($data->plst_status == 'REJECT') {
+                        $btn = 'btn-danger';
+                    } else if ($data->plst_status == 'EXCHANGE') {
+                        $btn = 'btn-danger';
+                    } else if ($data->plst_status == 'REFUND') {
+                        $btn = 'btn-danger';
+                    }
+                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm '.$btn.'">'.$data->plst_status.'</span> <span style="white-space: nowrap; font-weight:bold;"> ['.$data->br_name.']<br/>'.$data->p_name.'<br/>'.$data->p_color.' ['.$data->sz_name.']</span><br/>
+                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : '.$data->plst_qty.'</a>
+                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">'.$data->pl_code.'</span>
+                <a class="btn btn-sm btn-success" data-bin="'.$data->pl_code.' '.$data->pl_name.'" data-p_name="'.$p_name.'" data-qty="'.$data->plst_qty.'" data-pls_id="'.$data->pls_id.'" data-plst_id="'.$data->plst_id.'" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
+                })
+                ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                            $w->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
+                        });
+                    }
+                    if (!empty($request->get('waiting'))) {
+                        $instance->where(function($w) use($request){
+                            $w->where('plst_status', '=', $request->get('waiting'));
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 }

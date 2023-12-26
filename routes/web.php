@@ -169,6 +169,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('save_reject_activity', [TrackingController::class, 'saveRejectActivity']);
     Route::get('product_in_datatables', [TrackingController::class, 'inDatatables']);
     Route::get('product_out_datatables', [TrackingController::class, 'outDatatables']);
+    Route::get('scan_product_out_datatables', [TrackingController::class, 'scanOutDatatables']);
+    Route::get('scan_product_in_datatables', [TrackingController::class, 'scanInDatatables']);
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
 

@@ -46,7 +46,15 @@
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
                             </h3>
                             <h3 class="card-title align-items-start flex-column">
+                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_out_btn">Scan Keluar Rak</span>
+                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
+                            </h3>
+                            <h3 class="card-title align-items-start flex-column">
                                 <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="in_btn">Masuk Rak</span>
+                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
+                            </h3>
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_in_btn">Scan Masuk Rak</span>
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
                             </h3>
                             <h3 class="card-title align-items-start flex-column">

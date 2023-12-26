@@ -67,6 +67,32 @@
 		order: [[0, 'desc']],
 	});
 
+    var scan_out_table = $('#ScanOuttb').DataTable({
+		destroy: true,
+		processing: false,
+		serverSide: true,
+		responsive: false,
+		dom: 'rt<"text-right"ip>',
+		ajax: {
+			url : "{{ url('scan_product_out_datatables') }}",
+			data : function (d) {
+				// d.pl_id = $('#pl_id_out').val();
+				d.search = $('#scan_out_search').val();
+				d.st_id = $('#st_id').val();
+			}
+		},
+		columns: [
+		{ data: 'article', name: 'article' , sortable: false },
+		],
+		columnDefs: [
+		{
+			"targets": 0,
+			"className": "text-left",
+			"width": "0%"
+		}],
+        order: [[0, 'desc']],
+	});
+
 	var in_table = $('#Intb').DataTable({
 		destroy: true,
 		processing: false,
@@ -93,6 +119,33 @@
 		}],
 		order: [[0, 'desc']],
 	});
+
+    var scan_in_table = $('#ScanIntb').DataTable({
+        destroy: true,
+        processing: false,
+        serverSide: true,
+        responsive: false,
+        dom: 'rt<"text-right"ip>',
+        ajax: {
+            url : "{{ url('scan_product_in_datatables') }}",
+            data : function (d) {
+                // d.pl_id = $('#pl_id_out').val();
+                d.search = $('#scan_in_search').val();
+                d.st_id = $('#st_id').val();
+                d.waiting = $('#waiting_filter').val();
+            }
+        },
+        columns: [
+            { data: 'article', name: 'article' , sortable: false },
+        ],
+        columnDefs: [
+            {
+                "targets": 0,
+                "className": "text-left",
+                "width": "0%"
+            }],
+        order: [[0, 'desc']],
+    });
 	
 	$('#waiting_filter').on('change', function() {
 		in_table.draw();
@@ -140,9 +193,126 @@
 		in_table.draw();
 	});
 
+    $('#scan_in_search').on('keyup', function(event) {
+        scan_in_table.draw();
+        if (event.keyCode === 13) {
+            var scan_in_data = [];
+            var totalRequests = 0;
+            var completedRequests = 0;
+
+            // console.log(scan_in_table.rows().data());
+
+            scan_in_table.rows().every(function () {
+                totalRequests++;
+                var rowData = this.data();
+                var current_qty = $(this).attr('data-qty');
+                console.log(this.data());
+                scan_in_data.push({
+                    _plst_id: rowData.plst_id,
+                    _pls_id: rowData.pls_id,
+                    _qty: rowData.plst_qty,
+
+                });
+            });
+
+            scan_in_data.forEach(function(item) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ url('save_in_activity') }}",
+                    type: "POST",
+                    data: {
+                        _plst_id: item._plst_id,
+                        _pls_id: item._pls_id,
+                        _qty: item._qty,
+                    },
+                    success: function (response) {
+                        var responseObject = JSON.parse(response);
+                        var status = responseObject.status;
+
+                        completedRequests++;
+                        if (completedRequests === totalRequests) {
+                            // All requests have completed
+                            if (status == 200) {
+                                scan_in_table.draw();
+                                toast('Dikeluarkan', ' berhasil dimasukkan', 'success');
+                                // swal('Dikeluarkan', 'Berhasil keluar produk', 'success');
+                            } else {
+                                // toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');
+                                swal('Gagal', 'Gagal masuk produk', 'error');
+                            }
+                        }
+                    },
+                });
+            });
+
+        }
+    });
+
 	$('#out_search').on('keyup', function() {
 		out_table.draw();
 	});
+
+    $('#scan_out_search').on('keyup', function(event) {
+        scan_out_table.draw();
+        if (event.keyCode === 13) {
+            var scan_out_data = [];
+            var totalRequests = 0;
+            var completedRequests = 0;
+
+            scan_out_table.rows().every(function () {
+                totalRequests++;
+                var rowData = this.data();
+                scan_out_data.push({
+                    _plst_id: rowData.plst_id,
+                    _pls_id: rowData.pls_id,
+                });
+            });
+
+            // Iterate through scan_out_data and make separate AJAX requests
+            scan_out_data.forEach(function(item) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ url('save_out_activity') }}",
+                    type: "POST",
+                    data: {
+                        _plst_id: item._plst_id,
+                        _pls_id: item._pls_id,
+                    },
+                    success: function (response) {
+                        var responseObject = JSON.parse(response);
+                        var status = responseObject.status;
+
+                        completedRequests++;
+                        if (status == '200') {
+                            scan_out_table.draw();
+                            if (completedRequests === totalRequests) {
+                                // All requests have completed
+                                if (status == 200) {
+                                    scan_out_table.draw();
+                                    toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');
+                                    // swal('Dikeluarkan', 'Berhasil keluar produk', 'success');
+                                } else {
+                                    // toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');
+                                    swal('Gagal', 'Gagal keluar produk', 'error');
+                                }
+                            }
+                        }
+                    },
+                });
+            });
+        }
+    });
+
 
     var transfer_list_table = $('#TransferListtb').DataTable({
         destroy: true,
@@ -306,12 +476,72 @@
 					});
 					$.ajax({
 						type: "POST",
-						data: {_plst_qty:plst_qty, _plst_id:plst_id, _pls_id:pls_id, _secret_code:secret_code, _status:status},
+						data: {
+                            _plst_qty:plst_qty,
+                            _plst_id:plst_id,
+                            _pls_id:pls_id,
+                            _secret_code:secret_code,
+                            _status:status},
 						dataType: 'json',
 						url: "{{ url('save_out_activity')}}",
 						success: function(r) {
 							if (r.status == '200'){
 								out_table.draw();
+								$(this).prop('disabled', false);
+								toast('Dikeluarkan', p_name+' berhasil dikeluarkan', 'success');
+							} else {
+							    $(this).prop('disabled', false);
+								swal('Gagal', 'Gagal keluar produk', 'error');
+							}
+						}
+					});
+					return false;
+				}
+			})
+		}
+	});
+
+    $(document).delegate('#scan_get_out_btn', 'click', function() {
+        console.log('running ga nih?');
+		var pls_id = $(this).attr('data-pls_id');
+		var plst_id = $(this).attr('data-plst_id');
+		var plst_qty = $(this).attr('data-plst_qty');
+		var current_qty = $(this).attr('data-qty');
+		var p_name = $(this).attr('data-p_name');
+		var bin = $('#pl_id_out option:selected').text();
+		var secret_code = $('#u_secret_code').val();
+		var status = $(this).attr('data-status');
+		if (current_qty >= 0) {
+			swal({
+				title: "Keluar..?",
+				text: "Yakin keluarin produk "+p_name+" dari BIN "+bin+" ?",
+				icon: "warning",
+				buttons: [
+					'Batal',
+					'Yakin'
+				],
+				dangerMode: false,
+			}).then(function(isConfirm) {
+				if (isConfirm) {
+				    $(this).prop('disabled', true);
+					$.ajaxSetup({
+						headers: {
+						'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+						}
+					});
+					$.ajax({
+						type: "POST",
+						data: {
+                            _plst_qty:plst_qty,
+                            _plst_id:plst_id,
+                            _pls_id:pls_id,
+                            _secret_code:secret_code,
+                            _status:status},
+						dataType: 'json',
+						url: "{{ url('save_out_activity')}}",
+						success: function(r) {
+							if (r.status == '200'){
+								scan_out_table.draw();
 								$(this).prop('disabled', false);
 								toast('Dikeluarkan', p_name+' berhasil dikeluarkan', 'success');
 							} else {
@@ -375,6 +605,55 @@
 		}
 	});
 
+    $(document).delegate('#scan_get_in_btn', 'click', function() {
+		var plst_id = $(this).attr('data-plst_id');
+		var pls_id = $(this).attr('data-pls_id');
+		var plst_qty = $(this).attr('data-plst_qty');
+		var p_name = $(this).attr('data-p_name');
+		var bin = $(this).attr('data-bin');
+		var current_qty = $(this).attr('data-qty');
+		var secret_code = $('#u_secret_code').val();
+		//alert(plst_id+' '+pls_id+' '+p_name+' '+bin+' '+current_qty+' '+secret_code);
+		if (current_qty != 0) {
+			swal({
+				title: "Masuk..?",
+				text: "Yakin sudah masukin produk "+p_name+" ke BIN "+bin+" ?",
+				icon: "warning",
+				buttons: [
+					'Batal',
+					'Yakin'
+				],
+				dangerMode: false,
+			}).then(function(isConfirm) {
+				if (isConfirm) {
+				    $(this).prop('disabled', true);
+					$.ajaxSetup({
+						headers: {
+						'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+						}
+					});
+					$.ajax({
+						type: "POST",
+						data: {_qty:current_qty, _plst_qty:plst_qty, _pls_id:pls_id, _plst_id:plst_id, _secret_code:secret_code},
+						dataType: 'json',
+						url: "{{ url('save_in_activity')}}",
+						success: function(r) {
+							if (r.status == '200'){
+								scan_in_table.draw();
+								$(this).prop('disabled', false);
+								toast('Dimasukkan', p_name+' berhasil dimasukkan', 'success');
+							} else {
+							    $(this).prop('disabled', false);
+								swal('Gagal', 'Gagal masukin produk', 'error');
+							}
+						}
+					});
+					return false;
+				}
+			})
+		}
+	});
+
     $(document).delegate('#get_transfer_item', 'click', function() {
 		var stfd_id = $(this).attr('data-stfd_id');
 		var p_name = $(this).attr('data-p_name');
@@ -414,8 +693,9 @@
         })
 	});
 
-	$('#out_modal_finish, #in_modal_finish, #transfer_modal_finish, #transfer_detail_modal_finish').on('click', function (e) {
+	$('#out_modal_finish, #in_modal_finish, #transfer_modal_finish, #transfer_detail_modal_finish, #scan_out_modal_finish, #scan_in_modal_finish').on('click', function (e) {
 		$('#OutModal').modal('hide');
+		$('#ScanOutModal').modal('hide');
 		$('#InModal').modal('hide');
 		$('#TrackingTypeModal').modal('hide');
 		$('#InputCodeModal').modal('hide');
@@ -710,11 +990,26 @@
 		out_table.draw();
 	});
 
+    jQuery.noConflict();
+    $('#scan_out_btn').on('click', function(e) {
+        e.preventDefault();
+        $('#st_id').val('');
+        $('#ScanOutModal').modal('show');
+        scan_out_table.draw();
+    });
+
 	$('#in_btn').on('click', function(e) {
 		e.preventDefault();
 		$('#st_id').val('');
 		$('#InModal').modal('show');
 		in_table.draw();
+	});
+
+    $('#scan_in_btn').on('click', function(e) {
+		e.preventDefault();
+		$('#st_id').val('');
+		$('#ScanInModal').modal('show');
+		scan_in_table.draw();
 	});
 
 	$('#urban_out_btn').on('click', function(e) {
