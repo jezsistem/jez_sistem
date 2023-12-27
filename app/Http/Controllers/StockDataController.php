@@ -230,7 +230,7 @@ class StockDataController extends Controller
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->whereNotIn('pl_code', $exception)
-                        ->where('pls_qty', '>', 0)
+//                        ->where('pls_qty', '>', 0)
                         ->where('product_locations.st_id', '=', $st_id)
                         ->where('p_id', $row->pid)
                         ->where(function($w) use ($sz_id) {
@@ -242,6 +242,7 @@ class StockDataController extends Controller
                                 }
                             }
                         })
+                        ->orderBy('sz_name', 'asc')
                         ->groupBy('sz_name')->get();
                         if (!empty($item_size_stock)) {
                             $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
@@ -361,7 +362,8 @@ class StockDataController extends Controller
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
+                        $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+                        ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
                     });
                 }
             })

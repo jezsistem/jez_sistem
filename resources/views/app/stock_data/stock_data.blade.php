@@ -15,18 +15,20 @@
                 </div>
                 <!--end::Page Heading-->
             </div>
-            <div class="form-group" style="padding-top:22px;">
-                <select class="form-control bg-primary text-white" id="st_id_filter" name="st_id_filter" required>
-                    <option value="">- Storage -</option>
-                    @foreach ($data['st_id'] as $key => $value)
-                        @if ($key == $data['user']->st_id)
-                        <option value="{{ $key }}" selected>{{ $value }}</option>
-                        @else
-                        <option value="{{ $key }}">{{ $value }}</option>
-                        @endif
-                    @endforeach
-                </select>
-                <div id="st_id_filter_parent"></div>
+            <div class="row">
+                <div class="form-group" style="padding-top:22px;">
+                    <select class="form-control bg-primary text-white" id="st_id_filter" name="st_id_filter" required>
+                        <option value="">- Storage -</option>
+                        @foreach ($data['st_id'] as $key => $value)
+                            @if ($key == $data['user']->st_id)
+                            <option value="{{ $key }}" selected>{{ $value }}</option>
+                            @else
+                            <option value="{{ $key }}">{{ $value }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <div id="st_id_filter_parent"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -135,7 +137,7 @@
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <input type="search" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
+                            <input type="search" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau sku" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
                             <table class="table table-hover table-checkable" id="StockDatatb">
                                 <thead class="bg-light text-dark">
                                     <tr>
