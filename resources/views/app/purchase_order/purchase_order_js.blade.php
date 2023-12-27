@@ -1013,9 +1013,9 @@
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
-            var po_id = global_po_id;
+            var po_invoice_label = $('#po_invoice_label').text();
 
-            formData.append('_po_id', po_id)
+            formData.append('_po_invoice_label', po_invoice_label)
             $.ajax({
                 type: 'POST',
                 url: "{{ url('po_import')}}",
@@ -1025,6 +1025,7 @@
                 contentType: false,
                 processData: false,
                 success: function(data) {
+
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -1032,7 +1033,7 @@
                         $("#ImportModal").modal('hide');
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
-                        reloadArticleDetail(po_id)
+                        reloadArticleDetail(data.po_id)
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
                         swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');

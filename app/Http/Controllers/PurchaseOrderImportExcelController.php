@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Imports\PurchaseOrderExcelImport;
 use App\Models\ProductStock;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderArticle;
 use App\Models\PurchaseOrderArticleDetail;
 use App\Models\Size;
@@ -15,6 +16,7 @@ class PurchaseOrderImportExcelController extends Controller
 {
     public function importExcel(Request $request)
     {
+        $po_id = PurchaseOrder::query()->where('po_invoice', $request->_po_invoice_label)->first()->id;
         try {
             if ($request->hasFile('importFile')) {
 
@@ -26,10 +28,11 @@ class PurchaseOrderImportExcelController extends Controller
 
                 unlink(public_path('excel/' . $nama_file));
                 if ($import->getRowCount() >= 0) {
-                    $processData = $this->processImportData($import->getData());
+                    $processData = $this->processImportData($import->getData(), $po_id);
 
                     $r['data'] = $processData;
                     $r['status'] = '200';
+                    $r['po_id'] = $po_id;
 
                 } else {
                     $r['status'] = '419';
@@ -37,12 +40,14 @@ class PurchaseOrderImportExcelController extends Controller
             } else {
                 $r['status'] = '400';
             }
+
+            return json_encode($r);
         } catch (\Exception $e) {
             throw $e;
         }
     }
 
-    private function processImportData(array $data)
+    private function processImportData(array $data, $po_id)
     {
         // Todo : ID Purchase Orders : 4138
         /** Todo
@@ -76,7 +81,7 @@ class PurchaseOrderImportExcelController extends Controller
          */
         try {
             DB::beginTransaction();
-            $poid = 4151;
+            $poid = $po_id;
             foreach ($data as $key => $value) {
                 $check_poa = PurchaseOrderArticle::where([
                     'po_id' => $poid,
