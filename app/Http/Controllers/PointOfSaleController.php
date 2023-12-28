@@ -1488,7 +1488,7 @@ class PointOfSaleController extends Controller
                 'INSTOCK APPROVAL'
             ];
             if ($item_type == 'waiting') {
-                $data = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pl_code', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'plst_status', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
+                $data = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pl_code', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'plst_status', 'product_stocks.id as pst_id', 'product_locations.id as pl_id', 'products.article_id as article_id')
                     ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                     ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -1500,10 +1500,11 @@ class PointOfSaleController extends Controller
                     ->where('product_locations.st_id', '=', Auth::user()->st_id)
                     ->whereIn('plst_status', $plst_status_new)
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->limit(13)
                     ->get();
             } else if ($item_type == 'b1g1') {
-                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'pl_code', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
+                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'pl_code', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
                     ->join('products', 'products.id', '=', 'product_stocks.p_id')
                     ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                     ->join('brands', 'brands.id', '=', 'products.br_id')
@@ -1514,11 +1515,12 @@ class PointOfSaleController extends Controller
                     ->whereNotIn('pl_code', $exception)
                     ->whereIn('pl_code', $b1g1_setup)
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
             } else {
-                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
+                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
                     ->join('products', 'products.id', '=', 'product_stocks.p_id')
                     ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                     ->join('brands', 'brands.id', '=', 'products.br_id')
@@ -1529,6 +1531,7 @@ class PointOfSaleController extends Controller
                     ->whereNotIn('pl_code', $exception)
                     ->whereIn('pl_code', ['TOKO'])
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
@@ -1619,7 +1622,10 @@ class PointOfSaleController extends Controller
                         $bin = '<span class="btn-lg btn-info">'.$row->pls_qty.'</span>';
                     }
                     $output .= '
-                    <li><a class="btn btn-sm btn-inventory col-12" data-b1g1_id="'.$b1g1_id.'" data-b1g1_price="'.$b1g1_price.'" data-fs="'.$fs.'" data-psc_id="'.$row->psc_id.'" data-pls_qty="'.$row->pls_qty.'" data-plst_id="'.$row->plst_id.'" data-pl_id="'.$row->pl_id.'" data-sell_price="'.$sell_price.'" data-bandrol="'.$bandrol.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' ['.$row->sz_name.'] ['.$row->pl_code.']" id="add_to_item_list"><span style="float-left;"><span class="btn-lg btn-primary">['.strtoupper($row->br_name).'] '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.' '.$status.' </span></a></li>
+                    <li>
+                    <a class="btn btn-sm btn-inventory col-12" data-b1g1_id="'.$b1g1_id.'" data-b1g1_price="'.$b1g1_price.'" data-fs="'.$fs.'" data-psc_id="'.$row->psc_id.'" data-pls_qty="'.$row->pls_qty.'" data-plst_id="'.$row->plst_id.'" data-pl_id="'.$row->pl_id.'" data-sell_price="'.$sell_price.'" data-bandrol="'.$bandrol.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' ['.$row->sz_name.'] ['.$row->pl_code.']" id="add_to_item_list">
+                    <span style="float-left;">
+                    <span class="btn-lg btn-primary">['.strtoupper($row->br_name).']'. strtoupper($row->article_id) .' '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.' '.$status.' </span></a></li>
                     ';
                 }
             } else {

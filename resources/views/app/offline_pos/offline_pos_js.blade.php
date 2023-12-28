@@ -1873,7 +1873,6 @@
                         method:"POST",
                         data:{query:query, type:type, _item_type:item_type, _std_id:std_id},
                         success:function(data){
-                            console.log(data);
                             jQuery('#itemList').fadeIn();
                             jQuery('#itemList').html(data);
                         }
