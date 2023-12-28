@@ -1099,6 +1099,7 @@ class PointOfSaleController extends Controller
 
     function fetch(Request $request)
     {
+
         if($request->get('query'))
         {
             $exception = ExceptionLocation::select('pl_code')
@@ -1251,6 +1252,7 @@ class PointOfSaleController extends Controller
 
     function changeWaitingStatus(Request $request)
     {
+
         $b1g1_setup = BuyOneGetOne::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->get()->toArray();
 
@@ -1449,11 +1451,15 @@ class PointOfSaleController extends Controller
                 }
             }
         }
+
+
         return json_encode($r);
     }
 
     function fetchWaiting(Request $request)
     {
+        //return $request->all();
+
         if($request->get('query'))
         {
             $exception = ExceptionLocation::select('pl_code')
@@ -1776,6 +1782,7 @@ class PointOfSaleController extends Controller
     {
         $code = $request->post('code');
         $item = $request->post('item');
+
         $check = DB::table('vouchers')->where('vc_code', '=', $code)
         ->where('vc_due_date', '>=', date('Y-m-d'))
         ->where('vc_status', '=', '1')->get()->first();
@@ -1861,6 +1868,109 @@ class PointOfSaleController extends Controller
         } else {
             $r['status'] = '400';
         }
+        return json_encode($r);
+    }
+
+    public function verifyVouchers(Request $request) {
+        $codes = $request->post('formData');
+        $item = $request->post('item');
+
+        $total_discount_voucher_nomimal = 0;
+        $total_discount_voucher_percent = 0;
+
+        foreach($codes as $code) {
+//            return $code['value'];
+            $check = DB::table('vouchers')->where('vc_code', '=', $code['value'])
+                ->where('vc_due_date', '>=', date('Y-m-d'))
+                ->where('vc_status', '=', '1')->get()->first();
+
+//            return $check;
+            if (!empty($check)) {
+                $check_vtrx = DB::table('voucher_transactions')->where('vc_id', '=', $check->id)->get()->first();
+                if ($check->vc_reuse == '0') {
+                    if (!empty($check_vtrx)) {
+                        $r['status'] = '202';
+                        return json_encode($r);
+                    }
+                } else if ($check->vc_reuse == '2') {
+                    $start_new = date("Y-m-d H:i:s", strtotime("+1 month", strtotime($check_vtrx->created_at)));
+                    if (date('Y-m-d H:i:s') < $start_new) {
+                        $r['status'] = '203';
+                        return json_encode($r);
+                    }
+                }
+                if ($check->vc_platform == 'all') {
+                    if (count($item) > 0) {
+                        $sell_price = array();
+                        $price = array();
+                        $item_id = array();
+                        for ($i = 0; $i < count($item); $i ++) {
+                            $exp = explode('-', $item[$i]);
+                            $sell_price[] = [$exp[2]];
+                            $price[] = [$exp[1]];
+                            $item_id[] = [$exp[0]];
+                        }
+                        rsort($price);
+                        $disc_item = '';
+                        for ($i = 0; $i < count($item_id); $i ++) {
+                            $key1 = $item_id[$i][0];
+                            for ($x = 0; $x < count($sell_price); $x ++) {
+                                $key2 = $price[0][0];
+                                $key3 = $sell_price[$x][0];
+                                $key = $key1.'-'.$key2.'-'.$key3;
+                                $search = array_search($key, $item);
+                                if ($search != false || $search >= 0) {
+                                    $disc_item = $search;
+                                }
+                            }
+                        }
+                        $result = explode('-', $item[$disc_item]);
+                        $id = $result[0];
+                        $bandrol = $result[1];
+                        $sell = $result[2];
+                        $disc = null;
+                        $disc_type = null;
+                        $disc_value = null;
+                        $value = null;
+                        $article = DB::table('products')->selectRaw("CONCAT(br_name, ' ', p_name, ' ', p_color, ' ', sz_name) as article")
+                            ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                            ->where('product_stocks.id', '=', $id)->get()->first()->article;
+                        if ($check->vc_type == 'percent') {
+                            $total_discount_voucher_percent += $check->vc_discount;
+                            $disc_type = "%";
+                            $disc = $check->vc_discount;
+                            $disc_value = ($bandrol/100) * $total_discount_voucher_percent;
+                            $value = $bandrol - $disc_value;
+                        } else if ($check->vc_type == 'amount') {
+                            $total_discount_voucher_nomimal += $check->vc_discount;
+                            $disc_type = "Rp";
+                            $disc = ($total_discount_voucher_nomimal/1000).'K';
+                            $disc_value = $total_discount_voucher_nomimal;
+                            $value = $bandrol - $disc_value;
+                        }
+                        $r['voc_id'] = $check->id;
+                        $r['pst_id'] = $id;
+                        $r['article'] = $article;
+                        $r['bandrol'] = $bandrol;
+                        $r['sell'] = $sell;
+                        $r['disc_type'] = $disc_type;
+                        $r['disc_value'] = $disc_value;
+                        $r['disc'] = $disc;
+                        $r['value'] = $value;
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '204';
+                    }
+                } else {
+                    $r['status'] = '201';
+                }
+            } else {
+                $r['status'] = '400';
+            }
+        }
+//        return $r;
         return json_encode($r);
     }
     
