@@ -303,10 +303,13 @@ class StockTransferDataController extends Controller
     $data = $request->_arr;
     $stf_id = $request->_stf_id;
     $st_id_end = $request->_st_id_end;
+    $st_id_end -= 1;
+
     $default_bin = ProductLocation::select('id')->where([
       'st_id' => $st_id_end,
       'pl_default' => '1'
     ])->get()->first()->id;
+
     $insert = array();
     foreach ($data as $row) {
       $insert[] = [
