@@ -11,9 +11,7 @@ class POPurchaseReceiveImportController extends Controller
 {
     public function importExcel(Request $request)
     {
-
         try {
-
             if ($request->hasFile('importFile')) {
 
                 $file = $request->file('importFile');
@@ -29,7 +27,7 @@ class POPurchaseReceiveImportController extends Controller
                 if ($import->getRowCount() >= 0) {
                     $processData = $this->processImportData($data[0]);
 
-                    PurchaseOrderReceiveImportExcel::insert($processData);
+                    // PurchaseOrderReceiveImportExcel::insert($processData);
 
                     $r['data'] = $processData;
                     $r['status'] = '200';
