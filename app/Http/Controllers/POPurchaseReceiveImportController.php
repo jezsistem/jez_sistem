@@ -24,6 +24,7 @@ class POPurchaseReceiveImportController extends Controller
                 $import = new POPurchaseReceiveImport;
                 $data = Excel::toArray($import, public_path('excel/'.$nama_file));
 
+
                 if ($import->getRowCount() >= 0) {
                     $processData = $this->processImportData($data[0]);
 
@@ -49,19 +50,12 @@ class POPurchaseReceiveImportController extends Controller
 
     private function processImportData($data)
     {
+
         $processedData = [];
 
         foreach ($data as $item) {
-            $barcodeAndQty = $item[0];
-
-            $explodedData = explode(',', $barcodeAndQty);
-
-            if (count($explodedData) == 1) {
-                $explodedData[1] = 1;
-            }
-
-            $barcode = $explodedData[0];
-            $qty = $explodedData[1];
+            $barcode = $item[0];
+            $qty = $item[1];
 
             // Check if barcode already exists in processedData
             $existingKey = array_search($barcode, array_column($processedData, 'barcode'));
