@@ -65,7 +65,7 @@
             }
             .content .transaction-table .price-tr td {
                 padding-top: 7px;
-                padding-bottom: 7px;t
+                padding-bottom: 7px;
             }
             .content .transaction-table .discount-tr td {
                 padding-top: 7px;
@@ -93,7 +93,7 @@
 
         </style>
     </head>
-    <body>
+    <center>
         @if (!empty($data['invoice_data']))
             @foreach ($data['invoice_data'] as $row)
             <div class="content">
@@ -163,9 +163,24 @@
                             <td colspan="2" class="qty">{{ $srow->pos_td_description }}</td>
                             @else 
                             <td class="qty">{{ $srow->pos_td_qty }}x</td>
-                            <td class="sell-price">{{ $srow->pos_td_sell_price }}</td>
+                            <td class="sell-price">
+                                {{ $srow->productStock->ps_price_tag }}
+                                {{ $srow->pos_td_sell_price }}
+
+                                @if (!empty($srow->pos_td_discount))
+                                    <br/>{{ $srow->pos_td_discount }}%
+                                @endif
+                                @if(!empty($srow->pos_td_discount_number))
+                                    <br/> <span class="text-red">({{ $srow->pos_td_discount_number }})</span>
+                                @endif
+                            </td>
+
                             @endif
-                            <td class="final-price">{{ $srow->pos_td_discount_price }}</td>
+                            <td class="final-price">
+                                {{ $srow->pos_td_discount_price }}
+                            </td>
+
+
                         </tr>
                         @endforeach
                         <!-- Discount -->
@@ -196,7 +211,8 @@
                                 @else 
                                 0
                                 @endif
-                                )</span>
+                                )
+                                </span>
                             </td>
                         </tr>
                         <tr>
@@ -305,6 +321,8 @@
                     </p>
                 </div>
             </div>
+        </center>
+    </center>
             @endforeach
         @endif
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
