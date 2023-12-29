@@ -138,6 +138,23 @@ class StockTransferController extends Controller
                     $transfer = '';
                     foreach ($check_pst as $row) {
                         $this->table_row += 1;
+                        $qtyData = 0;
+                        if (!empty($request->excelImport))
+                        {
+                            foreach ($request->excelImport as $dataImport)
+                            {
+                                if ($dataImport['barcode'] == $row->ps_barcode)
+                                {
+                                    $qtyData = $dataImport['qty'];
+                                }
+                            }
+                        }
+
+                        if($qtyData == 0)
+                        {
+                            $qtyData = '';
+                        }
+
                         $transfer .= '
                         <input
                         data-transfer-qty
@@ -146,11 +163,13 @@ class StockTransferController extends Controller
                         data-table_row = "'.$this->table_row.'"
                         data-pst_id = "'.$row->pst_id.'"
                         data-pls_qty = "'.$row->pls_qty.'"
+                        data-import_qty = "'.$qtyData.'"
                         id="transfer_qty"
                         type="number"
                         class="form-control col-12 transfer_qty"
-                        style="padding:10px; margin-bottom:2px;"
-                        value="" title="'.$data->p_name.' '.$data->p_color.' '.$row->sz_name.'"/>
+                        style="padding:10px; margin-bottom:2px;"                        
+                        value="'.$qtyData.'"
+                        title="'.$data->p_name.' '.$data->p_color.' '.$row->sz_name.'"/>
                         <i class="fa fa-eye d-none" onclick="return saveTransfer('.$row->pls_id.', '.$this->table_row.', '.$row->pst_id.', '.$row->pls_qty.')" id="saveTransfer'.$this->table_row.'"></i>';
                     }
                     return $transfer;
@@ -549,12 +568,70 @@ class StockTransferController extends Controller
     }
 
     public function importData(Request $request) {
-        if (request()->hasFile('template')) {
-            $import = new TransferImport;
-            Excel::import($import, request()->file('template'));
-        } else {
+
+        try {
+            if ($request->hasFile('importFile')) {
+
+                $file = $request->file('importFile');
+                // membuat nama file unik
+                $nama_file = rand() . $file->getClientOriginalName();
+
+                // upload ke folder file_siswa di dalam folder public
+                $file->move('excel', $nama_file);
+
+                $import = new TransferImport;
+                $data = Excel::toArray($import, public_path('excel/' . $nama_file));
+//                return $data;
+
+                if ($import->getRowCount() >= 0) {
+                    $processData = $this->processImportData($data[0]);
+
+                    // PurchaseOrderReceiveImportExcel::insert($processData);
+
+                    $r['data'] = $processData;
+                    $r['status'] = '200';
+                } else {
+                    $r['status'] = '419';
+                }
+            } else {
+                $r['status'] = '400';
+            }
+
+//            delete file
+            unlink(public_path('excel/' . $nama_file));
+
+            return json_encode($r);
+        } catch (\Exception $e) {
             $r['status'] = '400';
+            return json_encode($r);
         }
-        return json_encode($r);
+    }
+
+    private function processImportData($data)
+    {
+
+        $processedData = [];
+
+        foreach ($data as $item) {
+            $barcode = $item[0];
+            $qty = $item[1];
+
+            // Check if barcode already exists in processedData
+            $existingKey = array_search($barcode, array_column($processedData, 'barcode'));
+
+            if ($existingKey !== false) {
+                // If barcode exists, add the quantity to the existing entry
+                $processedData[$existingKey]['qty'] += $qty;
+            } else {
+                // If barcode doesn't exist, create a new entry
+                $rowData = [
+                    'barcode' => $barcode,
+                    'qty' => $qty,
+                ];
+                $processedData[] = $rowData;
+            }
+        }
+
+        return $processedData;
     }
 }

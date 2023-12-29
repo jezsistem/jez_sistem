@@ -16,6 +16,8 @@
         });
     }
 
+
+    let excelImportData = [];
     $(document).ready(function() {
         // $('body').addClass('kt-primary--minimize aside-minimize');
         reloadPendingTransfer();
@@ -25,6 +27,7 @@
             }
         });
 
+        // kiri
         var transfer_bin_table = $('#TransferBintb').DataTable({
             destroy: true,
             processing: true,
@@ -39,6 +42,14 @@
                 data : function (d) {
                     d.pl_id = $('#pl_id').val();
                     d.search = $('#article_search').val();
+                    d.excelImport = excelImportData;
+
+                    // Log the content of excelImportData
+                    console.log('excelImportData:', excelImportData);
+
+                    // You can also log other parameters if needed
+                    console.log('d.pl_id:', d.pl_id);
+                    console.log('d.search:', d.search)
                 }
             },
             columns: [
@@ -47,7 +58,7 @@
             { data: 'article', name: 'article', orderable: false },
             { data: 'qty', name: 'qty', orderable: false },
             { data: 'transfer', name: 'transfer', orderable: false },
-            ], 
+            ],
             columnDefs: [
             {
                 "targets": 0,
@@ -65,6 +76,7 @@
             transfer_bin_table.draw();
         });
 
+        // Kanan
         var in_transfer_bin_table = $('#InTransferBintb').DataTable({
             destroy: true,
             processing: true,
@@ -499,51 +511,49 @@
             $('#transfer_done_btn').addClass('d-none');
         });
 
-        $(document).delegate('#f_import', 'submit', function(e) {
+        $('#f_import').on('submit' , function (e) {
             e.preventDefault();
-            var template_size = document.getElementById('template').files.length;
+            $('#import_data_btn').html('Proses...');
+            $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
-            if (template_size < 1) {
-                swal('Template', 'Silahkan pilih template yang akan diupload', 'warning');
-                return false;
-            }
-            swal({
-                title: "Import..?",
-                text: "Yakin import template ini ?",
-                icon: "warning",
-                buttons: [
-                    'Batal',
-                    'Yakin'
-                ],
-                dangerMode: true,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
-                    $.ajaxSetup({
-                        headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-                    $.ajax({    
-                        type: "POST",
-                        url: "{{ url('stock_transfer_import')}}",
-                        data: formData,
-                        dataType: 'json',
-                        cache:false,
-                        contentType: false,
-                        processData: false,
-                        success: function(r) {
-                            if (r.status == '200'){
-                                $('#f_import')[0].reset();
-                                transfer_history_table.draw();
-                                swal("Berhasil", "Data berhasil import", "success");
-                            } else {
-                                swal('Gagal', 'Gagal import data', 'error');
-                            }
-                        }
-                    });
-                    return false;
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('stock_transfer_import')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_import')[0].reset();
+                        excelImportData = data.data;
+
+                        transfer_bin_table.draw();
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
                 }
-            })
+            });
+        });
+
+        $('#ImportModalBtn').on('click', function() {
+            jQuery.noConflict();
+            $('#ImportModal').modal('show');
         });
 
     });
