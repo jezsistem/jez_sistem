@@ -1617,4 +1617,87 @@
         jQuery('#total_final_price_side').text(addCommas(new_total));
         jQuery('#voucher_code').prop('disabled', false);
     });
+
+    jQuery(document).ready(function () {
+        // Event listener to add a new voucher input field
+        jQuery(document).on('click', '.add-voucher', function () {
+            let newField = `
+            <div class="input-group mb-3">
+                <input type="text" name="voucher-list[]" class="form-control" placeholder="Kode Voucher" value="">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary remove-voucher" type="button">-</button>
+                </div>
+            </div>
+        `;
+            jQuery("#voucher-container").append(newField);
+        });
+
+        // Event listener to remove a voucher input field
+        jQuery(document).on('click', '.remove-voucher', function () {
+            jQuery(this).closest('.input-group').remove();
+        });
+    });
+
+    jQuery(document).delegate('#f_add_voucher', 'submit', function(e) {
+        e.preventDefault();
+        var cust_phone = jQuery(this).val();
+
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        var code = jQuery('#voucher_code').val();
+        var item = shoes_voucher_temp;
+        var total_final = jQuery('#total_final_price_side').text();
+        var total = replaceComma(total_final);
+
+        var formData = jQuery('#f_add_voucher').serializeArray();
+
+        jQuery.ajax({
+            type:"POST",
+            url: "{{ url('verify-vouchers')}}",
+            data:
+                {
+                    formData: formData,
+                    item: item,
+                },
+            dataType:'json',
+            success: function(r) {
+                console.log(r.status);
+                if (r.status == '200') {
+                    // ditemukan
+                    var new_total = parseFloat(total) - parseFloat(r.sell) + parseFloat(r.value);
+                    jQuery('#_voc_id').val(r.voc_id);
+                    jQuery('#_voc_pst_id').val(r.pst_id);
+                    jQuery('#_voc_value').val(r.disc_value);
+                    jQuery('#_voc_article').text(r.article);
+                    jQuery('#_voc_bandrol').text(addCommas(r.bandrol));
+                    jQuery('#_voc_disc').text(addCommas(r.disc));
+                    jQuery('#_voc_disc_type').text(addCommas(r.disc_type));
+                    jQuery('#_voc_disc_value').text('('+addCommas(r.disc_value)+')');
+                    jQuery('#_voc_value_show').text(addCommas(r.value));
+                    jQuery('#total_final_price_side').text(addCommas(new_total));
+                    sell_price_voc = r.sell;
+                    value_price_voc = r.value;
+                    jQuery('#voucher_information').removeClass("d-none");
+                    jQuery('#voucher_code').prop('disabled', true);
+                } else if (r.status == '201') {
+                    // salah
+                    alert('beda platform');
+                } else if (r.status == '202') {
+                    // salah
+                    alert('sudah pernah dipakai');
+                } else if (r.status == '203') {
+                    // salah
+                    alert('sudah pernah dipakai namun belum 1 bulan');
+                } else if (r.status == '204') {
+                    // salah
+                    alert('tidak ada item untuk diskon');
+                } else {
+                    alert('kode salah');
+                }
+            }
+        });
+    });
 </script>
