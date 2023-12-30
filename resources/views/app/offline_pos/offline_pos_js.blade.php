@@ -285,6 +285,7 @@
         var nameset_price = jQuery('#nameset_price'+row).val();
         var subtotal_item = jQuery('#subtotal_item'+row).text();
         var item_qty = jQuery('#item_qty'+row).val();
+        var discount_number = jQuery('#discount_number'+row).val();
         if (b1g1_temp.length > 0) {
             price = replaceComma(sell_price_item);
         }
@@ -303,7 +304,24 @@
         jQuery.ajax({
             type:'POST',
             url: "{{ url('save_transaction_detail_offline')}}",
-            data: {voc_pst_id:voc_pst_id, voc_value:value_price_voc, _item_qty:item_qty, _exchange:exchange, _final_price:parseFloat(replaceComma(final_price)), _pt_id_complaint:pt_id_complaint, _access_code:access_code, _pt_id:pt_id, _plst_id:plst_id, _pst_id:pst_id, _price:price, _pl_id:pl_id, _sell_price_item:replaceComma(sell_price_item), _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
+            data: {
+                voc_pst_id:voc_pst_id,
+                voc_value:value_price_voc,
+                _item_qty:item_qty,
+                _exchange:exchange,
+                _final_price:parseFloat(replaceComma(final_price)),
+                _pt_id_complaint:pt_id_complaint,
+                _access_code:access_code,
+                _pt_id:pt_id,
+                _plst_id:plst_id,
+                _pst_id:pst_id,
+                _price:price,
+                _pl_id:pl_id,
+                _sell_price_item:replaceComma(sell_price_item),
+                _subtotal_item:replaceComma(subtotal_item),
+                _nameset_price:nameset_price,
+                _discount_number:discount_number
+            },
             dataType: 'json',
             success: function(r) {
                 if (r.status == '200') {
