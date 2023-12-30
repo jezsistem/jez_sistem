@@ -130,6 +130,7 @@
                                     $total_item = 0;
                                     $total_price = 0;
                                     $nameset = 0;
+                                    $total_discount = 0;
                                     foreach ($row->subitem as $srow) {
                                         $key = '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
                                         if (!array_key_exists($key, $groups)) {
@@ -156,6 +157,7 @@
                                 $total_item += $srow->pos_td_qty;
                                 $total_price += $srow->pos_td_discount_price;
                                 $nameset += $srow->pos_td_nameset_price;
+                                $total_discount += $srow->pos_td_discount_number;
                                 @endphp
                                 <tr style="margin-bottom:5px;">
                                     <td class="name">{{ $key }}</td>
@@ -171,14 +173,18 @@
                                             <br/>{{ $srow->pos_td_discount }}%
                                         @endif
 
-                                        @if(!empty($srow->pos_td_discount_number))
-                                            <br/> <span class="text-red">({{ $srow->pos_td_discount_number }})</span>
-                                        @endif
                                     </td>
 
                                     @endif
                                     <td class="final-price">
-                                        {{ $srow->pos_td_discount_price }}
+                                        @if(!empty($srow->pos_td_discount_number))
+                                            {{ $srow->pos_td_discount_price - $srow->pos_td_discount_number }}
+                                        @else
+                                            {{ $srow->pos_td_discount_price }}
+                                        @endif
+                                        @if(!empty($srow->pos_td_discount_number))
+                                            <br/> <span class="text-red">(-{{ $srow->pos_td_discount_number }})</span>
+                                        @endif
                                     </td>
 
 
@@ -208,7 +214,7 @@
                                         <span style="float:right;">
                                         (
                                         @if (!empty($total_discount))
-                                        0
+                                        {{ number_format($total_discount) }}
                                         @else
                                         0
                                         @endif
@@ -261,7 +267,8 @@
                                     <td class="final-price">
                                         <span style="float:right;">
                                             @if (!empty($total_discount))
-                                                {{ number_format($total_discount+$row->pos_another_cost) }}
+{{--                                                {{ number_format($total_discount+$row->pos_another_cost) }}--}}
+                                                {{ number_format(($total_price+$nameset) - ($total_discount)) }}
                                             @else
                                                 {{ number_format($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) }}
                                             @endif
@@ -289,7 +296,8 @@
                                     <td class="final-price">
                                         <span style="float:right;">
                                         @if (!empty($row->pos_payment))
-                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}
+{{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
+                                                {{ number_format(($row->pos_payment + $row->pos_payment_partial) - (($total_price+$nameset) - ($total_discount))) }}
                                         @else
                                             0
                                         @endif
