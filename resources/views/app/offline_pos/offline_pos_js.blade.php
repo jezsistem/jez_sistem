@@ -324,6 +324,7 @@
             },
             dataType: 'json',
             success: function(r) {
+                console.log(r);
                 if (r.status == '200') {
                     toast('Saved', 'Saved', 'success');
                 } else if (r.status == '400') {
@@ -471,7 +472,31 @@
         jQuery.ajax({
             type:'POST',
             url: "{{ url('save_transaction_offline')}}",
-            data: {voc_id:voc_id, voc_pst_id:voc_pst_id, voc_value:value_price_voc, _cr_id:cr_id, _shipping_cost:shipping_cost, _unique_code:unique_code, _another_cost:another_cost, _admin_cost:admin_cost, _ur_id:ur_id, _real_price:replaceComma(real_price), _exchange:exchange, _pt_id_complaint:pt_id_complaint,_charge:charge, _cp_id:cp_id, _cp_id_two:cp_id_two, _total_payment:total_payment, _total_payment_two:total_payment_two, _access_code:access_code, _type:type, _pm_id:pm_id, _pm_id_two:pm_id_two, _std_id:std_id, _cust_id:cust_id, _note:note, _card_number:card_number, _ref_number:ref_number, _card_number_two:card_number_two, _ref_number_two:ref_number_two},
+            data: {
+                voc_id:voc_id,
+                voc_pst_id:voc_pst_id,
+                voc_value:value_price_voc,
+                _cr_id:cr_id,
+                _shipping_cost:shipping_cost,
+                _unique_code:unique_code,
+                _another_cost:another_cost,
+                _admin_cost:admin_cost,
+                _ur_id:ur_id,
+                _real_price:replaceComma(real_price),
+                _exchange:exchange,
+                _pt_id_complaint:pt_id_complaint,
+                _charge:charge,
+                _cp_id:cp_id,
+                _cp_id_two:cp_id_two,
+                _total_payment:total_payment,
+                _total_payment_two:total_payment_two,
+                _access_code:access_code,
+                _type:type,
+                _pm_id:pm_id,
+                _pm_id_two:pm_id_two, _std_id:std_id,
+                _cust_id:cust_id, _note:note,
+                _card_number:card_number, _ref_number:ref_number,
+                _card_number_two:card_number_two, _ref_number_two:ref_number_two},
             dataType: 'json',
             success: function(r) {
                 jQuery.noConflict();

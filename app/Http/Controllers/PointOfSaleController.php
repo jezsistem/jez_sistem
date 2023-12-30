@@ -816,6 +816,7 @@ class PointOfSaleController extends Controller
         }
         $price = $request->_price;
         $discount = $request->_discount;
+        $discount_number = $request->_discount_number;
         $sell_price_item = $request->_sell_price_item;
         $nameset_price = $request->_nameset_price;
         $subtotal_item = $request->_subtotal_item;
@@ -963,6 +964,7 @@ class PointOfSaleController extends Controller
                 'pos_td_qty' => $item_qty,
                 'pos_td_sell_price' => $price,
                 'pos_td_discount' => $discount,
+                'pos_td_discount_number' => $discount_number,
                 'pos_td_discount_price' => $pos_td_discount_price,
                 'pos_td_nameset_price' => $nameset_price,
                 'pos_td_nameset' => $nameset,
