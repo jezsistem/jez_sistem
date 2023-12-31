@@ -36,19 +36,19 @@
                     <tbody>
                     <tr>
                         <td>Pria</td>
-                        <td id="countmale">{{ $counts[0]->total ?? 0 }}</td>
+                        <td id="countmale">{{ $male }}</td>
                     </tr>
                     <tr>
                         <td>Wanita</td>
-                        <td id="countfemale">{{ $counts[2]->total ?? 0 }}</td>
+                        <td id="countfemale">{{ $female }}</td>
                     </tr>
                     <tr>
                         <td>Anak-anak</td>
-                        <td id="countchild">{{ $counts[1]->total ?? 0 }}</td>
+                        <td id="countchild">{{ $child }}</td>
                     </tr>
                     <tr>
                         <td>Total</td>
-                        <td id="totalCount">{{ $countsTotal[0]->total ?? 0 }}</td>
+                        <td id="totalCount">{{ $countsTotal }}</td>
                     </tr>
                     </tbody>
                 </table>

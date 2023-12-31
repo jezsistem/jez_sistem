@@ -894,16 +894,18 @@ class CustomerController extends Controller
         $counts = CustomerTraffic::select('type', DB::raw('count(*) as total'))
             ->whereDate('created_at', Carbon::today())
             ->groupBy('type')
-            ->get();
-
+            ->pluck('total', 'type')
+            ->toArray();
         $countsTotal = CustomerTraffic::select(DB::raw('count(*) as total'))
             ->whereDate('created_at', Carbon::today())
             ->get();
 
         return view('app.customer.customer_traffic',[
             'data' => $data,
-            'counts' => $counts,
-            'countsTotal' => $countsTotal
+            'male' => $counts['male'] ?? 0,
+            'female' => $counts['female'] ?? 0,
+            'child' => $counts['child'] ?? 0,
+            'countsTotal' => $countsTotal[0]->total ?? 0,
         ]);
     }
 
@@ -928,10 +930,5 @@ class CustomerController extends Controller
             'counts' => $counts,
             'countsTotal' => $countsTotal
         ]);
-
-//        return json_encode([
-//            'counts' => $counts,
-//            'countsTotal' => $countsTotal
-//        ]);
     }
 }

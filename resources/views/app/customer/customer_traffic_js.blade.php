@@ -28,6 +28,7 @@
                 url: "/update_traffic_customer", // Replace with the actual server endpoint for updating counts
                 data: { gender: gender },
                 success: function (response) {
+
                     reloadPage();
                 },
                 error: function (error) {
