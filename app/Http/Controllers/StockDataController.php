@@ -107,7 +107,7 @@ class StockDataController extends Controller
         }
         
         if(request()->ajax()) {
-            return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price")
+            return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price")
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
@@ -133,7 +133,7 @@ class StockDataController extends Controller
                 }
                 $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
                 background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: '.number_format($price_tag).' | J: '.number_format($sell_price).'</span>';
-                return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">['.$data->br_name.'] '.$data->p_name.' '.$hb.'</span>';
+                return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">['.$data->br_name.'] '. $data->article_id .' '.$data->p_name.' '.$hb.'</span>';
             })
             ->editColumn('article_age', function($data){
                 
@@ -363,7 +363,8 @@ class StockDataController extends Controller
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                        ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
+                        ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
+                        ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
                     });
                 }
             })
