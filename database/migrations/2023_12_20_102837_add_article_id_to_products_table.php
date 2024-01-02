@@ -14,7 +14,12 @@ class AddArticleIdToProductsTable extends Migration
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->string('article_id')->nullable()->after('id');
+            // if exist skip
+            if (Schema::hasColumn('products', 'article_id')) {
+                // do nothing
+            }else {
+                $table->string('article_id')->nullable()->after('id');
+            }
         });
     }
 
