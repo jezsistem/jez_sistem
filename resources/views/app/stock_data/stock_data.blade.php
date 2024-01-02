@@ -44,7 +44,7 @@
                         <div class="card-header flex-wrap py-3" style="background:#efefef;">
                             <div class="card-toolbar col-12 mt-4">
                                 <!--begin::Dropdown-->
-                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4">
+                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                     <select class="form-control col-md-12" id="pc_id">
                                         @foreach ($data['pc_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
@@ -54,7 +54,7 @@
                                 </div>
                                 <!--end::Dropdown-->
                                 <!--begin::Dropdown-->
-                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4">
+                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                     <select class="form-control col-md-12" id="psc_id">
                                         @foreach ($data['psc_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
@@ -64,7 +64,7 @@
                                 </div>
                                 <!--end::Dropdown-->
                                 <!--begin::Dropdown-->
-                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4">
+                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                     <select class="form-control col-md-12" id="pssc_id">
                                         @foreach ($data['pssc_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
@@ -74,7 +74,7 @@
                                 </div>
                                 <!--end::Dropdown-->
                                 <!--begin::Dropdown-->
-                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4">
+                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                     <select class="form-control col-md-12" id="br_id">
                                         @foreach ($data['br_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
@@ -84,13 +84,33 @@
                                 </div>
                                 <!--end::Dropdown-->
                                 <!--begin::Dropdown-->
-                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4">
+                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                     <select class="form-control col-md-12" id="sz_id">
                                         @foreach ($data['sz_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
                                         @endforeach
                                     </select>
                                     <div id="sz_id_parent"></div>
+                                </div>
+                                <!--end::Dropdown-->
+                                <!--begin::Dropdown-->
+                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                    <select class="form-control col-md-12" id="gender_id">
+                                        @foreach ($data['gender_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="gender_id_parent"></div>
+                                </div>
+                                <!--end::Dropdown-->
+                                <!--begin::Dropdown-->
+                                <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                    <select class="form-control col-md-12" id="main_color_id">
+                                        @foreach ($data['main_color_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="main_color_id_parent"></div>
                                 </div>
                                 <!--end::Dropdown-->
                                 <!--begin::Dropdown-->

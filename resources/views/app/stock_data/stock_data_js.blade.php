@@ -95,8 +95,46 @@
         return false;
     }
 
+    function reloadGender(type, id)
+    {
+        $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {_type:type, _id:id},
+            dataType: 'html',
+            url: "{{ url('stock_data_reload_size')}}",
+            success: function(r) {
+                $('#sz_id').html(r);
+            }
+        });
+        return false;
+    }
+
+    function reloadMainColor(type, id)
+    {
+        $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {_type:type, _id:id},
+            dataType: 'html',
+            url: "{{ url('stock_data_reload_size')}}",
+            success: function(r) {
+                $('#sz_id').html(r);
+            }
+        });
+        return false;
+    }
+
     $(document).ready(function() {
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id').val('');
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').val('');
         // $('body').addClass('kt-primary--minimize aside-minimize');
         $.ajaxSetup({
             headers: {
@@ -122,6 +160,8 @@
                     d.psc_id = $('#psc_id').val();
                     d.pssc_id = $('#pssc_id').val();
                     d.sz_id = $('#sz_id').val();
+                    d.gender_id = $('#gender_id').val();
+                    d.main_color_id = $('#main_color_id').val();
                     d.display_status = $('#display_status').val();
                     d.st_id = $('#st_id_filter').val();
                 }
@@ -129,7 +169,7 @@
             columns: [
             { data: 'article_name', name: 'article_name', orderable: false },
             { data: 'article_stock', name: 'article_stock', orderable: false },
-            ], 
+            ],
             columnDefs: [
             {
                 "targets": 0,
@@ -182,6 +222,7 @@
             { data: 'p_name', name: 'p_name'},
             { data: 'p_color', name: 'p_color'},
             { data: 'sz_name', name: 'sz_name'},
+
             { data: 'stock', name: 'aging', orderable: false},
             ], 
             columnDefs: [
@@ -368,13 +409,17 @@
             $("#pssc_id").trigger('change');
             $("#sz_id").val("");
             $("#sz_id").trigger('change');
+            $("#main_color_id").val("");
+            $("#main_color_id").trigger('change');
+            $("#gender_id").val("");
+            $("#gender_id").trigger('change');
             $("#stock_data_search").val("");
             $('#display_status').val('');
             oSettings[0]._iDisplayLength=10;
             stock_data_table.draw();
         });
         
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id').on('change', function() {
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').on('change', function() {
             stock_data_table.draw();
         });
 
@@ -443,6 +488,34 @@
             allowClear: true,
         });
         $('#sz_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#gender_id').select2({
+            multiple: true,
+            width: "100%",
+            dropdownParent: $('#gender_id_parent'),
+            closeOnSelect:true,
+            placeholder : "GENDER",
+            allowClear: true,
+        });
+        $('#gender_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#main_color_id').select2({
+            multiple: true,
+            width: "100%",
+            dropdownParent: $('#main_color_id_parent'),
+            closeOnSelect:true,
+            placeholder : "MAIN COLOR",
+            allowClear: true,
+        });
+        $('#main_color_id').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
