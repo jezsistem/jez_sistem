@@ -14,15 +14,6 @@ class AddPsRekeningPsNpwpToProductSuppliersTable extends Migration
     public function up()
     {
         Schema::table('product_suppliers', function (Blueprint $table) {
-            // check column exist or not
-            if (Schema::hasColumn('product_suppliers', 'ps_rekening')) {
-                $table->dropColumn('ps_rekening');
-            }
-
-            if (Schema::hasColumn('product_suppliers', 'ps_npwp')) {
-                $table->dropColumn('ps_npwp');
-            }
-
             $table->string('ps_rekening')->nullable()->after('ps_description');
             $table->string('ps_npwp')->nullable()->after('ps_rekening');
         });
