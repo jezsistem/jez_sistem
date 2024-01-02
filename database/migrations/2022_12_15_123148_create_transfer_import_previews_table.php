@@ -16,7 +16,7 @@ class CreateTransferImportPreviewsTable extends Migration
         Schema::create('transfer_import_previews', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('pst_id');
-            $table->foreign('pt_id')->references('id')->on('product_stocks');
+            $table->foreign('pst_id')->references('id')->on('product_stocks');
             $table->unsignedBigInteger('pl_id');
             $table->foreign('pl_id')->references('id')->on('product_locations');
             $table->timestamps();
