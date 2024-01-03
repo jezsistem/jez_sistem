@@ -18,6 +18,7 @@ class PosTransaction extends Model
         'cust_id',
         'pos_invoice',
         'pos_shipping',
+        'pos_total_vouchers',
         'pos_draft',
         'created_at'
     ];
