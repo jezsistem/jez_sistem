@@ -71,6 +71,7 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var shipping_cost = $('#shipping_cost').val();
 
         if (receive_date == '') {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
@@ -84,6 +85,12 @@
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
             return false;
         }
+
+        if (shipping_cost == '') {
+            swal("Ongkos Kirim", "Tentukan ongkos kirim", "warning");
+            return false;
+        }
+
         swal({
             title: "Simpan..?",
             text: "Yakin simpan penerimaan untuk size ini ?",
@@ -231,6 +238,8 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var shipping_cost = $('#shipping_cost').val();
+
         if (receive_date == '') {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
             return false;
@@ -243,6 +252,12 @@
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
             return false;
         }
+
+        if (shipping_cost == '') {
+            swal("Ongkos Kirim", "Tentukan ongkos kirim", "warning");
+            return false;
+        }
+
         swal({
             title: "Simpan..?",
             text: "Yakin 2 simpan data penerimaan ini ?",
