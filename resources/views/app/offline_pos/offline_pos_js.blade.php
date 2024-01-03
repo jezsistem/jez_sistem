@@ -445,6 +445,8 @@
         var voc_pst_id = jQuery('#_voc_pst_id').val();
         var voc_value = jQuery('#_voc_value').val();
         var voc_id = jQuery('#_voc_id').val();
+        var voc_disc_value = jQuery('#_voc_disc_value').val();
+        var voucher_disc_total = jQuery('#_voc_total_disc_value').val();
         if (jQuery('#free_sock_customer_mode').val() == '1' && free_sock_cust_id == '') {
             swal('Customer Belum Selesai', 'Mohon pastikan bahwa customer sudah selesai melakukan input data dan rating', 'warning');
             return false;
@@ -496,7 +498,9 @@
                 _pm_id_two:pm_id_two, _std_id:std_id,
                 _cust_id:cust_id, _note:note,
                 _card_number:card_number, _ref_number:ref_number,
-                _card_number_two:card_number_two, _ref_number_two:ref_number_two},
+                _card_number_two:card_number_two, _ref_number_two:ref_number_two,
+                _pos_total_vouchers:voucher_disc_total,
+            },
             dataType: 'json',
             success: function(r) {
                 jQuery.noConflict();
@@ -918,7 +922,7 @@
                             " <td>"+(pls_qty)+"</td> " +
                             " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" item_qty' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")' readonly></td>" +
                             " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_percentage' id='discount_percentage"+(total_row+1)+"' value='0' onchange='return changeDiscountPercentage("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
-                            " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
+                            " <td><input type='number' class='form-control border-dark col-8 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
                             " <td><input type='number' class='col-8 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td>" +
                             " <td><span class='sell_price_item' id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td>" +
                             " <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td>" +
@@ -932,7 +936,7 @@
                             "<td>"+(pls_qty)+"</td> " +
                             "<td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" item_qty' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td> " +
                             "<td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_percentage' id='discount_percentage"+(total_row+1)+"' value='0' onchange='return changeDiscountPercentage("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
-                            " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
+                            " <td><input type='number' class='form-control border-dark col-8 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
                             "<td><input type='number' class='col-8 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
                             "<td><span class='sell_price_item' id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
                             "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
@@ -1070,7 +1074,7 @@
                                         "<td>"+(pls_qty)+"</td> " +
                                         "<td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" item_qty' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")' readonly></td> " +
                                         " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_percentage' id='discount_percentage"+(total_row+1)+"' value='0' onchange='return changeDiscountPercentage("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
-                                        " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
+                                        " <td><input type='number' class='form-control border-dark col-8 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
                                         "<td><input type='number' class='col-8 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
                                         "<td><span class='sell_price_item' id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
@@ -1083,7 +1087,7 @@
                                         "<td>"+(pls_qty)+"</td>" +
                                         "<td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" item_qty' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td> " +
                                         " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_percentage' id='discount_percentage"+(total_row+1)+"' value='0' onchange='return changeDiscountPercentage("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
-                                        " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
+                                        " <td><input type='number' class='form-control border-dark col-8 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
                                         "<td><input type='number' class='col-8 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
                                         "<td><span class='sell_price_item' id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
@@ -1534,7 +1538,7 @@
                     "<td style='white-space: nowrap;'>"+p_name+"</td> <td>"+item_qty+"</td> " +
                     "<td><input type='number' class='form-control border-dark col-4 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='-"+item_qty+"' onchange='return changeReturQty("+(total_row+1)+", "+pst_id+", "+item_qty+")'></td> " +
                     " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_percentage' id='discount_percentage"+(total_row+1)+"' value='0' onchange='return changeDiscountPercentage("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
-                    " <td><input type='number' class='form-control border-dark col-5 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
+                    " <td><input type='number' class='form-control border-dark col-8 basicInput2"+pst_id+" discount_number' id='discount_number"+(total_row+1)+"' value='0' onchange='return changeDiscountNumber("+(total_row+1)+", "+pst_id+", "+(pls_qty)+")'></td>" +
                     "<td><input type='number' class='col-8 nameset_price' id='nameset_price"+(total_row+1)+"' value='"+nameset_price+"' onchange='return namesetPrice("+(total_row+1)+")' readonly/></td> " +
                     "<td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(sell_price)+"</span></td> " +
                     "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> " +
@@ -2164,12 +2168,14 @@
                     jQuery('#_voc_id').val(r.voc_id);
                     jQuery('#_voc_pst_id').val(r.pst_id);
                     jQuery('#_voc_value').val(r.disc_value);
+                    jQuery('#_voc_total_disc_value').val(r.disc_value);
                     jQuery('#_voc_article').text(r.article);
                     jQuery('#_voc_bandrol').text(addCommas(r.bandrol));
                     jQuery('#_voc_disc').text(addCommas(r.disc));
                     jQuery('#_voc_disc_type').text(addCommas(r.disc_type));
                     jQuery('#_voc_disc_value').text('('+addCommas(r.disc_value)+')');
                     jQuery('#_voc_value_show').text(addCommas(r.value));
+                    jQuery('#voucher_total_value_side').text(addCommas(r.disc_value));
                     jQuery('#total_final_price_side').text(addCommas(new_total));
                     sell_price_voc = r.sell;
                     value_price_voc = r.value;

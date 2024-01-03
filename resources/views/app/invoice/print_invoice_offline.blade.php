@@ -131,6 +131,7 @@
                                     $total_price = 0;
                                     $nameset = 0;
                                     $total_discount = 0;
+                                    $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
                                     foreach ($row->subitem as $srow) {
                                         $key = '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
                                         if (!array_key_exists($key, $groups)) {
@@ -166,7 +167,7 @@
                                     @else
                                     <td class="qty">{{ $srow->pos_td_qty }}x</td>
                                     <td class="sell-price">
-                                        {{ $srow->productStock->ps_price_tag }}
+                                        <s>{{ $srow->productStock->ps_price_tag }}</s>
                                         {{ $srow->pos_td_sell_price }}
 
                                         @if (!empty($srow->pos_td_discount))
@@ -203,6 +204,16 @@
                                     <td class="final-price">
                                         <span style="float:right;">
                                         {{ $total_item }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="final-price">
+                                        <span style="float:left;">Voucher</span>
+                                    </td>
+                                    <td class="final-price">
+                                        <span style="float:right;">
+                                        {{ $total_voucher }}
                                         </span>
                                     </td>
                                 </tr>
@@ -268,9 +279,9 @@
                                         <span style="float:right;">
                                             @if (!empty($total_discount))
 {{--                                                {{ number_format($total_discount+$row->pos_another_cost) }}--}}
-                                                {{ number_format(($total_price+$nameset) - ($total_discount)) }}
+                                                {{ number_format((($total_price+$nameset) - ($total_discount)) - $total_voucher) }}
                                             @else
-                                                {{ number_format($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) }}
+                                                {{ number_format(($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) - $total_voucher) }}
                                             @endif
                                         </span>
                                     </td>
@@ -297,7 +308,7 @@
                                         <span style="float:right;">
                                         @if (!empty($row->pos_payment))
 {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
-                                                {{ number_format(($row->pos_payment + $row->pos_payment_partial) - (($total_price+$nameset) - ($total_discount))) }}
+                                                {{ number_format(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - (($total_price+$nameset) - ($total_discount))) }}
                                         @else
                                             0
                                         @endif

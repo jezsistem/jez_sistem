@@ -574,6 +574,7 @@ class PointOfSaleController extends Controller
         $voc_pst_id = $request->voc_pst_id;
         $voc_value = $request->voc_value;
         $voc_id = $request->voc_id;
+        $total_voc_value = $request->_pos_total_vouchers;
 
         $insert_get_id = DB::table('pos_transactions')->insertGetId([
             'u_id' => $u_id,
@@ -599,6 +600,7 @@ class PointOfSaleController extends Controller
             'pos_payment' => $total_payment,
             'pos_payment_partial' => $total_payment_two,
             'pos_shipping' => $shipping_cost,
+            'pos_total_vouchers' => $total_voc_value,
             'cr_id' => $cr_id,
             'pos_note' => $note,
             'created_at' => date('Y-m-d H:i:s'),

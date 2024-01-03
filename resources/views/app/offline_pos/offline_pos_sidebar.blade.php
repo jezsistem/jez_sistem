@@ -53,7 +53,7 @@
                                 </span>
                             </div>
                         </th>
-                        <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span id="shipping_cost_side">0</span></td>
+                        <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span id="voucher_total_value_side">0</span></td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between bg-primary rounded">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-white pl-2">

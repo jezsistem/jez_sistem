@@ -369,7 +369,7 @@ class InvoiceController extends Controller
         $dropshipper = null;
 
         if ($check) {
-            $trx = PosTransaction::select('pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created')
+            $trx = PosTransaction::select('pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created', 'pos_transactions.pos_total_vouchers')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
@@ -400,6 +400,7 @@ class InvoiceController extends Controller
             'invoice_data' => $get_invoice,
             'segment' => request()->segment(1)
         ];
+
         return view('app.invoice.print_invoice_offline', compact('data'));
     }
     
