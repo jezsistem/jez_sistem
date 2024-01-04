@@ -64,35 +64,36 @@
             @endif
         });
 
-        $('#pm_name').on('change', function() {
-            var pm_name = $(this).val();
-            var stt_id = $('#stt_id option:selected').val();
-            if (stt_id == '') {
-                swal('Divisi', 'Silahkan isi divisi terlebih dahulu', 'warning');
-                $('#pm_name').val('');
-                return false;
-            }
+        // Saat ini masih belum digunakan
+        {{--$('#pm_name').on('change', function() {--}}
+        {{--    var pm_name = $(this).val();--}}
+        {{--    var stt_id = $('#stt_id option:selected').val();--}}
+        {{--    if (stt_id == '') {--}}
+        {{--        swal('Divisi', 'Silahkan isi divisi terlebih dahulu', 'warning');--}}
+        {{--        $('#pm_name').val('');--}}
+        {{--        return false;--}}
+        {{--    }--}}
 
-            //alert(pm_name+' '+stt_id);
-            $.ajaxSetup({
-                headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            $.ajax({
-                type: "POST",
-                data: {_pm_name:pm_name, _stt_id:stt_id},
-                dataType: 'json',
-                url: "{{ url('check_exists_pm')}}",
-                success: function(r) {
-                    if (r.status == '200') {
-                        swal('Metode Pembayaran', 'metode pembayaran dengan divisi ini sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
-                        $('#pm_name').val('');
-                        return false;
-                    }
-                }
-            });
-        });
+        {{--    //alert(pm_name+' '+stt_id);--}}
+        {{--    $.ajaxSetup({--}}
+        {{--        headers: {--}}
+        {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--    $.ajax({--}}
+        {{--        type: "POST",--}}
+        {{--        data: {_pm_name:pm_name, _stt_id:stt_id},--}}
+        {{--        dataType: 'json',--}}
+        {{--        url: "{{ url('check_exists_pm')}}",--}}
+        {{--        success: function(r) {--}}
+        {{--            if (r.status == '200') {--}}
+        {{--                swal('Metode Pembayaran', 'metode pembayaran dengan divisi ini sudah ada disistem, silahkan ganti dengan yang lain', 'warning');--}}
+        {{--                $('#pm_name').val('');--}}
+        {{--                return false;--}}
+        {{--            }--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
 
         $('#add_payment_method_btn').on('click', function() {
             jQuery.noConflict();
