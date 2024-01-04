@@ -138,7 +138,7 @@ class StockDataController extends Controller
                 }
                 $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
                 background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: '.number_format($price_tag).' | J: '.number_format($sell_price).'</span>';
-                return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">['.$data->br_name.'] '. $data->article_id .' '.$data->p_name.' '.$hb.'</span>';
+                return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">['.$data->br_name.'] '.$data->p_name.' '.$hb.'</span>';
             })
             ->editColumn('article_age', function($data){
                 
@@ -146,7 +146,7 @@ class StockDataController extends Controller
             ->editColumn('article_stock', function($data) use ($request, $exception, $b1g1_setup, $st_id) {
                 $sz_id = $request->get('sz_id');
                 $gender_id = $request->get('gender_id');
-                $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price")
+                $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
@@ -230,7 +230,7 @@ class StockDataController extends Controller
                         }
 
                         $item_list .= '<tr style="border:0px;">';
-                        $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">'.$item.' <span class="btn-sm-custom btn-primary">'.$row->p_color.'</span></td>';
+                        $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">'.$item.' <span class="btn-sm-custom btn-primary">'.$row->article_id .' '.$row->p_color.'</span></td>';
                         $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -261,7 +261,7 @@ class StockDataController extends Controller
                                 $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id')
                                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                                 ->whereNotIn('pl_code', $exception)
-//                                ->where('pls_qty', '>', '0')
+                                ->where('pls_qty', '>=', '0')
                                 ->where('product_locations.st_id', '=', $st_id)
                                 ->where('pst_id', $srow->pst_id)->get();
                                 $bin = '';
