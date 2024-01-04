@@ -24,6 +24,7 @@
                 },
                 columns: [
                 { data: 'DT_RowIndex', name: 'sid', searchable: false},
+                { data: 'sz_schema', name: 'sz_schema' },
                 { data: 'sz_name', name: 'sz_name' },
                 { data: 'sz_description', name: 'sz_description' },
                 ],
@@ -89,10 +90,12 @@
             $('#Sizetb tbody').on('click', 'tr', function () {
                 var id = size_table.row(this).data().sid;
                 var sz_name = size_table.row(this).data().sz_name;
+                var sz_schema = size_table.row(this).data().sz_schema;
                 var sz_description = size_table.row(this).data().sz_description;
                 jQuery.noConflict();
                 $('#SizeModal').modal('show');
                 $('#sz_name').val(sz_name);
+                $('#sz_schema').val(sz_schema);
                 $('#sz_description').val(sz_description);
                 $('#_id').val(id);
                 $('#_mode').val('edit');
@@ -101,28 +104,29 @@
                 @endif
             });
 
-            $('#sz_name').on('change', function() {
-                var sz_name = $(this).val();
-                var psc_id = $('#psc_id').val();
-                $.ajaxSetup({
-                    headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: "POST",
-                    data: {_sz_name:sz_name, _psc_id:psc_id},
-                    dataType: 'json',
-                    url: "{{ url('check_exists_size')}}",
-                    success: function(r) {
-                        if (r.status == '200') {
-                            swal('Size', 'Size sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
-                            $('#sz_name').val('');
-                            return false;
-                        }
-                    }
-                });
-            });
+            // masih belum digunakan
+            {{--$('#sz_name').on('change', function() {--}}
+            {{--    var sz_name = $(this).val();--}}
+            {{--    var psc_id = $('#psc_id').val();--}}
+            {{--    $.ajaxSetup({--}}
+            {{--        headers: {--}}
+            {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+            {{--        }--}}
+            {{--    });--}}
+            {{--    $.ajax({--}}
+            {{--        type: "POST",--}}
+            {{--        data: {_sz_name:sz_name, _psc_id:psc_id},--}}
+            {{--        dataType: 'json',--}}
+            {{--        url: "{{ url('check_exists_size')}}",--}}
+            {{--        success: function(r) {--}}
+            {{--            if (r.status == '200') {--}}
+            {{--                swal('Size', 'Size sudah ada disistem, silahkan ganti dengan yang lain', 'warning');--}}
+            {{--                $('#sz_name').val('');--}}
+            {{--                return false;--}}
+            {{--            }--}}
+            {{--        }--}}
+            {{--    });--}}
+            {{--});--}}
 
             $('#add_size_btn').on('click', function() {
                 jQuery.noConflict();

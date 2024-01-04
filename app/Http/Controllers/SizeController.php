@@ -81,19 +81,21 @@ class SizeController extends Controller
     {
         $sz_id = $request->sz_id;
         if(request()->ajax()) {
-            return datatables()->of(Size::select('sizes.id as sid', 'sz_name', 'sz_description')
+            return datatables()->of(Size::select('sizes.id as sid', 'sz_name', 'sz_schema' ,'sz_description')
             ->where('sz_delete', '!=', '1')
             ->where(function ($query) use ($sz_id) {
                 if (!empty($sz_id)) {
                     $query->where('sz_description', $sz_id);
                 }
             })
-            ->orderBy('sz_name'))
+            ->where('sz_schema','!=', '')
+            ->orderBy('sz_schema'))
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhere('sz_name', 'LIKE', "%$search%")
+                        ->orWhere('sz_name', 'LIKE', "%$search%")
                         ->orWhere('sz_description', 'LIKE', "%$search%");
                     });
                 }
@@ -112,6 +114,7 @@ class SizeController extends Controller
         $data = [
 //            'psc_id' => $request->input('psc_id'),
             'sz_name' => $request->input('sz_name'),
+            'sz_schema' => strtoupper($request->input('sz_schema')),
             'sz_description' => $request->input('sz_description'),
             'sz_delete' => '0',
         ];

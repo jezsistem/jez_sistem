@@ -99,6 +99,7 @@
                                     <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
+                                        <th class="text-dark">Skema</th>
                                         <th class="text-dark">Size Artikel</th>
                                         <th class="text-dark">Deskripsi</th>
                                     </tr>
