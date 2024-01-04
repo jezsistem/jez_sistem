@@ -44,8 +44,7 @@
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label>Toko <span class="text-danger">*</span></label>
-                        <select class="form-control" id="st_id" name="st_id" required>
-                            <option value="">- Pilih Toko -</option>
+                        <select class="form-control col-md-12" id="st_id" name="st_id[]" required>
                             @foreach ($data['st_id'] as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach

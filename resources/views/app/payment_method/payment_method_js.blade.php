@@ -174,5 +174,18 @@
             })
         });
 
+        $('#st_id').select2({
+            multiple: true,
+            width: "100%",
+            dropdownParent: $('#st_id_parent'),
+            closeOnSelect:true,
+            allowClear: true,
+        });
+
+        $('#st_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
     });
 </script>

@@ -113,21 +113,38 @@ class PaymentMethodController extends Controller
         $mode = $request->input('_mode');
         $id = $request->input('_id');
 
+        // Get the st_id array
+        $stIdArray = $request->input('st_id');
         $data = [
             'pm_name' => strtoupper($request->input('pm_name')),
-            'st_id' => $request->input('st_id'),
             'stt_id' => $request->input('stt_id'),
             'a_id' => $request->input('a_id'),
             'pm_description' => $request->input('pm_description'),
             'pm_delete' => '0',
         ];
 
-        $save = $payment_method->storeData($mode, $id, $data);
-        if ($save) {
-            $r['status'] = '200';
+        // Check if st_id is an array and not empty
+        if (is_array($stIdArray) && !empty($stIdArray)) {
+            // Loop through the st_id array and add each value to the data array
+            foreach ($stIdArray as $key => $value) {
+                $data['st_id'] = $value;
+
+                // Call the storeData method to insert or update
+                $save = $payment_method->storeData($mode, $id, $data);
+
+                // Check if the save operation was successful
+                if (!$save) {
+                    $r['status'] = '400';
+                    return json_encode($r);
+                }
+            }
         } else {
             $r['status'] = '400';
+            return json_encode($r);
         }
+
+        $r['status'] = '200';
+        return json_encode($r);
         return json_encode($r);
     }
 
