@@ -161,7 +161,7 @@
                         <label>Ongkos Kirim</label>
                         <br/>
                         <label> * diisi setelah mengisi kolom terima </label>
-                        <input type="number" id="shipping_cost" class="form-control" name="shipping_cost" onchange="updateCogs()" required/>
+                        <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"  onchange="updateCogs()" required/>
                     </div>
                 </div>
                 <!--end::Row-->

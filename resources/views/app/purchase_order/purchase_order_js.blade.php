@@ -960,6 +960,28 @@
             });
         });
 
+        $('#shipping_cost').on('change', function() {
+            var shipping_cost = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {_po_id:$('#_po_id').val(), _po_shipping_cost:shipping_cost},
+                url: "{{ url('po_shipping_cost')}}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
         $('#cancel_purchase_order_btn').on('click', function(){
             swal({
                 title: "Batal..?",

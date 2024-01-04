@@ -95,6 +95,10 @@
                         <div id="stkt_id_parent"></div>
                     </div>
                     <div class="col-4">
+                        <label>Ongkos Kirim</label>
+                        <input type="number" class="form-control" placeholder="Ongkos Kirim" name="shipping_cost" id="shipping_cost" required />
+                    </div>
+                    <div class="col-4">
                         <label>Gambar Invoice</label>
                         <div class="mr-2">
                             <div class="dropdown dropdown-inline mr-2">

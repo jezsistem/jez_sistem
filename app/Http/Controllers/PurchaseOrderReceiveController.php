@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PurchaseOrderArticleExport;
 use App\Models\PODeliveryOrder;
 use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\PurchaseOrderReceiveImportExcel;
@@ -23,6 +24,7 @@ use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
 use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderReceiveController extends Controller
 {
@@ -105,7 +107,8 @@ class PurchaseOrderReceiveController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
 
         if(request()->ajax()) {
-            return datatables()->of(PurchaseOrder::select('purchase_orders.id as po_id', 'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft', 'purchase_orders.created_at as po_created_at')
+            return datatables()->of(
+                PurchaseOrder::select('purchase_orders.id as po_id', 'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft', 'purchase_orders.created_at as po_created_at')
             ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
             ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
             ->where('po_delete', '!=', '1')
@@ -449,6 +452,7 @@ class PurchaseOrderReceiveController extends Controller
             $r['ps_id'] = $draft->ps_id;
             $r['stkt_id'] = $draft->stkt_id;
             $r['po_description'] = $draft->po_description;
+            $r['po_shipping_cost'] = $draft->po_shipping_cost;
             $r['po_invoice'] = $draft->po_invoice;
         } else {
             $r['status'] = '400';
@@ -544,7 +548,6 @@ class PurchaseOrderReceiveController extends Controller
         } else {
           $r['status'] = '400';
         }
-
         return json_encode($r);
 }
 

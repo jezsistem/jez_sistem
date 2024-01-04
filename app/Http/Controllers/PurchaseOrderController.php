@@ -349,6 +349,18 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    public function shippingCostPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_shipping_cost' => $request->_po_shipping_cost]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+            $r['po_shipping_cost'] = $request->_po_shipping_cost;
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
     public function createPoDetail(Request $request)
     {
         $poid = $request->_poid;
