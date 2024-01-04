@@ -70,19 +70,24 @@ class SizeController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
-            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
-            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'size_id' => Size::where('sz_delete', '!=', '1')->distinct()->pluck('sz_description'),
+
         ];
+//        dd($data['size_id']);
         return view('app.size.size', compact('data'));
     }
 
     public function getDatatables(Request $request)
     {
+        $sz_id = $request->sz_id;
         if(request()->ajax()) {
-            return datatables()->of(Size::select('sizes.id as sid', 'psc_name', 'sz_name', 'sz_description')
-            ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+            return datatables()->of(Size::select('sizes.id as sid', 'sz_name', 'sz_description')
             ->where('sz_delete', '!=', '1')
-            ->where('psc_id', '=', $request->psc_id)
+            ->where(function ($query) use ($sz_id) {
+                if (!empty($sz_id)) {
+                    $query->where('sz_description', $sz_id);
+                }
+            })
             ->orderBy('sz_name'))
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('search'))) {
@@ -105,7 +110,7 @@ class SizeController extends Controller
         $id = $request->input('_id');
 
         $data = [
-            'psc_id' => $request->input('psc_id'),
+//            'psc_id' => $request->input('psc_id'),
             'sz_name' => $request->input('sz_name'),
             'sz_description' => $request->input('sz_description'),
             'sz_delete' => '0',

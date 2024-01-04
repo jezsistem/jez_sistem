@@ -1,82 +1,50 @@
 @extends('app.structure')
 @section('content')
-<!--begin::Content-->
-<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-    <!--begin::Subheader-->
-    <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
-        <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
-            <!--begin::Info-->
-            <div class="d-flex align-items-center flex-wrap mr-1">
-                <!--begin::Page Heading-->
-                <div class="d-flex align-items-baseline flex-wrap mr-5">
-                    <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
-                    <!--end::Page Title-->
-                </div>
-                <!--end::Page Heading-->
-            </div>
-            <!--end::Info-->
-        </div>
-    </div>
-    <!--end::Subheader-->
-    <!--begin::Entry-->
-    <div class="d-flex flex-column-fluid col-lg-12">
-        <!--begin::Container-->
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-6 col-xxl-6">
-                    <!--begin::Card-->
-                    <div class="card card-custom gutter-b">
-                        <div class="card-body">
-                            <!--begin: Datatable-->
-                            <div class="form-group mb-1 pb-1">
-                                <select class="form-control" id="pc_id" name="pc_id" required>
-                                    <option value="">- Pilih Kategori -</option>
-                                    @foreach ($data['pc_id'] as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
-                                </select>
-                                <div id="pc_id_parent"></div>
-                            </div>
-                            <!--end: Datatable-->
-                        </div>
+    <!--begin::Content-->
+    <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+        <!--begin::Subheader-->
+        <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
+            <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+                <!--begin::Info-->
+                <div class="d-flex align-items-center flex-wrap mr-1">
+                    <!--begin::Page Heading-->
+                    <div class="d-flex align-items-baseline flex-wrap mr-5">
+                        <!--begin::Page Title-->
+                        <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
+                        <!--end::Page Title-->
                     </div>
-                    <!--end::Card-->
+                    <!--end::Page Heading-->
                 </div>
-                <div class="col-lg-6 col-xxl-6">
-                    <!--begin::Card-->
-                    <div class="card card-custom gutter-b">
-                        <div class="card-body">
-                            <!--begin: Datatable-->
-                            <div class="form-group mb-1 pb-1">
-                                <select class="form-control" id="psc_id" name="psc_id" required>
-                                    <option value="">- Pilih Sub Kategori -</option>
-                                </select>
-                                <div id="psc_id_parent"></div>
-                            </div>
-                            <!--end: Datatable-->
-                        </div>
-                    </div>
-                    <!--end::Card-->
-                </div>
+                <!--end::Info-->
             </div>
         </div>
-        <!--end::Container-->
-    </div>
-    <!--end::Entry-->
-    <!--begin::Entry-->
-    <div class="d-flex flex-column-fluid">
-        <!--begin::Container-->
-        <div class="container" id="size_display" style="display:none;">
-            <div class="row">
-                <div class="col-lg-12 col-xxl-12">
-                    <!--begin::Card-->
-                    <div class="card card-custom gutter-b">
-                        <div class="card-header flex-wrap py-3">
-                            <div class="card-toolbar">
-                                <!--begin::Dropdown-->
-                                <div class="dropdown dropdown-inline mr-2">
-                                    <button type="button" class="btn btn-light-primary font-weight-bolder dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <!--end::Subheader-->
+        <!--begin::Entry-->
+        <div class="d-flex flex-column-fluid">
+            <!--begin::Container-->
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12 col-xxl-12">
+                        <!--begin::Card-->
+                        <div class="card card-custom gutter-b">
+                            <div class="card-header flex-wrap py-3">
+                                <!--begin: Datatable-->
+                                <div class="form-group" style="padding-top:22px;">
+                                    <select class="form-control bg-primary text-white" id="sz_id_filter" name="sz_id_filter" required>
+                                        <option value="">- Skema Size -</option>
+                                        @foreach ($data['size_id'] as $key => $value)
+                                            @if($value != null)
+                                                <option value="{{ $value }}">{{ $value }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                    <div id="sz_id_parent"></div>
+                                </div>
+                                <!--end: Datatable-->
+                                <div class="card-toolbar">
+                                    <!--begin::Dropdown-->
+                                    <div class="dropdown dropdown-inline mr-2">
+                                        <button type="button" class="btn btn-light-primary font-weight-bolder dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="svg-icon svg-icon-md">
                                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -88,69 +56,69 @@
                                         </svg>
                                         <!--end::Svg Icon-->
                                     </span>Export</button>
-                                    <!--begin::Dropdown Menu-->
-                                    <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
-                                        <!--begin::Navigation-->
-                                        <ul class="navi flex-column navi-hover py-2">
-                                            <li class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">Bentuk File :</li>
-                                            <li class="navi-item">
-                                                <a href="#" class="navi-link">
+                                        <!--begin::Dropdown Menu-->
+                                        <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                                            <!--begin::Navigation-->
+                                            <ul class="navi flex-column navi-hover py-2">
+                                                <li class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">Bentuk File :</li>
+                                                <li class="navi-item">
+                                                    <a href="#" class="navi-link">
                                                     <span class="navi-icon">
                                                         <i class="la la-copy"></i>
                                                     </span>
-                                                    <span id="size_excel_btn"></span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                        <!--end::Navigation-->
+                                                        <span id="size_excel_btn"></span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <!--end::Navigation-->
+                                        </div>
+                                        <!--end::Dropdown Menu-->
                                     </div>
-                                    <!--end::Dropdown Menu-->
+                                    <!--end::Dropdown-->
+                                    <!--begin::Button-->
+                                    <button href="#" class="btn btn-dark font-weight-bolder" id="add_size_btn">
+                                        <span class="svg-icon svg-icon-md">
+                                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
+                                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                    <rect x="0" y="0" width="24" height="24" />
+                                                    <circle fill="#000000" cx="9" cy="15" r="6" />
+                                                    <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z" fill="#000000" opacity="0.3" />
+                                                </g>
+                                            </svg>
+                                            <!--end::Svg Icon-->
+                                        </span>Data Baru
+                                    </button>
+                                    <!--end::Button-->
                                 </div>
-                                <!--end::Dropdown-->
-                                <!--begin::Button-->
-                                <a href="#" class="btn btn-dark font-weight-bolder" id="add_size_btn">
-                                <span class="svg-icon svg-icon-md">
-                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
-                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                            <rect x="0" y="0" width="24" height="24" />
-                                            <circle fill="#000000" cx="9" cy="15" r="6" />
-                                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z" fill="#000000" opacity="0.3" />
-                                        </g>
-                                    </svg>
-                                    <!--end::Svg Icon-->
-                                </span>Data Baru</a>
-                                <!--end::Button-->
                             </div>
-                        </div>
-                        <div class="card-body table-responsive">
-                            <!--begin: Datatable-->
-                            <input type="search" class="form-control  col-6" id="size_search" placeholder="Cari sub kategori artikel"/><br/>
-                            <table class="table table-hover table-checkable" id="Sizetb">
-                                <thead class="bg-light text-dark">
+                            <div class="card-body table-responsive">
+                                <!--begin: Datatable-->
+                                <input type="search" class="form-control  col-6" id="size_search" placeholder="Cari Size"/><br/>
+                                <table class="table table-hover table-checkable" id="Sizetb">
+                                    <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-                                        <th class="text-dark">Sub Kategori</th>
                                         <th class="text-dark">Size Artikel</th>
                                         <th class="text-dark">Deskripsi</th>
                                     </tr>
-                                </thead>
-                                <tbody>
+                                    </thead>
+                                    <tbody>
 
-                                </tbody>
-                            </table>
-                            <!--end: Datatable-->
+                                    </tbody>
+                                </table>
+                                <!--end: Datatable-->
+                            </div>
                         </div>
+                        <!--end::Card-->
                     </div>
-                    <!--end::Card-->
                 </div>
             </div>
+            <!--end::Container-->
         </div>
-        <!--end::Container-->
+        <!--end::Entry-->
     </div>
-    <!--end::Entry-->
-</div>
-<!--end::Content-->
+    <!--end::Content-->
 @include('app.size.size_modal')
 @include('app._partials.js')
 @include('app.size.size_js')
