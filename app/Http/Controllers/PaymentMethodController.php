@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +75,7 @@ class PaymentMethodController extends Controller
             'a_id' => Account::selectRaw('id, CONCAT(a_name," (",a_code,")") as account_name')
             ->where('a_delete', '!=', '1')
             ->orderBy('a_code')->pluck('account_name', 'id'),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id')
         ];
         return view('app.payment_method.payment_method', compact('data'));
     }
@@ -81,9 +83,10 @@ class PaymentMethodController extends Controller
     public function getDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(PaymentMethod::select('payment_methods.id as pm_id', 'store_types.id as stt_id', 'accounts.id as a_id', 'pm_name', 'pm_description', 'stt_name', 'a_name', 'a_code')
+            return datatables()->of(PaymentMethod::select('payment_methods.id as pm_id', 'store_types.id as stt_id', 'accounts.id as a_id', 'stores.st_name as st_name','pm_name', 'pm_description', 'stt_name', 'a_name', 'a_code')
             ->join('store_types', 'store_types.id', '=', 'payment_methods.stt_id')
             ->join('accounts', 'accounts.id', '=', 'payment_methods.a_id')
+            ->leftJoin('stores', 'stores.id', '=', 'payment_methods.st_id')
             ->where('pm_delete', '!=', '1'))
             ->editColumn('a_name', function($data){ 
                 return '['.$data->a_code.'] '.$data->a_name;
@@ -112,6 +115,7 @@ class PaymentMethodController extends Controller
 
         $data = [
             'pm_name' => strtoupper($request->input('pm_name')),
+            'st_id' => $request->input('st_id'),
             'stt_id' => $request->input('stt_id'),
             'a_id' => $request->input('a_id'),
             'pm_description' => $request->input('pm_description'),

@@ -80,7 +80,9 @@ class PointOfSaleController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $store = Store::where('id', Auth::user()->st_id)->get()->first();
-        $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->orderByDesc('pm_name')->pluck('pm_name', 'id');
+//        dd(Auth::user()->st_id);
+        $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->where('st_id', Auth::user()->st_id)->orderByDesc('pm_name')->pluck('pm_name', 'id');
+
         $data = [
             'app_title' => 'JEZ SYSTEM',
             'title' => 'POINT OF SALE',
