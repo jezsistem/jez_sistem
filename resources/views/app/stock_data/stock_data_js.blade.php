@@ -155,6 +155,7 @@
                 url : "{{ url('stock_data_datatables') }}",
                 data : function (d) {
                     d.search = $('#stock_data_search').val();
+                    d.search_scan = $('#stock_data_search_scan').val();
                     d.br_id = $('#br_id').val();
                     d.pc_id = $('#pc_id').val();
                     d.psc_id = $('#psc_id').val();
@@ -585,6 +586,33 @@
 
         $('#st_id_filter').on('change', function() {
             stock_data_table.draw();
+        });
+
+
+        var scanMode = false;
+        $('#scan_mode_btn').click(function () {
+
+            scanMode = !scanMode;
+
+            if(scanMode) {
+                $('#scan_mode_btn').html('<i class="fa fa-barcode"></i> Manual Mode');
+
+                $('#stock_data_search_scan').toggle();
+                $('#stock_data_search_scan').focus();
+                $('#stock_data_search').toggle();
+            } else {
+                $('#scan_mode_btn').html('<i class="fa fa-barcode"></i> Scan Mode');
+                $('#stock_data_search_scan').toggle();
+                $('#stock_data_search').toggle();
+            }
+
+        });
+
+        $('#stock_data_search_scan').on('keyup', function(event) {
+            if(event.keyCode === 13) {
+                var query = jQuery(this).val();
+                stock_data_table.draw();
+            }
         });
     });
 </script>
