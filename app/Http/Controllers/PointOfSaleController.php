@@ -1137,6 +1137,7 @@ class PointOfSaleController extends Controller
 //                    ->where('pls_qty', '>', '0')
                     ->whereNotIn('pl_code', $exception)
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
+                    ->orWhere('ps_barcode', 'LIKE', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
