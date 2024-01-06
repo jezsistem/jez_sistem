@@ -408,7 +408,6 @@ class StockDataController extends Controller
                     $instance->where(function($w) use($request){
                         $search = $request->get('search_scan');
                         $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                            ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
                             ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
                     });
                 }
