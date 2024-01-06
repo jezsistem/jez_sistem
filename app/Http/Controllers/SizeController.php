@@ -85,7 +85,7 @@ class SizeController extends Controller
             ->where('sz_delete', '!=', '1')
             ->where(function ($query) use ($sz_id) {
                 if (!empty($sz_id)) {
-                    $query->where('sz_description', $sz_id);
+                    $query->where('sz_schema', $sz_id);
                 }
             })
             ->where('sz_schema','!=', '')
@@ -95,8 +95,8 @@ class SizeController extends Controller
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhere('sz_name', 'LIKE', "%$search%")
-                        ->orWhere('sz_name', 'LIKE', "%$search%")
-                        ->orWhere('sz_description', 'LIKE', "%$search%");
+                        ->orWhere('sz_description', 'LIKE', "%$search%")
+                        ->orWhere('sz_schema', 'LIKE', "%$search%");
                     });
                 }
             })
