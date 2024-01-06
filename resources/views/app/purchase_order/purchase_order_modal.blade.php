@@ -134,6 +134,27 @@
                             <!--end::Dropdown Menu-->
                         </div>
                     </div>
+                    <div class="col-4">
+                        <label>Pajak</label>
+                        <select class="form-control" id="tax_id" name="tax_id" required>
+                            <option value="">- Pajak -</option>
+                            @foreach ($data['tax_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="tax_id_parent"></div>
+                    </div>
+
+                    <div class="col-4">
+                        <label>Payment</label>
+                        <select class="form-control" id="acc_id" name="acc_id" required>
+                            <option value="">- Payment -</option>
+                            @foreach ($data['acc_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="acc_id_parent"></div>
+                    </div>
                 </div>
                 <!--end::Row-->
                 <!--begin::Row-->
@@ -194,6 +215,15 @@
                                 @endforeach
                             </select>
                             <div id="mc_id_filter_parent_item"></div>
+                        </div>
+                        <div class="col-lg-4 pt-1">
+                            <select class="form-control" id="psc_id_filter_item" name="psc_id_filter_item" required>
+                                <option value="">- Sub Kategori -</option>
+                                @foreach ($data['psc_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                            <div id="psc_id_filter_parent_item"></div>
                         </div>
                         <!-- <div class="col-lg-4 pt-1">
                             <select class="form-control" id="sz_id_filter_item" name="sz_id_filter_item" required>

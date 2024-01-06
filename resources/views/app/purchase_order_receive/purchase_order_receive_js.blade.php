@@ -61,6 +61,7 @@
             data: {_po_id:id, excelData:excelData},
             url: "{{ url('check_po_receive_detail')}}",
             success: function(r) {
+                // console.log(r);
                 $('#purchase_order_detail_content').html(r);
             }
         });
@@ -107,8 +108,8 @@
                     swal("Tipe Stok", "Pilih Tipe Stok", "warning");
                     return false;
                 }
-                var st_id = $('#st_id').val();
                 var tax_id = $('#tax_id').val();
+                var st_id = $('#st_id').val();
                 var po_id = $('#_po_id').val();
                 var poads_discount = $('#poa_discount'+poa_id).val();
                 var poads_extra_discount = $('#poa_extra_discount'+poa_id).val();
@@ -478,7 +479,7 @@
 
                 // Update cogs for the current row
                 var index = this.id.split('_')[2];
-                var total_purchase_price = parseFloat(replaceComma($('#total_purchase_price_receive' + id + '_' + index).val()));
+                var total_purchase_price = parseFloat(replaceComma($('#poad_purchase_price_' + id + '_' + index).val()));
 
                 // Check if the result is a valid number before updating cogs
                 if (!isNaN(total_purchase_price) && !isNaN(shipping_cost_pcs)) {
@@ -1073,6 +1074,7 @@
         $('#Poadstb tbody').on('click', 'tr', function () {
             var id = poads_table.row(this).data().poads_id;
             var stkt_id = poads_table.row(this).data().stkt_id;
+            var tax_id = poads_table.row(this).data().tax_id;
             var poads_qty = poads_table.row(this).data().poads_qty;
             var poads_discount = poads_table.row(this).data().poads_discount;
             var poads_extra_discount = poads_table.row(this).data().poads_extra_discount;
@@ -1084,6 +1086,7 @@
             $('#_poads_id').val(id);
             $('#created_at').val(created_at);
             $('#stkt_id_edit').val(stkt_id).trigger('changes');
+            $('#tax_id_edit').val(tax_id).trigger('changes');
             $('#poads_qty').val(poads_qty);
             $('#poads_discount').val(poads_discount);
             $('#poads_extra_discount').val(poads_extra_discount);
@@ -1122,11 +1125,12 @@
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         $('#po_description').val(r.po_description);
-                        $('#shipping_cost').val(r.po_shipping_cost);
+                        // $('#shipping_cost').val(r.po_shipping_cost);
+                        $('#shipping_cost').attr('placeholder', r.po_shipping_cost + ' tetap diisi sesuai angka yang tertera');
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
-                        jQuery('#tax_id').val('').trigger('change');
+                        jQuery('#tax_id').val(r.tax_id).trigger('change');
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -1284,6 +1288,7 @@
 
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
+
                         reloadArticleDetail(po_id, data.data)
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');

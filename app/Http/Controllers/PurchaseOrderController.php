@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PurchaseOrderArticleExport;
+use App\Models\Account;
+use App\Models\ProductSubCategory;
 use App\Models\PurchaseOrderInvoiceImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -99,6 +101,8 @@ class PurchaseOrderController extends Controller
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
             'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_code', 'id'),
             'segment' => request()->segment(1),
         ];
         return view('app.purchase_order.purchase_order', compact('data'));
@@ -315,6 +319,28 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    public function chooseTaxPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['tax_id' => $request->_tax_id]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function choosePaymentPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['acc_id' => $request->_acc_id]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
     public function chooseSupplierPo(Request $request)
     {
         $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['ps_id' => $request->_ps_id]);
@@ -495,6 +521,7 @@ class PurchaseOrderController extends Controller
             $r['po_id'] = $draft->id;
             $r['st_id'] = $draft->st_id;
             $r['ps_id'] = $draft->ps_id;
+            $r['tax_id'] = $draft->tax_id;
             $r['stkt_id'] = $draft->stkt_id;
             $r['po_description'] = $draft->po_description;
             $r['po_invoice'] = $draft->po_invoice;

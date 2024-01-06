@@ -29,6 +29,7 @@
             <td style="white-space: nowrap;">
                     <input type="text" style="width:60px;" value="Sz" readonly/>
                     <input type="text" class="bg-primary text-white" style="width:50px;" value="Order" readonly/>
+                    <input type="text" class="bg-primary text-white" style="width:80px;" value="InStock" readonly/>
                     <input type="text" style="width:100px;" value="Harga Band" readonly/>
                     <input type="text" style="width:100px;" value="Harga Beli" readonly/>
                     <input type="text" style="width:100px;" value="Total" readonly/><br/>
@@ -38,7 +39,7 @@
                         <span data-poa-{{ $row->poa_id }}>
                         <input type="text" style="width:60px;" value="{{ $srow->sz_name }}" readonly/>
                         <input type="text" id="poad_qty_{{ $row->poa_id }}_{{ $i }}" style="width:50px;" value="{{ $srow->poad_qty }}" class="order_po_qty order_po_qty_row{{ $a }}" onchange="return orderQty( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }} )" required/>
-
+                        <input type="text" style="width:70px;" value="0" class="order_po_qty order_po_qty_row{{ $a }} bg-light" readonly/>
                         @if ($srow->ps_price_tag == null || $srow->ps_price_tag == 0)
                         <input type="text" style="width:100px;" id="price_tag_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($row->p_price_tag) }}" readonly/>
                             @if ($srow->poad_purchase_price == null || $srow->poad_purchase_price == 0)

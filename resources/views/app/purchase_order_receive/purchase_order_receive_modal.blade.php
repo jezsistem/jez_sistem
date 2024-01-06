@@ -72,7 +72,7 @@
                     </div>
                     <div class="col-4">
                         <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
-                        <select class="form-control" id="stkt_id" name="stkt_id" required>
+                        <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
                             <option value="">- Pilih Tipe Stok -</option>
                             @foreach ($data['stkt_id'] as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
@@ -82,7 +82,7 @@
                     </div>
                     <div class="col-4">
                         <label>Pajak</label>
-                        <select class="form-control" id="tax_id" name="tax_id" required>
+                        <select class="form-control" id="tax_id" name="tax_id" required disabled>
                             <option value="">- Pajak -</option>
                             @foreach ($data['tax_id'] as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>

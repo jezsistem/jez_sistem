@@ -345,6 +345,13 @@ class ProductController extends Controller
                         $w->orWhere('sz_id', '=', $sz_id);
                     });
                 }
+                if(!empty($request->get('psc_id_filter'))) {
+                    $instance->where(function($w) use($request){
+                        $psc_id = $request->get('psc_id_filter');
+                        $w->orWhere('psc_id', '=', $psc_id);
+                    });
+                }
+
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');

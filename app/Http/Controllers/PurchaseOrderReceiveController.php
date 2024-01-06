@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\PurchaseOrderArticleExport;
 use App\Models\PODeliveryOrder;
+use App\Models\ProductLocationSetup;
 use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\PurchaseOrderReceiveImportExcel;
 use Illuminate\Http\Request;
@@ -375,7 +376,16 @@ class PurchaseOrderReceiveController extends Controller
                 $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
             }
             $po_id = $draft->id;
-            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'p_price_tag', 'br_name', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
+            $poa_data = PurchaseOrderArticle::select(
+                'purchase_order_articles.id as poa_id',
+                'po_id',
+                'products.id as pid',
+                'p_price_tag',
+                'br_name',
+                'p_name',
+                'p_color',
+                'poa_discount',
+                'poa_extra_discount', 'poa_reminder')
             ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->where(['po_id' => $po_id])->get();
@@ -386,12 +396,31 @@ class PurchaseOrderReceiveController extends Controller
                         'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
                         'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
                         'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
-                        'product_stocks.ps_barcode', 'product_stocks.ps_qty as ps_qty_stock')
+                        'product_stocks.ps_barcode',)
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->groupBy('purchase_order_article_details.id')
                         ->where(['poa_id' => $poa->poa_id])->get();
+
+                    // Step 2: Retrieve pls_qty from product_location_setups
+                    $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
+
+                    $plsQtyData = ProductLocationSetup::whereIn('pst_id', $pstIds)
+                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty'))
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->where(['stores.id' => Auth::user()->st_id])
+                        ->groupBy('pst_id')
+                        ->get();
+
+                    // Step 3: Merge data with $poad_data
+                    $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
+                        $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
+                        return $item;
+                    });
+
+                    // create to sql
                     if (!empty($poad_data)) {
 
                         if(!empty($request->excelData))
@@ -423,7 +452,7 @@ class PurchaseOrderReceiveController extends Controller
             'product' => $get_product,
         ];
 
-
+//        return $data['product']['0']['subitem'][0]['total_pls_qty'];
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data'));
     }
 
@@ -451,6 +480,7 @@ class PurchaseOrderReceiveController extends Controller
             $r['st_id'] = $draft->st_id;
             $r['ps_id'] = $draft->ps_id;
             $r['stkt_id'] = $draft->stkt_id;
+            $r['tax_id'] = $draft->tax_id;
             $r['po_description'] = $draft->po_description;
             $r['po_shipping_cost'] = $draft->po_shipping_cost;
             $r['po_invoice'] = $draft->po_invoice;

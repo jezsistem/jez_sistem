@@ -584,6 +584,7 @@
                     d.ps_id = $('#ps_id').val();
                     d.br_id_filter = $('#br_id_filter_item').val();
                     d.mc_id_filter = $('#mc_id_filter_item').val();
+                    d.psc_id_filter = $('#psc_id_filter_item').val();
                     d.sz_id_filter = $('#sz_id_filter_item').val();
                 }
             },
@@ -673,6 +674,10 @@
             product_table.draw();
         });
 
+        $('#psc_id_filter_item').on('change', function() {
+            product_table.draw();
+        });
+
         $('#ps_id').select2({
             width: "100%",
             dropdownParent: $('#ps_id_parent')
@@ -698,6 +703,16 @@
             dropdownParent: $('#tax_id_parent')
         });
         $('#tax_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#acc_id').select2({
+            width: "100%",
+            dropdownParent: $('#acc_id_parent')
+        });
+        $('#acc_id').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -757,6 +772,16 @@
             $(window).off(evt);
         });
 
+        $('#psc_id_filter_item').select2({
+            width: "150px",
+            dropdownParent: $('#psc_id_filter_parent_item')
+        });
+        $('#psc_id_filter_item').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#PurchaseOrdertb tbody').on('click', 'tr', function () {
             var po_id = purchase_order_table.row(this).data().po_id;
 
@@ -783,6 +808,8 @@
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
+                        jQuery('#tax_id').val(r.tax_id).trigger('change');
+                        jQuery('#acc_id').val(r.acc_id).trigger('change');
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -815,6 +842,8 @@
                         jQuery('#st_id').val('').trigger('change');
                         jQuery('#ps_id').val('').trigger('change');
                         jQuery('#stkt_id').val('').trigger('change');
+                        jQuery('#tax_id').val('').trigger('change');
+                        jQuery('#acc_id').val('').trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
                         jQuery.noConflict();
@@ -931,6 +960,50 @@
                 success: function(r) {
                     if (r.status == '200') {
                         
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#tax_id').on('change', function() {
+            var tax_id = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {_po_id:$('#_po_id').val(), _tax_id:tax_id},
+                url: "{{ url('po_choose_tax')}}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#acc_id').on('change', function() {
+            var acc_id = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {_po_id:$('#_po_id').val(), _acc_id:acc_id},
+                url: "{{ url('po_choose_payment')}}",
+                success: function(r) {
+                    if (r.status == '200') {
+
                     } else {
                         //swal('Gagal', 'Gagal mengubah data store', 'warning');
                     }
