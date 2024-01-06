@@ -70,7 +70,7 @@ class SizeController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
-            'size_id' => Size::where('sz_delete', '!=', '1')->distinct()->pluck('sz_description'),
+            'size_id' => Size::where('sz_delete', '!=', '1')->distinct()->pluck('sz_schema'),
 
         ];
 //        dd($data['size_id']);
