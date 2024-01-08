@@ -429,6 +429,8 @@ class PointOfSaleController extends Controller
         $order_code = $request->_order_code;
         $shipping_cost = $request->_shipping_cost;
         $ref_number = $request->_ref_number;
+        $pos_total_discount = $request->_total_discount_side;
+
         $rand = str_pad(rand(0, pow(10, 3)-1), 3, '0', STR_PAD_LEFT);
         $cr_id = $request->_cr_id;
         $note = $request->_note;
@@ -477,6 +479,7 @@ class PointOfSaleController extends Controller
             'pos_unique_code' => $unique_code,
             'pos_shipping' => $shipping_cost,
             'pos_ref_number' => $ref_number,
+            'pos_total_discount' => $pos_total_discount,
             'cr_id' => $cr_id,
             'pos_note' => $note,
             'created_at' => date('Y-m-d H:i:s'),
@@ -2163,5 +2166,39 @@ class PointOfSaleController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function totalDiscount(Request $request)
+    {
+        $datas = $request->post('formData');
+        // get first iteration
+        $discountType = $datas[0]['value'];
+        $total = 0;
+
+        if ($discountType == 'percentage')
+        {
+            foreach ($datas as $key => $data) {
+                if ($key == 0) {
+                    continue;
+                }
+                $total += $data['value'];
+            }
+        } else {
+            // foreach but skip first iteration
+            foreach ($datas as $key => $data) {
+                if ($key == 0) {
+                    continue;
+                }
+                $total += $data['value'];
+            }
+        }
+
+        $response = [
+            'status' => '200',
+            'total' => $total,
+            'discountType' => $discountType
+        ];
+
+        return json_encode($response);
     }
 }

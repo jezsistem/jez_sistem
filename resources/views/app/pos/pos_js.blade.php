@@ -984,6 +984,7 @@
             var voc_pst_id = jQuery('#_voc_pst_id').val();
             var voc_value = jQuery('#_voc_value').val();
             var voc_id = jQuery('#_voc_id').val();
+            var total_discount_side = jQuery('#total_discount_value_side').text();
 
             if (std_id == '14' || std_id == '13') {
                 if (pm_id == '2' && cp_id == '') {
@@ -1011,7 +1012,26 @@
             jQuery.ajax({
                 type:'POST',
                 url: "{{ url('save_transaction')}}",
-                data: {voc_id:voc_id, voc_pst_id:voc_pst_id, voc_value:value_price_voc, _cp_id:cp_id, _cross:cross, _st_id:st_id, _pt_id_complaint:pt_id_complaint, _exchange:exchange, _ref_number:ref_number, _type:type, _sub_cust_id:sub_cust_id, _real_price:replaceComma(real_price), _admin_cost:admin_cost, _another_cost:another_cost, _order_code:order_code, _pm_id:pm_id, _std_id:std_id, _cust_id:cust_id, _note:note, _unique_code:unique_code, _shipping_cost:shipping_cost, _cr_id:cr_id},
+                data: {
+                    voc_id:voc_id,
+                    voc_pst_id:voc_pst_id,
+                    voc_value:value_price_voc,
+                    _cp_id:cp_id,
+                    _cross:cross,
+                    _st_id:st_id,
+                    _pt_id_complaint:pt_id_complaint,
+                    _exchange:exchange,
+                    _ref_number:ref_number,
+                    _type:type,
+                    _sub_cust_id:sub_cust_id,
+                    _real_price:replaceComma(real_price),
+                    _admin_cost:admin_cost,
+                    _another_cost:another_cost, _order_code:order_code,
+                    _pm_id:pm_id, _std_id:std_id, _cust_id:cust_id,
+                    _note:note, _unique_code:unique_code,
+                    _shipping_cost:shipping_cost, _cr_id:cr_id,
+                    _total_discount_side:replaceComma(total_discount_side),
+                },
                 dataType: 'json',
                 success: function(r) {
                     jQuery.noConflict();
@@ -1059,6 +1079,8 @@
                             sell_price_voc = 0;
                             value_price_voc = 0;
                             shoes_voucher_temp = [];
+
+                            jQuery('#total_discount_value_side').text('0');
                             @php  session()->forget('voc_item') @endphp
                             if (st_id == '4') {
                                 cross = 'false';
@@ -1624,7 +1646,7 @@
             let newField = `
             <div class="input-group mb-3">
                 <input type="text" name="voucher-list[]" class="form-control" placeholder="Kode Voucher" value="">
-                <div class="input-group-append">
+                <div class="input-group-append ml-3">
                     <button class="btn btn-outline-secondary remove-voucher" type="button">-</button>
                 </div>
             </div>
@@ -1637,6 +1659,26 @@
             jQuery(this).closest('.input-group').remove();
         });
     });
+
+    // Event listener to add a new discount input field
+    jQuery(document).on('click', '.add-total-discount', function () {
+        let newField = `
+        <div class="input-group mb-3 col-md-6">
+                <input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
+                <div class="input-group-append ml-3">
+                    <button class="btn btn-outline-secondary remove-total-discount" type="button">-</button>
+                </div>
+            </div>
+    `;
+        jQuery(".total-discount-container").append(newField);
+    });
+
+    // Event listener to remove a discount input field
+    jQuery(document).on('click', '.remove-total-discount', function () {
+        jQuery(this).closest('.form-group.row').remove();
+    });
+
+
 
     jQuery(document).delegate('#f_add_voucher', 'submit', function(e) {
         e.preventDefault();
@@ -1664,7 +1706,6 @@
                 },
             dataType:'json',
             success: function(r) {
-                console.log(r.status);
                 if (r.status == '200') {
                     // ditemukan
                     var new_total = parseFloat(total) - parseFloat(r.sell) + parseFloat(r.value);
@@ -1699,5 +1740,50 @@
                 }
             }
         });
+
     });
+
+    jQuery(document).delegate('#f_add_total_discount', 'submit', function(e) {
+        e.preventDefault();
+
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        var total_final = jQuery('#total_final_price_side').text();
+        var total = replaceComma(total_final);
+
+        var formData = jQuery('#f_add_total_discount').serializeArray();
+
+        jQuery.ajax({
+            type:"POST",
+            url: "{{ url('pos-total-discount')}}",
+            data:
+                {
+                    formData: formData,
+                },
+            dataType:'json',
+            success: function(r) {
+                if (r.status == '200') {
+                    if (r.discountType == 'percentage') {
+                        // create count use percentage from total
+                        var discount = parseFloat(total) * parseFloat(r.total) / 100;
+                        var new_total = parseFloat(total) - parseFloat(discount);
+                        jQuery('#total_final_price_side').text(addCommas(new_total));
+                        jQuery('#total_discount_value_side').text(addCommas(discount));
+                    }
+
+                    if (r.discountType == 'nominal') {
+                        var new_total = parseFloat(total) - parseFloat(r.total);
+                        jQuery('#total_final_price_side').text(addCommas(new_total));
+                        jQuery('#total_discount_value_side').text(addCommas(r.total));
+                    }
+                } else {
+                    alert('kode salah');
+                }
+            }
+        });
+    })
 </script>

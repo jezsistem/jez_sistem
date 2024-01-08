@@ -55,7 +55,7 @@
                     <tr class="d-flex align-items-center justify-content-between">
                         <th class="border-0">
                             <div class="d-flex align-items-center font-size-h5 mb-0 font-size-bold text-dark">
-                                Voucer new &nbsp;<span id="shipping_courier_side"></span>
+                                Voucher new &nbsp;<span id="shipping_courier_side"></span>
                                 <input type="hidden" id="shipping_courier_value"/>
                                 <span class="badge badge-primary white rounded-circle ml-2"  data-toggle="modal" data-target="#voucherModal">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="svg-sm" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_11" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
@@ -68,6 +68,23 @@
                             </div>
                         </th>
                         <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span id="shipping_cost_side">0</span></td>
+                    </tr>
+                    <tr class="d-flex align-items-center justify-content-between">
+                        <th class="border-0">
+                            <div class="d-flex align-items-center font-size-h5 mb-0 font-size-bold text-dark">
+                                Diskon Total &nbsp;<span id="total_discount_side"></span>
+                                <input type="hidden" id="total_discount_value"/>
+                                <span class="badge badge-primary white rounded-circle ml-2"  data-toggle="modal" data-target="#totalDiscountModal">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="svg-sm" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_11" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
+                                    <g>
+                                    <rect x="234.362" y="128" width="43.263" height="256"></rect>
+                                    <rect x="128" y="234.375" width="256" height="43.25"></rect>
+                                    </g>
+                                    </svg>
+                                </span>
+                            </div>
+                        </th>
+                        <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span id="total_discount_value_side">0</span></td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between bg-primary rounded">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-white pl-1">

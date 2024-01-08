@@ -902,6 +902,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('verify_voucher', [PointOfSaleController::class, 'verifyVoucher']);
     Route::post('verify-vouchers', [PointOfSaleController::class, 'verifyVouchers']);
 
+    // total discount point of sale
+    Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);
+
     // Shopee
     Route::get('shopee_data', [ShopeeController::class, 'index']);
     Route::get('shopee_datatables', [ShopeeController::class, 'getDatatables']);

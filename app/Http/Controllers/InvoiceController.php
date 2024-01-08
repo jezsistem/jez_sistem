@@ -197,7 +197,13 @@ class InvoiceController extends Controller
         $cust_subdistrict = '';
         if ($check) {
             $transaction = PosTransaction::select(
-                'pos_discount', 'is_website', 'pos_unique_code', 'pos_courier', 'pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created')
+                'pos_discount', 'is_website', 'pos_unique_code', 'pos_courier',
+                'pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city',
+                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name',
+                'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone',
+                'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping',
+                'cr_id', 'pos_transactions.created_at as pos_created',
+                'pos_total_discount')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')

@@ -131,7 +131,7 @@
 
             <div class="transaction">
                 <table class="transaction-table" cellspacing="0" cellpadding="0">
-                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0; $total_discount = 0; $total_marketplace = 0; @endphp
+                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0; $total_discount = $data['transaction']->pos_total_discount; $total_marketplace = 0; @endphp
                     @if (!empty($data['transaction_detail']))
                         @foreach ($data['transaction_detail'] as $srow)
                         <tr style="margin-bottom:5px;">
