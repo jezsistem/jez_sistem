@@ -312,7 +312,7 @@ class StockTransferController extends Controller
     public function transferListDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'st_id_start', 'st_id_end', 'stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'pl_code')
+            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'st_id_start', 'st_id_end', 'stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'pl_code', 'product_stocks.ps_barcode as ps_barcode')
             ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'stock_transfer_details.pl_id')
@@ -332,7 +332,7 @@ class StockTransferController extends Controller
                   return '['.$data->br_name.']<br/><span style="white-space:nowrap;">'.$data->p_name.' '.$data->p_color.' '.$data->sz_name.'</span><br/>
                   <a class="btn btn-sm btn-primary">Jml : '.$data->stfd_qty.'</a>
                   <a class="btn btn-sm btn-primary">'.$data->pl_code.'</a>
-                  <a class="btn btn-sm btn-success" style="font-weight:bold;" data-p_name="'.$data->p_name.' '.$data->p_color.' '.$data->sz_name.'" data-bin="'.$data->pl_code.'" data-stfd_id="'.$data->stfd_id.'" id="get_transfer_item">Ambil</a>
+                  <a class="btn btn-sm btn-success" style="font-weight:bold;" data-p_name="'.$data->p_name.' '.$data->p_color.' '.$data->sz_name.'" data-bin="'.$data->pl_code.'" data-stfd_id="'.$data->stfd_id.'" data-ps-barcode="'.$data->ps_barcode.'" id="get_transfer_item">Ambil</a>
                   ';
                 } else {
                   return '['.$data->br_name.']<br/><span style="white-space:nowrap;">'.$data->p_name.' '.$data->p_color.' '.$data->sz_name.'</span><br/>
@@ -346,7 +346,8 @@ class StockTransferController extends Controller
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                        $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%")
+                        ->orWhere('product_stocks.ps_barcode', 'LIKE', "%$search%");
                     });
                 }
             })
@@ -422,11 +423,21 @@ class StockTransferController extends Controller
       return view('app.dashboard.helper._reload_transfer_invoice', compact('data'));
     }
 
+    public function reloadScanTransferInvoice()
+    {
+        $data = [
+            'invoice' => StockTransfer::whereIn('stf_status', ['0', '3'])->orderByDesc('id')->pluck('stf_code', 'id'),
+        ];
+        return view('app.dashboard.helper._reload_scan_transfer_invoice', compact('data'));
+    }
+
     public function reloadTransferInvoiceCheck()
     {
       $data = [
         'invoice' => StockTransfer::where('stf_status', '=', '1')->orderByDesc('id')->pluck('stf_code', 'id'),
       ];
+
+
       return view('app.dashboard.helper._reload_transfer_invoice', compact('data'));
     }
 

@@ -446,6 +446,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('in_transfer_bin_datatables', [StockTransferController::class, 'inTransferBinDatatables']);
     Route::get('get_pending_stf_code', [StockTransferController::class, 'getPendingStfCode']);
     Route::get('reload_transfer_invoice', [StockTransferController::class, 'reloadTransferInvoice']);
+    Route::get('reload_scan_transfer_invoice', [StockTransferController::class, 'reloadScanTransferInvoice']);
     Route::get('reload_transfer_invoice_check', [StockTransferController::class, 'reloadTransferInvoiceCheck']);
     Route::get('reload_order_invoice', [StockTransferController::class, 'reloadOrderInvoice']);
     Route::post('stock_transfer_exec', [StockTransferController::class, 'stockTransferExec']);

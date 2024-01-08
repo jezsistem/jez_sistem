@@ -400,3 +400,56 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="ScanTransferModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-dark">
+                <input type="hidden" id="_scan_transfer_mode"/>
+                <input type="hidden" id="scan_transfer_invoice_label" value=""/>
+                <h5 class="modal-title text-dark" id="ScanExampleModalLabel">Transfer</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-1 pb-1">
+                    <span class="scan_transfer_invoice"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_transfer_modal_finish">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="ScanTransferDetailModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Transfer <span id="scan_transfer_invoice_modal_label"></span></h5>
+            </div>
+            <div class="modal-body">
+                <div class="card-body table-responsive">
+                    <input type="search" class="form-control form-control-sm col-12" id="scan_transfer_search" placeholder="Brand-Artikel-Warna-Size"/><br/>
+                    <table class="table table-hover table-checkable" id="ScanTransferListtb">
+                        <thead class="bg-dark text-light">
+                        <tr>
+                            <th class="text-dark">No</th>
+                            <th class="text-dark">Artikel</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_transfer_detail_modal_finish">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->

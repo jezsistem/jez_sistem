@@ -346,11 +346,101 @@
             "lengthMenu": "_MENU_",
         },
         order: [[0, 'desc']],
+    })
+
+    var scan_transfer_list_table = $('#ScanTransferListtb').DataTable({
+        destroy: true,
+        processing: true,
+        serverSide: true,
+        responsive: false,
+        dom: '<"text-right"l>rt<"text-right"ip>',
+        buttons: [
+            { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+        ],
+        ajax: {
+            url : "{{ url('stock_transfer_list_datatables') }}",
+            data : function (d) {
+                d.search = $('#scan_transfer_search').val();
+                d.invoice = $('#scan_transfer_invoice_label').val();
+                d.mode = $('#_scan_transfer_mode').val();
+            }
+        },
+        columns: [
+            { data: 'DT_RowIndex', name: 'stfd_id', searchable: false},
+            { data: 'article', name: 'article', orderable: false },
+        ],
+        columnDefs: [
+            {
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+        language: {
+            "lengthMenu": "_MENU_",
+        },
+        order: [[0, 'desc']],
     });
     
     $('#transfer_search').on('keyup', function() {
 		transfer_list_table.draw();
 	});
+
+    $('#scan_transfer_search').on('keyup', function(event) {
+        scan_transfer_list_table.draw();
+
+        if (event.keyCode === 13)
+        {
+            var scan_transfer_data = [];
+            var totalRequests = 0;
+            var completedRequests = 0;
+
+            scan_transfer_list_table.rows().every(function () {
+                totalRequests++;
+                var rowData = this.data();
+                scan_transfer_data.push({
+                    _stfd_id: rowData.stfd_id,
+                });
+            });
+
+            scan_transfer_data.forEach(function(item) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ url('get_transfer_item') }}",
+                    type: "POST",
+                    data: {
+                        _stfd_id: item._stfd_id,
+                    },
+                    success: function (response) {
+                        var responseObject = JSON.parse(response);
+                        var status = responseObject.status;
+
+                        completedRequests++;
+                        if (status == '200') {
+                            scan_transfer_list_table.draw();
+                            if (completedRequests === totalRequests) {
+                                // All requests have completed
+                                if (status == 200) {
+                                    scan_transfer_list_table.draw();
+                                    toast('Dipindahkan', ' berhasil dipindahkan', 'success');
+                                    // swal('Dipindahkan', 'Berhasil dipindahkan produk', 'success');
+                                } else {
+                                    // toast('Dipindahkan', ' berhasil dipindahkan', 'success');
+                                    swal('Gagal', 'Gagal dipindahkan produk', 'error');
+                                }
+                            }
+                        }
+                    },
+                });
+            });
+        }
+    });
+
 
 	var take_cross_order_table = $('#TakeCrossOrdertb').DataTable({
         destroy: true,
@@ -693,15 +783,17 @@
         })
 	});
 
-	$('#out_modal_finish, #in_modal_finish, #transfer_modal_finish, #transfer_detail_modal_finish, #scan_out_modal_finish, #scan_in_modal_finish').on('click', function (e) {
+	$('#out_modal_finish, #in_modal_finish, #transfer_modal_finish, #transfer_detail_modal_finish, #scan_out_modal_finish, #scan_in_modal_finish, #scan_transfer_modal_finish').on('click', function (e) {
 		$('#OutModal').modal('hide');
 		$('#ScanOutModal').modal('hide');
 		$('#InModal').modal('hide');
 		$('#TrackingTypeModal').modal('hide');
 		$('#InputCodeModal').modal('hide');
 		$('#TransferModal').modal('hide');
+        $('#ScanTransferModal').modal('hide');
 		$('#_transfer_mode').val('');
 		$('#TransferDetailModal').modal('hide');
+        $('#ScanTransferDetailModal').modal('hide');
 		$('#pl_id_out').val('').trigger('change');
 	});
 
@@ -930,6 +1022,21 @@
 			});
         }).modal('show');
 	});
+
+    $('#scan_transfer_btn').on('click', function(e) {
+        e.preventDefault();
+        $('#_scan_transfer_mode').val('get');
+        $('#ScanTransferModal').on('show.bs.modal', function() {
+            $.ajax({
+                type: "GET",
+                dataType: 'html',
+                url: "{{ url('reload_scan_transfer_invoice') }}",
+                success: function(r) {
+                    $('.scan_transfer_invoice').html(r);
+                }
+            });
+        }).modal('show');
+    });
 
 	$('#transfer_invoice_btn').on('click', function(e) {
 		e.preventDefault();
@@ -1160,4 +1267,14 @@
             transfer_list_table.draw();
         }).modal('show');
 	});
+
+    $(document).on('change','#scan_transfer_invoice', function(e) {
+        e.preventDefault();
+        var invoice = $('#scan_transfer_invoice option:selected').text();
+        $('#scan_transfer_invoice_modal_label').text(invoice);
+        $('#scan_transfer_invoice_label').val(invoice);
+        $('#ScanTransferDetailModal').on('show.bs.modal', function() {
+            scan_transfer_list_table.draw();
+        }).modal('show');
+    });
 </script>

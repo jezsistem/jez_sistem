@@ -106,6 +106,21 @@
                     </div>
                     <!--end: List Widget 9-->
                 </div>
+
+                <div class="col-lg-12 col-xxl-12" id="user_activity_reload">
+                    <!--begin::List Widget 9-->
+                    <div class="card card-custom card-stretch gutter-b">
+                        <!--begin::Header-->
+                        <div class="card-header align-items-center border-0 mt-4">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_transfer_btn">Scan Ambil Item Transfer</span>
+                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
+                            </h3>
+                        </div>
+                        <!--end::Header-->
+                    </div>
+                    <!--end: List Widget 9-->
+                </div>
                 <!-- INCOMING STOCK -->
             </div>
             <!--end::Row-->

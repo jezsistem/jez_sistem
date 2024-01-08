@@ -6,8 +6,8 @@
 </select>
 
 <script>
-    $('#transfer_invoice').select2({
+    $('#scan_transfer_invoice').select2({
         width: "100%",
-        dropdownParent: $('#TransferModal')
+        dropdownParent: $('#ScanTransferModal')
     });
 </script>
