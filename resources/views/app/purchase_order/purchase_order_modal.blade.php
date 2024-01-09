@@ -244,6 +244,7 @@
                             <tr>
                                 <th class="text-dark">No</th>
                                 <th style="white-space: nowrap;" class="text-light">Nama</th>
+                                <th style="white-space: nowrap;" class="text-light">Article ID</th>
                                 <th style="white-space: nowrap;" class="text-light">Warna</th>
                                 <th style="white-space: nowrap;" class="text-light">Brand</th>
                                 <th style="white-space: nowrap;" class="text-light">Size</th>

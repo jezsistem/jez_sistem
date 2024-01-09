@@ -282,7 +282,10 @@ class ProductController extends Controller
     public function getDatatablesItem(Request $request)
     {
         if(request()->ajax()) {
-                $query = Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight')
+                $query = Product::select(
+                    'products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id',
+                    'gn_id', 'ss_id', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name',
+                    'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'article_id')
             ->join('brands', 'brands.id', '=', 'products.br_id')
             ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
             ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
@@ -295,6 +298,9 @@ class ProductController extends Controller
             return datatables()->of($query)
             ->editColumn('p_name_show', function($data){
                 return '<span style="white-space: nowrap;">'.$data->p_name.'</span>';
+            })
+            ->editColumn('article_id', function($data){
+                return '<span style="white-space: nowrap;">'.$data->article_id.'</span>';
             })
             ->editColumn('p_color_show', function($data){
                 return '<span style="white-space: nowrap;">'.$data->p_color.' ('.$data->mc_name.')</span>';
@@ -324,7 +330,7 @@ class ProductController extends Controller
                     return 'Size belum disetting untuk produk ini';
                 }
             })
-            ->rawColumns(['p_name_show', 'p_color_show', 'p_action'])
+            ->rawColumns(['p_name_show', 'article_id', 'p_color_show', 'p_action'])
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('br_id_filter'))) {
                     $instance->where(function($w) use($request){
@@ -358,7 +364,8 @@ class ProductController extends Controller
                         $w->orWhere('p_name', 'LIKE', "%$search%")
                         ->orWhere('mc_name', 'LIKE', "%$search%")
                         ->orWhere('br_name', 'LIKE', "%$search%")
-                        ->orWhere('ps_name', 'LIKE', "%$search%");
+                        ->orWhere('ps_name', 'LIKE', "%$search%")
+                        ->orWhere('article_id', 'LIKE', "%$search%");
                     });
                 }
             })

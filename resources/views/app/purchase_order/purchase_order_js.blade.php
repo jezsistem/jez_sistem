@@ -591,6 +591,7 @@
             columns: [
             { data: 'DT_RowIndex', name: 'pid', searchable: false},
             { data: 'p_name_show', name: 'p_name' },
+            { data: 'article_id', name: 'article_id'},
             { data: 'p_color_show', name: 'p_color' },
             { data: 'br_name', name: 'br_name' },
             { data: 'p_action', name: 'p_action', sortable: false },
