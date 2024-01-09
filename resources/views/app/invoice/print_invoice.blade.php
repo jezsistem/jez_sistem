@@ -131,7 +131,10 @@
 
             <div class="transaction">
                 <table class="transaction-table" cellspacing="0" cellpadding="0">
-                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0; $total_discount = $data['transaction']->pos_total_discount; $total_marketplace = 0; @endphp
+                    @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0;
+                        $total_discount = $data['transaction']->pos_total_discount;
+                        $total_discount_show= $data['transaction']->pos_total_discount ;
+                        $total_marketplace = 0; @endphp
                     @if (!empty($data['transaction_detail']))
                         @foreach ($data['transaction_detail'] as $srow)
                         <tr style="margin-bottom:5px;">
@@ -152,7 +155,8 @@
                                 <td class="final-price">{{ number_format($srow->pos_td_qty * $srow->pos_td_sell_price) }}</td>
                                 @else 
                                 <td class="sell-price">
-                                    {{ number_format($srow->productStock->ps_price_tag) }} <br/>
+                                    <s>{{ number_format($srow->productStock->ps_price_tag) }}</s>
+                                    <br/>
                                     {{ number_format($srow->pos_td_sell_price) }}
                                     @if (!empty($srow->pos_td_discount))
                                     <br/>{{ $srow->pos_td_discount }}%
@@ -184,7 +188,9 @@
                             $total_price += $srow->pos_td_total_price; 
 //                            $total_discount += $srow->pos_td_qty * ($srow->pos_td_sell_price/100 * $srow->pos_td_discount);
                             $total_discount += $srow->pos_td_discount_number;
-//                            $total_marketplace += $srow->pos_td_marketplace_price;
+                            $total_discount_show += $srow->pos_td_discount_number;
+                            $total_discount_show += $srow->pos_td_price_item_discount;
+//                            $total_marketplace +=     $srow->pos_td_marketplace_price;
                             $total_marketplace+= ($srow->pos_td_qty * $srow->pos_td_sell_price);;
                         }
                         @endphp
@@ -222,8 +228,8 @@
                             @else
                             <span class="text-red">
                             (
-                            @if (!empty($total_discount))
-                            {{ ($total_discount) }}
+                            @if (!empty($total_discount_show))
+                            {{ ($total_discount_show) }}
                             @else 
                             0
                             @endif

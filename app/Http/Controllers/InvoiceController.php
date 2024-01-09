@@ -245,6 +245,8 @@ class InvoiceController extends Controller
                 ->get();
             }
         }
+
+
         $data = [
             'title' => 'Invoice '.$invoice,
             'invoice' => $invoice,

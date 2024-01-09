@@ -311,6 +311,7 @@ class PointOfSaleController extends Controller
                     $bin .= '</select>';
                 }
                 $sell_price = 0;
+                $sell_price_discount = 0;
                 if ($type == 'RESELLER') {
                     if (!empty($check->first()->ps_price_tag)) {
                         $sell_price = $check->first()->ps_price_tag;
@@ -336,8 +337,10 @@ class PointOfSaleController extends Controller
                             $price_tag = $check->first()->p_price_tag;
                         }
                         if ($set_discount->pd_type == 'percent') {
+                            $sell_price_discount = $price_tag/100 * $set_discount->pd_value;
                             $sell_price = $price_tag - ($price_tag/100 * $set_discount->pd_value);
                         } else {
+                            $sell_price_discount = $set_discount->pd_value;
                             $sell_price = $price_tag - $set_discount->pd_value;
                         }
                     }
@@ -662,6 +665,7 @@ class PointOfSaleController extends Controller
         $final_price = $request->_final_price;
         $voc_pst_id = $request->voc_pst_id;
         $voc_value = $request->voc_value;
+        $price_item_discount = $request->_price_item_discount ?? 0;
         if (!empty($nameset_price)) {
             $nameset = '1';
         } else {
@@ -699,6 +703,7 @@ class PointOfSaleController extends Controller
             'pos_td_nameset_price' => $nameset_price,
             'pos_td_nameset' => $nameset,
             'pos_td_description' => $pos_td_description,
+            'pos_td_price_item_discount' => $price_item_discount,
             'pos_td_total_price' => $pos_td_discount_price+$nameset_price,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
@@ -1156,6 +1161,7 @@ class PointOfSaleController extends Controller
                     $bin = '';
                     $bin_list = '';
                     $sell_price = 0;
+                    $sell_price_discount = 0;
                     $bandrol = 0;
                     if (!empty($row->ps_price_tag)) {
                         $bandrol = $row->ps_price_tag;
@@ -1191,8 +1197,10 @@ class PointOfSaleController extends Controller
                                     $price_tag = $row->p_price_tag;
                                 }
                                 if ($set_discount->pd_type == 'percent') {
+                                    $sell_price_discount = $price_tag/100 * $set_discount->pd_value;
                                     $sell_price = $price_tag - ($price_tag/100 * $set_discount->pd_value);
                                 } else if ($set_discount->pd_type == 'amount') {
+                                    $sell_price_discount = $set_discount->pd_value;
                                     $sell_price = $price_tag - $set_discount->pd_value;
                                 } else {
                                     $sell_price = $price_tag;
@@ -1207,8 +1215,10 @@ class PointOfSaleController extends Controller
                                         $price_tag = $row->p_price_tag;
                                     }
                                     if ($set_discount->pd_type == 'percent') {
+                                        $sell_price_discount = $price_tag/100 * $set_discount->pd_value;
                                         $sell_price = $price_tag - ($price_tag/100 * $set_discount->pd_value);
                                     } else if ($set_discount->pd_type == 'amount') {
+                                        $sell_price_discount = $set_discount->pd_value;
                                         $sell_price = $price_tag - $set_discount->pd_value;
                                     } else {
                                         $sell_price = $price_tag;
@@ -1231,7 +1241,7 @@ class PointOfSaleController extends Controller
                     }
                     $ok = $this->checkAging($st_id, $row->pst_id);
                     $output .= '
-                    <li><a class="btn btn-sm btn-inventory col-12" data-cross="'.$cross.'" data-ok="'.$ok.'" data-sell_price="'.$sell_price.'" data-psc_id="'.$row->psc_id.'" data-bandrol="'.$bandrol.'" data-pls_qty="'.$row->pls_qty.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-bin="'.htmlspecialchars($bin_list).'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' '.$row->sz_name.'" id="add_to_item_list"><span style="float-left;"><span class="btn-lg btn-primary">['.strtoupper($row->br_name).'] '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.'</span></a></li>
+                    <li><a class="btn btn-sm btn-inventory col-12" data-cross="'.$cross.'" data-ok="'.$ok.'" data-sell_price="'.$sell_price.'" data-sell_price_discount="'.$sell_price_discount.'" data-psc_id="'.$row->psc_id.'" data-bandrol="'.$bandrol.'" data-pls_qty="'.$row->pls_qty.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-bin="'.htmlspecialchars($bin_list).'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' '.$row->sz_name.'" id="add_to_item_list"><span style="float-left;"><span class="btn-lg btn-primary">['.strtoupper($row->br_name).'] '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.'</span></a></li>
                     ';
                 }
             } else {
@@ -1493,6 +1503,7 @@ class PointOfSaleController extends Controller
             $type = $request->get('type');
             $std_id = $request->get('_std_id');
             $item_type = $request->get('_item_type');
+            $sell_price_discount = 0;
             $plst_status_new = [
                 'WAITING OFFLINE',
                 'INSTOCK APPROVAL'
@@ -1614,8 +1625,10 @@ class PointOfSaleController extends Controller
                                 $price_tag = $row->p_price_tag;
                             }
                             if ($set_discount->pd_type == 'percent') {
+                                $sell_price_discount = $price_tag/100 * $set_discount->pd_value;
                                 $sell_price = $price_tag - ($price_tag/100 * $set_discount->pd_value);
                             } else if ($set_discount->pd_type == 'amount') {
+                                $sell_price_discount = $set_discount->pd_value;
                                 $sell_price = $price_tag - $set_discount->pd_value;
                             } else {
                                 $sell_price = $price_tag;
@@ -1633,7 +1646,7 @@ class PointOfSaleController extends Controller
                     }
                     $output .= '
                     <li>
-                    <a class="btn btn-sm btn-inventory col-12" data-b1g1_id="'.$b1g1_id.'" data-b1g1_price="'.$b1g1_price.'" data-fs="'.$fs.'" data-psc_id="'.$row->psc_id.'" data-pls_qty="'.$row->pls_qty.'" data-plst_id="'.$row->plst_id.'" data-pl_id="'.$row->pl_id.'" data-sell_price="'.$sell_price.'" data-bandrol="'.$bandrol.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' ['.$row->sz_name.'] ['.$row->pl_code.']" id="add_to_item_list">
+                    <a class="btn btn-sm btn-inventory col-12" data-b1g1_id="'.$b1g1_id.'" data-b1g1_price="'.$b1g1_price.'" data-fs="'.$fs.'" data-psc_id="'.$row->psc_id.'" data-pls_qty="'.$row->pls_qty.'" data-plst_id="'.$row->plst_id.'" data-pl_id="'.$row->pl_id.'" data-sell_price="'.$sell_price.'" data-sell_price_discount="'.$sell_price_discount.'" data-bandrol="'.$bandrol.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' ['.$row->sz_name.'] ['.$row->pl_code.']" id="add_to_item_list">
                     <span style="float-left;">
                     <span class="btn-lg btn-primary">['.strtoupper($row->br_name).']'. strtoupper($row->article_id) .' '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.' '.$status.' </span></a></li>
                     ';

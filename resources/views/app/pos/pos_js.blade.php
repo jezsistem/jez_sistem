@@ -396,7 +396,7 @@
         return false;
     }
 
-    function saveItem(row, pst_id, price, plst_id)
+    function saveItem(row, pst_id, price, plst_id, price_item_discount)
     {
         //alert(row, pst_id, price, plst_id);
         var pl_id = jQuery('#orderList'+row).closest('tr').find("#pl_id option:selected").val();
@@ -445,6 +445,7 @@
                 _price:price,
                 _discount:discount,
                 _discount_number: discount_number,
+                _price_item_discount:price_item_discount,
                 _marketplace_price:marketplace_price,
                 _sell_price_item:replaceComma(sell_price_item),
                 _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
@@ -512,6 +513,7 @@
         var pls_qty = jQuery(this).attr('data-pls_qty');
         var psc_id = jQuery(this).attr('data-psc_id');
         var sell_price = jQuery(this).attr('data-sell_price');
+        var sell_price_discount = jQuery(this).attr('data-sell_price_discount');
         var total_item = jQuery('#total_item_side').text();
         var total_price = jQuery('#total_price_side').text();
         var total_final_price = jQuery('#total_final_price_side').text();
@@ -548,7 +550,7 @@
                 " <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td>" +
                 " <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
                 " <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
-                " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'>" +
+                " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0, "+sell_price_discount+")'>" +
                 " <i class='fa fa-eye' style='display:none;'></i></a> " +
                 " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
         } else {
@@ -563,7 +565,7 @@
                 "<td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
                 "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
                 "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
-                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0, "+sell_price_discount+")'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
         }
         if (jQuery('#voucher_code').val() != '') {
             var code = jQuery('#voucher_code').val();
@@ -724,6 +726,7 @@
             var pl_id = jQuery(this).attr('data-pl_id');
             var plst_id = jQuery(this).attr('data-plst_id');
             var sell_price = jQuery(this).attr('data-sell_price');
+            var sell_price_discount = jQuery(this).attr('data-sell_price');
             var total_price_item = jQuery(this).attr('data-total_price');
             var nameset_price = jQuery(this).attr('data-nameset_price');
             var marketplace_price = jQuery(this).attr('data-marketplace_price');
@@ -753,7 +756,7 @@
                     "<td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' value='-"+marketplace_price+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
                     "<td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(price)+"</span></td> " +
                     "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> " +
-                    "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
+                    "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+", "+sell_price_discount+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
             } else {
                 // jQuery('#_pt_id_complaint').val('');
                 addRefundExchangeList('remove', plst_id, pt_id);
@@ -1156,7 +1159,7 @@
                                 "<td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td>" +
                                 "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
                                 "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
-                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> " +
+                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0, "+sell_price_discount+")' style='display:none;'><i class='fa fa-eye'></i></a> " +
                                 "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                         } else {
                             jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td>"+r.p_name+"</td>" +
@@ -1168,7 +1171,7 @@
                                 "<td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
                                 "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
                                 "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
-                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0, "+sell_price_discount+")' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                         }
                         return false;
                     } else if (r.status == '419') {
