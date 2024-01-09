@@ -464,6 +464,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
     Route::get('std_export', [StockTransferDataController::class, 'exportData']);
+    Route::post('std_receive_transfer_data_import', [StockTransferDataController::class, 'importReceiveTransferData']);
+
 
     // Purchase Order
     Route::get('pembelian', [PurchaseOrderController::class, 'index'])->name('purchase_order');

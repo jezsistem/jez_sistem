@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ use App\Models\StockTransfer;
 use App\Models\StockTransferDetail;
 use App\Models\PosTransaction;
 use App\Imports\TransferImport;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\WebConfig;
 
@@ -578,8 +580,8 @@ class StockTransferController extends Controller
         return json_encode($r);
     }
 
-    public function importData(Request $request) {
-
+    public function importData(Request $request)
+    {
         try {
             if ($request->hasFile('importFile')) {
 
@@ -592,19 +594,17 @@ class StockTransferController extends Controller
 
                 $import = new TransferImport;
                 $data = Excel::toArray($import, public_path('excel/' . $nama_file));
-//                return $data;
 
-                if ($import->getRowCount() >= 0) {
+
+                if (count($data) >= 0) {
                     $processData = $this->processImportData($data[0]);
-
-                    // PurchaseOrderReceiveImportExcel::insert($processData);
-
                     $r['data'] = $processData;
                     $r['status'] = '200';
                 } else {
                     $r['status'] = '419';
                 }
             } else {
+
                 $r['status'] = '400';
             }
 
@@ -613,6 +613,7 @@ class StockTransferController extends Controller
 
             return json_encode($r);
         } catch (\Exception $e) {
+            unlink(public_path('excel/' . $nama_file));
             $r['status'] = '400';
             return json_encode($r);
         }
@@ -627,6 +628,9 @@ class StockTransferController extends Controller
             $barcode = $item[0];
             $qty = $item[1];
 
+            // get id from barcode
+            $product_id = ProductStock::where('ps_barcode', '=', $barcode)->get()->first();
+
             // Check if barcode already exists in processedData
             $existingKey = array_search($barcode, array_column($processedData, 'barcode'));
 
@@ -636,6 +640,7 @@ class StockTransferController extends Controller
             } else {
                 // If barcode doesn't exist, create a new entry
                 $rowData = [
+                    'product_stock_id' => $product_id->id,
                     'barcode' => $barcode,
                     'qty' => $qty,
                 ];

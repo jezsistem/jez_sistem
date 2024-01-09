@@ -59,6 +59,7 @@
                 data : function (d) {
                     d.stf_code = $('#stf_code_label').val();
                     d.search = $('#stock_transfer_receive_search').val();
+
                 }
             },
             columns: [
@@ -237,5 +238,70 @@
             window.location.href = "{{ url('std_export') }}?start="+start_date+"&end="+end_date+"";
         });
 
+        $(document).ready(function () {
+            // Open the second modal when the button is clicked
+            $("#ImportModalBtn").click(function () {
+                $("#ImportModal").modal("show");
+            });
+        });
+
+        $('#f_import').on('submit' , function (e) {
+            e.preventDefault();
+            $('#import_data_btn').html('Proses...');
+            $('#import_data_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var stf_id = $('#stf_id').val();
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('stock_transfer_import')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_import')[0].reset();
+                        // stock_transfer_data_accept_table.ajax.reload( function (json) {
+                        //     var stf_code = json.stf_code;
+                        // });
+                        stock_transfer_data_accept_table.rows().every(function(){
+                            var rowData = this.data();
+                            var stfd_id = rowData.stfd_id;
+                            var pst_id = rowData.pst_id;
+
+                            // Check if the current row's pst_id matches the product_stock_id from data.data
+                            var matchingData = data.data.find(function(item) {
+                                return item.product_stock_id === pst_id;
+                            });
+
+                            if (matchingData) {
+                                var acceptQtyInput = $('input.accept_qty[data-stfd_id="' + stfd_id + '"]');
+                                acceptQtyInput.val(matchingData.qty);
+                            }
+                        });
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        $('#f_import')[0].reset();
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        $('#f_import')[0].reset();
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
+                }
+            });
+        });
     });
 </script>
