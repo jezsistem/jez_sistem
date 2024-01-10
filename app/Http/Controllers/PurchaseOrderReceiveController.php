@@ -375,6 +375,7 @@ class PurchaseOrderReceiveController extends Controller
             } else { 
                 $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
             }
+            $po_st_id = $draft->st_id;
             $po_id = $draft->id;
             $poa_data = PurchaseOrderArticle::select(
                 'purchase_order_articles.id as poa_id',
@@ -410,7 +411,7 @@ class PurchaseOrderReceiveController extends Controller
                         ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty'))
                         ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->join('stores', 'stores.id', '=', 'product_locations.st_id')
-                        ->where(['stores.id' => Auth::user()->st_id])
+                        ->where(['stores.id' => $po_st_id])
                         ->groupBy('pst_id')
                         ->get();
 
