@@ -14,7 +14,7 @@ class AddPosTotalVouchersToPosTransactionsTable extends Migration
     public function up()
     {
         Schema::table('pos_transactions', function (Blueprint $table) {
-            $table->double('pos_total_vouchers', 10, 2)->after('pos_shipping')->default(0);
+            $table->double('pos_total_vouchers', 10, 2)->after('pos_shipping')->default(0)->nullable();
         });
     }
 
