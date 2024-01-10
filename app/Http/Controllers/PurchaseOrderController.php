@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\PurchaseOrderArticleExport;
 use App\Models\Account;
+use App\Models\ProductLocationSetup;
 use App\Models\ProductSubCategory;
 use App\Models\PurchaseOrderInvoiceImage;
 use Illuminate\Http\Request;
@@ -442,6 +443,8 @@ class PurchaseOrderController extends Controller
                 $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
             }
             $po_id = $draft->id;
+            $po_st_id = $draft->st_id;
+            ;
             $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
             ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
@@ -449,10 +452,28 @@ class PurchaseOrderController extends Controller
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
-                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price')
+                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where(['poa_id' => $poa->poa_id])->get();
+
+                    // Step 2: Retrieve pls_qty from product_location_setups
+                    $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
+
+                    $plsQtyData = ProductLocationSetup::whereIn('pst_id', $pstIds)
+                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty'))
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->where(['stores.id' => $po_st_id])
+                        ->groupBy('pst_id')
+                        ->get();
+
+                    // Step 3: Merge data with $poad_data
+                    $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
+                        $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
+                        return $item;
+                    });
+
                     if (!empty($poad_data)) {
                         $poa->subitem = $poad_data;
                         array_push($get_product, $poa);
