@@ -103,10 +103,9 @@
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Nama</th>
                                         <th class="text-dark">PKP</th>
-                                        <th class="text-dark">Tempo</th>
-                                        <th class="text-dark">Email</th>
-                                        <th class="text-dark">No Telp</th>
                                         <th class="text-dark">Alamat</th>
+                                        <th class="text-dark">No Telp</th>
+                                        <th class="text-dark">No Rekening</th>
                                         <th class="text-dark">Deskripsi</th>
                                     </tr>
                                 </thead>

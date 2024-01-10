@@ -76,7 +76,8 @@ class ProductSupplierController extends Controller
     public function getDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(ProductSupplier::select('id', 'ps_name', 'ps_due_day', 'ps_pkp', 'ps_email', 'ps_phone', 'ps_address', 'ps_description')
+            return datatables()->of(ProductSupplier::select(
+                'id', 'ps_name', 'ps_pkp', 'ps_phone', 'ps_address', 'ps_rekening', 'ps_description')
             ->where('ps_delete', '!=', '1'))
             ->editColumn('ps_pkp_show', function($data){ 
                 if ($data->ps_pkp == '1') {
@@ -92,7 +93,7 @@ class ProductSupplierController extends Controller
                         $w->orWhere('ps_name', 'LIKE', "%$search%")
                         ->orWhere('ps_email', 'LIKE', "%$search%")
                         ->orWhere('ps_phone', 'LIKE', "%$search%")
-                        ->orWhere('ps_address', 'LIKE', "%$search%")
+                        ->orWhere('ps_rekening', 'LIKE', "%$search%")
                         ->orWhere('ps_description', 'LIKE', "%$search%");
                     });
                 }

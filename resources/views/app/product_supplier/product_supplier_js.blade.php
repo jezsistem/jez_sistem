@@ -25,10 +25,9 @@
             { data: 'DT_RowIndex', name: 'id', searchable: false},
             { data: 'ps_name', name: 'ps_name' },
             { data: 'ps_pkp_show', name: 'ps_pkp' },
-            { data: 'ps_due_day', name: 'ps_due_day' },
-            { data: 'ps_email', name: 'ps_email' },
-            { data: 'ps_phone', name: 'ps_phone' },
             { data: 'ps_address', name: 'ps_address' },
+            { data: 'ps_phone', name: 'ps_phone' },
+            { data: 'ps_rekening', name: 'ps_rekening'},
             { data: 'ps_description', name: 'ps_description' },
             ], 
             columnDefs: [
