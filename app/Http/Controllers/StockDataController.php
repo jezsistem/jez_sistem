@@ -94,6 +94,7 @@ class StockDataController extends Controller
             'main_color_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
         return view('app.stock_data.stock_data', compact('data'));
     }
     
@@ -248,7 +249,7 @@ class StockDataController extends Controller
                                 }
                             }
                         })
-                        ->orderBy('sz_name', 'asc')
+                        ->orderBy('sizes.id', 'asc')
                         ->groupBy('sz_name')->get();
                         if (!empty($item_size_stock)) {
                             $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
