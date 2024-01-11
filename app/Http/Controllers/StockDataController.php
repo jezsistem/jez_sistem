@@ -119,7 +119,7 @@ class StockDataController extends Controller
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->where('pls_qty', '>', 0)
+//            ->where('pls_qty', '>', 0)
             ->whereNotIn('pl_code', $exception)
             ->where('product_locations.st_id', '=', $st_id)
             ->groupBy('p_name_brand')
@@ -152,7 +152,7 @@ class StockDataController extends Controller
                 ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->where('pls_qty', '>', 0)
+//                ->where('pls_qty', '>', 0)
                 ->where('product_locations.st_id', '=', $st_id)
                 ->whereNotIn('pl_code', $exception)
                 ->where('p_name', $data->p_name)
@@ -262,7 +262,7 @@ class StockDataController extends Controller
                                 $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id')
                                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                                 ->whereNotIn('pl_code', $exception)
-                                ->where('pls_qty', '>=', '0')
+//                                ->where('pls_qty', '>=', '0')
                                 ->where('product_locations.st_id', '=', $st_id)
                                 ->where('pst_id', $srow->pst_id)->get();
                                 $bin = '';

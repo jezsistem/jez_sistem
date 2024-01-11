@@ -448,14 +448,14 @@ class StockTrackingController extends Controller
         $pst_id = $request->_pst_id;
         $pl_id = $request->_pl_id;
         $pl_code = $request->_pl_code;
-        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')
-        ->where('pls_qty', '>', '0')->where('id', $pls_id)->get()->first();
-        if (!empty($pls->pls_qty)) {
+        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+
+//        if (!empty($pls->pls_qty)) {
             $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
                 'pls_qty' => ($pls->pls_qty-1),
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
-        }
+//        }
         if (!empty($update)) {
             $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
