@@ -431,6 +431,10 @@ class PurchaseOrderReceiveController extends Controller
                                     if ($poad->ps_barcode == $excel['barcode']) {
                                         $poad['qty_import']= $excel['qty'];
                                     }
+
+                                    if ($poad->ps_barcode != $excel['barcode']) {
+                                        $poad['barcode_missing_import'] = $excel['barcode'];
+                                    }
                                 }
                             }
                         }
@@ -455,6 +459,110 @@ class PurchaseOrderReceiveController extends Controller
 
 //        return $data['product']['0']['subitem'][0]['total_pls_qty'];
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data'));
+    }
+
+    public function checkBarcodeImport(Request $request)
+    {
+        $po_id = $request->_po_id;
+        if (!empty($po_id)) {
+            $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        } else {
+            $check = PurchaseOrder::where(['po_draft' => '1'])->exists();
+        }
+        if ($check) {
+            if (!empty($po_id)) {
+                $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
+            } else {
+                $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
+            }
+            $po_st_id = $draft->st_id;
+            $po_id = $draft->id;
+            $poa_data = PurchaseOrderArticle::select(
+                'purchase_order_articles.id as poa_id',
+                'po_id',
+                'products.id as pid',
+                'p_price_tag',
+                'br_name',
+                'p_name',
+                'p_color',
+                'poa_discount',
+                'poa_extra_discount', 'poa_reminder')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(['po_id' => $po_id])->get();
+            if (!empty($poa_data)) {
+                $get_product = array();
+                foreach ($poa_data as $poa) {
+                    $poad_data = PurchaseOrderArticleDetail::select(
+                        'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
+                        'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
+                        'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
+                        'product_stocks.ps_barcode',)
+                        ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                        ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                        ->groupBy('purchase_order_article_details.id')
+                        ->where(['poa_id' => $poa->poa_id])->get();
+
+                    // Step 2: Retrieve pls_qty from product_location_setups
+                    $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
+
+                    $plsQtyData = ProductLocationSetup::whereIn('pst_id', $pstIds)
+                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty'))
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->where(['stores.id' => $po_st_id])
+                        ->groupBy('pst_id')
+                        ->get();
+
+                    // Step 3: Merge data with $poad_data
+                    $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
+                        $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
+                        return $item;
+                    });
+
+                    $missingBarcode = array();
+                    // create to sql
+                    if (!empty($poad_data)) {
+
+                        if(!empty($request->excelData))
+                        {
+                            foreach ($poad_data as $key => $poad) {
+                                foreach ($request->excelData as $excel) {
+                                    if ($poad->ps_barcode == $excel['barcode']) {
+                                        $poad['qty_import']= $excel['qty'];
+                                    }
+
+                                    if ($poad->ps_barcode != $excel['barcode']) {
+                                        // check if barcode already in array,dont push
+                                        if(!in_array($excel['barcode'], $missingBarcode))
+                                        {
+                                            array_push($missingBarcode, $excel['barcode']);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        $poa->subitem = $poad_data;
+
+                        array_push($get_product, $poa);
+                    } else {
+                        $get_product = null;
+                    }
+                }
+            } else {
+                $get_product = null;
+            }
+        } else {
+            $get_product = null;
+        }
+
+        $data = [
+            'product' => $get_product,
+        ];
+
+        return json_encode($missingBarcode);
     }
 
     public function poSaveDraft(Request $request)

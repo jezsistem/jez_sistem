@@ -504,6 +504,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('po_invoice_image_delete', [PurchaseOrderReceiveController::class, 'deleteImageInvoice']);
     ROute::get('po_delivery_order_image_datatable',[PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
+    Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
 
     // Purchase Order Article
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);

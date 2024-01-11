@@ -61,9 +61,35 @@
             data: {_po_id:id, excelData:excelData},
             url: "{{ url('check_po_receive_detail')}}",
             success: function(r) {
-                // console.log(r);
+
                 $('#purchase_order_detail_content').html(r);
             }
+        });
+    }
+
+    function checkBarcodeImport(id, excelData)
+    {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {_po_id:id, excelData:excelData},
+            url: "{{ url('check_barcode_import')}}",
+            success: function(r) {
+                // check r is empty or not
+                if(r.length > 0)
+                {
+                    swal({
+                        title: "Barcode tidak ditemukan",
+                        text : r,
+                        icon: "warning",
+                    })
+                }
+                }
+            // }
         });
     }
 
@@ -1288,7 +1314,7 @@
 
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
-
+                        checkBarcodeImport(po_id, data.data)
                         reloadArticleDetail(po_id, data.data)
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
