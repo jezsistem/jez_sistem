@@ -16,8 +16,8 @@
         });
     }
 
-
     let excelImportData = [];
+
     $(document).ready(function() {
         // $('body').addClass('kt-primary--minimize aside-minimize');
         reloadPendingTransfer();
@@ -42,14 +42,6 @@
                 data : function (d) {
                     d.pl_id = $('#pl_id').val();
                     d.search = $('#article_search').val();
-                    d.excelImport = excelImportData;
-
-                    // Log the content of excelImportData
-                    console.log('excelImportData:', excelImportData);
-
-                    // You can also log other parameters if needed
-                    console.log('d.pl_id:', d.pl_id);
-                    console.log('d.search:', d.search)
                 }
             },
             columns: [
@@ -534,9 +526,12 @@
 
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
+                        // TODO : buat function buat return alert apabila barcode missing
                         excelImportData = data.data;
 
                         transfer_bin_table.draw();
+
+                        checkMissingBarcode();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
                         swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
@@ -556,5 +551,51 @@
             $('#ImportModal').modal('show');
         });
 
+        function checkMissingBarcode()
+        {
+            var tableData = transfer_bin_table.rows().data();
+            var tableDataArray = [];
+            tableData.each(function(value, index) {
+                // tableDataArray.push(value.ps_barcode);
+                var htmlString = value.transfer;
+
+                var tempElement = $(htmlString);
+
+                // Loop through the elements, starting from index 0, with a step of 2
+                for (var i = 0; i < tempElement.length; i += 2) {
+                    // Get the input element
+                    var inputElement = tempElement[i];
+
+                    // Get the data-ps_barcode attribute value
+                    var psBarcodeValue = $(inputElement).data('ps_barcode');
+
+                    // Log the value to the console
+
+                    if(psBarcodeValue != undefined) {
+                        tableDataArray.push(psBarcodeValue);
+                    }
+                }
+            });
+
+            // each file excelImportData
+            var importData = [];
+            for (var i = 0; i < excelImportData.length; i++) {
+                importData.push(excelImportData[i].barcode);
+            }
+
+            // compare array from tableDataArray and importData
+            var missingBarcode = [];
+            for (var i = 0; i < importData.length; i++) {
+                if(!tableDataArray.includes(importData[i])) {
+                    missingBarcode.push(importData[i]);
+                }
+            }
+
+            if(missingBarcode.length > 0) {
+                swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '), 'warning');
+            }
+        }
     });
+
+
 </script>

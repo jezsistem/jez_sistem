@@ -93,6 +93,7 @@ class StockTransferController extends Controller
     public function transferBinDatatables(Request $request)
     {
         if(request()->ajax()) {
+            $unmatchBarcodes = array();
             return datatables()->of(ProductLocationSetup::select('product_location_setups.id as pls_id', 'products.id as p_id', 'br_name', 'p_name', 'p_color', 'sz_name', 'mc_name', 'pls_qty', 'ps_barcode')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -148,6 +149,8 @@ class StockTransferController extends Controller
                                 if ($dataImport['barcode'] == $row->ps_barcode)
                                 {
                                     $qtyData = $dataImport['qty'];
+                                } else {
+                                    $unmatchBarcodes[] = $dataImport['barcode'];
                                 }
                             }
                         }
@@ -164,6 +167,7 @@ class StockTransferController extends Controller
                         data-pls_id = "'.$row->pls_id.'"
                         data-table_row = "'.$this->table_row.'"
                         data-pst_id = "'.$row->pst_id.'"
+                        data-ps_barcode = "'.$row->ps_barcode.'"
                         data-pls_qty = "'.$row->pls_qty.'"
                         data-import_qty = "'.$qtyData.'"
                         id="transfer_qty"
@@ -623,31 +627,33 @@ class StockTransferController extends Controller
     {
 
         $processedData = [];
+        $missingBarcode = array();
 
         foreach ($data as $item) {
             $barcode = $item[0];
             $qty = $item[1];
-
             // get id from barcode
             $product_id = ProductStock::where('ps_barcode', '=', $barcode)->get()->first();
 
-            // Check if barcode already exists in processedData
-            $existingKey = array_search($barcode, array_column($processedData, 'barcode'));
+            if (!empty($product_id))
+            {
+                // Check if barcode already exists in processedData
+                $existingKey = array_search($barcode, array_column($processedData, 'barcode'));
 
-            if ($existingKey !== false) {
-                // If barcode exists, add the quantity to the existing entry
-                $processedData[$existingKey]['qty'] += $qty;
-            } else {
-                // If barcode doesn't exist, create a new entry
-                $rowData = [
-                    'product_stock_id' => $product_id->id,
-                    'barcode' => $barcode,
-                    'qty' => $qty,
-                ];
-                $processedData[] = $rowData;
+                if ($existingKey !== false) {
+                    // If barcode exists, add the quantity to the existing entry
+                    $processedData[$existingKey]['qty'] += $qty;
+                } else {
+                    // If barcode doesn't exist, create a new entry
+                    $rowData = [
+                        'product_stock_id' => $product_id->id,
+                        'barcode' => $barcode,
+                        'qty' => $qty,
+                    ];
+                    $processedData[] = $rowData;
+                }
             }
         }
-
         return $processedData;
     }
 }
