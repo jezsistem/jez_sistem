@@ -77,7 +77,7 @@ class ProductSupplierController extends Controller
     {
         if(request()->ajax()) {
             return datatables()->of(ProductSupplier::select(
-                'id', 'ps_name', 'ps_pkp', 'ps_phone', 'ps_address', 'ps_rekening', 'ps_description')
+                'id', 'ps_name', 'ps_pkp', 'ps_phone', 'ps_address', 'ps_rekening', 'ps_npwp','ps_description')
             ->where('ps_delete', '!=', '1'))
             ->editColumn('ps_pkp_show', function($data){ 
                 if ($data->ps_pkp == '1') {

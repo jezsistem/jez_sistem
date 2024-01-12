@@ -106,6 +106,7 @@
                                         <th class="text-dark">Alamat</th>
                                         <th class="text-dark">No Telp</th>
                                         <th class="text-dark">No Rekening</th>
+                                        <th class="text-dark">NPWP</th>
                                         <th class="text-dark">Deskripsi</th>
                                     </tr>
                                 </thead>

@@ -28,6 +28,7 @@
             { data: 'ps_address', name: 'ps_address' },
             { data: 'ps_phone', name: 'ps_phone' },
             { data: 'ps_rekening', name: 'ps_rekening'},
+            {data: 'ps_npwp', name: 'ps_npwp'},
             { data: 'ps_description', name: 'ps_description' },
             ], 
             columnDefs: [
@@ -160,7 +161,7 @@
                     if (data.status == '200') {
                         $("#ProductSupplierModal").modal('hide');
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
-                        product_supplier_table.ajax.reload();
+                        product_supplier_table.draw();
                     } else if (data.status == '400') {
                         $("#ProductSupplierModal").modal('hide');
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
