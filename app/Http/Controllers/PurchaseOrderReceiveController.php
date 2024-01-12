@@ -704,7 +704,8 @@ class PurchaseOrderReceiveController extends Controller
                         if (empty($row->invoice_image)) {
                             return '<img src="'.asset('upload/image/no_image.png').'"/>';
                         } else {
-                            return '<img src="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).'" width="400px" height="400px">';
+//                            return '<a href="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).' target=_blank>$row->invoice_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
                         }
                     })
                     ->addColumn('action', function ($row) {
