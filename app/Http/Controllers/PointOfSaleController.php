@@ -544,6 +544,8 @@ class PointOfSaleController extends Controller
         $note = $request->_note;
         $shipping_cost = $request->_shipping_cost;
         $cr_id = $request->_cr_id;
+        $pos_total_discount = $request->_total_discount_side;
+
         $rand = str_pad(rand(0, pow(10, 3)-1), 3, '0', STR_PAD_LEFT);
         $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
         $prefix = WebConfig::select('config_value')->where('config_name', 'pos_prefix')->get()->first()->config_value;
@@ -609,6 +611,7 @@ class PointOfSaleController extends Controller
             'pos_payment_partial' => $total_payment_two,
             'pos_shipping' => $shipping_cost,
             'pos_total_vouchers' => $total_voc_value,
+            'pos_total_discount' => $pos_total_discount,
             'cr_id' => $cr_id,
             'pos_note' => $note,
             'created_at' => date('Y-m-d H:i:s'),

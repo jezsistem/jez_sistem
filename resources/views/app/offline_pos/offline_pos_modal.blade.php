@@ -477,3 +477,53 @@
 	</div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal -->
+<div class="modal fade text-left" id="totalDiscountModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1444" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable  modal-dialog-centered modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-light">
+				<h3 class="modal-title text-primary" id="myModalLabel1444">Tambah Diskon</h3>
+				<button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0" data-dismiss="modal" aria-label="Close">
+					<svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+						<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="f_add_total_discount">
+					<div class="total-discount-container">
+						<div class="form-group col-md-6">
+							<label  class="text-body">Tipe Diskon</label>
+							<fieldset class="form-group mb-3">
+								<select class="form-control" name="discount-type-list">
+									<option value="nominal">Nominal</option>
+									<option value="percentage">Percentage</option>
+								</select>
+							</fieldset>
+						</div>
+						<div class="col-md-6">
+							<label class="text-body">Diskon</label>
+							<fieldset class="form-group mb-3">
+								<div id="voucher-container">
+									<div class="input-group mb-3">
+										<input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
+										<div class="input-group-append ml-3">
+											<button class="btn btn-xs btn-outline-secondary add-total-discount" type="button">+</button>
+										</div>
+									</div>
+								</div>
+							</fieldset>
+						</div>
+					</div>
+					<div class="form-group row justify-content-end mb-0">
+						<div class="col-md-6  text-right">
+							<button type="submit" class="btn btn-primary">Tambah</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Modal -->

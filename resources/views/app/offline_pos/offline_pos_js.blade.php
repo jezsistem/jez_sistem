@@ -447,6 +447,7 @@
         var voc_id = jQuery('#_voc_id').val();
         var voc_disc_value = jQuery('#_voc_disc_value').val();
         var voucher_disc_total = jQuery('#_voc_total_disc_value').val();
+        var total_discount_side = jQuery('#total_discount_value_side').text();
         if (jQuery('#free_sock_customer_mode').val() == '1' && free_sock_cust_id == '') {
             swal('Customer Belum Selesai', 'Mohon pastikan bahwa customer sudah selesai melakukan input data dan rating', 'warning');
             return false;
@@ -500,6 +501,7 @@
                 _card_number:card_number, _ref_number:ref_number,
                 _card_number_two:card_number_two, _ref_number_two:ref_number_two,
                 _pos_total_vouchers:voucher_disc_total,
+                _total_discount_side:replaceComma(total_discount_side),
             },
             dataType: 'json',
             success: function(r) {
@@ -577,6 +579,8 @@
                     sell_price_voc = 0;
                     value_price_voc = 0;
                     shoes_voucher_temp = [];
+
+                    jQuery('#total_discount_value_side').text('0');
                     @php  session()->forget('voc_item') @endphp
                     b1g1_temp = [];
                     swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
@@ -2199,4 +2203,66 @@
             }
         });
     });
+
+    // Event listener to add a new discount input field
+    jQuery(document).on('click', '.add-total-discount', function () {
+        let newField = `
+        <div class="input-group mb-3 col-md-6">
+                <input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
+                <div class="input-group-append ml-3">
+                    <button class="btn btn-outline-secondary remove-total-discount" type="button">-</button>
+                </div>
+            </div>
+    `;
+        jQuery(".total-discount-container").append(newField);
+    });
+
+    // Event listener to remove a discount input field
+    jQuery(document).on('click', '.remove-total-discount', function () {
+        jQuery(this).closest('.form-group.row').remove();
+    });
+
+    jQuery(document).delegate('#f_add_total_discount', 'submit', function(e) {
+        e.preventDefault();
+
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        var total_final = jQuery('#total_final_price_side').text();
+        var total = replaceComma(total_final);
+
+        var formData = jQuery('#f_add_total_discount').serializeArray();
+
+        jQuery.ajax({
+            type:"POST",
+            url: "{{ url('pos-total-discount')}}",
+            data:
+                {
+                    formData: formData,
+                },
+            dataType:'json',
+            success: function(r) {
+                if (r.status == '200') {
+                    if (r.discountType == 'percentage') {
+                        // create count use percentage from total
+                        var discount = parseFloat(total) * parseFloat(r.total) / 100;
+                        var new_total = parseFloat(total) - parseFloat(discount);
+                        jQuery('#total_final_price_side').text(addCommas(new_total));
+                        jQuery('#total_discount_value_side').text(addCommas(discount));
+                    }
+
+                    if (r.discountType == 'nominal') {
+                        var new_total = parseFloat(total) - parseFloat(r.total);
+                        jQuery('#total_final_price_side').text(addCommas(new_total));
+                        jQuery('#total_discount_value_side').text(addCommas(r.total));
+                    }
+                } else {
+                    alert('kode salah');
+                }
+            }
+        });
+    })
 </script>

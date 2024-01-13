@@ -130,7 +130,7 @@
                                     $total_item = 0;
                                     $total_price = 0;
                                     $nameset = 0;
-                                    $total_discount = 0;
+                                    $total_discount = $data['transaction']->pos_total_discount;
                                     $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
                                     foreach ($row->subitem as $srow) {
                                         $key = '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
