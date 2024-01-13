@@ -523,23 +523,17 @@ class PurchaseOrderReceiveController extends Controller
 
                     $missingBarcode = array();
                     // create to sql
-                    if (!empty($poad_data)) {
+                   if (!empty($poad_data)) {
+
+                       $poad_data_indexed = collect($poad_data)->keyBy('ps_barcode')->all();
 
                         if(!empty($request->excelData))
                         {
-                            foreach ($poad_data as $key => $poad) {
-                                foreach ($request->excelData as $excel) {
-                                    if ($poad->ps_barcode == $excel['barcode']) {
-                                        $poad['qty_import']= $excel['qty'];
-                                    }
-
-                                    if ($poad->ps_barcode != $excel['barcode']) {
-                                        // check if barcode already in array,dont push
-                                        if(!in_array($excel['barcode'], $missingBarcode))
-                                        {
-                                            array_push($missingBarcode, $excel['barcode']);
-                                        }
-                                    }
+                            foreach ($request->excelData as $excel_row) {
+                                if (isset($poad_data_indexed[$excel_row['barcode']])) {
+                                    $poad_data_indexed[$excel_row['barcode']]->qty_import = $excel_row['qty'];
+                                } else {
+                                    $missingBarcode[] = $excel_row['barcode'];
                                 }
                             }
                         }
@@ -558,9 +552,10 @@ class PurchaseOrderReceiveController extends Controller
             $get_product = null;
         }
 
-        $data = [
-            'product' => $get_product,
-        ];
+//        $data = [
+//            'product' => $get_product,
+//        ];
+
 
         return json_encode($missingBarcode);
     }
