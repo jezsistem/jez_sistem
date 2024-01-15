@@ -464,6 +464,8 @@ class PointOfSaleController extends Controller
         $voc_value = $request->voc_value;
         $voc_id = $request->voc_id;
 
+        $discount_seller = $request->_discount_seller;
+
         $insert_get_id = DB::table('pos_transactions')->insertGetId([
             'u_id' => $u_id,
             'st_id' => $st_omset,
@@ -483,6 +485,7 @@ class PointOfSaleController extends Controller
             'pos_shipping' => $shipping_cost,
             'pos_ref_number' => $ref_number,
             'pos_total_discount' => $pos_total_discount,
+            'pos_discount_seller' => $discount_seller,
             'cr_id' => $cr_id,
             'pos_note' => $note,
             'created_at' => date('Y-m-d H:i:s'),

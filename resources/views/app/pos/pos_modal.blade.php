@@ -255,6 +255,14 @@
 					</tr>
 					<tr class="d-flex align-items-center justify-content-between">
 						<th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
+							Diskon Penjual (-)
+						</th>
+						<td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
+							<input type="number" placeholder="" id="discount_seller" class="bg-light-primary"/>
+						</td>
+					</tr>
+					<tr class="d-flex align-items-center justify-content-between">
+						<th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
 								Biaya Admin (-) 
 						</th>
 						<td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">

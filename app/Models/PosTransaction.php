@@ -20,6 +20,7 @@ class PosTransaction extends Model
         'pos_shipping',
         'pos_total_vouchers',
         'pos_total_discount',
+        'pos_discount_seller',
         'pos_draft',
         'created_at'
     ];

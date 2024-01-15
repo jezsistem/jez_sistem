@@ -659,6 +659,7 @@
             jQuery('#real_price').val('');
             jQuery('#marketplace_side').val('');
             jQuery('#marketplace_real_price').val('');
+            jQuery('#discount_seller_side').val('');
         });
 
         jQuery('#choosecustomer').on('hide.bs.modal', function() {
@@ -692,6 +693,7 @@
             jQuery('#another_cost').val('');
             jQuery('#real_price').val('');
             jQuery('#cross_order').val('');
+            jQuery('#discount_seller').val('');
         });
         
 		function addRefundExchangeList(type, plst_id, pt_id)
@@ -988,6 +990,7 @@
             var voc_value = jQuery('#_voc_value').val();
             var voc_id = jQuery('#_voc_id').val();
             var total_discount_side = jQuery('#total_discount_value_side').text();
+            var discount_seller = jQuery('#discount_seller').val();
 
             if (std_id == '14' || std_id == '13') {
                 if (pm_id == '2' && cp_id == '') {
@@ -1034,6 +1037,7 @@
                     _note:note, _unique_code:unique_code,
                     _shipping_cost:shipping_cost, _cr_id:cr_id,
                     _total_discount_side:replaceComma(total_discount_side),
+                    _discount_seller:replaceComma(discount_seller),
                 },
                 dataType: 'json',
                 success: function(r) {
@@ -1073,12 +1077,14 @@
                             jQuery('#courier').val('');
                             jQuery('#_pt_id_complaint').val('');
                             jQuery('#_exchange').val('');
+                            jQuery('#discount_seller').val('');
 
                             jQuery('#_voc_pst_id').val('');
                             jQuery('#_voc_value').val('');
                             jQuery('#_voc_id').val('');
                             jQuery('#voucher_code').val("");
                             jQuery('#voucher_information').addClass("d-none");
+                            jQuery('#discount_seller').val('0');
                             sell_price_voc = 0;
                             value_price_voc = 0;
                             shoes_voucher_temp = [];
@@ -1278,12 +1284,31 @@
             }
             //alert(unique+' '+total+' '+final_total);
             jQuery('#final_total_unique_code').val(addCommas(final_total));
+            jQuery('#discount_seller').val('');
             jQuery('#admin_cost').val('');
             jQuery('#real_price').val('');
         });
 
+        jQuery('#discount_seller').on('change', function(){
+            var discount = jQuery(this).val();
+            var unique = jQuery('#unique_code').val();
+            if (unique == '')  {
+                jQuery('#unique_code').val(0).trigger('change');
+            }
+            if (discount == '') {
+                discount = 0;
+            }
+
+            var final_total = jQuery('#final_total_unique_code').val();
+            var final_total_discount = parseFloat(replaceComma(final_total)) - parseFloat(discount);
+
+            jQuery('#real_price').val(addCommas(final_total_discount));
+            jQuery('#admin_cost').val('');
+        });
+
         jQuery('#admin_cost').on('change', function(){
             var cost = jQuery(this).val();
+            var discount_seller = jQuery('#discount_seller').val();
             var unique = jQuery('#unique_code').val();
             if (unique == '')  {
                 jQuery('#unique_code').val(0).trigger('change');
@@ -1292,7 +1317,7 @@
                 cost = 0;
             }
             var final_total = jQuery('#final_total_unique_code').val();
-            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(cost);
+            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(cost) - parseFloat(discount_seller);
             //alert(unique+' '+total+' '+final_total);
             jQuery('#real_price').val(addCommas(final_total_admin));
         });
@@ -1301,6 +1326,7 @@
             var admin_cost = jQuery('#admin_cost').val();
             var cost = jQuery(this).val();
             var unique = jQuery('#unique_code').val();
+            var discount_seller = jQuery('#discount_seller').val();
             if (unique == '')  {
                 jQuery('#unique_code').val(0).trigger('change');
             }
@@ -1308,7 +1334,7 @@
                 cost = 0;
             }
             var final_total = jQuery('#final_total_unique_code').val();
-            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(admin_cost) + parseFloat(cost);
+            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(admin_cost) + parseFloat(cost) - parseFloat(discount_seller);
             jQuery('#real_price').val(addCommas(final_total_admin));
         });
 
