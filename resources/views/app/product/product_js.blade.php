@@ -240,6 +240,45 @@
         });
     }
 
+    function updateSzIdFilterOptions(selectedValue) {
+        try {
+            fetchDataBasedOnSchemaId(selectedValue).then(function (newData) {
+                $('#sz_id_filter').empty();
+                $.each(newData, function (key, value) {
+                    $('#sz_id_filter').append('<option value="' + value.value + '">' + value.text + '</option>');
+                });
+                $('#sz_id_filter').trigger('change');
+            }).catch(function (error) {
+                console.error(error);
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function fetchDataBasedOnSchemaId(schemaId) {
+        return new Promise(function (resolve, reject) {
+            var dataReturn = [];
+            $.ajax({
+                type: "GET",
+                url: "{{ url('reload_size_schema')}}",
+                data: { schema_id: schemaId },
+                success: function (data) {
+                    $.each(data, function (key, value) {
+                        dataReturn.push({
+                            text: value.sz_name,
+                            value: value.id
+                        });
+                    });
+                    resolve(dataReturn);
+                },
+                error: function (xhr, status, error) {
+                    reject(error);
+                }
+            });
+        });
+    }
+
     function getProductPurchasePrice(id)
     {
         var purchase_price = $('#product_size_purchase_price'+id).val();
@@ -277,9 +316,9 @@
                 url : "{{ url('product_datatables') }}",
                 data : function (d) {
                     d.search = $('#product_search').val();
-                    d.pc_id = $('#pc_id').val();
-                    d.psc_id = $('#psc_id').val();
-                    d.pssc_id = $('#pssc_id').val();
+                    d.pc_id = $('#pc_id_filter').val();
+                    d.psc_id = $('#psc_id_filter').val();
+                    d.pssc_id = $('#pssc_id_filter').val();
                     d.br_id_filter = $('#br_id_filter').val();
                     d.ps_id_filter = $('#ps_id_filter').val();
                     d.mc_id_filter = $('#mc_id_filter').val();
@@ -329,113 +368,164 @@
             product_table.draw();
         });
 
-        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_active_filter').on('change', function() {
+        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_active_filter, #pc_id_filter, #psc_id_filter, #pssc_id_filter').on('change', function() {
             product_table.draw();
         });
 
-        $('#pc_id').on('change', function() {
-            var label = $('#pc_id option:selected').text();
-            var pc_id = $('#pc_id').val();
-            if (label == 'Tampilkan Semua') {
-                $('#product_display').fadeIn();
-                $('#product_category_selected_label').text('Tampilkan Semua');
-                $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");
-                $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");
-                product_table.draw();
-                return false;
-            } else if (label != '- Pilih Kategori -' && label != 'Tampilkan Semua') {
-                $('#product_category_selected_label').text(label+' |');
-                $.ajax({
-                    type: "GET",
-                    data: {_pc_id:pc_id},
-                    dataType: 'html',
-                    url: "{{ url('reload_product_sub_category')}}",
-                    success: function(r) {
-                        $('#psc_id').html(r);
-                    }
-                });
-            } else {
-                $('#product_category_selected_label').text('');
-                $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");
-            }
-            $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");
-            $('#product_sub_category_selected_label').text('');
-            $('#product_display').fadeOut();
+        {{--$('#pc_id').on('change', function() {--}}
+        {{--    var label = $('#pc_id option:selected').text();--}}
+        {{--    var pc_id = $('#pc_id').val();--}}
+        {{--    if (label == 'Tampilkan Semua') {--}}
+        {{--        // $('#product_display').fadeIn();--}}
+        {{--        $('#product_category_selected_label').text('Tampilkan Semua');--}}
+        {{--        $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");--}}
+        {{--        $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
+        {{--        product_table.draw();--}}
+        {{--        return false;--}}
+        {{--    } else if (label != '- Pilih Kategori -' && label != 'Tampilkan Semua') {--}}
+        {{--        $('#product_category_selected_label').text(label+' |');--}}
+        {{--        $.ajax({--}}
+        {{--            type: "GET",--}}
+        {{--            data: {_pc_id:pc_id},--}}
+        {{--            dataType: 'html',--}}
+        {{--            url: "{{ url('reload_product_sub_category')}}",--}}
+        {{--            success: function(r) {--}}
+        {{--                $('#psc_id').html(r);--}}
+        {{--            }--}}
+        {{--        });--}}
+        {{--    } else {--}}
+        {{--        $('#product_category_selected_label').text('');--}}
+        {{--        $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");--}}
+        {{--    }--}}
+        {{--    $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
+        {{--    $('#product_sub_category_selected_label').text('');--}}
+        {{--    // $('#product_display').fadeOut();--}}
+        {{--});--}}
+
+        {{--$('#psc_id').on('change', function() {--}}
+        {{--    var label = $('#psc_id option:selected').text();--}}
+        {{--    var pc_id = $('#pc_id').val();--}}
+        {{--    var psc_id = $('#psc_id').val();--}}
+        {{--    if (label != '- Pilih Sub Kategori -' && label != '- Pilih -') {--}}
+        {{--        $('#product_sub_category_selected_label').text(label+' |');--}}
+        {{--        $.ajax({--}}
+        {{--            type: "GET",--}}
+        {{--            data: {_psc_id:psc_id},--}}
+        {{--            dataType: 'html',--}}
+        {{--            url: "{{ url('reload_product_sub_sub_category')}}",--}}
+        {{--            success: function(r) {--}}
+        {{--                $('#pssc_id').html(r);--}}
+        {{--            }--}}
+        {{--        });--}}
+        {{--        $.ajax({--}}
+        {{--            type: "GET",--}}
+        {{--            data: {_psc_id:psc_id},--}}
+        {{--            dataType: 'html',--}}
+        {{--            url: "{{ url('reload_size')}}",--}}
+        {{--            success: function(r) {--}}
+        {{--                $('#reload_size').html(r);--}}
+        {{--            }--}}
+        {{--        });--}}
+        {{--    } else {--}}
+        {{--        $('#product_sub_category_selected_label').text('');--}}
+        {{--        $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
+        {{--        // $('#product_display').fadeOut();--}}
+        {{--    }--}}
+        {{--    // $('#product_display').fadeOut();--}}
+        {{--});--}}
+
+        // $('#pssc_id').on('change', function() {
+        //     var label = $('#pssc_id option:selected').text();
+        //     if (label != '- Pilih Sub-Sub Kategori -') {
+        //         $('#product_sub_sub_category_selected_label').text(label);
+        //         // $('#product_display').fadeIn();
+        //         product_table.draw();
+        //     } else {
+        //         $('#product_sub_sub_category_selected_label').text('');
+        //         // $('#product_display').fadeOut();
+        //     }
+        // });
+
+        {{--$('#_pc_id').on('change', function() {--}}
+        {{--    var pc_id = $('#_pc_id').val();--}}
+        {{--    $('#_psc_id').prop('disabled', false);--}}
+        {{--    $('#_psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");--}}
+        {{--    $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
+        {{--    $.ajax({--}}
+        {{--        type: "GET",--}}
+        {{--        data: {_pc_id:pc_id},--}}
+        {{--        dataType: 'html',--}}
+        {{--        url: "{{ url('reload_product_sub_category')}}",--}}
+        {{--        success: function(r) {--}}
+        {{--            $('#_psc_id').html(r);--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
+
+        {{--$('#_psc_id').on('change', function() {--}}
+        {{--    var psc_id = $('#_psc_id').val();--}}
+        {{--    $('#_pssc_id').prop('disabled', false);--}}
+        {{--    $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
+        {{--    $.ajax({--}}
+        {{--        type: "GET",--}}
+        {{--        data: {_psc_id:psc_id},--}}
+        {{--        dataType: 'html',--}}
+        {{--        url: "{{ url('reload_product_sub_sub_category')}}",--}}
+        {{--        success: function(r) {--}}
+        {{--            $('#_pssc_id').html(r);--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
+
+        $('#pc_id_filter').select2({
+            width: "300px",
+            dropdownParent: $('#pc_id_filter_parent')
         });
 
-        $('#psc_id').on('change', function() {
-            var label = $('#psc_id option:selected').text();
-            var pc_id = $('#pc_id').val();
-            var psc_id = $('#psc_id').val();
-            if (label != '- Pilih Sub Kategori -' && label != '- Pilih -') {
-                $('#product_sub_category_selected_label').text(label+' |');
-                $.ajax({
-                    type: "GET",
-                    data: {_psc_id:psc_id},
-                    dataType: 'html',
-                    url: "{{ url('reload_product_sub_sub_category')}}",
-                    success: function(r) {
-                        $('#pssc_id').html(r);
-                    }
-                });
-                $.ajax({
-                    type: "GET",
-                    data: {_psc_id:psc_id},
-                    dataType: 'html',
-                    url: "{{ url('reload_size')}}",
-                    success: function(r) {
-                        $('#reload_size').html(r);
-                    }
-                });
-            } else {
-                $('#product_sub_category_selected_label').text('');
-                $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");
-                $('#product_display').fadeOut();
-            }
-            $('#product_display').fadeOut();
+        $('#pc_id_filter').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
         });
 
-        $('#pssc_id').on('change', function() {
-            var label = $('#pssc_id option:selected').text();
-            if (label != '- Pilih Sub-Sub Kategori -') {
-                $('#product_sub_sub_category_selected_label').text(label);
-                $('#product_display').fadeIn();
-                product_table.draw();
-            } else {
-                $('#product_sub_sub_category_selected_label').text('');
-                $('#product_display').fadeOut();
-            }
+        $('#psc_id_filter').select2({
+            width: "300px",
+            dropdownParent: $('#psc_id_filter_parent')
         });
 
-        $('#_pc_id').on('change', function() {
-            var pc_id = $('#_pc_id').val();
-            $('#_psc_id').prop('disabled', false);
-            $('#_psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");
-            $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");
-            $.ajax({
-                type: "GET",
-                data: {_pc_id:pc_id},
-                dataType: 'html',
-                url: "{{ url('reload_product_sub_category')}}",
-                success: function(r) {
-                    $('#_psc_id').html(r);
-                }
-            });
+        $('#psc_id_filter').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
         });
 
-        $('#_psc_id').on('change', function() {
-            var psc_id = $('#_psc_id').val();
-            $('#_pssc_id').prop('disabled', false);
-            $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");
-            $.ajax({
-                type: "GET",
-                data: {_psc_id:psc_id},
-                dataType: 'html',
-                url: "{{ url('reload_product_sub_sub_category')}}",
-                success: function(r) {
-                    $('#_pssc_id').html(r);
-                }
-            });
+        $('#pssc_id_filter').select2({
+            width: "300px",
+            dropdownParent: $('#pssc_id_filter_parent')
+        });
+
+        $('#pssc_id_filter').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#sz_schema_id').select2({
+            width: "300px",
+            dropdownParent: $('#sz_schema_id_parent')
+        });
+
+        $('#sz_schema_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#sz_schema_id').on('change', function (e) {
+            // Get the selected value in sz_schema_id
+            var selectedValue = $(this).val();
+
+            updateSzIdFilterOptions(selectedValue);
         });
 
         $('#br_id_filter').select2({

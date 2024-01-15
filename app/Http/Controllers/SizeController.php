@@ -155,6 +155,16 @@ class SizeController extends Controller
         return view('app.product._reload_size', compact('data'));
     }
 
+    public function reloadSizeSchema(Request $request)
+    {
+        try {
+            return  Size::where('sz_delete', '!=', '1')
+            ->Where('sz_schema', $request->schema_id)->get();
+        }catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
     public function checkExistsSize(Request $request)
     {
         $check = Size::where(['sz_name' => strtoupper($request->_sz_name), 'psc_id' => $request->_psc_id])->exists();

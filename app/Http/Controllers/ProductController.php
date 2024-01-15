@@ -107,17 +107,190 @@ class ProductController extends Controller
             'gn_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
             'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
         ];
+
         return view('app.product.product', compact('data'));
     }
 
+//    public function getDatatables(Request $request)
+//    {
+//        if(request()->ajax()) {
+//            if ($request->pc_id == 'all') {
+//                return datatables()->of(Product::select(
+//                'products.id as pid',
+//                'br_id', 'pc_id',
+//                'psc_id',
+//                'pssc_id',
+//                'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
+//                ->join('brands', 'brands.id', '=', 'products.br_id')
+//                ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
+//                ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
+//                ->where('p_delete', '!=', '1'))
+//                ->editColumn('p_name_show', function($data){
+//                    return '<span style="white-space: nowrap;">'.$data->p_name.'</span>';
+//                })
+//                ->editColumn('p_color_show', function($data){
+//                    return '<span style="white-space: nowrap;">'.$data->p_color.' ('.$data->mc_name.')</span>';
+//                })
+//                ->editColumn('ps_name_show', function($data){
+//                    return '<span style="white-space: nowrap;">'.$data->ps_name.'</span>';
+//                })
+//                ->editColumn('p_price_tag_show', function($data){
+//                    return '<span class="float-right">'.number_format($data->p_price_tag,2,",",".").'</span>';
+//                })
+//                ->editColumn('p_purchase_price_show', function($data){
+//                    return '<span class="float-right">'.number_format($data->p_purchase_price,2,",",".").'</span>';
+//                })
+//                ->editColumn('p_sell_price_show', function($data){
+//                    return '<span class="float-right">'.number_format($data->p_sell_price,2,",",".").'</span>';
+//                })
+//                ->editColumn('p_detail', function($data){
+//                    return '<a id="product_detail_btn" data-id="'.$data->pid.'" style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';
+//                })
+//                ->rawColumns(['p_name_show', 'ps_name_show', 'p_color_show', 'p_price_tag_show', 'p_purchase_price_show', 'p_sell_price_show', 'p_detail', 'p_description'])
+//                ->filter(function ($instance) use ($request) {
+//                    if (!empty($request->get('br_id_filter'))) {
+//                        $instance->where(function($w) use($request){
+//                            $br_id = $request->get('br_id_filter');
+//                            $w->orWhere('br_id', '=', $br_id);
+//                        });
+//                    }
+//                    if (!empty($request->get('ps_id_filter'))) {
+//                        $instance->where(function($w) use($request){
+//                            $ps_id = $request->get('ps_id_filter');
+//                            $w->orWhere('ps_id', '=', $ps_id);
+//                        });
+//                    }
+//                    if (!empty($request->get('mc_id_filter'))) {
+//                        $instance->where(function($w) use($request){
+//                            $mc_id = $request->get('mc_id_filter');
+//                            $w->orWhere('mc_id', '=', $mc_id);
+//                        });
+//                    }
+//                    if (!empty($request->get('sz_id_filter'))) {
+//                        $instance->join('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+//                        ->where(function($w) use($request){
+//                            $sz_id = $request->get('sz_id_filter');
+//                            $w->orWhere('sz_id', '=', $sz_id);
+//                        });
+//                    }
+//                    if(!empty($request->get('p_active_filter'))) {
+//                        if($request->get('p_active_filter') == '1') {
+//                            $instance->where('p_active', '=', '1');
+//                        }
+//
+//                        if ($request->get('p_active_filter') == '0') {
+//                            $instance->where('p_active', '=', '0');
+//                        }
+//                    }
+//                    if (!empty($request->get('search'))) {
+//                        $instance->where(function($w) use($request){
+//                            $search = $request->get('search');
+//                            $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
+//                            ->orWhere('p_name', 'LIKE', "%$search%")
+//                            ->orWhere('mc_name', 'LIKE', "%$search%")
+//                            ->orWhere('br_name', 'LIKE', "%$search%")
+//                            ->orWhere('ps_name', 'LIKE', "%$search%");
+//                        });
+//                    }
+//                })
+//                ->addIndexColumn()
+//                ->make(true);
+//            } else {
+//                return datatables()->of(Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_name', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
+//                ->join('brands', 'brands.id', '=', 'products.br_id')
+//                ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
+//                ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
+//                ->where('p_delete', '!=', '1')
+//                ->where('pc_id', '=', $request->pc_id)
+//                ->where('psc_id', '=', $request->psc_id)
+//                ->where('pssc_id', '=', $request->pssc_id))
+//                ->editColumn('p_name_show', function($data){
+//                    return '<span style="white-space: nowrap;">'.$data->p_name.'</span>';
+//                })
+//                ->editColumn('p_color_show', function($data){
+//                    return '<span style="white-space: nowrap;">'.$data->p_color.' ('.$data->mc_name.')</span>';
+//                })
+//                ->editColumn('ps_name_show', function($data){
+//                    return '<span style="white-space: nowrap;">'.$data->ps_name.'</span>';
+//                })
+//                ->editColumn('p_price_tag_show', function($data){
+//                    return '<span class="float-right">'.number_format($data->p_price_tag,2,",",".").'</span>';
+//                })
+//                ->editColumn('p_purchase_price_show', function($data){
+//                    return '<span class="float-right">'.number_format($data->p_purchase_price,2,",",".").'</span>';
+//                })
+//                ->editColumn('p_sell_price_show', function($data){
+//                    return '<span class="float-right">'.number_format($data->p_sell_price,2,",",".").'</span>';
+//                })
+//                ->editColumn('p_detail', function($data){
+//                    return '<a id="product_detail_btn" data-id="'.$data->pid.'" style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';
+//                })
+//                ->rawColumns(['p_name_show', 'ps_name_show', 'p_color_show', 'p_price_tag_show', 'p_purchase_price_show', 'p_sell_price_show', 'p_detail', 'p_description'])
+//                ->filter(function ($instance) use ($request) {
+//                    if (!empty($request->get('br_id_filter'))) {
+//                        $instance->where(function($w) use($request){
+//                            $br_id = $request->get('br_id_filter');
+//                            $w->orWhere('br_id', '=', $br_id);
+//                        });
+//                    }
+//                    if (!empty($request->get('ps_id_filter'))) {
+//                        $instance->where(function($w) use($request){
+//                            $ps_id = $request->get('ps_id_filter');
+//                            $w->orWhere('ps_id', '=', $ps_id);
+//                        });
+//                    }
+//                    if (!empty($request->get('mc_id_filter'))) {
+//                        $instance->where(function($w) use($request){
+//                            $mc_id = $request->get('mc_id_filter');
+//                            $w->orWhere('mc_id', '=', $mc_id);
+//                        });
+//                    }
+//                    if (!empty($request->get('sz_id_filter'))) {
+//                        $instance->join('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+//                        ->where(function($w) use($request){
+//                            $sz_id = $request->get('sz_id_filter');
+//                            $w->orWhere('sz_id', '=', $sz_id);
+//                        });
+//                    }
+//                    if(!empty($request->get('p_active_filter'))) {
+//                        if($request->get('p_active_filter') == '1') {
+//                            $instance->where('p_active', '=', '1');
+//                        } elseif($request->get('p_active_filter') == '0') {
+//                            $instance->where('p_active', '=', '0');
+//                        } else {
+//                            $instance->where('p_active', '!=', '1');
+//                            $instance->where('p_active', '!=', '0');
+//                        }
+//                    }
+//                    if (!empty($request->get('search'))) {
+//                        $instance->where(function($w) use($request){
+//                            $search = $request->get('search');
+//                            $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
+//                            ->orWhere('p_name', 'LIKE', "%$search%")
+//                            ->orWhere('mc_name', 'LIKE', "%$search%")
+//                            ->orWhere('br_name', 'LIKE', "%$search%")
+//                            ->orWhere('ps_name', 'LIKE', "%$search%");
+//                        });
+//                    }
+//                })
+//                ->addIndexColumn()
+//                ->make(true);
+//            }
+//        }
+//    }
+
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
-            if ($request->pc_id == 'all') {
-                return datatables()->of(Product::select(
+        if (request()->ajax()) {
+
+            $query =  datatables()->of(Product::select(
                 'products.id as pid',
-                'br_id', 'pc_id',
+                'br_id',
+                'pc_id',
                 'psc_id',
                 'pssc_id',
                 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
@@ -148,6 +321,28 @@ class ProductController extends Controller
                 })
                 ->rawColumns(['p_name_show', 'ps_name_show', 'p_color_show', 'p_price_tag_show', 'p_purchase_price_show', 'p_sell_price_show', 'p_detail', 'p_description'])
                 ->filter(function ($instance) use ($request) {
+
+                    if (!empty($request->get('pc_id'))) {
+                        $instance->where(function($w) use($request){
+                            $pc_id = $request->get('pc_id');
+                            $w->orWhere('pc_id', '=', $pc_id);
+                        });
+                    }
+
+                    if (!empty($request->get('psc_id'))) {
+                        $instance->where(function($w) use($request){
+                            $psc_id = $request->get('psc_id');
+                            $w->orWhere('psc_id', '=', $psc_id);
+                        });
+                    }
+
+                    if (!empty($request->get('pssc_id'))) {
+                        $instance->where(function($w) use($request){
+                            $pssc_id = $request->get('pssc_id');
+                            $w->orWhere('pssc_id', '=', $pssc_id);
+                        });
+                    }
+
                     if (!empty($request->get('br_id_filter'))) {
                         $instance->where(function($w) use($request){
                             $br_id = $request->get('br_id_filter');
@@ -195,86 +390,11 @@ class ProductController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
-            } else {
-                return datatables()->of(Product::select('products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_name', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
-                ->join('brands', 'brands.id', '=', 'products.br_id')
-                ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
-                ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
-                ->where('p_delete', '!=', '1')
-                ->where('pc_id', '=', $request->pc_id)
-                ->where('psc_id', '=', $request->psc_id)
-                ->where('pssc_id', '=', $request->pssc_id))
-                ->editColumn('p_name_show', function($data){
-                    return '<span style="white-space: nowrap;">'.$data->p_name.'</span>';
-                })
-                ->editColumn('p_color_show', function($data){
-                    return '<span style="white-space: nowrap;">'.$data->p_color.' ('.$data->mc_name.')</span>';
-                })
-                ->editColumn('ps_name_show', function($data){
-                    return '<span style="white-space: nowrap;">'.$data->ps_name.'</span>';
-                })
-                ->editColumn('p_price_tag_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_price_tag,2,",",".").'</span>';
-                })
-                ->editColumn('p_purchase_price_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_purchase_price,2,",",".").'</span>';
-                })
-                ->editColumn('p_sell_price_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_sell_price,2,",",".").'</span>';
-                })
-                ->editColumn('p_detail', function($data){
-                    return '<a id="product_detail_btn" data-id="'.$data->pid.'" style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';
-                })
-                ->rawColumns(['p_name_show', 'ps_name_show', 'p_color_show', 'p_price_tag_show', 'p_purchase_price_show', 'p_sell_price_show', 'p_detail', 'p_description'])
-                ->filter(function ($instance) use ($request) {
-                    if (!empty($request->get('br_id_filter'))) {
-                        $instance->where(function($w) use($request){
-                            $br_id = $request->get('br_id_filter');
-                            $w->orWhere('br_id', '=', $br_id);
-                        });
-                    }
-                    if (!empty($request->get('ps_id_filter'))) {
-                        $instance->where(function($w) use($request){
-                            $ps_id = $request->get('ps_id_filter');
-                            $w->orWhere('ps_id', '=', $ps_id);
-                        });
-                    }
-                    if (!empty($request->get('mc_id_filter'))) {
-                        $instance->where(function($w) use($request){
-                            $mc_id = $request->get('mc_id_filter');
-                            $w->orWhere('mc_id', '=', $mc_id);
-                        });
-                    }
-                    if (!empty($request->get('sz_id_filter'))) {
-                        $instance->join('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                        ->where(function($w) use($request){
-                            $sz_id = $request->get('sz_id_filter');
-                            $w->orWhere('sz_id', '=', $sz_id);
-                        });
-                    }
-                    if(!empty($request->get('p_active_filter'))) {
-                        if($request->get('p_active_filter') == '1') {
-                            $instance->where('p_active', '=', '1');
-                        } elseif($request->get('p_active_filter') == '0') {
-                            $instance->where('p_active', '=', '0');
-                        } else {
-                            $instance->where('p_active', '!=', '1');
-                            $instance->where('p_active', '!=', '0');
-                        }
-                    }
-                    if (!empty($request->get('search'))) {
-                        $instance->where(function($w) use($request){
-                            $search = $request->get('search');
-                            $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
-                            ->orWhere('p_name', 'LIKE', "%$search%")
-                            ->orWhere('mc_name', 'LIKE', "%$search%")
-                            ->orWhere('br_name', 'LIKE', "%$search%")
-                            ->orWhere('ps_name', 'LIKE', "%$search%");
-                        });
-                    }
-                })
-                ->addIndexColumn()
-                ->make(true);
+
+            try {
+                return $query;
+            } catch (\Exception $e) {
+                return $e;
             }
         }
     }

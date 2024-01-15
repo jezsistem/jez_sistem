@@ -143,34 +143,53 @@
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <!-- <input type="hidden" id="_pc_id" value="" /> -->
-                                <select class="form-control" id="pc_id" name="pc_id" required>
+                                <select class="form-control" id="pc_id_filter" name="pc_id_filter" required>
                                     <option value="">- Pilih Kategori -</option>
                                     @foreach ($data['pc_id'] as $key => $value)
                                         <option value="{{ $key }}">{{ $value }}</option>
                                     @endforeach
                                     <option value="all">Tampilkan Semua</option>
                                 </select>
-                                <div id="pc_id_parent"></div>
+                                <div id="pc_id_filter_parent"></div>
                             </div>
                             <!--end: Datatable-->
                             <br/>
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <!-- <input type="hidden" id="_psc_id" value="" /> -->
-                                <select class="form-control" id="psc_id" name="psc_id" required>
+                                <select class="form-control" id="psc_id_filter" name="psc_id_filter" required>
                                     <option value="">- Pilih Sub Kategori -</option>
+                                    @foreach ($data['psc_id'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
                                 </select>
-                                <div id="psc_id_parent"></div>
+                                <div id="psc_id_filter_parent"></div>
                             </div>
                             <!--end: Datatable-->
                             <br/>
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <!-- <input type="hidden" id="_pssc_id" value="" /> -->
-                                <select class="form-control" id="pssc_id" name="pssc_id" required>
-                                    <option value="">- Pilih Sub-Sub Kategori -</option>
+                                <select class="form-control" id="pssc_id_filter" name="pssc_id_filter" required>
+                                    <option value="">- Pilih Sub Sub Kategori -</option>
+                                    @foreach ($data['pssc_id'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
                                 </select>
-                                <div id="pssc_id_parent"></div>
+                                <div id="pssc_id_filter_parent"></div>
+                            </div>
+                            <!--end: Datatable-->
+                            <br/>
+                            <!--begin: Datatable-->
+                            <div class="form-group mb-1 pb-1">
+                                <!-- <input type="hidden" id="_pssc_id" value="" /> -->
+                                <select class="form-control" id="sz_schema_id" name="sz_schema_id" required>
+                                    <option value="">- Pilih Size Schema -</option>
+                                    @foreach ($data['sz_schema_id'] as $key => $value)
+                                        <option value="{{ $value }}">{{ $value }}</option>
+                                    @endforeach
+                                </select>
+                                <div id="sz_schema_id_parent"></div>
                             </div>
                             <!--end: Datatable-->
                         </div>
@@ -185,7 +204,7 @@
     <!--begin::Entry-->
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
-        <div class="container" id="product_display" style="display:none;">  <!--   -->
+        <div class="container" id="product_display">  <!--   -->
             <div class="row">
                 <div class="col-lg-12 col-xxl-12">
                     <!--begin::Card-->
@@ -228,9 +247,6 @@
                             <div class="form-group" style="padding-top:22px;">
                                 <select class="form-control" id="sz_id_filter" name="sz_id_filter" required>
                                     <option value="">- Size/All -</option>
-                                    @foreach ($data['sz_id'] as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
                                 </select>
                                 <div id="sz_id_filter_parent"></div>
                             </div>
