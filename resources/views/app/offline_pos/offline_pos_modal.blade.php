@@ -38,7 +38,7 @@
 					<div class="col-md-12">
 						<label  class="text-body">No Telp *</label>
 						<fieldset class="form-group mb-3">
-							<input type="number" id="cust_phone" name="cust_phone"  class="form-control"  placeholder="No HP" required>
+							<input type="number" id="cust_phone" name="cust_phone"  class="form-control"  placeholder="No HP">
 						</fieldset>
 					</div>
 				</div>
