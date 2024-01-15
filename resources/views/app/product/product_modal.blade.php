@@ -173,6 +173,16 @@
                             <label>Berat Items </label>
                             <input type="number" name="p_weight" id="p_weight" class="form-control" placeholder="gram"/>
                         </div>
+
+                        <div class="col-lg-4 pt-1">
+                            <label>Size Schema </label>
+                            <select class="form-control" id="sz_schema_modal_id" name="sz_schema_modal_id" required>
+                                <option value="">- Pilih Size Schema -</option>
+                                @foreach ($data['sz_schema_id'] as $key => $value)
+                                    <option value="{{ $value }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-lg-4 pt-1">

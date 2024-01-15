@@ -639,6 +639,22 @@
             $('#f_import')[0].reset();
         });
 
+        $('#sz_schema_modal_id').on('change', function (e) {
+            // Get the selected value in sc_schema_modal_id
+            var selectedValue = $(this).val();
+
+            $.ajax({
+                type: "GET",
+                data: {_sz_schema:selectedValue},
+                dataType: 'html',
+                url: "{{ url('reload_size_schema_modal')}}",
+                success: function(r) {
+                    $('#reload_size').html(r);
+                    // checkSize(id);
+                }
+            });
+        });
+
         function checkSize(id)
         {
             $.ajaxSetup({

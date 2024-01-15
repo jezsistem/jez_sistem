@@ -383,6 +383,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('size_datatables', [SizeController::class, 'getDatatables']);
     Route::get('reload_size', [SizeController::class, 'reloadSize']);
     Route::get('reload_size_schema',[SizeController::class, 'reloadSizeSchema']);
+    Route::get('reload_size_schema_modal',[SizeController::class, 'reloadSizeSchemaModal']);
     Route::post('sz_save', [SizeController::class, 'storeData']);
     Route::post('sz_delete', [SizeController::class, 'deleteData']);
     Route::post('sz_import', [SizeController::class, 'importData']);
