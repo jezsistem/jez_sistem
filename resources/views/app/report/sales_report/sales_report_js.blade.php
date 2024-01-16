@@ -162,6 +162,7 @@
             { data: 'pos_shipping', name: 'pos_shipping' },
             { data: 'pos_unique_code', name: 'pos_unique_code' },
             { data: 'pos_admin_cost', name: 'pos_admin_cost' },
+            { data: 'pos_discount_seller', name: 'pos_discount_seller' },
             { data: 'pos_another_cost', name: 'pos_another_cost' },
             { data: 'nameset', name: 'nameset', orderable: false },
             { data: 'value_admin', name: 'value_admin', orderable: false },

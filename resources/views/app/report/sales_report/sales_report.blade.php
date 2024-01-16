@@ -89,6 +89,7 @@
                                         <th class="text-dark">Ongkir</th>
                                         <th class="text-dark" style="white-space:nowrap;">Kode Unik</th>
                                         <th class="text-dark" style="white-space:nowrap;">Biaya Admin</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Diskon Penjual</th>
                                         <th class="text-dark" style="white-space:nowrap;">Biaya Lain</th>
                                         <th class="text-dark">Nameset</th>
                                         <th class="text-dark" style="white-space:nowrap;">Value - Admin</th>
