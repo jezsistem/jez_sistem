@@ -1148,7 +1148,7 @@ class PointOfSaleController extends Controller
                     ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                     ->where('product_locations.st_id', '=', $st_id)
-//                    ->where('pls_qty', '>', '0')
+//                    ->where('pls_qty', '>=', '0')
                     ->whereNotIn('pl_code', $exception)
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
                     ->orWhere('ps_barcode', 'LIKE', "%$query%")
@@ -1246,9 +1246,12 @@ class PointOfSaleController extends Controller
                         $bin_list .= '</select>';
                     }
                     $ok = $this->checkAging($st_id, $row->pst_id);
-                    $output .= '
-                    <li><a class="btn btn-sm btn-inventory col-12" data-cross="'.$cross.'" data-ok="'.$ok.'" data-sell_price="'.$sell_price.'" data-sell_price_discount="'.$sell_price_discount.'" data-psc_id="'.$row->psc_id.'" data-bandrol="'.$bandrol.'" data-pls_qty="'.$row->pls_qty.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-bin="'.htmlspecialchars($bin_list).'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' '.$row->sz_name.'" id="add_to_item_list"><span style="float-left;"><span class="btn-lg btn-primary">['.strtoupper($row->br_name).'] '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.'</span></a></li>
-                    ';
+                    if ($bin != '')
+                    {
+                        $output .= '
+                        <li><a class="btn btn-sm btn-inventory col-12" data-cross="'.$cross.'" data-ok="'.$ok.'" data-sell_price="'.$sell_price.'" data-sell_price_discount="'.$sell_price_discount.'" data-psc_id="'.$row->psc_id.'" data-bandrol="'.$bandrol.'" data-pls_qty="'.$row->pls_qty.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-bin="'.htmlspecialchars($bin_list).'" data-p_name="['.$row->br_name.'] '.$row->p_name.' '.$row->p_color.' '.$row->sz_name.'" id="add_to_item_list"><span style="float-left;"><span class="btn-lg btn-primary">['.strtoupper($row->br_name).'] '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.'</span></a></li>
+                        ';
+                    }
                 }
             } else {
                 $output .= '<li><a class="btn btn-sm btn-primary">Tidak ditemukan</a></li>';
