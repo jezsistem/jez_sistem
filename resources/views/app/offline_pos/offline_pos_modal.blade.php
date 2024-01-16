@@ -54,7 +54,7 @@
 					<div class="col-md-12">
 						<label  class="text-body">Provinsi *</label>
 						<fieldset class="form-group mb-3">
-							<select class="form-control" id="cust_province" name="cust_province" required>
+							<select class="form-control" id="cust_province" name="cust_province">
 								<option value="">- Pilih -</option>
 								@foreach ($data['cust_province'] as $key => $value)
 									<option value="{{ $key }}">{{ $value }}</option>
@@ -67,7 +67,7 @@
 					<div class="col-md-12">
 						<label  class="text-body">Kota *</label>
 						<fieldset class="form-group mb-3">
-							<select class="form-control" id="cust_city" name="cust_city" required>
+							<select class="form-control" id="cust_city" name="cust_city">
 								<option value="">- Pilih -</option>
 							</select>
 						</fieldset>
@@ -77,7 +77,7 @@
 					<div class="col-md-12">
 						<label  class="text-body">Kecamatan *</label>
 						<fieldset class="form-group mb-3">
-							<select class="form-control" id="cust_subdistrict" name="cust_subdistrict" required>
+							<select class="form-control" id="cust_subdistrict" name="cust_subdistrict">
 								<option value="">- Pilih -</option>
 							</select>
 						</fieldset>
