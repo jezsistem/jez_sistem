@@ -308,13 +308,13 @@ class ProductController extends Controller
                     return '<span style="white-space: nowrap;">'.$data->ps_name.'</span>';
                 })
                 ->editColumn('p_price_tag_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_price_tag,2,",",".").'</span>';
+                    return '<span class="float-right">'.number_format($data->p_price_tag).'</span>';
                 })
                 ->editColumn('p_purchase_price_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_purchase_price,2,",",".").'</span>';
+                    return '<span class="float-right">'.number_format($data->p_purchase_price,).'</span>';
                 })
                 ->editColumn('p_sell_price_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_sell_price,2,",",".").'</span>';
+                    return '<span class="float-right">'.number_format($data->p_sell_price).'</span>';
                 })
                 ->editColumn('p_detail', function($data){
                     return '<a id="product_detail_btn" data-id="'.$data->pid.'" style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';

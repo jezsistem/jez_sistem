@@ -64,7 +64,7 @@
                                                     <span class="navi-icon">
                                                         <i class="la la-copy"></i>
                                                     </span>
-                                                    <span id="purchase_order_excel_btn"></span>
+                                                        <span id="purchase_order_excel_btn"></span>
                                                 </a>
                                             </li>
                                         </ul>

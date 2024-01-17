@@ -159,16 +159,16 @@ class SalesReportController extends Controller
             })
             ->editColumn('price_tag', function($data){
                 if (!empty($data->ps_price_tag)) {
-                    return $data->ps_price_tag;
+                    return number_format($data->ps_price_tag);
                 } else {
-                    return $data->p_price_tag;
+                    return number_format($data->p_price_tag);
                 }
             })
             ->editColumn('sell_price', function($data){
                 if (!empty($data->ps_sell_price)) {
-                    return $data->ps_sell_price;
+                    return number_format($data->ps_sell_price);
                 } else {
-                    return $data->p_sell_price;
+                    return number_format($data->p_sell_price);
                 }
             })
             ->editColumn('hpp', function($data){
@@ -181,9 +181,9 @@ class SalesReportController extends Controller
                 ->groupBy('poads_purchase_price')
                 ->get()->first();
                 if (!empty($poads->poads_purchase_price)) {
-                    return $poads->poads_purchase_price;
+                    return number_format($poads->poads_purchase_price);
                 } else if (!empty($poads->ps_purchase_price)) {
-                    return $poads->ps_purchase_price;
+                    return number_format($poads->ps_purchase_price);
                 } else {
                     return '-';
                 }
@@ -195,7 +195,7 @@ class SalesReportController extends Controller
                 } else {
                     $discount_price = $data->pos_td_discount_price;
                 }
-                return $discount_price;
+                return number_format($discount_price);
             })
             ->editColumn('total_price', function($data){
                 $real_price = null;
@@ -204,7 +204,7 @@ class SalesReportController extends Controller
                 } else {
                   $real_price = $data->pos_real_price;
                 }
-                return $real_price;
+                return number_format($real_price);
             })
             ->editColumn('plst_status', function($data){
                 if ($data->plst_status == 'WAITING OFFLINE') {

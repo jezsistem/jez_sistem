@@ -80,10 +80,16 @@ class InvoiceReportController extends Controller
                       $total += $row->pos_td_discount_price;
                     }
                   }
-                  return $total;
+                  return number_format($total);
                 } else {
                   return '-';
                 }
+            })
+            ->editColumn('pos_admin_cost' , function ($data) {
+                return number_format($data->pos_admin_cost);
+            })
+            ->editColumn('pos_another_cost', function ($data) {
+                return number_format($data->pos_another_cost);
             })
             ->editColumn('nameset', function($data){
                 $item_qty = PosTransactionDetail::select('pos_td_nameset_price')->where('pt_id', '=', $data->pt_id)->sum('pos_td_nameset_price');
@@ -134,7 +140,7 @@ class InvoiceReportController extends Controller
                   } else {
                     $total = $ptd_total;
                   }
-                  return $total;
+                  return number_format($total);
                 } else {
                   return '-';
                 }
@@ -162,7 +168,7 @@ class InvoiceReportController extends Controller
                   } else {
                     $total = $ptd_total - $data->pos_admin_cost + $data->pos_another_cost + $data->pos_shipping + $data->pos_unique_code;
                   }
-                  return $total;
+                  return number_format($total);
                 } else {
                   return '-';
                 }

@@ -310,7 +310,7 @@
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs',  "exportOptions": { orthogonal: 'export' } }
             ],
             ajax: {
                 url : "{{ url('product_datatables') }}",
@@ -333,9 +333,21 @@
             { data: 'br_name', name: 'br_name' },
             { data: 'ps_name_show', name: 'ps_name' },
             { data: 'p_weight', name: 'p_weight' },
-            { data: 'p_price_tag_show', name: 'p_price_tag' },
-            { data: 'p_purchase_price_show', name: 'p_purchase_price' },
-            { data: 'p_sell_price_show', name: 'p_sell_price' },
+            { data: 'p_price_tag_show', name: 'p_price_tag', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'p_purchase_price_show', name: 'p_purchase_price',render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'p_sell_price_show', name: 'p_sell_price', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'p_active', name: 'p_active' },
             { data: 'p_detail', name: 'p_detail', sortable: false },
             ], 

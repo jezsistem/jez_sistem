@@ -765,7 +765,7 @@
             responsive: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs', "exportOptions": { orthogonal: 'export' } }
             ],
             ajax: {
                 url : "{{ url('purchase_order_datatables') }}",
@@ -780,7 +780,11 @@
             { data: 'st_name', name: 'st_name' },
             { data: 'ps_name', name: 'ps_name' },
             { data: 'po_invoice', name: 'po_invoice' },
-            { data: 'po_total', name: 'po_total', orderable: false },
+            { data: 'po_total', name: 'po_total', orderable: false, render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'po_status', name: 'po_status', orderable: false },
             ],
             columnDefs: [

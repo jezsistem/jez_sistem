@@ -530,6 +530,7 @@
         });
 
         var global_po_id ;
+
         var purchase_order_table = $('#PurchaseOrdertb').DataTable({
             destroy: true,
             processing: false,
@@ -537,7 +538,7 @@
             responsive: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs', "exportOptions": { orthogonal: 'export' } }
             ],
             ajax: {
                 url : "{{ url('purchase_order_datatables') }}",
@@ -552,7 +553,14 @@
             { data: 'st_name', name: 'st_name' },
             { data: 'ps_name', name: 'ps_name' },
             { data: 'po_invoice', name: 'po_invoice' },
-            { data: 'po_total', name: 'po_total' },
+            {   data: 'po_total',
+                name: 'po_total',
+                render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                }
+            },
             { data: 'po_status', name: 'po_status' },
             ], 
             columnDefs: [
@@ -655,6 +663,7 @@
         } );
 
         purchase_order_table.buttons().container().appendTo($('#purchase_order_excel_btn' ));
+
         $('#purchase_order_search').on('keyup', function() {
             purchase_order_table.draw();
         });

@@ -138,7 +138,7 @@
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs', "exportOptions": { orthogonal: 'export' }  }
             ],
             ajax: {
                 url : "{{ url('invoice_report_datatables') }}",
@@ -158,16 +158,40 @@
             { data: 'u_name', name: 'u_name' },
             { data: 'dv_name', name: 'dv_name' },
             { data: 'item_qty', name: 'item_qty', orderable: false },
-            { data: 'item_value', name: 'item_value', orderable: false },
-            { data: 'pos_shipping', name: 'pos_shipping' },
+            { data: 'item_value', name: 'item_value', orderable: false,  render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'pos_shipping', name: 'pos_shipping', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'pos_unique_code', name: 'pos_unique_code' },
-            { data: 'pos_admin_cost', name: 'pos_admin_cost' },
-            { data: 'pos_discount_seller', name: 'pos_discount_seller' },
-            { data: 'pos_another_cost', name: 'pos_another_cost' },
+            { data: 'pos_admin_cost', name: 'pos_admin_cost' ,  render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'pos_discount_seller', name: 'pos_discount_seller', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'pos_another_cost', name: 'pos_another_cost', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'nameset', name: 'nameset', orderable: false },
             { data: 'value_admin', name: 'value_admin', orderable: false },
             { data: 'total', name: 'total', orderable: false },
-            { data: 'payment_one', name: 'pm_id' },
+            { data: 'payment_one', name: 'pm_id', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'pos_payment', name: 'pos_payment' },
             { data: 'pos_card_number', name: 'pos_card_number' },
             { data: 'pos_ref_number', name: 'pos_ref_number' },
