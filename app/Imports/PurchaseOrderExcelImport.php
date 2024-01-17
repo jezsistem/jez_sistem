@@ -42,11 +42,11 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
         foreach ($row as $value) {
             $sku = ltrim($value[2]);
             $variantName = ltrim($value[1]);
-            $variantDesc = ltrim($value[7]);
+            $variantDesc = ltrim($value[6]);
 
             $productStocks[$sku] = ProductStock::where('ps_barcode', $sku)->exists();
             $sizes[$variantName . $variantDesc] = Size::where('sz_name', $variantName)
-                ->where('sz_description', $variantDesc)
+                ->where('sz_schema', $variantDesc)
                 ->first();
         }
 
@@ -54,7 +54,7 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
         foreach ($row as $value) {
             $sku = ltrim($value[2]);
             $variantName = ltrim($value[1]);
-            $variantDesc = ltrim($value[7]);
+            $variantDesc = ltrim($value[6]);
             $qty = $value[3];
             $poad_purchase_price = $value[4];
 

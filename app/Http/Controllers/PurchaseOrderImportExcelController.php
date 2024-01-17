@@ -43,7 +43,7 @@ class PurchaseOrderImportExcelController extends Controller
 
             return json_encode($r);
         } catch (\Exception $e) {
-            throw $e;
+            return json_encode($e->getMessage());
         }
     }
 
