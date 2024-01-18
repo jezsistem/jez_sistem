@@ -152,6 +152,7 @@
             columns: [
             { data: 'DT_RowIndex', name: 'pt_id', searchable: false},
             { data: 'pos_created', name: 'pos_created' },
+            {data: 'st_name', name: 'st_name'},
             { data: 'pos_invoice', name: 'pos_invoice' },
             { data: 'cust_name', name: 'cust_name' },
             { data: 'cross', name: 'cross_order' },

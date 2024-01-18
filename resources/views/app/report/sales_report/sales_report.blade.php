@@ -79,6 +79,7 @@
                                     <tr>
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Tanggal</th>
+                                        <th class="text-dark">Store</th>
                                         <th class="text-dark">Invoice</th>
                                         <th class="text-dark">Customer</th>
                                         <th class="text-dark" style="white-space:nowrap;">Cross Order</th>
