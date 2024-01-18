@@ -64,7 +64,6 @@
             // Menghitung subtotal dengan discount_number
             var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - parseFloat(discount_number));
         } else {
-
             // Menghitung subtotal dengan menggunakan logika sebelumnya jika discount_number tidak terisi
             var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount));
         }
@@ -156,6 +155,7 @@
             return false;
         }
         var discount = jQuery('#reseller_disc'+index).val();
+        var discount_number = jQuery('#reseller_disc_number'+index).val();
         var sell_price_item = jQuery('#sell_price_item'+index).text();
         var subtotal_item = jQuery('#subtotal_item'+index).text();
         var total_price_side = jQuery('#total_price_side').text();
@@ -164,8 +164,15 @@
         var total_row = jQuery('tr[data-list-item]').length;
         if (jQuery.trim(discount) == '' || jQuery.trim(discount) == 0) {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item));
+
+            jQuery('#reseller_disc_number'+index).val('');
         } else {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item)) - (parseFloat(replaceComma(sell_price_item))/100 * parseFloat(discount));
+
+            // calcualte how much in nominal and show
+            var nominal = parseFloat(replaceComma(sell_price_item))/100 * parseFloat(discount);
+
+            jQuery('#reseller_disc_number'+index).val(nominal);
         }
         jQuery('#item_qty'+index).val('1');
         jQuery('#subtotal_item'+index).text(addCommas(subtotal_after_disc));
@@ -195,6 +202,7 @@
             jQuery('#reseller_disc'+index).val('');
             return false;
         }
+        var discount_percentage = jQuery('#reseller_disc'+index).val();
         var discount = jQuery('#reseller_disc_number'+index).val();
         var sell_price_item = jQuery('#sell_price_item'+index).text();
         var subtotal_item = jQuery('#subtotal_item'+index).text();
@@ -204,8 +212,16 @@
         var total_row = jQuery('tr[data-list-item]').length;
         if (jQuery.trim(discount) == '' || jQuery.trim(discount) == 0) {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item));
+
+            jQuery('#reseller_disc'+index).val('');
         } else {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item)) - discount;
+
+            // calculate how much percentage and change discount_percentage value
+
+            var percentage = (discount/subtotal_after_disc)*100;
+
+            jQuery('#reseller_disc'+index).val(percentage.toFixed(2));
         }
         jQuery('#item_qty'+index).val('1');
         jQuery('#subtotal_item'+index).text(addCommas(subtotal_after_disc));

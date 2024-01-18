@@ -606,69 +606,69 @@
         });
     };
 
-    function changeDiscountPercentage(row, pst_id, pls_qty)
-    {
-        var item_qty = jQuery('#item_qty'+row).val();
-        var sell_price_item = replaceComma(jQuery('#sell_price_item'+row).text());
-        var subtotal_item = replaceComma(jQuery('#subtotal_item'+row).text());
-        var total_row = jQuery('tr[data-list-item]').length;
-        var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
-
-        var b1g1_total_row = b1g1_temp.length;
-        var b1g1_qty_total = 0;
-        if (b1g1_total_row > 0) {
-            jQuery('#orderTable tr').each(function(index, row) {
-                var b1g1_qty = parseFloat(jQuery(row).find('.item_qty').val());
-                if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' || isNaN(b1g1_qty)) {
-                    b1g1_qty = 0;
-                }
-                if (jQuery(row).hasClass('b1g1_mode')) {
-                    b1g1_qty_total += b1g1_qty;
-                }
-            });
-            if (parseFloat(b1g1_qty_total) > 2) {
-                jQuery('#item_qty'+row).val('1');
-                swal('1 Invoice 1 B1G1', 'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs', 'warning');
-                return false;
-            }
-        }
-
-        if (jQuery('#orderList'+row).hasClass('b1g1_mode')) {
-            if (item_qty > 2){
-                jQuery('#item_qty'+row).val('1');
-                swal('1 Invoice 1 B1G1', 'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs', 'warning');
-                return false;
-            }
-            if (item_qty%2 == 0) {
-                item_qty = item_qty/2;
-            } else {
-                item_qty = Math.ceil(item_qty/2);
-            }
-        }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))
-        if (parseFloat(item_qty) < 0) {
-            jQuery('#subtotal_item'+row).text('-'+addCommas(subtotal));
-        } else {
-            jQuery('#subtotal_item'+row).text(addCommas(subtotal));
-        }
-        var final_price = 0;
-        var nameset = 0;
-        jQuery('#orderTable tr').each(function(index, row) {
-            if (jQuery(row).find('.subtotal_item').text() != '') {
-                var sbttl = parseFloat(replaceComma(jQuery(row).find('.subtotal_item').text()));
-                if (typeof sbttl === 'undefined' && sbttl == '') {
-                    sbttl = 0;
-                }
-                final_price += sbttl;
-            }
-            var nameset_value = jQuery(row).find('.nameset_price').val();
-            if (typeof nameset_value !== 'undefined' && nameset_value != '') {
-                nameset += parseFloat(nameset_value);
-            }
-        });
-        jQuery('#total_price_side').text(addCommas(final_price));
-        jQuery('#total_final_price_side').text(addCommas(final_price+nameset));
-    }
+    // function changeDiscountPercentage(row, pst_id, pls_qty)
+    // {
+    //     var item_qty = jQuery('#item_qty'+row).val();
+    //     var sell_price_item = replaceComma(jQuery('#sell_price_item'+row).text());
+    //     var subtotal_item = replaceComma(jQuery('#subtotal_item'+row).text());
+    //     var total_row = jQuery('tr[data-list-item]').length;
+    //     var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
+    //
+    //     var b1g1_total_row = b1g1_temp.length;
+    //     var b1g1_qty_total = 0;
+    //     if (b1g1_total_row > 0) {
+    //         jQuery('#orderTable tr').each(function(index, row) {
+    //             var b1g1_qty = parseFloat(jQuery(row).find('.item_qty').val());
+    //             if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' || isNaN(b1g1_qty)) {
+    //                 b1g1_qty = 0;
+    //             }
+    //             if (jQuery(row).hasClass('b1g1_mode')) {
+    //                 b1g1_qty_total += b1g1_qty;
+    //             }
+    //         });
+    //         if (parseFloat(b1g1_qty_total) > 2) {
+    //             jQuery('#item_qty'+row).val('1');
+    //             swal('1 Invoice 1 B1G1', 'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs', 'warning');
+    //             return false;
+    //         }
+    //     }
+    //
+    //     if (jQuery('#orderList'+row).hasClass('b1g1_mode')) {
+    //         if (item_qty > 2){
+    //             jQuery('#item_qty'+row).val('1');
+    //             swal('1 Invoice 1 B1G1', 'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs', 'warning');
+    //             return false;
+    //         }
+    //         if (item_qty%2 == 0) {
+    //             item_qty = item_qty/2;
+    //         } else {
+    //             item_qty = Math.ceil(item_qty/2);
+    //         }
+    //     }
+    //     var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))
+    //     if (parseFloat(item_qty) < 0) {
+    //         jQuery('#subtotal_item'+row).text('-'+addCommas(subtotal));
+    //     } else {
+    //         jQuery('#subtotal_item'+row).text(addCommas(subtotal));
+    //     }
+    //     var final_price = 0;
+    //     var nameset = 0;
+    //     jQuery('#orderTable tr').each(function(index, row) {
+    //         if (jQuery(row).find('.subtotal_item').text() != '') {
+    //             var sbttl = parseFloat(replaceComma(jQuery(row).find('.subtotal_item').text()));
+    //             if (typeof sbttl === 'undefined' && sbttl == '') {
+    //                 sbttl = 0;
+    //             }
+    //             final_price += sbttl;
+    //         }
+    //         var nameset_value = jQuery(row).find('.nameset_price').val();
+    //         if (typeof nameset_value !== 'undefined' && nameset_value != '') {
+    //             nameset += parseFloat(nameset_value);
+    //         }
+    //     });
+    //     jQuery('#total_price_side').text(addCommas(final_price));
+    //     jQuery('#total_final_price_side').text(addCommas(final_price+nameset));
+    // }
 
     function changeDiscountNumber(row, pst_id, pls_qty)
     {
@@ -677,6 +677,7 @@
         var subtotal_item = replaceComma(jQuery('#subtotal_item'+row).text());
         var total_row = jQuery('tr[data-list-item]').length;
         var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
+        var discount_percentage = jQuery('#discount_percentage'+row).val();
 
         var b1g1_total_row = b1g1_temp.length;
         var b1g1_qty_total = 0;
@@ -734,6 +735,8 @@
         // Memperoleh nilai diskon dari input dengan ID discount_number
         var discount = parseFloat(jQuery('#discount_number'+row).val()) || 0;
 
+        var percentage = (discount / sell_price_item) * 100;
+        jQuery('#discount_percentage'+row).val(percentage.toFixed(2));
         // Mengurangi diskon dari subtotal
         var subtotal = parseFloat(item_qty) * parseFloat(sell_price_item) - discount;
 
@@ -813,6 +816,8 @@
         var discountPercentage = parseFloat(jQuery('#discount_percentage'+row).val()) || 0;
         var totalBeforeDiscount = final_price + nameset;
         var discount = parseFloat((discountPercentage/100) * totalBeforeDiscount);
+
+        jQuery('#discount_number'+row).val(discount.toFixed(2));
 
         // Mengurangi diskon dari subtotal
         var subtotal = parseFloat(item_qty) * parseFloat(sell_price_item) - discount;
