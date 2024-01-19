@@ -444,7 +444,7 @@ class PurchaseOrderController extends Controller
             }
             $po_id = $draft->id;
             $po_st_id = $draft->st_id;
-            ;
+
             $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
             ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')

@@ -120,6 +120,9 @@ use App\Http\Controllers\UserMenuAccessController;
 use App\Http\Controllers\MainMenuController;
 use App\Http\Controllers\MenuAccessController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\PreOrderController;
+use App\Http\Controllers\PreOrderArticleDetailController;
+use App\Http\Controllers\PreOrderArticleController;
 
 use App\Http\Controllers\WebConfigController;
 
@@ -1138,4 +1141,31 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('perp_save', [WebConfigController::class, 'storeData']);
     Route::post('perp_delete', [WebConfigController::class, 'deleteData']);
     Route::post('reset_erp', [WebConfigController::class, 'resetERP']);
+
+    Route::get('pre_order', [PreOrderController::class, 'index']);
+    Route::get('pre_order_datatables', [PreOrderController::class, 'getDatatables']);
+    Route::post('create_pre_order', [PreOrderController::class, 'createPreOrder']);
+    Route::post('create_pre_order_detail', [PreOrderController::class, 'createPreOrderDetail']);
+    Route::post('check_pre_order_detail', [PreOrderController::class, 'checkPreOrderDetail']);
+    Route::post('reload_pre_order_detail', [PreOrderController::class, 'reloadPreOrderDetail']);
+    Route::post('pre_order_choose_store', [PreOrderController::class, 'chooseStorePo']);
+    Route::post('pre_order_choose_product_supplier', [PreOrderController::class, 'chooseProductSupplierPo']);
+    Route::post('pre_order_choose_brand', [PreOrderController::class, 'chooseBrandePo']);
+    Route::post('pre_order_choose_season', [PreOrderController::class, 'chooseSeasonPo']);
+    Route::post('pre_order_detail', [PreOrderController::class, 'poDetail']);
+    Route::post('cancel_pre_order', [PreOrderController::class, 'cancelPreOrder']);
+    Route::post('pre_order_save_draft', [PreOrderController::class, 'poSaveDraft']);
+
+    // Purchase Order Article
+    Route::post('proa_delete', [PreOrderArticleController::class, 'deleteData']);
+    Route::post('proa_save_discount', [PreOrderArticleController::class, 'saveDiscount']);
+    Route::post('proa_save_extra_discount', [PreOrderArticleController::class, 'saveExtraDiscount']);
+    Route::post('proa_save_reminder', [PreOrderArticleController::class, 'saveReminder']);
+
+    // Pre Order Article Detail
+    Route::post('proad_delete', [PreOrderArticleDetailController::class, 'deleteData']);
+    Route::post('proad_save_purchase_price', [PreOrderArticleDetailController::class, 'savePurchasePrice']);
+    Route::post('proad_save_qty_total', [PreOrderArticleDetailController::class, 'saveQtyTotal']);
+
+
 });
