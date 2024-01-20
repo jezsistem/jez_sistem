@@ -54,7 +54,6 @@
             data: {_po_id:id},
             url: "{{ url('check_pre_order_detail')}}",
             success: function(r) {
-                console.log(r);
                 $('#purchase_order_detail_content').html(r);
             }
         });
@@ -708,11 +707,11 @@
             $(window).off(evt);
         });
 
-        $('#br_po_id').select2({
+        $('#br_id').select2({
             width: "100%",
-            dropdownParent: $('#br_po_id_parent')
+            dropdownParent: $('#br_id_parent')
         });
-        $('#br_po_id').on('select2:open', function (e) {
+        $('#br_id').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -807,7 +806,7 @@
                         $('#po_description').val(r.po_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
-                        jQuery('#br_po_id').val(r.br_po_id).trigger('change');
+                        jQuery('#br_id').val(r.br_id).trigger('change');
                         jQuery('#ss_id').val(r.ss_id).trigger('change');
                         reloadArticleDetail(po_id);
                     } else {
@@ -841,19 +840,19 @@
                         $('#f_po')[0].reset();
                         jQuery('#st_id').val('').trigger('change');
                         jQuery('#ps_id').val('').trigger('change');
-                        jQuery('#br_po_id').val('').trigger('change');
+                        jQuery('#br_id').val('').trigger('change');
                         jQuery('#ss_id').val('').trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
                         jQuery.noConflict();
                         $('#f_po')[0].reset();
                         $('#PurchaseOrderModal').modal('show');
-                        $('#po_invoice_label').text(r.po_invoice);
+                        $('#po_invoice_label').text(r.pre_order_code);
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
-                        jQuery('#br_po_id').val(r.br_po_id).trigger('change');
+                        jQuery('#br_id').val(r.br_id).trigger('change');
                         jQuery('#ss_id').val(r.ss_id).trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                         reloadArticleDetail(r.po_id);
@@ -967,8 +966,8 @@
             });
         });
 
-        $('#br_po_id').on('change', function() {
-            var br_po_id = $(this).val();
+        $('#br_id').on('change', function() {
+            var br_id = $(this).val();
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -977,7 +976,7 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {_po_id:$('#_po_id').val(), _br_po_id:br_po_id},
+                data: {_po_id:$('#_po_id').val(), _br_id:br_id},
                 url: "{{ url('pre_order_choose_brand')}}",
                 success: function(r) {
                     if (r.status == '200') {

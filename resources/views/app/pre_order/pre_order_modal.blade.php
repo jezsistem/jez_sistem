@@ -83,13 +83,13 @@
 
                     <div class="col-4">
                         <label>Brand</label>
-                        <select class="form-control" id="br_po_id" name="br_po_id" required>
+                        <select class="form-control" id="br_id" name="br_id" required>
                             <option value="">- Pilih Brand -</option>
                             @foreach ($data['br_id'] as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach
                         </select>
-                        <div id="br_po_id_parent"></div>
+                        <div id="br_id_parent"></div>
                     </div>
                     <div class="col-4 mt-5">
                         <label>Season</label>

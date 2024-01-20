@@ -97,6 +97,7 @@ class PreOrderController extends Controller
                 ->where('st_delete', '!=', '1')
                 ->orderByDesc('sid')->pluck('store', 'sid'),
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'br_po_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
             'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
             'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
@@ -365,7 +366,7 @@ class PreOrderController extends Controller
 
     public function chooseBrandePo(Request $request)
     {
-        $check = DB::table('pre_orders')->where(['id' => $request->_po_id])->update(['br_id' => $request->_br_po_id]);
+        $check = DB::table('pre_orders')->where(['id' => $request->_po_id])->update(['br_id' => $request->_br_id]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
@@ -395,7 +396,7 @@ class PreOrderController extends Controller
             $r['po_id'] = $draft->id;
             $r['st_id'] = $draft->st_id;
             $r['ps_id'] = $draft->ps_id;
-            $r['br_po_id'] = $draft->br_po_id;
+            $r['br_id'] = $draft->br_id;
             $r['ss_id'] = $draft->ss_id;
             $r['pre_order_code'] = $draft->pre_order_code;
         } else {
