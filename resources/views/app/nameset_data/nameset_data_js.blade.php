@@ -30,6 +30,7 @@
             { data: 'stt_name', name: 'stt_name' },
             { data: 'article', name: 'article' },
             { data: 'pos_created', name: 'pos_created' },
+            { data: 'pos_note', name: 'pos_note' },
             { data: 'action', name: 'action' },
             ], 
             columnDefs: [
