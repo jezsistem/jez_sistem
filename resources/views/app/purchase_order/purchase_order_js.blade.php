@@ -738,6 +738,16 @@
             $(window).off(evt);
         });
 
+        $('#pro_id').select2({
+            width: "100%",
+            dropdownParent: $('#pro_id_parent')
+        });
+        $('#pro_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#st_id_filter').select2({
             width: "300px",
             dropdownParent: $('#st_id_filter_parent')
@@ -1063,6 +1073,32 @@
                     }
                 }
             });
+        });
+
+        $('#pro_id').on('change', function () {
+            var pro_id = $(this).val();
+            var po_id = $('#_po_id').val();
+           $.ajaxSetup({
+               headers: {
+               'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+               }
+           });
+
+          $.ajax({
+            type: "POST",
+            dataType: 'json',
+            data: {_po_id: po_id, _pro_id:pro_id},
+            url: "{{ url('check_pre_order_purchase_order')}}",
+            success: function(r) {
+                console.log(r);
+                 if (r.status == '200') {
+                     jQuery('#pro_id').val('').trigger('change');
+                     reloadArticleDetail(po_id);
+                 } else {
+                      swal('Gagal', 'Gagal mengubah data store', 'warning');
+                 }
+            }
+          });
         });
 
         $('#cancel_purchase_order_btn').on('click', function(){

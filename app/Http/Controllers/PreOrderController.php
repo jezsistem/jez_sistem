@@ -450,6 +450,50 @@ class PreOrderController extends Controller
         return json_encode($r);
     }
 
+    public function checkPreOrderPurchaseOrder(Request $request)
+    {
+        try {
+            if ($request->_pro_id == null)
+            {
+                return ;
+            }
+            // get p_id from pr_order_articles
+            $proa = DB::table('pre_order_articles')->where(['po_id' => $request->_pro_id])->pluck('id');
+
+            // get id from pr_order_articles then get from pre_order_article details, if have same id then get pst_id and poad_qty
+            $proad = DB::table('pre_order_article_details')->whereIn('poa_id', $proa)->get(['pst_id', 'poad_qty']);
+
+            $poa = DB::table('purchase_order_articles')->where(['po_id' => $request->_po_id])->pluck('id');
+
+            $poad = DB::table('purchase_order_article_details')->whereIn('poa_id', $poa)->get(['pst_id', 'poad_qty']);
+
+            // check same pst_id from pre_order_article_details and purchase_order_article_details
+            // if have same id , then check qty, and transfer qty from pre_order_article_details to purchase_order_article_details
+            foreach ($proad as $proad_row) {
+                foreach ($poad as $poad_row) {
+                    if ($proad_row->pst_id == $poad_row->pst_id) {
+                        // get price tag from product stock who has same pst_id
+                        $pst = DB::table('product_stocks')->where(['id' => $proad_row->pst_id])->first();
+                        // calculate total price
+                        $qty = $proad_row->poad_qty + $poad_row->poad_qty;
+                        $total_price = $pst->ps_price_tag * $qty;
+                        DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $qty, 'poad_total_price' => $total_price]);
+                        //calculate qty from pre_order_article_details
+                        $qty = $proad_row->poad_qty - $poad_row->poad_qty;
+                        DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $qty]);
+                    }
+                }
+            }
+
+            $r['status'] = '200';
+
+            return json_encode($r);
+
+        }catch (\Exception $e) {
+            return json_encode($e->getMessage());
+        }
+    }
+
     private function generatePoInvoice(): string
     {
         $invoice = date('YmdHis');

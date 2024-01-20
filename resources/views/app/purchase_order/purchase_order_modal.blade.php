@@ -134,7 +134,7 @@
                             <!--end::Dropdown Menu-->
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-4 mt-5">
                         <label>Pajak</label>
                         <select class="form-control" id="tax_id" name="tax_id" required>
                             <option value="">- Pajak -</option>
@@ -145,7 +145,7 @@
                         <div id="tax_id_parent"></div>
                     </div>
 
-                    <div class="col-4">
+                    <div class="col-4 mt-5">
                         <label>Payment</label>
                         <select class="form-control" id="acc_id" name="acc_id" required>
                             <option value="">- Payment -</option>
@@ -154,6 +154,17 @@
                             @endforeach
                         </select>
                         <div id="acc_id_parent"></div>
+                    </div>
+
+                    <div class="col-4 mt-5">
+                        <label>Pre Order</label>
+                        <select class="form-control" id="pro_id" name="pro_id" required>
+                            <option value="">- Pre Order -</option>
+                            @foreach ($data['pro_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="pro_id_parent"></div>
                     </div>
                 </div>
                 <!--end::Row-->

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\PurchaseOrderArticleExport;
 use App\Models\Account;
+use App\Models\PreOrder;
 use App\Models\ProductLocationSetup;
 use App\Models\ProductSubCategory;
 use App\Models\PurchaseOrderInvoiceImage;
@@ -104,6 +105,7 @@ class PurchaseOrderController extends Controller
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_code', 'id'),
+            'pro_id' => PreOrder::getAllDataPO(),
             'segment' => request()->segment(1),
         ];
         return view('app.purchase_order.purchase_order', compact('data'));
