@@ -139,7 +139,7 @@
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Season </label>
-                            <select class="form-control" id="ss_id" name="ss_id">
+                            <select class="form-control" id="ss_id" name="ss_id" required>
                                 <option value="">- Pilih Season -</option>
                                 @foreach ($data['ss_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
@@ -176,12 +176,13 @@
 
                         <div class="col-lg-4 pt-1">
                             <label>Size Schema </label>
-                            <select class="form-control" id="sz_schema_modal_id" name="sz_schema_modal_id" required>
+                            <select class="form-control" id="sz_schema_modal_id" name="sz_schema_modal_id">
                                 <option value="">- Pilih Size Schema -</option>
                                 @foreach ($data['sz_schema_id'] as $key => $value)
                                     <option value="{{ $value }}">{{ $value }}</option>
                                 @endforeach
                             </select>
+                            <div id="sz_schema_modal_id_parent"></div>
                         </div>
                     </div>
                     <div class="form-group row">

@@ -645,27 +645,37 @@
             $(window).off(evt);
         });
 
+        $('#sz_schema_modal_id').select2({
+            width: "100%",
+            dropdownParent: $('#sz_schema_modal_id_parent')
+        });
+        $('#sz_schema_modal_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#import_modal_btn').on('click', function() {
             jQuery.noConflict();
             $('#ImportModal').modal('show');
             $('#f_import')[0].reset();
         });
 
-        $('#sz_schema_modal_id').on('change', function (e) {
-            // Get the selected value in sc_schema_modal_id
-            var selectedValue = $(this).val();
+        {{--$('#sz_schema_modal_id').on('change', function (e) {--}}
+        {{--    // Get the selected value in sc_schema_modal_id--}}
+        {{--    var selectedValue = $(this).val();--}}
 
-            $.ajax({
-                type: "GET",
-                data: {_sz_schema:selectedValue},
-                dataType: 'html',
-                url: "{{ url('reload_size_schema_modal')}}",
-                success: function(r) {
-                    $('#reload_size').html(r);
-                    // checkSize(id);
-                }
-            });
-        });
+        {{--    $.ajax({--}}
+        {{--        type: "GET",--}}
+        {{--        data: {_sz_schema:selectedValue},--}}
+        {{--        dataType: 'html',--}}
+        {{--        url: "{{ url('reload_size_schema_modal')}}",--}}
+        {{--        success: function(r) {--}}
+        {{--            $('#reload_size').html(r);--}}
+        {{--            // checkSize(selectedValue);--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
 
         function checkSize(id)
         {
@@ -748,7 +758,7 @@
                     type: "GET",
                     data: {_psc_id:psc_id},
                     dataType: 'html',
-                    url: "{{ url('reload_size')}}",
+                    url: "{{ url('reload_size_schema_modal')}}",
                     success: function(r) {
                         $('#reload_size').html(r);
                         checkSize(id);
@@ -800,6 +810,24 @@
                     }
                 }
             });
+
+            $('#sz_schema_modal_id').on('change', function (e) {
+                // Get the selected value in sc_schema_modal_id
+                var selectedValue = $(this).val();
+
+                $.ajax({
+                    type: "GET",
+                    data: {_sz_schema:selectedValue},
+                    dataType: 'html',
+                    url: "{{ url('reload_size_schema_modal')}}",
+                    success: function(r) {
+                        $('#reload_size').html(r);
+                        checkSize(id);
+                    }
+                });
+            });
+
+
             jQuery.noConflict();
             $('#ProductModal').modal('show');
             $('#product_label_modal').text(product_label);
@@ -883,6 +911,7 @@
             jQuery('#gn_id').val('').trigger('change');
             jQuery('#ss_id').val('').trigger('change');
             jQuery('#mc_id').val('').trigger('change');
+            jQuery('#sz_schema_modal_id').val('').trigger('change');
             $('#_pc_id').prop('required', false);
             $('#_psc_id').prop('required', false);
             $('#_pssc_id').prop('required', false);
@@ -984,13 +1013,17 @@
                     swal('Sub-Sub Kategori', 'Silahkan tentukan sub-sub kategori terlebih dahulu', 'warning');
                     return false;
                 }
+                // formData.append('pc_id', $('#_pc_id').val());
+                // formData.append('psc_id', $('#_psc_id').val());
+                // formData.append('pssc_id', $('#_pssc_id').val());
+            } else {
+                // formData.append('pc_id', $('#pc_id').val());
+                // formData.append('psc_id', $('#psc_id').val());
+                // formData.append('pssc_id', $('#pssc_id').val());
+
                 formData.append('pc_id', $('#_pc_id').val());
                 formData.append('psc_id', $('#_psc_id').val());
                 formData.append('pssc_id', $('#_pssc_id').val());
-            } else {
-                formData.append('pc_id', $('#pc_id').val());
-                formData.append('psc_id', $('#psc_id').val());
-                formData.append('pssc_id', $('#pssc_id').val());
             }
             $.ajax({
                 type:'POST',
@@ -1001,6 +1034,7 @@
                 contentType: false,
                 processData: false,
                 success: function(data) {
+                    console.log(data);
                     //swal('Result',data.result,'success');
                     $("#save_product_btn").html('Simpan');
                     $("#save_product_btn").attr("disabled", false);

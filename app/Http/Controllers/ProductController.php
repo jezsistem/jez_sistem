@@ -285,117 +285,121 @@ class ProductController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if (request()->ajax()) {
+        try{
+            if (request()->ajax()) {
 
-            $query =  datatables()->of(Product::select(
-                'products.id as pid',
-                'br_id',
-                'pc_id',
-                'psc_id',
-                'pssc_id',
-                'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
-                ->join('brands', 'brands.id', '=', 'products.br_id')
-                ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
-                ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
-                ->where('p_delete', '!=', '1'))
-                ->editColumn('p_name_show', function($data){
-                    return '<span style="white-space: nowrap;">'.$data->p_name.'</span>';
-                })
-                ->editColumn('p_color_show', function($data){
-                    return '<span style="white-space: nowrap;">'.$data->p_color.' ('.$data->mc_name.')</span>';
-                })
-                ->editColumn('ps_name_show', function($data){
-                    return '<span style="white-space: nowrap;">'.$data->ps_name.'</span>';
-                })
-                ->editColumn('p_price_tag_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_price_tag).'</span>';
-                })
-                ->editColumn('p_purchase_price_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_purchase_price,).'</span>';
-                })
-                ->editColumn('p_sell_price_show', function($data){
-                    return '<span class="float-right">'.number_format($data->p_sell_price).'</span>';
-                })
-                ->editColumn('p_detail', function($data){
-                    return '<a id="product_detail_btn" data-id="'.$data->pid.'" style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';
-                })
-                ->rawColumns(['p_name_show', 'ps_name_show', 'p_color_show', 'p_price_tag_show', 'p_purchase_price_show', 'p_sell_price_show', 'p_detail', 'p_description'])
-                ->filter(function ($instance) use ($request) {
+                $query =  datatables()->of(Product::select(
+                    'products.id as pid',
+                    'br_id',
+                    'pc_id',
+                    'psc_id',
+                    'pssc_id',
+                    'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
+                    ->join('brands', 'brands.id', '=', 'products.br_id')
+                    ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
+                    ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
+                    ->where('p_delete', '!=', '1'))
+                    ->editColumn('p_name_show', function($data){
+                        return '<span style="white-space: nowrap;">'.$data->p_name.'</span>';
+                    })
+                    ->editColumn('p_color_show', function($data){
+                        return '<span style="white-space: nowrap;">'.$data->p_color.' ('.$data->mc_name.')</span>';
+                    })
+                    ->editColumn('ps_name_show', function($data){
+                        return '<span style="white-space: nowrap;">'.$data->ps_name.'</span>';
+                    })
+                    ->editColumn('p_price_tag_show', function($data){
+                        return '<span class="float-right">'.number_format($data->p_price_tag).'</span>';
+                    })
+                    ->editColumn('p_purchase_price_show', function($data){
+                        return '<span class="float-right">'.number_format($data->p_purchase_price,).'</span>';
+                    })
+                    ->editColumn('p_sell_price_show', function($data){
+                        return '<span class="float-right">'.number_format($data->p_sell_price).'</span>';
+                    })
+                    ->editColumn('p_detail', function($data){
+                        return '<a id="product_detail_btn" data-id="'.$data->pid.'" style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';
+                    })
+                    ->rawColumns(['p_name_show', 'ps_name_show', 'p_color_show', 'p_price_tag_show', 'p_purchase_price_show', 'p_sell_price_show', 'p_detail', 'p_description'])
+                    ->filter(function ($instance) use ($request) {
 
-                    if (!empty($request->get('pc_id'))) {
-                        $instance->where(function($w) use($request){
-                            $pc_id = $request->get('pc_id');
-                            $w->orWhere('pc_id', '=', $pc_id);
-                        });
-                    }
-
-                    if (!empty($request->get('psc_id'))) {
-                        $instance->where(function($w) use($request){
-                            $psc_id = $request->get('psc_id');
-                            $w->orWhere('psc_id', '=', $psc_id);
-                        });
-                    }
-
-                    if (!empty($request->get('pssc_id'))) {
-                        $instance->where(function($w) use($request){
-                            $pssc_id = $request->get('pssc_id');
-                            $w->orWhere('pssc_id', '=', $pssc_id);
-                        });
-                    }
-
-                    if (!empty($request->get('br_id_filter'))) {
-                        $instance->where(function($w) use($request){
-                            $br_id = $request->get('br_id_filter');
-                            $w->orWhere('br_id', '=', $br_id);
-                        });
-                    }
-                    if (!empty($request->get('ps_id_filter'))) {
-                        $instance->where(function($w) use($request){
-                            $ps_id = $request->get('ps_id_filter');
-                            $w->orWhere('ps_id', '=', $ps_id);
-                        });
-                    }
-                    if (!empty($request->get('mc_id_filter'))) {
-                        $instance->where(function($w) use($request){
-                            $mc_id = $request->get('mc_id_filter');
-                            $w->orWhere('mc_id', '=', $mc_id);
-                        });
-                    }
-                    if (!empty($request->get('sz_id_filter'))) {
-                        $instance->join('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                        ->where(function($w) use($request){
-                            $sz_id = $request->get('sz_id_filter');
-                            $w->orWhere('sz_id', '=', $sz_id);
-                        });
-                    }
-                    if(!empty($request->get('p_active_filter'))) {
-                        if($request->get('p_active_filter') == '1') {
-                            $instance->where('p_active', '=', '1');
+                        if (!empty($request->get('pc_id'))) {
+                            $instance->where(function($w) use($request){
+                                $pc_id = $request->get('pc_id');
+                                $w->orWhere('pc_id', '=', $pc_id);
+                            });
                         }
 
-                        if ($request->get('p_active_filter') == '0') {
-                            $instance->where('p_active', '=', '0');
+                        if (!empty($request->get('psc_id'))) {
+                            $instance->where(function($w) use($request){
+                                $psc_id = $request->get('psc_id');
+                                $w->orWhere('psc_id', '=', $psc_id);
+                            });
                         }
-                    }
-                    if (!empty($request->get('search'))) {
-                        $instance->where(function($w) use($request){
-                            $search = $request->get('search');
-                            $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
-                            ->orWhere('p_name', 'LIKE', "%$search%")
-                            ->orWhere('mc_name', 'LIKE', "%$search%")
-                            ->orWhere('br_name', 'LIKE', "%$search%")
-                            ->orWhere('ps_name', 'LIKE', "%$search%");
-                        });
-                    }
-                })
-                ->addIndexColumn()
-                ->make(true);
 
-            try {
-                return $query;
-            } catch (\Exception $e) {
-                return $e;
+                        if (!empty($request->get('pssc_id'))) {
+                            $instance->where(function($w) use($request){
+                                $pssc_id = $request->get('pssc_id');
+                                $w->orWhere('pssc_id', '=', $pssc_id);
+                            });
+                        }
+
+                        if (!empty($request->get('br_id_filter'))) {
+                            $instance->where(function($w) use($request){
+                                $br_id = $request->get('br_id_filter');
+                                $w->orWhere('br_id', '=', $br_id);
+                            });
+                        }
+                        if (!empty($request->get('ps_id_filter'))) {
+                            $instance->where(function($w) use($request){
+                                $ps_id = $request->get('ps_id_filter');
+                                $w->orWhere('ps_id', '=', $ps_id);
+                            });
+                        }
+                        if (!empty($request->get('mc_id_filter'))) {
+                            $instance->where(function($w) use($request){
+                                $mc_id = $request->get('mc_id_filter');
+                                $w->orWhere('mc_id', '=', $mc_id);
+                            });
+                        }
+                        if (!empty($request->get('sz_id_filter'))) {
+                            $instance->join('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                                ->where(function($w) use($request){
+                                    $sz_id = $request->get('sz_id_filter');
+                                    $w->orWhere('sz_id', '=', $sz_id);
+                                });
+                        }
+                        if(!empty($request->get('p_active_filter'))) {
+                            if($request->get('p_active_filter') == '1') {
+                                $instance->where('p_active', '=', '1');
+                            }
+
+                            if ($request->get('p_active_filter') == '0') {
+                                $instance->where('p_active', '=', '0');
+                            }
+                        }
+                        if (!empty($request->get('search'))) {
+                            $instance->where(function($w) use($request){
+                                $search = $request->get('search');
+                                $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
+                                    ->orWhere('p_name', 'LIKE', "%$search%")
+                                    ->orWhere('mc_name', 'LIKE', "%$search%")
+                                    ->orWhere('br_name', 'LIKE', "%$search%")
+                                    ->orWhere('ps_name', 'LIKE', "%$search%");
+                            });
+                        }
+                    })
+                    ->addIndexColumn()
+                    ->make(true);
+
+                try {
+                    return $query;
+                } catch (\Exception $e) {
+                    return $e;
+                }
             }
+        }catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
@@ -640,114 +644,120 @@ class ProductController extends Controller
 
     public function storeData(Request $request)
     {
-        $product = new Product;
-        $product_stock = new ProductStock;
-        $mode = $request->input('_mode');
-        $id = $request->input('_id');
-        $sz_barcode = $request->input('_sz_barcode');
-        $sz_sell_price = $request->input('_sz_sell_price');
+//        return json_encode($request->all());
 
-        $data = [
-            'br_id' => $request->input('br_id'),
-            'pc_id' => $request->input('pc_id'),
-            'psc_id' => $request->input('psc_id'),
-            'pssc_id' => $request->input('pssc_id'),
-            'mc_id' => $request->input('mc_id'),
-            'ps_id' => $request->input('ps_id'),
-            'pu_id' => $request->input('pu_id'),
-            'gn_id' => $request->input('gn_id'),
-            'ss_id' => $request->input('ss_id'),
-            'p_color' => ltrim($request->input('p_color')),
-            'p_code' => ltrim($request->input('p_code')),
-            'p_name' => ltrim($request->input('p_name')),
-            'p_description' => $request->input('p_description'),
-            'p_aging' => $request->input('p_aging'),
-            'p_price_tag' => $request->input('p_price_tag'),
-            'p_purchase_price' => $request->input('p_purchase_price'),
-            'p_sell_price' => $request->input('p_sell_price'),
-            'p_weight' => $request->input('p_weight'),
-            'p_delete' => '0'
-        ];
-        $save = $product->storeData($mode, $id, $data);
+        try {
+            $product = new Product;
+            $product_stock = new ProductStock;
+            $mode = $request->input('_mode');
+            $id = $request->input('_id');
+            $sz_barcode = $request->input('_sz_barcode');
+            $sz_sell_price = $request->input('_sz_sell_price');
 
-        if (!empty($save)) {
-            if ($request->input('pc_id') !== $request->input('_current_pc_id')) {
-                DB::table('product_stocks')->where(['p_id' => $id])->delete();
-            }
+            $data = [
+                'br_id' => $request->input('br_id'),
+                'pc_id' => $request->input('pc_id'),
+                'psc_id' => $request->input('psc_id'),
+                'pssc_id' => $request->input('pssc_id'),
+                'mc_id' => $request->input('mc_id'),
+                'ps_id' => $request->input('ps_id'),
+                'pu_id' => $request->input('pu_id'),
+                'gn_id' => $request->input('gn_id'),
+                'ss_id' => $request->input('ss_id'),
+                'p_color' => ltrim($request->input('p_color')),
+                'p_code' => ltrim($request->input('p_code')),
+                'p_name' => ltrim($request->input('p_name')),
+                'p_description' => $request->input('p_description'),
+                'p_aging' => $request->input('p_aging'),
+                'p_price_tag' => $request->input('p_price_tag'),
+                'p_purchase_price' => $request->input('p_purchase_price'),
+                'p_sell_price' => $request->input('p_sell_price'),
+                'p_weight' => $request->input('p_weight'),
+                'p_delete' => '0'
+            ];
+            $save = $product->storeData($mode, $id, $data);
 
-            $exp = explode('|', $request->_sz_id);
-            $count = (Integer)count($exp);
-            $barcodeArray = explode('|', rtrim($request->input('_sz_barcode'), '|'));
-            for ($i=0; $i<=$count; $i++) {
-                if (empty($exp[$i])) {
-                    continue;
+            if (!empty($save)) {
+                if ($request->input('pc_id') !== $request->input('_current_pc_id')) {
+                    DB::table('product_stocks')->where(['p_id' => $id])->delete();
                 }
 
-                $barcodeItem = $barcodeArray[$i];
+                $exp = explode('|', $request->_sz_id);
+                $count = (Integer)count($exp);
+                $barcodeArray = explode('|', rtrim($request->input('_sz_barcode'), '|'));
+                for ($i=0; $i<=$count; $i++) {
+                    if (empty($exp[$i])) {
+                        continue;
+                    }
 
-                // Extracting ID and Barcode from the current element
-                 list($size_id, $barcode) = explode('-', $barcodeItem);
+                    $barcodeItem = $barcodeArray[$i];
 
-                if ($mode == 'add') {
-                    ProductStock::create([
-                        'p_id' => $save,
-                        'sz_id' => $size_id,
-                        'ps_barcode' => $barcode,
-                        'ps_qty' => '0',
-                        'ps_running_code' => $this->generateRunningCode()
-                    ]);
-                } else {
-                    $check_current_size = ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->exists();
-                    if ($check_current_size) {
-                        ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->update(['ps_running_code' => $this->generateRunningCode()]);
-                    } else {
+                    // Extracting ID and Barcode from the current element
+                    list($size_id, $barcode) = explode('-', $barcodeItem);
+
+                    if ($mode == 'add') {
                         ProductStock::create([
-                            'p_id' => $id,
+                            'p_id' => $save,
                             'sz_id' => $size_id,
+                            'ps_barcode' => $barcode,
                             'ps_qty' => '0',
                             'ps_running_code' => $this->generateRunningCode()
                         ]);
+                    } else {
+                        $check_current_size = ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->exists();
+                        if ($check_current_size) {
+                            ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->update(['ps_running_code' => $this->generateRunningCode()]);
+                        } else {
+                            ProductStock::create([
+                                'p_id' => $id,
+                                'sz_id' => $size_id,
+                                'ps_qty' => '0',
+                                'ps_running_code' => $this->generateRunningCode()
+                            ]);
+                        }
                     }
                 }
-            }
-            if ($mode == 'add') {
-                $this->UserActivity('menambah data produk '.strtoupper($request->input('p_name')).' '.strtoupper($request->input('p_color')));
-            } else {
-                $this->UserActivity('mengubah data produk '.strtoupper($request->input('p_name')).' '.strtoupper($request->input('p_color')));
-            }
-            $r['status'] = '200';
-        } else {
-            $exp = explode('|', $request->_sz_id);
-            $count = (Integer)count($exp);
-            for ($i=0; $i<=$count; $i++) {
-                if (empty($exp[$i])) {
-                    continue;
-                }
                 if ($mode == 'add') {
-                    ProductStock::create([
-                        'p_id' => $id,
-                        'sz_id' => $exp[$i],
-                        'ps_qty' => '0',
-                        'ps_running_code' => $this->generateRunningCode()
-                    ]);
+                    $this->UserActivity('menambah data produk '.strtoupper($request->input('p_name')).' '.strtoupper($request->input('p_color')));
                 } else {
-                    $check_current_size = ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->exists();
-                    if ($check_current_size) {
-                        ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->update(['ps_running_code' => $this->generateRunningCode()]);
-                    } else {
+                    $this->UserActivity('mengubah data produk '.strtoupper($request->input('p_name')).' '.strtoupper($request->input('p_color')));
+                }
+                $r['status'] = '200';
+            } else {
+                $exp = explode('|', $request->_sz_id);
+                $count = (Integer)count($exp);
+                for ($i=0; $i<=$count; $i++) {
+                    if (empty($exp[$i])) {
+                        continue;
+                    }
+                    if ($mode == 'add') {
                         ProductStock::create([
                             'p_id' => $id,
                             'sz_id' => $exp[$i],
                             'ps_qty' => '0',
                             'ps_running_code' => $this->generateRunningCode()
                         ]);
+                    } else {
+                        $check_current_size = ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->exists();
+                        if ($check_current_size) {
+                            ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->update(['ps_running_code' => $this->generateRunningCode()]);
+                        } else {
+                            ProductStock::create([
+                                'p_id' => $id,
+                                'sz_id' => $exp[$i],
+                                'ps_qty' => '0',
+                                'ps_running_code' => $this->generateRunningCode()
+                            ]);
+                        }
                     }
                 }
-            }
 
-            $r['status'] = '200';
+                $r['status'] = '200';
+            }
+            return json_encode($r);
+        }catch (\Exception $e) {
+            return json_encode($e->getMessage());
         }
-        return json_encode($r);
     }
 
     public function updateBarcode(Request $request)
