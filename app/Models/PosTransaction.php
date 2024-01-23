@@ -22,6 +22,8 @@ class PosTransaction extends Model
         'pos_total_discount',
         'pos_discount_seller',
         'pos_draft',
+        'pos_paid_dp',
+        'pos_paid_dp_date',
         'created_at'
     ];
 

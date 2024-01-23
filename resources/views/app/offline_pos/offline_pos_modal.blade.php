@@ -126,6 +126,14 @@
 					</tr>
 					<tr class="d-flex align-items-center justify-content-between" id="payment_type_content">
 						<th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
+							<span class="btn btn-inventory">Down Payment</span>
+						</th>
+						<td class="col-4 border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
+							<input type="checkbox" id="dp_checkbox" value="dp"/>
+						</td>
+					</tr>
+					<tr class="d-flex align-items-center justify-content-between" id="payment_type_content">
+						<th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
 							<span class="btn btn-inventory">Metode Pembayaran</span>
 						</th>
 						<td class=" col-4 border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">

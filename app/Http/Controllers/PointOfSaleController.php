@@ -493,6 +493,7 @@ class PointOfSaleController extends Controller
             'st_id_ref' => $st_id_ref,
             'cross_order' => $cross_order,
         ]);
+
         if (!empty($insert_get_id)) {
             if (!empty($voc_pst_id)) {
                 $used_voucher = DB::table('voucher_transactions')->insert([
@@ -517,135 +518,147 @@ class PointOfSaleController extends Controller
 
     public function saveTransactionOffline(Request $request)
     {
-        $pm_id = $request->_pm_id;
-        $pm_id_two = $request->_pm_id_two;
-        $ur_id = $request->_ur_id;
-        $std_id = $request->_std_id;
-        $cust_id = $request->_cust_id;
-        if ($cust_id == null) {
-            $cust_id = 1;
-        }
-        $pt_id_complaint = $request->_pt_id_complaint;
-        $exchange = $request->_exchange;
-        $card_number = $request->_card_number;
-        $ref_number = $request->_ref_number;
-        $card_number_two = $request->_card_number_two;
-        $ref_number_two = $request->_ref_number_two;
-        $secret_code = $request->_access_code;
-        $cp_id = $request->_cp_id;
-        $cp_id_two = $request->_cp_id_two;
-        $charge = $request->_charge;
-        $unique_code = $request->_unique_code;
-        $another_cost = $request->_another_cost;
-        $admin_cost = $request->_admin_cost;
-        if (empty($admin_cost)) {
-            $admin_cost = 0;
-        }
-        $total_payment = $request->_total_payment;
-        $real_price = $request->_real_price;
-        $total_payment_two = $request->_total_payment_two;
-        $note = $request->_note;
-        $shipping_cost = $request->_shipping_cost;
-        $cr_id = $request->_cr_id;
-        $pos_total_discount = $request->_total_discount_side;
-
-        $rand = str_pad(rand(0, pow(10, 3)-1), 3, '0', STR_PAD_LEFT);
-        $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
-        $prefix = WebConfig::select('config_value')->where('config_name', 'pos_prefix')->get()->first()->config_value;
-
-        $store_prefix = Store::select('st_description')->where('id', '=', Auth::user()->st_id)->get()->first()->st_description;
-        $div_prefix = StoreTypeDivision::select('dv_description')->where('id', '=', $std_id)->get()->first()->dv_description;
-        $sorting_number = PosTransaction::where([
-            'std_id' => $std_id,
-            'st_id' => Auth::user()->st_id,
-          ])->whereDate('created_at', date('Y-m-d'))->count('id');
-
-        $invoice = $prefix.date('YmdHis').$rand.$store_prefix.$div_prefix.($sorting_number+1);
-        if ($std_id == '14' || $std_id == '18') {
-            $stt_id = '1';
-        } else {
-            $stt_id = Auth::user()->stt_id;
-        }
-        if (!empty($pt_id_complaint)) {
-            $check_cust_id = PosTransaction::select('cust_id')->where('id', $pt_id_complaint)->get()->first();
-            if (!empty($check_cust_id)) {
-                $cust_id = $check_cust_id->cust_id;
+        try {
+            $pm_id = $request->_pm_id;
+            $pm_id_two = $request->_pm_id_two;
+            $ur_id = $request->_ur_id;
+            $std_id = $request->_std_id;
+            $cust_id = $request->_cust_id;
+            if ($cust_id == null) {
+                $cust_id = 1;
             }
-            if ($exchange == 'true') {
-                DB::table('pos_transactions')->where('id', $pt_id_complaint)->update([
-                    'pos_refund' => '1',
-                    'pos_status' => 'EXCHANGE'
-                ]);
+            $pt_id_complaint = $request->_pt_id_complaint;
+            $exchange = $request->_exchange;
+            $card_number = $request->_card_number;
+            $ref_number = $request->_ref_number;
+            $card_number_two = $request->_card_number_two;
+            $ref_number_two = $request->_ref_number_two;
+            $secret_code = $request->_access_code;
+            $cp_id = $request->_cp_id;
+            $cp_id_two = $request->_cp_id_two;
+            $charge = $request->_charge;
+            $unique_code = $request->_unique_code;
+            $another_cost = $request->_another_cost;
+            $admin_cost = $request->_admin_cost;
+            if (empty($admin_cost)) {
+                $admin_cost = 0;
+            }
+            $total_payment = $request->_total_payment;
+            $real_price = $request->_real_price;
+            $total_payment_two = $request->_total_payment_two;
+            $note = $request->_note;
+            $shipping_cost = $request->_shipping_cost;
+            $cr_id = $request->_cr_id;
+            $pos_total_discount = $request->_total_discount_side;
+            $dp_checkbox = $request->_dp_checkBox;
+
+            $rand = str_pad(rand(0, pow(10, 3)-1), 3, '0', STR_PAD_LEFT);
+            $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
+            $prefix = WebConfig::select('config_value')->where('config_name', 'pos_prefix')->get()->first()->config_value;
+
+            $store_prefix = Store::select('st_description')->where('id', '=', Auth::user()->st_id)->get()->first()->st_description;
+            $div_prefix = StoreTypeDivision::select('dv_description')->where('id', '=', $std_id)->get()->first()->dv_description;
+            $sorting_number = PosTransaction::where([
+                'std_id' => $std_id,
+                'st_id' => Auth::user()->st_id,
+            ])->whereDate('created_at', date('Y-m-d'))->count('id');
+
+            $invoice = $prefix.date('YmdHis').$rand.$store_prefix.$div_prefix.($sorting_number+1);
+            if ($std_id == '14' || $std_id == '18') {
+                $stt_id = '1';
             } else {
-                DB::table('pos_transactions')->where('id', $pt_id_complaint)->update([
-                    'pos_refund' => '1',
-                    'pos_status' => 'REFUND'
+                $stt_id = Auth::user()->stt_id;
+            }
+            if (!empty($pt_id_complaint)) {
+                $check_cust_id = PosTransaction::select('cust_id')->where('id', $pt_id_complaint)->get()->first();
+                if (!empty($check_cust_id)) {
+                    $cust_id = $check_cust_id->cust_id;
+                }
+                if ($exchange == 'true') {
+                    DB::table('pos_transactions')->where('id', $pt_id_complaint)->update([
+                        'pos_refund' => '1',
+                        'pos_status' => 'EXCHANGE'
+                    ]);
+                } else {
+                    DB::table('pos_transactions')->where('id', $pt_id_complaint)->update([
+                        'pos_refund' => '1',
+                        'pos_status' => 'REFUND'
+                    ]);
+                }
+            }
+
+            $voc_pst_id = $request->voc_pst_id;
+            $voc_value = $request->voc_value;
+            $voc_id = $request->voc_id;
+            $total_voc_value = $request->_pos_total_vouchers;
+
+            $insert_get_id = DB::table('pos_transactions')->insertGetId([
+                'u_id' => $u_id,
+                'st_id' => Auth::user()->st_id,
+                'stt_id' => $stt_id,
+                'pm_id' => $pm_id,
+                'pm_id_partial' => $pm_id_two,
+                'cp_id' => $cp_id,
+                'cp_id_partial' => $cp_id_two,
+                'std_id' => $std_id,
+                'cust_id' => $cust_id,
+                'pt_id_ref' => $pt_id_complaint,
+                'pos_unique_code' => $unique_code,
+                'pos_another_cost' => $another_cost,
+                'pos_admin_cost' => $admin_cost,
+                'pos_real_price' => $real_price,
+                'pos_invoice' => $invoice,
+                'pos_card_number' => $card_number,
+                'pos_card_number_two' => $card_number_two,
+                'pos_ref_number' => $ref_number,
+                'pos_ref_number_two' => $ref_number_two,
+                'pos_cc_charge' => $charge,
+                'pos_payment' => $total_payment,
+                'pos_payment_partial' => $total_payment_two,
+                'pos_shipping' => $shipping_cost,
+                'pos_total_vouchers' => $total_voc_value,
+                'pos_total_discount' => $pos_total_discount,
+                'cr_id' => $cr_id,
+                'pos_note' => $note,
+                'created_at' => date('Y-m-d H:i:s'),
+                'pos_refund' => '0',
+            ]);
+
+            if($dp_checkbox){
+                DB::table('pos_transactions')->where('id', $insert_get_id)->update([
+                    'pos_status' => 'DP'
                 ]);
             }
-        }
 
-        $voc_pst_id = $request->voc_pst_id;
-        $voc_value = $request->voc_value;
-        $voc_id = $request->voc_id;
-        $total_voc_value = $request->_pos_total_vouchers;
-
-        $insert_get_id = DB::table('pos_transactions')->insertGetId([
-            'u_id' => $u_id,
-            'st_id' => Auth::user()->st_id,
-            'stt_id' => $stt_id,
-            'pm_id' => $pm_id,
-            'pm_id_partial' => $pm_id_two,
-            'cp_id' => $cp_id,
-            'cp_id_partial' => $cp_id_two,
-            'std_id' => $std_id,
-            'cust_id' => $cust_id,
-            'pt_id_ref' => $pt_id_complaint,
-            'pos_unique_code' => $unique_code,
-            'pos_another_cost' => $another_cost,
-            'pos_admin_cost' => $admin_cost,
-            'pos_real_price' => $real_price,
-            'pos_invoice' => $invoice,
-            'pos_card_number' => $card_number,
-            'pos_card_number_two' => $card_number_two,
-            'pos_ref_number' => $ref_number,
-            'pos_ref_number_two' => $ref_number_two,
-            'pos_cc_charge' => $charge,
-            'pos_payment' => $total_payment,
-            'pos_payment_partial' => $total_payment_two,
-            'pos_shipping' => $shipping_cost,
-            'pos_total_vouchers' => $total_voc_value,
-            'pos_total_discount' => $pos_total_discount,
-            'cr_id' => $cr_id,
-            'pos_note' => $note,
-            'created_at' => date('Y-m-d H:i:s'),
-            'pos_refund' => '0',
-        ]);
-        if (!empty($ur_id)) {
-          $update_rating = UserRating::where('id', '=', $ur_id)->update([
-            'pt_id' => $insert_get_id,
-            'ur_status' => 'DONE'
-          ]);
-        }
-        if (!empty($insert_get_id)) {
-            if (!empty($voc_pst_id)) {
-                $used_voucher = DB::table('voucher_transactions')->insert([
-                    'vc_id' => $voc_id,
+            if (!empty($ur_id)) {
+                $update_rating = UserRating::where('id', '=', $ur_id)->update([
                     'pt_id' => $insert_get_id,
-                    'u_id' => Auth::user()->id,
-                    'cust_id' => $cust_id,
-                    'pst_id' => $voc_pst_id,
-                    'value' => $voc_value,
-                    'created_at' => date('Y-m-d'),
-                    'updated_at' => date('Y-m-d'),
+                    'ur_status' => 'DONE'
                 ]);
             }
-            $r['status'] = '200';
-            $r['pt_id'] = $insert_get_id;
-            $r['invoice'] = $invoice;
-        } else {
-            $r['status'] = '400';
+            if (!empty($insert_get_id)) {
+                if (!empty($voc_pst_id)) {
+                    $used_voucher = DB::table('voucher_transactions')->insert([
+                        'vc_id' => $voc_id,
+                        'pt_id' => $insert_get_id,
+                        'u_id' => Auth::user()->id,
+                        'cust_id' => $cust_id,
+                        'pst_id' => $voc_pst_id,
+                        'value' => $voc_value,
+                        'created_at' => date('Y-m-d'),
+                        'updated_at' => date('Y-m-d'),
+                    ]);
+                }
+                $r['status'] = '200';
+                $r['pt_id'] = $insert_get_id;
+                $r['invoice'] = $invoice;
+            } else {
+                $r['status'] = '400';
+            }
+            return json_encode($r);
+        }catch (\Exception $e) {
+            return json_encode($e->getMessage());
         }
-        return json_encode($r);
     }
 
     public function saveTransactionDetail(Request $request)

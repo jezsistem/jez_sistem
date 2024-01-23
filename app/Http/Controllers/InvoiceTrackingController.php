@@ -135,7 +135,7 @@ class InvoiceTrackingController extends Controller
 
 
         if(request()->ajax()) {
-            return datatables()->of(PosTransaction::selectRaw("ts_pos_transactions.id as pt_id, sum(ts_pos_transaction_details.pos_td_qty) as total_item, u_name, cust_name, cust_id, pos_invoice, std_id, stt_name, pos_real_price, dv_name, cr_id, pt_id_ref, pos_shipping_number, psi_courier, psi_description, ts_pos_transactions.created_at as pos_created, pos_status")
+            return datatables()->of(PosTransaction::selectRaw("ts_pos_transactions.id as pt_id, sum(ts_pos_transaction_details.pos_td_qty) as total_item, u_name, cust_name, cust_id, pos_invoice, std_id, stt_name, pos_real_price, dv_name, cr_id, pt_id_ref, pos_shipping_number, psi_courier, psi_description, ts_pos_transactions.created_at as pos_created, pos_status, pos_payment")
             ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
             ->leftJoin('pos_shipping_information', 'pos_shipping_information.pt_id', '=', 'pos_transactions.id')
@@ -213,6 +213,13 @@ class InvoiceTrackingController extends Controller
                 }
                 if ($data->pos_status == 'WAITING FOR CONFIRMATION') {
                     $btn = 'btn-warning';
+                }
+                if ($data->pos_status == 'DP') {
+                    return '<span class="btn btn-sm btn-warning"
+                            data-pt_id ="'.$data->pt_id.'" id="dp_payment_btn" 
+                            data-pos_real_price="'.$data->pos_real_price.'"
+                            data-pos_payment="'.$data->pos_payment.'"
+                            >'.$data->pos_status.'</span>';
                 }
                 if ($data->pos_status == 'IN PROGRESS') {
                     $btn = 'btn-primary';
@@ -428,6 +435,35 @@ Balas pesan ini jika butuh bantuan :)";
             echo $trace;
         } else {
             echo "Terjadi error, atau resi kurir belum support";
+        }
+    }
+
+    public function invoiceDpRepayment(Request $request)
+    {
+        try {
+            $id = $request->_pt_id;
+            $payment_dp = $request->_payment_dp;
+            $payment_dp_date = $request->_payment_dp_date;
+
+
+            $pt = PosTransaction::where('id', $id)->first();
+            $pt_update = PosTransaction::where('id', $id)->update([
+                'pos_payment' => $pt->pos_payment + $payment_dp,
+                'pos_paid_dp' => $payment_dp,
+                'pos_paid_dp_date' => $payment_dp_date,
+                'pos_status' => 'DONE'
+            ]);
+
+            if ($pt_update)
+            {
+                $r['status'] = '200';
+            } else {
+                $r['status'] = '400';
+            }
+
+            return json_encode($r);
+        }catch (\Exception $e) {
+            return json_encode($e->getMessage());
         }
     }
 

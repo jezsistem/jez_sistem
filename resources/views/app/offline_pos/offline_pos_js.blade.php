@@ -324,7 +324,7 @@
             },
             dataType: 'json',
             success: function(r) {
-                console.log(r);
+                // console.log(r);
                 if (r.status == '200') {
                     toast('Saved', 'Saved', 'success');
                 } else if (r.status == '400') {
@@ -391,7 +391,7 @@
                     b1g1_temp = jQuery.grep(b1g1_temp, function(value) {
                         return value != price;
                     });
-                    console.log(b1g1_temp);
+                    // console.log(b1g1_temp);
                     shoes_voucher_temp = jQuery.grep(shoes_voucher_temp, function(value) {
                         return value != key;
                     });
@@ -400,7 +400,7 @@
                             shoes_voucher_temp.push(key);
                         }
                     }
-                    console.log(shoes_voucher_temp);
+                    // console.log(shoes_voucher_temp);
                     jQuery('#orderList'+index).remove();
                 } else if (r.status == '400') {
                     toast('Gagal', 'Item gagal dihapus, jika ingin menghapus, pilih terlebih dahulu LOKASI tempat barang diambil, coba kembali', 'danger');
@@ -441,6 +441,7 @@
         var admin_cost = jQuery('#admin_cost').val();
         var cr_id = jQuery('#cr_id').val();
         var shipping_cost = jQuery('#shipping_cost').val();
+        var dp_checkBox = jQuery('#dp_checkbox').is(':checked');
 
         var voc_pst_id = jQuery('#_voc_pst_id').val();
         var voc_value = jQuery('#_voc_value').val();
@@ -495,11 +496,14 @@
                 _total_payment_two:total_payment_two,
                 _access_code:access_code,
                 _type:type,
+                _dp_checkBox:dp_checkBox,
                 _pm_id:pm_id,
                 _pm_id_two:pm_id_two, _std_id:std_id,
                 _cust_id:cust_id, _note:note,
-                _card_number:card_number, _ref_number:ref_number,
-                _card_number_two:card_number_two, _ref_number_two:ref_number_two,
+                _card_number:card_number,
+                _ref_number:ref_number,
+                _card_number_two:card_number_two,
+                _ref_number_two:ref_number_two,
                 _pos_total_vouchers:voucher_disc_total,
                 _total_discount_side:replaceComma(total_discount_side),
             },
@@ -952,7 +956,7 @@
                             "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+r.plst_id+", "+pl_id+")'><i class='fa fa-eye' style='display:none;'></i></a> " +
                             "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+", "+pl_id+", "+r.plst_id+", "+bandrol+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                     }
-                    console.log(b1g1_temp);
+                    // console.log(b1g1_temp);
                 } else if (r.status == '400') {
                     toast('Gagal', 'Item gagal ditambah', 'danger');
                 }
@@ -1103,7 +1107,7 @@
                                         "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+r.plst_id+", "+pl_id+")'>" +
                                         "<i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+", "+pl_id+", "+r.plst_id+", "+bandrol+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                                 }
-                                console.log(b1g1_temp);
+                                // console.log(b1g1_temp);
                             } else if (r.status == '400') {
                                 toast('Gagal', 'Item gagal ditambah', 'danger');
                             }
@@ -2170,7 +2174,7 @@
                 },
             dataType:'json',
             success: function(r) {
-                console.log(r.status);
+                // console.log(r.status);
                 if (r.status == '200') {
                     // ditemukan
                     var new_total = parseFloat(total) - parseFloat(r.sell) + parseFloat(r.value);
