@@ -472,15 +472,28 @@ class PreOrderController extends Controller
             foreach ($proad as $proad_row) {
                 foreach ($poad as $poad_row) {
                     if ($proad_row->pst_id == $poad_row->pst_id) {
-                        // get price tag from product stock who has same pst_id
+
                         $pst = DB::table('product_stocks')->where(['id' => $proad_row->pst_id])->first();
-                        // calculate total price
-                        $qty = $proad_row->poad_qty + $poad_row->poad_qty;
-                        $total_price = $pst->ps_price_tag * $qty;
-                        DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $qty, 'poad_total_price' => $total_price]);
-                        //calculate qty from pre_order_article_details
-                        $qty = $proad_row->poad_qty - $qty;
-                        DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $qty]);
+                        $poad_table = DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
+                        $proad_table = DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
+
+
+                        $poad_table_qty = $poad_table->poad_qty;
+                        $proad_table_qty = $proad_table->poad_qty;
+
+                        $difference_qty = $proad_table_qty - $poad_table_qty;
+
+                        $poad_qty = $poad_table_qty + $difference_qty;
+
+                        $total_price = $pst->ps_price_tag * $poad_qty;
+                        DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $poad_qty, 'poad_total_price' => $total_price]);
+                        $poad_table = DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
+
+                        $poad_table_qty = $poad_table->poad_qty;
+                        $proad_table_qty = $proad_table->poad_qty;
+
+                        $difference_qty = $proad_table_qty - $poad_table_qty;
+                        DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $difference_qty]);
                     }
                 }
             }
