@@ -566,15 +566,11 @@ class PurchaseOrderController extends Controller
                 foreach($request->file('imageInvoices') as $file)
                 {
                     $image = $file;
-                    $name = time().'.'.$image->getClientOriginalExtension();
+                    $name =  pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
                     $destinationPath = public_path('/upload/purchase_order_invoice');
 
                     // save destination path
                     $image->move($destinationPath, $name);
-//                    $img = Image::make($image->getRealPath());
-//                    $img->resize(400, 400, function ($constraint) {
-//                        $constraint->aspectRatio();
-//                    })->save($destinationPath.'/'.$name);
 
                     PurchaseOrderInvoiceImage::create([
                         'purchase_order_id' => $po_id,
