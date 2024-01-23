@@ -479,7 +479,7 @@ class PreOrderController extends Controller
                         $total_price = $pst->ps_price_tag * $qty;
                         DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $qty, 'poad_total_price' => $total_price]);
                         //calculate qty from pre_order_article_details
-                        $qty = $proad_row->poad_qty - $poad_row->poad_qty;
+                        $qty = $proad_row->poad_qty - $qty;
                         DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $qty]);
                     }
                 }
