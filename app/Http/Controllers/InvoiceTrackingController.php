@@ -442,11 +442,12 @@ Balas pesan ini jika butuh bantuan :)";
     {
         try {
             $id = $request->_pt_id;
-            $payment_dp = $request->_payment_dp;
-            $payment_dp_date = $request->_payment_dp_date;
+            $payment_dp = $request->payment_dp;
+            $payment_dp_date = $request->payment_dp_date;
 
 
             $pt = PosTransaction::where('id', $id)->first();
+
             $pt_update = PosTransaction::where('id', $id)->update([
                 'pos_payment' => $pt->pos_payment + $payment_dp,
                 'pos_paid_dp' => $payment_dp,
