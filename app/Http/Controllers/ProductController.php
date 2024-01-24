@@ -632,9 +632,9 @@ class ProductController extends Controller
         return json_encode($r);
     }
 
-    public function checkExistsProductCode(Request $request)
+    public function checkExistsArticleID(Request $request)
     {
-        $check = Product::where(['p_code' => $request->_p_code])->exists();
+        $check = Product::where(['p_code' => $request->_article_id])->exists();
         if ($check) {
             $r['status'] = '200';
         } else {
@@ -674,6 +674,7 @@ class ProductController extends Controller
                 'p_purchase_price' => $request->input('p_purchase_price'),
                 'p_sell_price' => $request->input('p_sell_price'),
                 'p_weight' => $request->input('p_weight'),
+                'article_id' => $request->input('article_id'),
                 'p_delete' => '0'
             ];
             $save = $product->storeData($mode, $id, $data);

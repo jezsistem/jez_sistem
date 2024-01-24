@@ -334,7 +334,6 @@
                                         <th style="white-space: nowrap;" class="text-dark">Warna</th>
                                         <th style="white-space: nowrap;" class="text-dark">Brand</th>
                                         <th style="white-space: nowrap;" class="text-dark">Supplier</th>
-                                        <th style="white-space: nowrap;" class="text-dark">Berat(gr)</th>
                                         <th style="white-space: nowrap;" class="text-dark">Harga Banderol</th>
                                         <th style="white-space: nowrap;" class="text-dark">Harga Beli</th>
                                         <th style="white-space: nowrap;" class="text-dark">Harga Jual</th>

@@ -58,7 +58,7 @@
                     <div class="form-group row">
                         <div class="col-lg-4 pt-1">
                             <label>Kode Artikel</label>
-                            <input type="text" name="p_code" id="p_code" class="form-control" placeholder="Kode Artikel"/>
+                            <input type="text" name="article_id" id="article_id" class="form-control" placeholder="Kode Artikel"/>
                         </div>
                         <div class="col-lg-4 pt-1 float-right ml-auto">
                             <div id="product_qr"></div>

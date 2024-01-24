@@ -409,7 +409,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('p_import', [ProductController::class, 'importData']);
     Route::post('p_import_2', [ProductController::class, 'importData2']);
     Route::post('check_exists_barcode', [ProductController::class, 'checkExistsBarcode']);
-    Route::post('check_exists_product_code', [ProductController::class, 'checkExistsProductCode']);
+    Route::post('check_exists_article_id', [ProductController::class, 'checkExistsArticleID']);
     Route::post('update_barcode', [ProductController::class, 'updateBarcode']);
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);

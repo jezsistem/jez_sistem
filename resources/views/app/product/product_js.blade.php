@@ -333,7 +333,6 @@
             { data: 'p_color_show', name: 'p_color' },
             { data: 'br_name', name: 'br_name' },
             { data: 'ps_name_show', name: 'ps_name' },
-            { data: 'p_weight', name: 'p_weight' },
             { data: 'p_price_tag_show', name: 'p_price_tag', render: function (data, type, row) {
                     return type === 'export' ?
                         data.replace( /[$,]/g, '' ) :
@@ -735,7 +734,7 @@
             var product_label = $('#product_category_component').text();
             var id = product_table.row(this).data().pid;
             var p_name = product_table.row(this).data().p_name;
-            var p_code = product_table.row(this).data().p_code;
+            var article_id = product_table.row(this).data().article_id;
             var p_description = product_table.row(this).data().p_description;
             var p_aging = product_table.row(this).data().p_aging;
             var p_color = product_table.row(this).data().p_color;
@@ -835,7 +834,7 @@
             $('#pcpscpssc_edit').show();
             $('#barcode_running_label').show();
             $('#p_name').val(p_name);
-            $('#p_code').val(p_code);
+            $('#article_id').val(article_id);
             $('#p_aging').val(p_aging);
             $('#p_color').val(p_color);
             $('#p_price_tag').val(p_price_tag);
@@ -856,11 +855,11 @@
             @if ( $data['user']->delete_access == '1' )
             $('#delete_product_btn').show();
             @endif
-            generateQR(p_code);
+            generateQR(article_id);
         });
 
-        $('#p_code').on('change', function() {
-            var p_code = $(this).val();
+        $('#article_id').on('change', function() {
+            var article_id = $(this).val();
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -868,13 +867,13 @@
             });
             $.ajax({
                 type: "POST",
-                data: {_p_code:p_code},
+                data: {_article_id:article_id},
                 dataType: 'json',
-                url: "{{ url('check_exists_product_code')}}",
+                url: "{{ url('check_exists_article_id')}}",
                 success: function(r) {
                     if (r.status == '200') {
                         swal('Kode', 'Kode produk sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
-                        $('#p_code').val('');
+                        $('#article_id').val('');
                         return false;
                     }
                 }
