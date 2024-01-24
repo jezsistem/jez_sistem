@@ -290,6 +290,7 @@ class ProductController extends Controller
 
                 $query =  datatables()->of(Product::select(
                     'products.id as pid',
+                    'article_id',
                     'br_id',
                     'pc_id',
                     'psc_id',

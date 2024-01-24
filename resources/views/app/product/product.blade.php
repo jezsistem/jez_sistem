@@ -329,6 +329,7 @@
                                 <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Article ID</th>
                                         <th style="white-space: nowrap;" class="text-dark">Nama</th>
                                         <th style="white-space: nowrap;" class="text-dark">Warna</th>
                                         <th style="white-space: nowrap;" class="text-dark">Brand</th>
