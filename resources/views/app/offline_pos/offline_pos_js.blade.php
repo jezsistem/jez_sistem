@@ -1428,6 +1428,8 @@
                 url : "{{ url('refund_retur_datatables') }}",
                 data : function (d) {
                     d.pt_id = jQuery('#refund_retur_pt_id').val();
+
+                    console.log("test");
                 }
             },
             columns: [
@@ -2148,6 +2150,60 @@
         });
     });
 
+    jQuery(document).ready(function () {
+        // Event listener to add a new discount input field
+        jQuery(document).on('click', '.add-total-discount', function () {
+
+            let newField = `
+        <div class="input-group mb-3">
+                <input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
+                <div class="input-group-append ml-3">
+                    <button class="btn btn-outline-secondary remove-total-discount" type="button">-</button>
+                </div>
+            </div>
+    `;
+            jQuery("#total-discount-container").append(newField);
+        });
+
+        // Event listener to remove a discount input field
+        jQuery(document).on('click', '.remove-total-discount', function () {
+            // if remove button is cliked,subtract the total price
+            let total_price = jQuery("#total_final_price_side").text();
+            let total_discount_value_side = jQuery("#total_discount_value_side").text();
+            let discount = jQuery(this).closest('.input-group').find('input').val();
+            //remove comma from total price and discount
+            total_price = replaceComma(total_price);
+            total_discount_value_side = replaceComma(total_discount_value_side);
+
+            let new_total_price = parseFloat(total_price) + parseFloat(discount);
+            let new_total_discount_value_side = parseFloat(total_discount_value_side) - parseFloat(discount);
+            jQuery('#total_final_price_side').text(addCommas(new_total_price));
+            jQuery('#total_discount_value_side').text(addCommas(new_total_discount_value_side));
+            jQuery(this).closest('.input-group').remove();
+        });
+
+        jQuery(document).on('click', '#total_discount_reset', function () {
+            let total_price = jQuery("#total_final_price_side").text();
+            total_price = replaceComma(total_price);
+            // Reset each input field in total-discount-list
+            let new_total_price= parseFloat(total_price);
+
+            jQuery('input[name="total-discount-list[]"]').each(function () {
+                let discount = replaceComma(jQuery(this).val());
+                new_total_price += parseFloat(discount);
+            });
+
+            jQuery('#total_final_price_side').text(addCommas(new_total_price));
+
+            jQuery('input[name="total-discount-list[]"]').each(function () {
+                jQuery(this).val(0);
+            });
+
+            // Reset total_discount_value_side to 0
+            jQuery('#total_discount_value_side').text('0');
+        });
+    });
+
     jQuery(document).delegate('#f_add_voucher', 'submit', function(e) {
         e.preventDefault();
         var cust_phone = jQuery(this).val();
@@ -2213,23 +2269,7 @@
         });
     });
 
-    // Event listener to add a new discount input field
-    jQuery(document).on('click', '.add-total-discount', function () {
-        let newField = `
-        <div class="input-group mb-3 col-md-6">
-                <input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
-                <div class="input-group-append ml-3">
-                    <button class="btn btn-outline-secondary remove-total-discount" type="button">-</button>
-                </div>
-            </div>
-    `;
-        jQuery(".total-discount-container").append(newField);
-    });
 
-    // Event listener to remove a discount input field
-    jQuery(document).on('click', '.remove-total-discount', function () {
-        jQuery(this).closest('.form-group.row').remove();
-    });
 
     jQuery(document).delegate('#f_add_total_discount', 'submit', function(e) {
         e.preventDefault();

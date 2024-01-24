@@ -500,7 +500,6 @@
 			</div>
 			<div class="modal-body">
 				<form id="f_add_total_discount">
-					<div class="total-discount-container">
 						<div class="form-group col-md-6">
 							<label  class="text-body">Tipe Diskon</label>
 							<fieldset class="form-group mb-3">
@@ -513,7 +512,7 @@
 						<div class="col-md-6">
 							<label class="text-body">Diskon</label>
 							<fieldset class="form-group mb-3">
-								<div id="voucher-container">
+								<div id="total-discount-container">
 									<div class="input-group mb-3">
 										<input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
 										<div class="input-group-append ml-3">
@@ -523,9 +522,9 @@
 								</div>
 							</fieldset>
 						</div>
-					</div>
 					<div class="form-group row justify-content-end mb-0">
 						<div class="col-md-6  text-right">
+							<button type="button" class="btn btn-warning" id="total_discount_reset">Reset</button>
 							<button type="submit" class="btn btn-primary">Tambah</button>
 						</div>
 					</div>
