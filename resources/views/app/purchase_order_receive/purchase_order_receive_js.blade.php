@@ -511,6 +511,7 @@
                 if (!isNaN(total_purchase_price) && !isNaN(shipping_cost_pcs)) {
                     var total_cogs = total_purchase_price + parseFloat(shipping_cost_pcs);
                     $('#cogs_' + id + '_' + index).val(addCommas(total_cogs));
+                    $('#poad_purchase_price_' + id + '_' + index).val(addCommas(total_cogs));
                 }
             }
         });
@@ -1351,7 +1352,7 @@
                 contentType: false,
                 processData: false,
                 success: function (r) {
-                    console.log(r);
+
                     $("#take_photo_btn").html('Submit');
                     $("#take_photo_btn").attr("disabled", false);
                     jQuery.noConflict();
