@@ -512,6 +512,11 @@
                     var total_cogs = total_purchase_price + parseFloat(shipping_cost_pcs);
                     $('#cogs_' + id + '_' + index).val(addCommas(total_cogs));
                     $('#poad_purchase_price_' + id + '_' + index).val(addCommas(total_cogs));
+
+                    //calculate total_purchase_price_receive
+                    var qty = $('#poads_qty_' + id + '_' + index).val();
+                    var total_purchase_price_receive = total_cogs * qty;
+                    $('#total_purchase_price_receive' + id + '_' + index).val(addCommas(total_purchase_price_receive));
                 }
             }
         });
