@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -189,5 +190,27 @@ class SizeController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function checkSchemaSizeProductStock(Request $request)
+    {
+        try {
+            $pid = $request->_p_id;
+            $product_stock = DB::table('product_stocks')
+                ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
+                ->select('sizes.sz_schema')
+                ->where('product_stocks.p_id', trim($pid))
+                ->get();
+
+            if (!empty($product_stock)) {
+                $r['status'] = '200';
+                $r['size_schema'] = $product_stock[0]->sz_schema;
+            } else {
+                $r['status'] = '400';
+            }
+            return json_encode($r);
+        }catch (\Exception $e) {
+            return json_encode($e->getMessage());
+        }
     }
 }

@@ -391,6 +391,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('sz_delete', [SizeController::class, 'deleteData']);
     Route::post('sz_import', [SizeController::class, 'importData']);
     Route::post('check_exists_size', [SizeController::class, 'checkExistsSize']);
+    Route::post('check_schema_size_product_stock', [SizeController::class, 'checkSchemaSizeProductStock']);
     // Product Location
     Route::get('lokasi_simpan', [ProductLocationController::class, 'index'])->name('product_location');
     Route::get('product_location_datatables', [ProductLocationController::class, 'getDatatables']);
