@@ -55,6 +55,12 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div class="card-title py-5">
+                                <select class="form-control" id="dp_id" name="dp_id" required>
+                                    <option value="">- Status -</option>
+                                    <option value="DP">DP</option>
+                                </select>
+                            </div>
                             <div class="alert alert-custom alert-white alert-shadow fade show gutter-b bg-primary" role="alert">
                                 <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12" id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal" data-placement="left">
                                     <span class="text-muted font-size-base font-weight-bold mr-2" id="kt_dashboard_daterangepicker_title">Today</span>
@@ -103,6 +109,9 @@
                                         <th class="text-dark" style="white-space:nowrap;">Jumlah Bayar 2</th>
                                         <th class="text-dark" style="white-space:nowrap;">Kartu 2</th>
                                         <th class="text-dark" style="white-space:nowrap;">Ref 2</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Bayar DP</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Tanggal Bayar DP</th>
+                                        <th class="text-dark">Status</th>
                                         <th class="text-dark">Note</th>
                                     </tr>
                                 </thead>

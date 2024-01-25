@@ -146,7 +146,9 @@
                     d.search = $('#invoice_report_search').val();
                     d.stt_id = $('#stt_id').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.dp_id = $('#dp_id').val();
                     d.sales_date = $('#sales_date').val();
+                    console.log($('#st_id_filter').val());
                 }
             },
             columns: [
@@ -200,8 +202,11 @@
             { data: 'pos_payment_partial', name: 'pos_payment_partial' },
             { data: 'pos_card_number_two', name: 'pos_card_number_two' },
             { data: 'pos_ref_number_two', name: 'pos_ref_number_two' },
+            { data: 'pos_paid_dp', name: 'pos_paid_dp' },
+            { data: 'pos_paid_dp_date', name: 'pos_paid_dp_date' },
+            { data: 'pos_status', name: 'pos_status' },
             { data: 'pos_note', name: 'pos_note' },
-            ], 
+            ],
             columnDefs: [
             {
                 "targets": 0,
@@ -310,7 +315,7 @@
             order: [[2, 'desc']],
         });
 
-        $('#stt_id, #datetime, #st_id_filter').on('change', function() {
+        $('#stt_id, #datetime, #st_id_filter', '#dp_id').on('change', function() {
             //sales_report_table.draw();
             invoice_report_table.draw();
             article_report_table.draw();
@@ -370,7 +375,9 @@
             var stt_id = $('#stt_id').val();
             var st_id = $('#st_id_filter').val();
             var date = $('#sales_date').val();
-            window.location.href = "{{ url('sales_export') }}?type="+type+"&date="+date+"&stt_id="+stt_id+"&st_id="+st_id+"";
+            var dp_id = $('#dp_id').val();
+            {{--window.location.href = "{{ url('sales_export') }}?type="+type+"&date="+date+"&stt_id="+stt_id+"&st_id="+st_id+"";--}}
+            window.location.href = "{{ url('sales_export') }}?type="+type+"&date="+date+"&stt_id="+stt_id+"&st_id="+st_id+"&dp_id="+dp_id+"";
         });
         
         $(document).delegate('#cabang_cross_order_detail', 'click', function() {
