@@ -591,8 +591,9 @@ class PurchaseOrderController extends Controller
     public function exportPurchaseOrderArticleData(Request $request)
     {
         $po_id = $request->get('po_id');
+        $st_id = $request->get('st_id');
 
-        $export = new PurchaseOrderArticleExport($po_id);
+        $export = new PurchaseOrderArticleExport($po_id, $st_id);
 
         return Excel::download($export, 'purchase_order_article.xlsx');
     }

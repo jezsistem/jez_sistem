@@ -1232,7 +1232,9 @@
         $(document).delegate('#ExportArticleData', 'click', function(e) {
             e.preventDefault();
             var po_id = $('#_po_id').val();
-            window.location.href = "{{ url('po_article_export') }}?po_id="+po_id;
+            var st_id = $('#st_id').val();
+            {{--window.location.href = "{{ url('po_article_export') }}?po_id="+po_id;--}}
+            window.location.href = "{{ url('po_article_export') }}?po_id="+po_id+"&st_id="+st_id;
         });
     });
 </script>

@@ -2,9 +2,11 @@
 
 namespace App\Exports;
 
+use App\Models\ProductLocationSetup;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderArticle;
 use App\Models\PurchaseOrderArticleDetail;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
@@ -15,81 +17,99 @@ class PurchaseOrderArticleExport implements FromCollection, WithHeadings
     */
 
     protected $po_id;
+    protected $st_id;
 
-    function __construct($po_id)
+    function __construct($po_id, $st_id)
     {
         $this->po_id = $po_id;
-    }
-
-    public function collection()
-    {
-        $check = PurchaseOrder::where('id', $this->po_id)->exists();
-
-        if ($check) {
-            $poa_data = PurchaseOrderArticle::select(
-                'purchase_order_articles.id as poa_id',
-                'po_id',
-                'products.id as pid',
-                'br_name',
-                'p_price_tag',
-                'p_purchase_price',
-                'p_name',
-                'p_color',
-                'poa_discount',
-                'poa_extra_discount',
-                'poa_reminder'
-            )
-                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                ->where(['po_id' => $this->po_id])->get();
-
-            if (!empty($poa_data)) {
-                $get_product = [];
-                foreach ($poa_data as $poa) {
-                    $poad_data = PurchaseOrderArticleDetail::select(
-                        'purchase_order_article_details.id as poad_id',
-                        'sz_name',
-                        'ps_qty',
-                        'ps_running_code',
-                        'ps_sell_price',
-                        'ps_price_tag',
-                        'ps_purchase_price',
-                        'poad_qty',
-                        'poad_purchase_price',
-                        'poad_total_price'
-                    )
-                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                        ->where(['poa_id' => $poa->poa_id])->get();
-                    if (!empty($poad_data)) {
-                        $poa->subitem = $poad_data->all(); // Convert the subitem to an array
-                        array_push($get_product, $poa);
-                    } else {
-                        $get_product = null;
-                    }
-                }
-            } else {
-                $get_product = null;
-            }
-        }
-
-        return collect($get_product);
+        $this->st_id = $st_id;
     }
 
     public function headings(): array
     {
         return [
-            'POA ID',
-            'PO ID',
-            'Product ID',
-            'Brand Name',
-            'Price Tag',
-            'Purchase Price',
-            'Product Name',
-            'Product Color',
-            'POA Discount',
-            'POA Extra Discount',
-            'POA Reminder',
+            'Artikel ID',
+            'Item Name',
+            'Warna Artikel',
+            'Brand',
+            'Size',
+            'SKU',
+            'Order',
+            'InStock',
+            'Harga Bandrol',
+            'Harga beli',
+            'Total',
+            'Variant Schema',
+            'Status'
         ];
     }
+
+    public function collection()
+    {
+        $check = PurchaseOrder::where('id', $this->po_id)->first();
+
+        if ($check) {
+            // get Purchase Order Article
+            $poa_data = PurchaseOrderArticle::select(
+                'products.article_id as article_id',
+                'products.p_name as p_name',
+                'products.p_color as p_color',
+                'brands.br_name as br_name',
+                'sizes.sz_name as sz_name',
+                'product_stocks.ps_barcode as ps_barcode',
+                'poad_qty',
+                'product_stocks.ps_price_tag as ps_price_tag',
+                'purchase_order_article_details.poad_purchase_price as poad_purchase_price',
+                'purchase_order_article_details.poad_total_price as poad_total_price',
+                'sizes.sz_schema as sz_schema',
+                'purchase_order_article_details.pst_id as pst_id',
+                'product_location_setups.pls_qty as pls_qty'
+            )
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->where(['po_id' => $this->po_id])
+                ->groupBy('product_stocks.id')
+                ->get();
+
+
+            $export_data = [];
+            foreach ($poa_data as $poa) {
+                $plsQtyData = ProductLocationSetup::select(
+                    DB::raw('SUM(pls_qty) as total_pls_qty'))
+                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->where(['pst_id' => $poa->pst_id, 'product_locations.st_id' => $this->st_id])
+                    ->groupBy('product_location_setups.pst_id')
+                    ->first();
+
+                    $instock = 0;
+                    if ($plsQtyData != null) {
+                        $instock = $plsQtyData->total_pls_qty;
+                    }
+
+                    $export_data[] = [
+                        'article_id' => $poa->article_id,
+                        'p_name' => $poa->p_name,
+                        'p_color' => $poa->p_color,
+                        'br_name' => $poa->br_name,
+                        'sz_name' => $poa->sz_name,
+                        'ps_barcode' => $poa->ps_barcode,
+                        'poad_qty' => $poa->poad_qty,
+                        'in_stock' => $instock,
+                        'ps_price_tag' => $poa->ps_price_tag,
+                        'poad_purchase_price' => $poa->poad_purchase_price,
+                        'poad_total_price' => $poa->poad_total_price,
+                        'sz_schema' => $poa->sz_schema,
+                    ];
+
+            }
+
+            return collect($export_data);
+        }
+    }
+
 }
