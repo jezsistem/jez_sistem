@@ -584,9 +584,12 @@
                     value_price_voc = 0;
                     shoes_voucher_temp = [];
 
+                    jQuery('#dp_checkbox').prop('checked', false).change();
+
                     jQuery('#total_discount_value_side').text('0');
                     @php  session()->forget('voc_item') @endphp
                     b1g1_temp = [];
+                    reloadRefund();
                     swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
                     setTimeout(() => {
                         if (std_id == '17') {
@@ -1429,7 +1432,7 @@
                 data : function (d) {
                     d.pt_id = jQuery('#refund_retur_pt_id').val();
 
-                    console.log("test");
+                    // console.log("test");
                 }
             },
             columns: [

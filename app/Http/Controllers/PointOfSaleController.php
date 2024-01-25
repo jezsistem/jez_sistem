@@ -188,6 +188,7 @@ class PointOfSaleController extends Controller
             ->whereIn('pos_status' , ['DONE'])
             ->orderBy('created_at')->pluck('pos_invoice', 'id'),
 		];
+
         return view('app.offline_pos._reload_refund', compact('data'));
     }
 
@@ -624,7 +625,8 @@ class PointOfSaleController extends Controller
                 'pos_refund' => '0',
             ]);
 
-            if($dp_checkbox){
+
+            if($dp_checkbox == "true"){
                 DB::table('pos_transactions')->where('id', $insert_get_id)->update([
                     'pos_status' => 'DP'
                 ]);
