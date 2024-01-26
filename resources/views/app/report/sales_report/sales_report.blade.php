@@ -109,8 +109,8 @@
                                         <th class="text-dark" style="white-space:nowrap;">Jumlah Bayar 2</th>
                                         <th class="text-dark" style="white-space:nowrap;">Kartu 2</th>
                                         <th class="text-dark" style="white-space:nowrap;">Ref 2</th>
-                                        <th class="text-dark" style="white-space:nowrap;">Bayar DP</th>
-                                        <th class="text-dark" style="white-space:nowrap;">Tanggal Bayar DP</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Pelunasan</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Tanggal Pelunasan</th>
                                         <th class="text-dark">Status</th>
                                         <th class="text-dark">Note</th>
                                     </tr>
