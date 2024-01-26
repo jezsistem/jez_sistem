@@ -77,15 +77,21 @@
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Sub Kategori <span class="text-danger">*</span></label>
-                            <select class="form-control" id="_psc_id" name="_psc_id" disabled required>
+                            <select class="form-control" id="_psc_id" name="_psc_id" required>
                                 <option value="">- Pilih Sub Kategori -</option>
+                                @foreach ($data['psc_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
                             </select>
                             <div id="_psc_id_parent"></div>
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Sub-Sub Kategori <span class="text-danger">*</span></label>
-                            <select class="form-control" id="_pssc_id" name="_pssc_id" disabled required>
+                            <select class="form-control" id="_pssc_id" name="_pssc_id" required>
                                 <option value="">- Pilih Sub-Sub Kategori -</option>
+                                @foreach ($data['pssc_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
                             </select>
                             <div id="_pssc_id_parent"></div>
                         </div>

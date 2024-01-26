@@ -906,7 +906,7 @@
             jQuery.noConflict();
             $('#ProductModal').modal('show');
             $('#category_arrow_label').show();
-            $('#pcpscpssc_edit').hide();
+            $('#pcpscpssc_edit').show();
             var product_label = $('#product_category_component').text();
             $('#product_label_modal').text(product_label);
             $('input[type="checkbox"]').prop('disabled', false);
