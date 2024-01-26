@@ -678,6 +678,7 @@ class ProductController extends Controller
                 'p_sell_price' => $request->input('p_sell_price'),
                 'p_weight' => $request->input('p_weight'),
                 'article_id' => $request->input('article_id'),
+                'schema_size' => $request->input('schema_size'),
                 'p_delete' => '0'
             ];
             $save = $product->storeData($mode, $id, $data);
