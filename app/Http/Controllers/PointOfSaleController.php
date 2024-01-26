@@ -181,7 +181,7 @@ class PointOfSaleController extends Controller
     {
         $data = [
             'invoice' => PosTransaction::select('id', 'pos_invoice', 'created_at')
-            ->whereRaw('created_at  >= now() - INTERVAL 7 DAY')
+//            ->whereRaw('created_at  >= now() - INTERVAL 7 DAY')
             ->whereIn('stt_id', ['1', '2'])
             ->where('st_id', '=', Auth::user()->st_id)
             ->where('pos_refund', '!=', '1')
