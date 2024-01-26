@@ -751,6 +751,7 @@
             var gn_id = product_table.row(this).data().gn_id;
             var ss_id = product_table.row(this).data().ss_id;
             var mc_id = product_table.row(this).data().mc_id;
+            var schema_size = product_table.row(this).data().schema_size;
             var check_pc_id = $('#pc_id').val();
             if (check_pc_id == 'all') {
                 $('#category_arrow_label').hide();
@@ -811,6 +812,7 @@
                 }
             });
 
+
             $('#sz_schema_modal_id').on('change', function () {
                 // Get the selected value in sc_schema_modal_id
                 var selectedValue = $(this).val();
@@ -820,24 +822,24 @@
                     dataType: 'html',
                     url: "{{ url('reload_size_schema_modal')}}",
                     success: function(r) {
-                        checkSize(id);
                         $('#reload_size').html(r);
+                        checkSize(id);
                     }
                 });
             });
 
-            $.ajax({
-                type: "POST",
-                dataType: 'json',
-                data: {_p_id:id},
-                url: "{{ url('check_schema_size_product_stock')}}",
-                success: function(r) {
-                    if (r.status == '200') {
-                        jQuery('#sz_schema_modal_id').val(r.size_schema).trigger('change');
-                        checkSize(id);
-                    }
-                }
-            });
+            {{--$.ajax({--}}
+            {{--    type: "POST",--}}
+            {{--    dataType: 'json',--}}
+            {{--    data: {_p_id:id},--}}
+            {{--    url: "{{ url('check_schema_size_product_stock')}}",--}}
+            {{--    success: function(r) {--}}
+            {{--        if (r.status == '200') {--}}
+            {{--            jQuery('#sz_schema_modal_id').val(r.size_schema).trigger('change');--}}
+            {{--            checkSize(id);--}}
+            {{--        }--}}
+            {{--    }--}}
+            {{--});--}}
 
 
             jQuery.noConflict();
@@ -862,6 +864,7 @@
             jQuery('#gn_id').val(gn_id).trigger('change');
             jQuery('#ss_id').val(ss_id).trigger('change');
             jQuery('#mc_id').val(mc_id).trigger('change');
+            jQuery('#sz_schema_modal_id').val(schema_size).trigger('change');
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ( $data['user']->delete_access == '1' )

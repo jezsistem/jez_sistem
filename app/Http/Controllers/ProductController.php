@@ -295,7 +295,9 @@ class ProductController extends Controller
                     'pc_id',
                     'psc_id',
                     'pssc_id',
-                    'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'p_active')
+                    'mc_id', 'ps_id', 'pu_id', 'gn_id', 'ss_id', 'p_code', 'p_name', 'p_description', 'p_aging',
+                    'p_color', 'mc_name', 'br_name', 'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price',
+                    'p_weight', 'p_active', 'schema_size')
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
                     ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
@@ -412,7 +414,7 @@ class ProductController extends Controller
                     'products.id as pid', 'br_id', 'pc_id', 'psc_id', 'pssc_id', 'mc_id', 'ps_id', 'pu_id',
                     'gn_id', 'ss_id', 'p_name', 'p_description', 'p_aging', 'p_color', 'mc_name', 'br_name',
                     'ps_name', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'p_weight', 'article_id')
-            ->join('brands', 'brands.id', '=', 'products.br_id')
+            ->join('brands', 'brands.id', '=', 'products.br_id', 'schema_size')
             ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
             ->join('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
             ->where('p_delete', '!=', '1');

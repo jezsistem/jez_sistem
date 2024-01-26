@@ -29,6 +29,7 @@ class Product extends Model
         'p_description',
         'p_image',
         'p_delete',
+        'schema_size'
     ];
 
     public function getJoinData($select, $where)
