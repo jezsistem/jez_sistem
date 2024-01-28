@@ -91,6 +91,8 @@ class ProductImport implements ToCollection, WithStartRow
             if ($r[0] == null) {
                 return null;
             }
+            $article_id = null;
+            $schema_size = null;
             $pc_id = null;
             $psc_id = null;
             $pssc_id = null;
@@ -101,7 +103,7 @@ class ProductImport implements ToCollection, WithStartRow
             $ss_id = null;
             $mc_id = null;
 
-            $product_category = ProductCategory::where('pc_name', '=', ltrim($r[1]));
+            $product_category = ProductCategory::where('pc_name', '=', ltrim($r[3]));
             if (!empty($product_category->first()->id)) {
                 $pc_id = $product_category->first()->id;
                 $status += 1;
@@ -111,7 +113,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($product_category);
             }
-            $product_sub_category = ProductSubCategory::where('pc_id', $pc_id)->where('psc_name', '=', ltrim($r[2]));
+            $product_sub_category = ProductSubCategory::where('pc_id', $pc_id)->where('psc_name', '=', ltrim($r[4]));
             if (!empty($product_sub_category->first()->id)) {
                 $psc_id = $product_sub_category->first()->id;
                 $status += 1;
@@ -121,7 +123,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($product_sub_category);
             }
-            $product_sub_sub_category = ProductSubSubCategory::where('psc_id', $psc_id)->where('pssc_name', '=', ltrim($r[3]));
+            $product_sub_sub_category = ProductSubSubCategory::where('psc_id', $psc_id)->where('pssc_name', '=', ltrim($r[5]));
             if (!empty($product_sub_sub_category->first()->id)) {
                 $pssc_id = $product_sub_sub_category->first()->id;
                 $status += 1;
@@ -131,7 +133,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($product_sub_sub_category);
             }
-            $brand = Brand::where('br_name', '=', ltrim($r[4]));
+            $brand = Brand::where('br_name', '=', ltrim($r[6]));
             if (!empty($brand->first()->id)) {
                 $br_id = $brand->first()->id;
                 $status += 1;
@@ -141,7 +143,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($brand);
             }
-            $product_supplier = ProductSupplier::where('ps_name', '=', ltrim($r[5]));
+            $product_supplier = ProductSupplier::where('ps_name', '=', ltrim($r[7]));
             if (!empty($product_supplier->first()->id)) {
                 $ps_id = $product_supplier->first()->id;
                 $status += 1;
@@ -151,7 +153,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($product_supplier);
             }
-            $product_unit = ProductUnit::where('pu_name', '=', ltrim($r[6]));
+            $product_unit = ProductUnit::where('pu_name', '=', ltrim($r[8]));
             if (!empty($product_unit->first()->id)) {
                 $pu_id = $product_unit->first()->id;
                 $status += 1;
@@ -161,7 +163,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($product_unit);
             }
-            $gender = Gender::where('gn_name', '=', ltrim($r[7]));
+            $gender = Gender::where('gn_name', '=', ltrim($r[9]));
             if (!empty($gender->first()->id)) {
                 $gn_id = $gender->first()->id;
                 $status += 1;
@@ -171,7 +173,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($gender);
             }
-            $season = Season::where('ss_name', '=', ltrim($r[8]));
+            $season = Season::where('ss_name', '=', ltrim($r[10]));
             if (!empty($season->first()->id)) {
                 $ss_id = $season->first()->id;
                 $status += 1;
@@ -181,7 +183,7 @@ class ProductImport implements ToCollection, WithStartRow
                 break;
                 // dd($season);
             }
-            $main_color = MainColor::where('mc_name', '=', ltrim($r[10]));
+            $main_color = MainColor::where('mc_name', '=', ltrim($r[12]));
             if (!empty($main_color->first()->id)) {
                 $mc_id = $main_color->first()->id;
                 $status += 1;
@@ -202,12 +204,14 @@ class ProductImport implements ToCollection, WithStartRow
                 'pu_id' => $pu_id,
                 'gn_id' => $gn_id,
                 'ss_id' => $ss_id,
-                'p_name' => ltrim($r[0]),
-                'p_aging' => ltrim($r[9]),
-                'p_color' => ltrim($r[11]),
-                'p_price_tag' => ltrim($r[12]),
-                'p_purchase_price' => ltrim($r[13]),
-                'p_sell_price' => ltrim($r[14]),
+                'article_id' => ltrim($r[0]),
+                'schema_size' => ltrim($r[1]),
+                'p_name' => ltrim($r[2]),
+                'p_aging' => ltrim($r[11]),
+                'p_color' => ltrim($r[13]),
+                'p_price_tag' => ltrim($r[14]),
+                'p_purchase_price' => ltrim($r[15]),
+                'p_sell_price' => ltrim($r[16]),
                 'p_delete' => '0',
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),

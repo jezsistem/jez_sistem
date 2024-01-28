@@ -782,7 +782,7 @@
                 success: function(r) {
                     $('#_psc_id').html(r);
                     $('#_psc_id').val(psc_id);
-                    $('#_psc_id').prop('disabled', true);
+                    // $('#_psc_id').prop('disabled', true);
                 }
             });
             $.ajax({
@@ -792,7 +792,7 @@
                 success: function(r) {
                     $('#_pssc_id').html(r);
                     $('#_pssc_id').val(pssc_id);
-                    $('#_pssc_id').prop('disabled', true);
+                    // $('#_pssc_id').prop('disabled', true);
                 }
             });
             $.ajaxSetup({
@@ -1039,6 +1039,7 @@
                 formData.append('pc_id', $('#_pc_id').val());
                 formData.append('psc_id', $('#_psc_id').val());
                 formData.append('pssc_id', $('#_pssc_id').val());
+
             }
             $.ajax({
                 type:'POST',
@@ -1099,6 +1100,7 @@
                                 $('#ProductModal').modal('hide');
                                 product_table.ajax.reload();
                             } else {
+
                                 swal('Gagal', 'Gagal hapus data', 'error');
                             }
                         }

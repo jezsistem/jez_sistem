@@ -68,7 +68,7 @@ class ProductController extends Controller
         }
         return $sidebar;
     }
-    
+
     protected function UserActivity($activity)
     {
         UserActivity::create([
@@ -678,7 +678,7 @@ class ProductController extends Controller
                 'p_sell_price' => $request->input('p_sell_price'),
                 'p_weight' => $request->input('p_weight'),
                 'article_id' => $request->input('article_id'),
-                'schema_size' => $request->input('schema_size'),
+                'schema_size' => $request->input('sz_schema_modal_id'),
                 'p_delete' => '0'
             ];
             $save = $product->storeData($mode, $id, $data);
@@ -782,24 +782,45 @@ class ProductController extends Controller
 
     public function deleteData(Request $request)
     {
-        $product = new Product;
-        $product_stock = new ProductStock;
-        $id = $request->input('_id');
-        $save = DB::table('product_stocks')->where('p_id', $id)->delete();
-        if ($save) {
-            $item_name = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
-            $save_product = $product->deleteData($id);
-            if ($save_product) {
-                $this->UserActivity('menghapus data produk '.$item_name->p_name.' '.$item_name->p_color);
-                $r['status'] = '200';
+        try {
+            $product = new Product;
+            $product_stock = new ProductStock;
+            $id = $request->input('_id');
+            $save = DB::table('product_stocks')->where('p_id', $id)->delete();
+            if ($save == 0) {
+                $item = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
+
+                if ($item != null)
+                {
+                    $item_name = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
+                    $save_product = $product->deleteData($id);
+                    if ($save_product) {
+                        $this->UserActivity('menghapus data produk '.$item_name->p_name.' '.$item_name->p_color);
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                    return json_encode($r);
+                }
+            }
+            if ($save) {
+                $item_name = Product::select('p_name', 'p_color')->where('id', $id)->get()->first();
+                $save_product = $product->deleteData($id);
+                if ($save_product) {
+                    $this->UserActivity('menghapus data produk '.$item_name->p_name.' '.$item_name->p_color);
+                    $r['status'] = '200';
+                } else {
+                    $r['status'] = '400';
+                }
             } else {
                 $r['status'] = '400';
             }
-        } else {
-            $r['status'] = '400';
+            return json_encode($r);
+        } catch (\Exception $e) {
+            return json_encode($e->getMessage());
         }
-        return json_encode($r);
     }
+
 
     public function productDetail(Request $request)
     {
