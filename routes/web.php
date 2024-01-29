@@ -1016,7 +1016,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('stock_card', [StockCardController::class, 'index']);
     Route::get('stc_article_datatables', [StockCardController::class, 'getADatatables']);
     Route::post('stc_save', [StockCardController::class, 'saveData']);
-    Route::post('stc_delete', [StockCardControllerr::class, 'deleteData']);
+    Route::post('stc_delete', [StockCardController::class, 'deleteData']);
     Route::post('stock_report_fill_data', [StockCardController::class, 'fillData']);
     Route::post('stock_report_export', [StockCardController::class, 'exportData']);
     Route::post('stock_report_phase2', [StockCardController::class, 'phase2']);

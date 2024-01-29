@@ -42,6 +42,7 @@
                 data : function (d) {
                     d.pl_id = $('#pl_id').val();
                     d.search = $('#article_search').val();
+                    d.excelImport = excelImportData;
                 }
             },
             columns: [
@@ -518,6 +519,7 @@
                 contentType: false,
                 processData: false,
                 success: function(data) {
+
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -577,6 +579,7 @@
                 }
             });
 
+            // console.log(excelImportData);
             // each file excelImportData
             var importData = [];
             for (var i = 0; i < excelImportData.length; i++) {
