@@ -875,6 +875,7 @@
 
         $('#article_id').on('change', function() {
             var article_id = $(this).val();
+
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -887,7 +888,7 @@
                 url: "{{ url('check_exists_article_id')}}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Kode', 'Kode produk sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Kode', 'Article ID sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
                         $('#article_id').val('');
                         return false;
                     }

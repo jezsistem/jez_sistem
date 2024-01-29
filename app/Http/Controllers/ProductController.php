@@ -637,7 +637,7 @@ class ProductController extends Controller
 
     public function checkExistsArticleID(Request $request)
     {
-        $check = Product::where(['p_code' => $request->_article_id])->exists();
+        $check = Product::where(['article_id' => $request->_article_id])->exists();
         if ($check) {
             $r['status'] = '200';
         } else {
