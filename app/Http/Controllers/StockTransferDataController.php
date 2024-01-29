@@ -305,7 +305,7 @@ class StockTransferDataController extends Controller
     $data = $request->_arr;
     $stf_id = $request->_stf_id;
     $st_id_end = $request->_st_id_end;
-    $st_id_end -= 1;
+//    $st_id_end -= 1;
 
     $default_bin = ProductLocation::select('id')->where([
       'st_id' => $st_id_end,
