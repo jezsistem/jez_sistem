@@ -122,7 +122,10 @@ class PurchaseOrderController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         if(request()->ajax()) {
-            return datatables()->of(PurchaseOrder::select('purchase_orders.id as po_id', 'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft', 'purchase_orders.created_at as po_created_at')
+            return datatables()->of(PurchaseOrder::select(
+                'purchase_orders.id as po_id',
+                'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft',
+                'purchase_orders.created_at as po_created_at')
             ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
             ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
             ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
@@ -182,7 +185,13 @@ class PurchaseOrderController extends Controller
                 if ($data->po_draft == '1') {
                     return '<a class="btn btn-sm btn-warning">Draft</a>';
                 } else {
-                    return '<a class="btn btn-sm btn-primary">'.$total_qty_receive.'/'.$total_qty.'</a>';
+                    if ($total_qty_receive == $total_qty)
+                    {
+                        return '<a class="btn btn-sm btn-light-success">'.$total_qty_receive.'/'.$total_qty.'</a>';
+                    }else{
+                        return '<a class="btn btn-sm btn-primary">'.$total_qty_receive.'/'.$total_qty.'</a>';
+
+                    }
                 }
             })
             ->rawColumns(['po_status'])
