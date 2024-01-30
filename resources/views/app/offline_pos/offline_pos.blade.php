@@ -41,6 +41,7 @@
 											<option value="17" selected>OFFLINE</option>
 											<option value="14">ONLINE / WHATSAPP</option>
 											<option value="18">TIKTOK</option>
+											<option value="19">Shopee</option>
 										</select>
 									</div>
 									<input type="hidden" id="free_sock_customer_mode" value=""/>
