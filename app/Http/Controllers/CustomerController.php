@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CustomerExport;
 use App\Models\CustomerTraffic;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use App\Models\Wilayah;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use Hash;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -143,7 +145,9 @@ class CustomerController extends Controller
         }
 
         if(request()->ajax()) {
-            return datatables()->of(Customer::selectRaw("ts_customers.id as cid, ct_name, ct_id, cust_name, cust_store, pos_status, cust_province, cust_city, cust_username, cust_subdistrict, cust_phone, cust_email, cust_address, ts_customers.created_at as cust_created, count(ts_pos_transactions.id) as cust_shopping")
+            return datatables()->of(Customer::selectRaw("ts_customers.id as cid, ct_name, ct_id,
+             cust_name, cust_store, pos_status, cust_province, cust_city, cust_username, cust_subdistrict, cust_phone, cust_email, cust_address,
+             ts_customers.created_at as cust_created, count(ts_pos_transactions.id) as cust_shopping")
             ->leftJoin('pos_transactions', 'pos_transactions.cust_id', '=', 'customers.id')
             ->leftJoin('customer_types', 'customer_types.id', '=', 'customers.ct_id')
             ->where('cust_delete', '!=', '1')
@@ -930,5 +934,17 @@ class CustomerController extends Controller
             'counts' => $counts,
             'countsTotal' => $countsTotal
         ]);
+    }
+
+    public function exportData(Request $request)
+    {
+        try {
+           return Excel::download(new CustomerExport(), 'customer.xlsx');
+        }catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }
