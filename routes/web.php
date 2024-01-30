@@ -252,6 +252,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('store_traffic', [CustomerController::class, 'storeTraffic']);
     Route::post('update_traffic_customer', [CustomerController::class, 'updateTrafficCustomer']);
     Route::get('count_total_customer_type', [CustomerController::class, 'countTotalCustomerType']);
+    Route::get('customer_data_export', [CustomerController::class, 'exportData']);
 
     // Tax
     Route::get('data_pajak', [TaxController::class, 'index'])->name('tax');
