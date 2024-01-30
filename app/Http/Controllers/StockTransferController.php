@@ -653,7 +653,14 @@ class StockTransferController extends Controller
                     $processedData[] = $rowData;
                 }
             }
+            else
+            {
+                $missingBarcode[] = $barcode;
+            }
         }
-        return $processedData;
+        return [
+            'processedData' => $processedData,
+            'missingBarcode' => $missingBarcode
+        ];
     }
 }
