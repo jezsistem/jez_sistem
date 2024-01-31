@@ -296,6 +296,7 @@
         })
     }
 
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -690,6 +691,7 @@
                 dataType: 'json',
                 url: "{{ url('check_product_stock')}}",
                 success: function(r) {
+                    console.log("id checksize : " + id);
                     if (r.data != '400') {
                         var _sz_barcode_edit = '';
                         $.each($(r.data),function(key,value){
@@ -718,6 +720,29 @@
                         //alert(_sz_barcode_edit);
                         $('#_sz_barcode_edit').val(_sz_barcode_edit);
                     }
+                }
+            });
+        }
+
+        function handleSchemaChange(selectedValue, id) {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type: "GET",
+                data: {_sz_schema: selectedValue, _id: id}, // Pass id as data parameter
+                dataType: 'html',
+                url: "{{ url('reload_size_schema_modal')}}",
+                success: function(r) {
+                    $('#reload_size').html(r);
+                    console.log('schema id : ' + id); // Now id should be accessible here
+                    checkSize(id);
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
                 }
             });
         }
@@ -765,9 +790,11 @@
                 {{--        checkSize(id);--}}
                 {{--    }--}}
                 {{--});--}}
-            } else {
+            }
+            else {
                 $('#category_arrow_label').show();
-                checkSize(id);
+                // console.log('id : '+id);
+                // checkSize(id);
             }
 
             if ($.trim(p_description) != '') {
@@ -812,40 +839,14 @@
                 }
             });
 
-            $('#sz_schema_modal_id').on('change', function () {
-                // Get the selected value in sc_schema_modal_id
-                var selectedValue = $(this).val();
-                $.ajax({
-                    type: "GET",
-                    data: {_sz_schema:selectedValue},
-                    dataType: 'html',
-                    url: "{{ url('reload_size_schema_modal')}}",
-                    success: function(r) {
-                        console.log("before");
-                        $('#reload_size').html(r);
-                        checkSize(id);
-                        console.log("after");
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            });
-
-            {{--$.ajax({--}}
-            {{--    type: "POST",--}}
-            {{--    dataType: 'json',--}}
-            {{--    data: {_p_id:id},--}}
-            {{--    url: "{{ url('check_schema_size_product_stock')}}",--}}
-            {{--    success: function(r) {--}}
-            {{--        if (r.status == '200') {--}}
-            {{--            jQuery('#sz_schema_modal_id').val(r.size_schema).trigger('change');--}}
-            {{--            checkSize(id);--}}
-            {{--        }--}}
-            {{--    }--}}
-            {{--});--}}
 
 
+            // $('#sz_schema_modal_id').on('change', function (e) {
+            //     // Get the selected value in sc_schema_modal_id
+            //     var selectedValue = $('#sz_schema_modal_id').val();
+            //     handleSchemaChange(selectedValue, article_id);
+            // });
+            handleSchemaChange(schema_size, id);
             jQuery.noConflict();
             $('#ProductModal').modal('show');
             $('#product_label_modal').text(product_label);
@@ -1066,7 +1067,6 @@
                 contentType: false,
                 processData: false,
                 success: function(data) {
-                    console.log(data);
                     //swal('Result',data.result,'success');
                     $("#save_product_btn").html('Simpan');
                     $("#save_product_btn").attr("disabled", false);
