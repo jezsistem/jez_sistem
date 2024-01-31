@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 
 class ProductImport implements ToCollection, WithStartRow
 {
+    private $sameArticleId = array();
     private $rows = 0;
     /**
     * @param array $row
@@ -84,208 +85,240 @@ class ProductImport implements ToCollection, WithStartRow
 
     public function collection(Collection $row)
     {
-        ++$this->rows;
-        $data_id = array();
-        $status = 0;
-        foreach ($row as $r) {
-            if ($r[0] == null) {
-                return null;
-            }
-            $article_id = null;
-            $schema_size = null;
-            $pc_id = null;
-            $psc_id = null;
-            $pssc_id = null;
-            $br_id = null;
-            $ps_id = null;
-            $pu_id = null;
-            $gn_id = null;
-            $ss_id = null;
-            $mc_id = null;
-
-            $product_category = ProductCategory::where('pc_name', '=', ltrim($r[3]));
-            if (!empty($product_category->first()->id)) {
-                $pc_id = $product_category->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($product_category);
-            }
-            $product_sub_category = ProductSubCategory::where('pc_id', $pc_id)->where('psc_name', '=', ltrim($r[4]));
-            if (!empty($product_sub_category->first()->id)) {
-                $psc_id = $product_sub_category->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($product_sub_category);
-            }
-            $product_sub_sub_category = ProductSubSubCategory::where('psc_id', $psc_id)->where('pssc_name', '=', ltrim($r[5]));
-            if (!empty($product_sub_sub_category->first()->id)) {
-                $pssc_id = $product_sub_sub_category->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($product_sub_sub_category);
-            }
-            $brand = Brand::where('br_name', '=', ltrim($r[6]));
-            if (!empty($brand->first()->id)) {
-                $br_id = $brand->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($brand);
-            }
-            $product_supplier = ProductSupplier::where('ps_name', '=', ltrim($r[7]));
-            if (!empty($product_supplier->first()->id)) {
-                $ps_id = $product_supplier->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($product_supplier);
-            }
-            $product_unit = ProductUnit::where('pu_name', '=', ltrim($r[8]));
-            if (!empty($product_unit->first()->id)) {
-                $pu_id = $product_unit->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($product_unit);
-            }
-            $gender = Gender::where('gn_name', '=', ltrim($r[9]));
-            if (!empty($gender->first()->id)) {
-                $gn_id = $gender->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($gender);
-            }
-            $season = Season::where('ss_name', '=', ltrim($r[10]));
-            if (!empty($season->first()->id)) {
-                $ss_id = $season->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($season);
-            }
-            $main_color = MainColor::where('mc_name', '=', ltrim($r[12]));
-            if (!empty($main_color->first()->id)) {
-                $mc_id = $main_color->first()->id;
-                $status += 1;
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
-                // dd($main_color);
-            }
-
-            $p_id = DB::table('products')->insertGetId([
-                'br_id' => $br_id,
-                'pc_id' => $pc_id,
-                'psc_id' => $psc_id,
-                'pssc_id' => $pssc_id,
-                'mc_id' => $mc_id,
-                'ps_id' => $ps_id,
-                'pu_id' => $pu_id,
-                'gn_id' => $gn_id,
-                'ss_id' => $ss_id,
-                'article_id' => ltrim($r[0]),
-                'schema_size' => ltrim($r[1]),
-                'p_name' => ltrim($r[2]),
-                'p_aging' => ltrim($r[11]),
-                'p_color' => ltrim($r[13]),
-                'p_price_tag' => ltrim($r[14]),
-                'p_purchase_price' => ltrim($r[15]),
-                'p_sell_price' => ltrim($r[16]),
-                'p_delete' => '0',
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
-
-            $data_id[] = $p_id;
-
-            if (!empty($p_id)) {
-                $exp = explode('_', ltrim($r[15]));
-                $count = (Integer)count($exp);
-                for ($i=0; $i<=$count; $i++) {
-                    if (empty($exp[$i])) {
-                        continue;
-                        $this->rows = -1;
-                        break;
-                    }
-                    $exp_ps = explode('|', $exp[$i]);
-                    $size = Size::where(['psc_id' => $psc_id, 'sz_name' => $exp_ps[0]]);
-                    if (!empty($size->first()->id)) {
-                        $sz_id = $size->first()->id;
-                    } else {
-                        continue;
-                        $this->rows = -1;
-                        break;
-                    }
-                    if (empty($exp_ps[1])) {
-                        $barcode = null;
-                    } else {
-                        $barcode = $exp_ps[1];
-                    }
-                    if (empty($exp_ps[2])) {
-                        $price_tag = null;
-                    } else {
-                        $price_tag = $exp_ps[2];
-                    }
-                    if (empty($exp_ps[3])) {
-                        $sell_price = null;
-                    } else {
-                        $sell_price = $exp_ps[3];
-                    }
-                    if (empty($exp_ps[4])) {
-                        $purchase_price = null;
-                    } else {
-                        $purchase_price = $exp_ps[4];
-                    }
-                    ProductStock::create([
-                        'p_id' => $p_id,
-                        'sz_id' => $sz_id,
-                        'ps_qty' => '0',
-                        'ps_barcode' => $barcode,
-                        'ps_price_tag' => $price_tag,
-                        'ps_sell_price' => $sell_price,
-                        'ps_purchase_price' => $purchase_price,
-                        'ps_running_code' => $this->generateRunningCode()
-                    ]);
+        try {
+            ++$this->rows;
+            $data_id = array();
+            $status = 0;
+            foreach ($row as $r) {
+                if ($r[0] == null) {
+                    return null;
                 }
-            } else {
-                $this->rows = -1;
-                $status = -1;
-                break;
+
+                if ($this->articeIdChecker($r[0])) {
+                    $this->setSameArticleId($r[0]);
+                    DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
+                    DB::table('products')->whereIn('id', $data_id)->delete();
+                }
+
+                $article_id = null;
+                $schema_size = null;
+                $pc_id = null;
+                $psc_id = null;
+                $pssc_id = null;
+                $br_id = null;
+                $ps_id = null;
+                $pu_id = null;
+                $gn_id = null;
+                $ss_id = null;
+                $mc_id = null;
+
+                $product_category = ProductCategory::where('pc_name', '=', ltrim($r[3]));
+                if (!empty($product_category->first()->id)) {
+                    $pc_id = $product_category->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($product_category);
+                }
+                $product_sub_category = ProductSubCategory::where('pc_id', $pc_id)->where('psc_name', '=', ltrim($r[4]));
+                if (!empty($product_sub_category->first()->id)) {
+                    $psc_id = $product_sub_category->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($product_sub_category);
+                }
+                $product_sub_sub_category = ProductSubSubCategory::where('psc_id', $psc_id)->where('pssc_name', '=', ltrim($r[5]));
+                if (!empty($product_sub_sub_category->first()->id)) {
+                    $pssc_id = $product_sub_sub_category->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($product_sub_sub_category);
+                }
+                $brand = Brand::where('br_name', '=', ltrim($r[6]));
+                if (!empty($brand->first()->id)) {
+                    $br_id = $brand->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($brand);
+                }
+                $product_supplier = ProductSupplier::where('ps_name', '=', ltrim($r[7]));
+                if (!empty($product_supplier->first()->id)) {
+                    $ps_id = $product_supplier->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($product_supplier);
+                }
+                $product_unit = ProductUnit::where('pu_name', '=', ltrim($r[8]));
+                if (!empty($product_unit->first()->id)) {
+                    $pu_id = $product_unit->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($product_unit);
+                }
+                $gender = Gender::where('gn_name', '=', ltrim($r[9]));
+                if (!empty($gender->first()->id)) {
+                    $gn_id = $gender->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($gender);
+                }
+                $season = Season::where('ss_name', '=', ltrim($r[10]));
+                if (!empty($season->first()->id)) {
+                    $ss_id = $season->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($season);
+                }
+                $main_color = MainColor::where('mc_name', '=', ltrim($r[12]));
+                if (!empty($main_color->first()->id)) {
+                    $mc_id = $main_color->first()->id;
+                    $status += 1;
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                    // dd($main_color);
+                }
+
+                $p_id = DB::table('products')->insertGetId([
+                    'br_id' => $br_id,
+                    'pc_id' => $pc_id,
+                    'psc_id' => $psc_id,
+                    'pssc_id' => $pssc_id,
+                    'mc_id' => $mc_id,
+                    'ps_id' => $ps_id,
+                    'pu_id' => $pu_id,
+                    'gn_id' => $gn_id,
+                    'ss_id' => $ss_id,
+                    'article_id' => ltrim($r[0]),
+                    'schema_size' => ltrim($r[1]),
+                    'p_name' => ltrim($r[2]),
+                    'p_aging' => ltrim($r[11]),
+                    'p_color' => ltrim($r[13]),
+                    'p_price_tag' => ltrim($r[14]),
+                    'p_purchase_price' => ltrim($r[15]),
+                    'p_sell_price' => ltrim($r[16]),
+                    'p_delete' => '0',
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $data_id[] = $p_id;
+
+                if (!empty($p_id)) {
+                    $exp = explode('_', ltrim($r[15]));
+                    $count = (Integer)count($exp);
+                    for ($i=0; $i<=$count; $i++) {
+                        if (empty($exp[$i])) {
+                            continue;
+                            $this->rows = -1;
+                            break;
+                        }
+                        $exp_ps = explode('|', $exp[$i]);
+                        $size = Size::where(['psc_id' => $psc_id, 'sz_name' => $exp_ps[0]]);
+                        if (!empty($size->first()->id)) {
+                            $sz_id = $size->first()->id;
+                        } else {
+                            continue;
+                            $this->rows = -1;
+                            break;
+                        }
+                        if (empty($exp_ps[1])) {
+                            $barcode = null;
+                        } else {
+                            $barcode = $exp_ps[1];
+                        }
+                        if (empty($exp_ps[2])) {
+                            $price_tag = null;
+                        } else {
+                            $price_tag = $exp_ps[2];
+                        }
+                        if (empty($exp_ps[3])) {
+                            $sell_price = null;
+                        } else {
+                            $sell_price = $exp_ps[3];
+                        }
+                        if (empty($exp_ps[4])) {
+                            $purchase_price = null;
+                        } else {
+                            $purchase_price = $exp_ps[4];
+                        }
+                        ProductStock::create([
+                            'p_id' => $p_id,
+                            'sz_id' => $sz_id,
+                            'ps_qty' => '0',
+                            'ps_barcode' => $barcode,
+                            'ps_price_tag' => $price_tag,
+                            'ps_sell_price' => $sell_price,
+                            'ps_purchase_price' => $purchase_price,
+                            'ps_running_code' => $this->generateRunningCode()
+                        ]);
+                    }
+                } else {
+                    $this->rows = -1;
+                    $status = -1;
+                    break;
+                }
             }
-        }
-        if ($status >= 0) {
-            return '200'; 
-        } else {
-            DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
-            DB::table('products')->whereIn('id', $data_id)->delete();
-            $this->rows = -1;
-            return '400';
+            if ($status >= 0) {
+                return '200';
+            } else {
+                DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
+                DB::table('products')->whereIn('id', $data_id)->delete();
+                $this->rows = -1;
+                return '400';
+            }
+        }catch (\Exception $e) {
+            return $e->getMessage();
         }
     }
 
     public function getRowCount(): int
     {
         return $this->rows;
+    }
+
+    // create to save same array value
+    private function setSameArticleId($article_id): void
+    {
+        $this->sameArticleId[] = $article_id;
+    }
+
+    public function getSameArticleId(): array
+    {
+        return $this->sameArticleId;
+    }
+
+    private function articeIdChecker($article_id): bool
+    {
+        $article = Product::where('article_id', '=', ltrim($article_id))->exists();
+        if ($article) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

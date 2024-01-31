@@ -839,18 +839,30 @@ class ProductController extends Controller
 
     public function importData(Request $request)
     {
-        if (request()->hasFile('p_template')) {
-            $import = new ProductImport;
-            Excel::import($import, request()->file('p_template'));
-            if ($import->getRowCount() >= 0) {
-                $r['status'] = '200';
+        try {
+            if (request()->hasFile('p_template')) {
+                $import = new ProductImport;
+                Excel::import($import, request()->file('p_template'));
+
+
+                if ($import->getRowCount() >= 0) {
+                    if (empty($import->getSameArticleId()))
+                    {
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '419';
+                        $r['same_article_id'] = $import->getSameArticleId();
+                    }
+                } else {
+                    $r['status'] = '419';
+                }
             } else {
-                $r['status'] = '419';
+                $r['status'] = '400';
             }
-        } else {
-            $r['status'] = '400';
+            return json_encode($r);
+        }catch (\Exception $e) {
+            return json_encode($e->getMessage());
         }
-        return json_encode($r);
     }
 
     public function exportData()
