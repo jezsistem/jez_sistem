@@ -98,6 +98,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $this->setSameArticleId($r[0]);
                     DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
                     DB::table('products')->whereIn('id', $data_id)->delete();
+                    break;
                 }
 
                 $article_id = null;
