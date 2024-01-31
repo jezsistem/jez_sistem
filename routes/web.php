@@ -652,6 +652,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('sv_target_detail', [TargetController::class, 'saveTargetDetail']);
     Route::post('check_str', [TargetController::class, 'checkStr']);
     Route::post('edit_target', [TargetController::class, 'editTarget']);
+    Route::post('sv_target_detail_import', [TargetController::class, 'saveTargetDetailImport']);
 
     // Pos Summary
     Route::get('pos_summary', [PosSummaryController::class, 'index'])->name('pos_summary');
