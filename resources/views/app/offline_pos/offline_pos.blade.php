@@ -25,7 +25,7 @@
 									<input type="hidden" id="_exchange" value=""/>
 									<div class="selectmain bg-primary" style="padding:5px; border-radius:10px;">
 										<label class="text-white d-flex font-weight-bold" >Customer 
-											<span class="badge badge-success white rounded-circle" id="add_customer_btn" data-toggle="modal" data-target="#choosecustomer">
+											<span class="badge badge-success white rounded-circle" id="add_customer_btn" data-toggle="modal" data-target="#shiftCustomerModal">
 											<svg xmlns="http://www.w3.org/2000/svg" class="svg-sm" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_122" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
 												<g>
 												<rect x="234.362" y="128" width="43.263" height="256"></rect>

@@ -3,6 +3,7 @@
 use App\Http\Controllers\POPurchaseReceiveImportController;
 use App\Http\Controllers\ProductSubSubCategoryTestController;
 use App\Http\Controllers\PurchaseOrderImportExcelController;
+use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountController;
@@ -1172,5 +1173,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('proad_save_purchase_price', [PreOrderArticleDetailController::class, 'savePurchasePrice']);
     Route::post('proad_save_qty_total', [PreOrderArticleDetailController::class, 'saveQtyTotal']);
 
-
+    // User Shift
+    Route::post('user_start_shift', [UserShiftController::class, 'startShift']);
+    Route::post('user_end_shift', [UserShiftController::class, 'endShift']);
+    Route::get('check_user_shift', [UserShiftController::class, 'checkUserShift']);
 });

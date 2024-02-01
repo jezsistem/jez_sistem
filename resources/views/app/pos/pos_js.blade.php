@@ -688,6 +688,38 @@
             jQuery('#choosecustomer').modal('show');
         });
 
+        jQuery('#shiftEmployeeBtn').on('click', function() {
+
+            // jQuery('#shiftEmployeeModal').modal('show');
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            jQuery.ajax({
+                url: '/check_user_shift',
+                method: 'GET',
+                success: function (response) {
+                    if (response.status === '200') {
+                        // User has started a shift
+                        jQuery('#startShiftButton').hide();
+                        jQuery('#stopShiftButton').show();
+                        jQuery('#shiftStatus').html('Shift In Progress');
+                        jQuery('#shiftEmployeeModal').modal('show');
+                    } else {
+                        // User has not started a shift, show the modal with the start button
+                        jQuery('#startShiftButton').show();
+                        jQuery('#stopShiftButton').hide();
+                        jQuery('#shiftEmployeeModal').modal('show');
+                    }
+                },
+                error: function (error) {
+                    console.error('Error checking user shift:', error);
+                }
+            });
+        });
+
 		jQuery('#reload_refund_list').on('click', function() {
             reloadRefund();
         });
@@ -1416,6 +1448,71 @@
                 },
                 error: function(data){
                     swal('Error', data, 'error');
+                }
+            });
+        });
+
+        var shiftStarted = false;
+        var clockInterval;
+        jQuery('#startShiftButton').on('click', function() {
+            console.log("test");
+            shiftStarted = true;
+            jQuery('#shiftStatus').html('Shift In Progress');
+            jQuery('#startShiftButton').hide();
+            jQuery('#stopShiftButton').show();
+
+            var clockElement = jQuery('<div class="clock"></div>');
+            jQuery('.modal-body').append(clockElement);
+
+            clockInterval = setInterval(function() {
+                var now = new Date();
+                var hours = now.getHours();
+                var minutes = now.getMinutes();
+                var seconds = now.getSeconds();
+                var formattedTime = hours + ':' + minutes + ':' + seconds;
+                clockElement.html(formattedTime);
+            }, 1000);
+
+
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            jQuery.ajax({
+                url: '/user_start_shift',
+                method: 'POST',
+                success: function(response) {
+                    // handle shift already starter or not, if already starterd change button to stop shift
+                    console.log(response);
+                },
+                error: function(error) {
+                    console.error('Error starting shift:', error);
+                }
+            });
+        });
+
+        jQuery('#stopShiftButton').on('click', function() {
+            shiftStarted = false;
+            jQuery('#shiftStatus').html('Shift Stopped');
+            jQuery('#startShiftButton').show();
+            jQuery('#stopShiftButton').hide();
+
+            clearInterval(clockInterval);
+
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            jQuery.ajax({
+                url: '/user_end_shift',
+                method: 'POST',
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(error) {
+                    console.error('Error End shift:', error);
                 }
             });
         });
