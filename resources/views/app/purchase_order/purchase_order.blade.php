@@ -95,7 +95,7 @@
                             <table class="table table-hover table-checkable" id="PurchaseOrdertb">
                                 <thead class="bg-light text-dark">
                                     <tr>
-                                        <th class="text-dark">No</th>
+                                        <th class="text-dark">Nomor</th>
                                         <th class="text-dark">Tanggal</th>
                                         <th class="text-dark">Store</th>
                                         <th class="text-dark">Supplier</th>
