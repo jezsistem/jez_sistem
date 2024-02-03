@@ -17,11 +17,10 @@ class UserShift extends Model
         'end_time',
     ];
 
+    // timestamp
+    public $timestamps = true;
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+
 
     public function getStartTimeAttribute($value)
     {

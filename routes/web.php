@@ -3,6 +3,7 @@
 use App\Http\Controllers\POPurchaseReceiveImportController;
 use App\Http\Controllers\ProductSubSubCategoryTestController;
 use App\Http\Controllers\PurchaseOrderImportExcelController;
+use App\Http\Controllers\ReportShiftController;
 use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
@@ -1177,4 +1178,21 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('user_start_shift', [UserShiftController::class, 'startShift']);
     Route::post('user_end_shift', [UserShiftController::class, 'endShift']);
     Route::get('check_user_shift', [UserShiftController::class, 'checkUserShift']);
+
+    // Report Shift
+    /**
+     * TODO:
+     * 1. Report Shift
+     * 2. Report Shift Detail
+     * 3. Report Shift Detail Print
+     * 4. Report Shift Detail Print Excel
+     */
+    Route::get('report_shift', [ReportShiftController::class, 'index']);
+    Route::get('report_shift_datatables', [ReportShiftController::class, 'getDatatables']);
+    Route::post('report_shift_detail', [ReportShiftController::class, 'detail']);
+    Route::post('report_shift_product_sold', [ReportShiftController::class, 'productSold']);
+    Route::post('report_shift_product_refund', [ReportShiftController::class, 'productRefund']);
+//    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
+//    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
+//    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);
 });

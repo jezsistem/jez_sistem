@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UserShift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserShiftController extends Controller
 {
@@ -26,10 +27,10 @@ class UserShiftController extends Controller
 //        }
 
         //create shift
-        $shift = UserShift::insert([
+        UserShift::insert([
             'user_id' => $user->id,
             'date' => now()->format('Y-m-d'), // '2021-01-01
-            'start_time' => now()->format('H:i:s'),
+            'start_time' => now(),
             'end_time' => null,
             'created_at' => now(),
             'updated_at' => now(),
@@ -46,16 +47,13 @@ class UserShiftController extends Controller
         try {
             $user = Auth::user();
 
-            //get shift
-            $shift = UserShift::where('user_id', $user->id)
+            DB::table('user_shifts')
+                ->where('user_id', $user->id)
                 ->where('date', now()->format('Y-m-d'))
                 ->whereNull('end_time')
-                ->first();
-
-            //update shift
-            $shift->update([
-                'end_time' => now(),
-            ]);
+                ->update([
+                    'end_time' => now(),
+                ]);
 
             return response()->json([
                 'status' => '200',
