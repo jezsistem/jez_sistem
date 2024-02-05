@@ -42,20 +42,20 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">Cash</div>
             <div class="col d-flex justify-content-between align-items-center">
-                    <span>{{ $cashMethods->total_pos_payment }}</span>
+                    <span>Rp. {{ number_format($cashMethods->total_pos_payment) }}</span>
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Cash Refunds</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $cashMethods->total_pos_payment_refund }}</span>
+                <span>Rp. {{ number_format($cashMethods->total_pos_payment_refund) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Expected Cash Payment</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $cashMethods->total_pos_payment_expected }}</span>
+                <span>Rp. {{ number_format($cashMethods->total_pos_payment_expected) }}</span>
 
             </div>
             <hr />
@@ -69,21 +69,21 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">Cash</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $bcaMethods->total_pos_payment }}</span>
+                <span>Rp. {{ number_format($bcaMethods->total_pos_payment) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Cash Refunds</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $bcaMethods->total_pos_payment_refund }}</span>
+                <span>Rp. {{ number_format($bcaMethods->total_pos_payment_refund) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Expected Cash Payment</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $bcaMethods->total_pos_payment_expected }}</span>
+                <span>Rp. {{ number_format($bcaMethods->total_pos_payment_expected) }}</span>
 
             </div>
             <hr />
@@ -97,21 +97,21 @@
     <div class="row row-cols-2 gap-4 mb-6">
         <div class="font-weight-medium col">Cash</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>{{ $briMethods->total_pos_payment }}</span>
+            <span>Rp. {{ number_format($briMethods->total_pos_payment) }}</span>
 
         </div>
         <hr />
         <hr />
         <div class="font-weight-medium col">Cash Refunds</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>{{ $briMethods->total_pos_payment_refund }}</span>
+            <span>Rp. {{ number_format($briMethods->total_pos_payment_refund) }}</span>
 
         </div>
         <hr />
         <hr />
         <div class="font-weight-medium col">Expected Cash Payment</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>{{ $briMethods->total_pos_payment_expected }}</span>
+            <span>Rp. {{ number_format($briMethods->total_pos_payment_expected) }}</span>
 
         </div>
         <hr />
@@ -125,21 +125,21 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">Cash</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $bniMethods->total_pos_payment }}</span>
+                <span>Rp. {{ number_format($bniMethods->total_pos_payment) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Cash Refunds</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $bniMethods->total_pos_payment_refund }}</span>
+                <span>Rp. {{ number_format($bniMethods->total_pos_payment_refund) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Expected Cash Payment</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $bniMethods->total_pos_payment_expected }}</span>
+                <span>Rp. {{ number_format($bniMethods->total_pos_payment_expected) }}</span>
 
             </div>
             <hr />
@@ -153,21 +153,21 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">Cash</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBca->total_pos_payment }}</span>
+                <span>Rp. {{number_format($transferBca->total_pos_payment) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Cash Refunds</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBca->total_pos_payment_refund }}</span>
+                <span>Rp. {{number_format($transferBca->total_pos_payment_refund) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Expected Cash Payment</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBca->total_pos_payment_expected }}</span>
+                <span>Rp. {{number_format($transferBca->total_pos_payment_expected) }}</span>
 
             </div>
             <hr />
@@ -181,21 +181,21 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">Cash</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBri->total_pos_payment }}</span>
+                <span>Rp. {{ number_format($transferBri->total_pos_payment) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Cash Refunds</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBri->total_pos_payment_refund }}</span>
+                <span>Rp. {{ number_format($transferBri->total_pos_payment_refund) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Expected Cash Payment</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBri->total_pos_payment_expected }}</span>
+                <span>Rp. {{ number_format($transferBri->total_pos_payment_expected) }}</span>
 
             </div>
             <hr />
@@ -209,21 +209,21 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">Cash</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBni->total_pos_payment }}</span>
+                <span>Rp. {{ number_format($transferBni->total_pos_payment) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Cash Refunds</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBni->total_pos_payment_refund }}</span>
+                <span>{{ number_format($transferBni->total_pos_payment_refund) }}</span>
 
             </div>
             <hr />
             <hr />
             <div class="font-weight-medium col">Expected Cash Payment</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>{{ $transferBni->total_pos_payment_expected }}</span>
+                <span>Rp. {{ number_format($transferBni->total_pos_payment_expected) }}</span>
             </div>
             <hr />
             <hr />
@@ -237,7 +237,7 @@
         </div>
         <hr />
         <hr />
-        <div class="font-weight-medium col">Total Refund</div>
+        <div class="font-weight-medium col">Total Actual</div>
         <div class="col d-flex justify-content-between align-items-center">
             <span>{{ $data['total_pos_payment_price'] }}</span>
         </div>
