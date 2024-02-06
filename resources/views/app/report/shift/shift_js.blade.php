@@ -2,6 +2,12 @@
 <!-- DATERANGE -->
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script>
+    function replaceComma(str)
+    {
+        var str_replace = str.replace(/,/g, '');
+        return str_replace;
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -24,8 +30,6 @@
                 data: function (d) {
                     d.search = $('#user_shift_search').val();
                     d.st_id = $('#st_id_filter').val();
-
-                    // console.log(d);
                 }
             },
             columns: [
@@ -55,6 +59,7 @@
         user_shift_table.buttons().container().appendTo($('#user_shift_excel_btn' ));
 
         $('#user_shift_search').on('keyup', function() {
+            console.log(user_shift_table.data());
             user_shift_table.draw();
         });
 
@@ -74,6 +79,17 @@
 
         $('#UserShiftTb tbody').on('click', 'tr', function () {
             var data = user_shift_table.row(this).data().id;
+            var st_id = user_shift_table.row(this).data().st_id;
+            var start_time_original = user_shift_table.row(this).data().start_time_original;
+            var end_time_original = user_shift_table.row(this).data().end_time_original;
+            var date = user_shift_table.row(this).data().date;
+            var start_time = user_shift_table.row(this).data().start_time;
+            var end_time = user_shift_table.row(this).data().end_time;
+            var total_pos_real_price = user_shift_table.row(this).data().total_pos_real_price;
+            var total_pos_payment_price = user_shift_table.row(this).data().total_pos_payment_price;
+            var difference = user_shift_table.row(this).data().difference;
+            var st_name = user_shift_table.row(this).data().st_name;
+            var u_name = user_shift_table.row(this).data().u_name;
 
             $.ajaxSetup({
                 headers: {
@@ -85,12 +101,23 @@
                 url: "{{ url('report_shift_detail') }}",
                 type: 'post',
                 data: {
-                    id: data
+                    id: data,
+                    start_time_original: start_time_original,
+                    end_time_original: end_time_original,
+                    date: date,
+                    start_time: start_time,
+                    end_time: end_time,
+                    total_pos_real_price: replaceComma(total_pos_real_price),
+                    total_pos_payment_price: replaceComma(total_pos_payment_price),
+                    difference: replaceComma(difference),
+                    st_name: st_name,
+                    u_name: u_name,
+                    st_id: st_id
                 },
                 success: function (response) {
                     jQuery.noConflict();
                     $('#UserShiftModal').modal('show');
-                    // console.log(response);
+                    console.log(response);
                     $('#UserShiftModalBody').html(response);
 
                     $('#userShiftDetailSoldBtn').on('click', function () {
@@ -103,7 +130,9 @@
                             url: "{{ url('report_shift_product_sold') }}",
                             type: 'post',
                             data: {
-                                id: data
+                                id: data,
+                                start_time_original: start_time_original,
+                                end_time_original: end_time_original,
                             },
                             success: function (response_detail) {
                                 // console.log(response_detail);
@@ -127,7 +156,9 @@
                             url: "{{ url('report_shift_product_refund') }}",
                             type: 'post',
                             data: {
-                                id: data
+                                id: data,
+                                start_time_original: start_time_original,
+                                end_time_original: end_time_original,
                             },
                             success: function (response_detail) {
                                 // console.log(response_detail);
