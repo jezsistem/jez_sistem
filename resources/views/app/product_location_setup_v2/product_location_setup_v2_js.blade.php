@@ -21,6 +21,11 @@
         });
         return false;
     }
+
+    function mappingQty(pls_id, index, pst_id, pls_qty)
+    {
+
+    }
     
     function saveMutation(pls_id, index, pst_id, pls_qty)
     {
@@ -50,6 +55,95 @@
         });
         return false;
     }
+
+    $('#CancelBtn').on('click', function() {
+        jQuery.noConflict();
+
+        if (confirm('Apakah anda yakin untuk menghapus data import?')) {
+            fetch('{{ url('cancel_import') }}', {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        swal('Berhasil', 'Cancel berhasil', 'success');
+                        start_bin_table.draw();
+                    } else {
+                        swal('Gagal', 'Terjadi kesalahan saat melakukan cancel', 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('An error occurred');
+                });
+        }
+
+    });
+
+    $('#f_import').on('submit' , function (e) {
+        e.preventDefault();
+        $('#import_data_btn').html('Proses...');
+        $('#import_data_btn').attr('disabled', true);
+        var formData = new FormData(this);
+
+        $.ajax({
+            type: 'POST',
+            url: "{{ url('stock_location_import')}}",
+            data: formData,
+            dataType: 'json',
+            cache:false,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                // console.log(data.data['missingBarcode']);
+                $("#import_data_btn").html('Import');
+                $("#import_data_btn").attr("disabled", false);
+                jQuery.noConflict();
+                if (data.status == '200') {
+                    $("#ImportModal").modal('hide');
+
+                    swal('Berhasil', 'Data berhasil diimport', 'success');
+                    $('#f_import')[0].reset();
+                    // TODO : buat function buat return alert apabila barcode missing swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    excelImportData = data.data['processedData'];
+
+                    start_bin_table.draw();
+
+                    checkMissingBarcode(data.data['missingBarcode']);
+
+                } else if (data.status == '400') {
+                    $("#ImportModal").modal('hide');
+                    swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                } else {
+                    $("#ImportModal").modal('hide');
+
+                }
+            },
+            error: function(data){
+                swal('Error', data, 'error');
+            }
+        });
+    });
+
+    function checkMissingBarcode(missingBarcodeData) {
+        // each from missingBarcodeData array
+        var missingBarcode = [];
+        for (var i = 0; i < missingBarcodeData.length; i++) {
+            missingBarcode.push(missingBarcodeData[i]);
+        }
+
+        if(missingBarcode.length > 0) {
+            swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '), 'warning');
+        }
+    }
+
+    $('#ImportModalBtn').on('click', function() {
+        jQuery.noConflict();
+        $('#ImportModal').modal('show');
+    });
 
     $(document).ready(function() {
         // $('body').addClass('kt-primary--minimize aside-minimize');
@@ -83,7 +177,7 @@
             { data: 'article', name: 'article', orderable: false },
             { data: 'qty', name: 'qty', orderable: false },
             { data: 'action', name: 'action', orderable: false },
-            ], 
+            ],
             columnDefs: [
             {
                 "targets": 0,
@@ -186,10 +280,6 @@
         $('#history_search').on('keyup', function() {
             bin_history_table.draw();
         });
-
-        
-
-        
 
         $('#st_id_filter').on('change', function() {
             start_bin_table.draw();

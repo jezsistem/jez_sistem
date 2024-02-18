@@ -434,7 +434,16 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('sv_mutation', [ProductLocationSetupController::class, 'productMutation']);
     Route::post('sv_setup', [ProductLocationSetupController::class, 'productSetup']);
     Route::post('bin_reset_exec', [ProductLocationSetupController::class, 'binResetExec']);
-    // Product Location Setup V2 
+    // Product Location Setup V2
+
+
+    /**
+     * TODO:
+     * 1. Import Excel V
+     * 2. Mapping data from excel
+     * 3. Validation not found
+     * 4. Validation QTY Stock
+     */
     Route::get('setup_lokasi_stok_v2', [ProductLocationSetupV2Controller::class, 'index'])->name('product_location_setup_v2');
     Route::get('start_bin_datatables', [ProductLocationSetupV2Controller::class, 'startBinDatatables']);
     Route::get('check_total_qty_in_bin', [ProductLocationSetupV2Controller::class, 'totalQtyInBin']);
@@ -443,7 +452,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('reload_start_bin', [ProductLocationSetupV2Controller::class, 'reloadStartBin']);
     Route::get('reload_end_bin', [ProductLocationSetupV2Controller::class, 'reloadEndBin']);
     Route::get('history_setup_export', [ProductLocationSetupV2Controller::class, 'exportData']);
+    Route::delete('cancel_import', [ProductLocationSetupV2Controller::class, 'cancelImportData']);
     Route::post('sv_mutation_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
+    Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
     // Stock Transfer
     Route::get('transfer_stok', [StockTransferController::class, 'index'])->name('stock_transfer');
     Route::get('start_transfer_datatables', [StockTransferController::class, 'startTransferDatatables']);
