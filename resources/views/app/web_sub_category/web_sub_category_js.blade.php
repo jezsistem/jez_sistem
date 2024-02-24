@@ -99,6 +99,8 @@
                     } else if (data.status == '400') {
                         $("#WebSubCategoryModal").modal('hide');
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
+                    } else {
+                        console.log(data)
                     }
                 },
                 error: function(data){
@@ -106,6 +108,41 @@
                 }
             });
         });
+
+        {{--$('#f_wsc').on('submit', function(e) {--}}
+        {{--    e.preventDefault();--}}
+        {{--    $("#save_wsc_btn").html('Proses ..');--}}
+        {{--    $("#save_wsc_btn").attr("disabled", true);--}}
+        {{--    var formData = new FormData(this);--}}
+        {{--    $.ajax({--}}
+        {{--        type:'POST',--}}
+        {{--        url: "{{ url('update_data')}}",--}}
+        {{--        data: formData,--}}
+        {{--        dataType: 'json',--}}
+        {{--        cache:false,--}}
+        {{--        contentType: false,--}}
+        {{--        processData: false,--}}
+        {{--        success: function(data) {--}}
+        {{--            $("#save_wsc_btn").html('Simpan');--}}
+        {{--            $("#save_wsc_btn").attr("disabled", false);--}}
+        {{--            if (data.status == '200') {--}}
+        {{--                $('#bannerPreview').trigger('click');--}}
+        {{--                $("#WebSubCategoryModal").modal('hide');--}}
+        {{--                swal('Berhasil', 'Data berhasil disimpan', 'success');--}}
+        {{--                wsc_table.draw();--}}
+        {{--            } else if (data.status == '400') {--}}
+        {{--                $("#WebSubCategoryModal").modal('hide');--}}
+        {{--                swal('Gagal', 'Data tidak tersimpan', 'warning');--}}
+        {{--            } else {--}}
+        {{--                console.log(data)--}}
+        {{--            }--}}
+        {{--        },--}}
+        {{--        error: function(data){--}}
+        {{--            swal('Error', data, 'error');--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--    // console.log('Halo')--}}
+        {{--});--}}
 
     });
 </script>

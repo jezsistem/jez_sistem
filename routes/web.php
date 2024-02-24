@@ -880,6 +880,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('website_transaction', [WebTransactionController::class, 'index']);
     Route::get('wt_datatables', [WebTransactionController::class, 'getDatatables']);
     Route::post('wt_save', [WebTransactionController::class, 'storeData']);
+    Route::post('update_data', [WebTransactionController::class, 'updateData']);
 
     // Web Confirmation
     Route::get('konfirmasi', [WebConfirmationController::class, 'index']);

@@ -21,7 +21,7 @@
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Banner</label>
-                        <input type="file" class="form-control" id="psc_banner" name="psc_banner" accept="image/*" onchange="loadBanner(event)" />
+                        <input type="file" class="form-control" id="psc_banner" name="psc_banner" onchange="loadBanner(event)" />
                         <center><img id="bannerPreview" style="width:40%; padding-top:10px;"/></center>
                     </div>
                     <div class="form-group mb-1 pb-1">

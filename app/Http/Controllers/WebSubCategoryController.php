@@ -113,7 +113,7 @@ class WebSubCategoryController extends Controller
 
         if ($request->hasFile('psc_banner')) {
             $request->validate([
-                'psc_banner' => 'required|file|mimes:jpg,jpeg,png',
+                'psc_banner' => 'required|file|mimes:jpg,jpeg,tmp',
             ]);
             $image = $request->file('psc_banner');
             $input['fileName'] = time().'.'.$image->extension();
