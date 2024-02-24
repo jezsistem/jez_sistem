@@ -1003,7 +1003,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('delete_start_scan_adjustment_custom', [ScanAdjustmentController::class, 'deleteCustom']);
     Route::get('export_start_scan_adjustment_bin', [ScanAdjustmentController::class, 'exportBIN']);
     Route::post('scan_adjustment_qty_update', [ScanAdjustmentController::class, 'updateQty']);
-    
     Route::post('pos_barcode_scan', [PointOfSaleController::class, 'scanBarcode']);
 
     // POReceiveApprovalController
@@ -1206,4 +1205,18 @@ Route::group(['middleware' => 'auth'], function() {
 //    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
 //    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
 //    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);
+
+    // Transaksi Online
+    /**
+     * TODO:
+     * 1. Transaksi Online Get Data Tables
+     * 2. Transaksi Online Import
+     * 3. Automization Select Shopee / Tiktok Platform
+     * 4. Export per period
+     */
+    Route::get('transaksi_online', [TransaksiOnlineController::class, 'index']);
+    Route::get('transaksi_online_datatables', [TransaksiOnlineController::class, 'getDatatables']);
+    Route::post('transaksi_online_detail', [TransaksiOnlineController::class, 'detail']);
+    Route::post('transaksi_online_import', [TransaksiOnlineController::class, 'importData']);
+    Route::post('transaksi_online_delete', [TransaksiOnlineController::class, 'delete']);
 });
