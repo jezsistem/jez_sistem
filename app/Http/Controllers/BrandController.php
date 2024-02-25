@@ -40,22 +40,23 @@ class BrandController extends Controller
             }
         }
 
-        $sidebar = array();
-        $mt = DB::table('menu_titles')->orderBy('mt_sort')->get();
-        if (!empty($mt->first())) {
-            foreach ($mt as $row) {
-                $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
-                if (!empty($ma->first())) {
-                    $row->ma = $ma;
-                    array_push($sidebar, $row);
-                }
-            }
+                        $sidebar = array();
+                        $mt = DB::table('menu_titles')->orderBy('mt_sort')->get();
+                        if (!empty($mt->first())) {
+                            foreach ($mt as $row) {
+                                $ma = DB::table('menu_accesses')
+                                    ->where('mt_id', '=', $row->id)
+                                    ->whereIn('id', $ma_id_arr)
+                                    ->orderBy('ma_sort')->get();
+                                if (!empty($ma->first())) {
+                                    $row->ma = $ma;
+                                    array_push($sidebar, $row);
+                                }
+                            }
         }
         return $sidebar;
-    }
+
+++    }
     
     protected function UserActivity($activity)
     {
@@ -191,6 +192,49 @@ class BrandController extends Controller
             } else {
                 $this->UserActivity('mengubah data brand '.strtoupper($request->input('br_name')));
             }
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function deleteBrandImage(Request $request)
+    {
+        $id = $request->post('id');
+        $image = $request->post('image');
+        if(File::exists(public_path('api/brand/'. $image))){
+            File::delete(public_path('api/brand/'. $image));
+        }
+        if(File::exists(public_path('api/brand/'. $image))){
+            File::delete(public_path('api/brand/'. $image));
+        }
+        $brand = Brand::where('id', '=', $id)->update([
+            'br_image' => null
+        ]);
+        if (!empty($brand)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function deleteBannerImage(Request $request)
+    {
+        $id = $request->post('id');
+        $image = $request->post('image');
+
+        if(File::exists(public_path('api/brand/banner/'. $image))){
+            File::delete(public_path('api/brand/banner/'. $image));
+        }
+        if(File::exists(public_path('api/brand/banner/'. $image))){
+            File::delete(public_path('api/brand/banner/'. $image));
+        }
+        $brand = Brand::where('id', '=', $id)->update([
+            'br_banner' => null
+        ]);
+        if (!empty($brand)) {
             $r['status'] = '200';
         } else {
             $r['status'] = '400';

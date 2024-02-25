@@ -304,6 +304,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('brand_datatables', [BrandController::class, 'getDatatables']);
     Route::post('br_save', [BrandController::class, 'storeData']);
     Route::post('br_delete', [BrandController::class, 'deleteData']);
+    Route::post('delete_logo_brand', [BrandController::class, 'deleteBrandImage']);
+    Route::post('delete_banner_brand', [BrandController::class, 'deleteBannerImage']);
     Route::post('br_import', [BrandController::class, 'importData']);
     Route::post('check_exists_brand', [BrandController::class, 'checkExistsBrand']);
     // Product Unit
@@ -813,6 +815,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('update_main_image', [WebArticleController::class, 'saveMainImage']);
     Route::post('update_detail_image', [WebArticleController::class, 'saveDetailImage']);
     Route::post('save_weight', [WebArticleController::class, 'saveWeight']);
+
     
     Route::post('web_article_image_save', [WebArticleController::class, 'saveImage']);
     Route::post('delete_main_image', [WebArticleController::class, 'deleteMainImage']);

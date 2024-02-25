@@ -22,14 +22,93 @@
             }
         });
 
+        // $('#imagePreview').on('click', function() {
+        //     $(this).attr('src', '')
+        //     $("#br_image").val('');
+        //
+        // });
+
         $('#imagePreview').on('click', function() {
-            $(this).attr('src', '')
-            $("#br_image").val('');
+            let pid = $('#_id').val();
+            let image = $('#_image').val();
+            swal({
+                title: "Hapus Logo Brand ..?",
+                text: "Logo Brand akan terhapus",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Hapus'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {id:pid, image:image},
+                        dataType: 'json',
+                        url: "{{ url('delete_logo_brand')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                toast("Berhasil", "Logo berhasil dihapus", "success");
+                                $(".p_main_image_item").attr('src', '')
+                                $("#p_main_image").val('');
+                                $('#br_image').val('');
+                                article_table.draw(false);
+                            } else {
+                                toast('Gagal', 'Gambar gagal dihapus', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
         });
 
         $('#bannerPreview').on('click', function() {
-            $(this).attr('src', '')
-            $("#br_banner").val('');
+            let bid = $('#_id').val();
+            let image = $('#_banner').val();
+
+            // console.log(bid);
+            // console.log(image);
+            swal({
+                title: "Hapus Gambar Banner ..?",
+                text: "Gambar Banner akan terhapus",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Hapus'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {id:bid, image:image},
+                        dataType: 'json',
+                        url: "{{ url('delete_banner_brand')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                toast("Berhasil", "Banner berhasil dihapus", "success");
+                                $('#br_banner').val('');
+                                article_table.draw(false);
+                            } else {
+                                toast('Gagal', 'Banner gagal dihapus', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
         });
 
         var brand_table = $('#Brandtb').DataTable({
