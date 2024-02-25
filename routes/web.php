@@ -1001,7 +1001,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('reset_start_scan_adjustment', [ScanAdjustmentController::class, 'resetScan']);
     Route::post('fetch_start_scan_adjustment_brand', [ScanAdjustmentController::class, 'fetchBrand']);
     Route::post('fetch_start_scan_adjustment_sub_category', [ScanAdjustmentController::class, 'fetchSubCategory']);
-    Route::post('fetch_start_scan_adjustment_article', [ScanAdjustmentController::class, 'fetchArticle']);
+    Route::post('fetch_start_scan_adj ustment_article', [ScanAdjustmentController::class, 'fetchArticle']);
     Route::post('min_plus_start_scan_adjustment', [ScanAdjustmentController::class, 'minPlus']);
     Route::post('scan_adjustment_manual', [ScanAdjustmentController::class, 'manual']);
     Route::post('fetch_start_scan_adjustment_article_barcode', [ScanAdjustmentController::class, 'fetchArticleBarcode']);
