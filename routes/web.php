@@ -857,6 +857,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('web_category_datatables', [WebCategoryController::class, 'getDatatables']);
     Route::post('cs_save', [WebCategoryController::class, 'storeData']);
     Route::post('cs_delete', [WebCategoryController::class, 'deleteData']);
+    Route::post('delete_image_kategori', [WebCategoryController::class, 'deleteImage']);
+    Route::post('delete_banner_kategori', [WebCategoryController::class, 'deleteBannerImage']);
 
     // Web Brand
     Route::get('web_brand', [WebBrandController::class, 'index']);
@@ -872,6 +874,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('sub_kategori', [WebSubCategoryController::class, 'index']);
     Route::get('wsc_datatables', [WebSubCategoryController::class, 'getDatatables']);
     Route::post('wsc_save', [WebSubCategoryController::class, 'storeData']);
+    Route::post('delete_image_sub_kategori', [WebSubCategoryController::class, 'deleteImage']);
 
     // Free Shipping Controller
     Route::get('free_ongkir', [FreeShippingController::class, 'index']);

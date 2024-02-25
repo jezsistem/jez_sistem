@@ -56,7 +56,7 @@ class BrandController extends Controller
         }
         return $sidebar;
 
-++    }
+   }
     
     protected function UserActivity($activity)
     {

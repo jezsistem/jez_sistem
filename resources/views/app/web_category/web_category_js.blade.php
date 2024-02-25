@@ -22,15 +22,15 @@
             }
         });
 
-        $('#imagePreview').on('click', function() {
-            $(this).attr('src', '')
-            $("#cs_image").val('');
-        });
+        // $('#imagePreview').on('click', function() {
+        //     $(this).attr('src', '')
+        //     $("#cs_image").val('');
+        // });
 
-        $('#bannerPreview').on('click', function() {
-            $(this).attr('src', '')
-            $("#cs_banner").val('');
-        });
+        // $('#bannerPreview').on('click', function() {
+        //     $(this).attr('src', '')
+        //     $("#cs_banner").val('');
+        // });
 
         var web_category_table = $('#Wctb').DataTable({
             destroy: true,
@@ -139,6 +139,92 @@
                     swal('Error', data, 'error');
                 }
             });
+        });
+
+        $('#bannerPreview').on('click', function() {
+            let sid = $('#_id').val();
+            let image = $('#_banner').val();
+
+            // console.log(bid);
+            // console.log(image);
+            swal({
+                title: "Hapus Gambar Banner ..?",
+                text: "Gambar Banner akan terhapus",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Hapus'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $(this).attr('src', '')
+                    $("#psc_banner").val('');
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {id:sid, image:image},
+                        dataType: 'json',
+                        url: "{{ url('delete_banner_kategori')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                toast("Berhasil", "Banner berhasil dihapus", "success");
+                                web_category_table.draw(false);
+                            } else {
+                                toast('Gagal', 'Banner gagal dihapus', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
+        });
+
+        $('#imagePreview').on('click', function() {
+            let sid = $('#_id').val();
+            let image = $('#_banner').val();
+
+            // console.log(bid);
+            // console.log(image);
+            swal({
+                title: "Ingin Hapus Gambar ..?",
+                text: "Gambar akan terhapus",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Hapus'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $(this).attr('src', '')
+                    $("#psc_banner").val('');
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {id:sid, image:image},
+                        dataType: 'json',
+                        url: "{{ url('delete_image_kategori')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                toast("Berhasil", "Banner berhasil dihapus", "success");
+                                web_category_table.draw(false);
+                            } else {
+                                toast('Gagal', 'Banner gagal dihapus', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
         });
 
         $('#delete_web_category_btn').on('click', function(){

@@ -9,7 +9,7 @@
             <input type="hidden" name="_image" id="_image" value="" />
             <input type="hidden" name="_banner" id="_banner" value="" />
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">Brand</h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Kategori</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
