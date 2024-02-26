@@ -20,19 +20,20 @@
                         <input type="text" class="form-control" id="psc_name" name="psc_name" readonly/>
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Banner</label>
-                        <input type="file" class="form-control" id="psc_banner" name="psc_banner" onchange="loadBanner(event)" />
-                        <center><img id="bannerPreview" style="width:40%; padding-top:10px;"/></center>
-                    </div>
-                    <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Slug</label>
                         <input type="text" class="form-control" id="psc_slug" name="psc_slug" required />
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Banner</label>
+                        <small style="color: grey;"> 300x300px</small>
+                        <input type="file" class="form-control" id="psc_banner" name="psc_banner" onchange="loadBanner(event)" />
+                        <center><img id="bannerPreview" style="width:40%; padding-top:10px;"/></center>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="save_wsc_btn">Simpan</button>
+                <button type="submit" class="btn btn-light-primary font-weight-bold" id="save_wsc_btn">Simpan</button>
             </div>
             </form>
         </div>

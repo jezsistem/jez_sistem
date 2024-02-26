@@ -17,14 +17,12 @@
             <div class="modal-body">
                 <div class="card-body">
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Gambar</label>
-                        <input type="file" class="form-control" id="cs_image" name="cs_image" accept="image/*" onchange="loadFile(event)" />
-                        <center><img id="imagePreview" style="width:40%; padding-top:10px;"/></center>
+                        <label for="exampleTextarea">Judul Kategori</label>
+                        <input type="text" class="form-control" id="cs_title" name="cs_title" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Banner</label>
-                        <input type="file" class="form-control" id="cs_banner" name="cs_banner" accept="image/*" onchange="loadBanner(event)" />
-                        <center><img id="bannerPreview" style="width:40%; padding-top:10px;"/></center>
+                        <label for="exampleTextarea">Slug</label>
+                        <input type="text" class="form-control" id="cs_slug" name="cs_slug" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Sub Kategori</label>
@@ -40,12 +38,16 @@
                         <input type="text" class="form-control" id="cs_sub_category" name="cs_sub_category"/>
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Judul Kategori</label>
-                        <input type="text" class="form-control" id="cs_title" name="cs_title" required />
+                        <label for="exampleTextarea">Gambar</label>
+                        <small style="color: grey;">300x300px</small>
+                        <input type="file" class="form-control" id="cs_image" name="cs_image" accept="image/*" onchange="loadFile(event)" />
+                        <center><img id="imagePreview" style="width:40%; padding-top:10px;"/></center>
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Slug</label>
-                        <input type="text" class="form-control" id="cs_slug" name="cs_slug" required />
+                        <label for="exampleTextarea">Banner</label>
+                        <small style="color: grey;">2000x960px</small>
+                        <input type="file" class="form-control" id="cs_banner" name="cs_banner" accept="image/*" onchange="loadBanner(event)" />
+                        <center><img id="bannerPreview" style="width:40%; padding-top:10px;"/></center>
                     </div>
                 </div>
             </div>
