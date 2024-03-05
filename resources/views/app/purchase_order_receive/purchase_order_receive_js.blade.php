@@ -1484,7 +1484,7 @@
 
         $('#excel_report').on('click', function () {
             jQuery("#PoReporttb").table2excel({
-                filename: "Laporan Penerimaan Topsystem",
+                filename: "Laporan Penerimaan Jez System",
             });
         });
 
