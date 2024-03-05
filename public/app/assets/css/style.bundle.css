@@ -57579,4 +57579,12 @@ i.bg-icon-sm {
   border-radius: 8px;
 }
 
+#shopee_div {
+    display: none;
+}
+
+#tiktok_div {
+    display: none;
+}
+
 /*# sourceMappingURL=style.bundle.css.map*/

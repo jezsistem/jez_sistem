@@ -125,6 +125,7 @@ use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\PreOrderController;
 use App\Http\Controllers\PreOrderArticleDetailController;
 use App\Http\Controllers\PreOrderArticleController;
+use App\Http\Controllers\TransaksiOnlineController;
 
 use App\Http\Controllers\WebConfigController;
 
@@ -1225,5 +1226,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('transaksi_online_datatables', [TransaksiOnlineController::class, 'getDatatables']);
     Route::post('transaksi_online_detail', [TransaksiOnlineController::class, 'detail']);
     Route::post('transaksi_online_import', [TransaksiOnlineController::class, 'importData']);
+    Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
     Route::post('transaksi_online_delete', [TransaksiOnlineController::class, 'delete']);
 });
