@@ -103,6 +103,7 @@
                                     <div class="row">
                                         <div class="form-group" style="padding-top:22px;">
                                             <select class="form-control" id="filter_platform" name="filter_platform"  onchange="showDiv(this)"   required>
+{{--                                            <select class="form-control" id="filter_platform" name="filter_platform" required>--}}
                                                 <option value="">- Pilih Platform -</option>
                                                 <option value="shopee">Shopee</option>
                                                 <option value="tiktok">TikTok</option>
@@ -124,7 +125,8 @@
                                     </div>
                                 </div>
 
-                                <div id="shopee_div">
+                                <div id="shopee_div" style="display: none">
+                                    <input type="search" class="form-control form-control col-6" id="purchase_order_search" placeholder="Cari Order Number / No Resi)"/><br/>
                                     <table class="table table-hover table-checkable" id="OnlineTransactionTb">
                                         <thead class="bg-light text-dark">
                                         <tr>
@@ -167,11 +169,36 @@
                                 </div>
 
                                 <div id="tiktok_div">
-                                    <table class="table table-hover table-checkable" id="OnlineTransactionTb">
+                                    <input type="search" class="form-control form-control col-6" id="purchase_order_search" placeholder="Cari Number Order / No Resi)"/><br/>
+                                    <table class="table table-hover table-checkable" id="OnlineTransactionTikTokTb">
                                         <thead class="bg-light text-dark">
                                         <tr>
                                             <th class="text-dark">No</th>
-                                            <th class="text-dark">Transaction Tiktok</th>
+                                            <th class="text-dark">Order Number</th>
+                                            <th class="text-dark">Order Status</th>
+{{--                                            <th class="text-dark">Order Sub Status</th>--}}
+{{--                                            <th class="text-dark">Order Created</th>--}}
+{{--                                            <th class="text-dark">Cancel Type</th>--}}
+{{--                                            <th class="text-dark">Cancel By</th>--}}
+{{--                                            <th class="text-dark">Reason Cancellation</th>--}}
+{{--                                            <th class="text-dark">Seller Note</th>--}}
+{{--                                            <th class="text-dark">Pre-Order</th>--}}
+{{--                                            <th class="text-dark">Resi</th>--}}
+{{--                                            <th class="text-dark">Shipping Method</th>--}}
+{{--                                            <th class="text-dark">Payment Date</th>--}}
+{{--                                            <th class="text-dark">Payment Method</th>--}}
+{{--                                            <th class="text-dark">SKU</th>--}}
+{{--                                            <th class="text-dark">Original Price</th>--}}
+{{--                                            <th class="text-dark">Price After Discount</th>--}}
+{{--                                            <th class="text-dark">Quantity</th>--}}
+{{--                                            <th class="text-dark">Return Quantity</th>--}}
+{{--                                            <th class="text-dark">Total Discount</th>--}}
+{{--                                            <th class="text-dark">Shipping Fee</th>--}}
+{{--                                            <th class="text-dark">Discount Seller</th>--}}
+{{--                                            <th class="text-dark">Discount Platform</th>--}}
+{{--                                            <th class="text-dark">Total Payment</th>--}}
+{{--                                            <th class="text-dark">Regency and City</th>--}}
+{{--                                            <th class="text-dark">Province</th>--}}
                                         </tr>
                                         </thead>
                                         <tbody>

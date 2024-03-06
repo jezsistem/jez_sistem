@@ -15,6 +15,7 @@ use App\Models\WebConfig;
 use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Carbon\Carbon;
 
 class TransaksiOnlineController extends Controller
 {
@@ -75,12 +76,13 @@ class TransaksiOnlineController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1),
         ];
-        return view('app.online_transaction.online_transaction', compact('data'));
+        return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
 
-    public function getDatatables(Request $request)
+    public function getDatatablesShopee(Request $request)
     {
-        $sz_id = $request->sz_id;
+        $sz_id = $request->type;
+
         if (request()->ajax()) {
             return datatables()->of(TransaksiOnline::select(
                 'id',
@@ -120,7 +122,68 @@ class TransaksiOnlineController extends Controller
                 'order_complete_at',
                 'created_at',
                 'updated_at'
-            ))
+            )
+                ->where('platform_type', '=', 'Shopee'))
+//                ->filter(function ($instance) use ($request) {
+//                    if (!empty($request->get('search'))) {
+//                        $instance->where(function ($w) use ($request) {
+//                            $search = $request->get('search');
+//                            $w->orWhere('sz_name', 'LIKE', "%$search%")
+//                                ->orWhere('sz_description', 'LIKE', "%$search%")
+//                                ->orWhere('sz_schema', 'LIKE', "%$search%");
+//                        });
+//                    }
+//                })
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
+    public function getDatatablesTiktok(Request $request)
+    {
+        $sz_id = $request->type;
+
+        if (request()->ajax()) {
+            return datatables()->of(TransaksiOnline::select(
+                'id',
+                'st_id',
+                'platform_type',
+                'order_number',
+                'order_status',
+                'reason_cancellation',
+                'resi_number',
+                'shipping_method',
+                'ship_deadline',
+                'ship_delivery_date',
+                'order_date_created',
+                'payment_date',
+                'payment_method',
+                'SKU',
+                'original_price',
+                'price_after_discount',
+                'quantity',
+                'return_quantity',
+                'seller_note',
+                'total_price',
+                'total_discount',
+                'shipping_fee',
+                'voucher_seller',
+                'cashback_coin',
+                'voucher',
+                'voucher_platform',
+                'discount_seller',
+                'discount_platform',
+                'shopee_coin_pieces',
+                'credit_card_discounts',
+                'shipping_costs',
+                'total_payment',
+                'city',
+                'province',
+                'order_complete_at',
+                'created_at',
+                'updated_at'
+            )
+                ->where('platform_type', 'TikTok'))
 //                ->filter(function ($instance) use ($request) {
 //                    if (!empty($request->get('search'))) {
 //                        $instance->where(function ($w) use ($request) {
@@ -147,9 +210,6 @@ class TransaksiOnlineController extends Controller
                 $nama_file = rand() . $original_nama_file;
 
                 $file->move('excel', $nama_file);
-
-                $import = new TransactionOnlineImport();
-//                $data = Excel::toArray($import, public_path('excel/' . $nama_file));
 
                 $spreadsheet = IOFactory::load(public_path('excel/' . $nama_file));
                 $sheet = $spreadsheet->getActiveSheet();
@@ -178,7 +238,6 @@ class TransaksiOnlineController extends Controller
             } else {
                 $r['status'] = '400';
             }
-
             unlink(public_path('excel/' . $nama_file));
 
             return json_encode($r);
@@ -192,10 +251,7 @@ class TransaksiOnlineController extends Controller
 
     private function processImportData($data, $originalName)
     {
-
-        $missingBarcode = array();
         $processedData = [];
-
         $type = strpos($originalName, 'Order') !== false ? 'Shopee' : 'Tiktok';
 
         //shopee
@@ -230,10 +286,10 @@ class TransaksiOnlineController extends Controller
                 $city = $item[46];
                 $province = $item[47];
                 $orderCompleteAt = $item[48];
-                // get id from barcode
-//
-//                $product_id = ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->first();
-//                $stock = $product_id->ps_qty;
+
+                $transaksi = TransaksiOnline::where('order_number', $orderNum)->get();
+
+                $rowCount = $transaksi->count();
 
                 $rowData = [
                     'platform_type' => $type,
@@ -243,16 +299,16 @@ class TransaksiOnlineController extends Controller
                     'resi_number' => $resiNo,
                     'shipping_method' => $shippingMethod,
                     'ship_deadline' => $shipDeadline,
-                    'ship_delive' => $shipDelive,
-                    'order_created' => $orderCreated,
+                    'ship_delivery_date' => $shipDelive,
+                    'order_date_created' => $orderCreated,
                     'payment_date' => $paymentDate,
                     'payment_method' => $paymentMethod,
-                    'sku' => $sku,
+                    'SKU' => $sku,
                     'original_price' => $originalPrice,
-                    'price_after' => $PriceAfter,
-                    'qty' => $qty,
-                    'return_qty' => $returnQty,
-                    'total' => $total,
+                    'price_after_discount' => $PriceAfter,
+                    'quantity' => $qty,
+                    'return_quantity' => $returnQty,
+                    'total_price' => $total,
                     'total_discount' => $totalDicount,
                     'discount_seller' => $discountSeller,
                     'voucher_seller' => $voucherSeller,
@@ -267,81 +323,107 @@ class TransaksiOnlineController extends Controller
                     'province' => $province,
                     'order_complete_at' => $orderCompleteAt
                 ];
+
+                $processedData[] = $rowData;
+
+                if ($rowCount > 0) {
+                    TransaksiOnline::where('order_number', $orderNum)->update($rowData);
+                } else {
+                    TransaksiOnline::create($rowData);
+                }
+
+                $product_id = ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->first();
+                $stock = $product_id->ps_qty;
+
+                $newStock = $stock - $qty;
+                ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->update(['ps_qty' => $newStock]);
+            }
+        } else { //TikTok
+            foreach ($data as $item) {
+                $orderNum = $item[0];
+                $orderStatus = $item[1];
+                $orderSubStatus = $item[2];
+                $cancelType = $item[3];
+                $cancelBy = $item[30];
+                $resiNo = $item[34];
+                $sku = $item[6];
+                $pre_order = $item[4];
+                $cancelReason = $item[31];
+                $shippingMethod = $item[36];
+                $orderCreated = $item[24];
+                $paymentDate = $item[25];
+                $paymentMethod = $item[49];
+                $originalPrice = $item[11];
+                $priceAfter = $item[13];
+                $qty = $item[9];
+                $returnQty = $item[10];
+                $returnQty = $item[10];
+                $sellerNote = $item[53];
+                $sellerNote = $item[53];
+                $totalDicount = $item[14];
+                $shippingFee = $item[16];
+                $discountSeller = $item[16];
+                $discountPlatform = $item[17];
+                $totalPayment = $item[22];
+                $city = $item[44];
+                $province = $item[43];
+                // get id from barcode
+
+//                $transaksi = TransaksiOnline::where('order_number', $orderNum)->get();
+//
+//                $rowCount = $transaksi->count();
+//
+//                $product_id = ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->first();
+//                $stock = $product_id->ps_barcode;
+
+                //Formater Order Created Date
+                $carbonDate = Carbon::createFromFormat('d/m/Y H:i:s', trim($orderCreated));
+                $formattedDate = $carbonDate->format('Y-m-d H:i:s');
+
+                //Formater
+
+                $rowData = [
+                    'platform_type' => $type,
+                    'order_number' => $orderNum,
+                    'order_status' => $orderStatus,
+                    'order_sub_status' => $orderSubStatus,
+                    'cancel_type' => $cancelType,
+                    'cancel_by' => $cancelBy,
+                    'reason_cancellation' => $cancelReason,
+                    'pre_order' => $pre_order,
+                    'resi_number' => $resiNo,
+                    'shipping_method' => $shippingMethod,
+                    'order_date_created' => $formattedDate,
+                    'payment_date' => $paymentDate,
+                    'payment_method' => $paymentMethod,
+                    'SKU' => $sku,
+                    'original_price' =>  substr($originalPrice,4),
+                    'price_after_discount' =>  substr($priceAfter,4),
+                    'quantity' => $qty,
+                    'return_quantity' => $returnQty,
+                    'seller_note' => $sellerNote,
+                    'total_discount' =>  substr($totalDicount,4),
+                    'shipping_fee' =>  substr($shippingFee,4),
+                    'discount_seller' =>  substr($discountSeller,4),
+                    'discount_platform' =>  substr($discountPlatform,4),
+                    'total_payment' => substr($totalPayment,4),
+                    'city' => $city,
+                    'province' => $province,
+                ];
                 $processedData[] = $rowData;
 
                 TransaksiOnline::create($rowData);
+//                if ($rowCount > 0) {
+//                    TransaksiOnline::where('order_number', $orderNum)->update($rowData);
+//                } else {
+//                    TransaksiOnline::create($rowData);
+//                }
+
             }
-//        } else { //TikTok
-//            foreach ($data as $item) {
-//                $orderNum = $item[0];
-//                $orderStatus = $item[1];
-//                $orderSubStatus = $item[2];
-//                $cancelType = $item[3];
-//                $cancelBy = $item[30];
-//                $resiNo = $item[34];
-//                $sku = $item[6];
-//                $cancelReason = $item[31];
-//                $shippingMethod = $item[36];
-//                $orderCreated = $item[24];
-//                $paymentDate = $item[25];
-//                $paymentMethod = $item[49];
-//                $originalPrice = $item[11];
-//                $PriceAfter = $item[13];
-//                $qty = $item[9];
-//                $returnQty = $item[10];
-//                $returnQty = $item[10];
-//                $sellerNote = $item[53];
-//                $sellerNote = $item[53];
-//                $totalDicount = $item[14];
-//                $shippingFee = $item[16];
-//                $discountSeller = $item[16];
-//                $discountPlatform = $item[17];
-//                $totalPayment = $item[22];
-//                $city = $item[44];
-//                $province = $item[43];
-//                // get id from barcode
-//
-//                $product_id = ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->first();
-//                $stock = $product_id->ps_qty;
-//
-//                $rowData = [
-//                    'platform_type' => $type,
-//                    'order_number'  => $orderNum,
-//                    'order_status'  => $orderStatus,
-//                    'reason_cancellation' => $cancelReason,
-//                    'resi_number'  => $resiNo,
-//                    'shipping_method' => $shippingMethod,
-//                    'ship_delivery_date'  => $shipDeadline,
-//                    'order_date_created' => $orderCreated,
-//                    'payment_date' => $paymentDate,
-//                    'payment_method' => $paymentMethod,
-//                    'SKU' => $sku,
-//                    'original_price' => $originalPrice,
-//                    'price_after_discount' => $originalPrice,
-//                    'quantity' => $qty,
-//                    'return_quantity' => $returnQty,
-//                    'seller_note' => $sellerNote,
-//                    'total_price' => $total,
-//                    'total_discount' => $totalDicount,
-//                    'shipping_fee' => $shippingCosts,
-//                    'discount_seller' => $discountSeller,
-//                    'discount_platform' => $discountPlatform,
-//                    'total_payment' => $totalPayment,
-//                    'city' => $city,
-//                    'province' => $province,
-//                    'order_complete_at',
-//                    'created_at',
-//                    'updated_at'
-//                ];
-//                $processedData[] = $rowData;
-//
-//                TransaksiOnline::create($rowData);
-//            }
         }
 
         return [
-            'processedData' => $processedData,
-            'missingBarcode' => $missingBarcode
+            'processedData' => $processedData
         ];
     }
 }

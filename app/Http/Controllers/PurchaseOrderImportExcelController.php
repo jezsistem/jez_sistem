@@ -30,7 +30,7 @@ class PurchaseOrderImportExcelController extends Controller
                 if ($import->getRowCount() >= 0) {
                     $processData = $this->processImportData($import->getData(), $po_id);
 
-                    $r['data'] = $processData;
+                    $r['data'] = $import;
                     $r['status'] = '200';
                     $r['po_id'] = $po_id;
 

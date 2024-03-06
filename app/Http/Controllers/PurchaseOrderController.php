@@ -276,6 +276,7 @@ class PurchaseOrderController extends Controller
             'po_draft' => '0',
             'created_at' => date('Y-m-d H:i:s'),
             'po_delete' => '0',
+//            'created_by' =>
         ]);
         if (!empty($po_id)) {
             $r['status'] = '200';

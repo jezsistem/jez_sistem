@@ -499,7 +499,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('check_po_detail', [PurchaseOrderController::class, 'checkPoDetail']);
     Route::post('reload_po_detail', [PurchaseOrderController::class, 'reloadPoDetail']);
     Route::post('cancel_po', [PurchaseOrderController::class, 'cancelPo']);
-    Route::post('po_save', [PurchaseOrderController::class, 'storeData']);
+    Route::post('po_save', [PurchaseOrderController::class, 'stoInStock reData']);
     Route::post('po_delete', [PurchaseOrderController::class, 'deleteData']);
     Route::post('check_product_po', [PurchaseOrderController::class, 'checkProductPo']);
     Route::post('po_choose_store', [PurchaseOrderController::class, 'chooseStorePo']);
@@ -1223,7 +1223,8 @@ Route::group(['middleware' => 'auth'], function() {
      * 4. Export per period
      */
     Route::get('transaksi_online', [TransaksiOnlineController::class, 'index']);
-    Route::get('transaksi_online_datatables', [TransaksiOnlineController::class, 'getDatatables']);
+    Route::get('transaksi_online_datatables_shopee', [TransaksiOnlineController::class, 'getDatatablesShopee']);
+    Route::get('transaksi_online_datatables_tiktok', [TransaksiOnlineController::class, 'getDatatablesTiktok']);
     Route::post('transaksi_online_detail', [TransaksiOnlineController::class, 'detail']);
     Route::post('transaksi_online_import', [TransaksiOnlineController::class, 'importData']);
     Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
