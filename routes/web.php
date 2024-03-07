@@ -482,7 +482,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('stock_transfer_import', [StockTransferController::class, 'importData']);
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
-    Route::get('transfer_data_datatables', [StockTransferDataController::class, 'getDatatables']);
+    Route::get('transfer_data_datatables', [StockTransferDataController::   class, 'getDatatables']);
     Route::get('transfer_data_accept_datatables', [StockTransferDataController::class, 'getAcceptDatatables']);
     Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);

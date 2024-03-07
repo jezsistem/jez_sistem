@@ -3,8 +3,9 @@
         <div class="card-body" >
             <div class="shop-profile">
                 <div class="media">
-                    <div class="bg-primary w-100px h-100px d-flex justify-content-center align-items-center">
-                        <h2 class="mb-0 white">TOPS</h2>
+                    <div class="bg-white w-100px h-100px d-flex justify-content-center align-items-center">
+{{--                        <h2 class="mb-0 white"></h2>--}}
+                        <img class="img-fluid" src="{{ asset('logo') }}/LOGOJEZ.png" alt="LOGO JEZ">
                     </div>
                     <div class="media-body ml-3">
                         <h3 class="title font-weight-bold">{{ $data['store']->st_name }}</h3>

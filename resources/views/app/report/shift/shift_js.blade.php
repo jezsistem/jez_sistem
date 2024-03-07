@@ -41,6 +41,7 @@
                 {data: 'end_time', name: 'end_time'},
                 {data: 'total_pos_real_price', name: 'total_pos_real_price'},
                 {data: 'total_pos_payment_price', name: 'total_pos_payment_price'},
+                {data: 'laba_shift', name: 'laba_shift'},
                 {data: 'difference', name: 'difference'},
             ],
             columnDefs: [
@@ -87,6 +88,7 @@
             var end_time = user_shift_table.row(this).data().end_time;
             var total_pos_real_price = user_shift_table.row(this).data().total_pos_real_price;
             var total_pos_payment_price = user_shift_table.row(this).data().total_pos_payment_price;
+            var laba_shift = user_shift_table.row(this).data().laba_shift;
             var difference = user_shift_table.row(this).data().difference;
             var st_name = user_shift_table.row(this).data().st_name;
             var u_name = user_shift_table.row(this).data().u_name;
@@ -109,6 +111,7 @@
                     end_time: end_time,
                     total_pos_real_price: replaceComma(total_pos_real_price),
                     total_pos_payment_price: replaceComma(total_pos_payment_price),
+                    laba_shift: replaceComma(laba_shift),
                     difference: replaceComma(difference),
                     st_name: st_name,
                     u_name: u_name,
