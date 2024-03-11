@@ -49,7 +49,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: '<"text-right"l>Brt<"text-right"ip>',
+            dom: 'lBrt<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],

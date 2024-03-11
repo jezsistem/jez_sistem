@@ -18,4 +18,18 @@
     <link href="{{ asset('cdn/select2.min.css') }}" rel="stylesheet" type="text/css" >
 	<link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="{{ asset('pos/css') }}/daterangepicker.css" />
+
+	<script>
+		var elem = document.documentElement;
+		function forceFullScreen()
+		{
+			if (elem.requestFullscreen) {
+				elem.requestFullscreen();
+			} else if (elem.webkitRequestFullscreen) { /* Safari */
+				elem.webkitRequestFullscreen();
+			} else if (elem.msRequestFullscreen) { /* IE11 */
+				elem.msRequestFullscreen();
+			}
+		}
+	</script>
 </head>

@@ -943,10 +943,10 @@
                             "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " + b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
                             "<td style='white-space: nowrap; font-size:14px; " + highlight + "' id='item_name" + (total_row + 1) + "'>" + p_name + "</td>" +
                             "<td>" + (pls_qty) + "</td> " +
-                            "<td><input type='number' class='form-control border-dark col-5 basicInput2" + pst_id + " item_qty' id='item_qty" + (total_row + 1) + "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td> " +
-                            "<td><input type='number' class='form-control border-dark col-5 basicInput2" + pst_id + " discount_percentage' id='discount_percentage" + (total_row + 1) + "' value='0' onchange='return changeDiscountPercentage(" + (total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
-                            " <td><input type='number' class='form-control border-dark col-8 basicInput2" + pst_id + " discount_number' id='discount_number" + (total_row + 1) + "' value='0' onchange='return changeDiscountNumber(" + (total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
-                            "<td><input type='number' class='col-8 nameset_price' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td> " +
+                            "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" + pst_id + " item_qty' id='item_qty" + (total_row + 1) + "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td> " +
+                            "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" + pst_id + " discount_percentage' id='discount_percentage" + (total_row + 1) + "' value='0' onchange='return changeDiscountPercentage(" + (total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
+                            " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" + pst_id + " discount_number' id='discount_number" + (total_row + 1) + "' value='0' onchange='return changeDiscountNumber(" + (total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
+                            "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td> " +
                             "<td><span class='sell_price_item' id='sell_price_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                             "<td><span class='subtotal_item' id='subtotal_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                             "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" + (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) + ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " + pl_id + ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
@@ -1462,6 +1462,8 @@
             jQuery('#choosecustomer').modal('show');
         });
 
+        let is_shift = 0;
+
         jQuery('#shiftEmployeeBtn').on('click', function () {
 
             // jQuery('#shiftEmployeeModal').modal('show');
@@ -1481,11 +1483,15 @@
                         jQuery('#stopShiftButton').show();
                         jQuery('#shiftStatus').html('Shift In Progress');
                         jQuery('#shiftEmployeeModal').modal('show');
+
+                        // console.log(response.shiftStatus)
+                        is_shift = response.shiftStatus;
                     } else {
                         // User has not started a shift, show the modal with the start button
                         jQuery('#startShiftButton').show();
                         jQuery('#stopShiftButton').hide();
                         jQuery('#shiftEmployeeModal').modal('show');
+                        is_shift = response.shiftStatus;
                     }
                 },
                 error: function (error) {
@@ -1628,21 +1634,28 @@
         });
 
         jQuery('#payment_btn').on('click', function (e) {
-            e.preventDefault();
-            jQuery('#another_cost').val('');
-            jQuery('#admin_cost').val('');
-            jQuery('#unique_code').val('');
-            if (b1g1_temp.length > 0) {
-                jQuery('#note').val('[B1G1]');
-            }
-            if (jQuery('#free_sock_customer_mode').val() == '1') {
-                jQuery('#payment-offline-popup').modal('show');
-                var total_final_price_side = jQuery('#total_final_price_side').text();
-                var total_nameset_side = jQuery('#total_nameset_side').text();
-                var total = parseFloat(replaceComma(total_final_price_side));
-                jQuery('#payment_total').text(addCommas(total));
+
+            if(is_shift === 0){
+                swal("Shift Status", "Silahkan klik button Start Shift", "warning");
+                return false;
             } else {
-                jQuery('#OfferModal').modal('show');
+                e.preventDefault();
+                jQuery('#another_cost').val('');
+                jQuery('#admin_cost').val('');
+                jQuery('#unique_code').val('');
+                if (b1g1_temp.length > 0) {
+                    jQuery('#note').val('[B1G1]');
+                }
+                if (jQuery('#free_sock_customer_mode').val() == '1') {
+                    jQuery('#payment-offline-popup').modal('show');
+                    var total_final_price_side = jQuery('#total_final_price_side').text();
+                    var total_nameset_side = jQuery('#total_nameset_side').text();
+                    var total = parseFloat(replaceComma(total_final_price_side));
+                    jQuery('#payment_total').text(addCommas(total));
+                } else {
+                    jQuery('#OfferModal').modal('show');
+                }
+                // console.log('Halo');
             }
         });
 

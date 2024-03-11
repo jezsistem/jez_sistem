@@ -83,12 +83,14 @@ class UserShiftController extends Controller
             return response()->json([
                 'status' => '200',
                 'message' => 'Shift started',
+                'shiftStatus' => 1
             ], 200);
         }
 
         return response()->json([
             'status' => '404',
             'message' => 'Shift not started',
+            'shiftStatus' => 0
         ], 404);
     }
 }

@@ -233,17 +233,17 @@
     <div class="row row-cols-2 gap-4 mb-6">
         <div class="font-weight-medium col">Total Expected</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>Rp. {{ number_format($total_expected_payment) }}</span>
+            <span>Rp. {{ number_format($total_actual_payment) }}</span>
         </div>
         <hr/>
         <hr/>
         <div class="font-weight-medium col">Total Actual</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>Rp. {{ number_format($total_actual_payment) }}</span>
+            <span>Rp. {{ number_format($total_expected_payment) }}</span>
         </div>
         <hr/>
         <hr/>
-        <div class="font-weight-medium col">Total Input Kasir Shift</div>
+        <div class="font-weight-medium col">Total Actual Ending Cash</div>
         <div class="col d-flex justify-content-between align-items-center">
             <span>Rp. {{ number_format($data['laba_shift']) }}</span>
         </div>
@@ -252,21 +252,28 @@
         <div class="font-weight-medium col">Difference</div>
         <div class="col d-flex justify-content-between align-items-center">
             {{--            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>--}}
+            <span>Rp. {{ number_format($total_actual_payment - $total_expected_payment) }}</span>
+        </div>
+        <hr/>
+        <hr/>
+        <div class="font-weight-medium col">GAP Cash (Ending Cash - Actual Cash)</div>
+        <div class="col d-flex justify-content-between align-items-center">
+            {{--            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>--}}
             <span>Rp. {{ number_format($data['laba_shift'] - $total_expected_payment) }}</span>
         </div>
         <hr/>
         <hr/>
 
     </div>
-    <h3 class="text-lg font-weight-bold mb-4">Discount Total</h3>
-    <div class="row row-cols-2 gap-4 mb-6">
-        <div class="font-weight-medium col">Discount</div>
-        <div class="col d-flex justify-content-between align-items-center">
-            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>
-        </div>
-        <hr/>
-        <hr/>
+{{--    <h3 class="text-lg font-weight-bold mb-4">Discount Total</h3>--}}
+{{--    <div class="row row-cols-2 gap-4 mb-6">--}}
+{{--        <div class="font-weight-medium col">Discount</div>--}}
+{{--        <div class="col d-flex justify-content-between align-items-center">--}}
+{{--            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>--}}
+{{--        </div>--}}
+{{--        <hr/>--}}
+{{--        <hr/>--}}
 
 
-    </div>
+{{--    </div>--}}
 </div>

@@ -62,11 +62,11 @@
             var label = $('#pc_id option:selected').text();
             if (label != '- Pilih -') {
                 $('#product_category_selected_label').text(label);
-                $('#product_sub_category_display').fadeIn();
+                // $('#product_sub_category_display').fadeIn();
                 product_sub_category_table.draw();
             } else {
                 $('#product_category_selected_label').text('');
-                $('#product_sub_category_display').fadeOut();
+                // $('#product_sub_category_display').fadeOut();
             }
         });
 
@@ -85,10 +85,10 @@
             var label = $('#pc_id option:selected').text();
             if (label != '- Pilih -') {
                 $('#product_category_selected_label').text(label);
-                $('#product_sub_category_display').fadeIn();
+                // $('#product_sub_category_display').fadeIn();
             } else {
                 $('#product_category_selected_label').text('');
-                $('#product_sub_category_display').fadeOut();
+                // $('#product_sub_category_display').fadeOut();
             }
         });
 
