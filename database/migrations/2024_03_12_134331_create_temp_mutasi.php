@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTempMutasisTable extends Migration
+class CreateTempMutasi extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,11 @@ class CreateTempMutasisTable extends Migration
      */
     public function up()
     {
-        Schema::create('temp_mutasis', function (Blueprint $table) {
+        Schema::create('temp_mutasi', function (Blueprint $table) {
             $table->id();
+            $table->string('pls_id');
+            $table->string('ps_barcode');
+            $table->integer('pls_qty');
             $table->timestamps();
         });
     }
@@ -26,6 +29,6 @@ class CreateTempMutasisTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('temp_mutasis');
+        Schema::dropIfExists('temp_mutasi');
     }
 }
