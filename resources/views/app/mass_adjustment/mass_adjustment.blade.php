@@ -114,10 +114,11 @@
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <!--begin::Header-->
-                        <div class="card-header h-auto align-items-center justify-content-between">
-                            <!--begin::Dropdown-->
-                            <a class="btn btn-primary mt-2" id="export_btn">Export Template</a>
-                            <!--end::Dropdown-->
+                        <div class="card-header row d-flex align-items-center">
+                            <div class="col-4">
+                                <a class="btn btn-success mt-2" id="import_btn">Import Template</a>
+                                <a class="btn btn-success mt-2" id="export_btn">Export Template</a>
+                            </div>
                         </div>
                         <div class="card-body table-responsive">
                             <input type="search" class="form-control  col-6" id="stock_search" placeholder="Cari stok"/><br/>
@@ -146,9 +147,9 @@
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <!--begin::Header-->
-                        <div class="card-body row d-flex">
+                        <div class="card-header row d-flex align-items-center">
                             <div class="col-4">
-                                <a class="btn btn-success mt-2" id="import_btn">Import Template</a>
+{{--                                <a class="btn btn-success mt-2" id="import_btn">Import Template</a>--}}
                                 <input type="search" class="form-control form-control-sm col-6 mt-2" id="ma_search" placeholder="Cari kode"/>
                             </div>
                         </div>
