@@ -108,7 +108,7 @@
 								<div id="voucher_information" class='d-none'>
 									<input	type="hidden" id="_voucher_value"/>
 {{--								<table id="orderTable" class="display table table-hover" style="width:100%">--}}
-{{--									<input type="hidden" id="_voc_pst_id"/>--}}
+{{--								<input type="hidden" id="_voc_pst_id"/>--}}
 									<input type="hidden" id="_voc_value"/>
 									<input type="hidden" id="_voc_disc_value"/>
 									<input type="hidden" id="_voc_total_disc_value">
