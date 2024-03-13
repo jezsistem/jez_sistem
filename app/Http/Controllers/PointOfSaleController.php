@@ -2090,7 +2090,21 @@ class PointOfSaleController extends Controller
                 ->groupBy('product_stocks.id')
                 ->first();
         } else {
-            $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
+//            $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
+//                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+//                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                ->join('brands', 'brands.id', '=', 'products.br_id')
+//                ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+//                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                ->where('product_locations.st_id', '=', Auth::user()->st_id)
+//                ->where('pls_qty', '>', '0')
+//                ->whereNotIn('pl_code', $exception)
+//                ->whereIn('pl_code', ['TOKO'])
+//                ->where('product_stocks.ps_barcode', '=', $barcode)
+//                ->groupBy('product_stocks.id')
+//                ->first();
+
+            $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
                 ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->join('brands', 'brands.id', '=', 'products.br_id')
@@ -2205,6 +2219,7 @@ class PointOfSaleController extends Controller
             $r['b1g1_price'] = $b1g1_price;
         } else {
             $r['status'] = '400';
+            $r['barang'] = $item_type;
         }
         return json_encode($r);
     }

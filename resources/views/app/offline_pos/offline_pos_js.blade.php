@@ -1113,6 +1113,7 @@
                                 }
                                 // console.log(b1g1_temp);
                             } else if (r.status == '400') {
+                                console.log(r.barang);
                                 toast('Gagal', 'Item gagal ditambah', 'danger');
                             }
                         },
@@ -1129,6 +1130,8 @@
                         }, 300);
                     }
                 } else {
+                    console.log(r.barang);
+                    console.log(r.status);
                     toast('Tidak DItemukan', 'Barcode tidak ditemukan', 'warning');
                 }
             }

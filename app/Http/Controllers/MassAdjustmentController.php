@@ -153,6 +153,7 @@ class MassAdjustmentController extends Controller
                         $search = $request->get('search');
                         $w->orWhere('pl_code', 'LIKE', "%$search%")
                         ->orWhere('ps_barcode', 'LIKE', "%$search%")
+//                        ->orWhere('')
                         ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
                     });
                 }
@@ -412,6 +413,8 @@ class MassAdjustmentController extends Controller
         $br_id = $req->get('br_id');
         $pl_id = $req->get('pl_id');
         $qty_filter = $req->get('qty_filter');
+
+//        $date = $req->get('datepick');
         return Excel::download(new MassExport($st_id, $psc_id, $br_id, $pl_id, $qty_filter), 'mass_adjustment_template.xlsx');
     }
 

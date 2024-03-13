@@ -22,6 +22,9 @@
     <!--end::Main-->
     @include('app._partials.user_panel')
     @include('app._partials.scroll_top')
+
+
+
 </body>
 <!--end::Body-->
 

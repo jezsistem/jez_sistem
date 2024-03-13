@@ -1,4 +1,8 @@
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
+
+<!-- Datepicker -->
+<script src="{{ asset('app') }}/assets/js/daterangepicker/moment.min.js"></script>
+<script src="{{ asset('app') }}/assets/js/daterangepicker/daterangepicker.min.js"></script>
 <script>
     var dashboard_date = '';
     var st_id = $('#st_filter').val();
@@ -98,55 +102,17 @@
         data.append('pl_id', pl_id);
         data.append('qty_filter', qty_filter);
         window.location.href = "{{ url('export_mass_adjustment_template') }}?st_id="+st_id+"&psc_id="+psc_id+"&br_id="+br_id+"&pl_id="+pl_id+"&qty_filter="+qty_filter+"";
-
-        // $.ajaxSetup({
-        //     headers: {
-        //     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        //     }
-        // });
-        // $.ajax({
-        //     type:'POST',
-        //     url: "{{ url('export_mass_adjustment_template') }}",
-        //     data: data,
-        //     cache:false,
-        //     contentType: false,
-        //     processData: false,
-        //     xhrFields: {
-        //         responseType: 'blob'
-        //     },
-        //     success: function(blob, status, xhr) {
-        //         var filename = "";
-        //         var disposition = xhr.getResponseHeader('Content-Disposition');
-        //         if (disposition && disposition.indexOf('attachment') !== -1) {
-        //             var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-        //             var matches = filenameRegex.exec(disposition);
-        //             if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
-        //         }
-
-        //         if (typeof window.navigator.msSaveBlob !== 'undefined') {
-        //             window.navigator.msSaveBlob(blob, filename);
-        //         } else {
-        //             var URL = window.URL || window.webkitURL;
-        //             var downloadUrl = URL.createObjectURL(blob);
-
-        //             if (filename) {
-        //                 var a = document.createElement("a");
-        //                 if (typeof a.download === 'undefined') {
-        //                     window.location.href = downloadUrl;
-        //                 } else {
-        //                     a.href = downloadUrl;
-        //                     a.download = filename;
-        //                     document.body.appendChild(a);
-        //                     a.click();
-        //                 }
-        //             } else {
-        //                 window.location.href = downloadUrl;
-        //             }
-        //             setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 10000);
-        //         }
-        //     },
-        // });
     }
+
+    $('#f_export').on('submit', function(e) {
+        var data = new FormData();
+        data.append('st_id', st_id);
+        data.append('psc_id', psc_id);
+        data.append('br_id', br_id);
+        data.append('pl_id', pl_id);
+        data.append('qty_filter', qty_filter);
+        window.location.href = "{{ url('export_mass_adjustment_template') }}?st_id="+st_id+"&psc_id="+psc_id+"&br_id="+br_id+"&pl_id="+pl_id+"&qty_filter="+qty_filter+"";
+    });
 
     function exportResult()
     {
@@ -216,7 +182,7 @@
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+
             ],
             ajax: {
                 url : "{{ url('mass_stock_datatables') }}",
@@ -374,9 +340,63 @@
             stock_table.draw();
         });
 
+        //Backup export btn
+        // $(document).delegate('#export_btn', 'click', function(e) {
+        //     e.preventDefault();
+        //     exportTable();
+        // });
+
         $(document).delegate('#export_btn', 'click', function(e) {
             e.preventDefault();
-            exportTable();
+            jQuery.noConflict();
+            $('#exportModal').modal('show');
+        });
+
+        $(function() {
+
+            var start = moment().subtract(29, 'days');
+            var end = moment();
+
+            function cb(start, end) {
+                $('#tangalrange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+            }
+
+            $('#tanggalrange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                ranges: {
+                    'Hari ini': [moment(), moment()],
+                    'Kemarin': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '7 hari terakhir': [moment().subtract(6, 'days'), moment()],
+                    '30 hari terakhir': [moment().subtract(29, 'days'), moment()],
+                    'Bulan ini': [moment().startOf('month'), moment().endOf('month')],
+                    'Bulan lalu': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'Tahun ini': [moment().startOf('year'), moment().endOf('year')],
+                    'Tahun lalu': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+                }
+            }, cb);
+
+            cb(start, end);
+        });
+
+        $(document).ready(function() {
+            var table = $('#dataTable').DataTable({
+                buttons: ['copy', 'csv', 'print', 'excel', 'pdf'],
+                dom: "<'row px-2 px-md-4 pt-2'<'col-md-3'l><'col-md-5 text-center'B><'col-md-4'f>>" +
+                    "<'row'<'col-md-12'tr>>" +
+                    "<'row px-2 px-md-4 py-3'<'col-md-5'i><'col-md-7'p>>",
+                lengthMenu: [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"]
+                ],
+                columnDefs: [{
+                    targets: -1,
+                    orderable: false,
+                    searchable: false
+                }]
+            });
+
+            table.buttons().container().appendTo('#dataTable_wrapper .col-md-5:eq(0)');
         });
 
         $(document).delegate('#export_mad_btn', 'click', function(e) {
