@@ -974,10 +974,12 @@
 
     jQuery(document).delegate('#barcode_input', 'change', function (e) {
         e.preventDefault();
-        var barcode = jQuery(this).val();
+        var inpBarcode = jQuery(this).val();
         var type = jQuery('#std_id option:selected').text();
         var item_type = jQuery('#item_type option:selected').val();
         var std_id = jQuery('#std_id').val();
+
+        var barcode = inpBarcode.replace(/(\r\n|\n|\r)/gm, '');
 
         jQuery.ajaxSetup({
             headers: {
