@@ -12,7 +12,7 @@
             text-align: center;
             width: 80mm;
             margin-left: 1mm;
-            font-size: 13px;
+            font-size: 15px;
         }
 
         .content .title {
@@ -57,7 +57,7 @@
 
         .content .transaction-table {
             width: 93%;
-            font-size: 13px;
+            font-size: 15px;
         }
 
         .content .transaction-table .name {
@@ -101,7 +101,7 @@
         .content .azost {
             margin-top: 5px;
             text-align: center;
-            font-size: 13px;
+            font-size: 15px;
         }
 
         @media print {
