@@ -408,10 +408,16 @@ class InvoiceController extends Controller
                 array_push($get_invoice, $trx);
             }
         }
+        $stores = Auth::user()->st_id;
+
+        $data_stores = Store::where('id', $stores)->get()->first();
+
+        $stores_code = $data_stores->st_code;
         $data = [
             'title' => 'Invoice '.$invoice,
             'invoice' => $invoice,
             'invoice_data' => $get_invoice,
+            'store_code' => $stores_code,
             'segment' => request()->segment(1)
         ];
 

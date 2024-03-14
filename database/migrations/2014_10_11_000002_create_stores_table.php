@@ -18,6 +18,7 @@ class CreateStoresTable extends Migration
             $table->unsignedBigInteger('wr_id');
             $table->foreign('wr_id')->references('id')->on('warehouses');
             $table->string('st_name');
+            $table->string('st_code');
             $table->string('st_email')->nullable();
             $table->string('st_phone')->nullable();
             $table->string('st_address')->nullable();
