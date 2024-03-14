@@ -1549,6 +1549,7 @@ class PointOfSaleController extends Controller
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->limit(13)
                     ->get();
             } else if ($item_type == 'b1g1') {
@@ -1566,6 +1567,7 @@ class PointOfSaleController extends Controller
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
@@ -1584,6 +1586,7 @@ class PointOfSaleController extends Controller
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
