@@ -400,7 +400,12 @@
         });
     }
 
+
+
     function checkout() {
+        var payement = document.getElementById('total_payment').value
+        parseInt(payement.replace(/\D/g, ''));
+
         var pt_id_complaint = jQuery('#_pt_id_complaint').val();
         var pm_id = jQuery('#pm_id_offline').val();
         var pm_id_two = jQuery('#pm_id_offline_two').val();
@@ -1644,6 +1649,7 @@
                 swal("Shift Status", "Silahkan klik button Start Shift", "warning");
                 return false;
             } else {
+
                 e.preventDefault();
                 jQuery('#another_cost').val('');
                 jQuery('#admin_cost').val('');
@@ -1651,15 +1657,21 @@
                 if (b1g1_temp.length > 0) {
                     jQuery('#note').val('[B1G1]');
                 }
-                if (jQuery('#free_sock_customer_mode').val() == '1') {
-                    jQuery('#payment-offline-popup').modal('show');
-                    var total_final_price_side = jQuery('#total_final_price_side').text();
-                    var total_nameset_side = jQuery('#total_nameset_side').text();
-                    var total = parseFloat(replaceComma(total_final_price_side));
-                    jQuery('#payment_total').text(addCommas(total));
-                } else {
-                    jQuery('#OfferModal').modal('show');
-                }
+                // if (jQuery('#free_sock_customer_mode').val() == '1') {
+                //     jQuery('#payment-offline-popup').modal('show');
+                //     var total_final_price_side = jQuery('#total_final_price_side').text();
+                //     var total_nameset_side = jQuery('#total_nameset_side').text();
+                //     var total = parseFloat(replaceComma(total_final_price_side));
+                //     jQuery('#payment_total').text(addCommas(total));
+                // } else {
+                //     jQuery('#OfferModal').modal('show');
+                // }
+
+                jQuery('#payment-offline-popup').modal('show');
+                var total_final_price_side = jQuery('#total_final_price_side').text();
+                var total_nameset_side = jQuery('#total_nameset_side').text();
+                var total = parseFloat(replaceComma(total_final_price_side));
+                jQuery('#payment_total').text(addCommas(total));
                 // console.log('Halo');
             }
         });
@@ -1779,14 +1791,16 @@
         jQuery('#total_payment').on('keyup', function (e) {
             e.preventDefault();
             var total_price = jQuery('#payment_total').text();
+
             var total_payment = jQuery(this).val();
-            var return_payment = parseFloat(total_payment) - parseFloat(replaceComma(total_price));
+            var integerNumber = parseInt(total_payment.replace(".", ""));
+            var return_payment = parseFloat(integerNumber) - parseFloat(replaceComma(total_price));
             var method = jQuery('#payment_option option:selected').val();
             if (method == 'two') {
                 if (total_payment == '') {
                     jQuery('#total_payment_two').val(total_price);
                 } else {
-                    jQuery('#total_payment_two').val(parseFloat(replaceComma(total_price)) - total_payment);
+                    jQuery('#total_payment_two').val(parseFloat(replaceComma(total_price)) - integerNumber);
                 }
             } else {
                 if (total_payment == '') {
@@ -1934,9 +1948,38 @@
                     swal("Jumlah Dibayar Kedua", "Silahkan jumlah dibayar kedua", "warning");
                     return false;
                 }
-                jQuery("#InputCodeModal").modal('show');
+                // jQuery("#InputCodeModal").modal('show');
+
+                swal({
+                    title: "Data pembelian sudah sesuai ..?",
+                    text: "",
+                    icon: "warning",
+                    buttons: [
+                        'Batal',
+                        'Benar'
+                    ],
+                    dangerMode: false,
+                }).then(function(isConfirm) {
+                    if (isConfirm) {
+                        checkout()
+                    }
+                })
             } else {
-                jQuery("#InputCodeModal").modal('show');
+                // jQuery("#InputCodeModal").modal('show');
+                swal({
+                    title: "Data pembelian sudah sesuai ..?",
+                    text: "",
+                    icon: "warning",
+                    buttons: [
+                        'Batal',
+                        'Benar'
+                    ],
+                    dangerMode: false,
+                }).then(function(isConfirm) {
+                    if (isConfirm) {
+                        checkout()
+                    }
+                })
             }
         });
 
@@ -2263,6 +2306,12 @@
             rupiah.value = formatRupiah(this.value, 'Rp. ');
         });
 
+        /* Dengan Rupiah */
+        var total = document.getElementById('total_payment');
+        total.addEventListener('keyup', function (e) {
+            total.value = formatRupiahTotal(this.value);
+        });
+
 
         /* Rupiah format */
         function formatRupiah(angka, prefix) {
@@ -2281,6 +2330,22 @@
             return prefix == undefined ? rupiah : (rupiah ? 'Rp. ' + rupiah : '');
         }
 
+        /* Rupiah format */
+        function formatRupiahTotal(angka, prefix) {
+            var number_string = angka.replace(/[^,\d]/g, '').toString(),
+                split = number_string.split(','),
+                sisa = split[0].length % 3,
+                rupiah = split[0].substr(0, sisa),
+                ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+            return prefix == undefined ? rupiah : (rupiah ? 'Rp. ' + rupiah : '');
+        }
 
     });
 

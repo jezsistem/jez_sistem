@@ -42,7 +42,11 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">Cash</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($cashMethods->total_pos_payment) }}</span>
+                @php
+                    $totalPayment = number_format($cashMethods->total_pos_payment + $cashMethods->total_pos_payment_partials);
+                @endphp
+
+                <span>Rp. {{ $totalPayment }}</span>
             </div>
             <hr/>
             <hr/>
@@ -69,7 +73,7 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">BCA</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($bcaMethods->total_pos_payment) }}</span>
+                <span>Rp. {{ number_format($bcaMethods->total_pos_payment + $bcaMethods->total_pos_payment_partials) }}</span>
 
             </div>
             <hr/>
@@ -97,7 +101,7 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">BRI</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($briMethods->total_pos_payment) }}</span>
+                    <span>Rp. {{ number_format($briMethods->total_pos_payment + $briMethods->total_pos_payment_partials) }}</span>
 
             </div>
             <hr/>
@@ -125,7 +129,7 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">BRI</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($bniMethods->total_pos_payment) }}</span>
+                <span>Rp. {{ number_format($bniMethods->total_pos_payment + $bniMethods->total_pos_payment_partials) }}</span>
 
             </div>
             <hr/>
@@ -153,7 +157,7 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">TRANSFER BCA</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{number_format($transferBca->total_pos_payment) }}</span>
+                <span>Rp. {{number_format($transferBca->total_pos_payment + $transferBca->total_pos_payment_partials) }}</span>
 
             </div>
             <hr/>
@@ -181,7 +185,7 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">TRANSFER BRI</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($transferBri->total_pos_payment) }}</span>
+                <span>Rp. {{ number_format($transferBri->total_pos_payment + $transferBri->total_pos_payment_partials) }}</span>
 
             </div>
             <hr/>
@@ -205,11 +209,11 @@
 
     {{--   TRANSFER BNI  --}}
     @if($transferBni != null)
-        <h3 class="text-lg font-weight-bold mb-4">TRANSGER BNI</h3>
+        <h3 class="text-lg font-weight-bold mb-4">TRANSFER BNI</h3>
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">TRANSFER BRI</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($transferBni->total_pos_payment) }}</span>
+                <span>Rp. {{ number_format($transferBni->total_pos_payment + $transferBni->total_pos_payment_partials) }}</span>
 
             </div>
             <hr/>
@@ -233,13 +237,13 @@
     <div class="row row-cols-2 gap-4 mb-6">
         <div class="font-weight-medium col">Total Expected</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>Rp. {{ number_format($total_actual_payment) }}</span>
+            <span>Rp. {{ number_format($total_expected_payment) }}</span>
         </div>
         <hr/>
         <hr/>
         <div class="font-weight-medium col">Total Actual</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>Rp. {{ number_format($total_expected_payment) }}</span>
+            <span>Rp. {{ number_format($total_actual_payment) }}</span>
         </div>
         <hr/>
         <hr/>
@@ -251,8 +255,8 @@
         <hr/>
         <div class="font-weight-medium col">Difference</div>
         <div class="col d-flex justify-content-between align-items-center">
-            {{--            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>--}}
-            <span>Rp. {{ number_format($total_actual_payment - $total_expected_payment) }}</span>
+            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>
+{{--            <span>Rp. {{ number_format($total_actual_payment - $total_expected_payment) }}</span>--}}
         </div>
         <hr/>
         <hr/>

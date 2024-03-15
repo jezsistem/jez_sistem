@@ -315,7 +315,6 @@
                             <td class="final-price">
                                         <span style="float:right;">
                                             @if (!empty($total_discount))
-                                                {{--                                                {{ number_format($total_discount+$row->pos_another_cost) }}--}}
                                                 {{ \App\Libraries\CurrencyFormatter::formatToIDR((($total_price+$nameset) - ($total_discount)) - $total_voucher) }}
                                             @else
                                                 {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) - $total_voucher) }}
