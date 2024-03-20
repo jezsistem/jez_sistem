@@ -306,7 +306,7 @@
                     <div class="col-md-6">
                         <label class="text-body"><span class="btn-sm btn-primary font-size-bold">Jumlah yang dibayar Customer</span></label>
                         <fieldset class="form-group mb-3">
-                            <input type="text" name="number" class="form-control bg-light-primary" id="total_payment"
+                            <input type="number" name="number" class="form-control bg-light-primary" id="total_payment"
                                    value="" placeholder="Jumlah">
                         </fieldset>
                     </div>
