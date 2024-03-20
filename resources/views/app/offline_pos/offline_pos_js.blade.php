@@ -1788,28 +1788,31 @@
             jQuery('#payment_total').text(addCommas(total));
         })
 
-        jQuery('#total_payment').on('keyup', function (e) {
-            e.preventDefault();
-            var total_price = jQuery('#payment_total').text();
+        // jQuery('#total_payment').on('keyup', function (e) {
+        //     e.preventDefault();
+        //     var total_price = jQuery('#payment_total').text();
+        //
+        //     var total_payment = jQuery(this).val();
+        //     var integerNumber = parseFloat(total_payment.replace(/./g, ''));
+        //     var integerTotal = parseFloat(total_price.replace(/,/g, ''));
+        //     var return_payment = integerNumber - integerTotal;
+        //     var method = jQuery('#payment_option option:selected').val();
+        //     if (method == 'two') {
+        //         if (total_payment == '') {
+        //             jQuery('#total_payment_two').val(total_price);
+        //         } else {
+        //             jQuery('#total_payment_two').val(integerTotal - integerNumber);
+        //         }
+        //     } else {
+        //         if (total_payment == '') {
+        //             jQuery('#return_payment').text('');
+        //         } else {
+        //             jQuery('#return_payment').text(return_payment);
+        //         }
+        //     }
+        // });
 
-            var total_payment = jQuery(this).val();
-            var integerNumber = parseInt(total_payment.replace(".", ""));
-            var return_payment = parseFloat(integerNumber) - parseFloat(replaceComma(total_price));
-            var method = jQuery('#payment_option option:selected').val();
-            if (method == 'two') {
-                if (total_payment == '') {
-                    jQuery('#total_payment_two').val(total_price);
-                } else {
-                    jQuery('#total_payment_two').val(parseFloat(replaceComma(total_price)) - integerNumber);
-                }
-            } else {
-                if (total_payment == '') {
-                    jQuery('#return_payment').text('');
-                } else {
-                    jQuery('#return_payment').text(addCommas(return_payment));
-                }
-            }
-        });
+
 
         jQuery('#charge').on('change', function (e) {
             e.preventDefault();
@@ -2308,8 +2311,31 @@
 
         /* Dengan Rupiah */
         var total = document.getElementById('total_payment');
+        var replace_total = document.getElementById('replace_payment');
         total.addEventListener('keyup', function (e) {
             total.value = formatRupiahTotal(this.value);
+            $("#replace_total").val("halo");
+        });
+
+        jQuery('#total_payment').on('keyup', function(e) {
+            e.preventDefault();
+            var total_price = jQuery('#payment_total').text();
+            var total_payment = jQuery(this).val();
+            var return_payment = parseFloat(total_payment.replace(".", "")) - parseFloat(replaceComma(total_price));
+            var method = jQuery('#payment_option option:selected').val();
+            if (method == 'two') {
+                if (total_payment == '') {
+                    jQuery('#total_payment_two').val(total_price);
+                } else {
+                    jQuery('#total_payment_two').val(parseFloat(replaceComma(total_price)) - total_payment);
+                }
+            } else {
+                if (total_payment == '') {
+                    jQuery('#return_payment').text('');
+                } else {
+                    jQuery('#return_payment').text(addCommas(return_payment));
+                }
+            }
         });
 
 

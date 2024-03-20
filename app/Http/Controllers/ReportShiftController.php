@@ -193,6 +193,7 @@ class ReportShiftController extends Controller
                 'pos_transactions.pos_payment_partial',
                 'payment_methods.id as pm_id',
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment_partial ELSE 0 END) as total_pos_payment_partials'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id THEN ts_pos_transactions.pos_payment_partial ELSE 0 END) as total_pos_partials'),
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment'),
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "1" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_refund'),
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_payment_expected'),
@@ -245,9 +246,6 @@ class ReportShiftController extends Controller
                 if (stripos($paymentMethod->pm_name, 'TRANSFER BRI') !== false) {
                     $transferBri = $paymentMethod;
                 }
-                if ($paymentMethod->pos_payment_partial != null && stripos($paymentMethod->pm_name, 'CASH') !== false) {
-                    $methodsPartials = $PaymentPartials;
-                }
             }
             $total_sold_items = $this->totalProductSold($data, $request->id, $data['start_time'], $data['end_time']) ?? 0;
             $total_refund_items = $this->totalProductRefund($data, $request->id, $data['start_time'], $data['end_time']) ?? 0;
@@ -255,14 +253,16 @@ class ReportShiftController extends Controller
             // create total expected payment
             $total_expected_payment = 0;
             $total_actual_payment = 0;
+            $total_payment_two = 0;
             foreach ($paymentMethods as $paymentMethod) {
                 $total_expected_payment += $paymentMethod->total_pos_payment_expected;
                 $total_actual_payment += $paymentMethod->total_pos_payment;
+                $total_payment_two  += $paymentMethod->total_pos_partials;
             }
 
             return view('app.report.shift._shift_detail',
                 compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri',
-                    'total_sold_items', 'total_refund_items', 'total_expected_payment', 'total_actual_payment', 'methodsPartials'));
+                    'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
         } catch (\Exception $e) {
             return $e->getMessage();
         }

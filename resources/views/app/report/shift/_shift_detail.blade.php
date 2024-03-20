@@ -1,3 +1,12 @@
+@php
+    $totalPayment = 0;
+    $total_tf_bri = 0;
+    $total_tf_bca = 0;
+    $total_edc_bni = 0;
+    $total_edc_bri = 0;
+    $total_edc_bca = 0;
+@endphp
+
 <div class="container bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
     <h2 class="text-xl font-weight-bold mb-4">SHIFT DETAILS</h2>
     <div class="row row-cols-2 gap-4 mb-6">
@@ -73,7 +82,10 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">BCA</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($bcaMethods->total_pos_payment + $bcaMethods->total_pos_payment_partials) }}</span>
+                @php
+                    $total_edc_bca = number_format($bcaMethods->total_pos_payment + $bcaMethods->total_pos_payment_partials);
+                @endphp
+                <span>Rp. {{ $total_edc_bca }}</span>
 
             </div>
             <hr/>
@@ -101,7 +113,10 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">BRI</div>
             <div class="col d-flex justify-content-between align-items-center">
-                    <span>Rp. {{ number_format($briMethods->total_pos_payment + $briMethods->total_pos_payment_partials) }}</span>
+                @php
+                    $total_edc_bri = number_format($briMethods->total_pos_payment + $briMethods->total_pos_payment_partials);
+                @endphp
+                <span>Rp. {{ $total_edc_bri }}</span>
 
             </div>
             <hr/>
@@ -129,7 +144,10 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">BRI</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($bniMethods->total_pos_payment + $bniMethods->total_pos_payment_partials) }}</span>
+                @php
+                    $total_edc_bni = number_format($bniMethods->total_pos_payment + $bniMethods->total_pos_payment_partials);
+                @endphp
+                <span>Rp. {{ $total_edc_bni }}</span>
 
             </div>
             <hr/>
@@ -157,7 +175,10 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">TRANSFER BCA</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{number_format($transferBca->total_pos_payment + $transferBca->total_pos_payment_partials) }}</span>
+                @php
+                    $total_tf_bca = number_format($transferBca->total_pos_payment + $transferBca->total_pos_payment_partials);
+                @endphp
+                <span>Rp. {{ $total_tf_bca }}</span>
 
             </div>
             <hr/>
@@ -185,7 +206,10 @@
         <div class="row row-cols-2 gap-4 mb-6">
             <div class="font-weight-medium col">TRANSFER BRI</div>
             <div class="col d-flex justify-content-between align-items-center">
-                <span>Rp. {{ number_format($transferBri->total_pos_payment + $transferBri->total_pos_payment_partials) }}</span>
+                @php
+                    $total_tf_bri = number_format($transferBri->total_pos_payment + $transferBri->total_pos_payment_partials);
+                @endphp
+                <span>Rp. {{ $total_tf_bri }}</span>
 
             </div>
             <hr/>
@@ -208,6 +232,11 @@
     @endif
 
     {{--   TRANSFER BNI  --}}
+
+    @php
+        $total_partials = 0;
+    @endphp
+
     @if($transferBni != null)
         <h3 class="text-lg font-weight-bold mb-4">TRANSFER BNI</h3>
         <div class="row row-cols-2 gap-4 mb-6">
@@ -233,9 +262,15 @@
             <hr/>
         </div>
     @endif
+
+
+
+    @php
+        $total_expected = $totalPayment;
+    @endphp
     <h3 class="text-lg font-weight-bold mb-4">Total</h3>
     <div class="row row-cols-2 gap-4 mb-6">
-        <div class="font-weight-medium col">Total Expected</div>
+        <div class="font-weight-med ium col">Total Expected</div>
         <div class="col d-flex justify-content-between align-items-center">
             <span>Rp. {{ number_format($total_expected_payment) }}</span>
         </div>
@@ -243,7 +278,7 @@
         <hr/>
         <div class="font-weight-medium col">Total Actual</div>
         <div class="col d-flex justify-content-between align-items-center">
-            <span>Rp. {{ number_format($total_actual_payment) }}</span>
+            <span>Rp. {{ number_format($total_actual_payment + $total_payment_two) }}</span>
         </div>
         <hr/>
         <hr/>
@@ -256,7 +291,7 @@
         <div class="font-weight-medium col">Difference</div>
         <div class="col d-flex justify-content-between align-items-center">
             <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>
-{{--            <span>Rp. {{ number_format($total_actual_payment - $total_expected_payment) }}</span>--}}
+            {{--            <span>Rp. {{ number_format($total_actual_payment - $total_expected_payment) }}</span>--}}
         </div>
         <hr/>
         <hr/>
@@ -269,15 +304,15 @@
         <hr/>
 
     </div>
-{{--    <h3 class="text-lg font-weight-bold mb-4">Discount Total</h3>--}}
-{{--    <div class="row row-cols-2 gap-4 mb-6">--}}
-{{--        <div class="font-weight-medium col">Discount</div>--}}
-{{--        <div class="col d-flex justify-content-between align-items-center">--}}
-{{--            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>--}}
-{{--        </div>--}}
-{{--        <hr/>--}}
-{{--        <hr/>--}}
+    {{--    <h3 class="text-lg font-weight-bold mb-4">Discount Total</h3>--}}
+    {{--    <div class="row row-cols-2 gap-4 mb-6">--}}
+    {{--        <div class="font-weight-medium col">Discount</div>--}}
+    {{--        <div class="col d-flex justify-content-between align-items-center">--}}
+    {{--            <span>Rp. {{ number_format($total_expected_payment - $total_actual_payment) }}</span>--}}
+    {{--        </div>--}}
+    {{--        <hr/>--}}
+    {{--        <hr/>--}}
 
 
-{{--    </div>--}}
+    {{--    </div>--}}
 </div>

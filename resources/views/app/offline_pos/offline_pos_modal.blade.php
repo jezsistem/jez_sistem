@@ -60,7 +60,7 @@
                     </div>
                     <div class="form-group row">
                         <div class="col-md-12">
-                            <label class="text-body">Provinsi *</label>
+                            <label class="text-body">Provinsi</label>
                             <fieldset class="form-group mb-3">
                                 <select class="form-control" id="cust_province" name="cust_province">
                                     <option value="">- Pilih -</option>
@@ -73,7 +73,7 @@
                     </div>
                     <div class="form-group row">
                         <div class="col-md-12">
-                            <label class="text-body">Kota *</label>
+                            <label class="text-body">Kota</label>
                             <fieldset class="form-group mb-3">
                                 <select class="form-control" id="cust_city" name="cust_city">
                                     <option value="">- Pilih -</option>
@@ -83,7 +83,7 @@
                     </div>
                     <div class="form-group row">
                         <div class="col-md-12">
-                            <label class="text-body">Kecamatan *</label>
+                            <label class="text-body">Kecamatan</label>
                             <fieldset class="form-group mb-3">
                                 <select class="form-control" id="cust_subdistrict" name="cust_subdistrict">
                                     <option value="">- Pilih -</option>
