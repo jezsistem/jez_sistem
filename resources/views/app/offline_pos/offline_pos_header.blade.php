@@ -93,7 +93,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-12">
-                                    <a href="#" class="btn btn-primary white mb-2" id="payment_btn">
+                                    <a href="#" class="btn btn-primary white mb-2" id="add_custom_amount">
                                         Add Custom Amount
                                     </a>
                                 </div>
