@@ -15,7 +15,7 @@
                     <div class="form-group">
                         <label>Download Template
                         <span class="text-danger">*</span></label>
-                        <a href="{{ asset('upload/template/product_template_Article.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
+                        <a href="{{ asset('upload/template/product_template_import.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
                     </div>
                     <div class="form-group">
                         <label>Pilih template yang sudah di download dan diisi
