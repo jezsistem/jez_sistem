@@ -267,7 +267,7 @@
                         </tr>
                         <tr class="d-flex align-items-center justify-content-between">
                             <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
-                                Biaya Lain-Lain (+)
+                                Charge Lain-Lain (+)
                             </th>
                             <td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
                                 <input type="text" placeholder="(isi jika online)" id="another_cost"
@@ -633,6 +633,40 @@
                 </button>
             </div>
             <div class="modal-body">
+                <form id="f_shift_customer">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>
+
+                    </div><br>
+                </form>
+                <div id="UserShiftModalBody"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->
+
+
+<!-- Modal -->
+<div class="modal fade text-left" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13"
+     style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h4 class="modal-title text-dark" id="myModalLabel13">Input Kas</h4>
+                <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0" data-dismiss="modal" aria-label="Close">
+                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="f_shift_customer">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>
+
+                    </div><br>
+                </form>
                 <div id="UserShiftModalBody"></div>
             </div>
         </div>
