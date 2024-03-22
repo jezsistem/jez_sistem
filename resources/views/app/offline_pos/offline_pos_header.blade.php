@@ -102,7 +102,7 @@
                     </div>
                     <div class="topbar-item folder-data">
                         <div class="btn btn-icon  w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3"
-                             data-toggle="modal" data-target="#folderpop">
+                             data-toggle="modal" data-target="#shiftDetailModal" id="shiftEmployeeBtn">
                             <!-- <span class="badge badge-pill badge-primary">5</span> -->
                             <span class="symbol symbol-35  symbol-light-success">
                                 <span class="symbol-label bg-warning font-size-h5 ">

@@ -79,6 +79,9 @@
 											<input type="text" class="form-control border-dark col-3" id="invoice_input" placeholder="Invoice (ketik 5 angka invoice)">
 										</fieldset>
 										<div id="itemList"></div>
+										<input type="text" value="{{ Auth::user()->u_name }}" name="u_name" class="form-control border-dark col-3" id="invoice_input">
+										<input type="text" value="{{ $data['store']->st_name }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
+										<input type="text" value="{{ $data['starting_date'] }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
 									</div>
 								</div>
 							</div>

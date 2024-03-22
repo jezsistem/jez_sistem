@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UserShift;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -83,11 +85,16 @@ class PointOfSaleController extends Controller
 //        dd(Auth::user()->st_id);
         $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->where('st_id', Auth::user()->st_id)->orderByDesc('pm_name')->pluck('pm_name', 'id');
 
+        $time_start = UserShift::where('start_time', '!=', null)
+                    ->where('end_time', null)
+                    ->where('user_id', Auth::user()->id)
+                    ->orderBy('id', 'desc')->first();
         $data = [
             'app_title' => 'JEZ SYSTEM',
             'title' => 'POINT OF SALE',
             'user' => $user_data,
             'store' => $store,
+            'starting_date' => $time_start,
             'pt_id' => null,
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
@@ -112,6 +119,106 @@ class PointOfSaleController extends Controller
             return view('app.pos.pos', compact('data'));
         } else {
             return view('app.offline_pos.offline_pos', compact('data'));
+        }
+    }
+
+    public function detailShift(Request $request)
+    {
+        try {
+
+            $data['name'] = Auth::user()->u_name;
+            $data['start_time'] = $request->start_time_original;
+            $data['end_time'] = '';
+            $data['store'] = $request->st_name;
+            $data['total_pos_real_price'] = '';
+            $data['total_pos_payment_price'] = '';
+            $data['laba_shift'] = '';
+            $data['difference'] = '';
+            $data['user_id'] = Auth::user()->id;
+            $data['st_id'] = Auth::user()->st_id;
+            $data['st_name'] = Auth::user()->st_name;
+
+            $currencyValue = $request->laba_shift;
+            $laba_shift = (int)preg_replace('/\D/', '', $currencyValue);
+            $data['laba_shift'] = $laba_shift;
+
+            $paymentMethods = PaymentMethod::select(
+                'payment_methods.pm_name',
+                'pos_transactions.pos_payment_partial',
+                'payment_methods.id as pm_id',
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment_partial ELSE 0 END) as total_pos_payment_partials'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id THEN ts_pos_transactions.pos_payment_partial ELSE 0 END) as total_pos_partials'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "1" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_refund'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_payment_expected'),
+            )
+                ->join('pos_transactions', 'pos_transactions.pm_id', '=', 'payment_methods.id')
+                ->where('pos_transactions.u_id', '=', $data['user_id'])
+                ->where('pos_transactions.st_id', "=", $data['st_id'])
+//                ->join('user_shifts', 'pos_transactions.u_id', '=', 'user_shifts.user_id')
+                ->whereBetween('pos_transactions.created_at', [$data['start_time'], Carbon::now()])
+                ->groupBy('payment_methods.id')
+                ->get();
+//            return $paymentMethods;
+            $cashMethods = [];
+            $methodsPartials = [];
+            $bcaMethods = [];
+            $bniMethods = [];
+            $briMethods = [];
+
+            $transferBca = [];
+            $transferBni = [];
+            $transferBri = [];
+
+            $PaymentPartials = PosTransaction::where('u_id', $data['user_id'])
+                ->join('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+                ->where('pos_transactions.u_id', '=', $data['user_id'])
+                ->where('pos_transactions.st_id', $data['st_id'])
+                ->whereBetween('pos_transactions.created_at', [$data['start_time'], $data['end_time']])
+                ->get();
+
+            foreach ($paymentMethods as $paymentMethod) {
+                if (stripos($paymentMethod->pm_name, 'CASH') !== false) {
+                    $cashMethods = $paymentMethod;
+                }
+                if (stripos($paymentMethod->pm_name, 'EDC BCA') !== false) {
+                    $bcaMethods = $paymentMethod;
+                }
+                if (stripos($paymentMethod->pm_name, 'EDC BNI') !== false) {
+                    $bniMethods = $paymentMethod;
+                }
+                if (stripos($paymentMethod->pm_name, 'EDC BRI') !== false) {
+                    $briMethods = $paymentMethod;
+                }
+
+                if (stripos($paymentMethod->pm_name, 'TRANSFER BCA') !== false) {
+                    $transferBca = $paymentMethod;
+                }
+                if (stripos($paymentMethod->pm_name, 'TRANSFER BNI') !== false) {
+                    $transferBni = $paymentMethod;
+                }
+                if (stripos($paymentMethod->pm_name, 'TRANSFER BRI') !== false) {
+                    $transferBri = $paymentMethod;
+                }
+            }
+            $total_sold_items = $this->totalProductSold($data, $request->id, $data['start_time'], $data['end_time']) ?? 0;
+            $total_refund_items = $this->totalProductRefund($data, $request->id, $data['start_time'], $data['end_time']) ?? 0;
+
+            // create total expected payment
+            $total_expected_payment = 0;
+            $total_actual_payment = 0;
+            $total_payment_two = 0;
+            foreach ($paymentMethods as $paymentMethod) {
+                $total_expected_payment += $paymentMethod->total_pos_payment_expected;
+                $total_actual_payment += $paymentMethod->total_pos_payment;
+                $total_payment_two  += $paymentMethod->total_pos_partials;
+            }
+
+            return view('app.report.shift._shift_detail',
+                compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri',
+                    'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
     }
 

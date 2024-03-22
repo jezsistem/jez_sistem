@@ -107,7 +107,6 @@ class ReportShiftController extends Controller
                 'user_shifts.laba_shift',
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_users.st_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price'),
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_users.st_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_price'),
-                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id THEN ts_pos_transactions.pos_payment_partial ELSE 0 END) as total_pos_partials'),
             )
                 ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
                 ->join('user_shifts', 'users.id', '=', 'user_shifts.user_id')
@@ -172,7 +171,6 @@ class ReportShiftController extends Controller
     public function detail(Request $request)
     {
         try {
-
             $data['name'] = $request->u_name;
             $data['start_time'] = $request->start_time_original;
             $data['end_time'] = $request->end_time_original;

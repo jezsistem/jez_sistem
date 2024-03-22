@@ -22,6 +22,59 @@
 		});
 	}
 
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    var stock_data_table = $('#StockDatatb').DataTable({
+        destroy: true,
+        processing: false,
+        serverSide: true,
+        responsive: false,
+        dom: 'rt<"text-right"ipl>',
+        buttons: [
+            { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+        ],
+        ajax: {
+            url : "{{ url('stock_data_datatables') }}",
+            data : function (d) {
+                d.search = $('#stock_data_search').val();
+                d.search_scan = $('#stock_data_search_scan').val();
+                d.br_id = $('#br_id').val();
+                d.pc_id = $('#pc_id').val();
+                d.psc_id = $('#psc_id').val();
+                d.pssc_id = $('#pssc_id').val();
+                d.sz_id = $('#sz_id').val();
+                d.gender_id = $('#gender_id').val();
+                d.main_color_id = $('#main_color_id').val();
+                d.display_status = $('#display_status').val();
+                d.st_id = $('#st_id_filter').val();
+            }
+        },
+        columns: [
+            { data: 'article_name', name: 'article_name', orderable: false },
+            { data: 'article_stock', name: 'article_stock', orderable: false },
+        ],
+        columnDefs: [
+            {
+                "targets": 0,
+                "className": "text-left",
+                "width": "0%"
+            }],
+        rowCallback: function( row, data, index) {
+            if (data.article_stock.indexOf("<table></table>") >= 0) {
+                $(row).hide();
+            }
+        },
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+        language: {
+            "lengthMenu": "_MENU_",
+        },
+        order: [[0, 'desc']],
+    });
+
 	function reloadPackingList()
 	{
 		var qr = $('#invoice_number').text();
@@ -1088,6 +1141,14 @@
 	$('#ScannerModal').on('hide.bs.modal', function() {
 		$('#stop').trigger('click');
 	});
+
+    jQuery.noConflict();
+    $('#data_stok_btn').on('click', function(e) {
+        e.preventDefault();
+        $('#st_id').val('');
+        $('#dataStokModal').modal('show');
+        out_table.draw();
+    });
 
     jQuery.noConflict();
 	$('#out_btn').on('click', function(e) {
