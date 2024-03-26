@@ -162,6 +162,7 @@
 	</div>
 @include('app.offline_pos.offline_pos_modal')
 @include('app.offline_pos.offline_pos_js')
+{{--	asdasd--}}
 <script>
 	jQuery(function() {
 		jQuery('.arabic-select').multipleSelect({
