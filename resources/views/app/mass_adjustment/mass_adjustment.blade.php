@@ -37,6 +37,7 @@
                             <!--end::Header-->
                             <!--begin::Body-->
                             <div class="card-body pt-4">
+{{--                                {{  Auth::  }}}--}}
                                 <select class="form-control mt-2 bg-primary text-white" id="st_filter">
                                     <option value='all'>- Semua Store -</option>
                                     @foreach ($data['st_id'] as $key => $value)

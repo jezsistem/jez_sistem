@@ -86,6 +86,8 @@ class MassAdjustmentController extends Controller
             'br_id' => DB::table('brands')->where('br_delete', '!=', '1')->orderBy('br_name')->pluck('br_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
+        dd(Auth::user()->st_id);
         return view('app.mass_adjustment.mass_adjustment', compact('data'));
     }
 
@@ -105,6 +107,7 @@ class MassAdjustmentController extends Controller
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->whereRaw('LOWER(p_name) NOT LIKE ?', ['%custom%'])
             ->where(function($w) use ($exception, $request) {
                 $st_id = $request->get('st_id');
                 $psc_id = $request->get('psc_id');
@@ -153,7 +156,6 @@ class MassAdjustmentController extends Controller
                         $search = $request->get('search');
                         $w->orWhere('pl_code', 'LIKE', "%$search%")
                         ->orWhere('ps_barcode', 'LIKE', "%$search%")
-//                        ->orWhere('')
                         ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
                     });
                 }

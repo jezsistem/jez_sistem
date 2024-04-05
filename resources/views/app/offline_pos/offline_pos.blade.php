@@ -79,9 +79,12 @@
 											<input type="text" class="form-control border-dark col-3" id="invoice_input" placeholder="Invoice (ketik 5 angka invoice)">
 										</fieldset>
 										<div id="itemList"></div>
-										<input type="text" value="{{ Auth::user()->u_name }}" name="u_name" class="form-control border-dark col-3" id="invoice_input">
-										<input type="text" value="{{ $data['store']->st_name }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
-										<input type="text" value="{{ $data['starting_date'] }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
+										<input type="hidden" value="{{ Auth::user()->u_name }}" name="u_name" class="form-control border-dark col-3" id="invoice_input">
+										<input type="hidden" value="{{ $data['pst_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pst_custom">
+										<input type="hidden" value="{{ $data['psc_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="psc_custom">
+										<input type="hidden" value="{{ $data['pl_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pl_custom">
+										<input type="hidden" value="{{ $data['store']->st_name }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
+										<input type="hidden" value="{{ $data['starting_date'] }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
 									</div>
 								</div>
 							</div>
@@ -108,7 +111,7 @@
 										</tbody>
 									</table>
 								</div>
-								<div id="voucher_information" class='d-none'>
+								<div id="voucher_informatio n" class='d-none'>
 									<input	type="hidden" id="_voucher_value"/>
 {{--								<table id="orderTable" class="display table table-hover" style="width:100%">--}}
 {{--								<input type="hidden" id="_voc_pst_id"/>--}}
@@ -179,3 +182,7 @@
 </script>
 </body>
 </html>
+
+
+
+

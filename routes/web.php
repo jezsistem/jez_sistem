@@ -576,6 +576,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('check_complaint', [PointOfSaleController::class, 'checkComplaint']);
     Route::post('check_offline_complaint', [PointOfSaleController::class, 'checkOfflineComplaint']);
     Route::post('autocomplete_refund_invoice', [PointOfSaleController::class, 'fetchRefundInvoice']);
+    Route::post('add_custom_amount', [PointOfSaleController::class, 'addCustomAmount']);
 
     // Account Type
     Route::get('jenis_akun', [AccountTypeController::class, 'index'])->name('account_type');

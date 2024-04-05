@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\UserShift;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
@@ -113,7 +114,12 @@ class PointOfSaleController extends Controller
             'cust_province' => DB::table('wilayah')->select('kode', 'nama')->whereRaw('length(kode) = 2')->orderBy('nama')->pluck('nama', 'kode'),
             'b1g1_bin' => DB::table('buy_one_get_ones')->select('product_locations.id as id', 'pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->orderBy('pl_code')->pluck('pl_code', 'id'),
+            'pst_custom' => ProductStock::where('ps_barcode', '=', 'CUSTOM')->first(),
+            'psc_custom' => Product::where('p_name', 'LIKE', '%CUSTOM%')->first(),
+            'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first()
         ];
+
+//        dd($data['pl_custom']->id);
 
         if (strtolower($user_data->stt_name) == 'online') {
             return view('app.pos.pos', compact('data'));
@@ -1402,212 +1408,6 @@ class PointOfSaleController extends Controller
         return json_encode($r);
     }
 
-    function changeWaitingStatus(Request $request)
-    {
-
-        $b1g1_setup = BuyOneGetOne::select('pl_code')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->get()->toArray();
-
-        $pt_id = $request->_pt_id;
-        $pst_id = $request->_pst_id;
-        $pl_id = $request->_pl_id;
-        $sell_price = $request->_sell_price;
-        $mode = $request->_mode;
-        $item_type = $request->_item_type;
-        $plst_id = $request->_plst_id;
-        $plst_status = '';
-        $free_delete = $request->_free_delete;
-        if (!empty($free_delete)) {
-          UserRating::where([
-            'st_id' => Auth::user()->st_id,
-            'stt_id' => Auth::user()->stt_id,
-            'ur_status' => 'WAITING FOR REVIEW',
-          ])->delete();
-          UserRating::where([
-            'st_id' => Auth::user()->st_id,
-            'stt_id' => Auth::user()->stt_id,
-            'ur_status' => 'WAITING FOR CHECKOUT',
-          ])->update([
-            'ur_status' => 'DONE',
-          ]);
-        }
-        $pl_code = ProductLocation::select('pl_code')->where('id', $pl_id)->get()->first()->pl_code;
-        $pls_id = ProductLocationSetup::select('id')->where('pst_id', $pst_id)->where('pl_id', $pl_id)->get()->first()->id;
-        $plst_status_new = [
-            'WAITING OFFLINE',
-            'INSTOCK APPROVAL'
-        ];
-        if ($item_type == 'waiting') {
-            if ($mode == 'add') {
-                $plst_status = 'WAITING FOR CHECKOUT';
-                $update = ProductLocationSetupTransaction::where('id', $plst_id)
-                ->whereIn('plst_status', $plst_status_new)
-                ->update([
-                    'plst_status' => $plst_status,
-                    'u_id' => Auth::user()->id,
-                ]);
-                if (!empty($update)) {
-                    $create = PosTransactionDetail::create([
-                        'pt_id' => $pt_id,
-                        'pst_id' => $pst_id,
-                        'pl_id' => $pl_id,
-                        'pos_td_qty' => '1',
-                        'pos_td_sell_price' => $sell_price,
-                        'pos_td_discount_price' => $sell_price,
-                        'pos_td_total_price' => $sell_price,
-                        'created_at' => date('Y-m-d H:i:s'),
-                    ]);
-                    if (!empty($create)) {
-                        $r['status'] = '200';
-                    } else {
-                        $r['status'] = '400';
-                    }
-                } else {
-                    $r['status'] = '400';
-                }
-            } else {
-                if ($pl_code == 'TOKO') {
-                    $plst_status = 'INSTOCK';
-                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
-                    ->update([
-                        'plst_status' => $plst_status,
-                        'plst_type' => 'IN',
-                    ]);
-                    if (!empty($update)) {
-                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
-                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
-                            'pls_qty' => ($pls->pls_qty+1),
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
-                        if (!empty($update_pls)) {
-                            $r['status'] = '200';
-                        } else {
-                            $r['status'] = '400';
-                        }
-                    } else {
-                        $r['status'] = '400';
-                    }
-                } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
-                    $plst_status = 'INSTOCK';
-                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
-                    ->update([
-                        'plst_status' => $plst_status,
-                        'plst_type' => 'IN',
-                    ]);
-                    if (!empty($update)) {
-                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
-                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
-                            'pls_qty' => ($pls->pls_qty+1),
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
-                        if (!empty($update_pls)) {
-                            $r['status'] = '200';
-                        } else {
-                            $r['status'] = '400';
-                        }
-                    } else {
-                        $r['status'] = '400';
-                    }
-                } else {
-                    $plst_status = 'WAITING OFFLINE';
-                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
-                    ->update([
-                        'plst_status' => $plst_status
-                    ]);
-                    if (!empty($update)) {
-                        $r['status'] = '200';
-                    } else {
-                        $r['status'] = '400';
-                    }
-                }
-            }
-        } else {
-            if ($mode == 'add') {
-                $insert = DB::table('product_location_setup_transactions')->insertGetId([
-                    'pls_id' => $pls_id,
-                    'u_id' => Auth::user()->id,
-                    'plst_qty' => '1',
-                    'plst_type' => 'OUT',
-                    'plst_status' => 'WAITING FOR CHECKOUT',
-                    'created_at' => date('Y-m-d H:i:s')
-                ]);
-                if (!empty($insert)) {
-                    $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
-                    $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
-                        'pls_qty' => ($pls->pls_qty-1),
-                        'updated_at' => date('Y-m-d H:i:s')
-                    ]);
-                    if (!empty($update)) {
-                        $r['plst_id'] = $insert;
-                        $r['status'] = '200';
-                    } else {
-                        $r['status'] = '400';
-                    }
-                } else {
-                    $r['status'] = '400';
-                }
-            } else {
-                if ($pl_code == 'TOKO') {
-                    $plst_status = 'INSTOCK';
-                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
-                    ->update([
-                        'plst_status' => $plst_status,
-                        'plst_type' => 'IN',
-                    ]);
-                    if (!empty($update)) {
-                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
-                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
-                            'pls_qty' => ($pls->pls_qty+1),
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
-                        if (!empty($update_pls)) {
-                            $r['status'] = '200';
-                        } else {
-                            $r['status'] = '400';
-                        }
-                    } else {
-                        $r['status'] = '400';
-                    }
-                } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
-                    $plst_status = 'INSTOCK';
-                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
-                    ->update([
-                        'plst_status' => $plst_status,
-                        'plst_type' => 'IN',
-                    ]);
-                    if (!empty($update)) {
-                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
-                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
-                            'pls_qty' => ($pls->pls_qty+1),
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
-                        if (!empty($update_pls)) {
-                            $r['status'] = '200';
-                        } else {
-                            $r['status'] = '400';
-                        }
-                    } else {
-                        $r['status'] = '400';
-                    }
-                } else {
-                    $plst_status = 'WAITING OFFLINE';
-                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
-                    ->update([
-                        'plst_status' => $plst_status
-                    ]);
-                    if (!empty($update)) {
-                        $r['status'] = '200';
-                    } else {
-                        $r['status'] = '400';
-                    }
-                }
-            }
-        }
-
-
-        return json_encode($r);
-    }
-
     function fetchWaiting(Request $request)
     {
         //return $request->all();
@@ -1647,7 +1447,7 @@ class PointOfSaleController extends Controller
                     ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                     ->join('products', 'products.id', '=', 'product_stocks.p_id')
                     ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->join('brands', 'brands.id', '=', 'products.br_id')
+                    ->join('bra nds', 'brands.id', '=', 'products.br_id')
                     ->where('pls_qty', '>=', '0')
                     ->whereNotIn('pl_code', $exception)
                     ->where('product_locations.st_id', '=', Auth::user()->st_id)
@@ -2141,6 +1941,414 @@ class PointOfSaleController extends Controller
             }
         }
 //        return $r;
+        return json_encode($r);
+    }
+
+    public function addCustomAmount(Request $request)
+    {
+        $b1g1_setup = BuyOneGetOne::select('pl_code')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->get()->toArray();
+
+        $pt_id = $request->p_name;
+        $pst_id = $request->_pst_id;
+        $pl_id = $request->_pl_id;
+        $sell_price = $request->_sell_price;
+        $mode = $request->_mode;
+        $item_type = $request->_item_type;
+//        $plst_id = $request->_plst_id;
+        $item_type = $request->_item_type;
+//        $plst_status = '';
+        $free_delete = $request->_free_delete;
+
+        if (!empty($free_delete)) {
+            UserRating::where([
+                'st_id' => Auth::user()->st_id,
+                'stt_id' => Auth::user()->stt_id,
+                'ur_status' => 'WAITING FOR REVIEW',
+            ])->delete();
+            UserRating::where([
+                'st_id' => Auth::user()->st_id,
+                'stt_id' => Auth::user()->stt_id,
+                'ur_status' => 'WAITING FOR CHECKOUT',
+            ])->update([
+                'ur_status' => 'DONE',
+            ]);
+        }
+        $pl_code = ProductLocation::select('pl_code')->where('id', $pl_id)->get()->first()->pl_code;
+        $pls_id = ProductLocationSetup::select('id')->where('pst_id', $pst_id)->get()->first()->id;
+        $plst_status_new = [
+            'WAITING OFFLINE',
+            'INSTOCK APPROVAL'
+        ];
+        if ($item_type == 'waiting') {
+            if ($mode == 'add') {
+//                $plst_status = 'WAITING FOR CHECKOUT';
+//                $update = ProductLocationSetupTransaction::where('id', $plst_id)
+//                    ->whereIn('plst_status', $plst_status_new)
+//                    ->update([
+//                        'plst_status' => $plst_status,
+//                        'u_id' => Auth::user()->id,
+//                    ]);
+                if (!empty($update)) {
+                    $create = PosTransactionDetail::create([
+                        'pt_id' => $pt_id,
+                        'pst_id' => $pst_id,
+                        'pl_id' => $pl_id,
+                        'pos_td_qty' => '1',
+                        'pos_td_sell_price' => $sell_price,
+                        'pos_td_discount_price' => $sell_price,
+                        'pos_td_total_price' => $sell_price,
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    if (!empty($create)) {
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+                    $r['status'] = '400';
+                }
+            } else {
+                if ($pl_code == 'TOKO') {
+                    $plst_status = 'INSTOCK';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status,
+                            'plst_type' => 'IN',
+                        ]);
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
+
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+//                    $plst_status = 'WAITING OFFLINE';
+//                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+//                        ->update([
+//                            'plst_status' => $plst_status
+//                        ]);
+                    if (!empty($update)) {
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                }
+            }
+        } else {
+            if ($mode == 'add') {
+                $insert = DB::table('product_location_setup_transactions')->insertGetId([
+                    'pls_id' => $pls_id,
+                    'u_id' => Auth::user()->id,
+                    'plst_qty' => '1',
+                    'plst_type' => 'OUT',
+                    'plst_status' => 'WAITING FOR CHECKOUT',
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+                if (!empty($insert)) {
+                    $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                    $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                        'pls_qty' => ($pls->pls_qty-1),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                    if (!empty($update)) {
+                        $r['plst_id'] = $insert;
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+                    $r['status'] = '400';
+                }
+            } else {
+                if ($pl_code == 'TOKO') {
+                    $plst_status = 'INSTOCK';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status,
+                            'plst_type' => 'IN',
+                        ]);
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
+                    $plst_status = 'INSTOCK';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status,
+                            'plst_type' => 'IN',
+                        ]);
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+                    $plst_status = 'WAITING OFFLINE';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status
+                        ]);
+                    if (!empty($update)) {
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                }
+            }
+        }
+
+
+        return json_encode($r);
+    }
+
+    function changeWaitingStatus(Request $request)
+    {
+
+        $b1g1_setup = BuyOneGetOne::select('pl_code')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->get()->toArray();
+
+        $pt_id = $request->_pt_id;
+        $pst_id = $request->_pst_id;
+        $pl_id = $request->_pl_id;
+        $sell_price = $request->_sell_price;
+        $mode = $request->_mode;
+        $item_type = $request->_item_type;
+        $plst_id = $request->_plst_id;
+        $plst_status = '';
+        $free_delete = $request->_free_delete;
+        if (!empty($free_delete)) {
+            UserRating::where([
+                'st_id' => Auth::user()->st_id,
+                'stt_id' => Auth::user()->stt_id,
+                'ur_status' => 'WAITING FOR REVIEW',
+            ])->delete();
+            UserRating::where([
+                'st_id' => Auth::user()->st_id,
+                'stt_id' => Auth::user()->stt_id,
+                'ur_status' => 'WAITING FOR CHECKOUT',
+            ])->update([
+                'ur_status' => 'DONE',
+            ]);
+        }
+        $pl_code = ProductLocation::select('pl_code')->where('id', $pl_id)->get()->first()->pl_code;
+        $pls_id = ProductLocationSetup::select('id')->where('pst_id', $pst_id)->where('pl_id', $pl_id)->get()->first()->id;
+        $plst_status_new = [
+            'WAITING OFFLINE',
+            'INSTOCK APPROVAL'
+        ];
+        if ($item_type == 'waiting') {
+            if ($mode == 'add') {
+                $plst_status = 'WAITING FOR CHECKOUT';
+                $update = ProductLocationSetupTransaction::where('id', $plst_id)
+                    ->whereIn('plst_status', $plst_status_new)
+                    ->update([
+                        'plst_status' => $plst_status,
+                        'u_id' => Auth::user()->id,
+                    ]);
+                if (!empty($update)) {
+                    $create = PosTransactionDetail::create([
+                        'pt_id' => $pt_id,
+                        'pst_id' => $pst_id,
+                        'pl_id' => $pl_id,
+                        'pos_td_qty' => '1',
+                        'pos_td_sell_price' => $sell_price,
+                        'pos_td_discount_price' => $sell_price,
+                        'pos_td_total_price' => $sell_price,
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    if (!empty($create)) {
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+                    $r['status'] = '400';
+                }
+            } else {
+                if ($pl_code == 'TOKO') {
+                    $plst_status = 'INSTOCK';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status,
+                            'plst_type' => 'IN',
+                        ]);
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
+                    $plst_status = 'INSTOCK';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status,
+                            'plst_type' => 'IN',
+                        ]);
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+                    $plst_status = 'WAITING OFFLINE';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status
+                        ]);
+                    if (!empty($update)) {
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                }
+            }
+        } else {
+            if ($mode == 'add') {
+                $insert = DB::table('product_location_setup_transactions')->insertGetId([
+                    'pls_id' => $pls_id,
+                    'u_id' => Auth::user()->id,
+                    'plst_qty' => '1',
+                    'plst_type' => 'OUT',
+                    'plst_status' => 'WAITING FOR CHECKOUT',
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+                if (!empty($insert)) {
+                    $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                    $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                        'pls_qty' => ($pls->pls_qty-1),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                    if (!empty($update)) {
+                        $r['plst_id'] = $insert;
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+                    $r['status'] = '400';
+                }
+            } else {
+                if ($pl_code == 'TOKO') {
+                    $plst_status = 'INSTOCK';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status,
+                            'plst_type' => 'IN',
+                        ]);
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
+                    $plst_status = 'INSTOCK';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status,
+                            'plst_type' => 'IN',
+                        ]);
+                    if (!empty($update)) {
+                        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+                        $update_pls = DB::table('product_location_setups')->where('id', $pls_id)->update([
+                            'pls_qty' => ($pls->pls_qty+1),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($update_pls)) {
+                            $r['status'] = '200';
+                        } else {
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        $r['status'] = '400';
+                    }
+                } else {
+                    $plst_status = 'WAITING OFFLINE';
+                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                        ->update([
+                            'plst_status' => $plst_status
+                        ]);
+                    if (!empty($update)) {
+                        $r['status'] = '200';
+                    } else {
+                        $r['status'] = '400';
+                    }
+                }
+            }
+        }
+
+
         return json_encode($r);
     }
     

@@ -536,6 +536,8 @@
 
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
+           st_id = {{ Auth::user()->st_id }};
+           console.log(st_id);
             if (st_id == 'all') {
                 swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
                 return false;

@@ -58,7 +58,7 @@
                         </div>
                         <div class="dropdown-menu dropdown-menu-right calu" style="min-width: 248px;">
                             <div class="calculator">
-                                <div class="input" id="input"></div>
+                                <div class="input" ><p id="input"></p></div>
                                 <div class="buttons">
                                     <div class="operators">
                                         <div>+</div>
