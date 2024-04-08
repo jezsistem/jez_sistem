@@ -980,6 +980,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('export_mass_adjustment_result', [MassAdjustmentController::class, 'exportResult']);
     Route::post('mass_adjustment_approval', [MassAdjustmentController::class, 'approvalData']);
     Route::post('mass_adjustment_exec', [MassAdjustmentController::class, 'execData']);
+    Route::post('mass_stock_datatables_filter', [MassAdjustmentController::class, 'adjustmentDatatablesFilter']);
 
     // ScanAdjustmentController
     Route::get('scan_adjustment', [ScanAdjustmentController::class, 'index']);

@@ -119,7 +119,7 @@ class PointOfSaleController extends Controller
             'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first()
         ];
 
-//        dd($data['pl_custom']->id);
+        dd($data['pst_custom']->id);
 
         if (strtolower($user_data->stt_name) == 'online') {
             return view('app.pos.pos', compact('data'));

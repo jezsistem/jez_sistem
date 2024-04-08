@@ -37,7 +37,7 @@
                             <!--end::Header-->
                             <!--begin::Body-->
                             <div class="card-body pt-4">
-{{--                                {{  Auth::  }}}--}}
+                                {{--                                {{  Auth::  }}}--}}
                                 <select class="form-control mt-2 bg-primary text-white" id="st_filter">
                                     <option value='all'>- Semua Store -</option>
                                     @foreach ($data['st_id'] as $key => $value)
@@ -152,12 +152,12 @@
                             <!--begin::Header-->
                             <div class="card-header row d-flex align-items-center">
                                 <div class="col-4">
-                                    {{--                                <a class="btn btn-success mt-2" id="import_btn">Import Template</a>--}}
-                                    <input type="search" class="form-control form-control-sm col-6 mt-2" id="ma_search"
-                                           placeholder="Cari kode"/>
+                                    <a class="btn btn-success mt-2" id="tanggal_btn">Filter tanggal</a>
                                 </div>
                             </div>
                             <div class="card-body table-responsive">
+                                {{--                                <a class="btn btn-success mt-2" id="import_btn">Import Template</a>--}}
+                                <input type="search" class="form-control form-control-sm col-6 mt-2 mb-2" id="ma_search" placeholder="Cari kode"/>
                                 <table class="table table-hover table-checkable" id="MassAdjustmenttb">
                                     <thead class="bg-light text-dark">
                                     <tr>

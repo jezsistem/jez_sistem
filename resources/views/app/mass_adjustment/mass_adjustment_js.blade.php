@@ -225,7 +225,7 @@
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+
             ],
             ajax: {
                 url : "{{ url('mass_adjustment_datatables') }}",
@@ -431,6 +431,12 @@
             e.preventDefault();
             jQuery.noConflict();
             $('#ImportModal').modal('show');
+        });
+
+        $(document).delegate('#tanggal_btn', 'click', function(e) {
+            e.preventDefault();
+            jQuery.noConflict();
+            $('#TanggalModal').modal('show');
         });
 
         $(document).delegate('#madj_btn', 'click', function(e) {
