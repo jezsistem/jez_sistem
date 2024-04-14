@@ -29,9 +29,15 @@
             </div>
             <div class="col-xl-4 col-lg-3 col-md-12  order-lg-last order-second">
                 <div class="topbar justify-content-end">
-                    <div class="col-md-6">
+                    {{-- Jika shift off --}}
+                    <div class="col-md-6" style="color: red;" id="shift_off" >
                         Hallo, {{ $data['user']->u_name }}
                     </div>
+
+                    <div class="col-md-6" style="color: green; display: none;" id="shift_on">
+                        Hallo, {{ $data['user']->u_name }}
+                    </div>
+
                     <div class="topbar-item">
                         <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3"
                              data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn">

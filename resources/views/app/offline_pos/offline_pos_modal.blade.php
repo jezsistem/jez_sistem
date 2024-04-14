@@ -100,6 +100,18 @@
                             </fieldset>
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <div class="col-md-12">
+                            <label class="text-body">Status Customer</label>
+                            <fieldset class="form-group mb-3">
+                                <select class="form-control" id="cust_token_active" name="cust_token_active">
+                                    <option value="null">-- Silahkan Pilih --</option>
+                                    <option value="1" >Active</option>
+                                    <option value="0">Non-Active</option>
+                                </select>
+                            </fieldset>
+                        </div>
+                    </div>
                     <div class="form-group row justify-content-end mb-0">
                         <div class="col-md-6  text-right">
                             <button type="submit" class="btn btn-primary" id="save_customer_btn">Simpan</button>

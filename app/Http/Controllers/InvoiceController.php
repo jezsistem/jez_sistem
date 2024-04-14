@@ -424,7 +424,7 @@ class InvoiceController extends Controller
         return view('app.invoice.print_invoice_offline', compact('data'));
     }
     
-    public function searchInvoice (Request $request)
+    public function searchInvoice(Request $request)
     {
         $invoice = $request->invoice;
         $invoice_data = '';

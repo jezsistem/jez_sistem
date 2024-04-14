@@ -401,7 +401,6 @@
     }
 
 
-
     function checkout() {
         var payement = document.getElementById('total_payment').value
         parseInt(payement.replace(/\D/g, ''));
@@ -847,7 +846,7 @@
         var pls_qty = jQuery(this).attr('data-pls_qty');
         var psc_id = jQuery(this).attr('data-psc_id');
         var plst_id = jQuery(this).attr('data-plst_id');
-            var sell_price = jQuery(this).attr('data-sell_price');
+        var sell_price = jQuery(this).attr('data-sell_price');
         var total_row = parseFloat(jQuery('#total_row').val());
         jQuery('#total_row').val(total_row + 1);
         var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
@@ -859,16 +858,16 @@
         var b1g1_mode = '';
 
         console.log('pt_id: ', pt_id);
-        console.log('st_id: ',st_id);
-        console.log('p_name: ',p_name);
-        console.log('sell_price: ',sell_price);
-        console.log('mode: ',mode);
-        console.log('pst_id: ',pst_id);
-        console.log('pl_id: ',pl_id);
-        console.log('psc_id: ',psc_id);
-        console.log('plst_id: ',plst_id);
-        console.log('pos_item: ',pos_item_list);
-        console.log('item_type: ',item_type);
+        console.log('st_id: ', st_id);
+        console.log('p_name: ', p_name);
+        console.log('sell_price: ', sell_price);
+        console.log('mode: ', mode);
+        console.log('pst_id: ', pst_id);
+        console.log('pl_id: ', pl_id);
+        console.log('psc_id: ', psc_id);
+        console.log('plst_id: ', plst_id);
+        console.log('pos_item: ', pos_item_list);
+        console.log('item_type: ', item_type);
 
         if (psc_id == '1') {
             var bandrol = jQuery(this).attr('data-bandrol');
@@ -996,11 +995,12 @@
         var pt_id = '';
         var st_id = "{{ $data['user']->st_id }}";
         var p_name = 'Custom Amount'; //sinii
-        var sell_price =  document.getElementsByTagName('p')[0].innerHTML;
+        var sell_price = document.getElementsByTagName('p')[0].innerHTML;
         var mode = 'add';
         var pst_id = document.getElementById('pst_custom').value;
         var pl_id = document.getElementById('pl_custom').value;
-        var psc_id = document.getElementById('psc_custom').value;;
+        var psc_id = document.getElementById('psc_custom').value;
+        ;
         var plst_id = jQuery(this).attr('data-plst_id');
         var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
         var item_type = jQuery('#item_type option:selected').val();
@@ -1014,16 +1014,16 @@
         var total_final_price = jQuery('#total_final_price_side').text();
 
         console.log('pt_id: ', pt_id);
-        console.log('st_id: ',st_id);
-        console.log('p_name: ',p_name);
-        console.log('sell_price: ',sell_price);
-        console.log('mode: ',mode);
-        console.log('pst_id: ',pst_id);
-        console.log('pl_id: ',pl_id);
-        console.log('psc_id: ',psc_id);
-        console.log('plst_id: ',plst_id);
-        console.log('pos_item: ',pos_item_list);
-        console.log('item_type: ',item_type);
+        console.log('st_id: ', st_id);
+        console.log('p_name: ', p_name);
+        console.log('sell_price: ', sell_price);
+        console.log('mode: ', mode);
+        console.log('pst_id: ', pst_id);
+        console.log('pl_id: ', pl_id);
+        console.log('psc_id: ', psc_id);
+        console.log('plst_id: ', plst_id);
+        console.log('pos_item: ', pos_item_list);
+        console.log('item_type: ', item_type);
 
 
         if (b1g1_id != '' && b1g1_price != '') {
@@ -1568,6 +1568,7 @@
                         jQuery('#cust_phone').val(r.cust_phone);
                         jQuery('#cust_email').val(r.cust_email);
                         jQuery('#cust_province').val(r.cust_province);
+                        jQuery('#cust_token_active').val(r.cust_token_active);
                         reloadCity(r.cust_province);
                         setTimeout(() => {
                             jQuery('#cust_city').val(r.cust_city);
@@ -1651,6 +1652,9 @@
                         jQuery('#stopShiftButton').show();
                         jQuery('#shiftStatus').html('Shift In Progress');
                         jQuery('#shiftEmployeeModal').modal('show');
+                        jQuery('#shift_on').modal('show');
+                        jQuery('#shift_off').modal('hide');
+
 
                         // console.log(response.shiftStatus)
                         is_shift = response.shiftStatus;
@@ -1659,6 +1663,8 @@
                         jQuery('#startShiftButton').show();
                         jQuery('#stopShiftButton').hide();
                         jQuery('#shiftEmployeeModal').modal('show');
+                        jQuery('#shift_on').modal('hide');
+                        jQuery('#shift_off').modal('show');
                         is_shift = response.shiftStatus;
                     }
                 },
@@ -1803,7 +1809,7 @@
 
         jQuery('#payment_btn').on('click', function (e) {
 
-            if(is_shift === 0){
+            if (is_shift === 0) {
                 swal("Shift Status", "Silahkan klik button Start Shift", "warning");
                 return false;
             } else {
@@ -1971,7 +1977,6 @@
         // });
 
 
-
         jQuery('#charge').on('change', function (e) {
             e.preventDefault();
             var charge = jQuery(this).val();
@@ -2120,7 +2125,7 @@
                         'Benar'
                     ],
                     dangerMode: false,
-                }).then(function(isConfirm) {
+                }).then(function (isConfirm) {
                     if (isConfirm) {
                         checkout()
                     }
@@ -2136,7 +2141,7 @@
                         'Benar'
                     ],
                     dangerMode: false,
-                }).then(function(isConfirm) {
+                }).then(function (isConfirm) {
                     if (isConfirm) {
                         checkout()
                     }
@@ -2484,7 +2489,7 @@
             $("#replace_total").val("halo");
         });
 
-        jQuery('#total_payment').on('keyup', function(e) {
+        jQuery('#total_payment').on('keyup', function (e) {
             e.preventDefault();
             var total_price = jQuery('#payment_total').text();
             var total_payment = jQuery(this).val();
