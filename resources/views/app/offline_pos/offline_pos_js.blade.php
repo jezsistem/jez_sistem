@@ -1809,35 +1809,36 @@
 
         jQuery('#payment_btn').on('click', function (e) {
 
-            if (is_shift === 0) {
-                swal("Shift Status", "Silahkan klik button Start Shift", "warning");
-                return false;
-            } else {
-
-                e.preventDefault();
-                jQuery('#another_cost').val('');
-                jQuery('#admin_cost').val('');
-                jQuery('#unique_code').val('');
-                if (b1g1_temp.length > 0) {
-                    jQuery('#note').val('[B1G1]');
-                }
-                // if (jQuery('#free_sock_customer_mode').val() == '1') {
-                //     jQuery('#payment-offline-popup').modal('show');
-                //     var total_final_price_side = jQuery('#total_final_price_side').text();
-                //     var total_nameset_side = jQuery('#total_nameset_side').text();
-                //     var total = parseFloat(replaceComma(total_final_price_side));
-                //     jQuery('#payment_total').text(addCommas(total));
-                // } else {
-                //     jQuery('#OfferModal').modal('show');
-                // }
-
-                jQuery('#payment-offline-popup').modal('show');
-                var total_final_price_side = jQuery('#total_final_price_side').text();
-                var total_nameset_side = jQuery('#total_nameset_side').text();
-                var total = parseFloat(replaceComma(total_final_price_side));
-                jQuery('#payment_total').text(addCommas(total));
-                // console.log('Halo');
+            // if (is_shift === 0) {
+            //     swal("Shift Status", "Silahkan klik button Start Shift", "warning");
+            //     return false;
+            // } else {
+            //
+            //
+            // }
+              e.preventDefault();
+            jQuery('#another_cost').val('');
+            jQuery('#admin_cost').val('');
+            jQuery('#unique_code').val('');
+            if (b1g1_temp.length > 0) {
+                jQuery('#note').val('[B1G1]');
             }
+            // if (jQuery('#free_sock_customer_mode').val() == '1') {
+            //     jQuery('#payment-offline-popup').modal('show');
+            //     var total_final_price_side = jQuery('#total_final_price_side').text();
+            //     var total_nameset_side = jQuery('#total_nameset_side').text();
+            //     var total = parseFloat(replaceComma(total_final_price_side));
+            //     jQuery('#payment_total').text(addCommas(total));
+            // } else {
+            //     jQuery('#OfferModal').modal('show');
+            // }
+
+            jQuery('#payment-offline-popup').modal('show');
+            var total_final_price_side = jQuery('#total_final_price_side').text();
+            var total_nameset_side = jQuery('#total_nameset_side').text();
+            var total = parseFloat(replaceComma(total_final_price_side));
+            jQuery('#payment_total').text(addCommas(total));
+            // console.log('Halo');
         });
 
         jQuery('#unique_code').on('change', function () {
@@ -2077,10 +2078,14 @@
             var payment_method_two = jQuery('#pm_id_offline_two').val();
             var payment_method_two_label = jQuery('#pm_id_offline_two option:selected').text();
             var payment_total = parseInt(replaceComma(jQuery('#payment_total').text()));
-            var total_payment = jQuery('#total_payment').val();
+            var bayar = jQuery('#total_payment').val();
+            var total_payment = parseFloat(bayar.replace(".", ""));
             var total_payment_two = jQuery('#total_payment_two').val();
             var cp_id = jQuery('#cp_id').val();
             var cp_id_two = jQuery('#cp_id_two').val();
+
+            //Sini
+            console.log(total_payment)
             if (payment_total > 0) {
                 if (payment_option == '') {
                     swal("Metode Pembayaran", "Silahkan pilih metode pembayaran", "warning");
@@ -2116,37 +2121,38 @@
                 }
                 // jQuery("#InputCodeModal").modal('show');
 
-                swal({
-                    title: "Data pembelian sudah sesuai ..?",
-                    text: "",
-                    icon: "warning",
-                    buttons: [
-                        'Batal',
-                        'Benar'
-                    ],
-                    dangerMode: false,
-                }).then(function (isConfirm) {
-                    if (isConfirm) {
-                        checkout()
-                    }
-                })
-            } else {
-                // jQuery("#InputCodeModal").modal('show');
-                swal({
-                    title: "Data pembelian sudah sesuai ..?",
-                    text: "",
-                    icon: "warning",
-                    buttons: [
-                        'Batal',
-                        'Benar'
-                    ],
-                    dangerMode: false,
-                }).then(function (isConfirm) {
-                    if (isConfirm) {
-                        checkout()
-                    }
-                })
+                // swal({
+                //     title: "Data pembelian sudah sesuai ..?",
+                //     text: "",
+                //     icon: "warning",
+                //     buttons: [
+                //         'Batal',
+                //         'Benar'
+                //     ],
+                //     dangerMode: false,
+                // }).then(function (isConfirm) {
+                //     if (isConfirm) {
+                //         checkout()
+                //     }
+                // })
             }
+            // else {
+            //     // jQuery("#InputCodeModal").modal('show');
+            //     swal({
+            //         title: "Data pembelian sudah sesuai ..?",
+            //         text: "",
+            //         icon: "warning",
+            //         buttons: [
+            //             'Batal',
+            //             'Benar'
+            //         ],
+            //         dangerMode: false,
+            //     }).then(function (isConfirm) {
+            //         if (isConfirm) {
+            //             checkout()
+            //         }
+            //     })
+            // }
         });
 
         jQuery('#f_access').on('submit', function (e) {
@@ -2300,7 +2306,7 @@
         var clockInterval;
         jQuery('#startShiftButton').on('click', function () {
             shiftStarted = true;
-            jQuery('#shiftStatus').html('Shift In Progress');
+            jQuery('#shiftStatus').html('[Shift In Progress]');
             jQuery('#startShiftButton').hide();
             jQuery('#stopShiftButton').show();
 
@@ -2478,7 +2484,7 @@
         /* Dengan Rupiah */
         var rupiah = document.getElementById('laba_shift');
         rupiah.addEventListener('keyup', function (e) {
-            rupiah.value = formatRupiah(this.value, 'Rp. ');
+            rupiah.value = formatRupiah(this.value, '');
         });
 
         /* Dengan Rupiah */
@@ -2531,12 +2537,13 @@
         /* Rupiah format */
         function formatRupiahTotal(angka, prefix) {
             var number_string = angka.replace(/[^,\d]/g, '').toString(),
-                split = number_string.split(','),
-                sisa = split[0].length % 3,
-                rupiah = split[0].substr(0, sisa),
-                ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+                split   		= number_string.split(','),
+                sisa     		= split[0].length % 3,
+                rupiah     		= split[0].substr(0, sisa),
+                ribuan     		= split[0].substr(sisa).match(/\d{3}/gi);
 
-            if (ribuan) {
+            // tambahkan titik jika yang di input sudah menjadi angka ribuan
+            if(ribuan){
                 separator = sisa ? '.' : '';
                 rupiah += separator + ribuan.join('.');
             }

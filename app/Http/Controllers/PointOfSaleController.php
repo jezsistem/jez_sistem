@@ -116,10 +116,17 @@ class PointOfSaleController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->orderBy('pl_code')->pluck('pl_code', 'id'),
             'pst_custom' => ProductStock::where('ps_barcode', '=', 'CUSTOM')->first(),
             'psc_custom' => Product::where('p_name', 'LIKE', '%CUSTOM%')->first(),
-            'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first()
+            'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first(),
+            'shift_status' => UserShift::where('user_id', '=', Auth::user()->id)->whereNotNull('start_time')->whereNull('end_time')->where('created_at', 'LIKE', date('Y-m-d') . '%')->orderBy('id', 'DESC')->count()
         ];
 
-//        dd($data['pst_custom']->id);
+        if ($data['shift_status'] > 0){
+            $var = 1;
+        } else {
+            $var = 0;
+        }
+//        dd($var);
+
 
         if (strtolower($user_data->stt_name) == 'online') {
             return view('app.pos.pos', compact('data'));

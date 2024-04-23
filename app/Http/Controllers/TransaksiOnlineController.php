@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\PurchaseOrderExcelImport;
 use App\Imports\StockLocationImport;
 use App\Imports\TransactionOnlineImport;
 use App\Models\ProductStock;
 use App\Models\Size;
 use App\Models\TransaksiOnline;
+use App\Models\TransaksiOnlineDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -85,7 +87,7 @@ class TransaksiOnlineController extends Controller
 
         if (request()->ajax()) {
             return datatables()->of(TransaksiOnline::select(
-                'id',
+                'id as to_id',
                 'st_id',
                 'platform_type',
                 'order_number',
@@ -123,7 +125,7 @@ class TransaksiOnlineController extends Controller
                 'created_at',
                 'updated_at'
             )
-                ->where('platform_type', '=', 'Shopee'))
+                ->where('platform_type', '=', 'Shopee')
 //                ->filter(function ($instance) use ($request) {
 //                    if (!empty($request->get('search'))) {
 //                        $instance->where(function ($w) use ($request) {
@@ -134,6 +136,12 @@ class TransaksiOnlineController extends Controller
 //                        });
 //                    }
 //                })
+                ->groupBy('id'))
+                ->editColumn('resi_number', function($data){
+//                    return '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21); background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">'.$data->resi_number.'</span>';
+                    return '<span class="btn btn-sm btn-primary" data-id="'.$data->to_id.'" id="transaksi_detail_btn">' . $data->resi_number . '</span>';
+                })
+                ->rawColumns(['resi_number'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -189,7 +197,7 @@ class TransaksiOnlineController extends Controller
 //                        $instance->where(function ($w) use ($request) {
 //                            $search = $request->get('search');
 //                            $w->orWhere('sz_name', 'LIKE', "%$search%")
-//                                ->orWhere('sz_description', 'LIKE', "%$search%")
+//                                ->orWhere('sz_description', 'zLIKE', "%$search%")
 //                                ->orWhere('sz_schema', 'LIKE', "%$search%");
 //                        });
 //                    }
@@ -203,35 +211,53 @@ class TransaksiOnlineController extends Controller
     {
         try {
             if ($request->hasFile('importFile')) {
+//                $file = $request->file('importFile');
+//
+//                $original_nama_file = $file->getClientOriginalName();
+//
+//                $nama_file = rand() . $original_nama_file;
+//
+//                $file->move('excel', $nama_file);
+//
+//                $spreadsheet = IOFactory::load(public_path('excel/' . $nama_file));
+//                $sheet = $spreadsheet->getActiveSheet();
+//                $data = [];
+//
+//                foreach ($sheet->getRowIterator(2) as $row) {
+//                    $rowData = [];
+//                    $cellIterator = $row->getCellIterator();
+//                    $cellIterator->setIterateOnlyExistingCells(false);
+//
+//                    foreach ($cellIterator as $cell) {
+//                        $rowData[] = $cell->getValue();
+//                    }
+//
+//                    $data[] = $rowData;
+//                }
+//
+//
+//                if (count($data) >= 0) {
+//                    $processData = $this->processImportData($data, $original_nama_file);
+//                    $r['data'] = $processData;
+//                    $r['status'] = '200';
+//                } else {
+//                    $processData = $this->processImportData($data, $original_nama_file);
+//                    $r['data'] = $processData;
+//                    $r['status'] = '419';
+//                }
                 $file = $request->file('importFile');
-
-                $original_nama_file = $file->getClientOriginalName();
-
-                $nama_file = rand() . $original_nama_file;
-
+                $nama_file = rand() . $file->getClientOriginalName();
                 $file->move('excel', $nama_file);
+                $import = new TransactionOnlineImport();
+                Excel::import($import, public_path('excel/' . $nama_file));
 
-                $spreadsheet = IOFactory::load(public_path('excel/' . $nama_file));
-                $sheet = $spreadsheet->getActiveSheet();
-                $data = [];
+                unlink(public_path('excel/' . $nama_file));
+                if ($import->getRowCount() >= 0) {
+//                    $processData = $this->processImportData($import->getData(), $original_nama_file);
 
-                foreach ($sheet->getRowIterator(2) as $row) {
-                    $rowData = [];
-                    $cellIterator = $row->getCellIterator();
-                    $cellIterator->setIterateOnlyExistingCells(false);
-
-                    foreach ($cellIterator as $cell) {
-                        $rowData[] = $cell->getValue();
-                    }
-
-                    $data[] = $rowData;
-                }
-
-
-                if (count($data) >= 0) {
-                    $processData = $this->processImportData($data, $original_nama_file);
-                    $r['data'] = $processData;
+                    $r['data'] = $import;
                     $r['status'] = '200';
+
                 } else {
                     $r['status'] = '419';
                 }
@@ -249,7 +275,7 @@ class TransaksiOnlineController extends Controller
         }
     }
 
-    private function processImportData($data, $originalName)
+    private function processImportData(array $data, $originalName)
     {
         $processedData = [];
         $type = strpos($originalName, 'Order') !== false ? 'Shopee' : 'Tiktok';
@@ -294,20 +320,16 @@ class TransaksiOnlineController extends Controller
                 $rowData = [
                     'platform_type' => $type,
                     'order_number' => $orderNum,
-                    'order_status' => $orderStatus,
-                    'reason_cancellation' => $cancelReason,
                     'resi_number' => $resiNo,
                     'shipping_method' => $shippingMethod,
                     'ship_deadline' => $shipDeadline,
                     'ship_delivery_date' => $shipDelive,
                     'order_date_created' => $orderCreated,
-                    'payment_date' => $paymentDate,
                     'payment_method' => $paymentMethod,
                     'SKU' => $sku,
                     'original_price' => $originalPrice,
                     'price_after_discount' => $PriceAfter,
                     'quantity' => $qty,
-                    'return_quantity' => $returnQty,
                     'total_price' => $total,
                     'total_discount' => $totalDicount,
                     'discount_seller' => $discountSeller,
@@ -323,13 +345,37 @@ class TransaksiOnlineController extends Controller
                     'province' => $province,
                     'order_complete_at' => $orderCompleteAt
                 ];
-
                 $processedData[] = $rowData;
 
+
                 if ($rowCount > 0) {
-                    TransaksiOnline::where('order_number', $orderNum)->update($rowData);
+                    $newTransaksi = TransaksiOnline::where('order_number', $orderNum)->update($rowData);
+
+                    $rawDetail = [
+                        'to_id'                 => $newTransaksi->id,
+                        'order_status'          => $orderStatus,
+                        'reason_cancellation'   => $cancelReason,
+                        'payment_date'          => $paymentDate,
+                        'return_quantity'       => $returnQty,
+                    ];
+                    $processedDetail[] = $rawDetail;
+                    TransaksiOnlineDetail::create($rawDetail);
                 } else {
-                    TransaksiOnline::create($rowData);
+//                    TransaksiOnline::create($rowData);
+                    if (!empty($rowData['resi_number'])) {
+                        $newTransaksi = TransaksiOnline::create($rowData);
+
+                        $rawDetail = [
+                            'to_id'                 => $newTransaksi->id,
+                            'order_status'          => $orderStatus,
+                            'reason_cancellation'   => $cancelReason,
+                            'payment_date'          => $paymentDate,
+                            'return_quantity'       => $returnQty,
+                        ];
+                        $processedDetail[] = $rawDetail;
+
+                        TransaksiOnlineDetail::create($rawDetail);
+                    }
                 }
 
                 $product_id = ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->first();
@@ -369,13 +415,6 @@ class TransaksiOnlineController extends Controller
                 $province = $item[43];
                 // get id from barcode
 
-//                $transaksi = TransaksiOnline::where('order_number', $orderNum)->get();
-//
-//                $rowCount = $transaksi->count();
-//
-//                $product_id = ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->first();
-//                $stock = $product_id->ps_barcode;
-
                 //Formater Order Created Date
                 $carbonDate = Carbon::createFromFormat('d/m/Y H:i:s', trim($orderCreated));
                 $formattedDate = $carbonDate->format('Y-m-d H:i:s');
@@ -385,22 +424,18 @@ class TransaksiOnlineController extends Controller
                 $rowData = [
                     'platform_type' => $type,
                     'order_number' => $orderNum,
-                    'order_status' => $orderStatus,
-                    'order_sub_status' => $orderSubStatus,
-                    'cancel_type' => $cancelType,
-                    'cancel_by' => $cancelBy,
-                    'reason_cancellation' => $cancelReason,
+
                     'pre_order' => $pre_order,
                     'resi_number' => $resiNo,
                     'shipping_method' => $shippingMethod,
                     'order_date_created' => $formattedDate,
-                    'payment_date' => $paymentDate,
+
                     'payment_method' => $paymentMethod,
                     'SKU' => $sku,
                     'original_price' =>  substr($originalPrice,4),
                     'price_after_discount' =>  substr($priceAfter,4),
                     'quantity' => $qty,
-                    'return_quantity' => $returnQty,
+
                     'seller_note' => $sellerNote,
                     'total_discount' =>  substr($totalDicount,4),
                     'shipping_fee' =>  substr($shippingFee,4),
@@ -412,7 +447,18 @@ class TransaksiOnlineController extends Controller
                 ];
                 $processedData[] = $rowData;
 
-                TransaksiOnline::create($rowData);
+                $rawDetail = [
+                    'order_status' => $orderStatus,
+                    'order_sub_status' => $orderSubStatus,
+                    'cancel_type' => $cancelType,
+                    'cancel_by' => $cancelBy,
+                    'reason_cancellation' => $cancelReason,
+                    'payment_date' => $paymentDate,
+                    'return_quantity' => $returnQty,
+                ];
+                $processedDetail[] = $rowData;
+
+                TransaksiOnline::create($rawDetail);
 //                if ($rowCount > 0) {
 //                    TransaksiOnline::where('order_number', $orderNum)->update($rowData);
 //                } else {
@@ -423,7 +469,7 @@ class TransaksiOnlineController extends Controller
         }
 
         return [
-            'processedData' => $processedData
+            'processedData' => $processedDetail
         ];
     }
 }

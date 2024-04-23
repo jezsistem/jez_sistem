@@ -612,12 +612,11 @@
             <div class="modal-body">
                 <form id="f_shift_customer">
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-primary" id="startShiftButton">Start Shift</button>
-                        <button type="button" class="btn btn-danger" id="stopShiftButton" style="display: none;">Stop
+{{--                        <button type="button" class="btn btn-primary" id="startShiftButton">Start Shift</button>--}}
+{{--                        <button type="button" class="btn btn-danger" id="stopShiftButton" style="display: none;">Stop--}}
                             Shift
                         </button>
                     </div><br>
-
                     <br>
                     <div id="shiftStatus">Shift not started</div><br>
 

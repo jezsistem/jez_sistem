@@ -15,8 +15,6 @@
             }
         });
 
-
-
         $('#filter_platform').select2({
             width: "180px",
             dropdownParent: $('#st_id_filter_parent')
@@ -28,8 +26,6 @@
         });
 
         $('#f_import').on('submit' , function (e) {
-            console.log('Haloo gais');
-
             e.preventDefault();
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
@@ -53,18 +49,15 @@
 
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
-                        // TODO : buat function buat return alert apabila barcode missing swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
-                        // excelImportData = data.data['processedData'];
+                        excelImportData = data.data['processedData'];
                         console.log(data.data);
                         console.log(data.name);
-                        shopee_tables.draw();
-                        tiktok_tables.draw();
-
-                        checkMissingBarcode(data.data['missingBarcode']);
-
+                        // shopee_tables.draw();
+                        // tiktok_tables.draw();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                        console.log(data.data)
+                        swal('Error', 'File yang anda import kosong atau format tidak tepat', 'warning');
                     } else {
                         $("#ImportModal").modal('hide');
 
@@ -138,9 +131,9 @@
                 columns: [
                     { data: 'DT_RowIndex', name: 'id', searchable: false}, //0
                     { data: 'order_number', name: 'order_number' }, //1
+                    { data: 'resi_number', name: 'resi_number' }, //4
                     { data: 'order_status', name: 'order_status' }, //2
                     { data: 'reason_cancellation', name: 'reason_cancellation' }, //3
-                    { data: 'resi_number', name: 'resi_number' }, //4
                     { data: 'shipping_method', name: 'shipping_method' }, //5
                     { data: 'ship_deadline', name: 'ship_deadline' }, //6
                     { data: 'order_date_created', name: 'order_date_created' }, //7
@@ -179,6 +172,66 @@
                     "lengthMenu": "_MENU_",
                 },
                 order: [[0, 'desc']],
+            });
+
+            $(document).delegate('#transaksi_detail_btn', 'click', function() {
+                var waybill_number = $(this).text();
+                var to_id = $(this).attr('data-id');
+                $('#waybill_tracking').html('');
+                $('#TransaksiModal').modal('show');
+
+
+                console.log('Halo');
+
+                {{--$.ajaxSetup({--}}
+                {{--    headers: {--}}
+                {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+                {{--    }--}}
+                {{--});--}}
+                {{--$.ajax({--}}
+                {{--    type:'POST',--}}
+                {{--    url: "{{ url('waybill_tracking')}}",--}}
+                {{--    data: {_waybill_number:waybill_number, _id:to_id},--}}
+                {{--    dataType: 'html',--}}
+                {{--    success: function(data) {--}}
+                {{--        invoice_tracking_table.draw(false);--}}
+                {{--        $('#waybill_tracking').html(data);--}}
+                {{--    },--}}
+                {{--    error: function(data){--}}
+                {{--        swal('Error', data, 'error');--}}
+                {{--    }--}}
+                {{--});--}}
+            });
+
+            $('#Customertb tbody').on('click', 'tr td:not(:nth-child(8))', function () {
+                $('#imagePreview').attr('src', '');
+                var idTrx = shopee_tables.row(this).data().id;
+                var order_number = shopee_tables.row(this).data().order_number;
+
+                console.log(order_number);
+
+                jQuery.noConflict();
+                $('#TransaksiModal').modal('show');
+                // jQuery('#ct_id').val(ct_id).trigger('change');
+                // $('#cust_store').val(cust_store);
+                // $('#cust_name').val(cust_name);
+                // $('#cust_phone').val(cust_phone);
+                // $('#cust_username').val(cust_username);
+                // $('#cust_email').val(cust_email);
+                // $('#cust_province').val(cust_province);
+                // reloadCity(cust_province);
+                // setTimeout(() => {
+                //     $('#cust_city').val(cust_city);
+                // }, 1000);
+                // reloadSubdistrict(cust_city);
+                // setTimeout(() => {
+                //     $('#cust_subdistrict').val(cust_subdistrict);
+                // }, 2000);
+                // $('#cust_address').val(cust_address);
+                // $('#_id').val(id);
+                // $('#_mode').val('edit');
+                // $('#delete_customer_btn').show();
+{{--                @endif--}}
             });
 
         } else if(select.value=='tiktok'){

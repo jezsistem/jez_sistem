@@ -55,4 +55,10 @@ class TransaksiOnline extends Model
         'province',
         'order_complete_at',
     ];
+
+
+    public function details()
+    {
+        return $this->hasMany(TransaksiOnlineDetail::class);
+    }
 }

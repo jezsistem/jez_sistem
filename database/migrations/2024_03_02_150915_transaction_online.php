@@ -18,24 +18,20 @@ class TransactionOnline extends Migration
             $table->bigInteger('st_id')->nullable();
             $table->string('platform_type');
             $table->string('order_number');
-            $table->string('order_status');
-            $table->string('order_sub_status');
-            $table->string('cancel_type')->nullable();
-            $table->string('cancel_by')->nullable();
-            $table->string('reason_cancellation')->nullable();
+
             $table->string('pre_order')->nullable();
             $table->string('resi_number')->nullable();
             $table->string('shipping_method')->nullable();
             $table->dateTime('ship_deadline')->nullable();
             $table->dateTime('ship_delivery_date')->nullable();
             $table->dateTime('order_date_created')->nullable();
-            $table->dateTime('payment_date')->nullable();
+
             $table->string('payment_method')->nullable();
             $table->string('SKU')->nullable();
             $table->string('original_price');
             $table->string('price_after_discount');
             $table->integer('quantity');
-            $table->integer('return_quantity')->nullable();
+
             $table->text('seller_note')->nullable();
             $table->string('total_price', 100)->nullable();
             $table->string('total_discount', 100)->nullable();

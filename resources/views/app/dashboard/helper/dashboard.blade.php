@@ -138,4 +138,5 @@
 @include('app.dashboard.helper.dashboard_modal')
 @include('app._partials.js')
 @include('app.dashboard.helper.dashboard_js')
+@include('app.stock_data.stock_data_js')
 @endSection()

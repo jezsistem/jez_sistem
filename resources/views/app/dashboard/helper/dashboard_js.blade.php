@@ -74,6 +74,169 @@
         },
         order: [[0, 'desc']],
     });
+    var oSettings = stock_data_table.settings();
+
+
+    var aging_table = $('#Agingtb').DataTable({
+        destroy: true,
+        processing: true,
+        serverSide: true,
+        responsive: false,
+        dom: 'B<"text-right"l>rt<"text-right"ip>',
+        buttons: [
+            { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+        ],
+        ajax: {
+            url : "{{ url('aging_datatables') }}",
+            data : function (d) {
+                d.search = $('#aging_search').val();
+                d.br_id = $('#br_id').val();
+                d.pc_id = $('#pc_id').val();
+                d.psc_id = $('#psc_id').val();
+                d.pssc_id = $('#pssc_id').val();
+                d.sz_id = $('#sz_id').val();
+                d.st_id = $('#st_id_filter').val();
+            }
+        },
+        columns: [
+            { data: 'DT_RowIndex', name: 'pst_id', searchable: false},
+            { data: 'st_name', name: 'st_name'},
+            { data: 'aging_po', name: 'aging_po', orderable: false},
+            { data: 'aging_tf', name: 'aging_tf', orderable: false},
+            { data: 'pc_name', name: 'pc_name'},
+            { data: 'psc_name', name: 'psc_name'},
+            { data: 'pssc_name', name: 'pssc_name'},
+            { data: 'br_name', name: 'br_name'},
+            { data: 'p_name', name: 'p_name'},
+            { data: 'p_color', name: 'p_color'},
+            { data: 'sz_name', name: 'sz_name'},
+
+            { data: 'stock', name: 'aging', orderable: false},
+        ],
+        columnDefs: [
+            {
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+        language: {
+            "lengthMenu": "_MENU_",
+        },
+        order: [[0, 'desc']],
+    });
+
+    var pickup_list_table = $('#PickupListtb').DataTable({
+        destroy: true,
+        processing: false,
+        serverSide: true,
+        responsive: false,
+        dom: 'rt<"text-right"ip>',
+        ajax: {
+            url : "{{ url('pickup_list_datatables') }}",
+            data : function (d) {
+                d.search = $('#pick_data_search').val();
+                d.st_id = "{{ $data['user']->st_id }}";
+            }
+        },
+        columns: [
+            { data: 'article', name: 'p_name', orderable: false },
+            { data: 'bin', name: 'pl_code, orderable: false' },
+            { data: 'datetime', name: 'plst_created', orderable: false },
+            { data: 'user', name: 'user', orderable: false },
+            { data: 'status', name: 'p_name', orderable: false },
+            { data: 'action', name: 'p_name', orderable: false },
+        ],
+        columnDefs: [
+            {
+                "targets": 0,
+                "className": "text-left",
+                "width": "0%"
+            }],
+        order: [[0, 'desc']],
+    });
+
+    stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn' ));
+    $('#stock_data_search').on('keyup', function() {
+        var query = jQuery(this).val();
+        if (jQuery.trim(query).length > 2) {
+            stock_data_table.draw();
+        } else if (jQuery.trim(query).length == 0) {
+            stock_data_table.draw();
+        }
+    });
+
+    $('#pick_data_search').on('keyup', function() {
+        pickup_list_table.draw();
+    });
+
+    $('#aging_search').on('keyup', function() {
+        aging_table.draw();
+    });
+
+    $('#aging_btn').on('click', function() {
+        $('#AgingModal').modal('show');
+        aging_table.draw();
+    });
+
+    $('#st_id_filter_aging').on('change', function() {
+        aging_table.draw();
+    });
+
+    $(document).delegate('#aging_detail', 'click', function(e) {
+        swal($(this).attr('title'));
+    });
+
+    $(document).delegate('#pickup_item', 'click', function(e) {
+        e.preventDefault();
+        var st_id = {{ $data['user']->st_id }};
+
+        var pst_id = $(this).attr('data-pst_id');
+        var pl_id = $(this).attr('data-pl_id');
+        var qty = $(this).attr('data-qty');
+        var pls_id = $(this).attr('data-pls_id');
+        var p_name = $(this).attr('data-p_name');
+        var pl_code = $(this).attr('data-pl_code');
+        var bin = $(this).attr('data-bin');
+        @if (strtolower($data['user']->stt_name) == 'offline')
+        if (st_id == {{ $data['user']->st_id }}) {
+            swal({
+                title: "Pickup..?",
+                text: "Yakin pickup item "+p_name+" dari bin "+bin+" ?",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Yakin'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {_pls_id:pls_id, _pst_id:pst_id, _pl_id:pl_id, _pl_code:pl_code},
+                        dataType: 'json',
+                        url: "{{ url('pickup_item')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                toast("Berhasil", "Item berhasil dipickup", "success");
+                                stock_data_table.draw();
+                                pickup_list_table.draw();
+                            } else {
+                                toast('Gagal', 'Gagal pickup item', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
+        }
+        @endif
+    });
 
 	function reloadPackingList()
 	{
