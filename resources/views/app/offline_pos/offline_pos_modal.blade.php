@@ -752,7 +752,7 @@
                     <div class="card-body">
                         <div class="form-group mb-1 pb-10">
                             <label for="exampleTextarea">Input Nominal Laba</label>
-                            <input type="number" class="form-control" id="laba_shift" name="laba_shift" autocomplete="off" />
+                            <input type="text" class="form-control" id="laba_shift" name="laba_shift" autocomplete="off" />
                         </div>
                     </div>
                 </div>
