@@ -2487,7 +2487,7 @@
         /* Dengan Rupiah */
         var rupiah = document.getElementById('laba_shift');
         rupiah.addEventListener('keyup', function (e) {
-            rupiah.value = formatRupiah(this.value, '');
+            rupiah.value = formatRupiah(this.value);
         });
 
         /* Dengan Rupiah */
