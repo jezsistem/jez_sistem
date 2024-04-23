@@ -2339,6 +2339,7 @@
                     console.error('Error starting shift:', error);
                 }
             });
+            location.reload();
         });
 
 
@@ -2389,10 +2390,12 @@
                     url: "{{ url('user_end_shift') }}",
                     success: function (response) {
                         console.log(response);
+                        swal('Berhasil', 'Laporan Shift Berhasil Disimpan', 'success');
                         jQuery('#InputLabaShift').modal('hide');
 
                         jQuery('#startShiftButton').show();
                         jQuery('#stopShiftButton').hide();
+                        location.reload();
                     },
                     error: function (error) {
                         console.error('Error End shift:', error);
