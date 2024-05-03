@@ -31,15 +31,15 @@
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-dark">
                             Total Item
                         </th>
-                        <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span
-                                    id="total_item_side">0</span></td>
+                        <td class="border-0 justify-content-end d-flex text-dark font-size-base">
+                            <span id="total_item_side">0</span></td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-dark">
                             Subtotal
                         </th>
-                        <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span
-                                    id="total_price_side">0</span></td>
+                        <td class="border-0 justify-content-end d-flex text-dark font-size-base">
+                            <span id="total_price_side">0</span></td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-dark">

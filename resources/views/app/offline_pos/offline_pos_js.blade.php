@@ -2085,7 +2085,7 @@
             var cp_id_two = jQuery('#cp_id_two').val();
 
             //Sini
-            console.log(total_payment)
+            // console.log(total_payment)
             if (payment_total > 0) {
                 if (payment_option == '') {
                     swal("Metode Pembayaran", "Silahkan pilih metode pembayaran", "warning");
@@ -2121,38 +2121,38 @@
                 }
                 // jQuery("#InputCodeModal").modal('show');
 
-                // swal({
-                //     title: "Data pembelian sudah sesuai ..?",
-                //     text: "",
-                //     icon: "warning",
-                //     buttons: [
-                //         'Batal',
-                //         'Benar'
-                //     ],
-                //     dangerMode: false,
-                // }).then(function (isConfirm) {
-                //     if (isConfirm) {
-                //         checkout()
-                //     }
-                // })
+                swal({
+                    title: "Data pembelian sudah sesuai ..?",
+                    text: "",
+                    icon: "warning",
+                    buttons: [
+                        'Batal',
+                        'Benar'
+                    ],
+                    dangerMode: false,
+                }).then(function (isConfirm) {
+                    if (isConfirm) {
+                        checkout()
+                    }
+                })
             }
-            // else {
-            //     // jQuery("#InputCodeModal").modal('show');
-            //     swal({
-            //         title: "Data pembelian sudah sesuai ..?",
-            //         text: "",
-            //         icon: "warning",
-            //         buttons: [
-            //             'Batal',
-            //             'Benar'
-            //         ],
-            //         dangerMode: false,
-            //     }).then(function (isConfirm) {
-            //         if (isConfirm) {
-            //             checkout()
-            //         }
-            //     })
-            // }
+            else {
+                // jQuery("#InputCodeModal").modal('show');
+                swal({
+                    title: "Data pembelian sudah sesuai ..?",
+                    text: "",
+                    icon: "warning",
+                    buttons: [
+                        'Batal',
+                        'Benar'
+                    ],
+                    dangerMode: false,
+                }).then(function (isConfirm) {
+                    if (isConfirm) {
+                        checkout()
+                    }
+                })
+            }
         });
 
         jQuery('#f_access').on('submit', function (e) {
