@@ -12,7 +12,7 @@ use App\Models\ExceptionLocation;
 use App\Exports\ExportData;
 use Maatwebsite\Excel\Facades\Excel;
 
-class UpdatedDashboardController extends Controller
+class load_cassetsUpdatedDashboardController extends Controller
 {
     protected function validateAccess()
     {
