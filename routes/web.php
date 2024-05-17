@@ -438,8 +438,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('sv_setup', [ProductLocationSetupController::class, 'productSetup']);
     Route::post('bin_reset_exec', [ProductLocationSetupController::class, 'binResetExec']);
     // Product Location Setup V2
-
-
     /**
      * TODO:
      * 1. Import Excel V
@@ -488,7 +486,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
     Route::get('std_export', [StockTransferDataController::class, 'exportData']);
     Route::post('std_receive_transfer_data_import', [StockTransferDataController::class, 'importReceiveTransferData']);
-
 
     // Purchase Order
     Route::get('pembelian', [PurchaseOrderController::class, 'index'])->name('purchase_order');

@@ -843,7 +843,7 @@ class ProductController extends Controller
             if (request()->hasFile('p_template')) {
                 $import = new ProductImport;
                 Excel::import($import, request()->file('p_template'));
-
+    
 
                 if ($import->getRowCount() >= 0) {
                     if (empty($import->getSameArticleId()))

@@ -36,7 +36,7 @@ class ProductImport implements ToCollection, WithStartRow
 
     public function generateRunningCode()
     {
-        $check = ProductStock::select('ps_running_code')->orderByDesc('ps_running_code')->limit(1)->get()->first();
+        $check = ProductStock::select('ps_running_code')->orderByDesc('ps_running_code')->limitt(1)->get()->first();
         if (!empty($check)) {
             $current_running_code = $check->ps_running_code;
             $next_running_code = $current_running_code + 1;

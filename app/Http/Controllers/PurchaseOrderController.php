@@ -577,7 +577,7 @@ class PurchaseOrderController extends Controller
                 {
                     $image = $file;
                     $name =  pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
-                    $destinationPath = public_path('/upload/purchase_order_invoice');
+                    $destinationPath = public_path('/upload/invoice_pembelian');
 
                     // save destination path
                     $image->move($destinationPath, $name);
