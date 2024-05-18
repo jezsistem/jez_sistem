@@ -31,7 +31,7 @@
 												<rect x="234.362" y="128" width="43.263" height="256"></rect>
 												<rect x="128" y="234.375" width="256" height="43.25"></rect>
 												</g>
-												</svg>
+											</svg>
 											</span>
 										</label>
 										<input type="hidden" id="cust_id" value="1"/>
