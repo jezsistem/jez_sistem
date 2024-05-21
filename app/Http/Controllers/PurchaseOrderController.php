@@ -104,10 +104,11 @@ class PurchaseOrderController extends Controller
             'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
-            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_code', 'id'),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
             'pro_id' => PreOrder::getAllDataPO(),
             'segment' => request()->segment(1),
         ];
+//        dd($data['acc_id']);
         return view('app.purchase_order.purchase_order', compact('data'));
     }
 
