@@ -857,6 +857,8 @@
         var highlight = '';
         var b1g1_mode = '';
 
+
+        console.log(b1g1_id);
         console.log('pt_id: ', pt_id);
         console.log('st_id: ', st_id);
         console.log('p_name: ', p_name);
@@ -1053,10 +1055,10 @@
                     }
                 });
                 //error disini
-                // if (parseFloat(b1g1_qty_total) >= 2) {
-                //     swal('1 Invoice 1 B1G1', 'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs', 'warning');
-                //     return false;
-                // }
+                if (parseFloat(b1g1_qty_total) >= 2) {
+                    swal('1 Invoice 1 B1G1', 'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs', 'warning');
+                    return false;
+                }
             }
 
         }

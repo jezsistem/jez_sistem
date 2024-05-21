@@ -551,7 +551,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('bandung_point_of_sale', [BandungPosController::class, 'index'])->name('bandung_point_of_sale');
 
     // POS 
-    Route::get('point_of_sale', [PointOfSaleController::class, 'indestock_cardx'])->name('point_of_sale');
+    Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
     Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
     Route::get('refund_retur_datatables', [PointOfSaleController::class, 'refundReturDatatables']);
