@@ -133,7 +133,7 @@ class PointOfSaleController extends Controller
         if (strtolower($user_data->stt_name) == 'online') {
             return view('app.pos.pos', compact('data'));
         } else {
-            return view('app.offline_pos.offline_pos', compact('data'));
+                    return view('app.offline_pos.offline_pos', compact('data'));
         }
     }
 
@@ -2420,7 +2420,7 @@ class PointOfSaleController extends Controller
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
                 ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->join('brands', 'brands.id', '=', 'products.br_id')
-                ->where('pls_qty', '>=', '0')
+//                ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
                 ->whereIn('plst_status', $plst_status_new)
@@ -2434,7 +2434,7 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
-                ->where('pls_qty', '>', '0')
+//                ->where('pls_qty', '>', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->whereIn('pl_code', $b1g1_setup)
                 ->where('product_stocks.ps_barcode', '=', $barcode)
@@ -2462,7 +2462,7 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
-                ->where('pls_qty', '>', '0')
+//                ->where('pls_qty', '>', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->whereIn('pl_code', ['TOKO'])
                 ->where('product_stocks.ps_barcode', '=', $barcode)
