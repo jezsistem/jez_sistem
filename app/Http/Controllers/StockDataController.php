@@ -119,7 +119,7 @@ class StockDataController extends Controller
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//            ->where('pls_qty', '>', 0)
+            ->where('pls_qty', '>=', 0)
             ->whereNotIn('pl_code', $exception)
             ->where('product_locations.st_id', 'LIKE', "%$st_id%")
             ->groupBy('p_name_brand')
