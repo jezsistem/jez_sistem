@@ -119,9 +119,9 @@ class StockDataController extends Controller
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//            ->where('pls_qty', '>', 0)
+            ->where('pls_qty', '>=', 0)
             ->whereNotIn('pl_code', $exception)
-            ->where('product_locations.st_id', 'LIKE', "%$st_id%")
+            ->where('product_locations.st_id', '=', $st_id)
             ->groupBy('p_name_brand')
             ->orderByDesc('products.updated_at'))
             ->editColumn('article_name', function($data){
@@ -155,7 +155,7 @@ class StockDataController extends Controller
 //                ->where('pls_qty', '>', 0)
                 ->where('product_locations.st_id', '=', $st_id)
                 ->whereNotIn('pl_code', $exception)
-                ->where('p_name', 'LIKE', "% $data->p_name")
+                ->where('p_name', $data->p_name)
                 ->where('br_name', $data->br_name)
                 ->where(function($w) use ($sz_id) {
                     if (!empty($sz_id)) {

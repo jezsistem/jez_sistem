@@ -175,7 +175,7 @@
                                         <th class="text-dark">Stok Tersedia</th>
                                         <th class="text-dark"></th>
                                     </tr>
-                                </thead>asd
+                                </thead>
                                 <tbody>
 
                                 </tbody>
