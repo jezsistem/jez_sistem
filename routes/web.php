@@ -150,7 +150,7 @@ Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAut
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
-Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
+Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineIlaporan_penjualannvoice'])->name('print_offline_invoice');
 
 Route::group(['middleware' => 'auth'], function() {
     // Redirect
@@ -209,7 +209,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('store_info_datatables', [DashboardV2Controller::class, 'getStoreInfoDatatables']);
     Route::get('brand_info_datatables', [DashboardV2Controller::class, 'getBrandInfoDatatables']);
     Route::post('dashboard_v2_summary', [DashboardV2Controller::class, 'summaryV2']);
-    
     Route::post('get_sales_graph', [DashboardController::class, 'getSalesGraph']);
     Route::post('get_profit_graph', [DashboardController::class, 'getProfitGraph']);
     Route::post('get_csales_graph', [DashboardController::class, 'getcSalesGraph']);
@@ -522,7 +521,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('po_invoice_image_datatable', [PurchaseOrderReceiveController::class, 'getImageInvoiceDatatables']);
     Route::post('po_delivery_order_image', [PurchaseOrderReceiveController::class, 'uploadDeliveryOrdersImage']);
     Route::post('po_invoice_image_delete', [PurchaseOrderReceiveController::class, 'deleteImageInvoice']);
-    ROute::get('po_delivery_order_image_datatable',[PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
+    Route::get('po_delivery_order_image_datatable',[PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
     Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
 
@@ -541,7 +540,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('poads_save', [PurchaseOrderArticleDetailStatusController::class, 'storeData']);
     Route::get('poads_datatables', [PurchaseOrderArticleDetailStatusController::class, 'getDatatables']);
     Route::post('sv_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'revisionData']);
-    Route::post('dl_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'deleteData']);
+    Route::post('dl_poads_re    vision', [PurchaseOrderArticleDetailStatusController::class, 'deleteData']);
     Route::post('check_po_invoice', [PurchaseOrderArticleDetailStatusController::class, 'checkInvoice']);
 
 	// RESELLER POS

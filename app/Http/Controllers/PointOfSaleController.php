@@ -117,7 +117,9 @@ class PointOfSaleController extends Controller
             'pst_custom' => ProductStock::where('ps_barcode', '=', 'CUSTOM')->first(),
             'psc_custom' => Product::where('p_name', 'LIKE', '%CUSTOM%')->first(),
             'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first(),
-            'shift_status' => UserShift::where('user_id', '=', Auth::user()->id)->whereNotNull('start_time')->whereNull('end_time')->where('created_at', 'LIKE', date('Y-m-d') . '%')->orderBy('id', 'DESC')->count()
+            'shift_status' => UserShift::where('user_id', '=', Auth::user()->id)->whereNotNull('start_time')->whereNull('end_time')->where('created_at', 'LIKE', date('Y-m-d') . '%')->orderBy('id', 'DESC')->count(),
+//            'kasir' => DB::table('users')->select('id', 'u_name')->where('st_id', '=', Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'))->pluck('id', 'u_name')
+            'kasir' => User::where('st_id', Auth::user()->st_id)->pluck('id','u_name')
         ];
 
         if ($data['shift_status'] > 0) {
@@ -125,7 +127,7 @@ class PointOfSaleController extends Controller
         } else {
             $var = 0;
         }
-//        dd($var);
+//        dd($data['kasir']);
 
 
         if (strtolower($user_data->stt_name) == 'online') {

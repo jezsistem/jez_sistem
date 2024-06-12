@@ -163,7 +163,7 @@
                             $total_discount = $data['invoice_data'][0]['pos_total_discount'];
                             $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
                             foreach ($row->subitem as $srow) {
-                                $key = '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
+                                $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
                                 if (!array_key_exists($key, $groups)) {
                                     $groups[$key] = array(
                                         'article' => '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name,
@@ -184,7 +184,7 @@
 
                         @foreach ($row->subitem as $srow)
                             @php
-                                $key = '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
+                                $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
                                 $total_item += $srow->pos_td_qty;
                                 $total_price += $srow->pos_td_discount_price;
                                 $nameset += $srow->pos_td_nameset_price;
@@ -215,8 +215,8 @@
 
                                 @endif
                                 <td class="final-price">
-                                    @if(!empty($srow->pos_td_discount_number))
-                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_price - $srow->pos_td_discount_number) }}
+                                    @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
+                                        asd
                                     @else
                                         {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_price) }}
                                     @endif

@@ -70,8 +70,8 @@
 										<label class="text-white">LOKASI</label>
 										<fieldset class="form-group mb-0 d-flex barcodeselection">
 											<select class="form-control border-dark col-2 mr-2 bg-info text-white" id="item_type">
-												<option value="waiting" selected>WAITING</option>
-												<option value="store">STORE</option>
+												<option value="waiting">WAITING</option>
+												<option value="store" selected>STORE</option>
 												<option value="b1g1">B1G1</option>
 											</select>
 											<input style="background:#fef6df; color:black;" type="text" class="form-control border-dark col-3 mr-1" id="product_name_input" placeholder="Ketik minimal 3 huruf pertama nama artikel" autocomplete="off">
@@ -80,9 +80,9 @@
 										</fieldset>
 										<div id="itemList"></div>
 										<input type="hidden" value="{{ Auth::user()->u_name }}" name="u_name" class="form-control border-dark col-3" id="invoice_input">
-{{--										<input type="hidden" value="{{ $data['pst_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pst_custom">--}}
-{{--										<input type="hidden" value="{{ $data['psc_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="psc_custom">--}}
-{{--										<input type="hidden" value="{{ $data['pl_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pl_custom">--}}
+										<input type="hidden" value="{{ $data['pst_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pst_custom">
+										<input type="hidden" value="{{ $data['psc_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="psc_custom">
+										<input type="hidden" value="{{ $data['pl_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pl_custom">
 										<input type="hidden" value="{{ $data['store']->st_name }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
 										<input type="hidden" value="{{ $data['starting_date'] }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
 									</div>

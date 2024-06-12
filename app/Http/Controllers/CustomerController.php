@@ -778,6 +778,7 @@ class CustomerController extends Controller
             $data = Customer::select('customers.id as cust_id', 'cust_name', 'cust_phone', 'ct_name')
                 ->leftJoin('customer_types', 'customer_types.id', '=', 'customers.ct_id')
                 ->whereRaw('CONCAT(cust_name," ", ct_name) LIKE ?', "%$query%")
+//                ->whereRaw('CONCAT(cust_phone," ", ct_phone) LIKE ?', "%$query%")
                 ->orWhereRaw('CONCAT(cust_phone) LIKE ?', "%$query%")
                 ->limit(10)
                 ->get();
