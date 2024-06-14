@@ -35,7 +35,7 @@
                     <label for="rating5" class="fa fa-star"></label>
                     </div>
                 </div>
-{{--                <input type="text" id="rating_value" value="" />--}}
+                <input type="hidden" id="rating_value" value="" />
 
                 <h3 class="font-weight-bolder text-white font-size-h1-lg">" <span id="rating_label">Pilih Bintang</span> "</h3>
 {{--                <input type="text" id="rating_value" name="rating_value">--}}
