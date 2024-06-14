@@ -758,6 +758,7 @@ Route::group(['middleware' => 'auth'], function() {
     // User Rating
     Route::get('user_rating', [UserRatingController::class, 'index']);
     Route::get('rating_by_customer', [UserRatingController::class, 'customerIndex']);
+    Route::get('customer', [UserRatingController::class, 'customerIndex']);
     Route::get('rating_app', [UserRatingController::class, 'customerIndex']);
     Route::get('rating_datatables', [UserRatingController::class, 'getDatatables']);
     Route::get('rating_history_datatables', [UserRatingController::class, 'getHistoryDatatables']);

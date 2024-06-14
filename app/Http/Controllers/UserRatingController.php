@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomerRating;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -223,6 +225,7 @@ class UserRatingController extends Controller
             'path' => $path,
             'user' => $user_data,
             'segment' => request()->segment(1),
+            'store_name' => Store::select('st_name')->where('id', Auth::user()->st_id)->get()->first()->st_name
         ];
         return view('app.rating_by_customer.rating_by_customer', compact('data'));
     }
@@ -330,37 +333,40 @@ class UserRatingController extends Controller
         $cust_name = $request->_cust_name;
         $cust_phone = $request->_cust_phone;
         $cust_subdistrict = $request->_cust_subdistrict;
-        $exp = explode('.', $cust_subdistrict);
-        $province = $exp[0];
-        $city = $exp[0].'.'.$exp[1];
-        if (!empty($cust_id)) {
-          $update = Customer::where('id', '=', $cust_id)->update([
-            'cust_name' => $cust_name,
-            'cust_phone' => $cust_phone,
-            'cust_province' => $province,
-            'cust_city' => $city,
-            'cust_subdistrict' => $cust_subdistrict,
-          ]);
-        } else {
-          $cust_id = DB::table('customers')->insertGetId([
-            'ct_id' => '1',
-            'st_id' => Auth::user()->st_id,
-            'stt_id' => Auth::user()->stt_id,
-            'cust_name' => $cust_name,
-            'cust_phone' => $cust_phone,
-            'cust_province' => $province,
-            'cust_city' => $city,
-            'cust_subdistrict' => $cust_subdistrict,
-            'cust_delete' => '0',
-            'created_at' => date('Y-m-d H:i:s')
-          ]);
-        }
-        $update_rating = UserRating::where('id', '=', $ur_id)->update([
-          'cust_id' => $cust_id,
-          'ur_value' => $rating,
-          'ur_description' => $ur_description,
-          'ur_status' => 'WAITING FOR CHECKOUT'
+
+        DB::table('customer_ratings')->insertGetId([
+            'st_id'             => Auth::user()->st_id,
+            'ur_value'          => $rating,
+            'ur_description'    => $ur_description
         ]);
+//        if (!empty($cust_id)) {
+//          $update = Customer::where('id', '=', $cust_id)->update([
+//            'cust_name' => $cust_name,
+//            'cust_phone' => $cust_phone,
+//            'cust_province' => $province,
+//            'cust_city' => $city,
+//            'cust_subdistrict' => $cust_subdistrict,
+//          ]);
+//        } else {
+//          $cust_id = DB::table('customers')->insertGetId([
+//            'ct_id' => '1',
+//            'st_id' => Auth::user()->st_id,
+//            'stt_id' => Auth::user()->stt_id,
+//            'cust_name' => $cust_name,
+//            'cust_phone' => $cust_phone,
+//            'cust_province' => $province,
+//            'cust_city' => $city,
+//            'cust_subdistrict' => $cust_subdistrict,
+//            'cust_delete' => '0',
+//            'created_at' => date('Y-m-d H:i:s')
+//          ]);
+//        }
+//        $update_rating = UserRating::where('id', '=', $ur_id)->update([
+//          'cust_id' => $cust_id,
+//          'ur_value' => $rating,
+//          'ur_description' => $ur_description,
+//          'ur_status' => 'WAITING FOR CHECKOUT'
+//        ]);
         if (!empty($update_rating)) {
           $r['status'] = '200';
         } else {

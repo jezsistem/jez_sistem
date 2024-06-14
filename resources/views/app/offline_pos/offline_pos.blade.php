@@ -80,9 +80,9 @@
 										</fieldset>
 										<div id="itemList"></div>
 										<input type="hidden" value="{{ Auth::user()->u_name }}" name="u_name" class="form-control border-dark col-3" id="invoice_input">
-{{--										<input type="hidden" value="{{ $data['pst_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pst_custom">--}}
-{{--										<input type="hidden" value="{{ $data['psc_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="psc_custom">--}}
-{{--										<input type="hidden" value="{{ $data['pl_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pl_custom">--}}
+										<input type="hidden" value="{{ $data['pst_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pst_custom">
+										<input type="hidden" value="{{ $data['psc_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="psc_custom">
+										<input type="hidden" value="{{ $data['pl_custom']->id }}" name="u_name" class="form-control border-dark col-3" id="pl_custom">
 										<input type="hidden" value="{{ $data['store']->st_name }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
 										<input type="hidden" value="{{ $data['starting_date'] }}" name="st_name" class="form-control border-dark col-3" id="invoice_input">
 									</div>
