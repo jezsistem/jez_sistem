@@ -854,7 +854,7 @@ class ProductController extends Controller
                         $r['same_article_id'] = $import->getSameArticleId();
                     }
                 } else {
-                    $r['status'] = '419';
+                    $r['status'] = $import->getRowCount();
                 }
             } else {
                 $r['status'] = '400';

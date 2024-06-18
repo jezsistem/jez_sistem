@@ -67,6 +67,8 @@ class ProductLocationSetupV2Controller extends Controller
     private $table_row = 0;
     public function index()
     {
+//        dd(Auth::user()->st_id);
+//        die;
         $this->validateAccess();
         $user = new User;
         $select = ['*'];
@@ -749,16 +751,15 @@ class ProductLocationSetupV2Controller extends Controller
         $exception = ExceptionLocation::select('pl_code')
         ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
+        $st_city = Store::select('st_code')->where('id','=', Auth::user()->st_id)->first();
         $pl_id = ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
-        ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-        ->where('pl_delete', '!=', '1')
-        ->where(function($w) use ($exception, $access) {
-            if ($access != 1) {
-                $w->whereNotIn('pl_code', $exception);
-            }
-            $w->where('product_locations.st_id', '=', Auth::user()->st_id);
-        })
-        ->orderByDesc('pl_code')->pluck('location', 'pl_id');
+            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+            ->where('pl_delete', '!=', '1')
+            ->where(function($w) use ($exception, $access, $st_city) {
+//                $w->where('product_locations.st_id', '=', Auth::user()->st_id);
+                $w->where('product_locations.pl_description', '=', $st_city->st_code);
+            })
+            ->orderByDesc('pl_code')->pluck('location', 'pl_id');
 
         $data = [
             'pl_id' => $pl_id,

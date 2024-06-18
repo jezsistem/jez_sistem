@@ -995,29 +995,30 @@
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
-                    if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_import')[0].reset();
-                        product_table.ajax.reload();
-                    } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
-                    } else {
-
-                        if(data.same_article_id.length > 0) {
-                            var same_article_id = [];
-                            for (var i = 0; i < data.same_article_id.length; i++) {
-                               same_article_id.push(data.same_article_id[i]);
-                                var same_article_id_string = same_article_id.join(', ');
-                            }
-                            swal('Gagal', 'Article ID ' + same_article_id_string + ' sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
-                            return false;
-                        }
-
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
-                    }
+                    console.log(data.status)
+                    // if (data.status == '200') {
+                    //     $("#ImportModal").modal('hide');
+                    //     swal('Berhasil', 'Data berhasil diimport', 'success');
+                    //     $('#f_import')[0].reset();
+                    //     product_table.ajax.reload();
+                    // } else if (data.status == '400') {
+                    //     $("#ImportModal").modal('hide');
+                    //     swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    // } else {
+                    //
+                    //     if(data.same_article_id.length > 0) {
+                    //         var same_article_id = [];
+                    //         for (var i = 0; i < data.same_article_id.length; i++) {
+                    //            same_article_id.push(data.same_article_id[i]);
+                    //             var same_article_id_string = same_article_id.join(', ');
+                    //         }
+                    //         swal('Gagal', 'Article ID ' + same_article_id_string + ' sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                    //         return false;
+                    //     }
+                    //
+                    //     $("#ImportModal").modal('hide');
+                    //     swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    // }
                 },
                 error: function(data){
                     swal('Error', data, 'error');
