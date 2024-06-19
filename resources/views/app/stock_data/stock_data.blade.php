@@ -167,7 +167,7 @@
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <input type="search" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau sku" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
+                            <input type="text" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau sku" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
                             <input type="search" class="form-control" id="stock_data_search_scan" placeholder="Scan Barcode" style="border:1px solid black; padding:20px; background:#efefef; display: none;" autofocus/><br/>
                             <table class="table table-hover table-checkable" id="StockDatatb">
                                 <thead class="bg-light text-dark">
