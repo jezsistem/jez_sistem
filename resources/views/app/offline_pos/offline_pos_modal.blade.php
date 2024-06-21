@@ -645,12 +645,12 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="f_shift_customer">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>
+{{--                <form id="f_shift_customer">--}}
+{{--                    <div class="btn-group" role="group">--}}
+{{--                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>--}}
 
-                    </div><br>
-                </form>
+{{--                    </div><br>--}}
+{{--                </form>--}}
                 <div id="UserShiftModalBody"></div>
             </div>
         </div>
@@ -662,7 +662,7 @@
 <!-- Modal -->
 <div class="modal fade text-left" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13"
      style="display: none;" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h4 class="modal-title text-dark" id="myModalLabel13">Input Kas</h4>
@@ -673,12 +673,13 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="f_shift_customer">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>
+{{--                <form id="f_shift_customer">--}}
+{{--                    <div class="btn-group" role="group">--}}
+{{--                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>--}}
 
-                    </div><br>
-                </form>
+{{--                    </div><br>--}}
+{{--                </form>--}}
+                <input type="text" class="form-control" name="id_shift" id="id_shift">
                 <div id="UserShiftModalBody"></div>
             </div>
         </div>

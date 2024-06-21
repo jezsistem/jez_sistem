@@ -728,7 +728,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('discount_import', [ProductDiscountController::class, 'importData']);
 
     // Cross Order
-    Route::get('cross_order', [CrossOrderController::class, 'index'])->name('store');
+    Route::get('cross_order', [CrossOrderController::class, 'index'])->name('cross');
     Route::get('cross_order_datatables', [CrossOrderController::class, 'getDatatables']);
     Route::get('confirmation_datatables', [CrossOrderController::class, 'confirmationDatatables']);
     Route::get('detail_datatables', [CrossOrderController::class, 'detailDatatables']);
