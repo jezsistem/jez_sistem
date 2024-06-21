@@ -2368,6 +2368,26 @@
             jQuery('#shiftDetailModal').modal('hide');
             jQuery('#inputKasModal').modal('show');
             product.draw(false);
+
+            var data = user_shift_table.row(this).data().id;
+            var st_id = user_shift_table.row(this).data().st_id;
+            var start_time_original = user_shift_table.row(this).data().start_time_original;
+            var end_time_original = user_shift_table.row(this).data().end_time_original;
+            var date = user_shift_table.row(this).data().date;
+            var start_time = user_shift_table.row(this).data().start_time;
+            var end_time = user_shift_table.row(this).data().end_time;
+            var total_pos_real_price = user_shift_table.row(this).data().total_pos_real_price;
+            var total_pos_payment_price = user_shift_table.row(this).data().total_pos_payment_price;
+            var laba_shift = user_shift_table.row(this).data().laba_shift;
+            var difference = user_shift_table.row(this).data().difference;
+            var st_name = user_shift_table.row(this).data().st_name;
+            var u_name = user_shift_table.row(this).data().u_name;
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
         });
 
         jQuery(document).delegate('#f_laba_input', 'submit', function (e) {

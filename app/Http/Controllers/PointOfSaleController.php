@@ -133,7 +133,7 @@ class PointOfSaleController extends Controller
         if (strtolower($user_data->stt_name) == 'online') {
             return view('app.pos.pos', compact('data'));
         } else {
-                    return view('app.offline_pos.offline_pos', compact('data'));
+            return view('app.offline_pos.offline_pos', compact('data'));
         }
     }
 
