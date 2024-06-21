@@ -409,9 +409,9 @@ class TrackingController extends Controller
             ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(function($w) {
-                $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
-            })
+//            ->where(function($w) {
+//                $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+//            })
             ->where('plst_status', '=', 'WAITING TO TAKE'))
             ->editColumn('article', function($data){
                 $p_name = $data->p_name.' '.$data->p_color.' '.$data->sz_name;
