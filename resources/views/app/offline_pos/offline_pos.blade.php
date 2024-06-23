@@ -75,7 +75,7 @@
 												<option value="b1g1">B1G1</option>
 											</select>
 											<input style="background:#fef6df; color:black;" type="text" class="form-control border-dark col-3 mr-1" id="product_name_input" placeholder="Ketik minimal 3 huruf pertama nama artikel" autocomplete="off">
-											<input style="background:#D7F6E9; color:black;" type="text" class="form-control border-dark col-4 mr-1" id="barcode_input" placeholder="Klik untuk barcode mode" autocomplete="off">
+											<input style="background:#D7F6E9; color:black;" type="text" class="form-control border-dark col-4 mr-1" id="barcode_input" placeholder="Klik untuk barcode mode" autocomplete="off" autofocus>
 											<input type="text" class="form-control border-dark col-3" id="invoice_input" placeholder="Invoice (ketik 5 angka invoice)">
 										</fieldset>
 										<div id="itemList"></div>
