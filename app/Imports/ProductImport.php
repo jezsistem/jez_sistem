@@ -230,7 +230,7 @@ class ProductImport implements ToCollection, WithStartRow
                 $data_id[] = $p_id;
 
                 if (!empty($p_id)) {
-                    $exp = explode('_', ltrim($r[15]));
+                    $exp = explode('_', ltrim($r[17]));
                     $count = (Integer)count($exp);
                     for ($i=0; $i<=$count; $i++) {
                         if (empty($exp[$i])) {
@@ -285,7 +285,7 @@ class ProductImport implements ToCollection, WithStartRow
                 }
             }
             if ($status >= 0) {
-                return '200';
+                return '2000';
             } else {
                 DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
                 DB::table('products')->whereIn('id', $data_id)->delete();
