@@ -107,6 +107,7 @@
                                                onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )"
                                                value=""/>
                                     @endif
+                        {{--ini COGS--}}
                         <input type="text" style="width:80px;" id="cogs_{{ $row->poa_id }}_{{ $i }}" value="" readonly/>
                         <input type="text" style="width:80px;" id="total_purchase_price_{{ $row->poa_id }}_{{ $i }}"
                                value="{{ number_format($srow->poad_total_price) }}" readonly/>
