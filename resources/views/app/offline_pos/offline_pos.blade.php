@@ -34,7 +34,7 @@
 											</svg>
 											</span>
 										</label>
-										<input type="text" id="cust_id" value="1"/>
+										<input type="hidden" id="cust_id" value="1"/>
 										<input type="search" id="cust_id_label" placeholder="Ketik minimal 4 huruf customer" autocomplete="off"/> <a href="#" class="btn btn-inventory" data-id="" id="check_customer">Check</a>
 										<div id="itemListCust"></div><br/>
 										<select class="form-control border-dark col-12 mr-1 bg-info text-white" id="std_id">

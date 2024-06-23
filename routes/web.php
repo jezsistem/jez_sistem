@@ -150,7 +150,7 @@ Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAut
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
-Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineIlaporan_penjualannvoice'])->name('print_offline_invoice');
+Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
 
 Route::group(['middleware' => 'auth'], function() {
     // Redirect

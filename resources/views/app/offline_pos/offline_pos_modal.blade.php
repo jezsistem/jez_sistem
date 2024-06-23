@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h4 class="modal-title text-white" id="myModalLabel13">Customer</h4>
+                <h4 class="modal-title" id="myModalLabel13">Customer</h4>
                 <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0"
                         data-dismiss="modal" aria-label="Close">
                     <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor"
