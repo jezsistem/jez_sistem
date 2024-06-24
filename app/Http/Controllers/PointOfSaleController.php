@@ -1545,7 +1545,7 @@ class PointOfSaleController extends Controller
                     ->join('products', 'product_stocks.p_id', '=', 'products.id')
                     ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
                     ->join('brands', 'products.br_id', '=', 'brands.id')
-                    ->where('product_location_setups.pl_id', ['1001'])
+                    ->where('product_location_setups.pl_id', $location_store->id)
                     ->where('product_stocks.ps_barcode', 'LIKE', "%$query%")
 //                    ->whereRaw('ts_products.article_id LIKE ?', "%$query%")
 //                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
@@ -1639,7 +1639,7 @@ class PointOfSaleController extends Controller
                         $bin = '<span class="btn-lg btn-info">' . strtoupper($row->pl_code) . '</span>';
                     } else {
                         $status = '';
-                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty . ' ' . $row->pl_id . ' ' . $location_store .'</span>';
+                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty  .'</span>';
                     }
                     $output .= '
                     <li>
