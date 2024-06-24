@@ -1547,10 +1547,10 @@ class PointOfSaleController extends Controller
                     ->join('brands', 'products.br_id', '=', 'brands.id')
                     ->where('product_location_setups.pl_id', $location_store)
                     ->where('product_stocks.ps_barcode', 'LIKE', "%$query%")
-                    ->whereRaw('ts_products.article_id LIKE ?', "%$query%")
-                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
-                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
-                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
+//                    ->whereRaw('ts_products.article_id LIKE ?', "%$query%")
+//                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+//                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+//                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->get();
             }
 
