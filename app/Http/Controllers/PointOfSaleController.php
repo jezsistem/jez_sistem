@@ -1466,45 +1466,45 @@ class PointOfSaleController extends Controller
                 'WAITING OFFLINE',
                 'INSTOCK APPROVAL'
             ];
-//            if ($item_type == 'waiting') {
-//                $data = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pl_code', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'plst_status', 'product_stocks.id as pst_id', 'product_locations.id as pl_id', 'products.article_id as article_id')
-//                    ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-//                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                    ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-//                    ->join('products', 'products.id', '=', 'product_stocks.p_id')
-//                    ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                    ->join('bra nds', 'brands.id', '=', 'products.br_id')
-//                    ->where('pls_qty', '>=', '0')
-//                    ->whereNotIn('pl_code', $exception)
-//                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
-//                    ->whereIn('plst_status', $plst_status_new)
-//                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
-//                    ->limit(13)
-//                    ->get();
-//            } else if ($item_type == 'b1g1') {
-//                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'pl_code', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
-//                    ->join('products', 'products.id', '=', 'product_stocks.p_id')
-//                    ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                    ->join('brands', 'brands.id', '=', 'products.br_id')
-//                    ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-//                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
-//                    ->where('pls_qty', '>', '0')
-//                    ->whereNotIn('pl_code', $exception)
-//                    ->whereIn('pl_code', $b1g1_setup)
-//                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
-//                    ->groupBy('product_stocks.id')
-//                    ->limit(13)
-//                    ->get();
-//            } else if ($item_type == 'store') {
+            if ($item_type == 'waiting') {
+                $data = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pl_code', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'plst_status', 'product_stocks.id as pst_id', 'product_locations.id as pl_id', 'products.article_id as article_id')
+                    ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->join('bra nds', 'brands.id', '=', 'products.br_id')
+                    ->where('pls_qty', '>=', '0')
+                    ->whereNotIn('pl_code', $exception)
+                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                    ->whereIn('plst_status', $plst_status_new)
+                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
+                    ->limit(13)
+                    ->get();
+            } else if ($item_type == 'b1g1') {
+                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'pl_code', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
+                    ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->join('brands', 'brands.id', '=', 'products.br_id')
+                    ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                    ->where('pls_qty', '>', '0')
+                    ->whereNotIn('pl_code', $exception)
+                    ->whereIn('pl_code', $b1g1_setup)
+                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
+                    ->groupBy('product_stocks.id')
+                    ->limit(13)
+                    ->get();
+            } else if ($item_type == 'store') {
 //                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
 //                    ->join('products', 'products.id', '=', 'product_stocks.p_id')
 //                    ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
@@ -1525,30 +1525,36 @@ class PointOfSaleController extends Controller
 //                    ->groupBy('product_stocks.id')
 ////                    ->limit(13)
 //                    ->get();
-//            }
-            $data = ProductLocationSetup::select(
-                'pl_id',
-                'products.psc_id',
-                'products.p_name',
-                'products.p_color',
-                'products.p_sell_price',
-                'products.p_price_tag',
-                'product_stocks.ps_price_tag',
-                'product_stocks.ps_sell_price',
-                'sizes.sz_name',
-                'product_stocks.ps_qty',
-                'product_location_setups.pls_qty',
-                'brands.br_name',
-                'product_stocks.id as pst_id',
-                'products.article_id as article_id'
-            )
-                ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-                ->join('products', 'product_stocks.p_id', '=', 'products.id')
-                ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
-                ->join('brands', 'products.br_id', '=', 'brands.id')
-                ->whereIn('product_location_setups.pl_id', ['1001'])
-                ->where('product_stocks.ps_barcode', 'LIKE', "%$query%")
-                ->get();
+                $data = ProductLocationSetup::select(
+                    'pl_id',
+                    'products.psc_id',
+                    'products.p_name',
+                    'products.p_color',
+                    'products.p_sell_price',
+                    'products.p_price_tag',
+                    'product_stocks.ps_price_tag',
+                    'product_stocks.ps_sell_price',
+                    'sizes.sz_name',
+                    'product_stocks.ps_qty',
+                    'product_location_setups.pls_qty',
+                    'brands.br_name',
+                    'product_stocks.id as pst_id',
+                    'products.article_id as article_id'
+                )
+                    ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                    ->join('products', 'product_stocks.p_id', '=', 'products.id')
+                    ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
+                    ->join('brands', 'products.br_id', '=', 'brands.id')
+                    ->whereIn('product_location_setups.pl_id', ['1001'])
+                    ->where('product_stocks.ps_barcode', 'LIKE', "%$query%")
+                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
+                    ->get();
+            }
+
             $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
             if (!empty($data)) {
                 foreach ($data as $row) {
