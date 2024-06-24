@@ -1455,6 +1455,8 @@ class PointOfSaleController extends Controller
                 $fs = $free_sock->pls_qty;
             }
 
+            $location_store = ProductLocation::select('id')->where('st_id', Auth::user()->st_id)->where('pl_code', 'TOKO')->get()->first();
+
             $query = $request->get('query');
             $type = $request->get('type');
             $std_id = $request->get('_std_id');
@@ -1509,11 +1511,12 @@ class PointOfSaleController extends Controller
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
+//                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                    ->where('product_locations.id', '=', $location_store)
                     ->where('pls_qty', '>=', '0')
 //                    ->whereNotIn('pl_code', $exception)
-//                    ->whereIn('pl_code', ['TOKO'])
-                    ->where('product_locations.id', '=', '1001')
+                    ->whereIn('pl_code', ['TOKO'])
+//                    ->where('product_locations.id', '=', '1001')
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
