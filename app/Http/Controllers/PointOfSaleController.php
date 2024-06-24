@@ -1510,8 +1510,8 @@ class PointOfSaleController extends Controller
                     ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                     ->where('product_locations.st_id', '=', Auth::user()->st_id)
-                    ->where('pls_qty', '>', '0')
-                    ->whereNotIn('pl_code', $exception)
+                    ->where('pls_qty', '>=', '0')
+//                    ->whereNotIn('pl_code', $exception)
                     ->whereIn('pl_code', ['TOKO'])
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
@@ -1607,7 +1607,7 @@ class PointOfSaleController extends Controller
                         $bin = '<span class="btn-lg btn-info">' . strtoupper($row->pl_code) . '</span>';
                     } else {
                         $status = '';
-                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty . ' ' . $row->pl_id . '</span>';
+                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty . ' ' . $row->pl_id . ' ' . $item_type .'</span>';
                     }
                     $output .= '
                     <li>
