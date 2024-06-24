@@ -1513,7 +1513,7 @@ class PointOfSaleController extends Controller
                     ->where('pls_qty', '>=', '0')
 //                    ->whereNotIn('pl_code', $exception)
 //                    ->whereIn('pl_code', ['TOKO'])
-                    ->whereIn('product_locations.id', '=', '1001')
+                    ->where('product_locations.id', '=', '1001')
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
