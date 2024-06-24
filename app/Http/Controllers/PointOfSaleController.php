@@ -1437,8 +1437,7 @@ class PointOfSaleController extends Controller
     {
         //return $request->all();
 
-        if($request->get('query'))
-        {
+        if ($request->get('query')) {
             $exception = ExceptionLocation::select('pl_code')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
@@ -1472,7 +1471,7 @@ class PointOfSaleController extends Controller
                     ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                     ->join('products', 'products.id', '=', 'product_stocks.p_id')
                     ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->join('brands', 'brands.id', '=', 'products.br_id')
+                    ->join('bra nds', 'brands.id', '=', 'products.br_id')
                     ->where('pls_qty', '>=', '0')
                     ->whereNotIn('pl_code', $exception)
                     ->where('product_locations.st_id', '=', Auth::user()->st_id)
@@ -1480,6 +1479,8 @@ class PointOfSaleController extends Controller
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->limit(13)
                     ->get();
             } else if ($item_type == 'b1g1') {
@@ -1496,6 +1497,8 @@ class PointOfSaleController extends Controller
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
@@ -1513,13 +1516,15 @@ class PointOfSaleController extends Controller
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
             }
             $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
             if (!empty($data)) {
-                foreach($data as $row) {
+                foreach ($data as $row) {
                     $bin = '';
                     $sell_price = 0;
                     $bandrol = 0;
@@ -1585,8 +1590,8 @@ class PointOfSaleController extends Controller
                                 $price_tag = $row->p_price_tag;
                             }
                             if ($set_discount->pd_type == 'percent') {
-                                $sell_price_discount = $price_tag/100 * $set_discount->pd_value;
-                                $sell_price = $price_tag - ($price_tag/100 * $set_discount->pd_value);
+                                $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
+                                $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
                             } else if ($set_discount->pd_type == 'amount') {
                                 $sell_price_discount = $set_discount->pd_value;
                                 $sell_price = $price_tag - $set_discount->pd_value;
@@ -1598,17 +1603,17 @@ class PointOfSaleController extends Controller
                         }
                     }
                     if ($item_type == 'waiting') {
-                        $status = '<span class="btn-lg btn-warning">'.$row->plst_status.'</span>';
-                        $bin = '<span class="btn-lg btn-info">'.strtoupper($row->pl_code).'</span>';
+                        $status = '<span class="btn-lg btn-warning">' . $row->plst_status . '</span>';
+                        $bin = '<span class="btn-lg btn-info">' . strtoupper($row->pl_code) . '</span>';
                     } else {
                         $status = '';
-                        $bin = '<span class="btn-lg btn-info">'.$row->pls_qty.'</span>';
+                        $bin = '<span class="btn-lg btn-info">asd</span>';
                     }
                     $output .= '
                     <li>
-                    <a class="btn btn-sm btn-inventory col-12" data-b1g1_id="'.$b1g1_id.'" data-b1g1_price="'.$b1g1_price.'" data-fs="'.$fs.'" data-psc_id="'.$row->psc_id.'" data-pls_qty="'.$row->pls_qty.'" data-plst_id="'.$row->plst_id.'" data-pl_id="'.$row->pl_id.'" data-sell_price="'.$sell_price.'" data-sell_price_discount="'.$sell_price_discount.'" data-bandrol="'.$bandrol.'" data-ps_qty="'.$row->ps_qty.'" data-pst_id="'.$row->pst_id.'" data-p_name="['.$row->br_name.'] '.$row->article_id.' '.$row->p_name.' '.$row->p_color.' ['.$row->sz_name.'] ['.$row->pl_code.']" id="add_to_item_list">
+                    <a class="btn btn-sm btn-inventory col-12" data-b1g1_id="' . $b1g1_id . '" data-b1g1_price="' . $b1g1_price . '" data-fs="' . $fs . '" data-psc_id="' . $row->psc_id . '" data-pls_qty="' . $row->pls_qty . '" data-plst_id="' . $row->plst_id . '" data-pl_id="' . $row->pl_id . '" data-sell_price="' . $sell_price . '" data-sell_price_discount="' . $sell_price_discount . '" data-bandrol="' . $bandrol . '" data-ps_qty="' . $row->ps_qty . '" data-pst_id="' . $row->pst_id . '" data-p_name="[' . $row->br_name . '] ' . $row->article_id . ' ' . $row->p_name . ' ' . $row->p_color . ' [' . $row->sz_name . '] [' . $row->pl_code . ']" id="add_to_item_list">
                     <span style="float-left;">
-                    <span class="btn-lg btn-primary">['.strtoupper($row->br_name).']'. strtoupper($row->article_id) .' '.strtoupper($row->p_name).' '.strtoupper($row->p_color).' ['.strtoupper($row->sz_name).']</span> '.$bin.' '.$status.' </span></a></li>
+                    <span class="btn-lg btn-primary">[' . strtoupper($row->br_name) . ']' . strtoupper($row->article_id) . ' ' . strtoupper($row->p_name) . ' ' . strtoupper($row->p_color) . ' [' . strtoupper($row->sz_name) . ']</span> ' . $bin . ' ' . $status . ' </span></a></li>
                     ';
                 }
             } else {
