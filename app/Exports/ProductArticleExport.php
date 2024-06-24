@@ -11,7 +11,7 @@ class ProductArticleExport implements FromCollection, WithHeadings
 
     public function headings(): array
     {
-        return ['NAMA', 'WARNA', 'BRAND', 'SUPPLIER', 'HARGA BANDEROL', 'HARGA BELI', 'HARGA JUAL'];
+        return ['ARTICLE ID', 'NAMA', 'WARNA', 'BRAND', 'SUPPLIER', 'HARGA BANDEROL', 'HARGA BELI', 'HARGA JUAL'];
     }
 
     /**
@@ -25,7 +25,7 @@ class ProductArticleExport implements FromCollection, WithHeadings
             // Transform each chunk and return a flat collection
             return $chunk->map(function ($item) {
                 return [
-                    $item->p_name, $item->p_color, $item->br_name, $item->ps_name,
+                    $item->article_id,$item->p_name, $item->p_color, $item->br_name, $item->ps_name,
                     $item->p_price_tag, $item->p_purchase_price, $item->p_sell_price
                 ];
             });
