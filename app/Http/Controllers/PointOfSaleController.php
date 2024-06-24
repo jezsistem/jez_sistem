@@ -1527,7 +1527,7 @@ class PointOfSaleController extends Controller
 //                    ->get();
 //            }
             $data = ProductLocationSetup::select(
-                'product_locations.id as pl_id',
+                'pl_id',
                 'products.psc_id',
                 'products.p_name',
                 'products.p_color',
