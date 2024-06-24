@@ -1533,7 +1533,7 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
 //                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
-                ->where('product_locations.id', '=', $location_store)
+                ->where('product_location_setups.pl_id', '=', $location_store)
                 ->where('pls_qty', '>=', '0')
 //                    ->whereNotIn('pl_code', $exception)
                 ->whereIn('pl_code', ['TOKO'])
