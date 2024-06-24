@@ -1502,7 +1502,7 @@ class PointOfSaleController extends Controller
                     ->groupBy('product_stocks.id')
                     ->limit(13)
                     ->get();
-            } else {
+            } else if ($item_type == 'store') {
                 $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
                     ->join('products', 'products.id', '=', 'product_stocks.p_id')
                     ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
