@@ -1520,7 +1520,7 @@ class PointOfSaleController extends Controller
                     ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
                     ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->groupBy('product_stocks.id')
-                    ->limit(13)
+//                    ->limit(13)
                     ->get();
             }
             $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
