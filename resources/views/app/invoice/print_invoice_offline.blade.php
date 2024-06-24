@@ -369,6 +369,14 @@
                     www.jez.co.id
                 </div>
                 <br/>
+
+                <div class="title">
+                    <strong><i>Cust Experience :</i></strong>
+                    <br/>
+                    <img class="" data-pt_id="{{ $row->pt_id }}"
+                         src="{{ asset('logo/qr_link.png') }}"
+                         style="width:43%; background-color:#000;"/>
+                </div><br>
                 <div class="title">
                     <strong><i>Ketentuan penukaran barang :</i></strong>
                     <br/>
