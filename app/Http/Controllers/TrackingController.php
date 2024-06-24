@@ -136,8 +136,10 @@ class TrackingController extends Controller
         $qty = $request->_qty;
         $u_id = Auth::user()->id;
 
+        $status = 'INSTOCK';
+
         // if ($this->instockApproval() != 1) {
-            $status = 'INSTOCK';
+
         // } else {
         //     $status = 'INSTOCK APPROVAL';
         // }
@@ -575,8 +577,8 @@ class TrackingController extends Controller
                     if (!empty($request->get('search'))) {
                         $instance->where(function($w) use($request){
                             $search = $request->get('search');
-                            $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
-                            $w->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
+//                            $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                            $w->where('ts_product_stocks.ps_barcode', $search);
                         });
                     }
                     if (!empty($request->get('waiting'))) {

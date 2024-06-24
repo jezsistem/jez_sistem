@@ -207,10 +207,10 @@ class UserRatingController extends Controller
     {
         $user = new User;
         $select = ['u_name', 'u_email', 'u_phone', 'g_name'];
-        $where = [
-            'users.id' => Auth::user()->id
-        ];
-        $user_data = $user->checkJoinData($select, $where)->first();
+//        $where = [
+//            'users.id' => Auth::user()->id
+//        ];
+//        $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $path = "
         <li class='breadcrumb-item'>
@@ -223,9 +223,9 @@ class UserRatingController extends Controller
             'title' => $title,
             'subtitle' => 'Rating By Customer',
             'path' => $path,
-            'user' => $user_data,
+//            'user' => $user_data,
             'segment' => request()->segment(1),
-            'store_name' => Store::select('st_name')->where('id', Auth::user()->st_id)->get()->first()->st_name
+            'store_name' => Store::select('st_name')->where('id', '1')->get()->first()->st_name
         ];
         return view('app.rating_by_customer.rating_by_customer', compact('data'));
     }
