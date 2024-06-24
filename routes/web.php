@@ -152,7 +152,7 @@ Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
 
-Route::group(['middleware' => 'auth'], function() {
+Route::group(['middleware' => 'auth'], function () {
     // Redirect
     Route::get('redirect', [RedirectController::class, 'index'])->name('redirect');
     // Upcloud Balance
@@ -203,7 +203,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('load_cprofit', [AssetController::class, 'loadcProfit']);
     Route::post('load_assets', [AssetController::class, 'loadAssets']);
     Route::post('load_cassets', [AssetController::class, 'loadCAssets']);
-    
+
     // Dashboard V2
     Route::get('dashboard_v2', [DashboardV2Controller::class, 'index']);
     Route::get('store_info_datatables', [DashboardV2Controller::class, 'getStoreInfoDatatables']);
@@ -282,11 +282,11 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('reload_store_type', [StoreTypeController::class, 'reloadStoreType']);
     Route::post('stt_save', [StoreTypeController::class, 'storeData']);
     Route::post('stt_delete', [StoreTypeController::class, 'deleteData']);
-     // Store Division
-     Route::get('data_divisi', [StoreTypeDivisionController::class, 'index'])->name('store_type_division');
-     Route::get('store_type_division_datatables', [StoreTypeDivisionController::class, 'getDatatables']);
-     Route::post('dv_save', [StoreTypeDivisionController::class, 'storeData']);
-     Route::post('dv_delete', [StoreTypeDivisionController::class, 'deleteData']);
+    // Store Division
+    Route::get('data_divisi', [StoreTypeDivisionController::class, 'index'])->name('store_type_division');
+    Route::get('store_type_division_datatables', [StoreTypeDivisionController::class, 'getDatatables']);
+    Route::post('dv_save', [StoreTypeDivisionController::class, 'storeData']);
+    Route::post('dv_delete', [StoreTypeDivisionController::class, 'deleteData']);
     // Store
     Route::get('data_store', [StoreController::class, 'index'])->name('store');
     Route::get('store_datatables', [StoreController::class, 'getDatatables']);
@@ -390,8 +390,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('size_produk', [SizeController::class, 'index'])->name('size');
     Route::get('size_datatables', [SizeController::class, 'getDatatables']);
     Route::get('reload_size', [SizeController::class, 'reloadSize']);
-    Route::get('reload_size_schema',[SizeController::class, 'reloadSizeSchema']);
-    Route::get('reload_size_schema_modal',[SizeController::class, 'reloadSizeSchemaModal']);
+    Route::get('reload_size_schema', [SizeController::class, 'reloadSizeSchema']);
+    Route::get('reload_size_schema_modal', [SizeController::class, 'reloadSizeSchemaModal']);
     Route::post('sz_save', [SizeController::class, 'storeData']);
     Route::post('sz_delete', [SizeController::class, 'deleteData']);
     Route::post('sz_import', [SizeController::class, 'importData']);
@@ -479,7 +479,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('stock_transfer_import', [StockTransferController::class, 'importData']);
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
-    Route::get('transfer_data_datatables', [StockTransferDataController::   class, 'getDatatables']);
+    Route::get('transfer_data_datatables', [StockTransferDataController::class, 'getDatatables']);
     Route::get('transfer_data_accept_datatables', [StockTransferDataController::class, 'getAcceptDatatables']);
     Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
@@ -521,7 +521,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('po_invoice_image_datatable', [PurchaseOrderReceiveController::class, 'getImageInvoiceDatatables']);
     Route::post('po_delivery_order_image', [PurchaseOrderReceiveController::class, 'uploadDeliveryOrdersImage']);
     Route::post('po_invoice_image_delete', [PurchaseOrderReceiveController::class, 'deleteImageInvoice']);
-    Route::get('po_delivery_order_image_datatable',[PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
+    Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
     Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
 
@@ -543,11 +543,14 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('dl_poads_re    vision', [PurchaseOrderArticleDetailStatusController::class, 'deleteData']);
     Route::post('check_po_invoice', [PurchaseOrderArticleDetailStatusController::class, 'checkInvoice']);
 
-	// RESELLER POS
-	Route::get('reseller_pos', [PointOfSaleController::class, 'index'])->name('reseller_pos');
+    // RESELLER POS
+    Route::get('reseller_pos', [PointOfSaleController::class, 'index'])->name('reseller_pos');
 
     // Bandung POS
-    Route::get('bandung_point_of_sale', [BandungPosController::class, 'index'])->name('bandung_point_of_sale');
+    /**
+     * NOTE: open when needed
+     */
+    // Route::get('bandung_point_of_sale', [BandungPosController::class, 'index'])->name('bandung_point_of_sale');
 
     // POS 
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
@@ -624,8 +627,12 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('cancel_pickup_item', [StockTrackingController::class, 'cancelPickupItem']);
     Route::post('plst_delete', [StockTrackingController::class, 'deleteData']);
 
-	// Stock Summary
-    Route::get('stok_summary', [StockSummaryController::class, 'index'])->name('stock_summary');
+    // Stock Summary
+    /**
+     * NOTE:Open when needed
+     */
+    // Route::get('stok_summary', [StockSummaryController::class, 'index'])->name('stock_summary');
+
     // Invoice Tracking
     Route::get('invoice_tracking', [InvoiceTrackingController::class, 'index'])->name('invoice_tracking');
     Route::get('invoice_tracking_datatables', [InvoiceTrackingController::class, 'getDatatables']);
@@ -747,7 +754,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('exception_location_datatables', [ExceptionLocationController::class, 'getDatatables']);
     Route::post('el_save', [ExceptionLocationController::class, 'storeData']);
     Route::post('el_delete', [ExceptionLocationController::class, 'deleteData']);
-    
+
     // B1G1 Location
     Route::get('b1g1_location', [B1g1Controller::class, 'index']);
     Route::get('b1g1_location_datatables', [B1g1Controller::class, 'getDatatables']);
@@ -772,40 +779,49 @@ Route::group(['middleware' => 'auth'], function() {
     // Free Sock
     Route::post('get_free_sock', [PointOfSaleController::class, 'getFreeSock']);
     Route::post('delete_rating', [PointOfSaleController::class, 'deleteRating']);
-    
+
     // Voting
-    Route::get('voting', [VotingController::class, 'index']);
-    Route::get('voting_datatables', [VotingController::class, 'getDatatables']);
-    Route::get('check_ip_datatables', [VotingController::class, 'getIpDatatables']);
-    Route::post('vc_save', [VotingController::class, 'storeData']);
-    Route::post('vc_delete', [VotingController::class, 'deleteData']);
-    Route::post('voting_reset', [VotingController::class, 'resetData']);
-    Route::post('reload_chart', [VotingController::class, 'getChart']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('voting', [VotingController::class, 'index']);
+    // Route::get('voting_datatables', [VotingController::class, 'getDatatables']);
+    // Route::get('check_ip_datatables', [VotingController::class, 'getIpDatatables']);
+    // Route::post('vc_save', [VotingController::class, 'storeData']);
+    // Route::post('vc_delete', [VotingController::class, 'deleteData']);
+    // Route::post('voting_reset', [VotingController::class, 'resetData']);
+    // Route::post('reload_chart', [VotingController::class, 'getChart']);
 
     // Voting Detail
-    Route::get('voting_detail_datatables', [VotingController::class, 'getDetailDatatables']);
-    Route::get('voting_detail_result_datatables', [VotingController::class, 'getDetailResultDatatables']);
-    Route::get('voting_detail_result_ip_datatables', [VotingController::class, 'getDetailResultIpDatatables']);
-    Route::post('customer_voting_delete', [VotingController::class, 'deleteCustomerVoting']);
-    Route::post('autocomplete_voting_item', [VotingController::class, 'fetchItem']);
-    Route::post('vcd_save', [VotingController::class, 'storeDetailData']);
-    Route::post('vcd_delete', [VotingController::class, 'deleteDetailData']);
-    Route::post('exec_block_ip', [VotingController::class, 'blockIp']);
-    
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('voting_detail_datatables', [VotingController::class, 'getDetailDatatables']);
+    // Route::get('voting_detail_result_datatables', [VotingController::class, 'getDetailResultDatatables']);
+    // Route::get('voting_detail_result_ip_datatables', [VotingController::class, 'getDetailResultIpDatatables']);
+    // Route::post('customer_voting_delete', [VotingController::class, 'deleteCustomerVoting']);
+    // Route::post('autocomplete_voting_item', [VotingController::class, 'fetchItem']);
+    // Route::post('vcd_save', [VotingController::class, 'storeDetailData']);
+    // Route::post('vcd_delete', [VotingController::class, 'deleteDetailData']);
+    // Route::post('exec_block_ip', [VotingController::class, 'blockIp']);
+
     // Po Receive Report
     Route::get('laporan_datang_barang', [PoReceiveReportController::class, 'index']);
     Route::get('po_receive_datatables', [PoReceiveReportController::class, 'getDatatables']);
     Route::get('po_receive_detail_datatables', [PoReceiveReportController::class, 'getDetailDatatables']);
     Route::get('po_receive_export', [PoReceiveReportController::class, 'exportData']);
-    
+
     // Client Credential
-    Route::get('reseller_api_access', [ClientCredentialController::class, 'index']);
-    Route::get('client_credential_datatables', [ClientCredentialController::class, 'getDatatables']);
-    Route::get('client_credential_transaction_datatables', [ClientCredentialController::class, 'getTransactionDatatables']);
-    Route::post('cc_save', [ClientCredentialController::class, 'storeData']);
-    Route::post('cc_delete', [ClientCredentialController::class, 'deleteData']);
-    Route::post('regenerate_api', [ClientCredentialController::class, 'regenerateApi']);
-    
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_api_access', [ClientCredentialController::class, 'index']);
+    // Route::get('client_credential_datatables', [ClientCredentialController::class, 'getDatatables']);
+    // Route::get('client_credential_transaction_datatables', [ClientCredentialController::class, 'getTransactionDatatables']);
+    // Route::post('cc_save', [ClientCredentialController::class, 'storeData']);
+    // Route::post('cc_delete', [ClientCredentialController::class, 'deleteData']);
+    // Route::post('regenerate_api', [ClientCredentialController::class, 'regenerateApi']);
+
     // Web Article 
     Route::get('web_artikel', [WebArticleController::class, 'index']);
     Route::get('web_article_datatables', [WebArticleController::class, 'getDatatables']);
@@ -815,7 +831,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('update_detail_image', [WebArticleController::class, 'saveDetailImage']);
     Route::post('save_weight', [WebArticleController::class, 'saveWeight']);
 
-    
+
     Route::post('web_article_image_save', [WebArticleController::class, 'saveImage']);
     Route::post('delete_main_image', [WebArticleController::class, 'deleteMainImage']);
     Route::post('delete_chart_image', [WebArticleController::class, 'deleteChartImage']);
@@ -938,12 +954,15 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);
 
     // Shopee
-    Route::get('shopee_data', [ShopeeController::class, 'index']);
-    Route::get('shopee_datatables', [ShopeeController::class, 'getDatatables']);
-    Route::get('unupload_datatables', [ShopeeController::class, 'getUnuploadDatatables']);
-    Route::post('shopee_import', [ShopeeController::class, 'importData']);
-    Route::post('shopee_export', [ShopeeController::class, 'exportData']);
-    Route::post('shopee_update', [ShopeeController::class, 'updateData']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('shopee_data', [ShopeeController::class, 'index']);
+    // Route::get('shopee_datatables', [ShopeeController::class, 'getDatatables']);
+    // Route::get('unupload_datatables', [ShopeeController::class, 'getUnuploadDatatables']);
+    // Route::post('shopee_import', [ShopeeController::class, 'importData']);
+    // Route::post('shopee_export', [ShopeeController::class, 'exportData']);
+    // Route::post('shopee_update', [ShopeeController::class, 'updateData']);
 
     // Updated Dashboard
     Route::get('dashboards', [UpdatedDashboardController::class, 'index']);
@@ -1021,17 +1040,23 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('apd_approve', [POReceiveApprovalController::class, 'approveData']);
 
     // Reseller
-    Route::get('data_reseller', [ResellerController::class, 'index']);
-    Route::get('rs_customer_datatables', [ResellerController::class, 'getDatatables']);
-    Route::post('rs_save', [ResellerController::class, 'storeData']);
-    Route::post('rs_delete', [ResellerController::class, 'deleteData']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('data_reseller', [ResellerController::class, 'index']);
+    // Route::get('rs_customer_datatables', [ResellerController::class, 'getDatatables']);
+    // Route::post('rs_save', [ResellerController::class, 'storeData']);
+    // Route::post('rs_delete', [ResellerController::class, 'deleteData']);
 
     // Reseller
-    Route::get('reseller_deposit', [ResellerDepositController::class, 'index']);
-    Route::get('rsd_datatables', [ResellerDepositController::class, 'getDatatables']);
-    Route::get('rsdd_datatables', [ResellerDepositController::class, 'getDetailDatatables']);
-    Route::post('rsd_save', [ResellerDepositController::class, 'saveData']);
-    Route::post('rsdd_reload', [ResellerDepositController::class, 'reloadData']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_deposit', [ResellerDepositController::class, 'index']);
+    // Route::get('rsd_datatables', [ResellerDepositController::class, 'getDatatables']);
+    // Route::get('rsdd_datatables', [ResellerDepositController::class, 'getDetailDatatables']);
+    // Route::post('rsd_save', [ResellerDepositController::class, 'saveData']);
+    // Route::post('rsdd_reload', [ResellerDepositController::class, 'reloadData']);
 
     // StockCardController
     Route::get('stock_card', [StockCardController::class, 'index']);
@@ -1044,44 +1069,65 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('stock_report_phase3', [StockCardController::class, 'phase3']);
 
     // ResellerLevelController
-    Route::get('reseller_level', [ResellerLevelController::class, 'index']);
-    Route::get('rl_datatables', [ResellerLevelController::class, 'getDatatables']);
-    Route::post('rl_save', [ResellerLevelController::class, 'storeData']);
-    Route::post('rl_delete', [ResellerLevelController::class, 'deleteData']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_level', [ResellerLevelController::class, 'index']);
+    // Route::get('rl_datatables', [ResellerLevelController::class, 'getDatatables']);
+    // Route::post('rl_save', [ResellerLevelController::class, 'storeData']);
+    // Route::post('rl_delete', [ResellerLevelController::class, 'deleteData']);
 
     // ResellerAddDiscountController
-    Route::get('reseller_additional_discount', [ResellerAddDiscountController::class, 'index']);
-    Route::get('rad_datatables', [ResellerAddDiscountController::class, 'getDatatables']);
-    Route::post('rad_save', [ResellerAddDiscountController::class, 'storeData']);
-    Route::post('rad_delete', [ResellerAddDiscountController::class, 'deleteData']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_additional_discount', [ResellerAddDiscountController::class, 'index']);
+    // Route::get('rad_datatables', [ResellerAddDiscountController::class, 'getDatatables']);
+    // Route::post('rad_save', [ResellerAddDiscountController::class, 'storeData']);
+    // Route::post('rad_delete', [ResellerAddDiscountController::class, 'deleteData']);
 
     // ResellerConfirmationController
-    Route::get('reseller_konfirmasi', [ResellerConfirmationController::class, 'index']);
-    Route::get('rc_datatables', [ResellerConfirmationController::class, 'getDatatables']);
-    Route::post('rc_save', [ResellerConfirmationController::class, 'saveData']);
-    Route::post('rc_delete', [ResellerConfirmationController::class, 'deleteData']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_konfirmasi', [ResellerConfirmationController::class, 'index']);
+    // Route::get('rc_datatables', [ResellerConfirmationController::class, 'getDatatables']);
+    // Route::post('rc_save', [ResellerConfirmationController::class, 'saveData']);
+    // Route::post('rc_delete', [ResellerConfirmationController::class, 'deleteData']);
 
     // ResellerBrandLevelController
-    Route::get('reseller_brand_level', [ResellerBrandLevelController::class, 'index']);
-    Route::get('rbl_datatables', [ResellerBrandLevelController::class, 'getDatatables']);
-    Route::post('rbl_update', [ResellerBrandLevelController::class, 'updateData']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_brand_level', [ResellerBrandLevelController::class, 'index']);
+    // Route::get('rbl_datatables', [ResellerBrandLevelController::class, 'getDatatables']);
+    // Route::post('rbl_update', [ResellerBrandLevelController::class, 'updateData']);
 
     // ResellerTransactionController
-    Route::get('reseller_transaction', [ResellerTransactionController::class, 'index']);
-    Route::get('rt_datatables', [ResellerTransactionController::class, 'getDatatables']);
-    Route::get('invoice_preview_datatables', [ResellerTransactionController::class, 'getInvoiceDatatables']);
-    Route::post('rt_min_qty', [ResellerTransactionController::class, 'minQty']);
-    Route::post('rt_min_item_qty', [ResellerTransactionController::class, 'minItemQty']);
-    Route::post('rt_update_status', [ResellerTransactionController::class, 'updateStatus']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_transaction', [ResellerTransactionController::class, 'index']);
+    // Route::get('rt_datatables', [ResellerTransactionController::class, 'getDatatables']);
+    // Route::get('invoice_preview_datatables', [ResellerTransactionController::class, 'getInvoiceDatatables']);
+    // Route::post('rt_min_qty', [ResellerTransactionController::class, 'minQty']);
+    // Route::post('rt_min_item_qty', [ResellerTransactionController::class, 'minItemQty']);
+    // Route::post('rt_update_status', [ResellerTransactionController::class, 'updateStatus']);
 
     // WebinarController
-    Route::get('webinar', [WebinarController::class, 'index']);
-    Route::get('wbr_datatables', [WebinarController::class, 'getDatatables']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('webinar', [WebinarController::class, 'index']);
+    // Route::get('wbr_datatables', [WebinarController::class, 'getDatatables']);
 
     // ResellerActivityController
-    Route::get('reseller_activity', [ResellerActivityController::class, 'index']);
-    Route::get('ra_datatables', [ResellerActivityController::class, 'getDatatables']);
-    Route::get('ra_detail_datatables', [ResellerActivityController::class, 'getDetailDatatables']);
+    /**
+     * NOTE: Open when needed
+     */
+    // Route::get('reseller_activity', [ResellerActivityController::class, 'index']);
+    // Route::get('ra_datatables', [ResellerActivityController::class, 'getDatatables']);
+    // Route::get('ra_detail_datatables', [ResellerActivityController::class, 'getDetailDatatables']);
 
     // AssetDetailController
     Route::get('asset_detail', [AssetDetailController::class, 'index']);
@@ -1209,9 +1255,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('report_shift_detail', [ReportShiftController::class, 'detail']);
     Route::post('report_shift_product_sold', [ReportShiftController::class, 'productSold']);
     Route::post('report_shift_product_refund', [ReportShiftController::class, 'productRefund']);
-//    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
-//    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
-//    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);
+    //    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
+    //    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
+    //    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);
 
     // Transaksi Online
     /**
