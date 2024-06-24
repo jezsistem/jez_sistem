@@ -1607,7 +1607,7 @@ class PointOfSaleController extends Controller
                         $bin = '<span class="btn-lg btn-info">' . strtoupper($row->pl_code) . '</span>';
                     } else {
                         $status = '';
-                        $bin = '<span class="btn-lg btn-info">asd</span>';
+                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty . ' ' . $row->pl_id . '</span>';
                     }
                     $output .= '
                     <li>
