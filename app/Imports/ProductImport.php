@@ -139,7 +139,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $status += 1;
                 } else {
                     $this->rows = -1;
-                    $status = -1;
+                    $status = 'PSSC Not Found';
                     break;
                     // dd($product_sub_sub_category);
                 }
@@ -149,7 +149,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $status += 1;
                 } else {
                     $this->rows = -1;
-                    $status = -1;
+                    $status = 'Brand Not Found';
                     break;
                     // dd($brand);
                 }
@@ -159,7 +159,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $status += 1;
                 } else {
                     $this->rows = -1;
-                    $status = -1;
+                    $status = 'Supplier Not Found';
                     break;
                     // dd($product_supplier);
                 }
@@ -169,7 +169,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $status += 1;
                 } else {
                     $this->rows = -1;
-                    $status = -1;
+                    $status = 'Product Unit Not Found';
                     break;
                     // dd($product_unit);
                 }
@@ -179,7 +179,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $status += 1;
                 } else {
                     $this->rows = -1;
-                    $status = -1;
+                    $status = 'Gender Not Found';
                     break;
                     // dd($gender);
                 }
@@ -189,7 +189,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $status += 1;
                 } else {
                     $this->rows = -1;
-                    $status = -1;
+                    $status = 'Seasson Name Not Found';
                     break;
                     // dd($season);
                 }
@@ -199,7 +199,7 @@ class ProductImport implements ToCollection, WithStartRow
                     $status += 1;
                 } else {
                     $this->rows = -1;
-                    $status = -1;
+                    $status = 'Main Color Not Found';
                     break;
                     // dd($main_color);
                 }
