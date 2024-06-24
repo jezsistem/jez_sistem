@@ -337,6 +337,8 @@
 	});
 
     var scan_in_table = $('#ScanIntb').DataTable({
+
+
         destroy: true,
         processing: false,
         serverSide: true,
@@ -410,13 +412,18 @@
 	});
 
     $('#scan_in_search').on('keyup', function(event) {
-        scan_in_table.draw();
+        // scan_in_table.draw();
+        console.log(event.keyCode)
+
+        var rowData = this.data();
+
+        console.log(this.data());
+
         if (event.keyCode === 13) {
             var scan_in_data = [];
             var totalRequests = 0;
             var completedRequests = 0;
 
-            // console.log(scan_in_table.rows().data());
 
             scan_in_table.rows().every(function () {
                 totalRequests++;
