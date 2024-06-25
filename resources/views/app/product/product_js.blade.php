@@ -1,19 +1,22 @@
-<script src="https://cdn.tiny.cloud/1/323apjbgqf1hr5qmcz0u8uwvl3oymnrypmtg98wfpvhw0khd/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js" ></script>
+<script src="https://cdn.tiny.cloud/1/323apjbgqf1hr5qmcz0u8uwvl3oymnrypmtg98wfpvhw0khd/tinymce/5/tinymce.min.js"
+    referrerpolicy="origin"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 <script>
-    function generateQR(value)
-    {
+    function generateQR(value) {
         jQuery.noConflict();
         jQuery('#product_qr').empty();
         jQuery('#product_qr').css({
-            'width' : 128,
-            'height' : 128
+            'width': 128,
+            'height': 128
         })
-        jQuery('#product_qr').qrcode({width: 128,height: 128,text: value});
+        jQuery('#product_qr').qrcode({
+            width: 128,
+            height: 128,
+            text: value
+        });
     }
 
-    function activateColumn()
-    {
+    function activateColumn() {
         $('input').prop('disabled', false);
     }
 
@@ -21,7 +24,7 @@
         selector: 'textarea',
         plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
         toolbar_mode: 'floating',
-        height : '150px'
+        height: '150px'
     });
 
     $(document).on('focusin', function(e) {
@@ -30,69 +33,68 @@
         }
     });
 
-    $('.decimal').keypress(function(evt){
-        return (/^[0-9]*\.?[0-9]*$/).test($(this).val()+evt.key);
+    $('.decimal').keypress(function(evt) {
+        return (/^[0-9]*\.?[0-9]*$/).test($(this).val() + evt.key);
     });
 
-    function getProductSize(id)
-    {
-        var barcode = $('#product_size_barcode'+id).val();
-        var sz_id = $('#product_size_barcode'+id).attr('data-id');
-        var sz_barcode = sz_id+'-'+barcode;
+    function getProductSize(id) {
+        var barcode = $('#product_size_barcode' + id).val();
+        var sz_id = $('#product_size_barcode' + id).attr('data-id');
+        var sz_barcode = sz_id + '-' + barcode;
         var current_sz_id = $('#_sz_id').val();
         var current_sz_barcode = $('#_sz_barcode').val();
-        var price_tag = $('#product_size_price_tag'+id).val();
+        var price_tag = $('#product_size_price_tag' + id).val();
         var current_sz_price_tag = $('#_sz_price_tag').val();
-        var sell_price = $('#product_size_sell_price'+id).val();
+        var sell_price = $('#product_size_sell_price' + id).val();
         var current_sz_sell_price = $('#_sz_sell_price').val();
-        var purchase_price = $('#product_size_purchase_price'+id).val();
+        var purchase_price = $('#product_size_purchase_price' + id).val();
         var current_sz_purchase_price = $('#_sz_purchase_price').val();
         var mode = $('#_mode').val();
-        if ($('#product_size'+id).is(':checked')) {
+        if ($('#product_size' + id).is(':checked')) {
             if ($('#_sz_id').val() != '') {
-                var current_sz_id = $('#_sz_id').val()+sz_id+'|';
+                var current_sz_id = $('#_sz_id').val() + sz_id + '|';
             } else {
-                var current_sz_id = sz_id+'|';
+                var current_sz_id = sz_id + '|';
             }
             $('#_sz_id').val(current_sz_id);
 
             if (mode == 'edit') {
-                $('#product_size_barcode'+id).show();
-                $('#product_size_running_code'+id).show();
+                $('#product_size_barcode' + id).show();
+                $('#product_size_running_code' + id).show();
                 //$('#product_size_barcode'+id).prop('required', true);
-                if ($('#product_size_running_code'+id).val() != '') {
-                    $('#product_size_barcode'+id).prop('disabled', false);
+                if ($('#product_size_running_code' + id).val() != '') {
+                    $('#product_size_barcode' + id).prop('disabled', false);
                 } else {
-                    $('#product_size_barcode'+id).prop('disabled', true);
+                    $('#product_size_barcode' + id).prop('disabled', true);
                 }
-                if ($('#product_size_running_code'+id).val() != '') {
-                    $('#product_size_purchase_price'+id).show();
-                    $('#product_size_purchase_price'+id).prop('disabled', false);
-                    $('#product_size_sell_price'+id).show();
-                    $('#product_size_sell_price'+id).prop('disabled', false);
-                    $('#product_size_price_tag'+id).show();
-                    $('#product_size_price_tag'+id).prop('disabled', false);
+                if ($('#product_size_running_code' + id).val() != '') {
+                    $('#product_size_purchase_price' + id).show();
+                    $('#product_size_purchase_price' + id).prop('disabled', false);
+                    $('#product_size_sell_price' + id).show();
+                    $('#product_size_sell_price' + id).prop('disabled', false);
+                    $('#product_size_price_tag' + id).show();
+                    $('#product_size_price_tag' + id).prop('disabled', false);
                 } else {
-                    $('#product_size_purchase_price'+id).show();
-                    $('#product_size_purchase_price'+id).prop('disabled', true);
-                    $('#product_size_sell_price'+id).show();
-                    $('#product_size_sell_price'+id).prop('disabled', true);
-                    $('#product_size_price_tag'+id).show();
-                    $('#product_size_price_tag'+id).prop('disabled', true);
+                    $('#product_size_purchase_price' + id).show();
+                    $('#product_size_purchase_price' + id).prop('disabled', true);
+                    $('#product_size_sell_price' + id).show();
+                    $('#product_size_sell_price' + id).prop('disabled', true);
+                    $('#product_size_price_tag' + id).show();
+                    $('#product_size_price_tag' + id).prop('disabled', true);
                 }
-                $('#product_size_running_code'+id).prop('disabled', true);
+                $('#product_size_running_code' + id).prop('disabled', true);
             } else {
-                $('#product_size_barcode'+id).show();
+                $('#product_size_barcode' + id).show();
                 //$('#product_size_barcode'+id).prop('required', true);
-                $('#product_size_barcode'+id).prop('disabled', true);
-                $('#product_size_barcode'+id).val('');
+                $('#product_size_barcode' + id).prop('disabled', true);
+                $('#product_size_barcode' + id).val('');
             }
         } else {
-            $('#product_size_purchase_price'+id).hide();
-            $('#product_size_sell_price'+id).hide();
-            $('#product_size_price_tag'+id).hide();
+            $('#product_size_purchase_price' + id).hide();
+            $('#product_size_sell_price' + id).hide();
+            $('#product_size_price_tag' + id).hide();
             if (current_sz_id.indexOf(sz_id) > -1) {
-                var new_current_sz_id = current_sz_id.replace(sz_id+'|', '');
+                var new_current_sz_id = current_sz_id.replace(sz_id + '|', '');
                 var new_sz_id = new_current_sz_id.replace('||', '|');
                 $('#_sz_id').val(new_sz_id);
                 if ($('#_sz_id').val() == '|') {
@@ -100,7 +102,7 @@
                 }
             }
             if (current_sz_barcode.indexOf(sz_barcode) > -1) {
-                var new_current_sz_barcode = current_sz_barcode.replace(sz_barcode+'|', '');
+                var new_current_sz_barcode = current_sz_barcode.replace(sz_barcode + '|', '');
                 var new_sz_barcode = new_current_sz_barcode.replace('||', '|');
                 $('#_sz_barcode').val(new_sz_barcode);
                 if ($('#_sz_barcode').val() == '|') {
@@ -108,7 +110,7 @@
                 }
             }
             if (current_sz_sell_price.indexOf(sell_price) > -1) {
-                var new_current_sz_sell_price = current_sz_sell_price.replace(sell_price+'|', '');
+                var new_current_sz_sell_price = current_sz_sell_price.replace(sell_price + '|', '');
                 var new_sz_sell_price = new_current_sz_sell_price.replace('||', '|');
                 $('#_sz_sell_price').val(new_sz_sell_price);
                 if ($('#_sz_sell_price').val() == '|') {
@@ -116,7 +118,7 @@
                 }
             }
             if (current_sz_purchase_price.indexOf(purchase_price) > -1) {
-                var new_current_sz_purchase_price = current_sz_purchase_price.replace(purchase_price+'|', '');
+                var new_current_sz_purchase_price = current_sz_purchase_price.replace(purchase_price + '|', '');
                 var new_sz_purchase_price = new_current_sz_purchase_price.replace('||', '|');
                 $('#_sz_purchase_price').val(new_sz_purchase_price);
                 if ($('#_sz_purchase_price').val() == '|') {
@@ -124,54 +126,58 @@
                 }
             }
             if (mode == 'edit') {
-                $('#product_size_barcode'+id).hide();
-                $('#product_size_running_code'+id).hide();
-                $('#product_size_barcode'+id).prop('required', false);
+                $('#product_size_barcode' + id).hide();
+                $('#product_size_running_code' + id).hide();
+                $('#product_size_barcode' + id).prop('required', false);
             } else {
-                $('#product_size_barcode'+id).prop('required', false);
-                $('#product_size_barcode'+id).val('');
-                $('#product_size_barcode'+id).hide();
+                $('#product_size_barcode' + id).prop('required', false);
+                $('#product_size_barcode' + id).val('');
+                $('#product_size_barcode' + id).hide();
             }
         }
         //alert($('#_sz_id').val());
     }
 
-    function getProductSizeBarcode(id)
-    {
-        var barcode = $('#product_size_barcode'+id).val();
-        var running = $('#product_size_running_code'+id).val();
-        var sz_id = $('#product_size_barcode'+id).attr('data-id');
-        var sz_barcode = sz_id+'-'+barcode;
+    function getProductSizeBarcode(id) {
+        var barcode = $('#product_size_barcode' + id).val();
+        var running = $('#product_size_running_code' + id).val();
+        var sz_id = $('#product_size_barcode' + id).attr('data-id');
+        var sz_barcode = sz_id + '-' + barcode;
         if ($('#_sz_barcode').val() != '') {
-            var current_sz_barcode = $('#_sz_barcode').val()+sz_barcode+'|';
+            var current_sz_barcode = $('#_sz_barcode').val() + sz_barcode + '|';
         } else {
-            var current_sz_barcode = sz_barcode+'|';
+            var current_sz_barcode = sz_barcode + '|';
         }
-        
+
         $('#_sz_barcode').val(current_sz_barcode);
-        $('#product_size_barcode'+id).prop('disabled', true);
+        $('#product_size_barcode' + id).prop('disabled', true);
         //alert(sz_barcode+' ==== '+current_sz_barcode);
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_barcode:barcode},
+            data: {
+                _barcode: barcode
+            },
             dataType: 'json',
-            url: "{{ url('check_exists_barcode')}}",
+            url: "{{ url('check_exists_barcode') }}",
             success: function(r) {
                 $.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 $.ajax({
                     type: "POST",
-                    data: {_running:running, _barcode:barcode},
+                    data: {
+                        _running: running,
+                        _barcode: barcode
+                    },
                     dataType: 'json',
-                    url: "{{ url('update_barcode')}}",
+                    url: "{{ url('update_barcode') }}",
                     success: function(r) {
                         if (r.status == '200') {
                             toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
@@ -194,7 +200,7 @@
                 //         type: "POST",
                 //         data: {_running:running, _barcode:barcode},
                 //         dataType: 'json',
-                //         url: "{{ url('update_barcode')}}",
+                //         url: "{{ url('update_barcode') }}",
                 //         success: function(r) {
                 //             if (r.status == '200') {
                 //                 toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
@@ -206,15 +212,17 @@
         });
     }
 
-    function getProductPriceTag(id)
-    {
-        var price_tag = $('#product_size_price_tag'+id).val();
-        var barcode = $('#product_size_running_code'+id).val();
+    function getProductPriceTag(id) {
+        var price_tag = $('#product_size_price_tag' + id).val();
+        var barcode = $('#product_size_running_code' + id).val();
         $.ajax({
             type: "POST",
-            data: {_barcode:barcode, _price_tag:price_tag},
+            data: {
+                _barcode: barcode,
+                _price_tag: price_tag
+            },
             dataType: 'json',
-            url: "{{ url('update_price_tag')}}",
+            url: "{{ url('update_price_tag') }}",
             success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga banderol berhasil diupdate', 'success');
@@ -223,15 +231,17 @@
         });
     }
 
-    function getProductSellPrice(id)
-    {
-        var sell_price = $('#product_size_sell_price'+id).val();
-        var barcode = $('#product_size_running_code'+id).val();
+    function getProductSellPrice(id) {
+        var sell_price = $('#product_size_sell_price' + id).val();
+        var barcode = $('#product_size_running_code' + id).val();
         $.ajax({
             type: "POST",
-            data: {_barcode:barcode, _sell_price:sell_price},
+            data: {
+                _barcode: barcode,
+                _sell_price: sell_price
+            },
             dataType: 'json',
-            url: "{{ url('update_sell_price')}}",
+            url: "{{ url('update_sell_price') }}",
             success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga jual berhasil diupdate', 'success');
@@ -242,13 +252,14 @@
 
     function updateSzIdFilterOptions(selectedValue) {
         try {
-            fetchDataBasedOnSchemaId(selectedValue).then(function (newData) {
+            fetchDataBasedOnSchemaId(selectedValue).then(function(newData) {
                 $('#sz_id_filter').empty();
-                $.each(newData, function (key, value) {
-                    $('#sz_id_filter').append('<option value="' + value.value + '">' + value.text + '</option>');
+                $.each(newData, function(key, value) {
+                    $('#sz_id_filter').append('<option value="' + value.value + '">' + value.text +
+                        '</option>');
                 });
                 $('#sz_id_filter').trigger('change');
-            }).catch(function (error) {
+            }).catch(function(error) {
                 console.error(error);
             });
         } catch (error) {
@@ -257,14 +268,16 @@
     }
 
     function fetchDataBasedOnSchemaId(schemaId) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             var dataReturn = [];
             $.ajax({
                 type: "GET",
-                url: "{{ url('reload_size_schema')}}",
-                data: { schema_id: schemaId },
-                success: function (data) {
-                    $.each(data, function (key, value) {
+                url: "{{ url('reload_size_schema') }}",
+                data: {
+                    schema_id: schemaId
+                },
+                success: function(data) {
+                    $.each(data, function(key, value) {
                         dataReturn.push({
                             text: value.sz_name,
                             value: value.id
@@ -272,22 +285,24 @@
                     });
                     resolve(dataReturn);
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     reject(error);
                 }
             });
         });
     }
 
-    function getProductPurchasePrice(id)
-    {
-        var purchase_price = $('#product_size_purchase_price'+id).val();
-        var barcode = $('#product_size_running_code'+id).val();
+    function getProductPurchasePrice(id) {
+        var purchase_price = $('#product_size_purchase_price' + id).val();
+        var barcode = $('#product_size_running_code' + id).val();
         $.ajax({
             type: "POST",
-            data: {_barcode:barcode, _purchase_price:purchase_price},
+            data: {
+                _barcode: barcode,
+                _purchase_price: purchase_price
+            },
             dataType: 'json',
-            url: "{{ url('update_purchase_price')}}",
+            url: "{{ url('update_purchase_price') }}",
             success: function(r) {
                 if (r.status == '200') {
                     toast('Diupdate', 'Harga beli berhasil diupdate', 'success');
@@ -300,7 +315,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -310,12 +325,17 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs',  "exportOptions": { orthogonal: 'export' } }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs',
+                "exportOptions": {
+                    orthogonal: 'export'
+                }
+            }],
             ajax: {
-                url : "{{ url('product_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_datatables') }}",
+                data: function(d) {
                     d.search = $('#product_search').val();
                     d.pc_id = $('#pc_id_filter').val();
                     d.psc_id = $('#psc_id_filter').val();
@@ -327,125 +347,167 @@
                     d.p_active_filter = $('#p_active_filter').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pid', searchable: false},
-            { data: 'article_id', name: 'article_id' },
-            { data: 'p_name_show', name: 'p_name' },
-            { data: 'p_color_show', name: 'p_color' },
-            { data: 'br_name', name: 'br_name' },
-            { data: 'ps_name_show', name: 'ps_name' },
-            { data: 'p_price_tag_show', name: 'p_price_tag', render: function (data, type, row) {
-                    return type === 'export' ?
-                        data.replace( /[$,]/g, '' ) :
-                        data;
-                } },
-            { data: 'p_purchase_price_show', name: 'p_purchase_price',render: function (data, type, row) {
-                    return type === 'export' ?
-                        data.replace( /[$,]/g, '' ) :
-                        data;
-                } },
-            { data: 'p_sell_price_show', name: 'p_sell_price', render: function (data, type, row) {
-                    return type === 'export' ?
-                        data.replace( /[$,]/g, '' ) :
-                        data;
-                } },
-            { data: 'p_active', name: 'p_active' },
-            { data: 'p_detail', name: 'p_detail', sortable: false },
-            ], 
-            columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            },
-            {
-                targets: 9,
-                render: function (data, type, row) {
-                    if (row.p_active == '1') {
-                        return '<span class="badge badge-success">Aktif</span>';
-                    } else {
-                        return '<span class="badge badge-danger">Tidak Aktif</span>';
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pid',
+                    searchable: false
+                },
+                {
+                    data: 'article_id',
+                    name: 'article_id'
+                },
+                {
+                    data: 'p_name_show',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color_show',
+                    name: 'p_color'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'ps_name_show',
+                    name: 'ps_name'
+                },
+                {
+                    data: 'p_price_tag_show',
+                    name: 'p_price_tag',
+                    render: function(data, type, row) {
+                        return type === 'export' ?
+                            data.replace(/[$,]/g, '') :
+                            data;
+                    }
+                },
+                {
+                    data: 'p_purchase_price_show',
+                    name: 'p_purchase_price',
+                    render: function(data, type, row) {
+                        return type === 'export' ?
+                            data.replace(/[$,]/g, '') :
+                            data;
+                    }
+                },
+                {
+                    data: 'p_sell_price_show',
+                    name: 'p_sell_price',
+                    render: function(data, type, row) {
+                        return type === 'export' ?
+                            data.replace(/[$,]/g, '') :
+                            data;
+                    }
+                },
+                {
+                    data: 'p_active',
+                    name: 'p_active'
+                },
+                {
+                    data: 'p_detail',
+                    name: 'p_detail',
+                    sortable: false
+                },
+            ],
+            columnDefs: [{
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                },
+                {
+                    targets: 9,
+                    render: function(data, type, row) {
+                        if (row.p_active == '1') {
+                            return '<span class="badge badge-success">Aktif</span>';
+                        } else {
+                            return '<span class="badge badge-danger">Tidak Aktif</span>';
+                        }
                     }
                 }
-            }
             ],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        product_table.buttons().container().appendTo($('#product_excel_btn' ));
+        product_table.buttons().container().appendTo($('#product_excel_btn'));
         $('#product_search').on('keyup', function() {
             product_table.draw();
         });
 
-        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_active_filter, #pc_id_filter, #psc_id_filter, #pssc_id_filter').on('change', function() {
-            product_table.draw();
-        });
+        $('#br_id_filter, #ps_id_filter, #mc_id_filter, #sz_id_filter, #p_active_filter, #pc_id_filter, #psc_id_filter, #pssc_id_filter')
+            .on('change', function() {
+                product_table.draw();
+            });
 
-        {{--$('#pc_id').on('change', function() {--}}
-        {{--    var label = $('#pc_id option:selected').text();--}}
-        {{--    var pc_id = $('#pc_id').val();--}}
-        {{--    if (label == 'Tampilkan Semua') {--}}
-        {{--        // $('#product_display').fadeIn();--}}
-        {{--        $('#product_category_selected_label').text('Tampilkan Semua');--}}
-        {{--        $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");--}}
-        {{--        $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
-        {{--        product_table.draw();--}}
-        {{--        return false;--}}
-        {{--    } else if (label != '- Pilih Kategori -' && label != 'Tampilkan Semua') {--}}
-        {{--        $('#product_category_selected_label').text(label+' |');--}}
-        {{--        $.ajax({--}}
-        {{--            type: "GET",--}}
-        {{--            data: {_pc_id:pc_id},--}}
-        {{--            dataType: 'html',--}}
-        {{--            url: "{{ url('reload_product_sub_category')}}",--}}
-        {{--            success: function(r) {--}}
-        {{--                $('#psc_id').html(r);--}}
-        {{--            }--}}
-        {{--        });--}}
-        {{--    } else {--}}
-        {{--        $('#product_category_selected_label').text('');--}}
-        {{--        $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");--}}
-        {{--    }--}}
-        {{--    $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
-        {{--    $('#product_sub_category_selected_label').text('');--}}
-        {{--    // $('#product_display').fadeOut();--}}
-        {{--});--}}
+        {{-- $('#pc_id').on('change', function() { --}}
+        {{--    var label = $('#pc_id option:selected').text(); --}}
+        {{--    var pc_id = $('#pc_id').val(); --}}
+        {{--    if (label == 'Tampilkan Semua') { --}}
+        {{--        // $('#product_display').fadeIn(); --}}
+        {{--        $('#product_category_selected_label').text('Tampilkan Semua'); --}}
+        {{--        $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>"); --}}
+        {{--        $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>"); --}}
+        {{--        product_table.draw(); --}}
+        {{--        return false; --}}
+        {{--    } else if (label != '- Pilih Kategori -' && label != 'Tampilkan Semua') { --}}
+        {{--        $('#product_category_selected_label').text(label+' |'); --}}
+        {{--        $.ajax({ --}}
+        {{--            type: "GET", --}}
+        {{--            data: {_pc_id:pc_id}, --}}
+        {{--            dataType: 'html', --}}
+        {{--            url: "{{ url('reload_product_sub_category')}}", --}}
+        {{--            success: function(r) { --}}
+        {{--                $('#psc_id').html(r); --}}
+        {{--            } --}}
+        {{--        }); --}}
+        {{--    } else { --}}
+        {{--        $('#product_category_selected_label').text(''); --}}
+        {{--        $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>"); --}}
+        {{--    } --}}
+        {{--    $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>"); --}}
+        {{--    $('#product_sub_category_selected_label').text(''); --}}
+        {{--    // $('#product_display').fadeOut(); --}}
+        {{-- }); --}}
 
-        {{--$('#psc_id').on('change', function() {--}}
-        {{--    var label = $('#psc_id option:selected').text();--}}
-        {{--    var pc_id = $('#pc_id').val();--}}
-        {{--    var psc_id = $('#psc_id').val();--}}
-        {{--    if (label != '- Pilih Sub Kategori -' && label != '- Pilih -') {--}}
-        {{--        $('#product_sub_category_selected_label').text(label+' |');--}}
-        {{--        $.ajax({--}}
-        {{--            type: "GET",--}}
-        {{--            data: {_psc_id:psc_id},--}}
-        {{--            dataType: 'html',--}}
-        {{--            url: "{{ url('reload_product_sub_sub_category')}}",--}}
-        {{--            success: function(r) {--}}
-        {{--                $('#pssc_id').html(r);--}}
-        {{--            }--}}
-        {{--        });--}}
-        {{--        $.ajax({--}}
-        {{--            type: "GET",--}}
-        {{--            data: {_psc_id:psc_id},--}}
-        {{--            dataType: 'html',--}}
-        {{--            url: "{{ url('reload_size')}}",--}}
-        {{--            success: function(r) {--}}
-        {{--                $('#reload_size').html(r);--}}
-        {{--            }--}}
-        {{--        });--}}
-        {{--    } else {--}}
-        {{--        $('#product_sub_category_selected_label').text('');--}}
-        {{--        $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
-        {{--        // $('#product_display').fadeOut();--}}
-        {{--    }--}}
-        {{--    // $('#product_display').fadeOut();--}}
-        {{--});--}}
+        {{-- $('#psc_id').on('change', function() { --}}
+        {{--    var label = $('#psc_id option:selected').text(); --}}
+        {{--    var pc_id = $('#pc_id').val(); --}}
+        {{--    var psc_id = $('#psc_id').val(); --}}
+        {{--    if (label != '- Pilih Sub Kategori -' && label != '- Pilih -') { --}}
+        {{--        $('#product_sub_category_selected_label').text(label+' |'); --}}
+        {{--        $.ajax({ --}}
+        {{--            type: "GET", --}}
+        {{--            data: {_psc_id:psc_id}, --}}
+        {{--            dataType: 'html', --}}
+        {{--            url: "{{ url('reload_product_sub_sub_category')}}", --}}
+        {{--            success: function(r) { --}}
+        {{--                $('#pssc_id').html(r); --}}
+        {{--            } --}}
+        {{--        }); --}}
+        {{--        $.ajax({ --}}
+        {{--            type: "GET", --}}
+        {{--            data: {_psc_id:psc_id}, --}}
+        {{--            dataType: 'html', --}}
+        {{--            url: "{{ url('reload_size')}}", --}}
+        {{--            success: function(r) { --}}
+        {{--                $('#reload_size').html(r); --}}
+        {{--            } --}}
+        {{--        }); --}}
+        {{--    } else { --}}
+        {{--        $('#product_sub_category_selected_label').text(''); --}}
+        {{--        $('#pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>"); --}}
+        {{--        // $('#product_display').fadeOut(); --}}
+        {{--    } --}}
+        {{--    // $('#product_display').fadeOut(); --}}
+        {{-- }); --}}
 
         // $('#pssc_id').on('change', function() {
         //     var label = $('#pssc_id option:selected').text();
@@ -459,43 +521,43 @@
         //     }
         // });
 
-        {{--$('#_pc_id').on('change', function() {--}}
-        {{--    var pc_id = $('#_pc_id').val();--}}
-        {{--    $('#_psc_id').prop('disabled', false);--}}
-        {{--    $('#_psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>");--}}
-        {{--    $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
-        {{--    $.ajax({--}}
-        {{--        type: "GET",--}}
-        {{--        data: {_pc_id:pc_id},--}}
-        {{--        dataType: 'html',--}}
-        {{--        url: "{{ url('reload_product_sub_category')}}",--}}
-        {{--        success: function(r) {--}}
-        {{--            $('#_psc_id').html(r);--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
+        {{-- $('#_pc_id').on('change', function() { --}}
+        {{--    var pc_id = $('#_pc_id').val(); --}}
+        {{--    $('#_psc_id').prop('disabled', false); --}}
+        {{--    $('#_psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih Sub Kategori -</option></select>"); --}}
+        {{--    $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>"); --}}
+        {{--    $.ajax({ --}}
+        {{--        type: "GET", --}}
+        {{--        data: {_pc_id:pc_id}, --}}
+        {{--        dataType: 'html', --}}
+        {{--        url: "{{ url('reload_product_sub_category')}}", --}}
+        {{--        success: function(r) { --}}
+        {{--            $('#_psc_id').html(r); --}}
+        {{--        } --}}
+        {{--    }); --}}
+        {{-- }); --}}
 
-        {{--$('#_psc_id').on('change', function() {--}}
-        {{--    var psc_id = $('#_psc_id').val();--}}
-        {{--    $('#_pssc_id').prop('disabled', false);--}}
-        {{--    $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>");--}}
-        {{--    $.ajax({--}}
-        {{--        type: "GET",--}}
-        {{--        data: {_psc_id:psc_id},--}}
-        {{--        dataType: 'html',--}}
-        {{--        url: "{{ url('reload_product_sub_sub_category')}}",--}}
-        {{--        success: function(r) {--}}
-        {{--            $('#_pssc_id').html(r);--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
+        {{-- $('#_psc_id').on('change', function() { --}}
+        {{--    var psc_id = $('#_psc_id').val(); --}}
+        {{--    $('#_pssc_id').prop('disabled', false); --}}
+        {{--    $('#_pssc_id').html("<select class='form-control' id='pssc_id' name='pssc_id' required><option value=''>- Pilih Sub-Sub Kategori -</option></select>"); --}}
+        {{--    $.ajax({ --}}
+        {{--        type: "GET", --}}
+        {{--        data: {_psc_id:psc_id}, --}}
+        {{--        dataType: 'html', --}}
+        {{--        url: "{{ url('reload_product_sub_sub_category')}}", --}}
+        {{--        success: function(r) { --}}
+        {{--            $('#_pssc_id').html(r); --}}
+        {{--        } --}}
+        {{--    }); --}}
+        {{-- }); --}}
 
         $('#pc_id_filter').select2({
             width: "300px",
             dropdownParent: $('#pc_id_filter_parent')
         });
 
-        $('#pc_id_filter').on('select2:open', function (e) {
+        $('#pc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -506,7 +568,7 @@
             dropdownParent: $('#psc_id_filter_parent')
         });
 
-        $('#psc_id_filter').on('select2:open', function (e) {
+        $('#psc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -517,7 +579,7 @@
             dropdownParent: $('#pssc_id_filter_parent')
         });
 
-        $('#pssc_id_filter').on('select2:open', function (e) {
+        $('#pssc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -528,13 +590,13 @@
             dropdownParent: $('#sz_schema_id_parent')
         });
 
-        $('#sz_schema_id').on('select2:open', function (e) {
+        $('#sz_schema_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#sz_schema_id').on('change', function (e) {
+        $('#sz_schema_id').on('change', function(e) {
             // Get the selected value in sz_schema_id
             var selectedValue = $(this).val();
 
@@ -545,7 +607,7 @@
             width: "130px",
             dropdownParent: $('#br_id_filter_parent')
         });
-        $('#br_id_filter').on('select2:open', function (e) {
+        $('#br_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -555,7 +617,7 @@
             width: "130px",
             dropdownParent: $('#ps_id_filter_parent')
         });
-        $('#ps_id_filter').on('select2:open', function (e) {
+        $('#ps_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -565,7 +627,7 @@
             width: "130px",
             dropdownParent: $('#sz_id_filter_parent')
         });
-        $('#sz_id_filter').on('select2:open', function (e) {
+        $('#sz_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -580,7 +642,7 @@
             width: "130px",
             dropdownParent: $('#mc_id_filter_parent')
         });
-        $('#mc_id_filter').on('select2:open', function (e) {
+        $('#mc_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -590,7 +652,7 @@
             width: "100%",
             dropdownParent: $('#br_id_parent')
         });
-        $('#br_id').on('select2:open', function (e) {
+        $('#br_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -600,7 +662,7 @@
             width: "100%",
             dropdownParent: $('#gn_id_parent')
         });
-        $('#gn_id').on('select2:open', function (e) {
+        $('#gn_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -610,7 +672,7 @@
             width: "100%",
             dropdownParent: $('#ss_id_parent')
         });
-        $('#ss_id').on('select2:open', function (e) {
+        $('#ss_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -620,7 +682,7 @@
             width: "100%",
             dropdownParent: $('#ps_id_parent')
         });
-        $('#ps_id').on('select2:open', function (e) {
+        $('#ps_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -630,7 +692,7 @@
             width: "100%",
             dropdownParent: $('#pu_id_parent')
         });
-        $('#pu_id').on('select2:open', function (e) {
+        $('#pu_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -640,7 +702,7 @@
             width: "100%",
             dropdownParent: $('#mc_id_parent')
         });
-        $('#mc_id').on('select2:open', function (e) {
+        $('#mc_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -650,7 +712,7 @@
             width: "100%",
             dropdownParent: $('#sz_schema_modal_id_parent')
         });
-        $('#sz_schema_modal_id').on('select2:open', function (e) {
+        $('#sz_schema_modal_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -662,60 +724,79 @@
             $('#f_import')[0].reset();
         });
 
-        {{--$('#sz_schema_modal_id').on('change', function (e) {--}}
-        {{--    // Get the selected value in sc_schema_modal_id--}}
-        {{--    var selectedValue = $(this).val();--}}
+        {{-- $('#sz_schema_modal_id').on('change', function (e) { --}}
+        {{--    // Get the selected value in sc_schema_modal_id --}}
+        {{--    var selectedValue = $(this).val(); --}}
 
-        {{--    $.ajax({--}}
-        {{--        type: "GET",--}}
-        {{--        data: {_sz_schema:selectedValue},--}}
-        {{--        dataType: 'html',--}}
-        {{--        url: "{{ url('reload_size_schema_modal')}}",--}}
-        {{--        success: function(r) {--}}
-        {{--            $('#reload_size').html(r);--}}
-        {{--            // checkSize(selectedValue);--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
+        {{--    $.ajax({ --}}
+        {{--        type: "GET", --}}
+        {{--        data: {_sz_schema:selectedValue}, --}}
+        {{--        dataType: 'html', --}}
+        {{--        url: "{{ url('reload_size_schema_modal')}}", --}}
+        {{--        success: function(r) { --}}
+        {{--            $('#reload_size').html(r); --}}
+        {{--            // checkSize(selectedValue); --}}
+        {{--        } --}}
+        {{--    }); --}}
+        {{-- }); --}}
 
-        function checkSize(id)
-        {
+        function checkSize(id) {
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_p_id:id},
+                data: {
+                    _p_id: id
+                },
                 dataType: 'json',
-                url: "{{ url('check_product_stock')}}",
+                url: "{{ url('check_product_stock') }}",
                 success: function(r) {
                     console.log("id checksize : " + id);
                     if (r.data != '400') {
                         var _sz_barcode_edit = '';
-                        $.each($(r.data),function(key,value){
+                        $.each($(r.data), function(key, value) {
                             //alert(value.sz_id+' '+value.ps_barcode+' '+value.ps_running_code);
-                            _sz_barcode_edit = _sz_barcode_edit+value.sz_id+'-'+value.ps_barcode+'|';
-                            $('input[type="checkbox"][data-id="'+value.sz_id+'"]').prop('checked', true);
-                            $('input[type="checkbox"][data-id="'+value.sz_id+'"]').prop('disabled', true);
-                            $('input[type="text"][data-barcode="'+value.sz_id+'"]').show();
-                            $('input[type="text"][data-barcode="'+value.sz_id+'"]').prop('disabled', true);
-                            $('input[type="text"][data-barcode="'+value.sz_id+'"]').val(value.ps_barcode);
-                            $('input[type="number"][data-purchase-price="'+value.sz_id+'"]').show();
-                            $('input[type="number"][data-purchase-price="'+value.sz_id+'"]').val(value.ps_purchase_price);
-                            $('input[type="number"][data-sell-price="'+value.sz_id+'"]').show();
-                            $('input[type="number"][data-sell-price="'+value.sz_id+'"]').val(value.ps_sell_price);
-                            $('input[type="number"][data-price-tag="'+value.sz_id+'"]').show();
-                            $('input[type="number"][data-price-tag="'+value.sz_id+'"]').val(value.ps_price_tag);
-                            if ($('input[type="text"][data-barcode="'+value.sz_id+'"]').val() == '') {
-                                $('input[type="text"][data-barcode="'+value.sz_id+'"]').prop('disabled', false);
+                            _sz_barcode_edit = _sz_barcode_edit + value.sz_id + '-' + value
+                                .ps_barcode + '|';
+                            $('input[type="checkbox"][data-id="' + value.sz_id + '"]').prop(
+                                'checked', true);
+                            $('input[type="checkbox"][data-id="' + value.sz_id + '"]').prop(
+                                'disabled', true);
+                            $('input[type="text"][data-barcode="' + value.sz_id + '"]')
+                                .show();
+                            $('input[type="text"][data-barcode="' + value.sz_id + '"]')
+                                .prop('disabled', true);
+                            $('input[type="text"][data-barcode="' + value.sz_id + '"]').val(
+                                value.ps_barcode);
+                            $('input[type="number"][data-purchase-price="' + value.sz_id +
+                                '"]').show();
+                            $('input[type="number"][data-purchase-price="' + value.sz_id +
+                                '"]').val(value.ps_purchase_price);
+                            $('input[type="number"][data-sell-price="' + value.sz_id + '"]')
+                                .show();
+                            $('input[type="number"][data-sell-price="' + value.sz_id + '"]')
+                                .val(value.ps_sell_price);
+                            $('input[type="number"][data-price-tag="' + value.sz_id + '"]')
+                                .show();
+                            $('input[type="number"][data-price-tag="' + value.sz_id + '"]')
+                                .val(value.ps_price_tag);
+                            if ($('input[type="text"][data-barcode="' + value.sz_id + '"]')
+                                .val() == '') {
+                                $('input[type="text"][data-barcode="' + value.sz_id + '"]')
+                                    .prop('disabled', false);
                             } else {
-                                $('input[type="text"][data-barcode="'+value.sz_id+'"]').prop('disabled', true);
+                                $('input[type="text"][data-barcode="' + value.sz_id + '"]')
+                                    .prop('disabled', true);
                             }
-                            $('input[type="number"][data-running-code="'+value.sz_id+'"]').show();
-                            $('input[type="number"][data-running-code="'+value.sz_id+'"]').prop('disabled', true);
-                            $('input[type="number"][data-running-code="'+value.sz_id+'"]').val(value.ps_running_code);
+                            $('input[type="number"][data-running-code="' + value.sz_id +
+                                '"]').show();
+                            $('input[type="number"][data-running-code="' + value.sz_id +
+                                '"]').prop('disabled', true);
+                            $('input[type="number"][data-running-code="' + value.sz_id +
+                                '"]').val(value.ps_running_code);
                         });
                         //alert(_sz_barcode_edit);
                         $('#_sz_barcode_edit').val(_sz_barcode_edit);
@@ -733,9 +814,12 @@
 
             $.ajax({
                 type: "GET",
-                data: {_sz_schema: selectedValue, _id: id}, // Pass id as data parameter
+                data: {
+                    _sz_schema: selectedValue,
+                    _id: id
+                }, // Pass id as data parameter
                 dataType: 'html',
-                url: "{{ url('reload_size_schema_modal')}}",
+                url: "{{ url('reload_size_schema_modal') }}",
                 success: function(r) {
                     $('#reload_size').html(r);
                     console.log('schema id : ' + id); // Now id should be accessible here
@@ -747,7 +831,7 @@
             });
         }
 
-        $('#Producttb tbody').on('click', 'tr td:not(:nth-child(11))', function () {
+        $('#Producttb tbody').on('click', 'tr td:not(:nth-child(11))', function() {
             jQuery('#product_qr').empty();
             $('#f_product')[0].reset();
             $('#_sz_barcode').val('');
@@ -780,18 +864,17 @@
             var check_pc_id = $('#pc_id').val();
             if (check_pc_id == 'all') {
                 $('#category_arrow_label').hide();
-                {{--$.ajax({--}}
-                {{--    type: "GET",--}}
-                {{--    data: {_psc_id:psc_id},--}}
-                {{--    dataType: 'html',--}}
-                {{--    url: "{{ url('reload_size_schema_modal')}}",--}}
-                {{--    success: function(r) {--}}
-                {{--        $('#reload_size').html(r);--}}
-                {{--        checkSize(id);--}}
-                {{--    }--}}
-                {{--});--}}
-            }
-            else {
+                {{-- $.ajax({ --}}
+                {{--    type: "GET", --}}
+                {{--    data: {_psc_id:psc_id}, --}}
+                {{--    dataType: 'html', --}}
+                {{--    url: "{{ url('reload_size_schema_modal')}}", --}}
+                {{--    success: function(r) { --}}
+                {{--        $('#reload_size').html(r); --}}
+                {{--        checkSize(id); --}}
+                {{--    } --}}
+                {{-- }); --}}
+            } else {
                 $('#category_arrow_label').show();
                 // console.log('id : '+id);
                 // checkSize(id);
@@ -805,7 +888,7 @@
             $.ajax({
                 type: "GET",
                 dataType: 'html',
-                url: "{{ url('psc_reload')}}",
+                url: "{{ url('psc_reload') }}",
                 success: function(r) {
                     $('#_psc_id').html(r);
                     $('#_psc_id').val(psc_id);
@@ -815,7 +898,7 @@
             $.ajax({
                 type: "GET",
                 dataType: 'html',
-                url: "{{ url('pssc_reload')}}",
+                url: "{{ url('pssc_reload') }}",
                 success: function(r) {
                     $('#_pssc_id').html(r);
                     $('#_pssc_id').val(pssc_id);
@@ -824,14 +907,16 @@
             });
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_p_id:id},
+                data: {
+                    _p_id: id
+                },
                 dataType: 'json',
-                url: "{{ url('check_product_po')}}",
+                url: "{{ url('check_product_po') }}",
                 success: function(r) {
                     if (r.status == '200') {
                         $('#_pc_id').prop('disabled', true);
@@ -872,8 +957,8 @@
             jQuery('#sz_schema_modal_id').val(schema_size).trigger('change');
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_product_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_product_btn').show();
             @endif
             generateQR(article_id);
         });
@@ -883,17 +968,21 @@
 
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_article_id:article_id},
+                data: {
+                    _article_id: article_id
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_article_id')}}",
+                url: "{{ url('check_exists_article_id') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Kode', 'Article ID sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Kode',
+                            'Article ID sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#article_id').val('');
                         return false;
                     }
@@ -906,7 +995,9 @@
             jQuery('#product_qr').empty();
             var check_pc_id = $('#pc_id').val();
             if (check_pc_id == 'all') {
-                swal('Kategori', 'Silahkan tentukan kategori, sub kategori dan sub-sub kategori terlebih dahulu untuk menambah data', 'warning');
+                swal('Kategori',
+                    'Silahkan tentukan kategori, sub kategori dan sub-sub kategori terlebih dahulu untuk menambah data',
+                    'warning');
                 return false;
             }
             jQuery.noConflict();
@@ -944,25 +1035,37 @@
             $('#ProductDetailModal').modal('show');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_id:id},
+                data: {
+                    _id: id
+                },
                 dataType: 'html',
-                url: "{{ url('product_detail')}}",
+                url: "{{ url('product_detail') }}",
                 success: function(r) {
                     $('#productDetailContent').html(r);
                     $.ajax({
                         type: "POST",
-                        data: {_p_id:id},
+                        data: {
+                            _p_id: id
+                        },
                         dataType: 'json',
-                        url: "{{ url('check_product_stock')}}",
+                        url: "{{ url('check_product_stock') }}",
                         success: function(r) {
                             if (r.data != '400') {
-                                $.each($(r.data),function(key,value){
-                                    $('#ProductStockDetailtb tr:last').after("<tr id='ProductStockDetailAppend'><td>"+value.sz_name+"</td><td>"+value.ps_qty+"</td><td>"+value.ps_barcode+"</td><td>"+value.ps_running_code+"</td></tr>");
+                                $.each($(r.data), function(key, value) {
+                                    $('#ProductStockDetailtb tr:last')
+                                        .after(
+                                            "<tr id='ProductStockDetailAppend'><td>" +
+                                            value.sz_name +
+                                            "</td><td>" + value.ps_qty +
+                                            "</td><td>" + value
+                                            .ps_barcode + "</td><td>" +
+                                            value.ps_running_code +
+                                            "</td></tr>");
                                 });
                             } else {
                                 $('#ProductStockDetailAppend').remove();
@@ -984,18 +1087,18 @@
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('p_import')}}",
+                type: 'POST',
+                url: "{{ url('p_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
-                    console.log(data.status)
+
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
                         swal('Berhasil', 'Data berhasil diimport', 'success');
@@ -1003,24 +1106,42 @@
                         product_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    
+                        if (data.error_messages && data.error_messages.length > 0) {
+                            var errorMessageHtml = '';
+                            data.error_messages.forEach(function(message) {                                
+                                errorMessageHtml += message;
+                            });
+                                                                                    
+                            swal('File', 'File yang anda import kosong atau format tidak tepat:' +
+                                errorMessageHtml, 'warning')
+                        } else {
+                            swal('File',
+                                'File yang anda import kosong atau format tidak tepat',
+                                'warning');
+                        }
+
                     } else {
 
-                        if(data.same_article_id.length > 0) {
+                        if (data.same_article_id.length > 0) {
                             var same_article_id = [];
                             for (var i = 0; i < data.same_article_id.length; i++) {
-                               same_article_id.push(data.same_article_id[i]);
+                                same_article_id.push(data.same_article_id[i]);
                                 var same_article_id_string = same_article_id.join(', ');
                             }
-                            swal('Gagal', 'Article ID ' + same_article_id_string + ' sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                            swal('Gagal', 'Article ID ' + same_article_id_string +
+                                ' sudah ada disistem, silahkan ganti dengan yang lain',
+                                'warning');
                             return false;
                         }
 
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                        swal('Gagal',
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -1043,7 +1164,8 @@
                     swal('Sub Kategori', 'Silahkan tentukan sub kategori terlebih dahulu', 'warning');
                     return false;
                 } else if ($('#_pssc_id').val() == '') {
-                    swal('Sub-Sub Kategori', 'Silahkan tentukan sub-sub kategori terlebih dahulu', 'warning');
+                    swal('Sub-Sub Kategori', 'Silahkan tentukan sub-sub kategori terlebih dahulu',
+                        'warning');
                     return false;
                 }
                 // formData.append('pc_id', $('#_pc_id').val());
@@ -1060,11 +1182,11 @@
 
             }
             $.ajax({
-                type:'POST',
-                url: "{{ url('p_save')}}",
+                type: 'POST',
+                url: "{{ url('p_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -1080,16 +1202,18 @@
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     } else {
                         $("#ProductModal").modal('hide');
-                        swal('Relationship', 'Data gagal disimpan karena ada perubahan data yang terikat ke suatu pencatatan transaksi', 'warning');
+                        swal('Relationship',
+                            'Data gagal disimpan karena ada perubahan data yang terikat ke suatu pencatatan transaksi',
+                            'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
         });
 
-        $('#delete_product_btn').on('click', function(){
+        $('#delete_product_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -1103,17 +1227,20 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('p_delete')}}",
+                        url: "{{ url('p_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                swal("Berhasil", "Data berhasil dihapus",
+                                "success");
                                 $('#ProductModal').modal('hide');
                                 product_table.ajax.reload();
                             } else {
@@ -1126,37 +1253,58 @@
                 }
             })
         });
-        
+
         var product = $('#Ptb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('scan_adjustment_product_datatables') }}",
-                data : function (d) {
+                url: "{{ url('scan_adjustment_product_datatables') }}",
+                data: function(d) {
                     d.search = $('#p_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'br_name', name: 'br_name' },
-            { data: 'p_name', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'sz_name', name: 'sz_name' },
-            { data: 'ps_barcode_show', name: 'ps_barcode' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'sz_name',
+                    name: 'sz_name'
+                },
+                {
+                    data: 'ps_barcode_show',
+                    name: 'ps_barcode'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#p_search').on('keyup', function() {
@@ -1176,16 +1324,19 @@
             var barcode = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:id, barcode:barcode},
+                data: {
+                    id: id,
+                    barcode: barcode
+                },
                 dataType: 'json',
-                url: "{{ url('scan_adjustment_barcode_update')}}",
+                url: "{{ url('scan_adjustment_barcode_update') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         swal("Berhasil", "Data berhasil diupdate", "success");
                         product.draw(false);
                     } else {
