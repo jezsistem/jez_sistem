@@ -22,12 +22,13 @@ use Illuminate\Support\Facades\DB;
 class ProductImport implements ToCollection, WithStartRow
 {
     private $sameArticleId = array();
+    private $error_messages = [];
     private $rows = 0;
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * @param array $row
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
 
     public function startRow(): int
     {
@@ -43,43 +44,44 @@ class ProductImport implements ToCollection, WithStartRow
             $running_length = strlen($next_running_code);
             $new_running_code = '';
             if ($running_length == 1) {
-                $new_running_code = '000000000000'.$next_running_code;
+                $new_running_code = '000000000000' . $next_running_code;
             } else if ($running_length == 2) {
-                $new_running_code = '00000000000'.$next_running_code;
+                $new_running_code = '00000000000' . $next_running_code;
             } else if ($running_length == 3) {
-                $new_running_code = '0000000000'.$next_running_code;
+                $new_running_code = '0000000000' . $next_running_code;
             } else if ($running_length == 4) {
-                $new_running_code = '000000000'.$next_running_code;
+                $new_running_code = '000000000' . $next_running_code;
             } else if ($running_length == 5) {
-                $new_running_code = '00000000'.$next_running_code;
+                $new_running_code = '00000000' . $next_running_code;
             } else if ($running_length == 6) {
-                $new_running_code = '0000000'.$next_running_code;
+                $new_running_code = '0000000' . $next_running_code;
             } else if ($running_length == 7) {
-                $new_running_code = '000000'.$next_running_code;
+                $new_running_code = '000000' . $next_running_code;
             } else if ($running_length == 8) {
-                $new_running_code = '00000'.$next_running_code;
+                $new_running_code = '00000' . $next_running_code;
             } else if ($running_length == 9) {
-                $new_running_code = '0000'.$next_running_code;
+                $new_running_code = '0000' . $next_running_code;
             } else if ($running_length == 10) {
-                $new_running_code = '000'.$next_running_code;
+                $new_running_code = '000' . $next_running_code;
             } else if ($running_length == 11) {
-                $new_running_code = '00'.$next_running_code;
+                $new_running_code = '00' . $next_running_code;
             } else if ($running_length == 12) {
-                $new_running_code = '0'.$next_running_code;
+                $new_running_code = '0' . $next_running_code;
             } else if ($running_length == 13) {
                 $new_running_code = $next_running_code;
             }
         } else {
             $new_running_code = '0000000000001';
         }
-        
+
         if ($this->runningCodeExists($new_running_code)) {
             return generateRunningCode();
         }
         return $new_running_code;
     }
 
-    public function runningCodeExists($number) {
+    public function runningCodeExists($number)
+    {
         return ProductStock::where(['ps_running_code' => $number])->exists();
     }
 
@@ -89,6 +91,7 @@ class ProductImport implements ToCollection, WithStartRow
             ++$this->rows;
             $data_id = array();
             $status = 0;
+
             foreach ($row as $r) {
                 if ($r[0] == null) {
                     return null;
@@ -120,6 +123,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = -1;
+                    $this->error_messages[] = $r[0] . ' Product Category Not Found';
                     break;
                     // dd($product_category);
                 }
@@ -130,6 +134,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = -1;
+                    $this->error_messages[] = $r[0] . 'PSC Not Found';
                     break;
                     // dd($product_sub_category);
                 }
@@ -140,6 +145,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = 'PSSC Not Found';
+                    $this->error_messages[] = $r[0] . ' PSSC Not Found';
                     break;
                     // dd($product_sub_sub_category);
                 }
@@ -150,6 +156,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = 'Brand Not Found';
+                    $this->error_messages[] = $r[0] . ' Brand Not Found';
                     break;
                     // dd($brand);
                 }
@@ -160,6 +167,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = 'Supplier Not Found';
+                    $this->error_messages[] = $r[0] . ' Supplier Not Found';
                     break;
                     // dd($product_supplier);
                 }
@@ -170,6 +178,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = 'Product Unit Not Found';
+                    $this->error_messages[] = $r[0] . ' Product Unit Not Found';
                     break;
                     // dd($product_unit);
                 }
@@ -180,6 +189,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = 'Gender Not Found';
+                    $this->error_messages[] = $r[0] . ' Gender Not Found';
                     break;
                     // dd($gender);
                 }
@@ -190,6 +200,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = 'Seasson Name Not Found';
+                    $this->error_messages[] = $r[0] . ' Season Name Not Found';
                     break;
                     // dd($season);
                 }
@@ -200,6 +211,7 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = 'Main Color Not Found';
+                    $this->error_messages[] = $r[0] . ' Main Color Not Found';
                     break;
                     // dd($main_color);
                 }
@@ -231,11 +243,12 @@ class ProductImport implements ToCollection, WithStartRow
 
                 if (!empty($p_id)) {
                     $exp = explode('_', ltrim($r[17]));
-                    $count = (Integer)count($exp);
-                    for ($i=0; $i<=$count; $i++) {
+                    $count = (int)count($exp);
+                    for ($i = 0; $i <= $count; $i++) {
                         if (empty($exp[$i])) {
                             continue;
-                            $this->rows = -1;
+                            $this->rows = -1;                            
+                            $this->error_messages[] = $r[0] . 'Product Stock Not Found';                            
                             break;
                         }
                         $exp_ps = explode('|', $exp[$i]);
@@ -292,7 +305,7 @@ class ProductImport implements ToCollection, WithStartRow
                 $this->rows = -1;
                 return '400';
             }
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return $e->getMessage();
         }
     }
@@ -311,6 +324,11 @@ class ProductImport implements ToCollection, WithStartRow
     public function getSameArticleId(): array
     {
         return $this->sameArticleId;
+    }
+
+    public function getErrorMessages(): array
+    {
+        return $this->error_messages;
     }
 
     private function articeIdChecker($article_id): bool
