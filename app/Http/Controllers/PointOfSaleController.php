@@ -83,7 +83,7 @@ class PointOfSaleController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $store = Store::where('id', Auth::user()->st_id)->get()->first();
-//        dd(Auth::user()->st_id);
+        //        dd(Auth::user()->st_id);
         $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->where('st_id', Auth::user()->st_id)->orderByDesc('pm_name')->pluck('pm_name', 'id');
 
         $time_start = UserShift::where('start_time', '!=', null)
@@ -118,8 +118,8 @@ class PointOfSaleController extends Controller
             'psc_custom' => Product::where('p_name', 'LIKE', '%CUSTOM%')->first(),
             'pl_custom' => ProductLocation::where('st_id', '=', Auth::user()->st_id)->where('pl_code', 'LIKE', '%TOKO%')->first(),
             'shift_status' => UserShift::where('user_id', '=', Auth::user()->id)->whereNotNull('start_time')->whereNull('end_time')->where('created_at', 'LIKE', date('Y-m-d') . '%')->orderBy('id', 'DESC')->count(),
-//            'kasir' => DB::table('users')->select('id', 'u_name')->where('st_id', '=', Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'))->pluck('id', 'u_name')
-            'kasir' => User::where('st_id', Auth::user()->st_id)->pluck('id','u_name')
+            //            'kasir' => DB::table('users')->select('id', 'u_name')->where('st_id', '=', Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'))->pluck('id', 'u_name')
+            'kasir' => User::where('st_id', Auth::user()->st_id)->pluck('id', 'u_name')
         ];
 
         if ($data['shift_status'] > 0) {
@@ -127,7 +127,7 @@ class PointOfSaleController extends Controller
         } else {
             $var = 0;
         }
-//        dd($data['kasir']);
+        //        dd($data['kasir']);
 
 
         if (strtolower($user_data->stt_name) == 'online') {
@@ -170,11 +170,11 @@ class PointOfSaleController extends Controller
                 ->join('pos_transactions', 'pos_transactions.pm_id', '=', 'payment_methods.id')
                 ->where('pos_transactions.u_id', '=', $data['user_id'])
                 ->where('pos_transactions.st_id', "=", $data['st_id'])
-//                ->join('user_shifts', 'pos_transactions.u_id', '=', 'user_shifts.user_id')
+                //                ->join('user_shifts', 'pos_transactions.u_id', '=', 'user_shifts.user_id')
                 ->whereBetween('pos_transactions.created_at', [$data['start_time'], Carbon::now()])
                 ->groupBy('payment_methods.id')
                 ->get();
-//            return $paymentMethods;
+            //            return $paymentMethods;
             $cashMethods = [];
             $methodsPartials = [];
             $bcaMethods = [];
@@ -229,9 +229,25 @@ class PointOfSaleController extends Controller
                 $total_payment_two += $paymentMethod->total_pos_partials;
             }
 
-            return view('app.report.shift._shift_detail',
-                compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri',
-                    'total_sold_items', 'total_refund_items', 'total_payment_two', 'total_expected_payment', 'total_actual_payment', 'methodsPartials'));
+            return view(
+                'app.report.shift._shift_detail',
+                compact(
+                    'data',
+                    'cashMethods',
+                    'bcaMethods',
+                    'bniMethods',
+                    'briMethods',
+                    'transferBca',
+                    'transferBni',
+                    'transferBri',
+                    'total_sold_items',
+                    'total_refund_items',
+                    'total_payment_two',
+                    'total_expected_payment',
+                    'total_actual_payment',
+                    'methodsPartials'
+                )
+            );
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -240,11 +256,26 @@ class PointOfSaleController extends Controller
     public function refundReturDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(PosTransactionDetail::
-            select('pos_transaction_details.id as ptd_id', 'product_stocks.id as pst_id', 'pos_transactions.id as pt_id',
-                'ps_barcode', 'pos_invoice', 'p_name', 'pos_td_discount', 'ps_qty', 'pl_id', 'p_color',
-                'sz_name', 'br_name', 'pos_td_qty', 'pos_td_total_price', 'pos_td_sell_price', 'pos_td_nameset_price',
-                'pos_td_marketplace_price', 'pos_transactions.created_at as p_created')
+            return datatables()->of(PosTransactionDetail::select(
+                'pos_transaction_details.id as ptd_id',
+                'product_stocks.id as pst_id',
+                'pos_transactions.id as pt_id',
+                'ps_barcode',
+                'pos_invoice',
+                'p_name',
+                'pos_td_discount',
+                'ps_qty',
+                'pl_id',
+                'p_color',
+                'sz_name',
+                'br_name',
+                'pos_td_qty',
+                'pos_td_total_price',
+                'pos_td_sell_price',
+                'pos_td_nameset_price',
+                'pos_td_marketplace_price',
+                'pos_transactions.created_at as p_created'
+            )
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -303,7 +334,7 @@ class PointOfSaleController extends Controller
     {
         $data = [
             'invoice' => PosTransaction::select('id', 'pos_invoice', 'created_at')
-//            ->whereRaw('created_at  >= now() - INTERVAL 7 DAY')
+                //            ->whereRaw('created_at  >= now() - INTERVAL 7 DAY')
                 ->whereIn('stt_id', ['1', '2'])
                 ->where('st_id', '=', Auth::user()->st_id)
                 ->where('pos_refund', '!=', '1')
@@ -674,9 +705,11 @@ class PointOfSaleController extends Controller
             $cr_id = $request->_cr_id;
             $pos_total_discount = $request->_total_discount_side;
             $dp_checkbox = $request->_dp_checkBox;
+            $cross = $request->_cross;            
+            $st_id = $request->_st_id ?? Auth::user()->st_id;
 
             $rand = str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
-//            $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
+            //            $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
             $u_id = Auth::user()->id;
             $prefix = WebConfig::select('config_value')->where('config_name', 'pos_prefix')->get()->first()->config_value;
 
@@ -684,7 +717,7 @@ class PointOfSaleController extends Controller
             $div_prefix = StoreTypeDivision::select('dv_description')->where('id', '=', $std_id)->get()->first()->dv_description;
             $sorting_number = PosTransaction::where([
                 'std_id' => $std_id,
-                'st_id' => Auth::user()->st_id,
+                'st_id' => $st_id,
             ])->whereDate('created_at', date('Y-m-d'))->count('id');
 
             $invoice = $prefix . date('YmdHis') . $rand . $store_prefix . $div_prefix . ($sorting_number + 1);
@@ -716,6 +749,14 @@ class PointOfSaleController extends Controller
             $voc_id = $request->voc_id;
             $total_voc_value = $request->_pos_total_vouchers;
 
+            if ($cross == 'true') {
+                $cross_order = '1';
+                $st_id_ref = $st_id;
+            } else {
+                $cross_order = '0';
+                $st_id_ref = null;
+            }
+
             $insert_get_id = DB::table('pos_transactions')->insertGetId([
                 'u_id' => $u_id,
                 'st_id' => Auth::user()->st_id,
@@ -746,6 +787,8 @@ class PointOfSaleController extends Controller
                 'pos_note' => $note,
                 'created_at' => date('Y-m-d H:i:s'),
                 'pos_refund' => '0',
+                'st_id_ref' => $st_id_ref,
+                'cross_order' => $cross_order,
             ]);
 
 
@@ -941,12 +984,12 @@ class PointOfSaleController extends Controller
                         'pls_qty' => ($product_setup_location_qty - $item_qty)
                     ]);
 
-//                    product_stock qty 9
-//                    $products_stock = ProductLocationSetup::select('pst_id')->where('id', $pls_id)->get()->first()->pst_id;
-//                    $products_stock_qty = ProductStock::select('ps_qty')->where('id', $products_stock)->get()->first()->ps_qty;
-//                    $products_stock_qty_final = ProductStock::where('id', $products_stock)->update([
-//                        'ps_qty' => ($products_stock_qty - $item_qty)
-//                    ]);
+                    //                    product_stock qty 9
+                    //                    $products_stock = ProductLocationSetup::select('pst_id')->where('id', $pls_id)->get()->first()->pst_id;
+                    //                    $products_stock_qty = ProductStock::select('ps_qty')->where('id', $products_stock)->get()->first()->ps_qty;
+                    //                    $products_stock_qty_final = ProductStock::where('id', $products_stock)->update([
+                    //                        'ps_qty' => ($products_stock_qty - $item_qty)
+                    //                    ]);
                 } else {
                     DB::table('pos_transactions')->where('id', $pt_id)->update([
                         'pos_status' => 'WAITING FOR CONFIRMATION',
@@ -1082,7 +1125,7 @@ class PointOfSaleController extends Controller
                         ]);
 
                     $update_pst = ProductStock::where('id', '=', $pls_qty->pst_id)->update([
-                       'ps_qty' =>  $f_item_qty_pst
+                        'ps_qty' =>  $f_item_qty_pst
                     ]);
                 }
             } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
@@ -1247,16 +1290,16 @@ class PointOfSaleController extends Controller
             $date2_remain_po = date('Y-m-d H:i:s');
             $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
             if ($date1_remain_po > $date2_remain_po) {
-                $diff_remain_po = -($diff_remain_po);
+                $diff_remain_po = - ($diff_remain_po);
             }
             $days_remain_po = round($diff_remain_po / 86400);
         }
-        if (!empty ($stf)) {
+        if (!empty($stf)) {
             $date1_remain_tf = $stf->created_at;
             $date2_remain_tf = date('Y-m-d H:i:s');
             $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
             if ($date1_remain_tf > $date2_remain_tf) {
-                $diff_remain_tf = -($diff_remain_tf);
+                $diff_remain_tf = - ($diff_remain_tf);
             }
             $days_remain_tf = round($diff_remain_tf / 86400);
         }
@@ -1303,7 +1346,7 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', $st_id)
-//                    ->where('pls_qty', '>=', '0')
+                //                    ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
                 ->orWhere('ps_barcode', 'LIKE', "%$query%")
@@ -1317,7 +1360,7 @@ class PointOfSaleController extends Controller
                         ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->where('product_locations.st_id', '=', $st_id)
                         ->where('pst_id', $row->pst_id)
-//                    ->where('pls_qty', '>', '0')
+                        //                    ->where('pls_qty', '>', '0')
                         ->whereNotIn('pl_code', $exception)->get();
                     $bin = '';
                     $bin_list = '';
@@ -1455,7 +1498,14 @@ class PointOfSaleController extends Controller
                 $fs = $free_sock->pls_qty;
             }
 
-            $location_store = ProductLocation::select('id')->where('st_id', Auth::user()->st_id)->where('pl_code', 'TOKO')->get()->first();
+            $st_id = $request->get('_st_id');
+            if (!empty($st_id)) {
+                $st_id = $st_id;
+            } else {
+                $st_id = Auth::user()->st_id;
+            }
+
+            $location_store = ProductLocation::select('id')->where('st_id', $st_id)->where('pl_code', 'TOKO')->get()->first();
 
             $query = $request->get('query');
             $type = $request->get('type');
@@ -1476,7 +1526,7 @@ class PointOfSaleController extends Controller
                     ->join('bra nds', 'brands.id', '=', 'products.br_id')
                     ->where('pls_qty', '>=', '0')
                     ->whereNotIn('pl_code', $exception)
-                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                    ->where('product_locations.st_id', '=', $st_id)
                     ->whereIn('plst_status', $plst_status_new)
                     ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
@@ -1492,7 +1542,8 @@ class PointOfSaleController extends Controller
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                    // ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                    ->where('product_locations.st_id', '=', $st_id)
                     ->where('pls_qty', '>', '0')
                     ->whereNotIn('pl_code', $exception)
                     ->whereIn('pl_code', $b1g1_setup)
@@ -1505,26 +1556,26 @@ class PointOfSaleController extends Controller
                     ->limit(13)
                     ->get();
             } else if ($item_type == 'store') {
-//                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
-//                    ->join('products', 'products.id', '=', 'product_stocks.p_id')
-//                    ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                    ->join('brands', 'brands.id', '=', 'products.br_id')
-//                    ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-//                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-////                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
-//                    ->where('product_locations.id', '=', $location_store)
-//                    ->where('pls_qty', '>=', '0')
-////                    ->whereNotIn('pl_code', $exception)
-//                    ->whereIn('pl_code', ['TOKO'])
-////                    ->where('product_locations.id', '=', '1001')
-//                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
-//                    ->groupBy('product_stocks.id')
-////                    ->limit(13)
-//                    ->get();
+                //                $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
+                //                    ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                //                    ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                //                    ->join('brands', 'brands.id', '=', 'products.br_id')
+                //                    ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                //                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ////                    ->where('product_locations.st_id', '=', Auth::user()->st_id)
+                //                    ->where('product_locations.id', '=', $location_store)
+                //                    ->where('pls_qty', '>=', '0')
+                ////                    ->whereNotIn('pl_code', $exception)
+                //                    ->whereIn('pl_code', ['TOKO'])
+                ////                    ->where('product_locations.id', '=', '1001')
+                //                    ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$query%")
+                //                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$query%")
+                //                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                //                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                //                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
+                //                    ->groupBy('product_stocks.id')
+                ////                    ->limit(13)
+                //                    ->get();
                 $data = ProductLocationSetup::select(
                     'pl_id',
                     'products.psc_id',
@@ -1547,10 +1598,10 @@ class PointOfSaleController extends Controller
                     ->join('brands', 'products.br_id', '=', 'brands.id')
                     ->where('product_location_setups.pl_id', $location_store->id)
                     ->where('product_stocks.ps_barcode', 'LIKE', "%$query%")
-//                    ->whereRaw('ts_products.article_id LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
-//                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
+                    //                    ->whereRaw('ts_products.article_id LIKE ?', "%$query%")
+                    //                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
+                    //                    ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
+                    //                    ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
                     ->get();
             }
 
@@ -1639,7 +1690,7 @@ class PointOfSaleController extends Controller
                         $bin = '<span class="btn-lg btn-info">' . strtoupper($row->pl_code) . '</span>';
                     } else {
                         $status = '';
-                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty  .'</span>';
+                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty  . '</span>';
                     }
                     $output .= '
                     <li>
@@ -1903,12 +1954,12 @@ class PointOfSaleController extends Controller
         $total_discount_voucher_percent = 0;
 
         foreach ($codes as $code) {
-//            return $code['value'];
+            //            return $code['value'];
             $check = DB::table('vouchers')->where('vc_code', '=', $code['value'])
                 ->where('vc_due_date', '>=', date('Y-m-d'))
                 ->where('vc_status', '=', '1')->get()->first();
 
-//            return $check;
+            //            return $check;
             if (!empty($check)) {
                 $check_vtrx = DB::table('voucher_transactions')->where('vc_id', '=', $check->id)->get()->first();
                 if ($check->vc_reuse == '0') {
@@ -1994,7 +2045,7 @@ class PointOfSaleController extends Controller
                 $r['status'] = '400';
             }
         }
-//        return $r;
+        //        return $r;
         return json_encode($r);
     }
 
@@ -2009,9 +2060,9 @@ class PointOfSaleController extends Controller
         $sell_price = $request->_sell_price;
         $mode = $request->_mode;
         $item_type = $request->_item_type;
-//        $plst_id = $request->_plst_id;
+        //        $plst_id = $request->_plst_id;
         $item_type = $request->_item_type;
-//        $plst_status = '';
+        //        $plst_status = '';
         $free_delete = $request->_free_delete;
 
         if (!empty($free_delete)) {
@@ -2036,13 +2087,13 @@ class PointOfSaleController extends Controller
         ];
         if ($item_type == 'waiting') {
             if ($mode == 'add') {
-//                $plst_status = 'WAITING FOR CHECKOUT';
-//                $update = ProductLocationSetupTransaction::where('id', $plst_id)
-//                    ->whereIn('plst_status', $plst_status_new)
-//                    ->update([
-//                        'plst_status' => $plst_status,
-//                        'u_id' => Auth::user()->id,
-//                    ]);
+                //                $plst_status = 'WAITING FOR CHECKOUT';
+                //                $update = ProductLocationSetupTransaction::where('id', $plst_id)
+                //                    ->whereIn('plst_status', $plst_status_new)
+                //                    ->update([
+                //                        'plst_status' => $plst_status,
+                //                        'u_id' => Auth::user()->id,
+                //                    ]);
                 if (!empty($update)) {
                     $create = PosTransactionDetail::create([
                         'pt_id' => $pt_id,
@@ -2101,11 +2152,11 @@ class PointOfSaleController extends Controller
                         $r['status'] = '400';
                     }
                 } else {
-//                    $plst_status = 'WAITING OFFLINE';
-//                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
-//                        ->update([
-//                            'plst_status' => $plst_status
-//                        ]);
+                    //                    $plst_status = 'WAITING OFFLINE';
+                    //                    $update = ProductLocationSetupTransaction::where('id', $plst_id)->where('plst_status', 'WAITING FOR CHECKOUT')
+                    //                        ->update([
+                    //                            'plst_status' => $plst_status
+                    //                        ]);
                     if (!empty($update)) {
                         $r['status'] = '200';
                     } else {
@@ -2452,7 +2503,7 @@ class PointOfSaleController extends Controller
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
                 ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->join('brands', 'brands.id', '=', 'products.br_id')
-//                ->where('pls_qty', '>=', '0')
+                //                ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
                 ->whereIn('plst_status', $plst_status_new)
@@ -2466,26 +2517,26 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
-//                ->where('pls_qty', '>', '0')
+                //                ->where('pls_qty', '>', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->whereIn('pl_code', $b1g1_setup)
                 ->where('product_stocks.ps_barcode', '=', $barcode)
                 ->groupBy('product_stocks.id')
                 ->first();
         } else {
-//            $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
-//                ->join('products', 'products.id', '=', 'product_stocks.p_id')
-//                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                ->join('brands', 'brands.id', '=', 'products.br_id')
-//                ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-//                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                ->where('product_locations.st_id', '=', Auth::user()->st_id)
-//                ->where('pls_qty', '>', '0')
-//                ->whereNotIn('pl_code', $exception)
-//                ->whereIn('pl_code', ['TOKO'])
-//                ->where('product_stocks.ps_barcode', '=', $barcode)
-//                ->groupBy('product_stocks.id')
-//                ->first();
+            //            $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
+            //                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            //                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            //                ->join('brands', 'brands.id', '=', 'products.br_id')
+            //                ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+            //                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            //                ->where('product_locations.st_id', '=', Auth::user()->st_id)
+            //                ->where('pls_qty', '>', '0')
+            //                ->whereNotIn('pl_code', $exception)
+            //                ->whereIn('pl_code', ['TOKO'])
+            //                ->where('product_stocks.ps_barcode', '=', $barcode)
+            //                ->groupBy('product_stocks.id')
+            //                ->first();
 
             $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'pl_code', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id', 'products.article_id as article_id')
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
@@ -2494,7 +2545,7 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
-//                ->where('pls_qty', '>', '0')
+                //                ->where('pls_qty', '>', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->whereIn('pl_code', ['TOKO'])
                 ->where('product_stocks.ps_barcode', '=', $barcode)
