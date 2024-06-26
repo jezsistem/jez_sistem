@@ -112,7 +112,7 @@ class TransaksiOnlineController extends Controller
                     ->groupBy('to_id')
             )
                 ->editColumn('order_number', function ($data) {
-                    return '<a class="text-white" href="#" data-pt_id="'.$data->to_order_number.'" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">'.$data->to_order_number.'</span></a>';
+                    return '<a class="text-white" href="#" data-to_id="'.$data->to_id.'" data-num_order="'.$data->to_order_number.'" id="detail_btn"><span class="btn btn-sm btn-primary" >'.$data->to_order_number.'</span></a>';
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
@@ -128,65 +128,27 @@ class TransaksiOnlineController extends Controller
 
     }
 
-//    public function getDatatablesTiktok(Request $request)
-//    {
-//        $sz_id = $request->type;
-//
-//        if (request()->ajax()) {
-//            return datatables()->of(TransaksiOnline::select(
-//                'id',
-//                'st_id',
-//                'platform_type',
-//                'order_number',
-//                'order_status',
-//                'reason_cancellation',
-//                'resi_number',
-//                'shipping_method',
-//                'ship_deadline',
-//                'ship_delivery_date',
-//                'order_date_created',
-//                'payment_date',
-//                'payment_method',
-//                'SKU',
-//                'original_price',
-//                'price_after_discount',
-//                'quantity',
-//                'return_quantity',
-//                'seller_note',
-//                'total_price',
-//                'total_discount',
-//                'shipping_fee',
-//                'voucher_seller',
-//                'cashback_coin',
-//                'voucher',
-//                'voucher_platform',
-//                'discount_seller',
-//                'discount_platform',
-//                'shopee_coin_pieces',
-//                'credit_card_discounts',
-//                'shipping_costs',
-//                'total_payment',
-//                'city',
-//                'province',
-//                'order_complete_at',
-//                'created_at',
-//                'updated_at'
-//            )
-//                ->where('platform_type', 'TikTok'))
-////                ->filter(function ($instance) use ($request) {
-////                    if (!empty($request->get('search'))) {
-////                        $instance->where(function ($w) use ($request) {
-////                            $search = $request->get('search');
-////                            $w->orWhere('sz_name', 'LIKE', "%$search%")
-////                                ->orWhere('sz_description', 'zLIKE', "%$search%")
-////                                ->orWhere('sz_schema', 'LIKE', "%$search%");
-////                        });
-////                    }
-////                })
-//                ->addIndexColumn()
-//                ->make(true);
-//        }
-//    }
+    public function detailDatatables(Request $request)
+    {
+        if(request()->ajax()) {
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'brands.br_name', 'p_color', 'sz_name', 'ps_barcode', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
+                ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                ->leftJoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('online_transactions.id', '=', $request->to_id))
+                ->editColumn('article', function ($data) {
+                    return '<span class="btn btn-primary">[' . $data->br_name . '] ' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
+                })
+                ->editColumn('gap_price', function ($data) {
+                    return $data->jez_price - $data->shopee_price;
+                })
+                ->rawColumns(['article'])
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
 
     public function importData(Request $request)
     {
@@ -219,7 +181,10 @@ class TransaksiOnlineController extends Controller
                 $r['status'] = '400';
             }
 
-            unlink(public_path('excel/' . $nama_file));
+            if (file_exists(public_path('excel/' . $nama_file))) {
+                unlink(public_path('excel/' . $nama_file));
+            }
+
 
             return json_encode($r);
         } catch (\Exception $e) {
@@ -246,7 +211,7 @@ class TransaksiOnlineController extends Controller
                 $order_date_created = $item[9];
                 $payment_date = $item[10];
                 $payment_method = $item[11];
-                $sku = $item[14];
+
                 $shipping_fee = $item[35];
                 $total_payment = $item[38];
                 $city = $item[46];
@@ -283,9 +248,9 @@ class TransaksiOnlineController extends Controller
                     $insert_id = $id_trx->id;
                 }
 
-                $get_sku_detail = OnlineTransactionDetails::where('order_number', $order_number)
-                    ->where('sku', $sku)
-                    ->count();
+//                $get_sku_detail = OnlineTransactionDetails::where('order_number', $order_number)
+//                    ->where('sku', $sku)
+//                    ->count();
 
             }
 
@@ -294,6 +259,7 @@ class TransaksiOnlineController extends Controller
                 $original_price = $item[16];
                 $price_after_discount = $item[20];
                 $qty = $item[18];
+                $sku = $item[14];
                 $return_qty = $item[19];
                 $total_discount = $item[21];
                 $discount_seller = $item[22];
@@ -304,13 +270,13 @@ class TransaksiOnlineController extends Controller
                     'order_number' => $order_number,
                     'to_id' => $to_id->id,
                     'sku' => $sku,
-                    'original_price' => $original_price,
-                    'price_after_discount' => $price_after_discount,
+                    'original_price' => str_replace('.', '', $original_price),
+                    'price_after_discount' =>  str_replace('.', '', $price_after_discount),
                     'qty' => $qty,
                     'return_qty' => $return_qty,
-                    'total_discount' => $total_discount,
-                    'discount_seller' => $discount_seller,
-                    'discount_platform' => $discount_platform,
+                    'total_discount' =>  str_replace('.', '', $total_discount),
+                    'discount_seller' =>  str_replace('.', '', $discount_seller),
+                    'discount_platform' =>  str_replace('.', '', $discount_platform),
                 ];
 
                 if ($get_order_number == 0) {
