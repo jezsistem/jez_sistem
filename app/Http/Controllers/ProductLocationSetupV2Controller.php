@@ -338,7 +338,7 @@ class ProductLocationSetupV2Controller extends Controller
 
 
                 if (count($data) >= 0) {
-                    $processData = $this->processImportData($data[1]);
+                    $processData = $this->processImportData($data[0]);
                     $r['data'] = $processData;
                     $r['status'] = '200';
                 } else {
