@@ -164,7 +164,7 @@
                         <td class=" col-4 border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
                             <select id="payment_option">
                                 <option value="">- Pilih -</option>
-                                <option value="one">1 Metode</option>
+                                <option value="one" selected>1 Metode</option>
                                 <option value="two">2 Metode</option>
                             </select>
                             <div id="payment_option_parent"></div>
