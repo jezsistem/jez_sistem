@@ -95,121 +95,28 @@
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Button-->
-
                                 </div>
                             </div>
                             <div class="card-body table-responsive">
-                                <div class="container">
-                                    <div class="row">
-                                        <div class="form-group" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_platform" name="filter_platform"
-                                                    onchange="showDiv(this)" required>
-                                                {{--                                            <select class="form-control" id="filter_platform" name="filter_platform" required>--}}
-                                                <option value="">- Pilih Platform -</option>
-                                                <option value="shopee">Shopee</option>
-                                                <option value="tiktok">TikTok</option>
-                                            </select>
-                                            <div id="st_id_filter_parent"></div>
-                                        </div>
+                                <!--begin: Datatable-->
+                                <input type="search" class="form-control  col-6" id="invoice_tracking_search" placeholder="Cari invoice / nomor resi / customer"/><br/>
+                                <table class="table table-hover table-checkable" id="OnlineTransactionb">
+                                    <thead class="bg-light text-dark">
+                                    <tr>
+                                        <th class="text-dark">No</th>
+                                        <th class="text-dark">Nomer Order</th>
+                                        <th class="text-dark">Nomer Resi</th>
+                                        <th class="text-dark">Platform Name</th>
+                                        <th class="text-dark">Tanggal Order</th>
+                                        <th class="text-dark">Item</th>
+                                        <th class="text-dark">Total Pembayaran</th>
+                                        <th class="text-dark">Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
 
-                                        <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_status" name="filter_platform"
-                                                    required>
-                                                <option value="">- Pilih Status transaksi -</option>
-                                                <option value="Shopee">All</option>
-                                                <option value="TikTok">In-Progress</option>
-                                                <option value="TikTok">Cancel</option>
-                                                <option value="TikTok">Done</option>
-                                            </select>
-                                            <div id="st_id_filter_parent"></div>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <div id="shopee_div">
-                                    <input type="search" class="form-control form-control col-6"
-                                           id="purchase_order_search" placeholder="Cari Order Number / No Resi)"/><br/>
-                                    <table class="table table-hover table-checkable" id="OnlineTransactionTb">
-                                        <thead class="bg-light text-dark">
-                                            <tr>
-                                                <th class="text-dark">No</th>
-                                                <th class="text-dark">Order Number</th>
-                                                <th class="text-dark">No Resi</th>
-                                                <th class="text-dark">Order Status</th>
-                                                <th class="text-dark">Reason Cancellation</th>
-                                                <th class="text-dark">Shipping Method</th>
-                                                <th class="text-dark">Ship Deadline</th>
-                                                <th class="text-dark">Date Order</th>
-                                                <th class="text-dark">Payment Method</th>
-                                                <th class="text-dark">Payment Date</th>
-                                                <th class="text-dark">SKU / Barcode</th>
-                                                <th class="text-dark">Original Price</th>
-                                                <th class="text-dark">Price After Discount</th>
-                                                <th class="text-dark">QTY</th>
-                                                <th class="text-dark">Return QTY</th>
-                                                <th class="text-dark">Total Price</th>
-                                                <th class="text-dark">Total Discount</th>
-                                                <th class="text-dark">Shipping Fee</th>
-                                                <th class="text-dark">Voucher By Seller</th>
-                                                <th class="text-dark">Cashback Coin</th>
-                                                <th class="text-dark">Voucher</th>
-                                                <th class="text-dark">Voucher By Shopee</th>
-                                                <th class="text-dark">Discount By Seller</th>
-                                                <th class="text-dark">Discount By Shopee</th>
-                                                <th class="text-dark">Coin Used</th>
-                                                <th class="text-dark">Credit Card Discount</th>
-                                                <th class="text-dark">Shipping Cost</th>
-                                                <th class="text-dark">Total Payment</th>
-                                                <th class="text-dark">Regency and City</th>
-                                                <th class="text-dark">Province</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div id="tiktok_div">
-                                    <input type="search" class="form-control form-control col-6"
-                                           id="purchase_order_search" placeholder="Cari Number Order / No Resi)"/><br/>
-                                    <table class="table table-hover table-checkable" id="OnlineTransactionTikTokTb">
-                                        <thead class="bg-light text-dark">
-                                        <tr>
-                                            <th class="text-dark">No</th>
-                                            <th class="text-dark">Order Number</th>
-                                            <th class="text-dark">Order Status</th>
-                                            {{--                                            <th class="text-dark">Order Sub Status</th>--}}
-                                            {{--                                            <th class="text-dark">Order Created</th>--}}
-                                            {{--                                            <th class="text-dark">Cancel Type</th>--}}
-                                            {{--                                            <th class="text-dark">Cancel By</th>--}}
-                                            {{--                                            <th class="text-dark">Reason Cancellation</th>--}}
-                                            {{--                                            <th class="text-dark">Seller Note</th>--}}
-                                            {{--                                            <th class="text-dark">Pre-Order</th>--}}
-                                            {{--                                            <th class="text-dark">Resi</th>--}}
-                                            {{--                                            <th class="text-dark">Shipping Method</th>--}}
-                                            {{--                                            <th class="text-dark">Payment Date</th>--}}
-                                            {{--                                            <th class="text-dark">Payment Method</th>--}}
-                                            {{--                                            <th class="text-dark">SKU</th>--}}
-                                            {{--                                            <th class="text-dark">Original Price</th>--}}
-                                            {{--                                            <th class="text-dark">Price After Discount</th>--}}
-                                            {{--                                            <th class="text-dark">Quantity</th>--}}
-                                            {{--                                            <th class="text-dark">Return Quantity</th>--}}
-                                            {{--                                            <th class="text-dark">Total Discount</th>--}}
-                                            {{--                                            <th class="text-dark">Shipping Fee</th>--}}
-                                            {{--                                            <th class="text-dark">Discount Seller</th>--}}
-                                            {{--                                            <th class="text-dark">Discount Platform</th>--}}
-                                            {{--                                            <th class="text-dark">Total Payment</th>--}}
-                                            {{--                                            <th class="text-dark">Regency and City</th>--}}
-                                            {{--                                            <th class="text-dark">Province</th>--}}
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    </tbody>
+                                </table>
                                 <!--end: Datatable-->
                             </div>
                         </div>

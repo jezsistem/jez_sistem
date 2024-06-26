@@ -338,7 +338,7 @@ class ProductLocationSetupV2Controller extends Controller
 
 
                 if (count($data) >= 0) {
-                    $processData = $this->processImportData($data[0]);
+                    $processData = $this->processImportData($data[1]);
                     $r['data'] = $processData;
                     $r['status'] = '200';
                 } else {
@@ -367,7 +367,7 @@ class ProductLocationSetupV2Controller extends Controller
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
-            $r['message'] = $e->getMessage();
+            $r['message'] = 'Error';
         }
         return json_encode($r);
     }
