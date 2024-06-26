@@ -136,8 +136,7 @@ Route::middleware(['auth'])->group(function () {
      * 4. Export per period
      */
     Route::get('transaksi_online', [TransaksiOnlineController::class, 'index']);
-    Route::get('transaksi_online_datatables_shopee', [TransaksiOnlineController::class, 'getDatatablesShopee']);
-    Route::get('transaksi_online_datatables_tiktok', [TransaksiOnlineController::class, 'getDatatablesTiktok']);
+    Route::get('transaksi_online_datatables', [TransaksiOnlineController::class, 'getDatatables']);
     Route::post('transaksi_online_detail', [TransaksiOnlineController::class, 'detail']);
     Route::post('transaksi_online_import', [TransaksiOnlineController::class, 'importData']);
     Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);

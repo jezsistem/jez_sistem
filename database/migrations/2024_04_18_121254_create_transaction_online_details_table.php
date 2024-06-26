@@ -16,6 +16,7 @@ class CreateTransactionOnlineDetailsTable extends Migration
         Schema::create('transaction_online_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('to_id');
+            $table->text('seller_note')->nullable();
             $table->string('order_status');
             $table->string('order_sub_status');
             $table->string('cancel_type')->nullable();
@@ -23,6 +24,8 @@ class CreateTransactionOnlineDetailsTable extends Migration
             $table->string('reason_cancellation')->nullable();
             $table->dateTime('payment_date')->nullable();
             $table->integer('return_quantity')->nullable();
+            $table->string('city')->nullable();
+            $table->string('province')->nullable();
             $table->timestamps();
 
             $table->foreign('to_id')->references('id')->on('transaction_online')->onDelete('cascade')->onUpdate('cascade');
