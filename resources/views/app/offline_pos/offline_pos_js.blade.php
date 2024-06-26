@@ -76,6 +76,7 @@
                 nameset += parseFloat(nameset_value);
             }
         });
+
         jQuery('#total_price_side').text(addCommas(final_price));
         jQuery('#total_final_price_side').text(addCommas(final_price + nameset));
     }
@@ -320,7 +321,7 @@
                 _sell_price_item: replaceComma(sell_price_item),
                 _subtotal_item: replaceComma(subtotal_item),
                 _nameset_price: nameset_price,
-                _discount_number: discount_number,
+                _discount_number: replaceComma(discount_number),
                 _st_id: st_id,
                 _cross: cross,
             },
@@ -823,6 +824,7 @@
         } else {
             jQuery('#subtotal_item' + row).text(addCommas(subtotal));
         }
+
         var final_price = 0;
         var nameset = 0;
         jQuery('#orderTable tr').each(function(index, row) {
@@ -839,27 +841,35 @@
             }
         });
 
-        // Memperoleh nilai diskon dari input dengan ID discount_number
+        // Menghitung subtotal asli tanpa diskon untuk baris saat ini
+        var originalSubtotal = parseFloat(item_qty) * parseFloat(sell_price_item);
+
+        // Mendapatkan nilai diskon dari input dengan ID discount_percentage
         var discountPercentage = parseFloat(jQuery('#discount_percentage' + row).val()) || 0;
-        var totalBeforeDiscount = final_price + nameset;
-        var discount = parseFloat((discountPercentage / 100) * totalBeforeDiscount);
+        var discount = parseFloat((discountPercentage / 100) * originalSubtotal);
 
-        var total_discount = discount.toFixed(2);
+        // Menghitung subtotal setelah diskon untuk baris saat ini
+        var subtotal = originalSubtotal - discount;
 
+        // Mengupdate nilai subtotal dan diskon di baris saat ini
+        jQuery('#subtotal_item' + row).text(addCommas(subtotal));
         jQuery('#discount_number' + row).val(discount.toLocaleString('en-US'));
 
-        // Mengurangi diskon dari subtotal
-        var subtotal = parseFloat(item_qty) * parseFloat(sell_price_item) - discount;
+        // Menghitung total harga seluruh pesanan setelah diskon diterapkan ke baris saat ini
+        var final_price = 0;
+        jQuery('#orderTable tr').each(function(index, rowElement) {
+            if (jQuery(rowElement).find('.subtotal_item').text() != '') {
+                var sbttl = parseFloat(replaceComma(jQuery(rowElement).find('.subtotal_item').text()));
+                if (typeof sbttl === 'undefined' || sbttl == '') {
+                    sbttl = 0;
+                }
+                final_price += sbttl;
+            }
+        });
 
-        if (parseFloat(item_qty) < 0) {
-            jQuery('#subtotal_item' + row).text('-' + addCommas(subtotal));
-        } else {
-            jQuery('#subtotal_item' + row).text(addCommas(subtotal));
-        }
-
-        jQuery('#total_price_side').text(addCommas(final_price - discount));
-
-        jQuery('#total_final_price_side').text(addCommas(totalBeforeDiscount - discount));
+        // Mengupdate total harga di sisi layar
+        jQuery('#total_price_side').text(addCommas(final_price));
+        jQuery('#total_final_price_side').text(addCommas(final_price));
     }
 
     jQuery(document).delegate('#add_to_item_list', 'click', function(e) {
@@ -875,7 +885,7 @@
         if (st_id != "{{ $data['user']->st_id }}") {
             var cross = jQuery(this).attr('data-cross');
             jQuery('#cross_order').val('true');
-                        
+
         }
         var p_name = jQuery(this).attr('data-p_name');
         var pst_id = jQuery(this).attr('data-pst_id');

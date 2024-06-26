@@ -219,7 +219,7 @@
                                 @endif
                                 <td class="final-price">
                                     @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
-                                        asd
+                                         {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_price) }}
                                     @else
                                         {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_price) }}
                                     @endif
