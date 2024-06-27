@@ -1579,8 +1579,8 @@ class PointOfSaleController extends Controller
                 $data = ProductLocationSetup::select(
                     'pl_id',
                     'products.psc_id',
-                    'products.p_name as name',
-                    'products.p_color as color',
+                    'products.p_name',
+                    'products.p_color',
                     'products.p_sell_price',
                     'products.p_price_tag',
                     'product_stocks.ps_price_tag',
@@ -1694,7 +1694,7 @@ class PointOfSaleController extends Controller
                     }
                     $output .= '
                     <li>
-                     <a class="btn btn-sm btn-inventory col-12" data-b1g1_id="' . $b1g1_id . '" data-b1g1_price="' . $b1g1_price . '" data-fs="' . $fs . '" data-psc_id="' . $row->psc_id . '" data-pls_qty="' . $row->pls_qty . '" data-plst_id="' . $row->plst_id . '" data-pl_id="' . $row->pl_id . '" data-sell_price="' . $sell_price . '" data-sell_price_discount="' . $sell_price_discount . '" data-bandrol="' . $bandrol . '" data-ps_qty="' . $row->ps_qty . '" data-pst_id="' . $row->pst_id . '" data-p_name="[' . $row->br_name . '] ' . $row->article_id . ' ' . $row->name . ' ' . $row->sz_name . ' [' . $row->sz_name . '] [' . $row->pl_code . ']" id="add_to_item_list">
+                    <a class="btn btn-sm btn-inventory col-12" data-b1g1_id="' . $b1g1_id . '" data-b1g1_price="' . $b1g1_price . '" data-fs="' . $fs . '" data-psc_id="' . $row->psc_id . '" data-pls_qty="' . $row->pls_qty . '" data-plst_id="' . $row->plst_id . '" data-pl_id="' . $row->pl_id . '" data-sell_price="' . $sell_price . '" data-sell_price_discount="' . $sell_price_discount . '" data-bandrol="' . $bandrol . '" data-ps_qty="' . $row->ps_qty . '" data-pst_id="' . $row->pst_id . '" data-p_name="[' . $row->br_name . '] ' . $row->article_id . ' ' . $row->p_name . ' ' . $row->p_color . ' [' . $row->sz_name . '] [' . $row->pl_code . ']" id="add_to_item_list">
                     <span style="float-left;">
                     <span class="btn-lg btn-primary">[' . strtoupper($row->br_name) . ']' . strtoupper($row->article_id) . ' ' . strtoupper($row->p_name) . ' ' . strtoupper($row->p_color) . ' [' . strtoupper($row->sz_name) . ']</span> ' . $bin . ' ' . $status . ' </span></a></li>
                     ';
