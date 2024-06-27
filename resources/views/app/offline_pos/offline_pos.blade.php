@@ -26,7 +26,7 @@
                                     <input type="hidden" id="_pt_id" value="" />
                                     <input type="hidden" id="_pt_id_complaint" value="" />
                                     <input type="hidden" id="_exchange" value="" />
-                                    <input type="text" id="cross_order" value="" />
+                                    <input type="text" id="cross_order" value="0" />
                                     <div class="selectmain bg-primary" style="padding:5px; border-radius:10px;">
                                         <label class="text-white d-flex font-weight-bold">Customer
                                             <span class="badge badge-success white rounded-circle" id="add_customer_btn"
