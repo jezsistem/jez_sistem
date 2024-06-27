@@ -500,10 +500,12 @@
                                 var status = responseObject.status;
 
                                 if (status == 200) {
+                                    $('#scan_in_search').val('');
                                     scan_in_table.draw();
                                     toast('Dikeluarkan', ' berhasil dimasukkan',
                                         'success');
                                 } else {
+                                    $('#scan_in_search').val('');
                                     swal('Gagal', 'Gagal masuk produk', 'error');
                                 }
                             },
