@@ -1038,7 +1038,7 @@
                             "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
                             b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
                             "<td style='white-space: nowrap; font-size:14px; " + highlight +
-                            "' id='item_name" + (total_row + 1) + "'>" + total_row + "</td>" +
+                            "' id='item_name" + (total_row + 1) + "'>" + p_name + "</td>" +
                             "<td>" + (pls_qty) + "</td> " +
                             "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
                             pst_id + " item_qty' id='item_qty" + (total_row + 1) +
