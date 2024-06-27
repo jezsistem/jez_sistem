@@ -135,7 +135,7 @@ class StockTransferController extends Controller
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_location_setups.pl_id', '=', $request->pl_id)
                 ->where('product_stocks.p_id', '=', $data->p_id)
-                ->where('pls_qty', '>', 0)
+//                ->where('pls_qty', '>', 0)
                 ->get();
                 if (!empty($check_pst)){
                     $transfer = '';

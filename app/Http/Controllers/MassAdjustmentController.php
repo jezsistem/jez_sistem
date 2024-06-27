@@ -480,7 +480,8 @@ class MassAdjustmentController extends Controller
     public function exportResult(Request $req)
     {
         $ma_id = $req->post('ma_id');
-        return Excel::download(new MassResult($ma_id), 'mass_adjustment_results.xlsx');
+        $date_now = date('Y-m-d H:i:s');
+        return Excel::download(new MassResult($ma_id), 'mass_adjustment_results-'.$date_now.'.xlsx');
     }
 
     public function importData(Request $req)

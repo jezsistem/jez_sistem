@@ -1038,7 +1038,7 @@
                             "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
                             b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
                             "<td style='white-space: nowrap; font-size:14px; " + highlight +
-                            "' id='item_name" + (total_row + 1) + "'>" + p_name + "</td>" +
+                            "' id='item_name" + (total_row + 1) + "'>" + total_row + "</td>" +
                             "<td>" + (pls_qty) + "</td> " +
                             "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
                             pst_id + " item_qty' id='item_qty" + (total_row + 1) +
@@ -2318,7 +2318,7 @@
             }
         });
 
-        jQuery('#pm_id_offline').on('change', function(e) {
+        jQuery('#pm_id_offline').on('change', function(e) {            
             e.preventDefault();
             var label = jQuery('#pm_id_offline option:selected').text();
             if (label == 'DEBIT CARD') {
@@ -2333,6 +2333,7 @@
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
+                jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             } else if (label == 'CREDIT CARD') {
                 jQuery('#card_provider_content').removeClass('d-none');
                 jQuery('#card_provider_content').addClass('d-flex');
@@ -2343,6 +2344,7 @@
                 jQuery('#return_payment').text('');
                 jQuery('#charge_label').addClass('d-flex');
                 jQuery('#charge_label').removeClass('d-none');
+                jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             } else if (label == 'CASH') {
                 jQuery('#card_provider_content').addClass('d-none');
                 jQuery('#card_provider_content').removeClass('d-flex');
@@ -2354,6 +2356,7 @@
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
+                jQuery('#total_payment').val('');
             } else {
                 jQuery('#card_number_label').addClass('d-none');
                 jQuery('#card_number_label').removeClass('d-flex');
@@ -2366,6 +2369,7 @@
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
+                jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             }
         });
 
