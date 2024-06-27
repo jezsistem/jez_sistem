@@ -434,7 +434,7 @@
     <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header bg-dark">
-                <h5 class="modal-title text-light" id="exampleModalLabel">Barang Masuk</h5>
+                <h5 class="modal-title text-light" id="exampleModalLabel">Scan Barang Masuk</h5>
             </div>
             <div class="modal-body table-responsive">
                 <select class="form-control form-control-sm bg-info text-white" id="waiting_filter">
