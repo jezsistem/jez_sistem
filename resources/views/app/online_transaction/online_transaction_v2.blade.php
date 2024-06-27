@@ -74,8 +74,10 @@
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline mr-2">
                                         <button type="button" class="btn btn-light-primary font-weight-bolder"
-                                                data-toggle="modal" data-target="#ImportModal" aria-haspopup="true"
-                                                aria-expanded="false">
+                                                                                        data-toggle="modal" data-target="#ImportModal" aria-haspopup="true"
+                                                                                        aria-expanded="false">
+{{--                                            <button type="button" class="btn btn-light-primary font-weight-bolder"--}}
+{{--                                                    id="import_modal">--}}
                                     <span class="svg-icon svg-icon-md">
                                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -91,7 +93,7 @@
                                         </svg>
                                         <!--end::Svg Icon-->
                                     </span>Import
-                                        </button>
+                                            </button>
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Button-->
@@ -99,7 +101,8 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="invoice_tracking_search" placeholder="Cari invoice / nomor resi / customer"/><br/>
+                                <input type="search" class="form-control  col-6" id="invoice_tracking_search"
+                                       placeholder="Cari invoice / nomor resi / customer"/><br/>
                                 <table class="table table-hover table-checkable" id="OnlineTransactionb">
                                     <thead class="bg-light text-dark">
                                     <tr>
@@ -110,7 +113,7 @@
                                         <th class="text-dark">Tanggal Order</th>
                                         <th class="text-dark">Item</th>
                                         <th class="text-dark">Total Pembayaran</th>
-                                        <th class="text-dark">Status</th>
+                                        <th class="text-dark">Status Pengiriman</th>
                                     </tr>
                                     </thead>
                                     <tbody>

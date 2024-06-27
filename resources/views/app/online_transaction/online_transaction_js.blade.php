@@ -1,5 +1,12 @@
 <script>
     $(document).ready(function() {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+
 
         $('#OnlineTransactionb').DataTable({
             destroy: true,
@@ -32,27 +39,15 @@
             language: {
                 "lengthMenu": "_MENU_",
             }
-        })
-
-
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
         });
-
-        $('#filter_platform').select2({
-            width: "180px",
-            dropdownParent: $('#st_id_filter_parent')
-        });
-
-        $('#filter_status').select2({
-            width: "180px",
-            dropdownParent: $('#st_id_filter_parent')
+        //
+        $(document).delegate('#import_modal', 'click', function() {
+            $('#ImportModal').modal('show');
         });
 
         $('#f_import').on('submit' , function (e) {
             e.preventDefault();
+            jQuery.noConflict();
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
@@ -95,28 +90,70 @@
             });
         });
 
-        console.log($('#filter_platform').val());
+        var detail_table = $('#Detailtb').DataTable({
 
-        $('#ProductSuppliertb tbody').on('click', 'tr', function () {
-            var id = shopee_tables.row(this).data().id;
-            var ps_name = shopee_tables.row(this).data().ps_name;
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: '<"text-right"l>rt<"text-right"ip>',
+            buttons: [
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+            ],
+            ajax: {
+                url : "{{ url('transaksi_online_datatables_detail') }}",
+                data : function (d) {
+                    d.to_id = $('#to_id').val();
+                }
+            },
+            columns: [
+                { data: 'DT_RowIndex', name: 'to_id'},
+                { data: 'article', name: 'article'},
+                { data: 'ps_barcode', name: 'ps_barcode'},
+                { data: 'to_qty', name: 'to_qty'},
+                { data: 'shopee_price', name: 'shopee_price'},
+                { data: 'jez_price', name: 'jez_price'},
+                { data: 'gap_price', name: 'gap_price'},
+                { data: 'total_discount', name: 'total_discount'},
+                { data: 'final_price', name: 'final_price'},
+            ],
+            columnDefs: [
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
+            language: {
+                "lengthMenu": "_MENU_",
+            },
+            order: [[0, 'desc']],
+        });
+        jQuery.noConflict();
+        // $('#OnlineTransactionb tbody').on('click', 'tr', function () {
+        //     // jQuery.noConflict();
+        //     console.log('tes');
+        //     var to_id = $(this).attr('data-to_id');
+        //     $('#to_id').val(to_id);
+        //
+        //     console.log(to_id)
+        //
+        //     $('#DetailModal').on('show.bs.modal', function() {
+        //         detail_table.draw(false);
+        //     }).modal('show');
+        // });
 
-            jQuery.noConflict();
-            $('#ProductSupplierModal').modal('show');
-            $('#ps_name').val(ps_name);
-            $('#ps_pkp').val(ps_pkp);
-            $('#ps_due_day').val(ps_due_day);
-            $('#ps_email').val(ps_email);
-            $('#ps_phone').val(ps_phone);
-            $('#ps_address').val(ps_address);
-            $('#ps_description').val(ps_description);
-            $('#ps_npwp').val(ps_npwp);
-            $('#ps_rekening').val(ps_rekening);
-            $('#_id').val(id);
-            $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_product_supplier_btn').show();
-            @endif
+        $(document).delegate('#detail_btn', 'click', function() {
+            console.log('tes');
+            var to_id = $(this).attr('data-to_id');
+            var num_order = $(this).attr('data-num_order');
+            $('#to_id').val(to_id);
+            $('#num_order').text(num_order);
+
+            console.log(to_id)
+
+            $('#DetailModal').on('show.bs.modal', function() {
+                detail_table.draw(false);
+            }).modal('show');
         });
 
         $('#download_template_shopee').on('click', function () {
@@ -127,9 +164,6 @@
             console.log('Halo tiktok');
         });
 
-        console.log(filter_platform.value)
-        if (filter_platform.value != '' && filter_status.value != '') {
-            console.log('Halooo')
-        }
+
     });
 </script>

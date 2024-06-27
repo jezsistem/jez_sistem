@@ -102,7 +102,7 @@ class StockTransferController extends Controller
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
             ->where('pl_id', '=', $request->pl_id)
-            ->where('pls_qty', '>', '0')
+//            ->where('pls_qty', '>', '0')
             ->groupBy('products.id'))
             ->editColumn('article', function($data){
                 return '<span style="white-space: nowrap;">'.$data->p_name.'<br/>'.$data->p_color.'</span>';
@@ -115,7 +115,7 @@ class StockTransferController extends Controller
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_location_setups.pl_id', '=', $request->pl_id)
                 ->where('product_stocks.p_id', '=', $data->p_id)
-                ->where('pls_qty', '>', 0)
+//                ->where('pls_qty', '>', 0)
                 ->get();
                 if (!empty($check_pst)){
                     $sz_name = '';
