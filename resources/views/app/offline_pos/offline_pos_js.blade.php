@@ -2318,7 +2318,7 @@
             }
         });
 
-        jQuery('#pm_id_offline').on('change', function(e) {
+        jQuery('#pm_id_offline').on('change', function(e) {            
             e.preventDefault();
             var label = jQuery('#pm_id_offline option:selected').text();
             if (label == 'DEBIT CARD') {
@@ -2333,6 +2333,7 @@
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
+                jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             } else if (label == 'CREDIT CARD') {
                 jQuery('#card_provider_content').removeClass('d-none');
                 jQuery('#card_provider_content').addClass('d-flex');
@@ -2343,6 +2344,7 @@
                 jQuery('#return_payment').text('');
                 jQuery('#charge_label').addClass('d-flex');
                 jQuery('#charge_label').removeClass('d-none');
+                jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             } else if (label == 'CASH') {
                 jQuery('#card_provider_content').addClass('d-none');
                 jQuery('#card_provider_content').removeClass('d-flex');
@@ -2354,6 +2356,7 @@
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
+                jQuery('#total_payment').val('');
             } else {
                 jQuery('#card_number_label').addClass('d-none');
                 jQuery('#card_number_label').removeClass('d-flex');
@@ -2366,6 +2369,7 @@
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
+                jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             }
         });
 
