@@ -970,51 +970,49 @@
         var bin = $('#pl_id_out option:selected').text();
         var secret_code = $('#u_secret_code').val();
         var status = $(this).attr('data-status');
-        if (current_qty >= 0) {
-            swal({
-                title: "Keluar..?",
-                text: "Yakin keluarin produk " + p_name + " dari BIN " + bin + " ?",
-                icon: "warning",
-                buttons: [
-                    'Batal',
-                    'Yakin'
-                ],
-                dangerMode: false,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
-                    $(this).prop('disabled', true);
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        swal({
+            title: "Keluar..?",
+            text: "Yakin keluarin produk " + p_name + " dari BIN " + bin + " ?",
+            icon: "warning",
+            buttons: [
+                'Batal',
+                'Yakin'
+            ],
+            dangerMode: false,
+        }).then(function(isConfirm) {
+            if (isConfirm) {
+                $(this).prop('disabled', true);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    data: {
+                        _plst_qty: plst_qty,
+                        _plst_id: plst_id,
+                        _pls_id: pls_id,
+                        _secret_code: secret_code,
+                        _status: status
+                    },
+                    dataType: 'json',
+                    url: "{{ url('save_out_activity') }}",
+                    success: function(r) {
+                        if (r.status == '200') {
+                            out_table.draw();
+                            $(this).prop('disabled', false);
+                            toast('Dikeluarkan', p_name + ' berhasil dikeluarkan',
+                                'success');
+                        } else {
+                            $(this).prop('disabled', false);
+                            swal('Gagal', 'Gagal keluar produk', 'error');
                         }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        data: {
-                            _plst_qty: plst_qty,
-                            _plst_id: plst_id,
-                            _pls_id: pls_id,
-                            _secret_code: secret_code,
-                            _status: status
-                        },
-                        dataType: 'json',
-                        url: "{{ url('save_out_activity') }}",
-                        success: function(r) {
-                            if (r.status == '200') {
-                                out_table.draw();
-                                $(this).prop('disabled', false);
-                                toast('Dikeluarkan', p_name + ' berhasil dikeluarkan',
-                                    'success');
-                            } else {
-                                $(this).prop('disabled', false);
-                                swal('Gagal', 'Gagal keluar produk', 'error');
-                            }
-                        }
-                    });
-                    return false;
-                }
-            })
-        }
+                    }
+                });
+                return false;
+            }
+        })
     });
 
     $(document).delegate('#scan_get_out_btn', 'click', function() {
