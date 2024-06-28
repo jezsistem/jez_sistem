@@ -112,7 +112,7 @@ class TransaksiOnlineController extends Controller
                     ->groupBy('to_id')
             )
                 ->editColumn('order_number', function ($data) {
-                    return '<a class="text-white" href="#" data-to_id="'.$data->to_id.'" data-num_order="'.$data->to_order_number.'" id="detail_btn"><span class="btn btn-sm btn-primary" >'.$data->to_order_number.'</span></a>';
+                    return '<a class="text-white" href="#" data-to_id="'.$data->to_id.'" data-status="'.$data->order_status.'" data-num_order="'.$data->to_order_number.'" id="detail_btn"><span class="btn btn-sm btn-primary" >'.$data->to_order_number.'</span></a>';
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();

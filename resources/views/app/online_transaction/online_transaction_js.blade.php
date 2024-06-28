@@ -129,32 +129,37 @@
             order: [[0, 'desc']],
         });
         jQuery.noConflict();
-        // $('#OnlineTransactionb tbody').on('click', 'tr', function () {
-        //     // jQuery.noConflict();
-        //     console.log('tes');
-        //     var to_id = $(this).attr('data-to_id');
-        //     $('#to_id').val(to_id);
-        //
-        //     console.log(to_id)
-        //
-        //     $('#DetailModal').on('show.bs.modal', function() {
-        //         detail_table.draw(false);
-        //     }).modal('show');
-        // });
 
         $(document).delegate('#detail_btn', 'click', function() {
             console.log('tes');
             var to_id = $(this).attr('data-to_id');
             var num_order = $(this).attr('data-num_order');
+            var status = $(this).attr('data-status');
             $('#to_id').val(to_id);
             $('#num_order').text(num_order);
+            $('#status_pesanan').val(status);
 
-            console.log(to_id)
+            if(status == 'Batal'){
+                $('#add_item_detail_btn').hide();
+            } else {
+                $('#add_item_detail_btn').show();
+            }
 
             $('#DetailModal').on('show.bs.modal', function() {
                 detail_table.draw(false);
             }).modal('show');
         });
+
+        $(document).delegate('#add_item_detail_btn', 'click', function() {
+            let to_id = $('#to_id').val();
+            let no_pesanan = $('#num_order').text();
+
+            console.log(no_pesanan);
+            $('#add_item_to_id').val(to_id);
+            $('#no_pesanan').val(no_pesanan);
+            $('#DetailModal').modal('hide');
+            $('#addItemModal').modal('show');
+        })
 
         $('#download_template_shopee').on('click', function () {
             console.log('Halo');
