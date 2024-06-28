@@ -235,10 +235,9 @@ class TransaksiOnlineController extends Controller
 
                 $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
 
-                $transaction = 0;
-
                 if ($get_order_number == 0) {
                     $processedData[] = $rowData;
+                    if ($rowData['order_status'] != 'Cancel' || $rowData['order_status'] != 'Batal' || $rowData['order_status'] != 'Cancel')
                     OnlineTransactions::create($rowData);
                 } else {
                     $id_trx = OnlineTransactions::select('id', 'order_number')
@@ -247,11 +246,6 @@ class TransaksiOnlineController extends Controller
                     OnlineTransactions::where('id', $id_trx->id)->update($rowData);
                     $insert_id = $id_trx->id;
                 }
-
-//                $get_sku_detail = OnlineTransactionDetails::where('order_number', $order_number)
-//                    ->where('sku', $sku)
-//                    ->count();
-
             }
 
             foreach ($data as $item){
@@ -379,7 +373,6 @@ class TransaksiOnlineController extends Controller
                     $processedDetail[] = $rawDetail;
                     TransaksiOnlineDetail::create($rawDetail);
                 } else {
-//                    TransaksiOnline::create($rowData);
                     if (!empty($rowData['resi_number'])) {
                         $newTransaksi = TransaksiOnline::create($rowData);
 

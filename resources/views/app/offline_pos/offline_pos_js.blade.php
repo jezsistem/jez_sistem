@@ -2537,7 +2537,7 @@
             jQuery('#admin_cost').val('');
             jQuery('#another_cost').val('');
             jQuery('#real_price').val('');
-            jQuery('#cross_order').val(1);
+            jQuery('#cross_order').val('');
             jQuery('#discount_seller').val('');
         });
 
