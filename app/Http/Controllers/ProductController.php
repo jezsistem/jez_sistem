@@ -651,7 +651,7 @@ class ProductController extends Controller
         }
 
         if ($this->runningCodeExists($new_running_code)) {
-            return generateRunningCode();
+            return $this-> generateRunningCode();
         }
         return $new_running_code;
     }
@@ -879,18 +879,16 @@ class ProductController extends Controller
             if (request()->hasFile('p_template')) {
                 $import = new ProductImport;
                 Excel::import($import, request()->file('p_template'));
-
-                
-                if ($import->getRowCount() >= 0) {                    
+                if ($import->getRowCount() >= 0) {
                     if (empty($import->getSameArticleId())) {
                         $r['status'] = '200';
                     } else {
                         $r['status'] = '419';
                         $r['same_article_id'] = $import->getSameArticleId();
                     }
-                } else {                    
+                } else {
                     $r['status'] = '400';
-                    $r['error_messages'] = $import->getErrorMessages();                    
+                    $r['error_messages'] = $import->getErrorMessages();
                 }
             } else {
                 $r['status'] = '400';
