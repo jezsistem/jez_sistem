@@ -18,7 +18,7 @@
                     <td>
                         {{ $no }}
                     </td>
-                    <td style="white-space: nowrap;">[{{ $row->br_name }}]<br/>{{ $row->p_name }}
+                    <td style="white-space: nowrap;">[{{ $row->br_name }}]<br/>{{ $row->articleid }} - {{ $row->p_name }}
                         <br/>{{ $row->p_color }}<br/>
                         @if ($row->poa_reminder != '' || $row->poa_reminder != 0000-00-00)
                             {{ date('M Y', strtotime($row->poa_reminder)) }}
