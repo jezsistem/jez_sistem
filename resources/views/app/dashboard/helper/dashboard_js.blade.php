@@ -432,6 +432,8 @@
         ],
     });
 
+    var scanInTbEnterPressed = false;
+
     var scan_in_table = $('#ScanIntb').DataTable({
         destroy: true,
         processing: false,
@@ -441,7 +443,6 @@
         ajax: {
             url: "{{ url('scan_product_in_datatables') }}",
             data: function(d) {
-                // d.pl_id = $('#pl_id_out').val();
                 d.search = $('#scan_in_search').val();
                 d.st_id = $('#st_id').val();
                 d.waiting = $('#waiting_filter').val();
@@ -451,7 +452,7 @@
             data: 'article',
             name: 'article',
             sortable: false
-        }, ],
+        }],
         columnDefs: [{
             "targets": 0,
             "className": "text-left",
@@ -461,61 +462,87 @@
             [0, 'desc']
         ],
         drawCallback: function(settings) {
-
-
             var api = this.api();
             $('#scan_in_search').off('keyup').on('keyup', function(event) {
                 if (event.keyCode === 13) {
-                    var rowsData = api.rows({
-                        page: 'current'
-                    }).data();
-
-                    var scan_in_data = [];
-
-                    if (rowsData.length > 0) {
-                        var rowData = rowsData[0];
-
-                        scan_in_data.push({
-                            _plst_id: rowData.plst_id,
-                            _pls_id: rowData.pls_id,
-                            _qty: rowData.plst_qty,
-                        });
-
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            }
-                        });
-
-                        var item = scan_in_data[0]; // Only process the first item
-
-                        $.ajax({
-                            url: "{{ url('save_in_activity') }}",
-                            type: "POST",
-                            data: {
-                                _plst_id: item._plst_id,
-                                _pls_id: item._pls_id,
-                                _qty: item._qty,
-                            },
-                            success: function(response) {
-                                var responseObject = JSON.parse(response);
-                                var status = responseObject.status;
-
-                                if (status == 200) {
-                                    $('#scan_in_search').val('');
-                                    scan_in_table.draw();
-                                    toast('Dikeluarkan', ' berhasil dimasukkan',
-                                        'success');
-                                } else {
-                                    $('#scan_in_search').val('');
-                                    swal('Gagal', 'Gagal masuk produk', 'error');
-                                }
-                            },
-                        });
-                    }
+                    scanInTbEnterPressed = true;
+                    api.search(this.value).draw();
                 }
             });
         }
+    });
+
+
+    $('#ScanIntb').on('draw.dt', function() {
+        if (!scanInTbEnterPressed) {
+            return;
+        }
+
+        // if input is empty, do nothing
+        if ($('#scan_in_search').val().trim() === '') {
+            return;
+        }
+
+        scanInTbEnterPressed = false;
+
+        var rowsData = scan_in_table.rows({
+            page: 'current'
+        }).data();
+        var scan_in_data = [];
+
+        if (rowsData.length > 0) {
+            var rowData = rowsData[0];
+
+            scan_in_data.push({
+                _plst_id: rowData.plst_id,
+                _pls_id: rowData.pls_id,
+                _qty: rowData.plst_qty,
+            });
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            var item = scan_in_data[0]; // Only process the first item
+
+            $.ajax({
+                url: "{{ url('save_in_activity') }}",
+                type: "POST",
+                data: {
+                    _plst_id: item._plst_id,
+                    _pls_id: item._pls_id,
+                    _qty: item._qty,
+                },
+                success: function(response) {
+                    var responseObject = JSON.parse(response);
+                    var status = responseObject.status;
+                    $('#scan_in_search').val('');
+                    scan_in_table.ajax.reload();
+
+                    if (status == 200) {
+                        toast('Dikeluarkan', ' berhasil dimasukkan', 'success');
+                    } else {
+                        swal('Gagal', 'Gagal masuk produk', 'error');
+                    }
+                },
+            });
+        }
+    });
+
+    $('#scan_in_search').on('keyup', function(event) {
+        if (event.keyCode === 13 && this.value.trim() !== '') {
+            scanInTbEnterPressed = true;
+            scan_in_table.ajax.reload();
+        }
+
+        // check if the input is empty cannot enter
+        if (this.value.trim() === '') {
+            scanInTbEnterPressed = false;
+        }
+
+        scan_in_table.ajax.reload();
     });
 
 
@@ -579,50 +606,7 @@
         in_table.draw();
     });
 
-    $('#scan_in_search').on('keyup', function(event) {
-        scan_in_table.draw();
-        // if (event.keyCode === 13) {
-        // var scan_in_data = [];
 
-        // if (rowData) {
-        //     var current_qty = $(rowData.node()).attr('data-qty');
-        //     scan_in_data.push({
-        //         _plst_id: rowData.plst_id,
-        //         _pls_id: rowData.pls_id,
-        //         _qty: rowData.plst_qty,
-        //     });
-
-        //     $.ajaxSetup({
-        //         headers: {
-        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        //         }
-        //     });
-
-        //     var item = scan_in_data[0]; // Only process the first item
-
-        //     $.ajax({
-        //         url: "{{ url('save_in_activity') }}",
-        //         type: "POST",
-        //         data: {
-        //             _plst_id: item._plst_id,
-        //             _pls_id: item._pls_id,
-        //             _qty: item._qty,
-        //         },
-        //         success: function (response) {
-        //             var responseObject = JSON.parse(response);
-        //             var status = responseObject.status;
-
-        //             if (status == 200) {
-        //                 scan_in_table.draw();
-        //                 toast('Dikeluarkan', ' berhasil dimasukkan', 'success');
-        //             } else {
-        //                 swal('Gagal', 'Gagal masuk produk', 'error');
-        //             }
-        //         },
-        //     });
-        // }
-        // }
-    });
 
     $('#out_search').on('keyup', function() {
         out_table.draw();
