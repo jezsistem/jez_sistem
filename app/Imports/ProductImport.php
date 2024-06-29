@@ -93,6 +93,24 @@ class ProductImport implements ToCollection, WithStartRow
             $data_id = array();
             $status = 0;
 
+            // Fetch all necessary data in advance
+            $productCategories = ProductCategory::all()->keyBy('pc_name');
+            $productSubCategories = ProductSubCategory::all()->groupBy('pc_id')->map(function ($group) {
+                return $group->keyBy('psc_name');
+            });
+            $productSubSubCategories = ProductSubSubCategory::all()->groupBy('psc_id')->map(function ($group) {
+                return $group->keyBy('pssc_name');
+            });
+            $brands = Brand::all()->keyBy('br_name');
+            $productSuppliers = ProductSupplier::all()->keyBy('ps_name');
+            $productUnits = ProductUnit::all()->keyBy('pu_name');
+            $genders = Gender::all()->keyBy('gn_name');
+            $seasons = Season::all()->keyBy('ss_name');
+            $mainColors = MainColor::all()->keyBy('mc_name');
+            $sizes = Size::all()->groupBy('sz_schema')->map(function ($group) {
+                return $group->keyBy('sz_name');
+            });
+
             foreach ($row as $r) {
                 if ($r[0] == null) {
                     return null;
@@ -107,114 +125,20 @@ class ProductImport implements ToCollection, WithStartRow
 
                 $article_id = null;
                 $schema_size = $r[1];
-                $pc_id = null;
-                $psc_id = null;
-                $pssc_id = null;
-                $br_id = null;
-                $ps_id = null;
-                $pu_id = null;
-                $gn_id = null;
-                $ss_id = null;
-                $mc_id = null;
 
-                $product_category = ProductCategory::where('pc_name', '=', ltrim($r[3]));
-                if (!empty($product_category->first()->id)) {
-                    $pc_id = $product_category->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
+                $pc_id = $this->getId($productCategories, ltrim($r[3]), 'Product Category', $r[0]);
+                $psc_id = $this->getId($productSubCategories[$pc_id] ?? null, ltrim($r[4]),'PSC', $r[0]);
+                $pssc_id = $this->getId($productSubSubCategories[$psc_id] ?? null, ltrim($r[5]),'PSSC', $r[0]);
+                $br_id = $this->getId($brands, ltrim($r[6]),'Brand', $r[0]);
+                $ps_id = $this->getId($productSuppliers, ltrim($r[7]),'Supplier', $r[0]);
+                $pu_id = $this->getId($productUnits, ltrim($r[8]),'Product Unit', $r[0]);
+                $gn_id = $this->getId($genders, ltrim($r[9]),'Gender', $r[0]);
+                $ss_id = $this->getId($seasons, ltrim($r[10]),'Season Name', $r[0]);
+                $mc_id = $this->getId($mainColors, ltrim($r[12]),'Main Color', $r[0]);
+
+                if ($this->rows == -1) {
                     $status = -1;
-                    $this->error_messages[] = $r[0] . ' Product Category Not Found';
                     break;
-                    // dd($product_category);
-                }
-                $product_sub_category = ProductSubCategory::where('pc_id', $pc_id)->where('psc_name', '=', ltrim($r[4]));
-                if (!empty($product_sub_category->first()->id)) {
-                    $psc_id = $product_sub_category->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = -1;
-                    $this->error_messages[] = $r[0] . 'PSC Not Found';
-                    break;
-                    // dd($product_sub_category);
-                }
-                $product_sub_sub_category = ProductSubSubCategory::where('psc_id', $psc_id)->where('pssc_name', '=', ltrim($r[5]));
-                if (!empty($product_sub_sub_category->first()->id)) {
-                    $pssc_id = $product_sub_sub_category->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = 'PSSC Not Found';
-                    $this->error_messages[] = $r[0] . ' PSSC Not Found';
-                    break;
-                    // dd($product_sub_sub_category);
-                }
-                $brand = Brand::where('br_name', '=', ltrim($r[6]));
-                if (!empty($brand->first()->id)) {
-                    $br_id = $brand->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = 'Brand Not Found';
-                    $this->error_messages[] = $r[0] . ' Brand Not Found';
-                    break;
-                    // dd($brand);
-                }
-                $product_supplier = ProductSupplier::where('ps_name', '=', ltrim($r[7]));
-                if (!empty($product_supplier->first()->id)) {
-                    $ps_id = $product_supplier->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = 'Supplier Not Found';
-                    $this->error_messages[] = $r[0] . ' Supplier Not Found';
-                    break;
-                    // dd($product_supplier);
-                }
-                $product_unit = ProductUnit::where('pu_name', '=', ltrim($r[8]));
-                if (!empty($product_unit->first()->id)) {
-                    $pu_id = $product_unit->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = 'Product Unit Not Found';
-                    $this->error_messages[] = $r[0] . ' Product Unit Not Found';
-                    break;
-                    // dd($product_unit);
-                }
-                $gender = Gender::where('gn_name', '=', ltrim($r[9]));
-                if (!empty($gender->first()->id)) {
-                    $gn_id = $gender->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = 'Gender Not Found';
-                    $this->error_messages[] = $r[0] . ' Gender Not Found';
-                    break;
-                    // dd($gender);
-                }
-                $season = Season::where('ss_name', '=', ltrim($r[10]));
-                if (!empty($season->first()->id)) {
-                    $ss_id = $season->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = 'Seasson Name Not Found';
-                    $this->error_messages[] = $r[0] . ' Season Name Not Found';
-                    break;
-                    // dd($season);
-                }
-                $main_color = MainColor::where('mc_name', '=', ltrim($r[12]));
-                if (!empty($main_color->first()->id)) {
-                    $mc_id = $main_color->first()->id;
-                    $status += 1;
-                } else {
-                    $this->rows = -1;
-                    $status = 'Main Color Not Found';
-                    $this->error_messages[] = $r[0] . ' Main Color Not Found';
-                    break;
-                    // dd($main_color);
                 }
 
                 $p_id = DB::table('products')->insertGetId([
@@ -236,72 +160,51 @@ class ProductImport implements ToCollection, WithStartRow
                     'p_purchase_price' => ltrim($r[15]),
                     'p_sell_price' => ltrim($r[16]),
                     'p_delete' => '0',
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
 
                 $data_id[] = $p_id;
 
                 if (!empty($p_id)) {
                     $exp = explode('_', ltrim($r[17]));
-                    $count = (int)count($exp);
+                    foreach ($exp as $psData) {
+                        if (empty($psData)) {
+                            $this->setError($r[0], 'Product Stock Not Found');
+                            $status = -1;
+                            break;
+                        }
 
-                    for ($i = 0; $i <= $count; $i++) {
-                        if (empty($exp[$i])) {
-                            continue;
-                            $this->rows = -1;
-                            $this->error_messages[] = $r[0] . ' Product Stock Not Found';
+                        $exp_ps = explode('|', $psData);
+                        if (count($exp_ps) < 5) {
+                            $this->setError($r[0], 'Incomplete Product Stock Data');
+                            $status = -1;
                             break;
                         }
-                        $exp_ps = explode('|', $exp[$i]);
 
-                        $size = Size::where(['sz_schema' => $schema_size, 'sz_name' => $exp_ps[0]]);
-                        if (!empty($size->first()->id)) {
-                            $sz_id = $size->first()->id;
-                        } else {
-                            // continue;
-                            $this->rows = -1;
-                            $this->error_messages[] = $r[0] . ' Size ' . $exp_ps[0] . ' Not Found | ';
-                            $this->rows = -1;
+                        $sz_id = $this->getId($sizes[$schema_size] ?? null, $exp_ps[0], 'Size', false);
+                        if (empty($sz_id)) {
+                            $this->setError($r[0], 'Size ' . $exp_ps[0] . ' Not Found');
                             $status = -1;
                             break;
                         }
-                        if (empty($exp_ps[1])) {
-                            $barcode = null;
-                            $this->error_messages[] = $r[0] . ' Barcode ' . $exp_ps[1] . ' Empty | ';
-                            $this->rows = -1;
+
+                        $barcode = $this->getBarcode($exp_ps[1], $r[0]);
+                        $price_tag = $this->getPriceTag($exp_ps[2], $r[0]);
+                        $sell_price = $this->getSellPrice($exp_ps[3], $r[0]);
+                        $purchase_price = $this->getPurchasePrice($exp_ps[4], $r[0]);
+
+                        if ($this->rows == -1) {
                             $status = -1;
                             break;
-                        } else {
-                            $barcode = $exp_ps[1];
                         }
-                        if (empty($exp_ps[2])) {
-                            $price_tag = null;
-                            $this->error_messages[] = $r[0] . ' Price Tag ' . $exp_ps[2] . ' Empty | ';
-                            $this->rows = -1;
+
+                        if (ProductStock::where('ps_barcode', $barcode)->exists()) {
+                            $this->setError($r[0], 'Barcode ' . $barcode . ' Already Exists');
                             $status = -1;
                             break;
-                        } else {
-                            $price_tag = $exp_ps[2];
                         }
-                        if (empty($exp_ps[3])) {
-                            $sell_price = null;
-                            $this->error_messages[] = $r[0] . ' Sell Price ' . $exp_ps[3] . ' Empty | ';
-                            $this->rows = -1;
-                            $status = -1;
-                            break;
-                        } else {
-                            $sell_price = $exp_ps[3];
-                        }
-                        if (empty($exp_ps[4])) {
-                            $purchase_price = null;
-                            $this->error_messages[] = $r[0] . ' Purchase Price ' . $exp_ps[4] . ' Empty | ';
-                            $this->rows = -1;
-                            $status = -1;
-                            break;
-                        } else {
-                            $purchase_price = $exp_ps[4];
-                        }
+
                         ProductStock::create([
                             'p_id' => $p_id,
                             'sz_id' => $sz_id,
@@ -310,17 +213,15 @@ class ProductImport implements ToCollection, WithStartRow
                             'ps_price_tag' => $price_tag,
                             'ps_sell_price' => $sell_price,
                             'ps_purchase_price' => $purchase_price,
-                            'ps_running_code' => $this->generateRunningCode()
+                            'ps_running_code' => $this->generateRunningCode(),
                         ]);
                     }
                 } else {
-                    $this->rows = -1;
+                    $this->setError($r[0], 'Product Not Found');
                     $status = -1;
-                    $this->error_messages[] = $r[0] . ' Product Not Found';
                     break;
                 }
             }
-
 
             if ($status >= 0) {
                 DB::commit();
@@ -328,16 +229,76 @@ class ProductImport implements ToCollection, WithStartRow
             } else {
                 DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
                 DB::table('products')->whereIn('id', $data_id)->delete();
-                $this->rows = -1;                
+                $this->rows = -1;
                 DB::rollBack();
                 return '400';
             }
         } catch (\Exception $e) {
-            // dd($e->getMessage());
+            $this->setError($e->getMessage(), 'Error');
+            $this->rows = -1;
             DB::rollBack();
-            return $e->getMessage();
+            return '400';
         }
     }
+
+    private function getId($collection, $name, $errorMessage, $article_id, $required = true)
+
+    {
+        if ($collection && $collection->has($name)) {
+            return $collection->get($name)->id;
+        }
+
+        if ($required) {
+            $this->rows = -1;
+            $this->error_messages[] = $article_id.' '. $name . ' ' . $errorMessage . ' Not Found';
+
+        }
+
+        return null;
+    }
+
+    private function setError($row, $message)
+    {
+        $this->rows = -1;
+        $this->error_messages[] = $row . ' ' . $message;
+    }
+
+    private function getBarcode($value, $row)
+    {
+        if (empty($value)) {
+            $this->setError($row, 'Barcode Empty');
+            return null;
+        }
+        return $value;
+    }
+
+    private function getPriceTag($value, $row)
+    {
+        if (empty($value)) {
+            $this->setError($row, 'Price Tag Empty');
+            return null;
+        }
+        return $value;
+    }
+
+    private function getSellPrice($value, $row)
+    {
+        if (empty($value)) {
+            $this->setError($row, 'Sell Price Empty');
+            return null;
+        }
+        return $value;
+    }
+
+    private function getPurchasePrice($value, $row)
+    {
+        if (empty($value)) {
+            $this->setError($row, 'Purchase Price Empty');
+            return null;
+        }
+        return $value;
+    }
+
 
     public function getRowCount(): int
     {
