@@ -106,7 +106,7 @@ class ProductImport implements ToCollection, WithStartRow
                 }
 
                 $article_id = null;
-                $schema_size = null;
+                $schema_size = $r[1];
                 $pc_id = null;
                 $psc_id = null;
                 $pssc_id = null;
@@ -255,7 +255,7 @@ class ProductImport implements ToCollection, WithStartRow
                         }
                         $exp_ps = explode('|', $exp[$i]);
 
-                        $size = Size::where(['psc_id' => $psc_id, 'sz_name' => $exp_ps[0]]);
+                        $size = Size::where(['sz_schema' => $schema_size, 'sz_name' => $exp_ps[0]]);
                         if (!empty($size->first()->id)) {
                             $sz_id = $size->first()->id;
                         } else {
