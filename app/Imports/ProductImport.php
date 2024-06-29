@@ -328,8 +328,7 @@ class ProductImport implements ToCollection, WithStartRow
             } else {
                 DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
                 DB::table('products')->whereIn('id', $data_id)->delete();
-                $this->rows = -1;
-                dd($this->error_messages);
+                $this->rows = -1;                
                 DB::rollBack();
                 return '400';
             }
