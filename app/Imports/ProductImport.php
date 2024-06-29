@@ -242,6 +242,7 @@ class ProductImport implements ToCollection, WithStartRow
     }
 
     private function getId($collection, $name, $errorMessage, $article_id, $required = true)
+
     {
         if ($collection && $collection->has($name)) {
             return $collection->get($name)->id;
@@ -250,6 +251,7 @@ class ProductImport implements ToCollection, WithStartRow
         if ($required) {
             $this->rows = -1;
             $this->error_messages[] = $article_id.' '. $name . ' ' . $errorMessage . ' Not Found';
+
         }
 
         return null;
