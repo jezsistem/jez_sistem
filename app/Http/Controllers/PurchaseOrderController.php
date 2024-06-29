@@ -95,7 +95,7 @@ class PurchaseOrderController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
-            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')->where('st_name' ,'NOT LIKE', '%ONLINE%')
             ->where('st_delete', '!=', '1')
             ->orderByDesc('sid')->pluck('store', 'sid'),
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
@@ -565,7 +565,7 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
-    public function upladImageInvoice(Request $request)
+    public function uploadImageInvoice(Request $request)
     {
 
         $po_id = $request->_po_id;
