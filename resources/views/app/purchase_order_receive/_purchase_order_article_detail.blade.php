@@ -25,13 +25,13 @@
                         @endif
                     </td>
                     <td style="white-space: nowrap;">
-                        <input type="text" style="width:65px;" value="Disc" readonly/><input type="text"
+                        <input type="text" style="width:65px;" value="Disc" readonly/><input disabled type="text"
                                                                                              name="poa_discount"
                                                                                              id="poa_discount{{ $row->poa_id }}"
                                                                                              style="width:33px;"
                                                                                              value="{{ $row->poa_discount }}"
                                                                                              onchange="return discount( {{ $row->poa_id }} )"/><br/>
-                        <input type="text" style="width:65px;" value="Ex. Disc" readonly/><input type="text"
+                        <input type="text" style="width:65px;" value="Ex. Disc" readonly/><input disabled type="text"
                                                                                                  name="poa_extra_discount"
                                                                                                  id="poa_extra_discount{{ $row->poa_id }}"
                                                                                                  style="width:33px;"
