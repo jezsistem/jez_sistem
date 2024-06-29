@@ -207,7 +207,7 @@
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between" id="ref_number_label">
                         <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
-                            <span class="btn-sm btn-primary">Kode Referensi</span>
+                            <span class="btn-sm btn-primary">Nama Rekening Pengirim</span>
                         </th>
                         <td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
                             <input class="bg-light-primary" type="text" placeholder="" id="ref_number"/>
@@ -261,7 +261,7 @@
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between" id="ref_number_label_two">
                         <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
-                            <span class="btn-sm btn-info">Kode Referensi</span>
+                            <span class="btn-sm btn-info">Nama Rekening Pengirim</span>
                         </th>
                         <td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
                             <input class="bg-light-primary" type="text" placeholder="" id="ref_number_two"/>

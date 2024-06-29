@@ -77,7 +77,8 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span id="num_order"></span></h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span
+                            id="num_order"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -86,7 +87,10 @@
                 <div class="card-body table-responsive">
                     <!--begin: Datatable-->
                     <input type="hidden" id="to_id" value=""/>
-                    <a href="#" class="btn btn-dark font-weight-bolder" id="add_product_sub_sub_category_btn">
+                    <input type="hidden" id="status_pesanan" value=""/>
+
+{{--                    @if() @endif--}}
+                    <button class="btn btn-dark font-weight-bolder" id="add_item_detail_btn">
                                 <span class="svg-icon svg-icon-md">
                                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -99,7 +103,8 @@
                                         </g>
                                     </svg>
                                     <!--end::Svg Icon-->
-                                </span>Tambah Item</a>
+                                </span>Tambah Item
+                    </button>
                     <table class="table table-hover" id="Detailtb">
                         <thead class="bg-light text-dark">
                         <tr>
@@ -123,6 +128,42 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal-->
+<div class="modal fade" id="addItemModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Tambah Item Pesanan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="add_item_to_id" value=""/>
+                <div class="form-group mb-1 pb-1">
+                    <label for="exampleTextarea">Nomer Pesanan</label>
+                    <input type="text" class="form-control" id="no_pesanan" name="no_pesanan" required disabled />
+                </div>
+                <div class="form-group mb-1 pb-1">
+                    <label for="exampleTextarea">Berat*</label>
+                    <input type="number" class="form-control" id="pssc_weight" name="pssc_weight" required />
+                </div>
+                <div class="form-group mb-1 pb-1">
+                    <label for="exampleTextarea">Deskripsi</label>
+                    <input type="text" class="form-control" id="pssc_description" name="pssc_description"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold">Tutup</button>
+                <button type="button" class="btn btn-dark font-weight-bold">Tambah</button>
             </div>
         </div>
     </div>
