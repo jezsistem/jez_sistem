@@ -1098,7 +1098,6 @@
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
-
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
                         swal('Berhasil', 'Data berhasil diimport', 'success');
@@ -1106,14 +1105,16 @@
                         product_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                    
+
                         if (data.error_messages && data.error_messages.length > 0) {
                             var errorMessageHtml = '';
-                            data.error_messages.forEach(function(message) {                                
-                                errorMessageHtml += message;
+                            data.error_messages.forEach(function(message) {
+                                errorMessageHtml += '' + message + '';
                             });
-                                                                                    
-                            swal('File', 'File yang anda import kosong atau format tidak tepat:' +
+                            errorMessageHtml += '';
+
+                            swal('File',
+                                'File yang anda import kosong atau format tidak tepat:' +
                                 errorMessageHtml, 'warning')
                         } else {
                             swal('File',
@@ -1122,7 +1123,6 @@
                         }
 
                     } else {
-
                         if (data.same_article_id.length > 0) {
                             var same_article_id = [];
                             for (var i = 0; i < data.same_article_id.length; i++) {
@@ -1142,6 +1142,7 @@
                     }
                 },
                 error: function(data) {
+                    console.log(data);
                     swal('Error', data, 'error');
                 }
             });
@@ -1240,7 +1241,7 @@
                         success: function(r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Data berhasil dihapus",
-                                "success");
+                                    "success");
                                 $('#ProductModal').modal('hide');
                                 product_table.ajax.reload();
                             } else {
