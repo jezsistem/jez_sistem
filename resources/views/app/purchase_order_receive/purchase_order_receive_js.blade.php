@@ -80,7 +80,9 @@
             url: "{{ url('check_barcode_import')}}",
             success: function(r) {
                 // check r is empty or not
-                if(r.length > 0)
+                console.log(r);
+                console.log(r.length)
+                if(r.length > 2)
                 {
                     swal({
                         title: "Barcode tidak ditemukan",
