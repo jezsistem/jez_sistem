@@ -478,6 +478,11 @@
             return;
         }
 
+        // if input is empty, do nothing
+        if ($('#scan_in_search').val().trim() === '') {
+            return;
+        }
+
         scanInTbEnterPressed = false;
 
         var rowsData = scan_in_table.rows({
@@ -531,6 +536,13 @@
             scanInTbEnterPressed = true;
             scan_in_table.ajax.reload();
         }
+
+        // check if the input is empty cannot enter
+        if (this.value.trim() === '') {
+            scanInTbEnterPressed = false;
+        }
+
+        scan_in_table.ajax.reload();
     });
 
 
