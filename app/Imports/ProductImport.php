@@ -37,7 +37,7 @@ class ProductImport implements ToCollection, WithStartRow
 
     public function generateRunningCode()
     {
-        $check = ProductStock::select('ps_running_code')->orderByDesc('ps_running_code')->limitt(1)->get()->first();
+        $check = ProductStock::select('ps_running_code')->orderByDesc('ps_running_code')->limit(1)->get()->first();
         if (!empty($check)) {
             $current_running_code = $check->ps_running_code;
             $next_running_code = $current_running_code + 1;
@@ -75,7 +75,7 @@ class ProductImport implements ToCollection, WithStartRow
         }
 
         if ($this->runningCodeExists($new_running_code)) {
-            return generateRunningCode();
+            return $this->generateRunningCode();
         }
         return $new_running_code;
     }
@@ -88,6 +88,7 @@ class ProductImport implements ToCollection, WithStartRow
     public function collection(Collection $row)
     {
         try {
+            DB::beginTransaction();
             ++$this->rows;
             $data_id = array();
             $status = 0;
@@ -105,7 +106,7 @@ class ProductImport implements ToCollection, WithStartRow
                 }
 
                 $article_id = null;
-                $schema_size = null;
+                $schema_size = $r[1];
                 $pc_id = null;
                 $psc_id = null;
                 $pssc_id = null;
@@ -244,39 +245,60 @@ class ProductImport implements ToCollection, WithStartRow
                 if (!empty($p_id)) {
                     $exp = explode('_', ltrim($r[17]));
                     $count = (int)count($exp);
+
                     for ($i = 0; $i <= $count; $i++) {
                         if (empty($exp[$i])) {
                             continue;
-                            $this->rows = -1;                            
-                            $this->error_messages[] = $r[0] . 'Product Stock Not Found';                            
+                            $this->rows = -1;
+                            $this->error_messages[] = $r[0] . ' Product Stock Not Found';
                             break;
                         }
                         $exp_ps = explode('|', $exp[$i]);
-                        $size = Size::where(['psc_id' => $psc_id, 'sz_name' => $exp_ps[0]]);
+
+                        $size = Size::where(['sz_schema' => $schema_size, 'sz_name' => $exp_ps[0]]);
                         if (!empty($size->first()->id)) {
                             $sz_id = $size->first()->id;
                         } else {
-                            continue;
+                            // continue;
                             $this->rows = -1;
+                            $this->error_messages[] = $r[0] . ' Size ' . $exp_ps[0] . ' Not Found | ';
+                            $this->rows = -1;
+                            $status = -1;
                             break;
                         }
                         if (empty($exp_ps[1])) {
                             $barcode = null;
+                            $this->error_messages[] = $r[0] . ' Barcode ' . $exp_ps[1] . ' Empty | ';
+                            $this->rows = -1;
+                            $status = -1;
+                            break;
                         } else {
                             $barcode = $exp_ps[1];
                         }
                         if (empty($exp_ps[2])) {
                             $price_tag = null;
+                            $this->error_messages[] = $r[0] . ' Price Tag ' . $exp_ps[2] . ' Empty | ';
+                            $this->rows = -1;
+                            $status = -1;
+                            break;
                         } else {
                             $price_tag = $exp_ps[2];
                         }
                         if (empty($exp_ps[3])) {
                             $sell_price = null;
+                            $this->error_messages[] = $r[0] . ' Sell Price ' . $exp_ps[3] . ' Empty | ';
+                            $this->rows = -1;
+                            $status = -1;
+                            break;
                         } else {
                             $sell_price = $exp_ps[3];
                         }
                         if (empty($exp_ps[4])) {
                             $purchase_price = null;
+                            $this->error_messages[] = $r[0] . ' Purchase Price ' . $exp_ps[4] . ' Empty | ';
+                            $this->rows = -1;
+                            $status = -1;
+                            break;
                         } else {
                             $purchase_price = $exp_ps[4];
                         }
@@ -294,18 +316,25 @@ class ProductImport implements ToCollection, WithStartRow
                 } else {
                     $this->rows = -1;
                     $status = -1;
+                    $this->error_messages[] = $r[0] . ' Product Not Found';
                     break;
                 }
             }
+
+
             if ($status >= 0) {
+                DB::commit();
                 return '2000';
             } else {
                 DB::table('product_stocks')->whereIn('p_id', $data_id)->delete();
                 DB::table('products')->whereIn('id', $data_id)->delete();
-                $this->rows = -1;
+                $this->rows = -1;                
+                DB::rollBack();
                 return '400';
             }
         } catch (\Exception $e) {
+            // dd($e->getMessage());
+            DB::rollBack();
             return $e->getMessage();
         }
     }
