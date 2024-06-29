@@ -18,20 +18,20 @@
                     <td>
                         {{ $no }}
                     </td>
-                    <td style="white-space: nowrap;">[{{ $row->br_name }}]<br/>{{ $row->p_name }}
+                    <td style="white-space: nowrap;">[{{ $row->br_name }}]<br/>{{ $row->articleid }} - {{ $row->p_name }}
                         <br/>{{ $row->p_color }}<br/>
                         @if ($row->poa_reminder != '' || $row->poa_reminder != 0000-00-00)
                             {{ date('M Y', strtotime($row->poa_reminder)) }}
                         @endif
                     </td>
                     <td style="white-space: nowrap;">
-                        <input type="text" style="width:65px;" value="Disc" readonly/><input type="text"
+                        <input type="text" style="width:65px;" value="Disc" readonly/><input disabled type="text"
                                                                                              name="poa_discount"
                                                                                              id="poa_discount{{ $row->poa_id }}"
                                                                                              style="width:33px;"
                                                                                              value="{{ $row->poa_discount }}"
                                                                                              onchange="return discount( {{ $row->poa_id }} )"/><br/>
-                        <input type="text" style="width:65px;" value="Ex. Disc" readonly/><input type="text"
+                        <input type="text" style="width:65px;" value="Ex. Disc" readonly/><input disabled type="text"
                                                                                                  name="poa_extra_discount"
                                                                                                  id="poa_extra_discount{{ $row->poa_id }}"
                                                                                                  style="width:33px;"
