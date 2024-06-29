@@ -461,13 +461,15 @@
             [0, 'desc']
         ],
         drawCallback: function(settings) {
-            var api = this.api();
-            var rowsData = api.rows({
-                page: 'current'
-            }).data();
 
+
+            var api = this.api();
             $('#scan_in_search').off('keyup').on('keyup', function(event) {
                 if (event.keyCode === 13) {
+                    var rowsData = api.rows({
+                        page: 'current'
+                    }).data();
+
                     var scan_in_data = [];
 
                     if (rowsData.length > 0) {
