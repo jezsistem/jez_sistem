@@ -126,15 +126,15 @@ class ProductImport implements ToCollection, WithStartRow
                 $article_id = null;
                 $schema_size = $r[1];
 
-                $pc_id = $this->getId($productCategories, ltrim($r[3]), 'Product Category');
-                $psc_id = $this->getId($productSubCategories[$pc_id] ?? null, ltrim($r[4]), 'PSC');
-                $pssc_id = $this->getId($productSubSubCategories[$psc_id] ?? null, ltrim($r[5]), 'PSSC');
-                $br_id = $this->getId($brands, ltrim($r[6]), 'Brand');
-                $ps_id = $this->getId($productSuppliers, ltrim($r[7]), 'Supplier');
-                $pu_id = $this->getId($productUnits, ltrim($r[8]), 'Product Unit');
-                $gn_id = $this->getId($genders, ltrim($r[9]), 'Gender');
-                $ss_id = $this->getId($seasons, ltrim($r[10]), 'Season Name');
-                $mc_id = $this->getId($mainColors, ltrim($r[12]), 'Main Color');
+                $pc_id = $this->getId($productCategories, ltrim($r[3]), 'Product Category', $r[0]);
+                $psc_id = $this->getId($productSubCategories[$pc_id] ?? null, ltrim($r[4]),'PSC', $r[0]);
+                $pssc_id = $this->getId($productSubSubCategories[$psc_id] ?? null, ltrim($r[5]),'PSSC', $r[0]);
+                $br_id = $this->getId($brands, ltrim($r[6]),'Brand', $r[0]);
+                $ps_id = $this->getId($productSuppliers, ltrim($r[7]),'Supplier', $r[0]);
+                $pu_id = $this->getId($productUnits, ltrim($r[8]),'Product Unit', $r[0]);
+                $gn_id = $this->getId($genders, ltrim($r[9]),'Gender', $r[0]);
+                $ss_id = $this->getId($seasons, ltrim($r[10]),'Season Name', $r[0]);
+                $mc_id = $this->getId($mainColors, ltrim($r[12]),'Main Color', $r[0]);
 
                 if ($this->rows == -1) {
                     $status = -1;
@@ -241,7 +241,8 @@ class ProductImport implements ToCollection, WithStartRow
         }
     }
 
-    private function getId($collection, $name, $errorMessage, $required = true)
+    private function getId($collection, $name, $errorMessage, $article_id, $required = true)
+
     {
         if ($collection && $collection->has($name)) {
             return $collection->get($name)->id;
@@ -249,7 +250,8 @@ class ProductImport implements ToCollection, WithStartRow
 
         if ($required) {
             $this->rows = -1;
-            $this->error_messages[] = $name . ' ' . $errorMessage . ' Not Found';
+            $this->error_messages[] = $article_id.' '. $name . ' ' . $errorMessage . ' Not Found';
+
         }
 
         return null;
