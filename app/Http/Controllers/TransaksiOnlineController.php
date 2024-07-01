@@ -78,7 +78,6 @@ class TransaksiOnlineController extends Controller
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $data = [
             'title' => $title,
-//            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'subtitle' => 'tes',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
@@ -125,13 +124,12 @@ class TransaksiOnlineController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
-
     }
 
     public function detailDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'brands.br_name', 'p_color', 'sz_name', 'ps_barcode', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
                 ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->leftJoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -184,8 +182,6 @@ class TransaksiOnlineController extends Controller
             if (file_exists(public_path('excel/' . $nama_file))) {
                 unlink(public_path('excel/' . $nama_file));
             }
-
-
             return json_encode($r);
         } catch (\Exception $e) {
             unlink(public_path('excel/' . $nama_file));
