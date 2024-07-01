@@ -12,7 +12,6 @@ use App\Models\ProductLocation;
 use App\Models\ProductLocationSetup;
 use App\Models\Brand;
 use App\Models\Size;
-use App\Models\Store;
 use App\Models\StockTransfer;
 use App\Models\StockTransferDetail;
 use App\Models\PosTransaction;
