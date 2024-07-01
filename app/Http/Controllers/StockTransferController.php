@@ -437,8 +437,17 @@ class StockTransferController extends Controller
 
     public function reloadScanTransferInvoice()
     {
+        $st_id = Auth::user()->st_id;
+
+        $city = Store::where('id', $st_id)->get()->first();
         $data = [
-            'invoice' => StockTransfer::whereIn('stf_status', ['0', '3'])->orderByDesc('id')->pluck('stf_code', 'id'),
+            'invoice' => DB::table('stock_transfers')
+                ->join('stores', 'stock_transfers.st_id_start', '=', 'stores.id')
+                ->where('stores.st_code', '=', $city->st_code)
+                ->whereIn('stock_transfers.stf_status', ['0', '3'])
+                ->orderByDesc('stock_transfers.id')
+                ->pluck('stock_transfers.stf_code', 'stock_transfers.id')
+
         ];
         return view('app.dashboard.helper._reload_scan_transfer_invoice', compact('data'));
     }
