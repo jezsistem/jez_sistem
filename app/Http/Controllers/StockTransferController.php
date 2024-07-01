@@ -426,6 +426,7 @@ class StockTransferController extends Controller
         $data = [
             'invoice' => StockTransfer::whereIn('stf_status', ['0', '3'])
                 ->join('stores', 'stores.id', '=','stock_transfers.st_id_start')
+                ->where('st_code', $city)
                 ->orderByDesc('id')
                 ->pluck('stf_code', 'stock_transfers.id')
         ];
