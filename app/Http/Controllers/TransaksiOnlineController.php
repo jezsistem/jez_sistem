@@ -88,11 +88,6 @@ class TransaksiOnlineController extends Controller
 
     public function getDatatables(Request $request)
     {
-//        if (!empty($request->st_id)) {
-//            $st_id = $request->st_id;
-//        } else {
-//            $st_id = Auth::user()->st_id;
-//        }
         if(request()->ajax()) {
             return DataTables::of(
                 OnlineTransactions::select([
