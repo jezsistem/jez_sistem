@@ -424,12 +424,10 @@ class StockTransferController extends Controller
 
         $city = Store::where('id', $st_id);
         $data = [
-            'invoice' => DB::table('stock_transfers as t1')
-                ->join('stores as t2', 't1.st_id_start', '=', 't2.id')
-                ->where('t2.st_code', '=', $city)
-                ->whereIn('t1.stf_status', ['0', '3'])
-                ->orderByDesc('t1.id')
-                ->pluck('t1.stf_code', 't1.id')
+            'invoice' => StockTransfer::whereIn('stf_status', ['0', '3'])
+                ->join('stores', 'stores.id', '=','stock_transfers.st_id_start')
+                ->orderByDesc('id')
+                ->pluck('stf_code', 'stock_transfers.id')
         ];
         return view('app.dashboard.helper._reload_transfer_invoice', compact('data'));
     }
