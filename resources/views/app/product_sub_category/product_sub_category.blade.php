@@ -51,7 +51,7 @@
     <!--begin::Entry-->
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
-        <div class="container" id="product_sub_category_display" style="display:none;">
+        <div class="container" id="product_sub_category_display">
             <div class="row">
                 <div class="col-lg-12 col-xxl-12">
                     <!--begin::Card-->

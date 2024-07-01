@@ -18,7 +18,16 @@
     <link href="{{ asset('app') }}/assets/css/style.bundle.css?v1" rel="stylesheet" type="text/css" />
     <link href="{{ asset('app') }}/assets/css/themes/layout/header/base/light.css" rel="stylesheet" type="text/css" />
     <link href="{{ asset('app') }}/assets/css/themes/layout/aside/dark.css" rel="stylesheet" type="text/css" />
+
     <link rel="shortcut icon" href="{{ asset('logo') }}/fav.png" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="{{ asset('cdn/jquery.toast.min.css') }}" rel="stylesheet" type="text/css" >
+
+    <!-- DatePicker -->
+    <link href="{{ asset('app') }}/assets/css/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
+
+{{--    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>--}}
+{{--    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>--}}
+{{--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">--}}
+
 </head>

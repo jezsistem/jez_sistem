@@ -44,6 +44,7 @@ class UserShiftController extends Controller
 
     public function endShift(Request $request)
     {
+        $laba = $request->_laba_;
         try {
             $user = Auth::user();
 
@@ -52,7 +53,8 @@ class UserShiftController extends Controller
                 ->where('date', now()->format('Y-m-d'))
                 ->whereNull('end_time')
                 ->update([
-                    'end_time' => now(),
+                    'end_time'      => now(),
+                    'laba_shift'    => $laba
                 ]);
 
             return response()->json([
@@ -81,12 +83,14 @@ class UserShiftController extends Controller
             return response()->json([
                 'status' => '200',
                 'message' => 'Shift started',
+                'shiftStatus' => 1
             ], 200);
         }
 
         return response()->json([
             'status' => '404',
             'message' => 'Shift not started',
+            'shiftStatus' => 0
         ], 404);
     }
 }

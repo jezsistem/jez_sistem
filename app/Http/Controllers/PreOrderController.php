@@ -158,6 +158,41 @@ class PreOrderController extends Controller
                     }
                     return number_format($total_price);
                 })
+
+                //status pre order
+                ->editColumn('po_status', function($data){
+                    $poa = PreOrderArticle::where(['po_id' => $data->po_id])->get();
+                    if (!empty($poa)) {
+                        $total_qty = 0;
+                        $total_qty_receive = 0;
+                        foreach ($poa as $poa_row) {
+                            $poad = PreOrderArticleDetails::where(['poa_id' => $poa_row->id])->get();
+                            if (!empty($poad)) {
+                                foreach ($poad as $poad_row) {
+                                    $total_qty += $poad_row->poad_qty;
+                                    $poads = PurchaseOrderArticleDetailStatus::where(['poad_id' => $poad_row->id, 'poads_type' => 'IN'])->get();
+                                    if (!empty($poads)) {
+                                        foreach ($poads as $poads_row) {
+                                            $total_qty_receive += $poads_row->poads_qty;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if ($data->po_draft == '1') {
+                        return '<a class="btn btn-sm btn-warning">Draft</a>';
+                    } else {
+                        if ($total_qty == 0)
+                        {
+                            return '<a class="btn btn-sm btn-light-success">Done</a>';
+                        }else{
+                            return '<a class="btn btn-sm btn-primary">'.$total_qty.' Artikel</a>';
+
+                        }
+                    }
+                })
+                ->rawColumns(['po_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function($w) use($request){

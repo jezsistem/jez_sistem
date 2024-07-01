@@ -113,7 +113,7 @@ class WebSubCategoryController extends Controller
 
         if ($request->hasFile('psc_banner')) {
             $request->validate([
-                'psc_banner' => 'required|file|mimes:jpg,jpeg,png',
+                'psc_banner' => 'required|file|mimes:jpg,jpeg,tmp',
             ]);
             $image = $request->file('psc_banner');
             $input['fileName'] = time().'.'.$image->extension();
@@ -133,6 +133,27 @@ class WebSubCategoryController extends Controller
 
         $save = $sub_category->storeData($mode, $id, $data);
         if ($save) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function deleteImage(Request $request)
+    {
+        $id = $request->post('id');
+        $image = $request->post('image');
+        if(File::exists(public_path('api/sub_category/banner/'. $image))){
+            File::delete(public_path('api/sub_category/banner/'. $image));
+        }
+        if(File::exists(public_path('api/sub_category/banner/'. $image))){
+            File::delete(public_path('api/sub_category/banner/'. $image));
+        }
+        $brand = ProductSubCategory::where('id', '=', $id)->update([
+            'psc_banner' => ''
+        ]);
+        if (!empty($brand)) {
             $r['status'] = '200';
         } else {
             $r['status'] = '400';

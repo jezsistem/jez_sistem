@@ -644,5 +644,4 @@ class UserBackOfficeSeeder extends Seeder
             }
         }
     }
-
 }

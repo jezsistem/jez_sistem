@@ -411,6 +411,12 @@
             $('#ImportModal').modal('show');
         });
 
+        $(document).delegate('#import_data_scan_btn', 'click', function(e) {
+            e.preventDefault();
+            jQuery.noConflict();
+            $('#ImportScanModal').modal('show');
+        });
+
         $(document).delegate('#madj_btn', 'click', function(e) {
             e.preventDefault();
             var id = $(this).attr('data-id');

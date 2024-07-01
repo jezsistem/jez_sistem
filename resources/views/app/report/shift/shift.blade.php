@@ -89,6 +89,7 @@
                                         <th class="text-dark">Selesai</th>
                                         <th class="text-dark">Total Expected</th>
                                         <th class="text-dark">Total Actual</th>
+                                        <th class="text-dark">Actual Ending Cash</th>
                                         <th class="text-dark">Difference</th>
                                     </tr>
                                     </thead>

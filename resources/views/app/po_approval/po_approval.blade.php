@@ -64,7 +64,23 @@
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <input type="search" class="form-control  col-6" id="po_approval_search" placeholder="Cari po/invoice"/><br/>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="form-group col-6" style="padding-top:22px;">
+                                        <input type="search" class="form-control" id="po_approval_search" placeholder="Cari po/invoice"/><br/>
+                                    </div>
+
+                                    <div class="form-group ml-4" style="padding-top:22px;">
+                                        <select class="form-control" id="filter_status" name="filter_platform">
+                                            <option value="">- Pilih Status transaksi -</option>
+                                            <option value="Shopee">Approve</option>
+                                            <option value="TikTok">Menunggu Approval</option>
+                                        </select>
+                                        <div id="st_id_filter_parent"></div>
+                                    </div>
+
+                                </div>
+                            </div>
                             <table class="table table-hover table-checkable" id="APtb">
                                 <thead class="bg-light text-dark">
                                     <tr>

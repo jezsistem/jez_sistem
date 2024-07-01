@@ -386,7 +386,7 @@ class PurchaseOrderReceiveController extends Controller
                 'p_name',
                 'p_color',
                 'poa_discount',
-                'poa_extra_discount', 'poa_reminder')
+                'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid')
             ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->where(['po_id' => $po_id])->get();
@@ -551,10 +551,6 @@ class PurchaseOrderReceiveController extends Controller
         } else {
             $get_product = null;
         }
-
-//        $data = [
-//            'product' => $get_product,
-//        ];
 
 
         return json_encode($missingBarcode);

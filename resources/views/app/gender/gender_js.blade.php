@@ -11,7 +11,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'Brt<"text-right"ip>',
+            dom: 'lBrt<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
@@ -26,7 +26,8 @@
             { data: 'gn_name', name: 'gn_name' },
             { data: 'created_at', name: 'created_at' },
             { data: 'updated_at', name: 'updated_at' },
-            ], 
+            ],
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             columnDefs: [
             {
                 "targets": 0,

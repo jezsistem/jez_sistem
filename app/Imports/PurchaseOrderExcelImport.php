@@ -33,7 +33,7 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
     /**
      * @param Collection $row
      */
-    public function collection(Collection $row)
+    public function  collection(Collection $row)
     {
         $productStocks = [];
         $sizes = [];
@@ -51,7 +51,7 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
         }
 
         // Process rows
-        foreach ($row as $value) {
+            foreach ($row as $value) {
             $sku = ltrim($value[2]);
             $variantName = ltrim($value[1]);
             $variantDesc = ltrim($value[6]);

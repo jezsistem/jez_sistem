@@ -1,6 +1,6 @@
 <head>
 	<meta charset="utf-8" />
-	<title>TOPSYSTEM | Point Of Sale</title>
+	<title>JEZ SYSTEM | Point Of Sale</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 	<meta name="description" content="Updates and statistics" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />

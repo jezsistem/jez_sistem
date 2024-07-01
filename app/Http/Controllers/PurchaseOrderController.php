@@ -95,7 +95,7 @@ class PurchaseOrderController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
-            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')->where('st_name' ,'NOT LIKE', '%ONLINE%')
             ->where('st_delete', '!=', '1')
             ->orderByDesc('sid')->pluck('store', 'sid'),
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
@@ -104,10 +104,11 @@ class PurchaseOrderController extends Controller
             'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
-            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_code', 'id'),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
             'pro_id' => PreOrder::getAllDataPO(),
             'segment' => request()->segment(1),
         ];
+//        dd($data['acc_id']);
         return view('app.purchase_order.purchase_order', compact('data'));
     }
 
@@ -276,6 +277,7 @@ class PurchaseOrderController extends Controller
             'po_draft' => '0',
             'created_at' => date('Y-m-d H:i:s'),
             'po_delete' => '0',
+//            'created_by' =>
         ]);
         if (!empty($po_id)) {
             $r['status'] = '200';
@@ -563,7 +565,7 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
-    public function upladImageInvoice(Request $request)
+    public function uploadImageInvoice(Request $request)
     {
 
         $po_id = $request->_po_id;

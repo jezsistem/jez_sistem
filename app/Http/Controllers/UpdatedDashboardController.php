@@ -1222,7 +1222,7 @@ class UpdatedDashboardController extends Controller
                     $w->where('product_locations.st_id', '!=', '4');
                 }
             })
-            ->whereIn('stkt_id', ['2'])
+            ->whereIn('stkt_id', ['2']) //Stkt_id 2 adalah CONSIGNMENT
             ->where('product_location_setups.pls_qty', '>', '0')
             ->groupBy('product_location_setups.id'))
             ->editColumn('purchase', function($data) {

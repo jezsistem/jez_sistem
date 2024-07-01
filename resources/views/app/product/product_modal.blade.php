@@ -15,7 +15,7 @@
                     <div class="form-group">
                         <label>Download Template
                         <span class="text-danger">*</span></label>
-                        <a href="{{ asset('upload/template/product_template_Article.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
+                        <a href="{{ asset('upload/template/artikel_template_import.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
                     </div>
                     <div class="form-group">
                         <label>Pilih template yang sudah di download dan diisi
@@ -113,7 +113,7 @@
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Supplier <span class="text-danger">*</span></label>
-                            <select class="form-control" id="ps_id" name="ps_id" required>
+                            <select class="form-control" id="ps_id" name="ps_id" multiple="" required>
                                 <option value="">- Pilih Supplier -</option>
                                 @foreach ($data['ps_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>

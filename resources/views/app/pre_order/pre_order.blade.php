@@ -115,7 +115,7 @@
                                         <th class="text-dark">Supplier</th>
                                         <th class="text-dark">Nomor Order</th>
                                         <th class="text-dark">Total</th>
-                                        <th class="text-dark">Status</th>
+                                        <th class="text-dark">Status In-Progress</th>
                                     </tr>
                                     </thead>
                                     <tbody>

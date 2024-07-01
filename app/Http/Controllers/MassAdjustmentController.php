@@ -86,6 +86,8 @@ class MassAdjustmentController extends Controller
             'br_id' => DB::table('brands')->where('br_delete', '!=', '1')->orderBy('br_name')->pluck('br_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
+//        dd(Auth::user()->st_id);
         return view('app.mass_adjustment.mass_adjustment', compact('data'));
     }
 
@@ -105,6 +107,7 @@ class MassAdjustmentController extends Controller
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->whereRaw('LOWER(p_name) NOT LIKE ?', ['%custom%'])
             ->where(function($w) use ($exception, $request) {
                 $st_id = $request->get('st_id');
                 $psc_id = $request->get('psc_id');
@@ -163,6 +166,63 @@ class MassAdjustmentController extends Controller
     }
 
     public function adjustmentDatatables(Request $request)
+    {
+        if(request()->ajax()) {
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at')
+            ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
+            ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
+            ->editColumn('ma_code_show', function ($d) {
+                return "<a class='btn btn-primary' id='madj_btn' data-id='".$d->id."'>".$d->ma_code."</a>";
+            })
+            ->editColumn('approve', function ($d) {
+                if (!empty($d->ma_approve)) {
+                    return DB::table('users')->where('id', '=', $d->ma_approve)->first()->u_name;
+                } else {
+                    return 'Menunggu Approval';
+                }
+            })
+            ->editColumn('editor', function ($d) {
+                if (!empty($d->ma_editor)) {
+                    return DB::table('users')->where('id', '=', $d->ma_editor)->first()->u_name;
+                } else {
+                    return '-';
+                }
+            })
+            ->editColumn('executor', function ($d) {
+                if (!empty($d->ma_executor)) {
+                    return DB::table('users')->where('id', '=', $d->ma_executor)->first()->u_name;
+                } else {
+                    return '-';
+                }
+            })
+            ->editColumn('created_at', function ($d) {
+                return date('d/m/Y H:i:s', strtotime($d->created_at));
+            })
+            ->editColumn('updated_at', function ($d) {
+                return date('d/m/Y H:i:s', strtotime($d->updated_at));
+            })
+            ->editColumn('ma_status', function ($d) {
+                if ($d->ma_status == '0') {
+                    return 'Menunggu Eksekusi';
+                } else {
+                    return 'Selesai';
+                }
+            })
+            ->rawColumns(['ma_code_show'])
+            ->filter(function ($instance) use ($request) {
+                if (!empty($request->get('search'))) {
+                    $instance->where(function($w) use($request){
+                        $search = $request->get('search');
+                        $w->orWhere('ma_code', 'LIKE', "%$search%");
+                    });
+                }
+            })
+            ->addIndexColumn()
+            ->make(true);
+        }
+    }
+
+    public function adjustmentDatatablesFilter(Request $request)
     {
         if(request()->ajax()) {
             return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at')
@@ -412,13 +472,16 @@ class MassAdjustmentController extends Controller
         $br_id = $req->get('br_id');
         $pl_id = $req->get('pl_id');
         $qty_filter = $req->get('qty_filter');
+
+//        $date = $req->get('datepick');
         return Excel::download(new MassExport($st_id, $psc_id, $br_id, $pl_id, $qty_filter), 'mass_adjustment_template.xlsx');
     }
 
     public function exportResult(Request $req)
     {
         $ma_id = $req->post('ma_id');
-        return Excel::download(new MassResult($ma_id), 'mass_adjustment_results.xlsx');
+        $date_now = date('Y-m-d H:i:s');
+        return Excel::download(new MassResult($ma_id), 'mass_adjustment_results-'.$date_now.'.xlsx');
     }
 
     public function importData(Request $req)
