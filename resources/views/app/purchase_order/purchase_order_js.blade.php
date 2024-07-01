@@ -59,6 +59,8 @@
         });
     }
 
+
+    //penerimaan kurang ini
     function poPurchasePrice(id, index, poad_id, po_id)
     {
         var qty = $('#poad_qty_'+id+'_'+index).val();
@@ -193,6 +195,7 @@
         });
     }
 
+    //hitung cogs baru
     function discount(id)
     {
         var discount = $('#poa_discount'+id).val();
