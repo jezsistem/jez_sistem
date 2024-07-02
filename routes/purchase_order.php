@@ -92,6 +92,7 @@ Route::middleware(['auth'])->group(function () {
         [POReceiveApprovalController::class, 'deleteData']
     );
     Route::post('apd_approve', [POReceiveApprovalController::class, 'approveData']);
+    Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
 
     Route::get('pre_order', [PreOrderController::class, 'index']);
     Route::get('pre_order_datatables', [PreOrderController::class, 'getDatatables']);

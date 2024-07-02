@@ -48,7 +48,7 @@
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: false,
+            responsive: true,
             dom: 'Brtl<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
@@ -63,6 +63,7 @@
             { data: 'DT_RowIndex', name: 'id', searchable: false},
             { data: 'created_at_show', name: 'created_at' },
             { data: 'poads_invoice', name: 'poads_invoice' },
+            { data: 'ps_barcode', name: 'ps_barcode' },
             { data: 'br_name', name: 'br_name' },
             { data: 'p_name', name: 'p_name' },
             { data: 'p_color', name: 'p_color' },
@@ -98,10 +99,26 @@
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
+
+            // call ajax apd_total_price 
+            $.ajax({
+                type: "GET",
+                data: {invoice:poads_invoice},
+                dataType: 'json',
+                url: "{{ url('apd_total_price')}}",
+                success: function(r) {
+                    console.log(r);
+                    $('#total_approval_price').text("Rp. " + r);
+                }
+            });
+                        
             $('#ApproveModal').modal('show');
             $('#invoice_label').text(poads_invoice.replace("&amp;", "&"));
+            
             apd_table.draw();
         });
+
+        
 
         $(document).delegate('#delete_poads', 'click', function(e){
             e.preventDefault();
