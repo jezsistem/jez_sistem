@@ -2176,6 +2176,8 @@
             jQuery('#unique_code').val('');
             if (b1g1_temp.length > 0) {
                 jQuery('#note').val('[B1G1]');
+
+                //note tes
             }
             // if (jQuery('#free_sock_customer_mode').val() == '1') {
             //     jQuery('#payment-offline-popup').modal('show');
