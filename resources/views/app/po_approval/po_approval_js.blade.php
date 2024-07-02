@@ -48,7 +48,7 @@
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: false,
+            responsive: true,
             dom: 'Brtl<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
@@ -63,6 +63,7 @@
             { data: 'DT_RowIndex', name: 'id', searchable: false},
             { data: 'created_at_show', name: 'created_at' },
             { data: 'poads_invoice', name: 'poads_invoice' },
+            { data: 'ps_barcode', name: 'ps_barcode' },
             { data: 'br_name', name: 'br_name' },
             { data: 'p_name', name: 'p_name' },
             { data: 'p_color', name: 'p_color' },

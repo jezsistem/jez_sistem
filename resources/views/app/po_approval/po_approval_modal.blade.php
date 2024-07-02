@@ -15,6 +15,7 @@
                             <th class="text-white">No</th>
                             <th class="text-white">Tanggal Terima</th>
                             <th class="text-white">Invoice</th>
+                            <th class="text-white">SKU</th>
                             <th class="text-white">Brand</th>
                             <th class="text-white">Artikel</th>
                             <th class="text-white">Warna</th>
