@@ -1031,6 +1031,7 @@
 
         $(document).delegate('#product_detail_btn', 'click', function() {
             var id = $(this).attr('data-id');
+            var article = $(this).attr('data-artilce');
             jQuery.noConflict();
             $('#ProductDetailModal').modal('show');
             $.ajaxSetup({
@@ -1041,7 +1042,8 @@
             $.ajax({
                 type: "POST",
                 data: {
-                    _id: id
+                    _id: id,
+                    _article: article
                 },
                 dataType: 'html',
                 url: "{{ url('product_detail') }}",
