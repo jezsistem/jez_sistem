@@ -5,6 +5,7 @@
         <tr>
             <th class="text-dark">No</th>
             <th class="text-dark">Artikel</th>
+            <th class="text-dark">Stok In (all cabang)</th>
             <th class="text-dark">Diskon</th>
             <th class="text-dark">Detail</th>
             <th class="text-dark">Total</th>
@@ -20,6 +21,11 @@
             <td style="white-space: nowrap;">
             [{{ $row->br_name }}] {{ $row->p_name }}<br/>{{ $row->p_color }} <img onclick="return deletePoa( {{ $row->poa_id }}, {{ $row->po_id }} )" src="{{ asset('cdn/details_close.png') }}"/><br/>
                 <input style="width:155px;" type="month" name="poa_reminder" id="poa_reminder{{ $row->poa_id }}" class="form-control" placeholder="Reminder" value="{{ $row->poa_reminder }}" onchange="return reminder( {{ $row->poa_id }} )"/>
+{{--                <input style="width:155px;" type="text" name="poa_reminder" id="poa_reminder{{ $row->poa_id }}" class="form-control" placeholder="Stok All" value="{{ $row->poa_reminder }}" onchange="return reminder( {{ $row->poa_id }} )"/>--}}
+            </td>
+            <td>
+{{--                {{dd($data['all_stok'])}}--}}
+                <input type="text" style="width:65px;" value="" readonly/>
             </td>
             <td style="white-space: nowrap;">
                 <input type="text" style="width:65px;" value="Disc" readonly/><input type="text" name="poa_discount" id="poa_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_discount }}" onchange="return discount( {{ $row->poa_id }} )"/><br/>

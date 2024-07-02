@@ -269,14 +269,34 @@
             order: [[0, 'desc']],
         });
 
+        function debounce(func, delay) {
+            let timeoutId;
+            return function(...args) {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                timeoutId = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        }
+
         stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn' ));
-        $('#stock_data_search').on('keyup', function() {
-            var query = jQuery(this).val();
-            if (jQuery.trim(query).length > 2) {
-                stock_data_table.draw();
-            } else if (jQuery.trim(query).length == 0) {
-                stock_data_table.draw();
-            }
+        // $('#stock_data_search').on('keyup', function() {
+        //     var query = jQuery(this).val();
+        //     if (jQuery.trim(query).length > 2) {
+        //         stock_data_table.draw();
+        //     } else if (jQuery.trim(query).length == 0) {
+        //         stock_data_table.draw();
+        //     }
+        // });
+        $(document).ready(function() {
+            $('#stock_data_search').on('keyup', debounce(function() {
+                var query = $(this).val();
+                if ($.trim(query).length > 2 || $.trim(query).length == 0) {
+                    stock_data_table.draw();
+                }
+            }, 300)); // Adjust the delay (300ms) as needed
         });
 
         $('#pick_data_search').on('keyup', function() {
@@ -608,11 +628,24 @@
 
         });
 
+        // $('#stock_data_search_scan').on('keyup', function(event) {
+        //     if(event.keyCode === 13) {
+        //         var query = jQuery(this).val();
+        //         stock_data_table.draw();
+        //     }
+        // });
+
+        let debounceTimeout;
+
         $('#stock_data_search_scan').on('keyup', function(event) {
-            if(event.keyCode === 13) {
-                var query = jQuery(this).val();
-                stock_data_table.draw();
-            }
+            clearTimeout(debounceTimeout);
+
+            debounceTimeout = setTimeout(function() {
+                if(event.keyCode === 13) {
+                    var query = jQuery('#stock_data_search_scan').val();
+                    stock_data_table.draw();
+                }
+            }, 300); // Adjust the delay as needed
         });
     });
 </script>
