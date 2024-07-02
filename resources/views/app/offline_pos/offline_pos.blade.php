@@ -26,7 +26,7 @@
                                     <input type="hidden" id="_pt_id" value="" />
                                     <input type="hidden" id="_pt_id_complaint" value="" />
                                     <input type="hidden" id="_exchange" value="" />
-                                    <input type="text" id="cross_order" value="0" />
+                                    <input type="hidden" id="cross_order" value="0" />
                                     <div class="selectmain bg-primary" style="padding:5px; border-radius:10px;">
                                         <label class="text-white d-flex font-weight-bold">Customer
                                             <span class="badge badge-success white rounded-circle" id="add_customer_btn"
@@ -44,7 +44,7 @@
                                             </span>
                                         </label>
                                         <input type="hidden" id="cust_id" value="1" />
-                                        <input type="text" id="cust_id" value="{{ Auth::user()->st_id }}" />
+                                        <input type="hidden" id="cust_id" value="{{ Auth::user()->st_id }}" />
                                         <input type="search" id="cust_id_label"
                                             placeholder="Ketik minimal 4 huruf customer" autocomplete="off" /> <a
                                             href="#" class="btn btn-inventory" data-id=""

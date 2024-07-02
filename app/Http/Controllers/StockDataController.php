@@ -259,7 +259,7 @@ class StockDataController extends Controller
                                 } else {
                                     $br = '<br/>';
                                 }
-                                $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id')
+                                $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
                                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                                 ->whereNotIn('pl_code', $exception)
 //                                ->where('pls_qty', '>=', '0')
@@ -268,12 +268,13 @@ class StockDataController extends Controller
                                 $bin = '';
                                 if (!empty($item_location)) {
                                     foreach ($item_location as $lrow) {
-                                        if ($lrow->pl_code == 'TOKO') {
+                                        if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
+//                                            $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
                                             $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
                                         }
-//                                        else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
-//                                            $bin .= '<span class="btn-sm-custom btn-warning" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">['.$lrow->pl_code.'] ('.$lrow->pls_qty.')</span> ';
-//                                        }
+                                        else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
+                                            $bin .= '<span class="btn-sm-custom btn-warning" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">['.$lrow->pl_code.'] ('.$lrow->pls_qty.')</span> ';
+                                        }
                                         else {
                                             $bin .= '<span title="['.$lrow->pl_code.'] '.$lrow->pl_name.'" class="btn-sm-custom btn-success" data-p_name="'.$row->p_name.' '.$row->p_color.' '.$srow->sz_name.'" data-pl_code="'.$lrow->pl_code.'" data-bin="'.$lrow->pl_code.' '.$lrow->pl_name.'" data-qty="'.$lrow->pls_qty.'" data-pst_id="'.$srow->pst_id.'" data-pl_id="'.$lrow->pl_id.'" data-pls_id="'.$lrow->pls_id.'" id="pickup_item">'.$lrow->pls_qty.'</span> ';
                                         }

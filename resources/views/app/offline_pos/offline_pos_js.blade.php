@@ -2043,7 +2043,70 @@
             return false;
         }
 
-        jQuery(document).delegate('#select_refund_exchange_item', 'click', function() {
+        // jQuery(document).delegate('#select_refund_exchange_item', 'click', function() {
+        //     var p_name = jQuery(this).attr('data-p_name');
+        //     var pst_id = jQuery(this).attr('data-pst_id');
+        //     var pt_id = jQuery(this).attr('data-pt_id');
+        //     var pl_id = jQuery(this).attr('data-pl_id');
+        //     var plst_id = jQuery(this).attr('data-plst_id');
+        //     var sell_price = jQuery(this).attr('data-sell_price');
+        //     var total_price_item = jQuery(this).attr('data-total_price');
+        //     var nameset_price = jQuery(this).attr('data-nameset_price');
+        //     var item_qty = jQuery(this).attr('data-item_qty');
+        //     var total_row = parseFloat(jQuery('#total_row').val());
+        //     jQuery('#total_row').val(total_row + 1);
+        //     var total_item = jQuery('#total_item_side').text();
+        //     var total_price = jQuery('#total_price_side').text();
+        //     if (jQuery(this).is(':checked')) {
+        //         jQuery('#_pt_id_complaint').val(pt_id);
+        //         jQuery('#total_item_side').text(parseInt(total_item) - 1);
+        //         jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
+        //             parseFloat(total_price_item)));
+        //         jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
+        //             parseFloat(total_price_item)));
+        //         addRefundExchangeList('add', plst_id, pt_id);
+        //         jQuery('#orderTable tr:last').after("" +
+        //             "<tr data-list-item class='bg-danger text-white pos_item_list mb-2' id='data_plst" +
+        //             plst_id + "'> " +
+        //             "<td style='white-space: nowrap;'>" + p_name + "</td> <td>" + item_qty +
+        //             "</td> " +
+        //             "<td><input type='number' class='form-control border-dark col-4 basicInput2" +
+        //             pst_id + "' id='item_qty" + (total_row + 1) + "' value='-" + item_qty +
+        //             "' onchange='return changeReturQty(" + (total_row + 1) + ", " + pst_id + ", " +
+        //             item_qty + ")'></td> " +
+        //             " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
+        //             pst_id + " discount_percentage' id='discount_percentage" + (total_row + 1) +
+        //             "' value='0' onchange='return changeDiscountPercentage(" + (total_row + 1) +
+        //             ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
+        //             " <td><input type='text' class='form-control border-dark col-8 basicInput2" +
+        //             pst_id + " discount_number' id='discount_number" + (total_row + 1) +
+        //             "' value='0' onchange='return changeDiscountNumber(" + (total_row + 1) + ", " +
+        //             pst_id + ", " + (pls_qty) + ")'></td>" +
+        //             "<td><input type='number' class='col-8 nameset_price' id='nameset_price" + (
+        //                 total_row + 1) + "' value='" + nameset_price +
+        //             "' onchange='return namesetPrice(" + (total_row + 1) + ")' readonly/></td> " +
+        //             "<td><span id='sell_price_item" + (total_row + 1) + "'>-" + addCommas(
+        //                 sell_price) + "</span></td> " +
+        //             "<td><span class='subtotal_item' id='subtotal_item" + (total_row + 1) + "'>-" +
+        //             addCommas(total_price_item) + "</span></td> " +
+        //             "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
+        //             (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) + ", " +
+        //             pst_id + ", " + sell_price + ", " + plst_id + ", " + pl_id + ")'>" +
+        //             "<i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
+        //     } else {
+        //         jQuery('#total_item_side').text(parseInt(total_item) + 1);
+        //         jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
+        //             parseFloat(total_price_item)));
+        //         jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
+        //             parseFloat(total_price_item)));
+        //         //alert(plst_id);
+        //         addRefundExchangeList('remove', plst_id, pt_id);
+        //         jQuery('#orderTable tr#data_plst' + plst_id + '').remove();
+        //     }
+        // });
+
+        jQuery(document).delegate('#select_refund_exchange_item', 'click', function()
+        {
             var p_name = jQuery(this).attr('data-p_name');
             var pst_id = jQuery(this).attr('data-pst_id');
             var pt_id = jQuery(this).attr('data-pt_id');
@@ -2054,54 +2117,23 @@
             var nameset_price = jQuery(this).attr('data-nameset_price');
             var item_qty = jQuery(this).attr('data-item_qty');
             var total_row = parseFloat(jQuery('#total_row').val());
-            jQuery('#total_row').val(total_row + 1);
+            jQuery('#total_row').val(total_row+1);
             var total_item = jQuery('#total_item_side').text();
             var total_price = jQuery('#total_price_side').text();
             if (jQuery(this).is(':checked')) {
                 jQuery('#_pt_id_complaint').val(pt_id);
                 jQuery('#total_item_side').text(parseInt(total_item) - 1);
-                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
-                    parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
-                    parseFloat(total_price_item)));
+                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
                 addRefundExchangeList('add', plst_id, pt_id);
-                jQuery('#orderTable tr:last').after("" +
-                    "<tr data-list-item class='bg-danger text-white pos_item_list mb-2' id='data_plst" +
-                    plst_id + "'> " +
-                    "<td style='white-space: nowrap;'>" + p_name + "</td> <td>" + item_qty +
-                    "</td> " +
-                    "<td><input type='number' class='form-control border-dark col-4 basicInput2" +
-                    pst_id + "' id='item_qty" + (total_row + 1) + "' value='-" + item_qty +
-                    "' onchange='return changeReturQty(" + (total_row + 1) + ", " + pst_id + ", " +
-                    item_qty + ")'></td> " +
-                    " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
-                    pst_id + " discount_percentage' id='discount_percentage" + (total_row + 1) +
-                    "' value='0' onchange='return changeDiscountPercentage(" + (total_row + 1) +
-                    ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
-                    " <td><input type='text' class='form-control border-dark col-8 basicInput2" +
-                    pst_id + " discount_number' id='discount_number" + (total_row + 1) +
-                    "' value='0' onchange='return changeDiscountNumber(" + (total_row + 1) + ", " +
-                    pst_id + ", " + (pls_qty) + ")'></td>" +
-                    "<td><input type='number' class='col-8 nameset_price' id='nameset_price" + (
-                        total_row + 1) + "' value='" + nameset_price +
-                    "' onchange='return namesetPrice(" + (total_row + 1) + ")' readonly/></td> " +
-                    "<td><span id='sell_price_item" + (total_row + 1) + "'>-" + addCommas(
-                        sell_price) + "</span></td> " +
-                    "<td><span class='subtotal_item' id='subtotal_item" + (total_row + 1) + "'>-" +
-                    addCommas(total_price_item) + "</span></td> " +
-                    "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
-                    (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) + ", " +
-                    pst_id + ", " + sell_price + ", " + plst_id + ", " + pl_id + ")'>" +
-                    "<i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
+                jQuery('#orderTable tr:last').after("<tr data-list-item class='bg-danger text-white pos_item_list mb-2' id='data_plst"+plst_id+"'> <td style='white-space: nowrap;'>"+p_name+"</td> <td>"+item_qty+"</td> <td><input type='number' class='form-control border-dark col-4 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='-"+item_qty+"' onchange='return changeReturQty("+(total_row+1)+", "+pst_id+", "+item_qty+")'></td> <td>asdjalsd</td> <td><input type='number' class='col-8 nameset_price' id='nameset_price"+(total_row+1)+"' value='"+nameset_price+"' onchange='return namesetPrice("+(total_row+1)+")' readonly/></td> <td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+", "+pl_id+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
             } else {
                 jQuery('#total_item_side').text(parseInt(total_item) + 1);
-                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
-                    parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
-                    parseFloat(total_price_item)));
+                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(total_price_item)));
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(total_price_item)));
                 //alert(plst_id);
                 addRefundExchangeList('remove', plst_id, pt_id);
-                jQuery('#orderTable tr#data_plst' + plst_id + '').remove();
+                jQuery('#orderTable tr#data_plst'+plst_id+'').remove();
             }
         });
 
