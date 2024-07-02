@@ -57,7 +57,7 @@ class ProductStockController extends Controller
             ->get();
 
         if ($data->count() > 0) {
-            $r['data'] = $article;
+            $r['data'] = $data;
             $r['cek'] = $data->count();
         } else {
             $r['data'] = $article;
