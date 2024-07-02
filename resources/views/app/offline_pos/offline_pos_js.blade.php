@@ -2176,6 +2176,8 @@
             jQuery('#unique_code').val('');
             if (b1g1_temp.length > 0) {
                 jQuery('#note').val('[B1G1]');
+
+                //note tes
             }
             // if (jQuery('#free_sock_customer_mode').val() == '1') {
             //     jQuery('#payment-offline-popup').modal('show');
@@ -2579,7 +2581,12 @@
             var item_type = jQuery('#item_type option:selected').val();
             var std_id = jQuery('#std_id').val();
             var st_id = jQuery('#st_id').val();
-            console.log(st_id);
+
+            if (st_id  == '') {
+                st_id = {{ Auth::user()->st_id}};
+                console.log(st_id);
+
+            }
             if (jQuery.trim(query) != '' || jQuery.trim(query) != null) {
                 if (jQuery.trim(query).length > 2) {
                     jQuery.ajaxSetup({
