@@ -35,10 +35,10 @@ class ProductStockController extends Controller
             ->join('stores as t3', 't2.st_id', '=', 't3.id')
             ->join('product_stocks as t4', 't1.pst_id', '=', 't4.id')
             ->join('products as t5', 't4.p_id', '=', 't5.id')
-            ->join('dev_jez_dev.sizes as ts', 't4.sz_id', '=', 'ts.id')
+            ->join('sizes as ts', 't4.sz_id', '=', 'ts.id')
             ->select('t1.pl_id', 't4.ps_barcode', 'ts.sz_name', DB::raw('SUM(t1.pls_qty) as qty'))
-            ->where('t5.article_id', $request->_p_id)
-            ->where('t3.st_code', $st_code)
+            ->where('t5.article_id', '=', $request->_p_id)
+            ->where('t3.st_code', '=',$st_code)
             ->groupBy('t1.pl_id', 't4.ps_barcode', 'sz_name')
             ->orderByRaw('CASE sz_name
                             WHEN "S" THEN 1
