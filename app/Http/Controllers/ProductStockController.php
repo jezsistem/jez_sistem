@@ -56,12 +56,12 @@ class ProductStockController extends Controller
             ->orderBy('sz_name', 'ASC')
             ->get();
 
-        if (!empty($data->first()->sz_id)) {
+        if ($data->count() > 0) {
             $r['data'] = $article;
-            $r['cek'] = $data;
+            $r['cek'] = $data->count();
         } else {
             $r['data'] = $article;
-            $r['cek'] = $data;
+            $r['cek'] = $data->count();
         }
         return json_encode($r);
     }
