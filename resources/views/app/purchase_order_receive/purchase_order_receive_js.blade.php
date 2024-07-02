@@ -101,6 +101,7 @@
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
         var shipping_cost = $('#shipping_cost').val();
+        var invoice_note = $('#invoice_note').val();
 
         if (receive_date == '') {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
@@ -151,6 +152,7 @@
                 formData.append('receive_date', receive_date);
                 formData.append('receive_invoice', receive_invoice);
                 formData.append('invoice_date', invoice_date);
+                formData.append('invoice_note', invoice_note);
                 formData.append('shipping_cost', shipping_cost);
                 formData.append('_st_id', st_id);
                 formData.append('_stkt_id', stkt_id);
@@ -189,6 +191,7 @@
                             $('#invoiceImage').val('');
                             $('#packetImage').val('');
                             $('#shipping_cost').val('');
+                            $('#invoice_note').val('');
                             reloadArticleDetail(po_id);
                             swal("Berhasil", "Data berhasil disimpan", "success");
                         } else {
@@ -558,12 +561,12 @@
         }
         total = parseFloat(qty) * parseFloat(purchase_price);
 
-        if (parseInt(qty) > parseInt(order_qty)) {
-            $('#poads_qty_'+id+'_'+index).val('');
-            swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
-            $('#total_purchase_price_receive'+id+'_'+index).val('')
-            return false;
-        }
+        // if (parseInt(qty) > parseInt(order_qty)) {
+        //     $('#poads_qty_'+id+'_'+index).val('');
+        //     swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
+        //     $('#total_purchase_price_receive'+id+'_'+index).val('')
+        //     return false;
+        // }
         $('#total_purchase_price_receive'+id+'_'+index).val(addCommas(total));
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive'+id+'_'+i).val()));
@@ -618,12 +621,12 @@
         }
         total = parseFloat(qty) * parseFloat(purchase_price);
 
-        if (parseInt(qty) > parseInt(order_qty)) {
-            $('#poads_qty_'+id+'_'+index).val('');
-            swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
-            $('#total_purchase_price_receive'+id+'_'+index).val('')
-            return false;
-        }
+        // if (parseInt(qty) > parseInt(order_qty)) {
+        //     $('#poads_qty_'+id+'_'+index).val('');
+        //     swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
+        //     $('#total_purchase_price_receive'+id+'_'+index).val('')
+        //     return false;
+        // }
         $('#total_purchase_price_receive'+id+'_'+index).val(addCommas(total));
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive'+id+'_'+i).val()));
