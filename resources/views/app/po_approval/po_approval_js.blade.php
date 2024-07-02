@@ -99,10 +99,26 @@
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
+
+            // call ajax apd_total_price 
+            $.ajax({
+                type: "GET",
+                data: {invoice:poads_invoice},
+                dataType: 'json',
+                url: "{{ url('apd_total_price')}}",
+                success: function(r) {
+                    console.log(r);
+                    $('#total_approval_price').text("Rp. " + r);
+                }
+            });
+                        
             $('#ApproveModal').modal('show');
             $('#invoice_label').text(poads_invoice.replace("&amp;", "&"));
+            
             apd_table.draw();
         });
+
+        
 
         $(document).delegate('#delete_poads', 'click', function(e){
             e.preventDefault();

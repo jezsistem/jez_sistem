@@ -34,6 +34,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $receive_invoice = $request->receive_invoice;
         $invoice_date = $request->invoice_date;
         $shipping_cost = $request->shipping_cost ?? 0;
+        $invoice_note = $request->invoice_note;
 
 
         $check = DB::table('purchase_order_article_detail_statuses')->insertGetId([
@@ -49,6 +50,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             'u_id_receive' => Auth::user()->id,
             'poads_invoice' => $receive_invoice,
             'invoice_date' => $invoice_date,
+            'invoice_note' => $invoice_note,
             'COGS' => $poads_cogs,
             'shipping_cost' => $shipping_cost ,
             'created_at' => $receive_date.' '.date('H:i:s'),

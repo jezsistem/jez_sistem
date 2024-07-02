@@ -200,4 +200,12 @@ class POReceiveApprovalController extends Controller
         $r['status'] = '200';
         return json_encode($r);
     }
+
+    // create total poads_total_price by poads_invoice
+    public function createTotalPrice(Request $request)
+    {
+        $total_price = DB::table('purchase_order_article_detail_statuses')->selectRaw('sum(poads_total_price) as total_price')
+        ->where('poads_invoice', '=', $request->invoice)->get()->first()->total_price;
+        return $total_price;
+    }
 }
