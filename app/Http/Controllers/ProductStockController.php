@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\ProductStock;
+use Illuminate\Support\Facades\DB;
 
 class ProductStockController extends Controller
 {
