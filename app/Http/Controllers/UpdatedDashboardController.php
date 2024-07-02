@@ -88,7 +88,6 @@ class UpdatedDashboardController extends Controller
             'segment' => request()->segment(1),
         ];
 
-        dd($data['st_id']);
         return view('app.updated_dashboard.dashboard', compact('data'));
     }
 
