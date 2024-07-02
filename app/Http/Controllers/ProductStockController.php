@@ -28,6 +28,8 @@ class ProductStockController extends Controller
 //        return json_encode($r);
         $st_id = Auth::user()->st_id;
 
+        $article = $request->_art;
+
         $st_code = Store::where('id', $st_id)->get()->first()->st_code;
 
         $data = DB::table('product_location_setups as t1')
@@ -36,8 +38,8 @@ class ProductStockController extends Controller
             ->join('product_stocks as t4', 't1.pst_id', '=', 't4.id')
             ->join('products as t5', 't4.p_id', '=', 't5.id')
             ->join('sizes as ts', 't4.sz_id', '=', 'ts.id')
-            ->select('t1.pl_id', 't4.ps_barcode', 'ts.sz_name', DB::raw('SUM(t1.pls_qty) as qty'))
-            ->where('t5.article_id', '=', $request->_p_id)
+            ->select('t1.pl_id', 't4.ps_barcode', 'ts.sz_name', DB::raw('SUM(pls_qty) as qty'), 'sz_id', 'ps_price_tag')
+            ->where('t5.article_id', '=', $article)
             ->where('t3.st_code', '=',$st_code)
             ->groupBy('t1.pl_id', 't4.ps_barcode', 'sz_name')
             ->orderByRaw('CASE sz_name
@@ -57,7 +59,7 @@ class ProductStockController extends Controller
         if (!empty($data->first()->sz_id)) {
             $r['data'] = $data;
         } else {
-            $r['data'] = '400';
+            $r['data'] = $data;
         }
         return json_encode($r);
     }
