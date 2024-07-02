@@ -91,8 +91,8 @@
                         <tr>
                             <th style="white-space: nowrap;">Size</th>
                             <th style="white-space: nowrap;">Stok</th>
-                            <th style="white-space: nowrap;">Barcode</th>
-                            <th style="white-space: nowrap;">Running Code</th>
+                            <th style="white-space: nowrap;">Barcode / Sku</th>
+                            <th style="white-space: nowrap;">Harga Bandrol</th>
                         </tr>
                     </thead>
                     <tbody>
