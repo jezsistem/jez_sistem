@@ -338,7 +338,7 @@ class ProductController extends Controller
                         return '<span class="float-right">' . number_format($data->p_sell_price) . '</span>';
                     })
                     ->editColumn('p_detail', function ($data) {
-                        return '<a id="product_detail_btn" data-id="' . $data->pid . '" data-article="' . $data->article_id . '"      style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';
+                        return '<a id="product_detail_btn" data-id="' . $data->pid . '" data-article="' . $data->article_id . '"  style="white-space: nowrap;" class="btn btn-sm btn-primary" style>Detail</a>';
                     })
                     ->rawColumns(['p_name_show', 'ps_name_show', 'p_color_show', 'p_price_tag_show', 'p_purchase_price_show', 'p_sell_price_show', 'p_detail', 'p_description'])
                     ->filter(function ($instance) use ($request) {
