@@ -58,8 +58,10 @@ class ProductStockController extends Controller
 
         if (!empty($data->first()->sz_id)) {
             $r['data'] = $article;
+            $r['cek'] = $data;
         } else {
             $r['data'] = $article;
+            $r['cek'] = $data;
         }
         return json_encode($r);
     }
