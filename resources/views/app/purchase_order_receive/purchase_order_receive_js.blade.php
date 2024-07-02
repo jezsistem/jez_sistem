@@ -558,12 +558,12 @@
         }
         total = parseFloat(qty) * parseFloat(purchase_price);
 
-        if (parseInt(qty) > parseInt(order_qty)) {
-            $('#poads_qty_'+id+'_'+index).val('');
-            swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
-            $('#total_purchase_price_receive'+id+'_'+index).val('')
-            return false;
-        }
+        // if (parseInt(qty) > parseInt(order_qty)) {
+        //     $('#poads_qty_'+id+'_'+index).val('');
+        //     swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
+        //     $('#total_purchase_price_receive'+id+'_'+index).val('')
+        //     return false;
+        // }
         $('#total_purchase_price_receive'+id+'_'+index).val(addCommas(total));
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive'+id+'_'+i).val()));
@@ -618,12 +618,12 @@
         }
         total = parseFloat(qty) * parseFloat(purchase_price);
 
-        if (parseInt(qty) > parseInt(order_qty)) {
-            $('#poads_qty_'+id+'_'+index).val('');
-            swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
-            $('#total_purchase_price_receive'+id+'_'+index).val('')
-            return false;
-        }
+        // if (parseInt(qty) > parseInt(order_qty)) {
+        //     $('#poads_qty_'+id+'_'+index).val('');
+        //     swal('Jumlah Terima', 'Jumlah terima tidak dapat lebih dari jumlah kekurangan', 'warning');
+        //     $('#total_purchase_price_receive'+id+'_'+index).val('')
+        //     return false;
+        // }
         $('#total_purchase_price_receive'+id+'_'+index).val(addCommas(total));
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive'+id+'_'+i).val()));
