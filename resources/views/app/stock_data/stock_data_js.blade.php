@@ -95,8 +95,46 @@
         return false;
     }
 
+    function reloadGender(type, id)
+    {
+        $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {_type:type, _id:id},
+            dataType: 'html',
+            url: "{{ url('stock_data_reload_size')}}",
+            success: function(r) {
+                $('#sz_id').html(r);
+            }
+        });
+        return false;
+    }
+
+    function reloadMainColor(type, id)
+    {
+        $.ajaxSetup({
+            headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {_type:type, _id:id},
+            dataType: 'html',
+            url: "{{ url('stock_data_reload_size')}}",
+            success: function(r) {
+                $('#sz_id').html(r);
+            }
+        });
+        return false;
+    }
+
     $(document).ready(function() {
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id').val('');
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').val('');
         // $('body').addClass('kt-primary--minimize aside-minimize');
         $.ajaxSetup({
             headers: {
@@ -117,11 +155,14 @@
                 url : "{{ url('stock_data_datatables') }}",
                 data : function (d) {
                     d.search = $('#stock_data_search').val();
+                    d.search_scan = $('#stock_data_search_scan').val();
                     d.br_id = $('#br_id').val();
                     d.pc_id = $('#pc_id').val();
                     d.psc_id = $('#psc_id').val();
                     d.pssc_id = $('#pssc_id').val();
                     d.sz_id = $('#sz_id').val();
+                    d.gender_id = $('#gender_id').val();
+                    d.main_color_id = $('#main_color_id').val();
                     d.display_status = $('#display_status').val();
                     d.st_id = $('#st_id_filter').val();
                 }
@@ -129,7 +170,7 @@
             columns: [
             { data: 'article_name', name: 'article_name', orderable: false },
             { data: 'article_stock', name: 'article_stock', orderable: false },
-            ], 
+            ],
             columnDefs: [
             {
                 "targets": 0,
@@ -182,6 +223,7 @@
             { data: 'p_name', name: 'p_name'},
             { data: 'p_color', name: 'p_color'},
             { data: 'sz_name', name: 'sz_name'},
+
             { data: 'stock', name: 'aging', orderable: false},
             ], 
             columnDefs: [
@@ -227,14 +269,34 @@
             order: [[0, 'desc']],
         });
 
+        function debounce(func, delay) {
+            let timeoutId;
+            return function(...args) {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                timeoutId = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        }
+
         stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn' ));
-        $('#stock_data_search').on('keyup', function() {
-            var query = jQuery(this).val();
-            if (jQuery.trim(query).length > 2) {
-                stock_data_table.draw();
-            } else if (jQuery.trim(query).length == 0) {
-                stock_data_table.draw();
-            }
+        // $('#stock_data_search').on('keyup', function() {
+        //     var query = jQuery(this).val();
+        //     if (jQuery.trim(query).length > 2) {
+        //         stock_data_table.draw();
+        //     } else if (jQuery.trim(query).length == 0) {
+        //         stock_data_table.draw();
+        //     }
+        // });
+        $(document).ready(function() {
+            $('#stock_data_search').on('keyup', debounce(function() {
+                var query = $(this).val();
+                if ($.trim(query).length > 2 || $.trim(query).length == 0) {
+                    stock_data_table.draw();
+                }
+            }, 300)); // Adjust the delay (300ms) as needed
         });
 
         $('#pick_data_search').on('keyup', function() {
@@ -368,13 +430,17 @@
             $("#pssc_id").trigger('change');
             $("#sz_id").val("");
             $("#sz_id").trigger('change');
+            $("#main_color_id").val("");
+            $("#main_color_id").trigger('change');
+            $("#gender_id").val("");
+            $("#gender_id").trigger('change');
             $("#stock_data_search").val("");
             $('#display_status').val('');
             oSettings[0]._iDisplayLength=10;
             stock_data_table.draw();
         });
         
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id').on('change', function() {
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').on('change', function() {
             stock_data_table.draw();
         });
 
@@ -448,6 +514,34 @@
             $(window).off(evt);
         });
 
+        $('#gender_id').select2({
+            multiple: true,
+            width: "100%",
+            dropdownParent: $('#gender_id_parent'),
+            closeOnSelect:true,
+            placeholder : "GENDER",
+            allowClear: true,
+        });
+        $('#gender_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#main_color_id').select2({
+            multiple: true,
+            width: "100%",
+            dropdownParent: $('#main_color_id_parent'),
+            closeOnSelect:true,
+            placeholder : "MAIN COLOR",
+            allowClear: true,
+        });
+        $('#main_color_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#pc_id').on('change', function() {
             reloadSubCategory('product_category', $(this).val());
         });
@@ -512,6 +606,46 @@
 
         $('#st_id_filter').on('change', function() {
             stock_data_table.draw();
+        });
+
+
+        var scanMode = false;
+        $('#scan_mode_btn').click(function () {
+
+            scanMode = !scanMode;
+
+            if(scanMode) {
+                $('#scan_mode_btn').html('<i class="fa fa-barcode"></i> Manual Mode');
+
+                $('#stock_data_search_scan').toggle();
+                $('#stock_data_search_scan').focus();
+                $('#stock_data_search').toggle();
+            } else {
+                $('#scan_mode_btn').html('<i class="fa fa-barcode"></i> Scan Mode');
+                $('#stock_data_search_scan').toggle();
+                $('#stock_data_search').toggle();
+            }
+
+        });
+
+        // $('#stock_data_search_scan').on('keyup', function(event) {
+        //     if(event.keyCode === 13) {
+        //         var query = jQuery(this).val();
+        //         stock_data_table.draw();
+        //     }
+        // });
+
+        let debounceTimeout;
+
+        $('#stock_data_search_scan').on('keyup', function(event) {
+            clearTimeout(debounceTimeout);
+
+            debounceTimeout = setTimeout(function() {
+                if(event.keyCode === 13) {
+                    var query = jQuery('#stock_data_search_scan').val();
+                    stock_data_table.draw();
+                }
+            }, 300); // Adjust the delay as needed
         });
     });
 </script>

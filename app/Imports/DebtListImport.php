@@ -16,10 +16,10 @@ class DebtListImport implements ToCollection, WithStartRow
 {
     private $rows = 0;
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * @param array $row
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
 
     public function startRow(): int
     {
@@ -83,7 +83,7 @@ class DebtListImport implements ToCollection, WithStartRow
             $data_id[] = $dl_id;
         }
         if ($status >= 0) {
-            return '200'; 
+            return '200';
         } else {
             DB::table('debt_list_payments')->whereIn('dl_id', $data_id)->delete();
             DB::table('debt_lists')->whereIn('id', $data_id)->delete();

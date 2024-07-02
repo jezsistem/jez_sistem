@@ -21,6 +21,7 @@
                             <th class="text-white">Size</th>
                             <th class="text-white">Tipe</th>
                             <th class="text-white">Qty Terima</th>
+                            <th class="text-white">In Stock</th>
                             <th class="text-white">Harga Beli</th>
                             <th class="text-white">Total</th>
                             <th class="text-white"></th>

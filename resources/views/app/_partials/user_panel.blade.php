@@ -83,6 +83,11 @@
             <div class="modal-body">
                 <div class="card-body">
                     <div class="form-group">
+                        <label>Password Lama
+                            <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" name="old_password" id="old_password" required/>
+                    </div>
+                    <div class="form-group">
                         <label>Password Baru
                         <span class="text-danger">*</span></label>
                         <input type="password" class="form-control" name="password" id="password" required/>

@@ -34,7 +34,7 @@
 										</select>
 									</div>
 									<div class="selectmain bg-primary" style="padding:5px; border-radius:10px;">
-										<label class="text-white d-flex font-weight-bold" >Customer 
+										<label class="text-white d-flex font-weight-bold" >Customer
 											<span class="badge badge-success white rounded-circle" id="add_customer_btn" data-toggle="modal" data-target="#choosecustomer">
 											<svg xmlns="http://www.w3.org/2000/svg" class="svg-sm" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_122" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve">
 												<g>
@@ -94,6 +94,7 @@
 												<th class="text-white">Produk</th>
 												<th class="text-white">BIN</th>
 												<th class="text-white">Disc(%)</th>
+												<th class="text-white">Disc(Rp)</th>
 												<th class="text-white">Jml Beli</th>
 												<th class="text-white">Nameset</th>
 												<th class="text-white">Marketplace</th>

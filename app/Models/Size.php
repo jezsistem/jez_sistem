@@ -12,6 +12,7 @@ class Size extends Model
     protected $table = 'sizes';
     protected $fillable = [
         'sz_name',
+        'sz_schema',
         'sz_description',
         'sz_delete',
     ];

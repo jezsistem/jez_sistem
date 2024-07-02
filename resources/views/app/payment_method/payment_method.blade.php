@@ -85,6 +85,7 @@
                                 <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
+                                        <th class="text-dark">Toko</th>
                                         <th class="text-dark">Metode Pembayaran</th>
                                         <th class="text-dark">Divisi</th>
                                         <th class="text-dark">Relasi Akun</th>

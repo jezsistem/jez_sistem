@@ -351,6 +351,7 @@
             { data: 'cust_address_show', name: 'cust_address' },
             { data: 'cust_shopping_show', name: 'cust_shopping' },
             { data: 'cust_created', name: 'cust_created' },
+            { data: 'total_pembelian', name: 'total_pembelian' },
             ],
             columnDefs: [
             {
@@ -491,6 +492,10 @@
 				sales_item_detail_table.draw(false);
 			}).modal('show');
 		});
+
+        $(document).delegate('#import_btn', 'click', function() {
+            $('#ImportModal').modal('show');
+        });
 
         $('#stt_filter, #cust_type_filter, #stt_filter, #date_filter').on('change', function() {
             province_table.draw(false);

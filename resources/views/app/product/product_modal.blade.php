@@ -15,7 +15,7 @@
                     <div class="form-group">
                         <label>Download Template
                         <span class="text-danger">*</span></label>
-                        <a href="{{ asset('upload/template/product_template.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
+                        <a href="{{ asset('upload/template/artikel_template_import.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
                     </div>
                     <div class="form-group">
                         <label>Pilih template yang sudah di download dan diisi
@@ -58,7 +58,7 @@
                     <div class="form-group row">
                         <div class="col-lg-4 pt-1">
                             <label>Kode Artikel</label>
-                            <input type="text" name="p_code" id="p_code" class="form-control" placeholder="Kode Artikel"/>
+                            <input type="text" name="article_id" id="article_id" class="form-control" placeholder="Kode Artikel"/>
                         </div>
                         <div class="col-lg-4 pt-1 float-right ml-auto">
                             <div id="product_qr"></div>
@@ -77,15 +77,21 @@
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Sub Kategori <span class="text-danger">*</span></label>
-                            <select class="form-control" id="_psc_id" name="_psc_id" disabled required>
+                            <select class="form-control" id="_psc_id" name="_psc_id" required>
                                 <option value="">- Pilih Sub Kategori -</option>
+                                @foreach ($data['psc_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
                             </select>
                             <div id="_psc_id_parent"></div>
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Sub-Sub Kategori <span class="text-danger">*</span></label>
-                            <select class="form-control" id="_pssc_id" name="_pssc_id" disabled required>
+                            <select class="form-control" id="_pssc_id" name="_pssc_id" required>
                                 <option value="">- Pilih Sub-Sub Kategori -</option>
+                                @foreach ($data['pssc_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
                             </select>
                             <div id="_pssc_id_parent"></div>
                         </div>
@@ -107,7 +113,7 @@
                         </div>
                         <div class="col-lg-4 pt-1">
                             <label>Supplier <span class="text-danger">*</span></label>
-                            <select class="form-control" id="ps_id" name="ps_id" required>
+                            <select class="form-control" id="ps_id" name="ps_id" multiple="" required>
                                 <option value="">- Pilih Supplier -</option>
                                 @foreach ($data['ps_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
@@ -138,7 +144,7 @@
                             <div id="gn_id_parent"></div>
                         </div>
                         <div class="col-lg-4 pt-1">
-                            <label>Season <span class="text-danger">*</span></label>
+                            <label>Season </label>
                             <select class="form-control" id="ss_id" name="ss_id" required>
                                 <option value="">- Pilih Season -</option>
                                 @foreach ($data['ss_id'] as $key => $value)
@@ -164,14 +170,25 @@
                             <input type="text" name="p_color" id="p_color" class="form-control" placeholder="Warna artikel" required/>
                         </div>
                         <div class="col-lg-4 pt-1">
-                            <label>Aging <span class="text-danger">*</span></label>
-                            <input type="month" name="p_aging" id="p_aging" class="form-control" placeholder="Aging / Usia Artikel" required/>
+                            <label>Aging</label>
+                            <input type="month" name="p_aging" id="p_aging" class="form-control" placeholder="Aging / Usia Artikel"/>
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-lg-4 pt-1">
-                            <label>Berat Artikel <span class="text-danger">*</span></label>
-                            <input type="number" name="p_weight" id="p_weight" class="form-control" placeholder="gram" required/>
+                            <label>Berat Items </label>
+                            <input type="number" name="p_weight" id="p_weight" class="form-control" placeholder="gram"/>
+                        </div>
+
+                        <div class="col-lg-4 pt-1">
+                            <label>Size Schema </label>
+                            <select class="form-control" id="sz_schema_modal_id" name="sz_schema_modal_id">
+                                <option value="">- Pilih Size Schema -</option>
+                                @foreach ($data['sz_schema_id'] as $key => $value)
+                                    <option value="{{ $value }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                            <div id="sz_schema_modal_id_parent"></div>
                         </div>
                     </div>
                     <div class="form-group row">

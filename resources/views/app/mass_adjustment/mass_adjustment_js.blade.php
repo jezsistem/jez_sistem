@@ -231,6 +231,7 @@
             },
             columns: [
             { data: 'DT_RowIndex', name: 'id', searchable: false},
+            { data: 'ps_barcode', name: 'ps_barcode'},
             { data: 'pl_code', name: 'pl_code' },
             { data: 'br_name', name: 'br_name' },
             { data: 'p_name', name: 'p_name' },
@@ -408,6 +409,12 @@
             e.preventDefault();
             jQuery.noConflict();
             $('#ImportModal').modal('show');
+        });
+
+        $(document).delegate('#import_data_scan_btn', 'click', function(e) {
+            e.preventDefault();
+            jQuery.noConflict();
+            $('#ImportScanModal').modal('show');
         });
 
         $(document).delegate('#madj_btn', 'click', function(e) {

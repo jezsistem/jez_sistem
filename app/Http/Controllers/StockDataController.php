@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Gender;
+use App\Models\MainColor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -88,13 +90,17 @@ class StockDataController extends Controller
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
+            'gender_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
+            'main_color_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
         return view('app.stock_data.stock_data', compact('data'));
     }
     
     public function getDatatables(Request $request)
     {
+//        return $request->all();
         $exception = ExceptionLocation::select('pl_code')
         ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
@@ -107,13 +113,13 @@ class StockDataController extends Controller
         }
         
         if(request()->ajax()) {
-            return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price")
+            return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price")
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->where('pls_qty', '>', 0)
+            ->where('pls_qty', '>=', 0)
             ->whereNotIn('pl_code', $exception)
             ->where('product_locations.st_id', '=', $st_id)
             ->groupBy('p_name_brand')
@@ -140,12 +146,13 @@ class StockDataController extends Controller
             })
             ->editColumn('article_stock', function($data) use ($request, $exception, $b1g1_setup, $st_id) {
                 $sz_id = $request->get('sz_id');
-                $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price")
+                $gender_id = $request->get('gender_id');
+                $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->where('pls_qty', '>', 0)
+//                ->where('pls_qty', '>', 0)
                 ->where('product_locations.st_id', '=', $st_id)
                 ->whereNotIn('pl_code', $exception)
                 ->where('p_name', $data->p_name)
@@ -224,13 +231,13 @@ class StockDataController extends Controller
                         }
 
                         $item_list .= '<tr style="border:0px;">';
-                        $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">'.$item.' <span class="btn-sm-custom btn-primary">'.$row->p_color.'</span></td>';
+                        $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">'.$item.' <span class="btn-sm-custom btn-primary">'.$row->article_id .' '.$row->p_color.'</span></td>';
                         $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->whereNotIn('pl_code', $exception)
-                        ->where('pls_qty', '>', 0)
+//                        ->where('pls_qty', '>', 0)
                         ->where('product_locations.st_id', '=', $st_id)
                         ->where('p_id', $row->pid)
                         ->where(function($w) use ($sz_id) {
@@ -242,6 +249,7 @@ class StockDataController extends Controller
                                 }
                             }
                         })
+                        ->orderBy('sizes.id', 'asc')
                         ->groupBy('sz_name')->get();
                         if (!empty($item_size_stock)) {
                             $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
@@ -251,20 +259,23 @@ class StockDataController extends Controller
                                 } else {
                                     $br = '<br/>';
                                 }
-                                $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id')
+                                $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
                                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                                 ->whereNotIn('pl_code', $exception)
-                                ->where('pls_qty', '>', '0')
+//                                ->where('pls_qty', '>=', '0')
                                 ->where('product_locations.st_id', '=', $st_id)
                                 ->where('pst_id', $srow->pst_id)->get();
                                 $bin = '';
                                 if (!empty($item_location)) {
                                     foreach ($item_location as $lrow) {
-                                        if ($lrow->pl_code == 'TOKO') {
+                                        if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
+//                                            $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
                                             $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
-                                        } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
+                                        }
+                                        else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
                                             $bin .= '<span class="btn-sm-custom btn-warning" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">['.$lrow->pl_code.'] ('.$lrow->pls_qty.')</span> ';
-                                        } else {
+                                        }
+                                        else {
                                             $bin .= '<span title="['.$lrow->pl_code.'] '.$lrow->pl_name.'" class="btn-sm-custom btn-success" data-p_name="'.$row->p_name.' '.$row->p_color.' '.$srow->sz_name.'" data-pl_code="'.$lrow->pl_code.'" data-bin="'.$lrow->pl_code.' '.$lrow->pl_name.'" data-qty="'.$lrow->pls_qty.'" data-pst_id="'.$srow->pst_id.'" data-pl_id="'.$lrow->pl_id.'" data-pls_id="'.$lrow->pls_id.'" id="pickup_item">'.$lrow->pls_qty.'</span> ';
                                         }
                                     }
@@ -358,10 +369,50 @@ class StockDataController extends Controller
                         }
                     });
                 }
+
+                if (!empty($request->get('gender_id'))) {
+                    $instance->where(function($w) use($request){
+                        $gender_id = $request->get('gender_id');
+                        $count = (Integer)count($gender_id);
+                        $where = array();
+                        if ($count > 0) {
+                            for ($i = 0; $i < $count; $i++) {
+                                $where[] = $gender_id[$i];
+                            }
+                            $w->orWhereIn('products.gn_id', $where);
+                        } else {
+                            $w->orWhere('products.gn_id', '=', $gender_id[0]);
+                        }
+                    });
+                }
+                if (!empty($request->get('main_color_id'))) {
+                    $instance->where(function($w) use($request){
+                        $mc_id = $request->get('main_color_id');
+                        $count = (Integer)count($mc_id);
+                        $where = array();
+                        if ($count > 0) {
+                            for ($i = 0; $i < $count; $i++) {
+                                $where[] = $mc_id[$i];
+                            }
+                            $w->orWhereIn('products.mc_id', $where);
+                        } else {
+                            $w->orWhere('products.mc_id', '=', $mc_id[0]);
+                        }
+                    });
+                }
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
+                        $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+                        ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
+                        ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+                    });
+                }
+                if (!empty($request->get('search_scan'))) {
+                    $instance->where(function($w) use($request){
+                        $search = $request->get('search_scan');
+                        $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+                            ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
                     });
                 }
             })

@@ -109,9 +109,9 @@ class ProductLocationSetupController extends Controller
                     }
                     return '<a class="btn btn-sm btn-primary col-7" style="white-space: nowrap;">'.$total_product.'</a>';
                 } else {
-                    return '<a class="btn btn-sm btn-primary">0</a>';
+                    return '< a class="btn btn-sm btn-primary">0</a>';
                 }
-            })
+                })
             ->rawColumns(['pl_location', 'pl_location_plain', 'pl_product'])
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('st_id'))) {

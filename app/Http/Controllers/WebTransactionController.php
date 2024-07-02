@@ -237,4 +237,22 @@ class WebTransactionController extends Controller
         }
         return json_encode($r);
     }
+
+    public function update_image(Request $request){
+        $img_name = 'img_'.time().'.'.$request->profile->getClientOriginalExtension();
+        $request->profile->move(public_path('img/'), $img_name);
+        $imagePath = 'img/'.$img_name;
+        $data = [
+            'profile'=>$imagePath,
+        ];
+        $update = User::find($request->user_id)->update($data);
+        if($update){
+            $response['success'] = true;
+            $response['message'] = 'Success! Record Updated Successfully.';
+        }else{
+            $response['success'] = false;
+            $response['message'] = 'Error! Record Not Updated.';
+        }
+        return $response;
+    }
 }

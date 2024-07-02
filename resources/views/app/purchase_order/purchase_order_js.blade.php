@@ -12,6 +12,7 @@
     }
 
     function checkPurchasePrice(pid)
+
     {
         var discount = parseFloat($('#po_discount'+pid).val());
         var price_tag = parseFloat($('#po_price_tag'+pid).val());
@@ -58,6 +59,8 @@
         });
     }
 
+
+    //penerimaan kurang ini
     function poPurchasePrice(id, index, poad_id, po_id)
     {
         var qty = $('#poad_qty_'+id+'_'+index).val();
@@ -192,6 +195,7 @@
         });
     }
 
+    //hitung cogs baru
     function discount(id)
     {
         var discount = $('#poa_discount'+id).val();
@@ -528,6 +532,8 @@
             }
         });
 
+        var global_po_id ;
+
         var purchase_order_table = $('#PurchaseOrdertb').DataTable({
             destroy: true,
             processing: false,
@@ -535,7 +541,7 @@
             responsive: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs', "exportOptions": { orthogonal: 'export' } }
             ],
             ajax: {
                 url : "{{ url('purchase_order_datatables') }}",
@@ -550,7 +556,14 @@
             { data: 'st_name', name: 'st_name' },
             { data: 'ps_name', name: 'ps_name' },
             { data: 'po_invoice', name: 'po_invoice' },
-            { data: 'po_total', name: 'po_total' },
+            {   data: 'po_total',
+                name: 'po_total',
+                render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                }
+            },
             { data: 'po_status', name: 'po_status' },
             ], 
             columnDefs: [
@@ -582,12 +595,14 @@
                     d.ps_id = $('#ps_id').val();
                     d.br_id_filter = $('#br_id_filter_item').val();
                     d.mc_id_filter = $('#mc_id_filter_item').val();
+                    d.psc_id_filter = $('#psc_id_filter_item').val();
                     d.sz_id_filter = $('#sz_id_filter_item').val();
                 }
             },
             columns: [
             { data: 'DT_RowIndex', name: 'pid', searchable: false},
             { data: 'p_name_show', name: 'p_name' },
+            { data: 'article_id', name: 'article_id'},
             { data: 'p_color_show', name: 'p_color' },
             { data: 'br_name', name: 'br_name' },
             { data: 'p_action', name: 'p_action', sortable: false },
@@ -651,6 +666,7 @@
         } );
 
         purchase_order_table.buttons().container().appendTo($('#purchase_order_excel_btn' ));
+
         $('#purchase_order_search').on('keyup', function() {
             purchase_order_table.draw();
         });
@@ -668,6 +684,10 @@
         });
 
         $('#sz_id_filter_item').on('change', function() {
+            product_table.draw();
+        });
+
+        $('#psc_id_filter_item').on('change', function() {
             product_table.draw();
         });
 
@@ -701,11 +721,31 @@
             $(window).off(evt);
         });
 
+        $('#acc_id').select2({
+            width: "100%",
+            dropdownParent: $('#acc_id_parent')
+        });
+        $('#acc_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#st_id').select2({
             width: "100%",
             dropdownParent: $('#st_id_parent')
         });
         $('#st_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#pro_id').select2({
+            width: "100%",
+            dropdownParent: $('#pro_id_parent')
+        });
+        $('#pro_id').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -755,8 +795,19 @@
             $(window).off(evt);
         });
 
+        $('#psc_id_filter_item').select2({
+            width: "150px",
+            dropdownParent: $('#psc_id_filter_parent_item')
+        });
+        $('#psc_id_filter_item').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#PurchaseOrdertb tbody').on('click', 'tr', function () {
             var po_id = purchase_order_table.row(this).data().po_id;
+
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -769,6 +820,7 @@
                 url: "{{ url('po_detail')}}",
                 success: function(r) {
                     if (r.status == '200') {
+                        global_po_id = r.po_id;
                         jQuery.noConflict();
                         $('#f_po')[0].reset();
                         $('#PurchaseOrderModal').modal('show');
@@ -779,6 +831,8 @@
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
+                        jQuery('#tax_id').val(r.tax_id).trigger('change');
+                        jQuery('#acc_id').val(r.acc_id).trigger('change');
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -811,6 +865,8 @@
                         jQuery('#st_id').val('').trigger('change');
                         jQuery('#ps_id').val('').trigger('change');
                         jQuery('#stkt_id').val('').trigger('change');
+                        jQuery('#tax_id').val('').trigger('change');
+                        jQuery('#acc_id').val('').trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
                         jQuery.noConflict();
@@ -934,6 +990,50 @@
             });
         });
 
+        $('#tax_id').on('change', function() {
+            var tax_id = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {_po_id:$('#_po_id').val(), _tax_id:tax_id},
+                url: "{{ url('po_choose_tax')}}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#acc_id').on('change', function() {
+            var acc_id = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {_po_id:$('#_po_id').val(), _acc_id:acc_id},
+                url: "{{ url('po_choose_payment')}}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
         $('#po_description').on('change', function() {
             var po_description = $(this).val();
             $.ajaxSetup({
@@ -954,6 +1054,54 @@
                     }
                 }
             });
+        });
+
+        $('#shipping_cost').on('change', function() {
+            var shipping_cost = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {_po_id:$('#_po_id').val(), _po_shipping_cost:shipping_cost},
+                url: "{{ url('po_shipping_cost')}}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#pro_id').on('change', function () {
+            var pro_id = $(this).val();
+            var po_id = $('#_po_id').val();
+           $.ajaxSetup({
+               headers: {
+               'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+               }
+           });
+
+          $.ajax({
+            type: "POST",
+            dataType: 'json',
+            data: {_po_id: po_id, _pro_id:pro_id},
+            url: "{{ url('check_pre_order_purchase_order')}}",
+            success: function(r) {
+                console.log(r);
+                 if (r.status == '200') {
+                     jQuery('#pro_id').val('').trigger('change');
+                     reloadArticleDetail(po_id);
+                 } else {
+                      swal('Gagal', 'Gagal mengubah data store', 'warning');
+                 }
+            }
+          });
         });
 
         $('#cancel_purchase_order_btn').on('click', function(){
@@ -990,6 +1138,106 @@
                     return false;
                 }
             })
+        });
+
+        $(document).ready(function () {
+            $("#ImportModalBtn").click(function () {
+                $("#ImportModal").modal("show");
+            });
+        });
+
+        $(document).ready(function () {
+            $("#UploadImageInvoiceBtn").click(function () {
+                $("#UploadImageInvoiceModal").modal("show");
+            });
+        });
+
+        $('#f_import').on('submit' , function (e) {
+            e.preventDefault();
+            $('#import_data_btn').html('Proses...');
+            $('#import_data_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var po_invoice_label = $('#po_invoice_label').text();
+
+            formData.append('_po_invoice_label', po_invoice_label)
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_import')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_import')[0].reset();
+                        reloadArticleDetail(data.po_id)
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
+                }
+            });
+        });
+
+        $('#f_upload_invoice_image').on('submit' , function (e) {
+            e.preventDefault();
+            $('#upload_image_invoice_btn').html('Proses...');
+            $('#upload_image_invoice_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var po_id = $('#_po_id').val();
+
+            formData.append('_po_id', po_id)
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_invoice_image')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#upload_image_invoice_btn").html('Upload');
+                    $("#upload_image_invoice_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_upload_invoice_image')[0].reset();
+                        reloadArticleDetail(po_id)
+                    } else if (data.status == '400') {
+                        $("#UploadImageInvoiceModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#UploadImageInvoiceModal").modal('hide');
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
+
+                }
+            });
+        });
+
+        $(document).delegate('#ExportArticleData', 'click', function(e) {
+            e.preventDefault();
+            var po_id = $('#_po_id').val();
+            var st_id = $('#st_id').val();
+            {{--window.location.href = "{{ url('po_article_export') }}?po_id="+po_id;--}}
+            window.location.href = "{{ url('po_article_export') }}?po_id="+po_id+"&st_id="+st_id;
         });
     });
 </script>

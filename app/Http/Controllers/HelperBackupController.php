@@ -73,6 +73,7 @@ class HelperBackupController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1)
         ];
+//        dd($data['user']);
         return view('app.dashboard.helper.dashboard', compact('data'));
     }
 }

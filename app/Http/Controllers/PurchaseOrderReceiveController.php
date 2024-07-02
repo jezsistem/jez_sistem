@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PurchaseOrderArticleExport;
+use App\Models\PODeliveryOrder;
+use App\Models\ProductLocationSetup;
+use App\Models\PurchaseOrderInvoiceImage;
+use App\Models\PurchaseOrderReceiveImportExcel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +24,8 @@ use App\Models\MainColor;
 use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
+use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderReceiveController extends Controller
 {
@@ -101,7 +108,8 @@ class PurchaseOrderReceiveController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
 
         if(request()->ajax()) {
-            return datatables()->of(PurchaseOrder::select('purchase_orders.id as po_id', 'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft', 'purchase_orders.created_at as po_created_at')
+            return datatables()->of(
+                PurchaseOrder::select('purchase_orders.id as po_id', 'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft', 'purchase_orders.created_at as po_created_at')
             ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
             ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
             ->where('po_delete', '!=', '1')
@@ -367,22 +375,72 @@ class PurchaseOrderReceiveController extends Controller
             } else { 
                 $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
             }
+            $po_st_id = $draft->st_id;
             $po_id = $draft->id;
-            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'p_price_tag', 'br_name', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
+            $poa_data = PurchaseOrderArticle::select(
+                'purchase_order_articles.id as poa_id',
+                'po_id',
+                'products.id as pid',
+                'p_price_tag',
+                'br_name',
+                'p_name',
+                'p_color',
+                'poa_discount',
+                'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid')
             ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->where(['po_id' => $po_id])->get();
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
-                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'), 'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'))
+                    $poad_data = PurchaseOrderArticleDetail::select(
+                        'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
+                        'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
+                        'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
+                        'product_stocks.ps_barcode',)
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->groupBy('purchase_order_article_details.id')
                         ->where(['poa_id' => $poa->poa_id])->get();
+
+                    // Step 2: Retrieve pls_qty from product_location_setups
+                    $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
+
+                    $plsQtyData = ProductLocationSetup::whereIn('pst_id', $pstIds)
+                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty'))
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->where(['stores.id' => $po_st_id])
+                        ->groupBy('pst_id')
+                        ->get();
+
+                    // Step 3: Merge data with $poad_data
+                    $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
+                        $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
+                        return $item;
+                    });
+
+                    // create to sql
                     if (!empty($poad_data)) {
+
+                        if(!empty($request->excelData))
+                        {
+                            foreach ($poad_data as $key => $poad) {
+                                foreach ($request->excelData as $excel) {
+                                    if ($poad->ps_barcode == $excel['barcode']) {
+                                        $poad['qty_import']= $excel['qty'];
+                                    }
+
+                                    if ($poad->ps_barcode != $excel['barcode']) {
+                                        $poad['barcode_missing_import'] = $excel['barcode'];
+                                    }
+                                }
+                            }
+                        }
+
                         $poa->subitem = $poad_data;
+
                         array_push($get_product, $poa);
                     } else {
                         $get_product = null;
@@ -394,10 +452,108 @@ class PurchaseOrderReceiveController extends Controller
         } else {
             $get_product = null;
         }
+
         $data = [
             'product' => $get_product,
         ];
+
+//        return $data['product']['0']['subitem'][0]['total_pls_qty'];
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data'));
+    }
+
+    public function checkBarcodeImport(Request $request)
+    {
+        $po_id = $request->_po_id;
+        if (!empty($po_id)) {
+            $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        } else {
+            $check = PurchaseOrder::where(['po_draft' => '1'])->exists();
+        }
+        if ($check) {
+            if (!empty($po_id)) {
+                $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
+            } else {
+                $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
+            }
+            $po_st_id = $draft->st_id;
+            $po_id = $draft->id;
+            $poa_data = PurchaseOrderArticle::select(
+                'purchase_order_articles.id as poa_id',
+                'po_id',
+                'products.id as pid',
+                'p_price_tag',
+                'br_name',
+                'p_name',
+                'p_color',
+                'poa_discount',
+                'poa_extra_discount', 'poa_reminder')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(['po_id' => $po_id])->get();
+            if (!empty($poa_data)) {
+                $get_product = array();
+                foreach ($poa_data as $poa) {
+                    $poad_data = PurchaseOrderArticleDetail::select(
+                        'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
+                        'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
+                        'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
+                        'product_stocks.ps_barcode',)
+                        ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                        ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                        ->groupBy('purchase_order_article_details.id')
+                        ->where(['poa_id' => $poa->poa_id])->get();
+
+                    // Step 2: Retrieve pls_qty from product_location_setups
+                    $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
+
+                    $plsQtyData = ProductLocationSetup::whereIn('pst_id', $pstIds)
+                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty'))
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->where(['stores.id' => $po_st_id])
+                        ->groupBy('pst_id')
+                        ->get();
+
+                    // Step 3: Merge data with $poad_data
+                    $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
+                        $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
+                        return $item;
+                    });
+
+                    $missingBarcode = array();
+                    // create to sql
+                   if (!empty($poad_data)) {
+
+                       $poad_data_indexed = collect($poad_data)->keyBy('ps_barcode')->all();
+
+                        if(!empty($request->excelData))
+                        {
+                            foreach ($request->excelData as $excel_row) {
+                                if (isset($poad_data_indexed[$excel_row['barcode']])) {
+                                    $poad_data_indexed[$excel_row['barcode']]->qty_import = $excel_row['qty'];
+                                } else {
+                                    $missingBarcode[] = $excel_row['barcode'];
+                                }
+                            }
+                        }
+
+                        $poa->subitem = $poad_data;
+
+                        array_push($get_product, $poa);
+                    } else {
+                        $get_product = null;
+                    }
+                }
+            } else {
+                $get_product = null;
+            }
+        } else {
+            $get_product = null;
+        }
+
+
+        return json_encode($missingBarcode);
     }
 
     public function poSaveDraft(Request $request)
@@ -424,7 +580,9 @@ class PurchaseOrderReceiveController extends Controller
             $r['st_id'] = $draft->st_id;
             $r['ps_id'] = $draft->ps_id;
             $r['stkt_id'] = $draft->stkt_id;
+            $r['tax_id'] = $draft->tax_id;
             $r['po_description'] = $draft->po_description;
+            $r['po_shipping_cost'] = $draft->po_shipping_cost;
             $r['po_invoice'] = $draft->po_invoice;
         } else {
             $r['status'] = '400';
@@ -520,7 +678,138 @@ class PurchaseOrderReceiveController extends Controller
         } else {
           $r['status'] = '400';
         }
-
         return json_encode($r);
+}
+
+    public function getImageInvoiceDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id)
+            {
+                $images = PurchaseOrderInvoiceImage::select('id','invoice_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->invoice_image)) {
+                            return '<img src="'.asset('upload/image/no_image.png').'"/>';
+                        } else {
+//                            return '<a href="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).' target=_blank>$row->invoice_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
+                        }
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="'.$row->id.'">Delete</a>';
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
+    public function getImageDeliveryOrdersDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PODeliveryOrder::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id)
+            {
+                $images = PODeliveryOrder::select('id','delivery_orders_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->delivery_orders_image)) {
+                            return '<img src="'.asset('upload/image/no_image.png').'"/>';
+                        } else {
+                            return '<img src="'.asset('upload/purchase_order_delivery_order/'.$row->delivery_orders_image).'" width="400px" height="400px">';
+                        }
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm" id="delete-image-po-surat-jalan" data-id="'.$row->id.'">Delete</a>';
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
+    public function uploadDeliveryOrdersImage(Request $request)
+    {
+
+        $po_id = $request->po_id;
+
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+
+        if ($check)
+        {
+            if ($request->has('deliveryOrderImage'))
+            {
+                $image_parts = explode(";base64,", $request->input('deliveryOrderImage'));
+                $image_type_aux = explode("image/", $image_parts[0]);
+                $image_type = $image_type_aux[1];
+
+                $image_base64 = base64_decode($image_parts[1]);
+
+                // Save the decoded image to the server
+                $name = time() . '.' . $image_type;
+                $destinationPath = public_path('/upload/purchase_order_delivery_order');
+                file_put_contents($destinationPath . '/' . $name, $image_base64);
+
+                // Save the image information to the database
+                PODeliveryOrder::create([
+                    'purchase_order_id' => $po_id,
+                    'delivery_orders_image' => $name,
+                ]);
+            }
+        }
+
+        $response = ['status' => $check ? '200' : '400'];
+        return json_encode($response);
+    }
+
+    public function deleteImageInvoice(Request $request)
+    {
+
+
+        $delete = PurchaseOrderInvoiceImage::where(['id' => $request->id])->first();
+
+        if($delete)
+        {
+            unlink(public_path('upload/purchase_order_invoice/' . $delete->invoice_image));
+
+
+            $delete = PurchaseOrderInvoiceImage::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
+        return json_encode($response);
+    }
+
+
+    public function deleteImagePOSuratJalan(Request $request)
+    {
+//        return $request->all();
+        $delete = PODeliveryOrder::where(['id' => $request->id])->first();
+
+        if($delete) {
+            unlink(public_path('upload/purchase_order_delivery_order/' . $delete->delivery_orders_image));
+
+            $delete = PODeliveryOrder::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
+
+        return json_encode($response);
     }
 }

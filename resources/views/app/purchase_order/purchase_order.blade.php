@@ -53,7 +53,8 @@
                                             </g>
                                         </svg>
                                         <!--end::Svg Icon-->
-                                    </span>Export</button>
+                                    </span>Export
+                                    </button>
                                     <!--begin::Dropdown Menu-->
                                     <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
                                         <!--begin::Navigation-->
@@ -64,7 +65,7 @@
                                                     <span class="navi-icon">
                                                         <i class="la la-copy"></i>
                                                     </span>
-                                                    <span id="purchase_order_excel_btn"></span>
+                                                        <span id="purchase_order_excel_btn"></span>
                                                 </a>
                                             </li>
                                         </ul>
@@ -95,7 +96,7 @@
                             <table class="table table-hover table-checkable" id="PurchaseOrdertb">
                                 <thead class="bg-light text-dark">
                                     <tr>
-                                        <th class="text-dark">No</th>
+                                        <th class="text-dark">Nomor</th>
                                         <th class="text-dark">Tanggal</th>
                                         <th class="text-dark">Store</th>
                                         <th class="text-dark">Supplier</th>
