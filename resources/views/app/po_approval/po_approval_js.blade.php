@@ -23,7 +23,9 @@
                 url: "{{ url('ap_datatables') }}",
                 data: function(d) {
                     d.search = $('#po_approval_search').val();
-                    d.filter_status = $('#filter_status').val();                    
+                    d.filter_status = $('#filter_status').val();
+                    d.date = $('#po_date').val();                    
+                    
                 }
             },
             columns: [{
@@ -315,14 +317,21 @@
                 title = 'Yesterday:';
                 range = start.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD');
-            } else {
+            } 
+            else if(label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
+            }
+            else {
                 range = start.format('MMM D') + ' - ' + end.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
-
+            console.log(hidden_range);
             $('#po_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
+            
+            po_approval_table.draw();
         }
 
         picker.daterangepicker({
@@ -333,6 +342,7 @@
             applyClass: 'btn-primary',
             cancelClass: 'btn-light-primary',
             ranges: {
+                'All Days': [null, null],
                 'Today': [moment(), moment()],
                 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
