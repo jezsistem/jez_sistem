@@ -51,14 +51,14 @@
                             @if ($srow->poad_purchase_price == null || $srow->poad_purchase_price == 0)
                             <input type="text" style="width:100px;" data-poad-id="{{ $srow->poad_id }}" onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" value=""/>
                             @else
-                            <input type="text" style="width:100px;" data-poad-id="{{ $srow->poad_id }}" onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" class="bg-light" value="{{ $srow->poad_purchase_price }}" readonly/>
+                            <input type="text" style="width:100px;" data-poad-id="{{ $srow->poad_id }}" onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" value="{{ $srow->poad_purchase_price }}"/>
                             @endif
                         @else
                              <input type="text" style="width:100px;" id="price_tag_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->ps_price_tag) }}" readonly/>
                             @if ($srow->poad_purchase_price == null || $srow->poad_purchase_price == 0)
                             <input type="text" style="width:100px;" data-poad-id="{{ $srow->poad_id }}" onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" value=""/>
                             @else
-                            <input type="text" style="width:100px;" data-poad-id="{{ $srow->poad_id }}" onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" class="bg-light" value="{{ $srow->poad_purchase_price }}" readonly/>
+                            <input type="text" style="width:100px;" data-poad-id="{{ $srow->poad_id }}" onchange="return poPurchasePrice( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }}, {{ $row->po_id }} )" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" value="{{ $srow->poad_purchase_price }}"/>
                             @endif
                         @endif
                         <input type="text" style="width:100px;" id="total_purchase_price_{{ $row->poa_id }}_{{  $i }}" value="{{ number_format($srow->poad_total_price) }}" readonly/> <img onclick="return deletePoad( {{ $srow->poad_id }} )" src="{{ asset('cdn/details_close.png') }}"/><br/>

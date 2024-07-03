@@ -86,7 +86,8 @@
             data: {
                 _poad_id: poad_id,
                 _qty: qty,
-                _total: total
+                _total: total,
+                _purchase_price: replaceComma(purchase_price)
             },
             dataType: 'json',
             url: "{{ url('poad_save_qty_total') }}",
@@ -424,12 +425,15 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+        
         $.ajax({
             type: "POST",
             data: {
                 _poad_id: poad_id,
                 _qty: qty,
-                _total: total
+                _total: total,
+                _purchase_price: replaceComma(purchase_price)
+                
             },
             dataType: 'json',
             url: "{{ url('poad_save_qty_total') }}",

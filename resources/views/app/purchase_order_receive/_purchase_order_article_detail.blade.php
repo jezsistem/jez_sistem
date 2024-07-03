@@ -123,7 +123,7 @@
                                                 data-poad-id="{{ $srow->poad_id }}"
                                                 id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}"
                                                 onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )"
-                                                value="" disabled />
+                                                value="{{ $srow->poad_purchase_price ?? 0 }}" disabled />
                                         @endif
                                         {{-- ini COGS --}}
                                         <input type="text" style="width:80px;"
