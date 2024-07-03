@@ -110,6 +110,15 @@ class POReceiveApprovalController extends Controller
                         ->orWhere('po_invoice', 'LIKE', "%$search%");
                     });
                 }
+                if(!empty($request->get('filter_status'))) {
+                 if($request->get('filter_status') == 'approve') {
+                    $instance->whereNotNull('u_id_approve');
+                 } 
+
+                 if($request->get('filter_status') == 'wait') {
+                    $instance->whereNull('u_id_approve');
+                 }
+                }
             })
             ->addIndexColumn()
             ->make(true);
