@@ -22,6 +22,7 @@ use App\Models\ProductStock;
 use App\Models\Store;
 use App\Models\Brand;
 use App\Models\MainColor;
+use App\Models\Product;
 use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
@@ -409,11 +410,15 @@ class PurchaseOrderController extends Controller
         $psid = $request->_psid;
         $status = $request->_status;
 
+
         $check_poa = PurchaseOrderArticle::where(['po_id' => $poid, 'p_id' => $pid])->exists();
+        $get_aging = Product::select('p_aging')->where('id', $pid)->get()->first()->p_aging;
+
         if (!$check_poa) {
             $poa_id = DB::table('purchase_order_articles')->insertGetId([
                 'po_id' => $poid,
                 'p_id' => $pid,
+                'poa_reminder' => $get_aging
             ]);
         } else {
             $poa_id = DB::table('purchase_order_articles')->select('id')->where([
