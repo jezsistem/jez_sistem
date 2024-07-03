@@ -120,30 +120,30 @@ class PreOrderController extends Controller
             'users.id' => Auth::user()->id
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(PreOrder::select('pre_orders.id as po_id', 'st_name', 'ps_name', 'pre_order_code', 'po_draft', 'pre_orders.created_at as po_created_at')
                 ->leftJoin('pre_order_articles', 'pre_order_articles.po_id', '=', 'pre_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                 ->join('stores', 'stores.id', '=', 'pre_orders.st_id')
                 ->join('product_suppliers', 'product_suppliers.id', '=', 'pre_orders.ps_id')
                 ->where('po_delete', '!=', '1')
-                ->where(function($w) use ($user_data, $st_id) {
+                ->where(function ($w) use ($user_data, $st_id) {
                     if ($user_data->g_name != 'administrator') {
                         $w->where('pre_orders.st_id', '=', Auth::user()->st_id);
                     } else {
                         if (!empty($st_id)) {
-                            $w->where('pre_orders.st_id', '=',$st_id);
+                            $w->where('pre_orders.st_id', '=', $st_id);
                         }
                     }
                 })
                 ->groupBy('po_id'))
-                ->editColumn('po_created_at_show', function($data){
+                ->editColumn('po_created_at_show', function ($data) {
                     return date('d/m/Y H:i:s', strtotime($data->po_created_at));
                 })
-                ->editColumn('po_code', function($data){
-                    return '#'.$data->po_code;
+                ->editColumn('po_code', function ($data) {
+                    return '#' . $data->po_code;
                 })
-                ->editColumn('po_total', function($data){
+                ->editColumn('po_total', function ($data) {
                     $poa = PreOrderArticle::where(['po_id' => $data->po_id])->get();
                     if (!empty($poa)) {
                         $total_price = 0;
@@ -160,7 +160,7 @@ class PreOrderController extends Controller
                 })
 
                 //status pre order
-                ->editColumn('po_status', function($data){
+                ->editColumn('po_status', function ($data) {
                     $poa = PreOrderArticle::where(['po_id' => $data->po_id])->get();
                     if (!empty($poa)) {
                         $total_qty = 0;
@@ -183,19 +183,17 @@ class PreOrderController extends Controller
                     if ($data->po_draft == '1') {
                         return '<a class="btn btn-sm btn-warning">Draft</a>';
                     } else {
-                        if ($total_qty == 0)
-                        {
+                        if ($total_qty == 0) {
                             return '<a class="btn btn-sm btn-light-success">Done</a>';
-                        }else{
-                            return '<a class="btn btn-sm btn-primary">'.$total_qty.' Artikel</a>';
-
+                        } else {
+                            return '<a class="btn btn-sm btn-primary">' . $total_qty . ' Artikel</a>';
                         }
                     }
                 })
                 ->rawColumns(['po_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
-                        $instance->where(function($w) use($request){
+                        $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('pre_order_code', 'LIKE', "%$search%")
                                 ->orWhere('st_name', 'LIKE', "%$search%")
@@ -221,7 +219,7 @@ class PreOrderController extends Controller
             $r['status'] = '200';
             $r['po_id'] = $po_id;
             $r['pre_order_code'] = DB::table('pre_orders')->select('pre_order_code')->where(['id' => $po_id])->get()->first()->pre_order_code;
-            $this->UserActivity('membuat Pre Order '.$r['pre_order_code']);
+            $this->UserActivity('membuat Pre Order ' . $r['pre_order_code']);
         } else {
             $r['status'] = '400';
         }
@@ -240,7 +238,7 @@ class PreOrderController extends Controller
 
         if (!$check_poa) {
             $poa_id = DB::table('pre_order_articles')->insertGetId([
-               'po_id' => $poid,
+                'po_id' => $poid,
                 'pr_id' => $prid,
             ]);
         } else {
@@ -276,7 +274,7 @@ class PreOrderController extends Controller
 
     public function checkPreOrderDetail(Request $request)
     {
-        try{
+        try {
             $po_id = $request->_po_id;
 
             if (!empty($po_id)) {
@@ -340,15 +338,14 @@ class PreOrderController extends Controller
                 $get_product = null;
             }
 
-            $data =[
+            $data = [
                 'product' =>  $get_product
             ];
 
             return view('app.pre_order._purchase_order_article_detail', compact('data'));
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return json_encode($e->getMessage());
         }
-
     }
 
     public function reloadPreOrderDetail(Request $request)
@@ -446,13 +443,13 @@ class PreOrderController extends Controller
         if (!empty($poa)) {
             foreach ($poa as $poa_row) {
                 $poad = DB::table('pre_order_article_details')->where(['poa_id' => $poa_row->id])->get();
-                foreach ($poad as $poad_row){
+                foreach ($poad as $poad_row) {
                     DB::table('pre_order_article_details')->where(['id' => $poad_row->id])->delete();
                 }
                 DB::table('pre_order_articles')->where(['id' => $poa_row->id])->delete();
             }
             $item_name = PreOrder::select('pre_order_code')->where('id', $request->_id)->get()->first()->pre_order_code;
-            $this->UserActivity('menghapus PO '.$item_name);
+            $this->UserActivity('menghapus PO ' . $item_name);
             $check = DB::table('pre_orders')->where(['id' => $request->_id])->delete();
             if (!empty($check)) {
                 $r['status'] = '200';
@@ -461,7 +458,7 @@ class PreOrderController extends Controller
             }
         } else {
             $item_name = PreOrder::select('pre_order_code')->where('id', $request->_id)->get()->first()->pre_order_code;
-            $this->UserActivity('menghapus PO '.$item_name);
+            $this->UserActivity('menghapus PO ' . $item_name);
             $check = DB::table('pre_orders')->where(['id' => $request->_id])->delete();
             if (!empty($check)) {
                 $r['status'] = '200';
@@ -485,62 +482,116 @@ class PreOrderController extends Controller
         return json_encode($r);
     }
 
+    // public function checkPreOrderPurchaseOrder(Request $request)
+    // {
+    //     try {
+    //         if ($request->_pro_id == null)
+    //         {
+    //             return ;
+    //         }
+    //         // get p_id from pr_order_articles
+    //         $proa = DB::table('pre_order_articles')->where(['po_id' => $request->_pro_id])->pluck('id');
+
+    //         // get id from pr_order_articles then get from pre_order_article details, if have same id then get pst_id and poad_qty
+    //         $proad = DB::table('pre_order_article_details')->whereIn('poa_id', $proa)->get(['pst_id', 'poad_qty']);
+
+    //         $poa = DB::table('purchase_order_articles')->where(['po_id' => $request->_po_id])->pluck('id');
+
+    //         $poad = DB::table('purchase_order_article_details')->whereIn('poa_id', $poa)->get(['pst_id', 'poad_qty']);
+
+    //         // check same pst_id from pre_order_article_details and purchase_order_article_details
+    //         // if have same id , then check qty, and transfer qty from pre_order_article_details to purchase_order_article_details
+    //         foreach ($proad as $proad_row) {
+    //             foreach ($poad as $poad_row) {
+    //                 if ($proad_row->pst_id == $poad_row->pst_id) {
+
+    //                     $pst = DB::table('product_stocks')->where(['id' => $proad_row->pst_id])->first();
+    //                     $poad_table = DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
+    //                     $proad_table = DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
+
+
+    //                     $poad_table_qty = $poad_table->poad_qty;
+    //                     $proad_table_qty = $proad_table->poad_qty;
+
+    //                     $difference_qty = $proad_table_qty - $poad_table_qty;
+
+    //                     $poad_qty = $poad_table_qty + $difference_qty;
+
+    //                     $total_price = $pst->ps_price_tag * $poad_qty;
+    //                     DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $poad_qty, 'poad_total_price' => $total_price]);
+    //                     $poad_table = DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
+
+    //                     $poad_table_qty = $poad_table->poad_qty;
+    //                     $proad_table_qty = $proad_table->poad_qty;
+
+    //                     $difference_qty = $proad_table_qty - $poad_table_qty;
+    //                     DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $difference_qty]);
+    //                 }
+    //             }
+    //         }
+
+    //         $r['status'] = '200';
+
+    //         return json_encode($r);
+
+    //     }catch (\Exception $e) {
+    //         return json_encode($e->getMessage());
+    //     }
+    // }
+
     public function checkPreOrderPurchaseOrder(Request $request)
     {
         try {
-            if ($request->_pro_id == null)
-            {
-                return ;
+            if ($request->_pro_id == null) {
+                return;
             }
-            // get p_id from pr_order_articles
+
+            // get p_id from pre_order_articles
             $proa = DB::table('pre_order_articles')->where(['po_id' => $request->_pro_id])->pluck('id');
 
-            // get id from pr_order_articles then get from pre_order_article details, if have same id then get pst_id and poad_qty
-            $proad = DB::table('pre_order_article_details')->whereIn('poa_id', $proa)->get(['pst_id', 'poad_qty']);
+            // get pst_id, poad_qty, and poa_id from pre_order_article_details
+            $proad = DB::table('pre_order_article_details')->whereIn('poa_id', $proa)->get(['pst_id', 'poad_qty', 'poa_id']);
 
+            // get p_id from purchase_order_articles
             $poa = DB::table('purchase_order_articles')->where(['po_id' => $request->_po_id])->pluck('id');
 
-            $poad = DB::table('purchase_order_article_details')->whereIn('poa_id', $poa)->get(['pst_id', 'poad_qty']);
+            // get pst_id, poad_qty, and poa_id from purchase_order_article_details
+            $poad = DB::table('purchase_order_article_details')->whereIn('poa_id', $poa)->get(['pst_id', 'poad_qty', 'poa_id']);
 
-            // check same pst_id from pre_order_article_details and purchase_order_article_details
-            // if have same id , then check qty, and transfer qty from pre_order_article_details to purchase_order_article_details
+            // update quantities
             foreach ($proad as $proad_row) {
                 foreach ($poad as $poad_row) {
                     if ($proad_row->pst_id == $poad_row->pst_id) {
 
+                        // reduce proad_qty by poad_qty
+                        $new_proad_qty = $proad_row->poad_qty - $poad_row->poad_qty;
+
+                        // update pre_order_article_details with new quantity
+                        DB::table('pre_order_article_details')->where([
+                            'pst_id' => $proad_row->pst_id,
+                            'poa_id' => $proad_row->poa_id
+                        ])->update(['poad_qty' => $new_proad_qty]);
+
+                        // update total price for purchase_order_article_details
                         $pst = DB::table('product_stocks')->where(['id' => $proad_row->pst_id])->first();
-                        $poad_table = DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
-                        $proad_table = DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
-
-
-                        $poad_table_qty = $poad_table->poad_qty;
-                        $proad_table_qty = $proad_table->poad_qty;
-
-                        $difference_qty = $proad_table_qty - $poad_table_qty;
-
-                        $poad_qty = $poad_table_qty + $difference_qty;
-
-                        $total_price = $pst->ps_price_tag * $poad_qty;
-                        DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $poad_qty, 'poad_total_price' => $total_price]);
-                        $poad_table = DB::table('purchase_order_article_details')->where(['pst_id' => $proad_row->pst_id])->first();
-
-                        $poad_table_qty = $poad_table->poad_qty;
-                        $proad_table_qty = $proad_table->poad_qty;
-
-                        $difference_qty = $proad_table_qty - $poad_table_qty;
-                        DB::table('pre_order_article_details')->where(['pst_id' => $proad_row->pst_id])->update(['poad_qty' => $difference_qty]);
+                        $total_price = $pst->ps_price_tag * $poad_row->poad_qty;
+                        DB::table('purchase_order_article_details')->where([
+                            'pst_id' => $proad_row->pst_id,
+                            'poa_id' => $poad_row->poa_id
+                        ])->update(['poad_total_price' => $total_price]);
                     }
                 }
             }
 
-            $r['status'] = '200';
+            $response['status'] = '200';
 
-            return json_encode($r);
-
-        }catch (\Exception $e) {
+            return json_encode($response);
+        } catch (\Exception $e) {
             return json_encode($e->getMessage());
         }
     }
+
+
 
     private function generatePoInvoice(): string
     {
