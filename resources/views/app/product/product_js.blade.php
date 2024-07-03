@@ -294,7 +294,7 @@
 
     function getProductPurchasePrice(id) {
         var purchase_price = $('#product_size_purchase_price' + id).val();
-        var barcode = $('#product_size_running_code' + id).val();
+        var barcode = $('#product_size_barcode' + id).val();
         $.ajax({
             type: "POST",
             data: {
