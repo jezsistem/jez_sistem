@@ -326,7 +326,7 @@
         var pt_id = jQuery('#_pt_id').val();
         var st_id = jQuery('#st_id').val();
         var cross = jQuery('#cross_order').val();
-        alert(final_price);
+        // alert(final_price);
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
