@@ -80,17 +80,6 @@
                                             <input type="search" class="form-control" id="po_approval_search"
                                                 placeholder="Cari po/invoice" /><br />
                                         </div>
-
-                                        <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_status" name="filter_status">
-                                                <option value="">- Pilih Status transaksi -</option>
-                                                <option value="approve">Approve</option>
-                                                <option value="wait_cod">Menunggu Pembayaran</option>
-                                                <option value="wait">Menunggu Approval</option>
-                                            </select>
-                                            <div id="st_id_filter_parent"></div>
-                                        </div>
-
                                         <div class="col text-center">
                                             <div class="form-group ml-4" style="padding-top: 22px;">
                                                 <a href="#" class="btn btn-date-info font-weight-bold mr-2"
@@ -136,7 +125,7 @@
         <!--end::Entry-->
     </div>
     <!--end::Content-->
-    @include('app.po_approval.po_approval_modal')
+    @include('app.purchase_order_receive_cod.purchase_order_receive_cod_modal')
     @include('app._partials.js')
-    @include('app.po_approval.po_approval_js')
+    @include('app.purchase_order_receive_cod.purchase_order_receive_cod_js')
 @endSection()
