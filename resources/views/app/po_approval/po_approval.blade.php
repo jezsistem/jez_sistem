@@ -85,6 +85,7 @@
                                             <select class="form-control" id="filter_status" name="filter_status">
                                                 <option value="">- Pilih Status transaksi -</option>
                                                 <option value="approve">Approve</option>
+                                                <option value="wait_cod">Menunggu Pembayaran</option>
                                                 <option value="wait">Menunggu Approval</option>
                                             </select>
                                             <div id="st_id_filter_parent"></div>
