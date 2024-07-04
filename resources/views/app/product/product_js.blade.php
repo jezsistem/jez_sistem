@@ -214,7 +214,9 @@
 
     function getProductPriceTag(id) {
         var price_tag = $('#product_size_price_tag' + id).val();
-        var barcode = $('#product_size_running_code' + id).val();
+        var barcode = $('#product_size_barcode' + id).val();
+
+        console.log(barcode);
         $.ajax({
             type: "POST",
             data: {
@@ -233,7 +235,7 @@
 
     function getProductSellPrice(id) {
         var sell_price = $('#product_size_sell_price' + id).val();
-        var barcode = $('#product_size_running_code' + id).val();
+        var barcode = $('#product_size_barcode' + id).val();
         $.ajax({
             type: "POST",
             data: {
