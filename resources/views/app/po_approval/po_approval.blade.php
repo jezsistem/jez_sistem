@@ -101,8 +101,7 @@
                                                         id="kt_dashboard_daterangepicker_date"></span>
                                                     <input type="hidden" id="po_date" />
                                                 </a>
-                                            </div>
-                                            <a class="btn-sm btn-primary" id="show_approval_btn">Tampilkan</a>
+                                            </div>                                            
                                         </div>
                                     </div>
                                 </div>
