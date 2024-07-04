@@ -124,12 +124,12 @@ class POReceiveApprovalController extends Controller
 
                         if (count($dateParts) == 2) {
                             // Date range provided
-                            $instance->whereBetween('invoice_date', [$dateParts[0], $dateParts[1]]);
+                            $instance->whereBetween('purchase_order_article_detail_statuses.created_at', [$dateParts[0], $dateParts[1]]);
                         } elseif (
                             count($dateParts) == 1
                         ) {
                             // Single date provided
-                            $instance->whereDate('invoice_date', $dateParts[0]);
+                            $instance->whereDate('purchase_order_article_detail_statuses.created_at', $dateParts[0]);
                         }
                     }
                 })
