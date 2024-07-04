@@ -23,6 +23,8 @@ use App\Models\Store;
 use App\Models\Brand;
 use App\Models\MainColor;
 use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\PurchaseOrderTransferImage;
 use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
@@ -218,7 +220,7 @@ class PurchaseOrderController extends Controller
 
     public function storeData(Request $request)
     {
-        $product_category = new ProductCategory;
+        $product_category = new ProductCategory();
         $mode = $request->input('_mode');
         $id = $request->input('_id');
 
@@ -265,7 +267,7 @@ class PurchaseOrderController extends Controller
     {
         $invoice = date('YmdHis');
         if ($this->poInvoiceExists($invoice)) {
-            return generatePoInvoice();
+            return $this->generatePoInvoice();
         }
         return $invoice;
     }
@@ -642,6 +644,36 @@ class PurchaseOrderController extends Controller
                     PurchaseOrderInvoiceImage::create([
                         'purchase_order_id' => $po_id,
                         'invoice_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function uploadImageTransfer(Request $request)
+    {
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            if ($request->hasFile('imageTransfers')) {
+                foreach ($request->file('imageTransfers') as $file) {
+                    $image = $file;
+                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_transfer');
+
+                    // save destination path
+                    $image->move($destinationPath, $name);
+
+                    PurchaseOrderTransferImage::create([
+                        'purchase_order_id' => $po_id,
+                        'transfer_image' => $name,
                     ]);
                 }
             }
