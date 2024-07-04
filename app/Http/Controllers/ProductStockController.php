@@ -69,7 +69,7 @@ class ProductStockController extends Controller
 
     public function updatePriceTag(Request $request)
     {
-        $check = ProductStock::where(['ps_running_code' => $request->_barcode])->update(['ps_price_tag' => $request->_price_tag]);
+        $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_price_tag' => $request->_price_tag]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
@@ -80,7 +80,7 @@ class ProductStockController extends Controller
 
     public function updateSellPrice(Request $request)
     {
-        $check = ProductStock::where(['ps_running_code' => $request->_barcode])->update(['ps_sell_price' => $request->_sell_price]);
+        $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_sell_price' => $request->_sell_price]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
@@ -91,7 +91,7 @@ class ProductStockController extends Controller
 
     public function updatePurchasePrice(Request $request)
     {
-        $check = ProductStock::where(['ps_running_code' => $request->_barcode])->update(['ps_purchase_price' => $request->_purchase_price]);
+        $check = ProductStock::where(['ps_barcode' => $request->_barcode])->update(['ps_purchase_price' => $request->_purchase_price]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
