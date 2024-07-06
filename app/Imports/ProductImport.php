@@ -213,7 +213,7 @@ class ProductImport implements ToCollection, WithStartRow
                             'ps_price_tag' => $price_tag,
                             'ps_sell_price' => $sell_price,
                             'ps_purchase_price' => $purchase_price,
-                            'ps_running_code' => $this->generateRunningCode(),
+                            'ps_running_code' => $barcode,
                         ]);
                     }
                 } else {
