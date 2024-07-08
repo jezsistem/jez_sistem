@@ -22,6 +22,9 @@ use App\Models\ProductStock;
 use App\Models\Store;
 use App\Models\Brand;
 use App\Models\MainColor;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\PurchaseOrderTransferImage;
 use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
@@ -108,7 +111,7 @@ class PurchaseOrderController extends Controller
             'pro_id' => PreOrder::getAllDataPO(),
             'segment' => request()->segment(1),
         ];
-//        dd($data['acc_id']);
+        //        dd($data['acc_id']);
         return view('app.purchase_order.purchase_order', compact('data'));
     }
 
@@ -125,8 +128,13 @@ class PurchaseOrderController extends Controller
         if (request()->ajax()) {
             return datatables()->of(PurchaseOrder::select(
                 'purchase_orders.id as po_id',
-                'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft',
-                'purchase_orders.created_at as po_created_at')
+                'st_name',
+                'ps_name',
+                'po_invoice',
+                'po_description',
+                'po_draft',
+                'purchase_orders.created_at as po_created_at'
+            )
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
@@ -190,7 +198,6 @@ class PurchaseOrderController extends Controller
                             return '<a class="btn btn-sm btn-light-success">' . $total_qty_receive . '/' . $total_qty . '</a>';
                         } else {
                             return '<a class="btn btn-sm btn-primary">' . $total_qty_receive . '/' . $total_qty . '</a>';
-
                         }
                     }
                 })
@@ -213,7 +220,7 @@ class PurchaseOrderController extends Controller
 
     public function storeData(Request $request)
     {
-        $product_category = new ProductCategory;
+        $product_category = new ProductCategory();
         $mode = $request->input('_mode');
         $id = $request->input('_id');
 
@@ -260,7 +267,7 @@ class PurchaseOrderController extends Controller
     {
         $invoice = date('YmdHis');
         if ($this->poInvoiceExists($invoice)) {
-            return generatePoInvoice();
+            return $this->generatePoInvoice();
         }
         return $invoice;
     }
@@ -277,7 +284,7 @@ class PurchaseOrderController extends Controller
             'po_draft' => '0',
             'created_at' => date('Y-m-d H:i:s'),
             'po_delete' => '0',
-//            'created_by' =>
+            //            'created_by' =>
         ]);
         if (!empty($po_id)) {
             $r['status'] = '200';
@@ -409,11 +416,15 @@ class PurchaseOrderController extends Controller
         $psid = $request->_psid;
         $status = $request->_status;
 
+
         $check_poa = PurchaseOrderArticle::where(['po_id' => $poid, 'p_id' => $pid])->exists();
+        $get_aging = Product::select('p_aging')->where('id', $pid)->get()->first()->p_aging;
+
         if (!$check_poa) {
             $poa_id = DB::table('purchase_order_articles')->insertGetId([
                 'po_id' => $poid,
                 'p_id' => $pid,
+                'poa_reminder' => $get_aging
             ]);
         } else {
             $poa_id = DB::table('purchase_order_articles')->select('id')->where([
@@ -464,27 +475,27 @@ class PurchaseOrderController extends Controller
                 ->where(['po_id' => $po_id])->get();
 
 
-//            $pst_article = $poa_data->pluck('article_id');
+            //            $pst_article = $poa_data->pluck('article_id');
 
-//            $total_stok = DB::table('product_location_setups as t1')
-//                ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
-//                ->join('products as t3', 't2.p_id', '=', 't3.id')
-//                ->select(DB::raw('SUM(pls_qty) as total_qty'))
-//                ->where('article_id', $pst_article)
-//                ->groupBy('t3.p_name')
-//                ->get()->first()->total_qty;
+            //            $total_stok = DB::table('product_location_setups as t1')
+            //                ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
+            //                ->join('products as t3', 't2.p_id', '=', 't3.id')
+            //                ->select(DB::raw('SUM(pls_qty) as total_qty'))
+            //                ->where('article_id', $pst_article)
+            //                ->groupBy('t3.p_name')
+            //                ->get()->first()->total_qty;
 
 
-//            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
-//                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-//                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-//                ->where(['po_id' => $po_id])->get();
+            //            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
+            //                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+            //                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            //                ->where(['po_id' => $po_id])->get();
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
                     $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-//                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                        //                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where(['poa_id' => $poa->poa_id])->get();
 
@@ -502,39 +513,39 @@ class PurchaseOrderController extends Controller
                         ->groupBy('pst_id')
                         ->get();
 
-//                    $plsQtyDataAll = ProductLocationSetup::whereIn('p_id', $pIds)
-//                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty_all'))
-//                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-//                        ->join('products', 'products.id', '=', 'product_stocks.p_id')
-//                        ->where(['products.id' => '11040092'])
-//                        ->groupBy('pst_id')
-//                        ->get();
+                    //                    $plsQtyDataAll = ProductLocationSetup::whereIn('p_id', $pIds)
+                    //                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty_all'))
+                    //                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    //                        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    //                        ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                    //                        ->where(['products.id' => '11040092'])
+                    //                        ->groupBy('pst_id')
+                    //                        ->get();
 
-//                    $plsQtyDataAll = ProductLocationSetup::select('ts_products.p_name', DB::raw('SUM(ts_product_location_setups.pls_qty) as total_pls_qty_all'))
-//                        ->join('ts_product_stocks', 'ts_product_location_setups.pst_id', '=', 'ts_product_stocks.id')
-//                        ->join('ts_products', 'ts_product_stocks.p_id', '=', 'ts_products.id')
-//                        ->whereIn('ts_products.id', $pIds)
-//                        ->groupBy('pst_id')
-//                        ->get();
+                    //                    $plsQtyDataAll = ProductLocationSetup::select('ts_products.p_name', DB::raw('SUM(ts_product_location_setups.pls_qty) as total_pls_qty_all'))
+                    //                        ->join('ts_product_stocks', 'ts_product_location_setups.pst_id', '=', 'ts_product_stocks.id')
+                    //                        ->join('ts_products', 'ts_product_stocks.p_id', '=', 'ts_products.id')
+                    //                        ->whereIn('ts_products.id', $pIds)
+                    //                        ->groupBy('pst_id')
+                    //                        ->get();
 
                     // Step 3: Merge data with $poad_data
                     $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
                         $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
-//                        $item['total_pls_qty_all'] = $plsQtyDataAll->where('pst_id', $item['pst_id'])->first()['total_pls_qty_all'] ?? 0;
+                        //                        $item['total_pls_qty_all'] = $plsQtyDataAll->where('pst_id', $item['pst_id'])->first()['total_pls_qty_all'] ?? 0;
                         return $item;
                     });
 
-//                    $pst_article = $poad_data->pluck('ps_barcode');
+                    //                    $pst_article = $poad_data->pluck('ps_barcode');
 
                     // Step 4: Get Stok ALl Cabang
-//                    $total_stok = DB::table('product_location_setups as t1')
-//                        ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
-//                        ->join('products as t3', 't2.p_id', '=', 't3.id')
-//                        ->select(DB::raw('SUM(pls_qty) as total_qty'))
-//                        ->where('article_id', $pst_article)
-//                        ->groupBy('t3.p_name')
-//                        ->get();
+                    //                    $total_stok = DB::table('product_location_setups as t1')
+                    //                        ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
+                    //                        ->join('products as t3', 't2.p_id', '=', 't3.id')
+                    //                        ->select(DB::raw('SUM(pls_qty) as total_qty'))
+                    //                        ->where('article_id', $pst_article)
+                    //                        ->groupBy('t3.p_name')
+                    //                        ->get();
 
                     if (!empty($poad_data)) {
                         $poa->subitem = $poad_data;
@@ -608,6 +619,7 @@ class PurchaseOrderController extends Controller
             $r['stkt_id'] = $draft->stkt_id;
             $r['po_description'] = $draft->po_description;
             $r['po_invoice'] = $draft->po_invoice;
+            $r['acc_id'] = $draft->acc_id;
         } else {
             $r['status'] = '400';
         }
@@ -632,6 +644,36 @@ class PurchaseOrderController extends Controller
                     PurchaseOrderInvoiceImage::create([
                         'purchase_order_id' => $po_id,
                         'invoice_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function uploadImageTransfer(Request $request)
+    {
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            if ($request->hasFile('imageTransfers')) {
+                foreach ($request->file('imageTransfers') as $file) {
+                    $image = $file;
+                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_transfer');
+
+                    // save destination path
+                    $image->move($destinationPath, $name);
+
+                    PurchaseOrderTransferImage::create([
+                        'purchase_order_id' => $po_id,
+                        'transfer_image' => $name,
                     ]);
                 }
             }

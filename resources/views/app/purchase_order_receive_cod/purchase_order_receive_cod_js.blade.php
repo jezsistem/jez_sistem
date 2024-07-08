@@ -20,7 +20,7 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('ap_datatables') }}",
+                url: "{{ url('poc_datatables') }}",
                 data: function(d) {
                     d.search = $('#po_approval_search').val();
                     d.filter_status = $('#filter_status').val();
@@ -253,8 +253,8 @@
         });
 
         $('#approve_btn').on('click', function() {
-            if (approval != 'Menunggu Approval') {
-                swal('Sudah Approve', 'Invoice ini sudah diapprove', 'warning');
+            if (approval != 'Diterima, Belum Dibayar') {
+                swal('Sudah Approve', 'Invoice ini sudah dibayar', 'warning');
                 return false;
             }
             swal({
@@ -279,12 +279,12 @@
                             invoice: $('#invoice_label').text()
                         },
                         dataType: 'json',
-                        url: "{{ url('apd_approve') }}",
+                        url: "{{ url('poc_update_is_paid') }}",
                         success: function(r) {
                             if (r.status == '200') {
                                 $('#ApproveModal').modal('hide');
                                 po_approval_table.draw(false);
-                                swal("Berhasil", "Data berhasil diapprove",
+                                swal("Berhasil", "Data berhasil dibayar",
                                     "success");
                             } else {
                                 swal('Gagal', 'Gagal approve data', 'error');

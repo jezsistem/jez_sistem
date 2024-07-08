@@ -111,6 +111,10 @@
             }
         }
 
+        .page-end {
+            page-break-after: always;
+        }
+
     </style>
 </head>
 <body>
@@ -377,6 +381,21 @@
                          src="{{ asset('logo/qr_link.png') }}"
                          style="width:43%; background-color:#000;"/>
                 </div><br>
+                <div class="title">
+                    <strong><i>Ketentuan penukaran barang :</i></strong>
+                    <br/>
+                    <p style="text-align:left; font-size:11px;">
+                        1. Batas waktu penukaran barang maksimal 3 hari dari saat transaksi (Barang yang dapat ditukar
+                        hanya produk sepatu)<br/>
+                        2. Penukaran barang tidak berlaku untuk produk jersey, t-shirt, asesoris maupun equipment<br/>
+                        3. Penukaran barang tidak berlaku untuk barang yang diskon 25% keatas<br/>
+                        4. Produk sepatu yang dapat ditukar yaitu belum pernah digunakan untuk beraktifitas dan wajib
+                        memiliki dus yang sesuai dengan barang<br/>
+                        5. Wajib menyertakan struk pembelanjaan saat proses penukaran barang baik pembelian offline &
+                        online<br/>
+                    </p>
+                </div>
+                <div class="page-end"></div>
                 <div class="title">
                     <strong><i>Ketentuan penukaran barang :</i></strong>
                     <br/>

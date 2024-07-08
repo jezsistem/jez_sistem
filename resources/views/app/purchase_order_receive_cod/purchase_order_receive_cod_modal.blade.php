@@ -45,7 +45,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-primary font-weight-bold"
                     data-dismiss="modal">Tutup</button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
+                <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Bayar</button>
             </div>
         </div>
     </div>
