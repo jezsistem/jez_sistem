@@ -139,7 +139,7 @@ class StockDataController extends Controller
                 }
                 $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
                 background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: '.number_format($price_tag).' | J: '.number_format($sell_price).'</span>';
-                return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">['.$data->br_name.'] '.$data->p_name.' '.$hb.'</span>';
+                return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary" id="copy-button" title="'. $data->p_name .'">['.$data->br_name.'] '.$data->p_name.' '.$hb.'</span>';
             })
             ->editColumn('article_age', function($data){
                 

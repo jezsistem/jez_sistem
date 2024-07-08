@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
-class TempMutasi extends Model
+class TempTransferStok extends Model
 {
     use HasFactory;
 
-    protected $table = 'temp_mutasi';
+    protected $table = 'temp_transfer_stocks';
 
     protected $fillable = [
         'pls_id',

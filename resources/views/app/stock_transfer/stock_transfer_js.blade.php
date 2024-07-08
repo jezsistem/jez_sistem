@@ -220,6 +220,33 @@
             }
         });
 
+        $('#CancelBtn').on('click', function() {
+            jQuery.noConflict();
+
+            if (confirm('Apakah anda yakin untuk menghapus data import?')) {
+                fetch('{{ url('cancel_import_transfer') }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            swal('Berhasil', 'Cancel berhasil', 'success');
+                            transfer_bin_table.draw();
+                        } else {
+                            swal('Gagal', 'Terjadi kesalahan saat melakukan cancel', 'warning');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('An error occurred');
+                    });
+            }
+
+        });
+
         $(document).delegate('#cancel_transfer_item', 'click', function() {
             if ($('#transfer_done_btn').hasClass('d-none')) {
                 swal('Dilarang', 'Anda tidak boleh melakukan tindakan ini, karena status sudah done / in progress', 'warning');
