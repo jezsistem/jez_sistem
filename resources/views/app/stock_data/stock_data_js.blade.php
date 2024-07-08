@@ -282,21 +282,13 @@
         }
 
         stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn' ));
-        // $('#stock_data_search').on('keyup', function() {
-        //     var query = jQuery(this).val();
-        //     if (jQuery.trim(query).length > 2) {
-        //         stock_data_table.draw();
-        //     } else if (jQuery.trim(query).length == 0) {
-        //         stock_data_table.draw();
-        //     }
-        // });
         $(document).ready(function() {
             $('#stock_data_search').on('keyup', debounce(function() {
                 var query = $(this).val();
                 if ($.trim(query).length > 2 || $.trim(query).length == 0) {
                     stock_data_table.draw();
                 }
-            }, 300)); // Adjust the delay (300ms) as needed
+            }, 400));
         });
 
         $('#pick_data_search').on('keyup', function() {

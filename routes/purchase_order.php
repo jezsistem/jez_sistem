@@ -12,6 +12,7 @@ use App\Http\Controllers\POReceiveApprovalController;
 use App\Http\Controllers\PreOrderArticleController;
 use App\Http\Controllers\PreOrderArticleDetailController;
 use App\Http\Controllers\PreOrderController;
+use App\Http\Controllers\PurchaseOrderReceiveCODController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_import', [PurchaseOrderImportExcelController::class, 'importExcel']);
     Route::post('po_invoice_image', [PurchaseOrderController::class, 'uploadImageInvoice']);
     Route::get('po_article_export', [PurchaseOrderController::class, 'exportPurchaseOrderArticleData']);
+    Route::post('po_transfer_image', [PurchaseOrderController::class, 'uploadImageTransfer']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
@@ -88,10 +90,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('ap_datatables', [POReceiveApprovalController::class, 'getDatatables']);
     Route::get('apd_datatables', [POReceiveApprovalController::class, 'getDetailDatatables']);
     Route::post('ap_save', [POReceiveApprovalController::class, 'saveData']);
-    Route::post('ap_delete',
+    Route::post(
+        'ap_delete',
         [POReceiveApprovalController::class, 'deleteData']
     );
     Route::post('apd_approve', [POReceiveApprovalController::class, 'approveData']);
+    Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
 
     Route::get('pre_order', [PreOrderController::class, 'index']);
     Route::get('pre_order_datatables', [PreOrderController::class, 'getDatatables']);
@@ -118,4 +122,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('proad_delete', [PreOrderArticleDetailController::class, 'deleteData']);
     Route::post('proad_save_purchase_price', [PreOrderArticleDetailController::class, 'savePurchasePrice']);
     Route::post('proad_save_qty_total', [PreOrderArticleDetailController::class, 'saveQtyTotal']);
+
+    // Penerimaan COD
+    Route::get('penerimaan_cod', [PurchaseOrderReceiveCODController::class, 'index']);
+    Route::get('poc_datatables', [PurchaseOrderReceiveCODController::class, 'getDatatables']);
+    Route::post('poc_update_is_paid', [PurchaseOrderReceiveCODController::class, 'updateIsPaid']);
 });

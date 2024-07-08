@@ -214,7 +214,9 @@
 
     function getProductPriceTag(id) {
         var price_tag = $('#product_size_price_tag' + id).val();
-        var barcode = $('#product_size_running_code' + id).val();
+        var barcode = $('#product_size_barcode' + id).val();
+
+        console.log(barcode);
         $.ajax({
             type: "POST",
             data: {
@@ -233,7 +235,7 @@
 
     function getProductSellPrice(id) {
         var sell_price = $('#product_size_sell_price' + id).val();
-        var barcode = $('#product_size_running_code' + id).val();
+        var barcode = $('#product_size_barcode' + id).val();
         $.ajax({
             type: "POST",
             data: {
@@ -294,7 +296,7 @@
 
     function getProductPurchasePrice(id) {
         var purchase_price = $('#product_size_purchase_price' + id).val();
-        var barcode = $('#product_size_running_code' + id).val();
+        var barcode = $('#product_size_barcode' + id).val();
         $.ajax({
             type: "POST",
             data: {
@@ -1031,6 +1033,7 @@
 
         $(document).delegate('#product_detail_btn', 'click', function() {
             var id = $(this).attr('data-id');
+            var article = $(this).attr('data-article');
             jQuery.noConflict();
             $('#ProductDetailModal').modal('show');
             $.ajaxSetup({
@@ -1041,7 +1044,8 @@
             $.ajax({
                 type: "POST",
                 data: {
-                    _id: id
+                    _id: id,
+                    _art: article
                 },
                 dataType: 'html',
                 url: "{{ url('product_detail') }}",
@@ -1050,7 +1054,8 @@
                     $.ajax({
                         type: "POST",
                         data: {
-                            _p_id: id
+                            _p_id: id,
+                            _art: article
                         },
                         dataType: 'json',
                         url: "{{ url('check_product_stock') }}",
@@ -1059,12 +1064,9 @@
                                 $.each($(r.data), function(key, value) {
                                     $('#ProductStockDetailtb tr:last')
                                         .after(
-                                            "<tr id='ProductStockDetailAppend'><td>" +
-                                            value.sz_name +
-                                            "</td><td>" + value.ps_qty +
-                                            "</td><td>" + value
-                                            .ps_barcode + "</td><td>" +
-                                            value.ps_running_code +
+                                            "<tr id='ProductStockDetailAppend'><td>" + value.sz_name +
+                                            "</td><td>" + value.qty +
+                                            "</td><td>" + value.ps_barcode + "</td><td>" + formatToRupiah(value.ps_price_tag) +
                                             "</td></tr>");
                                 });
                             } else {
@@ -1075,6 +1077,15 @@
                 }
             });
         });
+
+        function formatToRupiah(value) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
 
         $('#close_import_btn').on('click', function() {
             $("#import_data_btn").html('Import');

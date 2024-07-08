@@ -1177,7 +1177,7 @@ class PointOfSaleController extends Controller
                 'pst_id' => $pst_id,
                 'pl_id' => $pl_id,
                 'pos_td_qty' => $item_qty,
-                'pos_td_sell_price' => $price,
+                'pos_td_sell_price' => $final_price,
                 'pos_td_discount' => $discount,
                 'pos_td_discount_number' => $discount_number,
                 'pos_td_discount_price' => $pos_td_discount_price,

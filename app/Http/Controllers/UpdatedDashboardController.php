@@ -83,11 +83,11 @@ class UpdatedDashboardController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'activity' => $activity,
-            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')
-            ->where('id', '!=', '4')->orderByDesc('id')->pluck('st_name', 'id'),
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'pc_id' => DB::table('product_categories')->where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
         return view('app.updated_dashboard.dashboard', compact('data'));
     }
 
