@@ -15,6 +15,18 @@
     var sell_price_voc = 0;
     var value_price_voc = 0;
 
+    function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
+    }
+
     function changeQty(row, pst_id, pls_qty) {
         var item_qty = jQuery('#item_qty' + row).val();
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
@@ -417,7 +429,8 @@
 
         var final_nameset = parseFloat(total_nameset) - parseFloat(nameset);
         var final_current_discount = parseFloat(discount_final) - parseFloat(subdiscount_item);
-        var final_price = parseFloat(replaceComma(jQuery('#total_price_side').text())) - parseFloat(replaceComma(sell_price_item));
+        var final_price = parseFloat(replaceComma(jQuery('#total_price_side').text())) - parseFloat(replaceComma(
+            sell_price_item));
         var key = pst_id + '-' + bandrol + '-' + price;
         var total_key = jQuery.grep(shoes_voucher_temp, function(value) {
             return value === key;
@@ -448,7 +461,8 @@
                     jQuery('#total_nameset_side').text(addCommas(final_nameset));
                     jQuery('#total_price_side').text(addCommas(final_price));
                     jQuery('#total_discount_value_side').text(addCommas(final_current_discount));
-                    jQuery('#total_final_price_side').text(addCommas(final_price + final_nameset - final_current_discount));
+                    jQuery('#total_final_price_side').text(addCommas(final_price + final_nameset -
+                        final_current_discount));
 
                     // if(index = 0 || index < 0){
                     //     jQuery('#total_price_side').text(0);
@@ -2184,8 +2198,7 @@
         //     }
         // });
 
-        jQuery(document).delegate('#select_refund_exchange_item', 'click', function()
-        {
+        jQuery(document).delegate('#select_refund_exchange_item', 'click', function() {
             var p_name = jQuery(this).attr('data-p_name');
             var pst_id = jQuery(this).attr('data-pst_id');
             var pt_id = jQuery(this).attr('data-pt_id');
@@ -2196,23 +2209,45 @@
             var nameset_price = jQuery(this).attr('data-nameset_price');
             var item_qty = jQuery(this).attr('data-item_qty');
             var total_row = parseFloat(jQuery('#total_row').val());
-            jQuery('#total_row').val(total_row+1);
+            jQuery('#total_row').val(total_row + 1);
             var total_item = jQuery('#total_item_side').text();
             var total_price = jQuery('#total_price_side').text();
             if (jQuery(this).is(':checked')) {
                 jQuery('#_pt_id_complaint').val(pt_id);
                 jQuery('#total_item_side').text(parseInt(total_item) - 1);
-                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
+                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
+                    parseFloat(total_price_item)));
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
+                    parseFloat(total_price_item)));
                 addRefundExchangeList('add', plst_id, pt_id);
-                jQuery('#orderTable tr:last').after("<tr data-list-item class='bg-danger text-white pos_item_list mb-2' id='data_plst"+plst_id+"'> <td style='white-space: nowrap;'>"+p_name+"</td> <td>"+item_qty+"</td> <td><input type='number' class='form-control border-dark col-4 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='-"+item_qty+"' onchange='return changeReturQty("+(total_row+1)+", "+pst_id+", "+item_qty+")'></td> <td>asdjalsd</td> <td><input type='number' class='col-8 nameset_price' id='nameset_price"+(total_row+1)+"' value='"+nameset_price+"' onchange='return namesetPrice("+(total_row+1)+")' readonly/></td> <td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+", "+pl_id+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
+                jQuery('#orderTable tr:last').after(
+                    "<tr data-list-item class='bg-danger text-white pos_item_list mb-2' id='data_plst" +
+                    plst_id + "'> <td style='white-space: nowrap;'>" + p_name + "</td> <td>" +
+                    item_qty +
+                    "</td> <td><input type='number' class='form-control border-dark col-4 basicInput2" +
+                    pst_id + "' id='item_qty" + (total_row + 1) + "' value='-" + item_qty +
+                    "' onchange='return changeReturQty(" + (total_row + 1) + ", " + pst_id + ", " +
+                    item_qty +
+                    ")'></td> <td>asdjalsd</td> <td><input type='number' class='col-8 nameset_price' id='nameset_price" +
+                    (total_row + 1) + "' value='" + nameset_price +
+                    "' onchange='return namesetPrice(" + (total_row + 1) +
+                    ")' readonly/></td> <td><span id='sell_price_item" + (total_row + 1) + "'>-" +
+                    addCommas(sell_price) +
+                    "</span></td> <td><span class='subtotal_item' id='subtotal_item" + (total_row +
+                        1) + "'>-" + addCommas(total_price_item) +
+                    "</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
+                    (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) + ", " +
+                    pst_id + ", " + sell_price + ", " + plst_id + ", " + pl_id +
+                    ")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
             } else {
                 jQuery('#total_item_side').text(parseInt(total_item) + 1);
-                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(total_price_item)));
+                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
+                    parseFloat(total_price_item)));
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
+                    parseFloat(total_price_item)));
                 //alert(plst_id);
                 addRefundExchangeList('remove', plst_id, pt_id);
-                jQuery('#orderTable tr#data_plst'+plst_id+'').remove();
+                jQuery('#orderTable tr#data_plst' + plst_id + '').remove();
             }
         });
 
@@ -2431,7 +2466,7 @@
             }
         });
 
-        jQuery('#pm_id_offline').on('change', function(e) {            
+        jQuery('#pm_id_offline').on('change', function(e) {
             e.preventDefault();
             var label = jQuery('#pm_id_offline option:selected').text();
             if (label == 'DEBIT CARD') {
@@ -2654,19 +2689,18 @@
             jQuery('#discount_seller').val('');
         });
 
-        jQuery('#product_name_input').on('keyup', function() {
+        jQuery('#product_name_input').on('keyup',  function() {
             var query = jQuery(this).val();
             var type = jQuery('#std_id option:selected').text();
             var item_type = jQuery('#item_type option:selected').val();
             var std_id = jQuery('#std_id').val();
             var st_id = jQuery('#st_id').val();
-
-            if (st_id  == '') {
-                st_id = {{ Auth::user()->st_id}};
-                console.log(st_id);
-
+            
+            if (st_id == '') {
+                st_id = {{ Auth::user()->st_id }};                
             }
             if (jQuery.trim(query) != '' || jQuery.trim(query) != null) {
+                console.log("running fadein")
                 if (jQuery.trim(query).length > 2) {
                     jQuery.ajaxSetup({
                         headers: {
@@ -2692,6 +2726,7 @@
                     jQuery('#itemList').fadeOut();
                 }
             } else {
+                console.log("running fadeout");
                 jQuery('#itemList').fadeOut();
             }
         });
@@ -2726,6 +2761,7 @@
 
         jQuery('#product_name_input').on('change', function() {
             var query = jQuery(this).val();
+            console.log(query);
             if (jQuery.trim(query) == '' || jQuery.trim(query) != null) {
                 jQuery('#itemList').fadeOut();
             }
@@ -3323,7 +3359,7 @@
         var total_final = jQuery('#total_final_price_side').text();
         var curren_discount = removeCommasAndConvertToNumber(jQuery('#total_discount_value_side').text());
         var total = replaceComma(total_final);
-
+        console.log(total);
         var formData = jQuery('#f_add_total_discount').serializeArray();
 
         jQuery.ajax({
@@ -3339,7 +3375,7 @@
                         // create count use percentage from total
                         var discount = parseFloat(total) * parseFloat(r.total) / 100;
                         var new_discount = curren_discount + discount;
-                        var new_total = parseFloat(total) - parseFloat(new_discount);
+                        var new_total = parseFloat(total) - parseFloat(discount);                        
                         jQuery('#total_final_price_side').text(addCommas(new_total));
                         jQuery('#total_discount_value_side').text(addCommas(new_discount));
 
