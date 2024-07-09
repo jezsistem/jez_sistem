@@ -309,7 +309,32 @@
         });
 
         $(document).delegate('#aging_detail', 'click', function(e) {
-            swal($(this).attr('title'));
+            // swal($(this).attr('title'));
+            alert($(this).attr('title'));
+        });
+
+        $(document).delegate('#copy-button', 'click', function(e) {
+            // swal($(this).attr('title'));
+            var textToCopy = $(this).attr('title');
+
+            // Create a temporary textarea element
+            var tempTextarea = $('<textarea>');
+            $('body').append(tempTextarea);
+            tempTextarea.val(textToCopy).select();
+
+            // Copy the text inside the textarea
+            document.execCommand('copy');
+
+            // Remove the temporary textarea
+            tempTextarea.remove();
+
+            // Optional: Provide feedback to the user
+            swal({
+                title: "Copied!",
+                text: "Text copied to clipboard: " + textToCopy,
+                icon: "success",
+            });
+
         });
 
         $(document).delegate('#pickup_item', 'click', function(e) {

@@ -226,6 +226,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('cancel_transfer_item', [StockTransferController::class, 'cancelTransferItem']);
     Route::post('stock_transfer_done', [StockTransferController::class, 'stockTransferDone']);
     Route::post('stock_transfer_import', [StockTransferController::class, 'importData']);
+    Route::delete('cancel_import_transfer', [StockTransferController::class, 'cancelImportData']);
 
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');

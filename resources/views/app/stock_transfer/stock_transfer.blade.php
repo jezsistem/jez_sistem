@@ -24,7 +24,7 @@
         <!--begin::Container-->
         <div class="container">
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <div class="card-header h-auto">
@@ -72,7 +72,7 @@
                                 <div class="form-group mb-1 pb-1 col-8">
                                     <input type="search" class="form-control" id="article_search" placeholder="Cari artikel / brand / warna"/>
                                 </div>
-                                <div class="form-group mb-1 pb-1 col-4">
+                                <div class="form-group mb-1 pb-1 col-2">
                                     <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
                                     <span class="svg-icon svg-icon-md">
                                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -86,7 +86,19 @@
                                         <!--end::Svg Icon-->
                                     </span>Import</a>
                                 </div>
+
+                                <div class="form-group mb-1 pb-1 col-2">
+                                    <a type="button" class="btn btn-light-primary font-weight-bolder" id="CancelBtn" aria-haspopup="true" aria-expanded="false">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 30 30">
+                                            <path d="M15,3C8.373,3,3,8.373,3,15c0,6.627,5.373,12,12,12s12-5.373,12-12C27,8.373,21.627,3,15,3z M16.414,15 c0,0,3.139,3.139,3.293,3.293c0.391,0.391,0.391,1.024,0,1.414c-0.391,0.391-1.024,0.391-1.414,0C18.139,19.554,15,16.414,15,16.414 s-3.139,3.139-3.293,3.293c-0.391,0.391-1.024,0.391-1.414,0c-0.391-0.391-0.391-1.024,0-1.414C10.446,18.139,13.586,15,13.586,15 s-3.139-3.139-3.293-3.293c-0.391-0.391-0.391-1.024,0-1.414c0.391-0.391,1.024-0.391,1.414,0C11.861,10.446,15,13.586,15,13.586 s3.139-3.139,3.293-3.293c0.391-0.391,1.024-0.391,1.414,0c0.391,0.391,0.391,1.024,0,1.414C19.554,11.861,16.414,15,16.414,15z"></path>
+                                        </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>Cancel</a>
+                                </div>
                             </div>
+
                             <table class="table table-hover table-checkable pr-4" id="TransferBintb">
                                 <thead class="bg-light text-dark">
                                     <tr>
@@ -105,7 +117,7 @@
                     </div>
                     <!--end::Card-->
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <div class="card-body table-responsive">
