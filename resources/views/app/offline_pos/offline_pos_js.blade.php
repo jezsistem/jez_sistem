@@ -1549,7 +1549,7 @@
                                         (total_row + 1) +
                                         "' onclick='return saveItem(" + (total_row +
                                             1) + ", " + pst_id + ", " + sell_price +
-                                        ", " + r.plst_id + ", " + pl_id +
+                                        ", " + plst_id + ", " + pl_id +
                                         ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
                                         "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
                                         pst_id + ", " + sell_price + ", " + (
@@ -2689,15 +2689,15 @@
             jQuery('#discount_seller').val('');
         });
 
-        jQuery('#product_name_input').on('keyup',  function() {
+        jQuery('#product_name_input').on('keyup', function() {
             var query = jQuery(this).val();
             var type = jQuery('#std_id option:selected').text();
             var item_type = jQuery('#item_type option:selected').val();
             var std_id = jQuery('#std_id').val();
             var st_id = jQuery('#st_id').val();
-            
+
             if (st_id == '') {
-                st_id = {{ Auth::user()->st_id }};                
+                st_id = {{ Auth::user()->st_id }};
             }
             if (jQuery.trim(query) != '' || jQuery.trim(query) != null) {
                 console.log("running fadein")
@@ -3229,53 +3229,78 @@
         jQuery(document).on('click', '.add-total-discount', function() {
 
             let newField = `
-        <div class="input-group mb-3">
-                <input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
-                <div class="input-group-append ml-3">
-                    <button class="btn btn-outline-secondary remove-total-discount" type="button">-</button>
+            <div class="input-group mb-3">
+                    <input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
+                    <div class="input-group-append ml-3">
+                        <button class="btn btn-outline-secondary remove-total-discount" type="button">-</button>
+                    </div>
                 </div>
-            </div>
-    `;
+            `;
             jQuery("#total-discount-container").append(newField);
         });
 
         // Event listener to remove a discount input field
         jQuery(document).on('click', '.remove-total-discount', function() {
-            // if remove button is cliked,subtract the total price
             let total_price = jQuery("#total_final_price_side").text();
             let total_discount_value_side = jQuery("#total_discount_value_side").text();
             let discount = jQuery(this).closest('.input-group').find('input').val();
-            //remove comma from total price and discount
+            let discountType = jQuery('select[name="discount-type-list"]').val();
+
+            // Remove comma from total price and discount
             total_price = replaceComma(total_price);
             total_discount_value_side = replaceComma(total_discount_value_side);
 
-            let new_total_price = parseFloat(total_price) + parseFloat(discount);
-            let new_total_discount_value_side = parseFloat(total_discount_value_side) - parseFloat(
-                discount);
-            jQuery('#total_final_price_side').text(addCommas(new_total_price));
-            jQuery('#total_discount_value_side').text(addCommas(new_total_discount_value_side));
+            if (discountType === "nominal") {
+                let new_total_price = parseFloat(total_price) + parseFloat(discount);
+                let new_total_discount_value_side = parseFloat(total_discount_value_side) - parseFloat(
+                    discount);
+                jQuery('#total_final_price_side').text(addCommas(new_total_price));
+                jQuery('#total_discount_value_side').text(addCommas(new_total_discount_value_side));
+            } else if (discountType === "percentage") {
+                let discountAmount = (parseFloat(discount) / 100) * parseFloat(total_price);
+                let new_total_price = parseFloat(total_price) + discountAmount;
+                let new_total_discount_value_side = parseFloat(total_discount_value_side) -
+                    discountAmount;
+                jQuery('#total_final_price_side').text(addCommas(new_total_price));
+                jQuery('#total_discount_value_side').text(addCommas(new_total_discount_value_side));
+            }
+
             jQuery(this).closest('.input-group').remove();
         });
 
+
+        // Event listener to reset total discount input fields
         jQuery(document).on('click', '#total_discount_reset', function() {
+            // Simulate clicking each remove button to trigger the remove event
+            jQuery('.remove-total-discount').each(function() {
+                jQuery(this).trigger('click');
+            });
+
             let total_price = jQuery("#total_final_price_side").text();
+            let total_discount_value_side = jQuery("#total_discount_value_side").text();
             total_price = replaceComma(total_price);
-            // Reset each input field in total-discount-list
-            let new_total_price = parseFloat(total_price);
+            total_discount_value_side = replaceComma(total_discount_value_side);
 
-            jQuery('input[name="total-discount-list[]"]').each(function() {
-                let discount = replaceComma(jQuery(this).val());
-                new_total_price += parseFloat(discount);
-            });
+            // Get the value of the first discount input field
+            let firstDiscount = jQuery('input[name="total-discount-list[]"]').first().val();
+            firstDiscount = replaceComma(firstDiscount);
 
-            jQuery('#total_final_price_side').text(addCommas(new_total_price));
+            if (firstDiscount !== '')
+            {
+                // Calculate the new total price and total discount value
+                let new_total_price = parseFloat(total_price) + parseFloat(firstDiscount);
+                let new_total_discount_value_side = parseFloat(total_discount_value_side) - parseFloat(
+                    firstDiscount);
+    
+                // Update the total final price and total discount value
+                jQuery('#total_final_price_side').text(addCommas(new_total_price));
+                jQuery('#total_discount_value_side').text(addCommas(new_total_discount_value_side));
+            }
+            // Remove all discount input fields except the first one
+            jQuery('#total-discount-container .input-group:not(:first)').remove();
 
-            jQuery('input[name="total-discount-list[]"]').each(function() {
-                jQuery(this).val(0);
-            });
-
-            // Reset total_discount_value_side to 0
-            jQuery('#total_discount_value_side').text('0');
+            // Reset the first discount input field value to ''
+            jQuery('input[name="total-discount-list[]"]').first().val('');
         });
     });
 
@@ -3375,7 +3400,7 @@
                         // create count use percentage from total
                         var discount = parseFloat(total) * parseFloat(r.total) / 100;
                         var new_discount = curren_discount + discount;
-                        var new_total = parseFloat(total) - parseFloat(discount);                        
+                        var new_total = parseFloat(total) - parseFloat(discount);
                         jQuery('#total_final_price_side').text(addCommas(new_total));
                         jQuery('#total_discount_value_side').text(addCommas(new_discount));
 
