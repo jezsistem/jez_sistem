@@ -1549,7 +1549,7 @@
                                         (total_row + 1) +
                                         "' onclick='return saveItem(" + (total_row +
                                             1) + ", " + pst_id + ", " + sell_price +
-                                        ", " + r.plst_id + ", " + pl_id +
+                                        ", " + plst_id + ", " + pl_id +
                                         ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
                                         "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
                                         pst_id + ", " + sell_price + ", " + (
