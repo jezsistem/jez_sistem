@@ -76,15 +76,17 @@
         var final_price = 0;
         var discount_price = 0;
         var nameset = 0;
+        var new_final_price = 0;
         jQuery('#orderTable tr').each(function(index, row) {
             if (jQuery(row).find('.sell_price_item').text() != '') {
                 var sbttl = parseFloat(replaceComma(jQuery(row).find('.sell_price_item').text()));
+
                 // var dcttl = parseFloat(replaceComma(jQuery(row).find('.sell_price_item').text())) - sbttl;
                 if (typeof sbttl === 'undefined' && sbttl == '') {
                     sbttl = 0;
                 }
 
-                final_price += sbttl;
+                final_price += (sbttl * item_qty);                
             }
 
             var disc_item = jQuery(row).find('.discount_number').val();
@@ -98,8 +100,9 @@
             }
 
         });
-
-        jQuery('#total_price_side').text(addCommas(final_price));
+        
+        // jQuery('#total_price_side').text(addCommas(final_price));
+        jQuery('#total_price_side').text(final_price);
         jQuery('#total_coba').text(addCommas(discount_price));
         jQuery('#total_final_price_side').text(addCommas(final_price + nameset));
     }
@@ -3285,13 +3288,12 @@
             let firstDiscount = jQuery('input[name="total-discount-list[]"]').first().val();
             firstDiscount = replaceComma(firstDiscount);
 
-            if (firstDiscount !== '')
-            {
+            if (firstDiscount !== '') {
                 // Calculate the new total price and total discount value
                 let new_total_price = parseFloat(total_price) + parseFloat(firstDiscount);
                 let new_total_discount_value_side = parseFloat(total_discount_value_side) - parseFloat(
                     firstDiscount);
-    
+
                 // Update the total final price and total discount value
                 jQuery('#total_final_price_side').text(addCommas(new_total_price));
                 jQuery('#total_discount_value_side').text(addCommas(new_total_discount_value_side));
