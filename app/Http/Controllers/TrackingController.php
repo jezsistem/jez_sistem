@@ -14,6 +14,7 @@ use App\Models\ProductStock;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use App\Models\UserActivity;
+use Carbon\Carbon;
 
 class TrackingController extends Controller
 {
@@ -420,7 +421,8 @@ class TrackingController extends Controller
                     'pl_name',
                     'pl_description',
                     'product_location_setup_transactions.created_at as plst_created',
-                    'ps_barcode'
+                    'ps_barcode',
+                    'product_location_setup_transactions.created_at'
                 )
                     ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                     ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -434,14 +436,17 @@ class TrackingController extends Controller
                     })
                     ->where('plst_status', '=', 'WAITING TO TAKE'))
                     ->editColumn('article', function ($data) {
+                        $timestamp = $data->created_at;
+                        $formattedTimestamp = Carbon::parse($timestamp)->translatedFormat('d F Y H:i:s');
                         $p_name =  $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
                         return '
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
                     <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode. ' - '. $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>
-                    <span style="white-space: nowrap; font-weight:bold;">Jml Bin : '. $data->pls_qty .'</span><br/>
+                    <small style="white-space: nowrap; font-weight:bold;">Stok Bin : '. $data->pls_qty + 1 .' | '. $formattedTimestamp .'</small><br/>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->plst_qty . '</span>
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->pl_code . ']</span>                    
-                    <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="' . $data->pls_qty . '" data-pls_id="' . $data->pls_id . '" id="get_out_btn" style="font-weight:bold;">Keluar</a>';
+                    <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="' . $data->pls_qty . '" data-pls_id="' . $data->pls_id . '" id="get_out_btn" style="font-weight:bold;">Keluar</a><br><hr>
+                    ';
                     })
                     ->rawColumns(['article', 'bin', 'status', 'qty', 'action'])
                     ->filter(function ($instance) use ($request) {
