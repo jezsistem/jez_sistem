@@ -230,7 +230,16 @@ class StockDataController extends Controller
                             $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="'.$title_tf.'">'.$days_remain_tf.' H</span>';
                         }
 
-                        $item_list .= '<tr style="border:0px;">';
+                        $text_search = $request->get('search');
+
+                        $article_id_search = DB::table('product_stocks')->select( 'product_stocks.id', 'products.article_id')
+                            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                            ->where('product_stocks.ps_barcode', 'like', '%'.$text_search.'%')
+                            ->get()->first();
+
+                        $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
+
+                        $item_list .= '<tr style="border:0px;'. $style .'" title="'. $text_search .'">';
                         $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">'.$item.' <span class="btn-sm-custom btn-primary">'.$row->article_id .' '.$row->p_color.'</span></td>';
                         $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -262,7 +271,6 @@ class StockDataController extends Controller
                                 $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
                                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                                 ->whereNotIn('pl_code', $exception)
-//                                ->where('pls_qty', '>=', '0')
                                 ->where('product_locations.st_id', '=', $st_id)
                                 ->where('pst_id', $srow->pst_id)->get();
                                 $bin = '';
