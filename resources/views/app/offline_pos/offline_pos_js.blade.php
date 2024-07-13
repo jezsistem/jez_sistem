@@ -1467,7 +1467,7 @@
                                 return false;
                             }
                         }
-
+                    //testing
                     }
                     var total_item = jQuery('#total_item_side').text();
                     var total_price = jQuery('#total_price_side').text();
