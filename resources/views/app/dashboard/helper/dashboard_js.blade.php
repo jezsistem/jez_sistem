@@ -373,6 +373,13 @@
         ],
     });
 
+    function refreshTable() {
+        out_table.ajax.reload(null, false); // user paging is not reset on reload
+    }
+
+    // Set interval to refresh the DataTable every 30 seconds (30000 milliseconds)
+    setInterval(refreshTable, 3000);
+
     var scan_out_table = $('#ScanOuttb').DataTable({
         destroy: true,
         processing: false,
