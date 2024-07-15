@@ -219,9 +219,10 @@ class UpdatedDashboardController extends Controller
         ->where(function($w) use ($start, $end, $st_id, $label, $division) {
             if (!empty($st_id)) {
                 $w->whereIn('pos_transactions.st_id', $st_id);
-            } else {
-                $w->where('pos_transactions.st_id', '!=', '4');
             }
+//            else {
+//                $w->where('pos_transactions.st_id', '!=', '4');
+//            }
             if ($division != 'all') {
                 if ($division == 'online') {
                     $w->where('pos_transactions.stt_id', '=', '1');
@@ -243,10 +244,11 @@ class UpdatedDashboardController extends Controller
         ->where(function($w) use ($start, $end, $st_id, $label, $division) {
             if (!empty($st_id)) {
                 $w->whereIn('pos_transactions.st_id_ref', $st_id);
-            } else {
-                $w->whereNotNull('pos_transactions.st_id_ref')
-                ->where('pos_transactions.st_id_ref', '!=', '4');
             }
+//            else {
+//                $w->whereNotNull('pos_transactions.st_id_ref')
+//                ->where('pos_transactions.st_id_ref', '!=', '4');
+//            }
             if ($division != 'all') {
                 if ($division == 'online') {
                     $w->where('pos_transactions.stt_id', '=', '1');
