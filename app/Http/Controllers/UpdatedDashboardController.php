@@ -134,7 +134,7 @@ class UpdatedDashboardController extends Controller
             ->get()
             ->toArray();
             
-        $draft = DB::table('stock_transfer_details')
+        $draft =  DB::table('stock_transfer_details')
         ->selectRaw("stfd_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
         ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
         ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'stock_transfer_details.pst_id')
@@ -269,9 +269,10 @@ class UpdatedDashboardController extends Controller
         ->where(function($w) use ($start, $end, $st_id, $division) {
             if (!empty($st_id)) {
                 $w->whereIn('pos_transactions.st_id', $st_id);
-            } else {
-                $w->where('pos_transactions.st_id', '!=', '4');
             }
+//            else {
+//                $w->where('pos_transactions.st_id', '!=', '4');
+//            }
             if ($division != 'all') {
                 if ($division == 'online') {
                     $w->where('pos_transactions.stt_id', '=', '1');

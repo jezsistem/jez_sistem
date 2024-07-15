@@ -119,7 +119,7 @@
                             <!--begin::Section--> 
                             <div class="d-flex flex-column mt-3">
                                 <!--begin::Number-->           
-                                <span class="font-weight-semibold fs-2x text-gray-800 lh-1 ls-n2" id="nett_sales_label"></span> 
+                                <span class="font-weight-semibold fs-2x text-gray-800 lh-1 ls-n2" id="nett_sales_label"></span>
                                 <!--end::Number--> 
                                 <!--begin::Follower-->
                                 <div class="m-0">
