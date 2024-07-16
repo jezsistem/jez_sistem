@@ -57,11 +57,12 @@
 
         .content .transaction-table {
             width: 93%;
-            font-size: 15px;
+            font-size: 12px;
         }
 
         .content .transaction-table .name {
             width: 100px;
+            height: 85px;
         }
 
         .content .transaction-table .qty {
@@ -122,42 +123,52 @@
     @foreach ($data['invoice_data'] as $row)
         <center class="content">
             <center>
-{{--                @if($data['store_code'] == 'JZ')--}}
-{{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
-{{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
-{{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
-{{--                @elseif($data['store_code'] == 'SZ')--}}
-{{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
-{{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
-{{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
-{{--                @endif--}}
+                {{--                @if($data['store_code'] == 'JZ')--}}
+                {{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
+                {{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
+                {{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
+                {{--                @elseif($data['store_code'] == 'SZ')--}}
+                {{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
+                {{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
+                {{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
+                {{--                @endif--}}
                 <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"
                      src="{{ asset('logo/logo_jez_sport.png') }}"
                      style="width:43%; padding:10px; background-color:#000;"/>
-                <div class="separate"></div>
-                <div class="title">
+                <div class="title" style="margin-top: 20px;">
                     <strong>{{ $row->st_name }}</strong><br/>
                     {{ $row->st_address }}<br/>
                     {{ $row->st_phone }}<br/><br/>
                     Jersey Zone<br/>
                     www.jez.co.id
                 </div>
+                <div class="separate"></div>
 
+                <div class="nota" style="margin-top: 10px; margin-bottom: 10px;">
+                    {{ $data['invoice'] }}
+                </div>
                 <div class="head-desc">
                     <div class="date">
-                        {{ date('d-m-Y H:i:s', strtotime($row->pos_created)) }}<br/>
-                        Pembayaran: {{ $row->pm_name }} @if (!empty($row->pm_name_partial))
+                        {{--                        {{ date('d-m-Y H:i:s', strtotime($row->pos_created)) }}<br/>--}}
+                        {{ \Carbon\Carbon::parse($row->pos_created)->translatedFormat('d F Y') }}<br/>
+                        Kasir<br/>
+                        Customer<br/>
+                        Pembayaran
+                    </div>
+                    <div class="user">
+                        {{ \Carbon\Carbon::parse($row->pos_created)->translatedFormat('H:i') }}<br/>
+                        @php
+                            $name = "BIMO AJI ARIO";
+                            echo ucwords(strtolower($name))
+                        @endphp <br>
+                        {{ $row->cust_name }}<br>
+                        {{ $row->pm_name }}
+                        @if (!empty($row->pm_name_partial))
                             & {{ $row->pm_name_partial }}
                         @endif
                     </div>
-                    <div class="user">
-                        {{ $row->u_name }}</strong>
-                    </div>
                 </div>
 
-                <div class="nota">
-                    {{ $data['invoice'] }}
-                </div>
                 <div class="separate"></div>
 
                 <div class="transaction">
@@ -191,27 +202,28 @@
 
                         @foreach ($row->subitem as $srow)
                             @php
-                                $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
+                                $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                                 $total_item += $srow->pos_td_qty;
                                 $total_price += $srow->pos_td_discount_price;
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
                             @endphp
-                            <tr style="margin-bottom:5px;">
-                                <td class="name">{{ $key }}</td>
+                            <tr style="margin-bottom:15px;">
+                                <td class="name">{{ $key }}<br></td>
                                 @if (!empty($srow->pos_td_description) AND $srow->pos_td_qty > 1)
                                     <td class="qty" style="width: 1px;">{{ $srow->pos_td_description }}</td>
                                 @else
                                     <td class="qty">{{ $srow->pos_td_qty }}x</td>
                                     <td class="sell-price">
-                                        <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s><br>
-                                        {{--                                        @php--}}
-                                        {{--                                            $number = $srow->pos_td_sell_price;--}}
-                                        {{--                                            $formatted_number = number_format($number, 0, ',', '.');--}}
-                                        {{--                                            $newFormatter = 'Rp ' . $formatted_number;--}}
-                                        {{--                                            \App\Libraries\CurrencyFormatter::--}}
-                                        {{--                                        @endphp--}}
-                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_sell_price) }}
+                                        @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
+                                            <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
+                                            <br>
+                                        @endif
+
+
+                                            @if(!empty($srow->pos_td_discount_number))
+                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number) }})</span>
+                                            @endif
 
 
                                         @if (!empty($srow->pos_td_discount))
@@ -222,14 +234,8 @@
 
                                 @endif
                                 <td class="final-price">
-                                    @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
-                                         {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_price) }}
-                                    @else
-                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_price) }}
-                                    @endif
-                                    @if(!empty($srow->pos_td_discount_number))
-                                        <br/> <span class="text-red">(-{{ $srow->pos_td_discount_number }})</span>
-                                    @endif
+                                    {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_sell_price) }}
+
                                 </td>
 
 
@@ -380,22 +386,8 @@
                     <img class="" data-pt_id="{{ $row->pt_id }}"
                          src="{{ asset('logo/qr_link.png') }}"
                          style="width:43%; background-color:#000;"/>
-                </div><br>
-                <div class="title">
-                    <strong><i>Ketentuan penukaran barang :</i></strong>
-                    <br/>
-                    <p style="text-align:left; font-size:11px;">
-                        1. Batas waktu penukaran barang maksimal 3 hari dari saat transaksi (Barang yang dapat ditukar
-                        hanya produk sepatu)<br/>
-                        2. Penukaran barang tidak berlaku untuk produk jersey, t-shirt, asesoris maupun equipment<br/>
-                        3. Penukaran barang tidak berlaku untuk barang yang diskon 25% keatas<br/>
-                        4. Produk sepatu yang dapat ditukar yaitu belum pernah digunakan untuk beraktifitas dan wajib
-                        memiliki dus yang sesuai dengan barang<br/>
-                        5. Wajib menyertakan struk pembelanjaan saat proses penukaran barang baik pembelian offline &
-                        online<br/>
-                    </p>
                 </div>
-                <div class="page-end"></div>
+                <br>
                 <div class="title">
                     <strong><i>Ketentuan penukaran barang :</i></strong>
                     <br/>

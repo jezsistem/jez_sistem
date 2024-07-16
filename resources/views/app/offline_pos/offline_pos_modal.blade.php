@@ -413,8 +413,7 @@
                     <div class="card-body">
                         <div class="form-group mb-1 pb-10">
                             <label for="exampleTextarea">Scan Barcode Staff Anda</label>
-                            <input type="password" class="form-control" id="u_secret_code" name="u_secret_code"
-                                   autocomplete="off" required/>
+                            <input type="text" class="form-control" id="u_secret_code" name="u_secret_code" autocomplete="off" autofocus required/>
                         </div>
                     </div>
                 </div>
