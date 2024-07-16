@@ -744,7 +744,7 @@ class ProductController extends Controller
                             'sz_id' => $size_id,
                             'ps_barcode' => $barcode,
                             'ps_qty' => '0',
-                            'ps_running_code' => $this->generateRunningCode()
+                            'ps_running_code' => $barcode
                         ]);
                     } else {
                         $check_current_size = ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->exists();
@@ -779,7 +779,7 @@ class ProductController extends Controller
                             'p_id' => $id,
                             'sz_id' => $exp[$i],
                             'ps_qty' => '0',
-                            'ps_running_code' => $this->generateRunningCode()
+//                            'ps_running_code' => $this->generateRunningCode()
                         ]);
                     } else {
                         $check_current_size = ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->exists();

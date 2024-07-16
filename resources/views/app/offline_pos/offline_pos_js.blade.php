@@ -499,6 +499,23 @@
         });
     }
 
+    function open_modal_kasir() {
+        swal({
+            title: "Data pembelian sudah sesuai ..?",
+            text: "",
+            icon: "warning",
+            buttons: [
+                'Batal',
+                'Benar'
+            ],
+            dangerMode: false,
+        }).then(function(isConfirm) {
+            if (isConfirm) {
+                checkout()
+            }
+        })
+    }
+
 
     function checkout() {
         var payement = document.getElementById('total_payment').value
@@ -2604,38 +2621,38 @@
                     swal("Jumlah Dibayar Kedua", "Silahkan jumlah dibayar kedua", "warning");
                     return false;
                 }
-                // jQuery("#InputCodeModal").modal('show');
-
-                swal({
-                    title: "Data pembelian sudah sesuai ..?",
-                    text: "",
-                    icon: "warning",
-                    buttons: [
-                        'Batal',
-                        'Benar'
-                    ],
-                    dangerMode: false,
-                }).then(function(isConfirm) {
-                    if (isConfirm) {
-                        checkout()
-                    }
-                })
+                jQuery("#InputCodeModal").modal('show');
+                //Open Modal
+                // swal({
+                //     title: "Data pembelian sudah sesuai ..?",
+                //     text: "",
+                //     icon: "warning",
+                //     buttons: [
+                //         'Batal',
+                //         'Benar'
+                //     ],
+                //     dangerMode: false,
+                // }).then(function(isConfirm) {
+                //     if (isConfirm) {
+                //         checkout()
+                //     }
+                // })
             } else {
-                // jQuery("#InputCodeModal").modal('show');
-                swal({
-                    title: "Data pembelian sudah sesuai ..?",
-                    text: "",
-                    icon: "warning",
-                    buttons: [
-                        'Batal',
-                        'Benar'
-                    ],
-                    dangerMode: false,
-                }).then(function(isConfirm) {
-                    if (isConfirm) {
-                        checkout()
-                    }
-                })
+                jQuery("#InputCodeModal").modal('show');
+                // swal({
+                //     title: "Data pembelian sudah sesuai ..?",
+                //     text: "",
+                //     icon: "warning",
+                //     buttons: [
+                //         'Batal',
+                //         'Benar'
+                //     ],
+                //     dangerMode: false,
+                // }).then(function(isConfirm) {
+                //     if (isConfirm) {
+                //         checkout()
+                //     }
+                // })
             }
         });
 
@@ -2644,31 +2661,31 @@
             var u_secret_code = jQuery('#u_secret_code').val();
             var type = jQuery('#_type').val();
             if (jQuery.trim(u_secret_code) == '') {
-                swal("Kode Akses", "Silahkan input kode akses anda, jika lupa tanya administrator",
-                    "warning");
+                swal("Kode Akses", "Scan Kode Akses Anda");
                 return false;
             } else {
-                jQuery.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                jQuery.ajax({
-                    type: "POST",
-                    data: {
-                        _u_secret_code: u_secret_code
-                    },
-                    dataType: 'json',
-                    url: "{{ url('check_secret_code') }}",
-                    success: function(r) {
-                        if (r.status == '200') {
-                            checkout();
-                        } else {
-                            swal('Salah', 'Kode salah', 'warning');
-                        }
-                    }
-                });
-                return false;
+                {{--jQuery.ajaxSetup({--}}
+                {{--    headers: {--}}
+                {{--        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')--}}
+                {{--    }--}}
+                {{--});--}}
+                {{--jQuery.ajax({--}}
+                {{--    type: "POST",--}}
+                {{--    data: {--}}
+                {{--        _u_secret_code: u_secret_code--}}
+                {{--    },--}}
+                {{--    dataType: 'json',--}}
+                {{--    url: "{{ url('check_secret_code') }}",--}}
+                {{--    success: function(r) {--}}
+                {{--        if (r.status == '200') {--}}
+                {{--            checkout();--}}
+                {{--        } else {--}}
+                {{--            swal('Salah', 'Kode salah', 'warning');--}}
+                {{--        }--}}
+                {{--    }--}}
+                {{--});--}}
+                {{--return false;--}}
+                checkout();
             }
         });
 
