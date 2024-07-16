@@ -383,7 +383,7 @@ class InvoiceController extends Controller
                 'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
                 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
                 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
-                'pos_transactions.pos_total_vouchers', 'pos_total_discount')
+                'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')

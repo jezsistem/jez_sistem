@@ -2656,6 +2656,10 @@
             }
         });
 
+        jQuery('#InputCodeModal').on('shown.bs.modal', function () {
+            jQuery('#u_secret_code').focus(); // Replace '#inputFieldID' with the actual ID of your input field
+        });
+
         jQuery('#f_access').on('submit', function(e) {
             e.preventDefault();
             var u_secret_code = jQuery('#u_secret_code').val();
@@ -2684,8 +2688,9 @@
                 {{--        }--}}
                 {{--    }--}}
                 {{--});--}}
-                {{--return false;--}}
                 checkout();
+                return false;
+
             }
         });
 
