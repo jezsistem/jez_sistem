@@ -1036,6 +1036,9 @@ class PointOfSaleController extends Controller
         } else {
             $nameset = '0';
         }
+        if($nameset_price == NULL){
+            $nameset_price = 0;
+        }
         $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
         $pl_code = ProductLocation::select('pl_code')->where('id', $pl_id)->get()->first()->pl_code;
         $pls_id = ProductLocationSetup::select('id')->where('pst_id', $pst_id)->where('pl_id', $pl_id)->get()->first()->id;
@@ -1177,7 +1180,8 @@ class PointOfSaleController extends Controller
                 'pst_id' => $pst_id,
                 'pl_id' => $pl_id,
                 'pos_td_qty' => $item_qty,
-                'pos_td_sell_price' => $final_price,
+//                'pos_td_sell_price' => $final_price,
+                'pos_td_sell_price' => ($pos_td_discount_price + $nameset_price) - $discount_number,
                 'pos_td_discount' => $discount,
                 'pos_td_discount_number' => $discount_number,
                 'pos_td_discount_price' => $pos_td_discount_price,

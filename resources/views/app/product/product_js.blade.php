@@ -173,7 +173,7 @@
                 $.ajax({
                     type: "POST",
                     data: {
-                        _running: running,
+                        _running: barcode,
                         _barcode: barcode
                     },
                     dataType: 'json',
