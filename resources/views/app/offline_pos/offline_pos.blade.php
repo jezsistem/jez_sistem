@@ -77,17 +77,17 @@
                                     <a class="btn-sm btn-primary" id="product_barcode_btn"
                                        style="cursor:pointer;">Lengkapi Barcode</a>
                                 </div>
-                                <div class="selectmain">
-                                    <label
-                                            class="btn btn-inventory col-12 rounded text-white d-flex font-weight-bold">Store</label>
-                                    <select class="arabic-select-store select-down " id="st_id"
-                                            name="st_id">
-                                        <option value="">- Store -</option>
-                                        @foreach ($data['st_id'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+{{--                                <div class="selectmain">--}}
+{{--                                    <label--}}
+{{--                                            class="btn btn-inventory col-12 rounded text-white d-flex font-weight-bold">Store</label>--}}
+{{--                                    <select class="arabic-select-store select-down " id="st_id"--}}
+{{--                                            name="st_id">--}}
+{{--                                        <option value="">- Store -</option>--}}
+{{--                                        @foreach ($data['st_id'] as $key => $value)--}}
+{{--                                            <option value="{{ $key }}">{{ $value }}</option>--}}
+{{--                                        @endforeach--}}
+{{--                                    </select>--}}
+{{--                                </div>--}}
                             </div>
                         </div>
                     </div>
