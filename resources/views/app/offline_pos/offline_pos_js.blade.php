@@ -519,7 +519,9 @@
 
     function checkout() {
         var payement = document.getElementById('total_payment').value
-        parseInt(payement.replace(/\D/g, ''));
+        // parseInt(payement.replace(/\D/g, ''));
+        payement = payement.replace(/Rp|\./g, '').trim();
+
 
         var pt_id_complaint = jQuery('#_pt_id_complaint').val();
         var pm_id = jQuery('#pm_id_offline').val();
@@ -538,7 +540,7 @@
         var total_row = jQuery('tr[data-list-item]').length;
         var access_code = jQuery('#u_secret_code').val();
         var charge = jQuery('#charge').val();
-        var total_payment = jQuery('#total_payment').val();
+        var total_payment = jQuery('#total_payment').val().replace(/Rp|,|\./g, '').trim();
         var total_payment_two = jQuery('#total_payment_two').val();
         var exchange = jQuery('#_exchange').val();
         var real_price = jQuery('#payment_total').text();
@@ -3051,26 +3053,34 @@
             {{-- }); --}}
         });
 
-        /* Dengan Rupiah */
-        var rupiah = document.getElementById('laba_shift');
-        rupiah.addEventListener('keyup', function(e) {
-            rupiah.value = formatRupiah(this.value);
-        });
+        document.getElementById('total_payment').addEventListener('input', function (e) {
+            const input = e.target;
+            let value = input.value;
 
-        /* Dengan Rupiah */
-        var total = document.getElementById('total_payment');
-        var replace_total = document.getElementById('replace_payment');
-        total.addEventListener('keyup', function(e) {
-            total.value = formatRupiahTotal(this.value);
-            $("#replace_total").val("halo");
+            // Remove non-digit characters
+            value = value.replace(/\D/g, '');
+
+            // Format the number as currency
+            const formattedValue = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+
+            // Update the input field with the formatted value
+            input.value = formattedValue.replace('IDR', 'Rp');
         });
 
         jQuery('#total_payment').on('keyup', function(e) {
             e.preventDefault();
             var total_price = jQuery('#payment_total').text();
             var total_payment = jQuery(this).val();
-            var return_payment = parseFloat(total_payment.replace(".", "")) - parseFloat(replaceComma(
-                total_price));
+
+            total_payment = total_payment.replace(/Rp|\,/g, '').trim();
+
+            console.log(total_payment); // Log the cleaned value of the currency input
+            var return_payment = parseFloat(total_payment.replace(".", "")) - parseFloat(replaceComma(total_price));
             var method = jQuery('#payment_option option:selected').val();
             if (method == 'two') {
                 if (total_payment == '') {
