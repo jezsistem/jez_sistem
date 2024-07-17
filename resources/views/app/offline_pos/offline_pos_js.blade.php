@@ -1240,42 +1240,6 @@
         console.log('item_type: ', item_type);
 
 
-        if (b1g1_id != '' && b1g1_price != '') {
-            b1g1_temp.push(b1g1_price);
-            highlight = 'background:#ffc107; color:#000; font-weight:bold; border-radius:20px;';
-            b1g1_mode = 'b1g1_mode';
-            b1g1_temp = b1g1_temp.sort((a, b) => b - a);
-            var b1g1_total_row = b1g1_temp.length;
-            var b1g1_qty_total = 0;
-            if (b1g1_total_row > 0) {
-                jQuery('#orderTable tr').each(function(index, row) {
-                    var b1g1_qty = parseFloat(jQuery(row).find('.item_qty').val());
-                    if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' || isNaN(b1g1_qty)) {
-                        b1g1_qty = 0;
-                    }
-
-                    if (jQuery(row).hasClass('b1g1_mode')) {
-                        b1g1_qty_total += b1g1_qty;
-                        if (parseFloat(sell_price) >= parseFloat(b1g1_temp[0])) {
-                            sell_price = sell_price;
-                            jQuery(row).find('.sell_price_item').text('0');
-                        } else {
-                            sell_price = 0;
-                        }
-                        jQuery(row).find('.item_qty').trigger('change');
-
-                    }
-                });
-                //error disini
-                if (parseFloat(b1g1_qty_total) >= 2) {
-                    swal('1 Invoice 1 B1G1',
-                        'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs', 'warning');
-                    return false;
-                }
-            }
-
-        }
-
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
