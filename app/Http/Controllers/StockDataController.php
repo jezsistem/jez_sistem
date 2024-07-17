@@ -258,7 +258,7 @@ class StockDataController extends Controller
                                 }
                             }
                         })
-                        ->orderBy('sizes.id', 'asc')
+                        ->orderBy('sizes.sz_name', 'asc')
                         ->groupBy('sz_name')->get();
                         if (!empty($item_size_stock)) {
                             $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
