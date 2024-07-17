@@ -65,7 +65,7 @@ class StockDataController extends Controller
         }
         return $sidebar;
     }
-    
+
     public function index()
     {
         $this->validateAccess();
@@ -97,7 +97,7 @@ class StockDataController extends Controller
 
         return view('app.stock_data.stock_data', compact('data'));
     }
-    
+
     public function getDatatables(Request $request)
     {
 //        return $request->all();
@@ -111,7 +111,7 @@ class StockDataController extends Controller
         } else {
             $st_id = Auth::user()->st_id;
         }
-        
+
         if(request()->ajax()) {
             return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price")
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
@@ -142,7 +142,7 @@ class StockDataController extends Controller
                 return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary" id="copy-button" title="'. $data->p_name .'">['.$data->br_name.'] '.$data->p_name.' '.$hb.'</span>';
             })
             ->editColumn('article_age', function($data){
-                
+
             })
             ->editColumn('article_stock', function($data) use ($request, $exception, $b1g1_setup, $st_id) {
                 $sz_id = $request->get('sz_id');
@@ -179,7 +179,7 @@ class StockDataController extends Controller
                         ->where('purchase_orders.st_id', '=', $st_id)
                         ->orderByDesc('purchase_order_article_detail_statuses.id')
                         ->get()->first();
-                        
+
                         $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
                         ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
                         ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
@@ -258,8 +258,13 @@ class StockDataController extends Controller
                                 }
                             }
                         })
-                        ->orderBy('sizes.sz_name', 'asc')
-                        ->groupBy('sz_name')->get();
+//                        ->orderBy('sizes.sz_name', 'asc')
+//                        ->groupBy('sz_name')->get();
+                            ->orderByRaw(
+                                'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL","36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
+                            )
+                            ->groupBy('sz_name')
+                            ->get();
                         if (!empty($item_size_stock)) {
                             $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
                             foreach ($item_size_stock as $srow) {
@@ -427,14 +432,14 @@ class StockDataController extends Controller
             ->addIndexColumn()
             ->make(true);
         }
-        
+
     }
 
     public function getHelperDatatables(Request $request)
     {
         $exception = ExceptionLocation::select('pl_code')
         ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
-        
+
         $st_id = Auth::user()->st_id;
         $st_id_filter = $request->get('st_id');
         if(request()->ajax()) {
@@ -987,12 +992,12 @@ class StockDataController extends Controller
         ];
         return view('app.stock_data._reload_size', compact('data'));
     }
-    
+
     public function getAgingDatatables(Request $request)
     {
         $exception = ExceptionLocation::select('pl_code')
         ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
-        
+
         if(request()->ajax()) {
             return datatables()->of(ProductStock::selectRaw("ts_product_stocks.id as pst_id, pl_code, st_name, br_name, p_name, pc_name, psc_name, pssc_name, p_color, sz_name")
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -1186,5 +1191,5 @@ class StockDataController extends Controller
             ->addIndexColumn()
             ->make(true);
         }
-    }  
+    }
 }
