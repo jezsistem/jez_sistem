@@ -158,7 +158,7 @@
                     <div class="user">
                         {{ \Carbon\Carbon::parse($row->pos_created)->translatedFormat('H:i') }}<br/>
                         @php
-                            $name = "BIMO AJI ARIO";
+                            $name = $row->u_name;
                             echo ucwords(strtolower($name))
                         @endphp <br>
                         {{ $row->cust_name }}<br>
