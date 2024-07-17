@@ -709,8 +709,8 @@ class PointOfSaleController extends Controller
             $st_id = $request->_st_id ?? Auth::user()->st_id;
 
             $rand = str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
-            //            $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
-            $u_id = Auth::user()->id;
+            $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
+//            $u_id = Auth::user()->id;
             $prefix = WebConfig::select('config_value')->where('config_name', 'pos_prefix')->get()->first()->config_value;
 
             $store_prefix = Store::select('st_description')->where('id', '=', Auth::user()->st_id)->get()->first()->st_description;
