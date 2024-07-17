@@ -2634,27 +2634,27 @@
                 swal("Kode Akses", "Scan Kode Akses Anda");
                 return false;
             } else {
-                {{--jQuery.ajaxSetup({--}}
-                {{--    headers: {--}}
-                {{--        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')--}}
-                {{--    }--}}
-                {{--});--}}
-                {{--jQuery.ajax({--}}
-                {{--    type: "POST",--}}
-                {{--    data: {--}}
-                {{--        _u_secret_code: u_secret_code--}}
-                {{--    },--}}
-                {{--    dataType: 'json',--}}
-                {{--    url: "{{ url('check_secret_code') }}",--}}
-                {{--    success: function(r) {--}}
-                {{--        if (r.status == '200') {--}}
-                {{--            checkout();--}}
-                {{--        } else {--}}
-                {{--            swal('Salah', 'Kode salah', 'warning');--}}
-                {{--        }--}}
-                {{--    }--}}
-                {{--});--}}
-                checkout();
+                jQuery.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                jQuery.ajax({
+                    type: "POST",
+                    data: {
+                        _u_secret_code: u_secret_code
+                    },
+                    dataType: 'json',
+                    url: "{{ url('check_secret_code') }}",
+                    success: function(r) {
+                        if (r.status == '200') {
+                            checkout();
+                        } else {
+                            swal('Salah', 'Kode salah', 'warning');
+                        }
+                    }
+                });
+                // checkout();
                 return false;
 
             }
