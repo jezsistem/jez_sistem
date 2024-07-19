@@ -8,6 +8,7 @@
 <script src="{{ asset('pos/js') }}/script.bundle.js"></script>
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script src="{{ asset('cdn/select2.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     var b1g1_temp = [];
@@ -2628,6 +2629,9 @@
         });
 
         jQuery('#f_access').on('submit', function(e) {
+            // the loader html
+            var sweet_loader = '<div class="sweet_loader"><svg viewBox="0 0 140 140" width="140" height="140"><g class="outline"><path d="m 70 28 a 1 1 0 0 0 0 84 a 1 1 0 0 0 0 -84" stroke="rgba(0,0,0,0.1)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g><g class="circle"><path d="m 70 28 a 1 1 0 0 0 0 84 a 1 1 0 0 0 0 -84" stroke="#71BBFF" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="200" stroke-dasharray="300"></path></g></svg></div>';
+
             e.preventDefault();
             var u_secret_code = jQuery('#u_secret_code').val();
             var type = jQuery('#_type').val();
@@ -2647,11 +2651,26 @@
                     },
                     dataType: 'json',
                     url: "{{ url('check_secret_code') }}",
+                    beforeSend: function() {
+                        Swal.fire({
+                            html: '<h5>Loading...</h5>',
+                            showConfirmButton: false,
+                            didOpen: function() {
+                                Swal.getHtmlContainer().insertAdjacentHTML('afterbegin', sweet_loader);
+                            }
+                        });
+                    },
                     success: function(r) {
                         if (r.status == '200') {
                             checkout();
+                            Swal.fire({
+                                icon: 'success',
+                                html: '<h5>Success!</h5>',
+                                timer: 1000, // Close after 2 seconds (2000 milliseconds)
+                                showConfirmButton: false
+                            });
                         } else {
-                            swal('Salah', 'Kode salah', 'warning');
+                            swal.fire('Salah', 'Kode salah', 'warning');
                         }
                     }
                 });
