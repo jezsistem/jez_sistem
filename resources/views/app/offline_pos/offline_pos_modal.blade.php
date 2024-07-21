@@ -455,7 +455,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">Lengkapi Barcode</h5>
+                <h5 class="modal-title text-dark-header" id="exampleModalLabel">Lengkapi Barcode</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -464,14 +464,14 @@
                 <input type="search" class="form-control  col-6" id="p_search"
                        placeholder="Cari artikel / barcode"/><br/>
                 <table class="table table-hover table-checkable" id="Ptb">
-                    <thead class="bg-light text-dark">
+                    <thead class="bg-light text-dark-header">
                     <tr>
-                        <th class="text-dark">No</th>
-                        <th class="text-dark">Brand</th>
-                        <th class="text-dark">Artikel</th>
-                        <th class="text-dark">Warna</th>
-                        <th class="text-dark">Size</th>
-                        <th class="text-dark">Barcode</th>
+                        <th class="text-dark-header">No</th>
+                        <th class="text-dark-header">Brand</th>
+                        <th class="text-dark-header">Artikel</th>
+                        <th class="text-dark-header">Warna</th>
+                        <th class="text-dark-header">Size</th>
+                        <th class="text-dark-header">Barcode</th>
                     </tr>
                     </thead>
                     <tbody>
