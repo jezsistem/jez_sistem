@@ -6689,7 +6689,7 @@ a.close.disabled {
 }
 
 .bg-light-primary {
-    background-color: #E1F0FF !important;
+    background-color: #ffe1e6 !important;
 }
 
 .bg-hover-light-primary {
@@ -6733,7 +6733,7 @@ button.bg-success:focus {
 }
 
 .bg-info {
-    background-color: #007bff !important;
+    background-color: #e78282 !important;
 }
 
 a.bg-info:hover, a.bg-info:focus,
@@ -6763,7 +6763,7 @@ button.bg-danger:focus {
 }
 
 .bg-light {
-    background-color: #f8f9fa !important;
+    background-color: #a60707 !important;
 }
 
 a.bg-light:hover, a.bg-light:focus,
@@ -10489,11 +10489,11 @@ a.text-light:hover, a.text-light:focus {
 }
 
 .text-dark {
-    color: #1a3353 !important;
+    color: #ffffff !important;
 }
 
 a.text-dark:hover, a.text-dark:focus {
-    color: #080f19 !important;
+    color: #ffffff !important;
 }
 
 .text-body {
@@ -16820,12 +16820,16 @@ readers do not read off random characters that represent icons */
     color: var(--artical-color-dark) !important;
 }
 
+.text-dark-header {
+    color: #ffffff !important;
+}
+
 .text-black-50 {
     color: var(--artical-color-dark-secondary) !important;
 }
 
 .bg-primary {
-    background-color: var(--artical-background-primary) !important;
+    background-color: #a60707  !important;
 }
 
 .bg-secondary {
@@ -16833,7 +16837,7 @@ readers do not read off random characters that represent icons */
 }
 
 .bg-light {
-    background-color: var(--artical-background-module) !important;
+    background-color: #a60707 !important;
 }
 
 .bg-light-dark {

@@ -153,7 +153,9 @@ class StockTransferController extends Controller
                                 $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
 
                                 $this->table_row += 1;
-                                $transfer .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>';
+                                $transfer .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                                <i class="fa fa-eye d-none" onclick="return saveTransfer(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ')" id="saveTransfer' . $this->table_row . '"></i>';
+
                             }
                             return $transfer;
                         } else {
@@ -249,6 +251,92 @@ class StockTransferController extends Controller
                     ->make(true);
             }
 
+        }
+    }
+    public function transferBinDatatables2(Request $request)
+    {
+        if(request()->ajax()) {
+            return datatables()->of(ProductLocationSetup::select('product_location_setups.id as pls_id', 'products.id as p_id', 'br_name', 'p_name', 'p_color', 'sz_name', 'mc_name', 'pls_qty', 'ps_barcode')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
+                ->where('pl_id', '=', $request->pl_id)
+                ->where('pls_qty', '>', '0')
+                ->groupBy('products.id'))
+                ->editColumn('article', function($data){
+                    return '<span style="white-space: nowrap;">'.$data->p_name.'<br/>'.$data->p_color.'</span>';
+                })
+                ->editColumn('qty', function($data) use ($request) {
+                    $check_pst = ProductLocationSetup::select('product_stocks.id as pst_id', 'sz_name', 'pls_qty', 'ps_barcode')
+                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('products', 'products.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->where('product_location_setups.pl_id', '=', $request->pl_id)
+                        ->where('product_stocks.p_id', '=', $data->p_id)
+                        ->where('pls_qty', '>', 0)
+                        ->get();
+                    if (!empty($check_pst)){
+                        $sz_name = '';
+                        foreach ($check_pst as $row) {
+                            $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-6" style="white-space: nowrap;">'.$row->sz_name.'</a> <a class="btn btn-sm btn-primary col-6" onclick="return mutation('.$row->pst_id.', '.$request->_pl_id.', \''.$data->p_name.'\', \''.$data->p_color.'\', \''.$row->sz_name.'\', '.$row->pls_qty.')">'.$row->pls_qty.'</a></div>';
+                        }
+                        return $sz_name;
+                    } else {
+                        return 'Data belum disetup';
+                    }
+                })
+                ->editColumn('transfer', function($data) use ($request) {
+                    $check_pst = ProductLocationSetup::select('product_location_setups.id as pls_id', 'product_stocks.id as pst_id', 'sz_name', 'pls_qty', 'ps_barcode')
+                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('products', 'products.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->where('product_location_setups.pl_id', '=', $request->pl_id)
+                        ->where('product_stocks.p_id', '=', $data->p_id)
+                        ->where('pls_qty', '>', 0)
+                        ->get();
+                    if (!empty($check_pst)){
+                        $transfer = '';
+                        foreach ($check_pst as $row) {
+                            $this->table_row += 1;
+                            $transfer .= '
+                        <input
+                        data-transfer-qty
+                        data-qty="'.$row->pls_qty.'"
+                        data-pls_id = "'.$row->pls_id.'"
+                        data-table_row = "'.$this->table_row.'"
+                        data-pst_id = "'.$row->pst_id.'"
+                        data-pls_qty = "'.$row->pls_qty.'"
+                        id="transfer_qty"
+                        type="number"
+                        class="form-control col-12 transfer_qty"
+                        style="padding:10px; margin-bottom:2px;"
+                        value="" title="'.$data->p_name.' '.$data->p_color.' '.$row->sz_name.'"/>
+                        <i class="fa fa-eye d-none" onclick="return saveTransfer('.$row->pls_id.', '.$this->table_row.', '.$row->pst_id.', '.$row->pls_qty.')" id="saveTransfer'.$this->table_row.'"></i>';
+                        }
+                        return $transfer;
+                    } else {
+                        return '-';
+                    }
+                })
+                ->rawColumns(['article', 'qty', 'transfer'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
+                                ->orWhere('p_name', 'LIKE', "%$search%")
+                                ->orWhere('br_name', 'LIKE', "%$search%")
+                                ->orWhere('p_color', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 

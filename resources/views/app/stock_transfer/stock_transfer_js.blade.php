@@ -391,6 +391,8 @@
                             return true;
                         }
                         arr[i++] = [pls_id, pst_id, pls_qty, stf_qty];
+
+                        // console.log(arr);
                     });
                     $.ajaxSetup({
                         headers: {
