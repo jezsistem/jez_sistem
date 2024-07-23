@@ -625,17 +625,17 @@
     });
 
     $('#scan_out_search').on('keyup', function(event) {
-        // if (event.keyCode === 13 && this.value.trim() !== '') {
-        //     scanInTbEnterPressed = true;
-        //     scan_out_table.ajax.reload();
-        // }
-        //
-        // // check if the input is empty cannot enter
-        // if (this.value.trim() === '') {
-        //     scanInTbEnterPressed = false;
-        // }
-        //
-        // scan_in_table.ajax.reload();
+        if (event.keyCode === 13 && this.value.trim() !== '') {
+            scanInTbEnterPressed = true;
+            scan_out_table.ajax.reload();
+        }
+
+        // check if the input is empty cannot enter
+        if (this.value.trim() === '') {
+            scanInTbEnterPressed = false;
+        }
+
+        scan_in_table.ajax.reload();
 
         console.log($('#scan_out_search').val())
     });
