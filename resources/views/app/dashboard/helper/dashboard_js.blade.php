@@ -1630,7 +1630,8 @@
     $('#out_btn').on('click', function(e) {
         e.preventDefault();
         $('#st_id').val('');
-        $('#OutModal').modal('show');
+        // $('#OutModal').modal('show');
+        $('#ScanOutModal').modal('show');
         out_table.draw();
     });
 
