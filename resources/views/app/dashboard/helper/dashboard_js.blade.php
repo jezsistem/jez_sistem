@@ -625,17 +625,19 @@
     });
 
     $('#scan_out_search').on('keyup', function(event) {
-        if (event.keyCode === 13 && this.value.trim() !== '') {
-            scanInTbEnterPressed = true;
-            scan_out_table.ajax.reload();
-        }
+        // if (event.keyCode === 13 && this.value.trim() !== '') {
+        //     scanInTbEnterPressed = true;
+        //     scan_out_table.ajax.reload();
+        // }
+        //
+        // // check if the input is empty cannot enter
+        // if (this.value.trim() === '') {
+        //     scanInTbEnterPressed = false;
+        // }
+        //
+        // scan_in_table.ajax.reload();
 
-        // check if the input is empty cannot enter
-        if (this.value.trim() === '') {
-            scanInTbEnterPressed = false;
-        }
-
-        scan_in_table.ajax.reload();
+        console.log($('#scan_out_search').val())
     });
 
 
@@ -695,7 +697,6 @@
     });
 
     $('#in_search').on('keyup', function() {
-
         in_table.draw();
     });
 
@@ -705,7 +706,65 @@
         out_table.draw();
     });
 
-    {{----}}
+    {{--$('#scan_out_search').on('keyup', function(event) {--}}
+    {{--    scan_out_table.draw();--}}
+    {{--    if (event.keyCode === 13) {--}}
+    {{--        var scan_out_data = [];--}}
+    {{--        var totalRequests = 0;--}}
+    {{--        let completedRequests = 0;--}}
+
+
+    {{--        scan_out_table.rows().every(function() {--}}
+    {{--            // totalRequests++;--}}
+    {{--            var rowData = this.data();--}}
+    {{--            scan_out_data.push({--}}
+    {{--                _plst_id: rowData.plst_id,--}}
+    {{--                _pls_id: rowData.pls_id,--}}
+    {{--            });--}}
+
+    {{--            console.log(scan_out_data)--}}
+    {{--        });--}}
+
+    {{--        // Iterate through scan_out_data and make separate AJAX requests--}}
+    {{--        scan_out_data.forEach(function(item) {--}}
+    {{--            $.ajaxSetup({--}}
+    {{--                headers: {--}}
+    {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+    {{--                }--}}
+    {{--            });--}}
+
+    {{--            $.ajax({--}}
+    {{--                url: "{{ url('save_out_activity') }}",--}}
+    {{--                type: "POST",--}}
+    {{--                data: {--}}
+    {{--                    _plst_id: item._plst_id,--}}
+    {{--                    _pls_id: item._pls_id,--}}
+    {{--                },--}}
+    {{--                success: function(response) {--}}
+    {{--                    var responseObject = JSON.parse(response);--}}
+    {{--                    var status = responseObject.status;--}}
+
+    {{--                    completedRequests++;--}}
+    {{--                    if (status == '200') {--}}
+    {{--                        scan_out_table.draw();--}}
+    {{--                        if (completedRequests === totalRequests) {--}}
+    {{--                            // All requests have completed--}}
+    {{--                            if (status == 200) {--}}
+    {{--                                scan_out_table.draw();--}}
+    {{--                                toast('Dikeluarkan', ' berhasil dikeluarkan',--}}
+    {{--                                    'success');--}}
+    {{--                                // swal('Dikeluarkan', 'Berhasil keluar produk', 'success');--}}
+    {{--                            } else {--}}
+    {{--                                // toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');--}}
+    {{--                                swal('Gagal', 'Gagal keluar produk', 'error');--}}
+    {{--                            }--}}
+    {{--                        }--}}
+    {{--                    }--}}
+    {{--                },--}}
+    {{--            });--}}
+    {{--        });--}}
+    {{--    }--}}
+    {{--});--}}
 
 
     var transfer_list_table = $('#TransferListtb').DataTable({
