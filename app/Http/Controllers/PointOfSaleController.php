@@ -2501,48 +2501,48 @@ class PointOfSaleController extends Controller
 
         if ($item_type == 'waiting') {
 //            backup
-//            $data = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'plst_status', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
-//                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-//                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-//                ->join('products', 'products.id', '=', 'product_stocks.p_id')
-//                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                ->join('brands', 'brands.id', '=', 'products.br_id')
-//                //                ->where('pls_qty', '>=', '0')
-//                ->whereNotIn('pl_code', $exception)
-//                ->where('product_locations.st_id', '=', Auth::user()->st_id)
-//                ->whereIn('plst_status', $plst_status_new)
-//                ->where('product_stocks.ps_barcode', '=', $barcode)
-//                ->first();
-
-            $data = ProductLocationSetupTransaction::select(
-                'product_location_setup_transactions.id as plst_id',
-                'products.psc_id',
-                'products.p_name',
-                'products.p_color',
-                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_products.p_sell_price) as p_sell_price"),
-                'products.p_price_tag',
-                'product_stocks.ps_price_tag',
-                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_product_stocks.ps_sell_price) as ps_sell_price"),
-                'sizes.sz_name',
-                'product_stocks.ps_qty',
-                'product_location_setups.pls_qty',
-                'brands.br_name',
-                'product_location_setup_transactions.plst_status',
-                'product_stocks.id as pst_id',
-                'product_locations.id as pl_id'
-            )
+            $data = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'plst_status', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
                 ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
                 ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->join('brands', 'brands.id', '=', 'products.br_id')
-                ->leftJoin('articles_promo', 'products.article_id', '=', 'articles_promo.article_id')
+                //                ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)
+                ->where('product_locations.st_id', '=', Auth::user()->st_id)
                 ->whereIn('plst_status', $plst_status_new)
-                ->where('product_stocks.ps_barcode', '=', $barcode) // replace with actual barcode value
+                ->where('product_stocks.ps_barcode', '=', $barcode)
                 ->first();
+
+//            $data = ProductLocationSetupTransaction::select(
+//                'product_location_setup_transactions.id as plst_id',
+//                'products.psc_id',
+//                'products.p_name',
+//                'products.p_color',
+//                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_products.p_sell_price) as p_sell_price"),
+//                'products.p_price_tag',
+//                'product_stocks.ps_price_tag',
+//                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_product_stocks.ps_sell_price) as ps_sell_price"),
+//                'sizes.sz_name',
+//                'product_stocks.ps_qty',
+//                'product_location_setups.pls_qty',
+//                'brands.br_name',
+//                'product_location_setup_transactions.plst_status',
+//                'product_stocks.id as pst_id',
+//                'product_locations.id as pl_id'
+//            )
+//                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+//                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+//                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                ->join('brands', 'brands.id', '=', 'products.br_id')
+//                ->leftJoin('articles_promo', 'products.article_id', '=', 'articles_promo.article_id')
+//                ->whereNotIn('pl_code', $exception)
+//                ->whereIn('plst_status', $plst_status_new)
+//                ->where('product_stocks.ps_barcode', '=', $barcode) // replace with actual barcode value
+//                ->first();
         } else if ($item_type == 'b1g1') {
             $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')

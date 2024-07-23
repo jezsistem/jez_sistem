@@ -380,6 +380,8 @@
     // Set interval to refresh the DataTable every 30 seconds (30000 milliseconds)
     setInterval(refreshTable, 3000);
 
+    var scanOutTbEnterPressed = false;
+
     var scan_out_table = $('#ScanOuttb').DataTable({
         destroy: true,
         processing: false,
@@ -407,6 +409,15 @@
         order: [
             [0, 'desc']
         ],
+        drawCallback: function(settings) {
+            var api = this.api();
+            $('#scan_out_search').off('keyup').on('keyup', function(event) {
+                if (event.keyCode === 13) {
+                    scanOutTbEnterPressed = true;
+                    api.search(this.value).draw();
+                }
+            });
+        }
     });
 
     var in_table = $('#Intb').DataTable({
@@ -437,6 +448,7 @@
         order: [
             [0, 'desc']
         ],
+
     });
 
     var scanInTbEnterPressed = false;
@@ -470,7 +482,7 @@
         ],
         drawCallback: function(settings) {
             var api = this.api();
-            $('#scan_in_search').off('keyup').on('keyup', function(event) {
+            $('#scan_out_search').off('keyup').on('keyup', function(event) {
                 if (event.keyCode === 13) {
                     scanInTbEnterPressed = true;
                     api.search(this.value).draw();
