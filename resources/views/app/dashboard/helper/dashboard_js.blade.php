@@ -475,10 +475,10 @@
                     var responseObject = JSON.parse(response);
                     var status = responseObject.status;
                     $('#scan_out_search').val('');
-                    scan_in_table.ajax.reload();
+                    scan_out_table.ajax.reload();
 
                     if (status == 200) {
-                        toast('Dikeluarkan', ' berhasil dikeluarkan bro', 'success');
+                        toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');
                     } else {
                         swal('Gagal', 'Gagal masuk produk', 'error');
                     }
