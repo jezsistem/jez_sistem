@@ -30,7 +30,11 @@
 
     function changeQty(row, pst_id, pls_qty) {
         var item_qty = jQuery('#item_qty' + row).val();
+
+        console.log(item_qty);
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
+        console.log(sell_price_item);
+
         var subtotal_item = replaceComma(jQuery('#subtotal_item' + row).text());
         var total_row = jQuery('tr[data-list-item]').length;
         var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
@@ -69,10 +73,13 @@
             }
         }
         var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))
+
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item' + row).text('-' + addCommas(subtotal));
+
         } else {
             jQuery('#subtotal_item' + row).text(addCommas(subtotal));
+            jQuery('#sell_price_item' + row).text(addCommas(subtotal));
         }
         var final_price = 0;
         var discount_price = 0;
@@ -80,14 +87,14 @@
         var new_final_price = 0;
         jQuery('#orderTable tr').each(function(index, row) {
             if (jQuery(row).find('.sell_price_item').text() != '') {
-                var sbttl = parseFloat(replaceComma(jQuery(row).find('.sell_price_item').text()));
+                var sbttl =  parseFloat(replaceComma(jQuery(row).find('.sell_price_item').text()));
 
                 // var dcttl = parseFloat(replaceComma(jQuery(row).find('.sell_price_item').text())) - sbttl;
                 if (typeof sbttl === 'undefined' && sbttl == '') {
                     sbttl = 0;
                 }
 
-                final_price += (sbttl * item_qty);                
+                final_price += (sbttl * item_qty);
             }
 
             var disc_item = jQuery(row).find('.discount_number').val();
@@ -1134,9 +1141,8 @@
                             pst_id + " discount_number' id='discount_number" + (total_row + 1) +
                             "' value='0' onchange='return changeDiscountNumber(" + (total_row +
                                 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
-                            " <td><input type='number' class='col-8 nameset_price' id='nameset_price" +
-                            (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
-                                1) + ")'/></td>" +
+                            " <td><input type='number' class='col-8 nameset_price' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +1) + ")'/></td>" +
+                            " <td><input type='number' class='col-8 nameset_price' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +1) + ")'/></td>" +
                             " <td><span class='sell_price_item' id='sell_price_item" + (
                                 total_row + 1) + "'>" + addCommas(sell_price) + "</span></td>" +
                             " <td><span class='subtotal_item' id='subtotal_item" + (total_row +
@@ -1542,7 +1548,7 @@
                                         "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
                                         pst_id + ", " + sell_price + ", " + (
                                             total_row + 1) + ", " + pl_id + ", " + r
-                                        .plst_id + ", " + bandrol +
+                                            .plst_id + ", " + bandrol +
                                         ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
                                     );
                                 } else {
@@ -1574,10 +1580,8 @@
                                         "' value='0' onchange='return changeDiscountNumber(" +
                                         (total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
-                                        "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
-                                        (total_row + 1) +
-                                        "' onchange='return namesetPrice(" + (
-                                            total_row + 1) + ")'/></td> " +
+                                        "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td> " +
+                                        // "<td><input type='text' style='width: 13rem;' class='col-8 nameset_price namset-input' value='" + sell_price +"' id='item_price" + (total_row + 1) + "'/></td> " +
                                         "<td><span class='sell_price_item' id='sell_price_item" +
                                         (total_row + 1) + "'>" + addCommas(
                                             sell_price) + "</span></td> " +

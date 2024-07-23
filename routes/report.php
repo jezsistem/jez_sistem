@@ -62,4 +62,19 @@ Route::middleware(['auth'])->group(function () {
     //    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
     //    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
     //    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);
+
+
+    // Report Current Shift
+    /**
+     * TODO:
+     * 1. Report Current Shift
+     */
+    Route::get('current_shift', [ReportShiftController::class, 'current_shift']);
+    Route::get('report_current_shift_datatables', [ReportShiftController::class, 'getDatatablesCurrentShift']);
+    Route::post('current_shift_detail', [ReportShiftController::class, 'current_shift_detail']);
+    Route::post('report_shift_product_sold', [ReportShiftController::class, 'productSold']);
+    Route::post('report_shift_product_refund', [ReportShiftController::class, 'productRefund']);
+    //    Route::post('report_shift_detail_datatables', [ReportShiftController::class, 'getDetailDatatables']);
+    //    Route::post('report_shift_detail_print', [ReportShiftController::class, 'printDetail']);
+    //    Route::post('report_shift_detail_print_excel', [ReportShiftController::class, 'printDetailExcel']);
 });

@@ -380,6 +380,8 @@
     // Set interval to refresh the DataTable every 30 seconds (30000 milliseconds)
     setInterval(refreshTable, 3000);
 
+    var scanOutTbEnterPressed = false;
+
     var scan_out_table = $('#ScanOuttb').DataTable({
         destroy: true,
         processing: false,
@@ -407,6 +409,82 @@
         order: [
             [0, 'desc']
         ],
+        drawCallback: function(settings) {
+            var api = this.api();
+            $('#scan_out_search').off('keyup').on('keyup', function(event) {
+                if (event.keyCode === 13) {
+                    scanOutTbEnterPressed = true;
+                    api.search(this.value).draw();
+                }
+            });
+        }
+    });
+
+    function refreshScanOutTable() {
+        scan_out_table.ajax.reload(null, false); // user paging is not reset on reload
+    }
+
+    // Set interval to refresh the DataTable every 30 seconds (30000 milliseconds)
+    setInterval(refreshScanOutTable, 3000);
+
+    $('#ScanOuttb').on('draw.dt', function() {
+        if (!scanOutTbEnterPressed) {
+            return;
+        }
+
+        // if input is empty, do nothing
+        if ($('#scan_out_search').val().trim() === '') {
+            return;
+        }
+
+        scanInTbEnterPressed = false;
+
+        var rowsData = scan_out_table.rows({
+            page: 'current'
+        }).data();
+        var scan_out_data = [];
+
+        if (rowsData.length > 0) {
+            var rowData = rowsData[0];
+
+            scan_out_data.push({
+                _plst_id: rowData.plst_id,
+                _pls_id: rowData.pls_id,
+                _qty: rowData.plst_qty,
+            });
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            var item = scan_out_data[0]; // Only process the first item
+
+            console.log(item);
+
+            $.ajax({
+                url: "{{ url('save_out_activity') }}",
+                type: "POST",
+                data: {
+                    _plst_id: item._plst_id,
+                    _pls_id: item._pls_id,
+                    _qty: item._qty,
+                },
+                success: function(response) {
+                    var responseObject = JSON.parse(response);
+                    var status = responseObject.status;
+                    $('#scan_out_search').val('');
+                    scan_out_table.ajax.reload();
+
+                    if (status == 200) {
+                        toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');
+                    } else {
+                        swal('Gagal', 'Gagal masuk produk', 'error');
+                    }
+                },
+            });
+        }
     });
 
     var in_table = $('#Intb').DataTable({
@@ -437,6 +515,7 @@
         order: [
             [0, 'desc']
         ],
+
     });
 
     var scanInTbEnterPressed = false;
@@ -470,7 +549,7 @@
         ],
         drawCallback: function(settings) {
             var api = this.api();
-            $('#scan_in_search').off('keyup').on('keyup', function(event) {
+            $('#scan_out_search').off('keyup').on('keyup', function(event) {
                 if (event.keyCode === 13) {
                     scanInTbEnterPressed = true;
                     api.search(this.value).draw();
@@ -552,6 +631,22 @@
         scan_in_table.ajax.reload();
     });
 
+    $('#scan_out_search').on('keyup', function(event) {
+        if (event.keyCode === 13 && this.value.trim() !== '') {
+            scanInTbEnterPressed = true;
+            scan_out_table.ajax.reload();
+        }
+
+        // check if the input is empty cannot enter
+        if (this.value.trim() === '') {
+            scanOutTbEnterPressed = false;
+        }
+
+        scan_out_table.ajax.reload();
+
+        console.log($('#scan_out_search').val())
+    });
+
 
     $('#waiting_filter').on('change', function() {
         in_table.draw();
@@ -609,7 +704,6 @@
     });
 
     $('#in_search').on('keyup', function() {
-
         in_table.draw();
     });
 
@@ -619,62 +713,65 @@
         out_table.draw();
     });
 
-    $('#scan_out_search').on('keyup', function(event) {
-        scan_out_table.draw();
-        if (event.keyCode === 13) {
-            var scan_out_data = [];
-            var totalRequests = 0;
-            var completedRequests = 0;
+    {{--$('#scan_out_search').on('keyup', function(event) {--}}
+    {{--    scan_out_table.draw();--}}
+    {{--    if (event.keyCode === 13) {--}}
+    {{--        var scan_out_data = [];--}}
+    {{--        var totalRequests = 0;--}}
+    {{--        let completedRequests = 0;--}}
 
-            scan_out_table.rows().every(function() {
-                totalRequests++;
-                var rowData = this.data();
-                scan_out_data.push({
-                    _plst_id: rowData.plst_id,
-                    _pls_id: rowData.pls_id,
-                });
-            });
 
-            // Iterate through scan_out_data and make separate AJAX requests
-            scan_out_data.forEach(function(item) {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
+    {{--        scan_out_table.rows().every(function() {--}}
+    {{--            // totalRequests++;--}}
+    {{--            var rowData = this.data();--}}
+    {{--            scan_out_data.push({--}}
+    {{--                _plst_id: rowData.plst_id,--}}
+    {{--                _pls_id: rowData.pls_id,--}}
+    {{--            });--}}
 
-                $.ajax({
-                    url: "{{ url('save_out_activity') }}",
-                    type: "POST",
-                    data: {
-                        _plst_id: item._plst_id,
-                        _pls_id: item._pls_id,
-                    },
-                    success: function(response) {
-                        var responseObject = JSON.parse(response);
-                        var status = responseObject.status;
+    {{--            console.log(scan_out_data)--}}
+    {{--        });--}}
 
-                        completedRequests++;
-                        if (status == '200') {
-                            scan_out_table.draw();
-                            if (completedRequests === totalRequests) {
-                                // All requests have completed
-                                if (status == 200) {
-                                    scan_out_table.draw();
-                                    toast('Dikeluarkan', ' berhasil dikeluarkan',
-                                        'success');
-                                    // swal('Dikeluarkan', 'Berhasil keluar produk', 'success');
-                                } else {
-                                    // toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');
-                                    swal('Gagal', 'Gagal keluar produk', 'error');
-                                }
-                            }
-                        }
-                    },
-                });
-            });
-        }
-    });
+    {{--        // Iterate through scan_out_data and make separate AJAX requests--}}
+    {{--        scan_out_data.forEach(function(item) {--}}
+    {{--            $.ajaxSetup({--}}
+    {{--                headers: {--}}
+    {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+    {{--                }--}}
+    {{--            });--}}
+
+    {{--            $.ajax({--}}
+    {{--                url: "{{ url('save_out_activity') }}",--}}
+    {{--                type: "POST",--}}
+    {{--                data: {--}}
+    {{--                    _plst_id: item._plst_id,--}}
+    {{--                    _pls_id: item._pls_id,--}}
+    {{--                },--}}
+    {{--                success: function(response) {--}}
+    {{--                    var responseObject = JSON.parse(response);--}}
+    {{--                    var status = responseObject.status;--}}
+
+    {{--                    completedRequests++;--}}
+    {{--                    if (status == '200') {--}}
+    {{--                        scan_out_table.draw();--}}
+    {{--                        if (completedRequests === totalRequests) {--}}
+    {{--                            // All requests have completed--}}
+    {{--                            if (status == 200) {--}}
+    {{--                                scan_out_table.draw();--}}
+    {{--                                toast('Dikeluarkan', ' berhasil dikeluarkan',--}}
+    {{--                                    'success');--}}
+    {{--                                // swal('Dikeluarkan', 'Berhasil keluar produk', 'success');--}}
+    {{--                            } else {--}}
+    {{--                                // toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');--}}
+    {{--                                swal('Gagal', 'Gagal keluar produk', 'error');--}}
+    {{--                            }--}}
+    {{--                        }--}}
+    {{--                    }--}}
+    {{--                },--}}
+    {{--            });--}}
+    {{--        });--}}
+    {{--    }--}}
+    {{--});--}}
 
 
     var transfer_list_table = $('#TransferListtb').DataTable({
@@ -1558,7 +1655,8 @@
     $('#out_btn').on('click', function(e) {
         e.preventDefault();
         $('#st_id').val('');
-        $('#OutModal').modal('show');
+        // $('#OutModal').modal('show');
+        $('#ScanOutModal').modal('show');
         out_table.draw();
     });
 
