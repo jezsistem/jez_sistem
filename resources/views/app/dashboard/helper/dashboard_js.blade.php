@@ -635,7 +635,7 @@
             scanInTbEnterPressed = false;
         }
 
-        scan_in_table.ajax.reload();
+        scan_out_table.ajax.reload();
 
         console.log($('#scan_out_search').val())
     });
