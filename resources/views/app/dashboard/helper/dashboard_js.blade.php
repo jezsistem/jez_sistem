@@ -420,6 +420,13 @@
         }
     });
 
+    function refreshScanOutTable() {
+        scan_out_table.ajax.reload(null, false); // user paging is not reset on reload
+    }
+
+    // Set interval to refresh the DataTable every 30 seconds (30000 milliseconds)
+    setInterval(refreshScanOutTable, 3000);
+
     $('#ScanOuttb').on('draw.dt', function() {
         if (!scanOutTbEnterPressed) {
             return;
@@ -632,7 +639,7 @@
 
         // check if the input is empty cannot enter
         if (this.value.trim() === '') {
-            scanInTbEnterPressed = false;
+            scanOutTbEnterPressed = false;
         }
 
         scan_out_table.ajax.reload();
