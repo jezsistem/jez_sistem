@@ -420,6 +420,66 @@
         }
     });
 
+    $('#ScanIntb').on('draw.dt', function() {
+        if (!scanOutTbEnterPressed) {
+            return;
+        }
+
+        // if input is empty, do nothing
+        if ($('#scan_out_search').val().trim() === '') {
+            return;
+        }
+
+        scanInTbEnterPressed = false;
+
+        var rowsData = scan_out_table.rows({
+            page: 'current'
+        }).data();
+        var scan_out_data = [];
+
+        if (rowsData.length > 0) {
+            var rowData = rowsData[0];
+
+            scan_out_data.push({
+                _plst_id: rowData.plst_id,
+                _pls_id: rowData.pls_id,
+                _qty: rowData.plst_qty,
+            });
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            var item = scan_out_data[0]; // Only process the first item
+
+            console.log(item);
+
+            $.ajax({
+                url: "{{ url('save_out_activity') }}",
+                type: "POST",
+                data: {
+                    _plst_id: item._plst_id,
+                    _pls_id: item._pls_id,
+                    _qty: item._qty,
+                },
+                success: function(response) {
+                    var responseObject = JSON.parse(response);
+                    var status = responseObject.status;
+                    $('#scan_out_search').val('');
+                    scan_in_table.ajax.reload();
+
+                    if (status == 200) {
+                        toast('Dikeluarkan', ' berhasil dimasukkan', 'success');
+                    } else {
+                        swal('Gagal', 'Gagal masuk produk', 'error');
+                    }
+                },
+            });
+        }
+    });
+
     var in_table = $('#Intb').DataTable({
         destroy: true,
         processing: false,
