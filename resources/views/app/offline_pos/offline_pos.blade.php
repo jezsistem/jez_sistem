@@ -143,7 +143,7 @@
                                         <th class="text-white">Discount (%)</th>
                                         <th class="text-white">Discount (Rp)</th>
                                         <th class="text-white">Nameset</th>
-                                        <th class="text-white"></th>
+{{--                                        <th class="text-white"></th>--}}
                                         <th class="text-white">Harga</th>
                                         <th class="text-white">Subtotal</th>
                                         <th class="text-right no-sort"></th>
