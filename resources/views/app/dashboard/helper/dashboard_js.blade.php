@@ -237,15 +237,15 @@
         ],
     });
 
-    stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn'));
-    $('#stock_data_search').on('keyup', function() {
-        var query = jQuery(this).val();
-        if (jQuery.trim(query).length > 2) {
-            stock_data_table.draw();
-        } else if (jQuery.trim(query).length == 0) {
-            stock_data_table.draw();
-        }
-    });
+    // stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn'));
+    // $('#stock_data_search').on('keyup', function() {
+    //     var query = jQuery(this).val();
+    //     if (jQuery.trim(query).length > 2) {
+    //         stock_data_table.draw();
+    //     } else if (jQuery.trim(query).length == 0) {
+    //         stock_data_table.draw();
+    //     }
+    // });
 
     $('#pick_data_search').on('keyup', function() {
         pickup_list_table.draw();
@@ -651,56 +651,56 @@
         in_table.draw();
     });
 
-    var stock_data_table = $('#HelperStockDatatb').DataTable({
-        destroy: true,
-        processing: true,
-        serverSide: true,
-        responsive: false,
-        dom: '<"text-right"l>rt<"text-right"ip>',
-        buttons: [{
-            "extend": 'excelHtml5',
-            "text": 'Excel',
-            "className": 'btn btn-primary btn-xs'
-        }],
-        ajax: {
-            url: "{{ url('helper_stock_data_datatables') }}",
-            data: function(d) {
-                d.search = $('#stock_data_search').val();
-                d.st_id = $('#st_filter').val();
-            }
-        },
-        columns: [{
-                data: 'article_name',
-                name: 'article_name',
-                orderable: false
-            },
-            {
-                data: 'article_stock',
-                name: 'article_stock',
-                orderable: false
-            },
-        ],
-        columnDefs: [{
-            "targets": 0,
-            "className": "text-left",
-            "width": "0%"
-        }],
-        rowCallback: function(row, data, index) {
-            if (data.article_stock.indexOf("<table></table>") >= 0) {
-                $(row).hide();
-            }
-        },
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "Semua"]
-        ],
-        language: {
-            "lengthMenu": "_MENU_",
-        },
-        order: [
-            [0, 'desc']
-        ],
-    });
+    {{--var stock_data_table = $('#HelperStockDatatb').DataTable({--}}
+    {{--    destroy: true,--}}
+    {{--    processing: true,--}}
+    {{--    serverSide: true,--}}
+    {{--    responsive: false,--}}
+    {{--    dom: '<"text-right"l>rt<"text-right"ip>',--}}
+    {{--    buttons: [{--}}
+    {{--        "extend": 'excelHtml5',--}}
+    {{--        "text": 'Excel',--}}
+    {{--        "className": 'btn btn-primary btn-xs'--}}
+    {{--    }],--}}
+    {{--    ajax: {--}}
+    {{--        url: "{{ url('helper_stock_data_datatables') }}",--}}
+    {{--        data: function(d) {--}}
+    {{--            d.search = $('#stock_data_search').val();--}}
+    {{--            d.st_id = $('#st_filter').val();--}}
+    {{--        }--}}
+    {{--    },--}}
+    {{--    columns: [{--}}
+    {{--            data: 'article_name',--}}
+    {{--            name: 'article_name',--}}
+    {{--            orderable: false--}}
+    {{--        },--}}
+    {{--        {--}}
+    {{--            data: 'article_stock',--}}
+    {{--            name: 'article_stock',--}}
+    {{--            orderable: false--}}
+    {{--        },--}}
+    {{--    ],--}}
+    {{--    columnDefs: [{--}}
+    {{--        "targets": 0,--}}
+    {{--        "className": "text-left",--}}
+    {{--        "width": "0%"--}}
+    {{--    }],--}}
+    {{--    rowCallback: function(row, data, index) {--}}
+    {{--        if (data.article_stock.indexOf("<table></table>") >= 0) {--}}
+    {{--            $(row).hide();--}}
+    {{--        }--}}
+    {{--    },--}}
+    {{--    lengthMenu: [--}}
+    {{--        [10, 25, 50, 100, -1],--}}
+    {{--        [10, 25, 50, 100, "Semua"]--}}
+    {{--    ],--}}
+    {{--    language: {--}}
+    {{--        "lengthMenu": "_MENU_",--}}
+    {{--    },--}}
+    {{--    order: [--}}
+    {{--        [0, 'desc']--}}
+    {{--    ],--}}
+    {{--});--}}
 
     $('#in_search').on('keyup', function() {
         in_table.draw();
@@ -987,13 +987,13 @@
         ],
     });
 
-    $('#stock_data_search').on('keyup', function() {
-        stock_data_table.draw();
-    });
-
-    $('#st_filter').on('change', function() {
-        stock_data_table.draw();
-    });
+    // $('#stock_data_search').on('keyup', function() {
+    //     stock_data_table.draw();
+    // });
+    //
+    // $('#st_filter').on('change', function() {
+    //     stock_data_table.draw();
+    // });
 
     $('#invoice').select2({
         width: "100%",
@@ -1554,12 +1554,12 @@
         }
     });
 
-    $('#article_btn').on('click', function(e) {
-        e.preventDefault();
-        $('#ArticleModal').on('show.bs.modal', function() {
-            stock_data_table.draw();
-        }).modal('show');
-    });
+    // $('#article_btn').on('click', function(e) {
+    //     e.preventDefault();
+    //     $('#ArticleModal').on('show.bs.modal', function() {
+    //         stock_data_table.draw();
+    //     }).modal('show');
+    // });
 
     $('#transfer_btn').on('click', function(e) {
         e.preventDefault();

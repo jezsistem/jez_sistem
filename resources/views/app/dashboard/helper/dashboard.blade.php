@@ -61,14 +61,14 @@
                                 <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_in_btn">Scan Masuk Rak</span>
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
                             </h3>
-                            <h3 class="card-title align-items-start flex-column">
-                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_take_btn">Scan Ambil</span>
-                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
-                            </h3>
-                            <h3 class="card-title align-items-start flex-column">
-                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_pack_btn">Scan Packing</span>
-                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
-                            </h3>
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_take_btn">Scan Ambil</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_pack_btn">Scan Packing</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
                             <h3 class="card-title align-items-start flex-column">
                                 <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="take_cross_order_btn">Ambil Cross Order</span>
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
