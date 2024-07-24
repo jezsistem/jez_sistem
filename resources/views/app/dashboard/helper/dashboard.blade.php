@@ -41,10 +41,10 @@
                     <div class="card card-custom card-stretch gutter-b">
                         <!--begin::Header-->
                         <div class="card-header align-items-center border-0 mt-4">
-                            <h3 class="card-title align-items-start flex-column">
-                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="data_stok_btn">Data stok</span>
-                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
-                            </h3>
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="data_stok_btn">Data stok</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
                             <h3 class="card-title align-items-start flex-column">
                                 <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="out_btn">Keluar Rak</span>
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
@@ -138,5 +138,5 @@
 @include('app.dashboard.helper.dashboard_modal')
 @include('app._partials.js')
 @include('app.dashboard.helper.dashboard_js')
-@include('app.stock_data.stock_data_js')
+{{--@include('app.stock_data.stock_data_js')--}}
 @endSection()
