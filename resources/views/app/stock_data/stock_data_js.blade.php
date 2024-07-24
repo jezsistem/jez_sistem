@@ -298,7 +298,7 @@
         // $('#aging_btn').on('click', function () {
         //     $('#AgingModal').modal('show');
         //     aging_table.draw();
-        });
+        // });
 
         $('#st_id_filter_aging').on('change', function () {
             aging_table.draw();
