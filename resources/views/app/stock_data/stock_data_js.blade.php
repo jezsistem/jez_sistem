@@ -300,9 +300,9 @@
         //     aging_table.draw();
         // });
 
-        $('#st_id_filter_aging').on('change', function () {
-            aging_table.draw();
-        });
+        // $('#st_id_filter_aging').on('change', function () {
+        //     aging_table.draw();
+        // });
 
         $(document).delegate('#aging_detail', 'click', function (e) {
             // swal($(this).attr('title'));
