@@ -225,7 +225,7 @@
             { data: 'sz_name', name: 'sz_name'},
 
             { data: 'stock', name: 'aging', orderable: false},
-            ], 
+            ],
             columnDefs: [
             {
                 "targets": 0,
