@@ -218,17 +218,17 @@ class StockDataController extends Controller
                         }
 
                         $item = '';
-//                        if ($days_remain_po <= $days_remain_tf) {
-//                            if ($days_remain_po > 1000) {
-//                                $days_remain_po = '-';
-//                            }
-//                            $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="'.$title_po.' | '.$row->pst_id.'">'.$days_remain_po.' H</span>';
-//                        } else {
-//                            if ($days_remain_tf > 1000) {
-//                                $days_remain_tf = '-';
-//                            }
-//                            $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="'.$title_tf.'">'.$days_remain_tf.' H</span>';
-//                        }
+                        if ($days_remain_po <= $days_remain_tf) {
+                            if ($days_remain_po > 1000) {
+                                $days_remain_po = '-';
+                            }
+                            $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="'.$title_po.' | '.$row->pst_id.'">'.$days_remain_po.' H</span>';
+                        } else {
+                            if ($days_remain_tf > 1000) {
+                                $days_remain_tf = '-';
+                            }
+                            $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="'.$title_tf.'">'.$days_remain_tf.' H</span>';
+                        }
 
                         $text_search = $request->get('search');
 
@@ -993,203 +993,203 @@ class StockDataController extends Controller
         return view('app.stock_data._reload_size', compact('data'));
     }
 
-//    public function getAgingDatatables(Request $request)
-//    {
-//        $exception = ExceptionLocation::select('pl_code')
-//        ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
-//
-//        if(request()->ajax()) {
-//            return datatables()->of(ProductStock::selectRaw("ts_product_stocks.id as pst_id, pl_code, st_name, br_name, p_name, pc_name, psc_name, pssc_name, p_color, sz_name")
-//            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-//            ->leftJoin('product_categories', 'product_categories.id', '=', 'products.pc_id')
-//            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
-//            ->leftJoin('product_sub_sub_categories', 'product_sub_sub_categories.id', '=', 'products.pssc_id')
-//            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-//            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-//            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-//            ->whereNotIn('product_locations.pl_code', $exception)
-//            ->where('product_location_setups.pls_qty', '>', '0')
-//            ->where('product_locations.st_id', '=', $request->get('st_id'))
-//            ->groupBy('product_stocks.id'))
-//            ->editColumn('stock', function($data) use ($request, $exception) {
-//              $stock = ProductLocationSetup::select('pst_id', 'st_id', 'pls_qty')
-//              ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//              ->where('pst_id', '=', $data->pst_id)->where('st_id', '=', $request->get('st_id'))
-//              ->whereNotIn('product_locations.pl_code', $exception)
-//              ->sum('pls_qty');
-//              return $stock;
-//            })
-//            ->editColumn('aging_po', function($data) use ($request, $exception) {
-//                $check_poad = PurchaseOrderArticleDetailStatus::select(DB::raw('max(ts_purchase_order_article_detail_statuses.created_at) as poads_created'), 'po_invoice')
-//                ->leftJoin('purchase_order_article_details', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-//                ->leftJoin('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
-//                ->leftJoin('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
-//                ->where('purchase_order_article_details.pst_id', '=', $data->pst_id)
-//                ->where('purchase_orders.st_id', '=', $request->get('st_id'))
-//                ->orderByDesc('purchase_order_article_detail_statuses.id')
-//                ->get()->first();
-//                $days_remain_po = 99999;
-//
-//                if (!empty($check_poad)) {
-//                    $date1_remain_po = $check_poad->poads_created;
-//                    $date2_remain_po = date('Y-m-d H:i:s');
-//                    $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
-//                    if ($date1_remain_po>$date2_remain_po) {
-//                        $diff_remain_po = -($diff_remain_po);
-//                    }
-//                    $days_remain_po = round($diff_remain_po/86400);
-//                }
-//                if ($days_remain_po > 1000) {
-//                    $days_remain_po = '-';
-//                }
-//                return $days_remain_po;
-//            })
-//            ->editColumn('aging_tf', function($data) use ($request, $exception) {
-//                $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
-//                ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
-//                ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
-//                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
-//                ->where('stock_transfers.st_id_end', '=', $request->get('st_id'))
-//                ->where('product_stocks.id', '=', $data->pst_id)
-//                ->orderByDesc('stock_transfer_detail_statuses.id')
-//                ->whereNotNull('stock_transfer_detail_statuses.created_at')
-//                ->get()->first();
-//                $days_remain_tf = 99999;
-//                if (!empty ($stf)) {
-//                    $date1_remain_tf = $stf->created_at;
-//                    $date2_remain_tf = date('Y-m-d H:i:s');
-//                    $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
-//                    if ($date1_remain_tf>$date2_remain_tf) {
-//                        $diff_remain_tf = -($diff_remain_tf);
-//                    }
-//                    $days_remain_tf = round($diff_remain_tf/86400);
-//                }
-//                if ($days_remain_tf > 1000) {
-//                    $days_remain_tf = '-';
-//                }
-//                if ($days_remain_tf == '-') {
-//                    $bin = DB::table('bin_adjustments')
-//                    ->select(DB::raw('max(ts_bin_adjustments.created_at) as created_at'), 'ba_code')
-//                    ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'bin_adjustments.pls_id')
-//                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-//                    ->where('product_locations.st_id', '=', $request->get('st_id'))
-//                    ->where('product_location_setups.pst_id', '=', $data->pst_id)
-//                    ->whereNotNull('bin_adjustments.created_at')
-//                    ->get()->first();
-//                    if (!empty($bin)) {
-//                        $date1_remain = $bin->created_at;
-//                        $date2_remain = date('Y-m-d H:i:s');
-//                        $diff_remain = abs(strtotime($date1_remain) - strtotime($date2_remain));
-//                        if ($date1_remain>$date2_remain) {
-//                            $diff_remain = -($diff_remain);
-//                        }
-//                        $days_remain_tf = round($diff_remain/86400);
-//                    }
-//                }
-//                if ($days_remain_tf > 1000) {
-//                    $days_remain_tf = '-';
-//                }
-//                return $days_remain_tf;
-//            })
-//            ->filter(function ($instance) use ($request) {
-//                $br_id = $request->get('br_id');
-//                $pc_id = $request->get('pc_id');
-//                $psc_id = $request->get('psc_id');
-//                $pssc_id = $request->get('pssc_id');
-//                $sz_id = $request->get('sz_id');
-//                $st_id = $request->get('st_id');
-//                if (!empty($request->get('search'))) {
-//                    $instance->where(function($w) use($request){
-//                        $search = $request->get('search');
-//                        $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
-//                    });
-//                }
-//                if (!empty($br_id)) {
-//                  $count = (Integer)count($br_id);
-//                  $where = array();
-//                  if ($count > 0) {
-//                      for ($i = 0; $i < $count; $i++) {
-//                          $where[] = $br_id[$i];
-//                      }
-//                      $instance->where(function($w) use($where){
-//                          $w->whereIn('products.br_id', $where);
-//                      });
-//                  } else {
-//                      $instance->where(function($w) use($br_id){
-//                          $w->where('products.br_id', '=', $br_id[0]);
-//                      });
-//                  }
-//                }
-//                if (!empty($pc_id)) {
-//                  $count = (Integer)count($pc_id);
-//                  $where = array();
-//                  if ($count > 0) {
-//                      for ($i = 0; $i < $count; $i++) {
-//                          $where[] = $pc_id[$i];
-//                      }
-//                      $instance->where(function($w) use($where){
-//                          $w->whereIn('products.pc_id', $where);
-//                      });
-//                  } else {
-//                      $instance->where(function($w) use($pc_id){
-//                          $w->where('products.pc_id', '=', $pc_id[0]);
-//                      });
-//                  }
-//                }
-//                if (!empty($psc_id)) {
-//                  $count = (Integer)count($psc_id);
-//                  $where = array();
-//                  if ($count > 0) {
-//                      for ($i = 0; $i < $count; $i++) {
-//                          $where[] = $psc_id[$i];
-//                      }
-//                      $instance->where(function($w) use($where){
-//                          $w->whereIn('products.psc_id', $where);
-//                      });
-//                  } else {
-//                      $instance->where(function($w) use($psc_id){
-//                          $w->where('products.psc_id', '=', $psc_id[0]);
-//                      });
-//                  }
-//                }
-//                if (!empty($pssc_id)) {
-//                  $count = (Integer)count($pssc_id);
-//                  $where = array();
-//                  if ($count > 0) {
-//                      for ($i = 0; $i < $count; $i++) {
-//                          $where[] = $pssc_id[$i];
-//                      }
-//                      $instance->where(function($w) use($where){
-//                          $w->whereIn('products.pssc_id', $where);
-//                      });
-//                  } else {
-//                      $instance->where(function($w) use($pssc_id){
-//                          $w->where('products.pssc_id', '=', $pssc_id[0]);
-//                      });
-//                  }
-//                }
-//                if (!empty($sz_id)) {
-//                  $count = (Integer)count($sz_id);
-//                  $where = array();
-//                  if ($count > 0) {
-//                      for ($i = 0; $i < $count; $i++) {
-//                          $where[] = $sz_id[$i];
-//                      }
-//                      $instance->where(function($w) use($where){
-//                          $w->whereIn('product_stocks.sz_id', $where);
-//                      });
-//                  } else {
-//                      $instance->where(function($w) use($sz_id){
-//                          $w->where('product_stocks.sz_id', '=', $sz_id[0]);
-//                      });
-//                  }
-//                }
-//            })
-//            ->addIndexColumn()
-//            ->make(true);
-//        }
-//    }
+    public function getAgingDatatables(Request $request)
+    {
+        $exception = ExceptionLocation::select('pl_code')
+        ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
+
+        if(request()->ajax()) {
+            return datatables()->of(ProductStock::selectRaw("ts_product_stocks.id as pst_id, pl_code, st_name, br_name, p_name, pc_name, psc_name, pssc_name, p_color, sz_name")
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_categories', 'product_categories.id', '=', 'products.pc_id')
+            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
+            ->leftJoin('product_sub_sub_categories', 'product_sub_sub_categories.id', '=', 'products.pssc_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+            ->whereNotIn('product_locations.pl_code', $exception)
+            ->where('product_location_setups.pls_qty', '>', '0')
+            ->where('product_locations.st_id', '=', $request->get('st_id'))
+            ->groupBy('product_stocks.id'))
+            ->editColumn('stock', function($data) use ($request, $exception) {
+              $stock = ProductLocationSetup::select('pst_id', 'st_id', 'pls_qty')
+              ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+              ->where('pst_id', '=', $data->pst_id)->where('st_id', '=', $request->get('st_id'))
+              ->whereNotIn('product_locations.pl_code', $exception)
+              ->sum('pls_qty');
+              return $stock;
+            })
+            ->editColumn('aging_po', function($data) use ($request, $exception) {
+                $check_poad = PurchaseOrderArticleDetailStatus::select(DB::raw('max(ts_purchase_order_article_detail_statuses.created_at) as poads_created'), 'po_invoice')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                ->leftJoin('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+                ->where('purchase_order_article_details.pst_id', '=', $data->pst_id)
+                ->where('purchase_orders.st_id', '=', $request->get('st_id'))
+                ->orderByDesc('purchase_order_article_detail_statuses.id')
+                ->get()->first();
+                $days_remain_po = 99999;
+
+                if (!empty($check_poad)) {
+                    $date1_remain_po = $check_poad->poads_created;
+                    $date2_remain_po = date('Y-m-d H:i:s');
+                    $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
+                    if ($date1_remain_po>$date2_remain_po) {
+                        $diff_remain_po = -($diff_remain_po);
+                    }
+                    $days_remain_po = round($diff_remain_po/86400);
+                }
+                if ($days_remain_po > 1000) {
+                    $days_remain_po = '-';
+                }
+                return $days_remain_po;
+            })
+            ->editColumn('aging_tf', function($data) use ($request, $exception) {
+                $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
+                ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
+                ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
+                ->where('stock_transfers.st_id_end', '=', $request->get('st_id'))
+                ->where('product_stocks.id', '=', $data->pst_id)
+                ->orderByDesc('stock_transfer_detail_statuses.id')
+                ->whereNotNull('stock_transfer_detail_statuses.created_at')
+                ->get()->first();
+                $days_remain_tf = 99999;
+                if (!empty ($stf)) {
+                    $date1_remain_tf = $stf->created_at;
+                    $date2_remain_tf = date('Y-m-d H:i:s');
+                    $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
+                    if ($date1_remain_tf>$date2_remain_tf) {
+                        $diff_remain_tf = -($diff_remain_tf);
+                    }
+                    $days_remain_tf = round($diff_remain_tf/86400);
+                }
+                if ($days_remain_tf > 1000) {
+                    $days_remain_tf = '-';
+                }
+                if ($days_remain_tf == '-') {
+                    $bin = DB::table('bin_adjustments')
+                    ->select(DB::raw('max(ts_bin_adjustments.created_at) as created_at'), 'ba_code')
+                    ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'bin_adjustments.pls_id')
+                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->where('product_locations.st_id', '=', $request->get('st_id'))
+                    ->where('product_location_setups.pst_id', '=', $data->pst_id)
+                    ->whereNotNull('bin_adjustments.created_at')
+                    ->get()->first();
+                    if (!empty($bin)) {
+                        $date1_remain = $bin->created_at;
+                        $date2_remain = date('Y-m-d H:i:s');
+                        $diff_remain = abs(strtotime($date1_remain) - strtotime($date2_remain));
+                        if ($date1_remain>$date2_remain) {
+                            $diff_remain = -($diff_remain);
+                        }
+                        $days_remain_tf = round($diff_remain/86400);
+                    }
+                }
+                if ($days_remain_tf > 1000) {
+                    $days_remain_tf = '-';
+                }
+                return $days_remain_tf;
+            })
+            ->filter(function ($instance) use ($request) {
+                $br_id = $request->get('br_id');
+                $pc_id = $request->get('pc_id');
+                $psc_id = $request->get('psc_id');
+                $pssc_id = $request->get('pssc_id');
+                $sz_id = $request->get('sz_id');
+                $st_id = $request->get('st_id');
+                if (!empty($request->get('search'))) {
+                    $instance->where(function($w) use($request){
+                        $search = $request->get('search');
+                        $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                    });
+                }
+                if (!empty($br_id)) {
+                  $count = (Integer)count($br_id);
+                  $where = array();
+                  if ($count > 0) {
+                      for ($i = 0; $i < $count; $i++) {
+                          $where[] = $br_id[$i];
+                      }
+                      $instance->where(function($w) use($where){
+                          $w->whereIn('products.br_id', $where);
+                      });
+                  } else {
+                      $instance->where(function($w) use($br_id){
+                          $w->where('products.br_id', '=', $br_id[0]);
+                      });
+                  }
+                }
+                if (!empty($pc_id)) {
+                  $count = (Integer)count($pc_id);
+                  $where = array();
+                  if ($count > 0) {
+                      for ($i = 0; $i < $count; $i++) {
+                          $where[] = $pc_id[$i];
+                      }
+                      $instance->where(function($w) use($where){
+                          $w->whereIn('products.pc_id', $where);
+                      });
+                  } else {
+                      $instance->where(function($w) use($pc_id){
+                          $w->where('products.pc_id', '=', $pc_id[0]);
+                      });
+                  }
+                }
+                if (!empty($psc_id)) {
+                  $count = (Integer)count($psc_id);
+                  $where = array();
+                  if ($count > 0) {
+                      for ($i = 0; $i < $count; $i++) {
+                          $where[] = $psc_id[$i];
+                      }
+                      $instance->where(function($w) use($where){
+                          $w->whereIn('products.psc_id', $where);
+                      });
+                  } else {
+                      $instance->where(function($w) use($psc_id){
+                          $w->where('products.psc_id', '=', $psc_id[0]);
+                      });
+                  }
+                }
+                if (!empty($pssc_id)) {
+                  $count = (Integer)count($pssc_id);
+                  $where = array();
+                  if ($count > 0) {
+                      for ($i = 0; $i < $count; $i++) {
+                          $where[] = $pssc_id[$i];
+                      }
+                      $instance->where(function($w) use($where){
+                          $w->whereIn('products.pssc_id', $where);
+                      });
+                  } else {
+                      $instance->where(function($w) use($pssc_id){
+                          $w->where('products.pssc_id', '=', $pssc_id[0]);
+                      });
+                  }
+                }
+                if (!empty($sz_id)) {
+                  $count = (Integer)count($sz_id);
+                  $where = array();
+                  if ($count > 0) {
+                      for ($i = 0; $i < $count; $i++) {
+                          $where[] = $sz_id[$i];
+                      }
+                      $instance->where(function($w) use($where){
+                          $w->whereIn('product_stocks.sz_id', $where);
+                      });
+                  } else {
+                      $instance->where(function($w) use($sz_id){
+                          $w->where('product_stocks.sz_id', '=', $sz_id[0]);
+                      });
+                  }
+                }
+            })
+            ->addIndexColumn()
+            ->make(true);
+        }
+    }
 }
