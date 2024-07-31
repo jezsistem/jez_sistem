@@ -33,7 +33,7 @@ use App\Http\Controllers\ColorController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\UserActivityController;
 
-//use App\Http\Controllers\PointOfSaleController;
+use App\Http\Controllers\PointOfSaleController;
 
 use App\Http\Controllers\GroupController;
 
