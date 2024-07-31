@@ -54,4 +54,4 @@ $response = tap($kernel->handle(
 
 $kernel->terminate($request, $response);
 
-ini_set('memory_limit', '512M');
+//ini_set('memory_limit', '512M');
