@@ -121,6 +121,48 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
 
+    // POS
+    Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
+    Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
+    Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
+    Route::get('refund_retur_datatables', [PointOfSaleController::class, 'refundReturDatatables']);
+    Route::post('refund_exchange_list', [PointOfSaleController::class, 'refundExchangeList']);
+    Route::post('check_barcode', [PointOfSaleController::class, 'checkBarcode']);
+    Route::post('check_barcode_by_waiting', [PointOfSaleController::class, 'checkBarcodeWaiting']);
+    Route::post('reload_item_total', [PointOfSaleController::class, 'reloadItemTotal']);
+    Route::post('update_ongkir', [PointOfSaleController::class, 'updateOngkir']);
+    Route::post('save_transaction', [PointOfSaleController::class, 'saveTransaction']);
+    Route::post('save_transaction_offline', [PointOfSaleController::class, 'saveTransactionOffline']);
+    Route::post('save_transaction_detail', [PointOfSaleController::class, 'saveTransactionDetail']);
+    Route::post('save_transaction_detail_offline', [PointOfSaleController::class, 'saveTransactionDetailOffline']);
+    Route::post('autocomplete', [PointOfSaleController::class, 'fetch']);
+    Route::post('autocomplete_by_waiting', [PointOfSaleController::class, 'fetchWaiting']);
+    Route::post('autocomplete_invoice', [PointOfSaleController::class, 'fetchInvoice']);
+    Route::post('autocomplete_invoice_offline', [PointOfSaleController::class, 'fetchInvoiceOffline']);
+    Route::post('change_waiting_status', [PointOfSaleController::class, 'changeWaitingStatus']);
+    Route::post('check_waiting_for_checkout', [PointOfSaleController::class, 'checkWaitingForCheckout']);
+    Route::post('check_complaint', [PointOfSaleController::class, 'checkComplaint']);
+    Route::post('check_offline_complaint', [PointOfSaleController::class, 'checkOfflineComplaint']);
+    Route::post('autocomplete_refund_invoice', [PointOfSaleController::class, 'fetchRefundInvoice']);
+    Route::post('add_custom_amount', [PointOfSaleController::class, 'addCustomAmount']);
+
+    // InvoiceEditorController
+    Route::get('invoice_editor', [InvoiceEditorController::class, 'index']);
+    Route::get('ie_permission_datatables', [InvoiceEditorController::class, 'getPermissionDatatables']);
+    Route::get('ie_permission_invoice_datatables', [InvoiceEditorController::class, 'getInvoiceDatatables']);
+    Route::get('ie_permission_detail_datatables', [InvoiceEditorController::class, 'getDetailDatatables']);
+    Route::get('ie_permission_tracking_datatables', [InvoiceEditorController::class, 'getTrackingDatatables']);
+    Route::get('ie_permission_history_datatables', [InvoiceEditorController::class, 'getHistoryDatatables']);
+    Route::post('ie_permission_save', [InvoiceEditorController::class, 'storePermissionData']);
+    Route::post('ie_permission_delete', [InvoiceEditorController::class, 'deletePermissionData']);
+    Route::post('ie_permission_invoice', [InvoiceEditorController::class, 'checkInvoice']);
+    Route::post('ie_permission_check_active_edit', [InvoiceEditorController::class, 'checkActiveEdit']);
+    Route::post('ie_permission_done_edit', [InvoiceEditorController::class, 'doneEdit']);
+    Route::post('ie_permission_do_edit', [InvoiceEditorController::class, 'doEdit']);
+    Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
+    Route::post('ie_permission_cancel_invoice', [InvoiceEditorController::class, 'cancelInvoice']);
+
+
     // Auth Controller
     Route::get('logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('change_password', [AuthController::class, 'changePassword']);
