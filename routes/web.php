@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductSubSubCategoryTestController;
 use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InvoiceEditorController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
@@ -32,7 +33,7 @@ use App\Http\Controllers\ColorController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\UserActivityController;
 
-use App\Http\Controllers\PointOfSaleController;
+//use App\Http\Controllers\PointOfSaleController;
 
 use App\Http\Controllers\GroupController;
 
