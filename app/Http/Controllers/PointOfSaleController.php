@@ -94,7 +94,7 @@ class PointOfSaleController extends Controller
             'title' => 'POINT OF SALE',
             'user' => $user_data,
             'store' => $store,
-            'starting_date' => $time_start,
+//            'starting_date' => $time_start,
             'pt_id' => null,
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
