@@ -712,20 +712,20 @@
                     reloadRefund();
                     swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
                     // print nota off dulu sam e
-                    {{--setTimeout(() => {--}}
-                    {{--    if (std_id == '17') {--}}
-                    {{--        var win = window.open('{{ url('') }}/print_offline_invoice/' + r--}}
-                    {{--            .invoice, '_blank');--}}
-                    {{--    } else {--}}
-                    {{--        var win = window.open('{{ url('') }}/print_invoice/' + r.invoice,--}}
-                    {{--            '_blank');--}}
-                    {{--    }--}}
-                    {{--    if (win) {--}}
-                    {{--        win.focus();--}}
-                    {{--    } else {--}}
-                    {{--        alert('Please allow popups for this website');--}}
-                    {{--    }--}}
-                    {{--}, 2000);--}}
+                    setTimeout(() => {
+                        if (std_id == '17') {
+                            var win = window.open('{{ url('') }}/print_offline_invoice/' + r
+                                .invoice, '_blank');
+                        } else {
+                            var win = window.open('{{ url('') }}/print_invoice/' + r.invoice,
+                                '_blank');
+                        }
+                        if (win) {
+                            win.focus();
+                        } else {
+                            alert('Please allow popups for this website');
+                        }
+                    }, 2000);
                 } else if (r.status == '400') {
                     swal('Gagal', 'Gagal simpan transaksi', 'warning');
                 }
