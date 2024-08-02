@@ -125,8 +125,8 @@
                                            class="form-control border-dark col-3" id="pl_custom">
                                     <input type="hidden" value="{{ $data['store']->st_name }}" name="st_name"
                                            class="form-control border-dark col-3" id="invoice_input">
-                                    <input type="hidden" value="{{ $data['starting_date'] }}" name="st_name"
-                                           class="form-control border-dark col-3" id="invoice_input">
+{{--                                    <input type="hidden" value="{{ $data['starting_date'] }}" name="st_name"--}}
+{{--                                           class="form-control border-dark col-3" id="invoice_input">--}}
                                 </div>
                             </div>
                         </div>
