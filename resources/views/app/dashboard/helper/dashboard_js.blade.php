@@ -1114,7 +1114,7 @@
         var bin = $('#pl_id_out option:selected').text();
         var secret_code = $('#u_secret_code').val();
         var status = $(this).attr('data-status');
-        if (current_qty >= 0) {
+        // if (current_qty >= 0) {
             swal({
                 title: "Keluar..?",
                 text: "Yakin keluarin produk " + p_name + " dari BIN " + bin + " ?",
@@ -1158,7 +1158,7 @@
                     return false;
                 }
             })
-        }
+        // }
     });
 
     $(document).delegate('#get_in_btn', 'click', function() {
