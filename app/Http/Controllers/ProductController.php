@@ -486,7 +486,7 @@ class ProductController extends Controller
                         $check_list = '';
                         $i = 0;
                         foreach ($check_data as $row) {
-                            $check_list .= '<span style="white-space: nowrap;"><input type="checkbox" data-index="' . $i . '" class="checkbox_add_item' . $data->pid . '_' . $i . '" id="checkbox_add_item" data-pid="' . $data->pid . '" data-psid="' . $row->psid . '"/> ' . $row->sz_name . ' (Sisa : ' . $row->ps_qty . ')</span><br/>';
+                            $check_list .= '<span style="white-space: nowrap;"><input type="checkbox" data-index="' . $i . '" class="checkbox_add_item' . $data->pid . '_' . $i . '" id="checkbox_add_item" data-pid="' . $data->pid . '" data-psid="' . $row->psid . '"/> ' . $row->sz_name . ' - ' . $row->ps_barcode . ' (Sisa : ' . $row->ps_qty . ')</span><br/>';
                             $i++;
                         }
                         return $check_list;
