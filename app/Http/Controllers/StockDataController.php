@@ -379,6 +379,7 @@ class StockDataController extends Controller
                         } else {
                             $w->orWhere('sz_id', '=', $sz_id[0]);
                         }
+                        $w->where('pls_qty', '>', 0); // Added condition
                     });
                 }
 
