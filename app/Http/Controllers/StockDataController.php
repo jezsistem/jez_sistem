@@ -222,7 +222,6 @@ class StockDataController extends Controller
                             if ($days_remain_po > 1000) {
                                 $days_remain_po = '-';
                             }
-                            $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="'.$title_po.' | '.$row->pst_id.'">'.$days_remain_po.' H</span>';
                         } else {
                             if ($days_remain_tf > 1000) {
                                 $days_remain_tf = '-';

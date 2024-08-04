@@ -190,54 +190,54 @@
         });
         var oSettings = stock_data_table.settings();
 
-        var aging_table = $('#Agingtb').DataTable({
-            destroy: true,
-            processing: true,
-            serverSide: true,
-            responsive: false,
-            dom: 'B<"text-right"l>rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
-            ajax: {
-                url : "{{ url('aging_datatables') }}",
-                data : function (d) {
-                    d.search = $('#aging_search').val();
-                    d.br_id = $('#br_id').val();
-                    d.pc_id = $('#pc_id').val();
-                    d.psc_id = $('#psc_id').val();
-                    d.pssc_id = $('#pssc_id').val();
-                    d.sz_id = $('#sz_id').val();
-                    d.st_id = $('#st_id_filter').val();
-                }
-            },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pst_id', searchable: false},
-            { data: 'st_name', name: 'st_name'},
-            { data: 'aging_po', name: 'aging_po', orderable: false},
-            { data: 'aging_tf', name: 'aging_tf', orderable: false},
-            { data: 'pc_name', name: 'pc_name'},
-            { data: 'psc_name', name: 'psc_name'},
-            { data: 'pssc_name', name: 'pssc_name'},
-            { data: 'br_name', name: 'br_name'},
-            { data: 'p_name', name: 'p_name'},
-            { data: 'p_color', name: 'p_color'},
-            { data: 'sz_name', name: 'sz_name'},
+        {{--var aging_table = $('#Agingtb').DataTable({--}}
+        {{--    destroy: true,--}}
+        {{--    processing: true,--}}
+        {{--    serverSide: true,--}}
+        {{--    responsive: false,--}}
+        {{--    dom: 'B<"text-right"l>rt<"text-right"ip>',--}}
+        {{--    buttons: [--}}
+        {{--        { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }--}}
+        {{--    ],--}}
+        {{--    ajax: {--}}
+        {{--        url : "{{ url('aging_datatables') }}",--}}
+        {{--        data : function (d) {--}}
+        {{--            d.search = $('#aging_search').val();--}}
+        {{--            d.br_id = $('#br_id').val();--}}
+        {{--            d.pc_id = $('#pc_id').val();--}}
+        {{--            d.psc_id = $('#psc_id').val();--}}
+        {{--            d.pssc_id = $('#pssc_id').val();--}}
+        {{--            d.sz_id = $('#sz_id').val();--}}
+        {{--            d.st_id = $('#st_id_filter').val();--}}
+        {{--        }--}}
+        {{--    },--}}
+        {{--    columns: [--}}
+        {{--    { data: 'DT_RowIndex', name: 'pst_id', searchable: false},--}}
+        {{--    { data: 'st_name', name: 'st_name'},--}}
+        {{--    { data: 'aging_po', name: 'aging_po', orderable: false},--}}
+        {{--    { data: 'aging_tf', name: 'aging_tf', orderable: false},--}}
+        {{--    { data: 'pc_name', name: 'pc_name'},--}}
+        {{--    { data: 'psc_name', name: 'psc_name'},--}}
+        {{--    { data: 'pssc_name', name: 'pssc_name'},--}}
+        {{--    { data: 'br_name', name: 'br_name'},--}}
+        {{--    { data: 'p_name', name: 'p_name'},--}}
+        {{--    { data: 'p_color', name: 'p_color'},--}}
+        {{--    { data: 'sz_name', name: 'sz_name'},--}}
 
-            { data: 'stock', name: 'aging', orderable: false},
-            ],
-            columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            language: {
-                "lengthMenu": "_MENU_",
-            },
-            order: [[0, 'desc']],
-        });
+        {{--    { data: 'stock', name: 'aging', orderable: false},--}}
+        {{--    ],--}}
+        {{--    columnDefs: [--}}
+        {{--    {--}}
+        {{--        "targets": 0,--}}
+        {{--        "className": "text-center",--}}
+        {{--        "width": "0%"--}}
+        {{--    }],--}}
+        {{--    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],--}}
+        {{--    language: {--}}
+        {{--        "lengthMenu": "_MENU_",--}}
+        {{--    },--}}
+        {{--    order: [[0, 'desc']],--}}
+        {{--});--}}
 
         var pickup_list_table = $('#PickupListtb').DataTable({
             destroy: true,
@@ -285,7 +285,7 @@
         $(document).ready(function() {
             $('#stock_data_search').on('keyup', debounce(function() {
                 var query = $(this).val();
-                if ($.trim(query).length > 2 || $.trim(query).length == 0) {
+                if ($.trim(query).length > 5 || $.trim(query).length == 0) {
                     stock_data_table.draw();
                 }
             }, 400));
@@ -295,18 +295,18 @@
             pickup_list_table.draw();
         });
 
-        $('#aging_search').on('keyup', function() {
-            aging_table.draw();
-        });
+        // $('#aging_search').on('keyup', function() {
+        //     aging_table.draw();
+        // });
 
-        $('#aging_btn').on('click', function() {
-            $('#AgingModal').modal('show');
-            aging_table.draw();
-        });
+        // $('#aging_btn').on('click', function() {
+        //     $('#AgingModal').modal('show');
+        //     aging_table.draw();
+        // });
 
-        $('#st_id_filter_aging').on('change', function() {
-            aging_table.draw();
-        });
+        // $('#st_id_filter_aging').on('change', function() {
+        //     aging_table.draw();
+        // });
 
         $(document).delegate('#aging_detail', 'click', function(e) {
             // swal($(this).attr('title'));
@@ -654,15 +654,27 @@
 
         let debounceTimeout;
 
-        $('#stock_data_search_scan').on('keyup', function(event) {
+        // $('#stock_data_search_scan').on('keyup', function(event) {
+        //     clearTimeout(debounceTimeout);
+        //
+        //     debounceTimeout = setTimeout(function() {
+        //         if(event.keyCode === 13) {
+        //             var query = jQuery('#stock_data_search_scan').val();
+        //             stock_data_table.draw();
+        //         }
+        //     }, 300); // Adjust the delay as needed
+        // });
+        // Add submit event listener to the form
+        $('#f_search').on('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
             clearTimeout(debounceTimeout);
 
             debounceTimeout = setTimeout(function() {
-                if(event.keyCode === 13) {
-                    var query = jQuery('#stock_data_search_scan').val();
-                    stock_data_table.draw();
-                }
+                var query = $('#stock_data_search').val();
+                stock_data_table.draw();
             }, 300); // Adjust the delay as needed
         });
+
     });
 </script>

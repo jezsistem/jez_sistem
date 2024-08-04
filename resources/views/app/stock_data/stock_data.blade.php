@@ -147,7 +147,10 @@
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <input type="text" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau sku" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
+                            <form id="f_search">
+                                <input type="text" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau sku" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
+                                <button type="submit"  class="btn btn-primary">Search</button>
+                            </form>
                             <table class="table table-hover table-checkable" id="StockDatatb">
                                 <thead class="bg-light text-dark">
                                     <tr>
