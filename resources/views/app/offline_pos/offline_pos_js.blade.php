@@ -714,7 +714,7 @@
                     // print nota off dulu sam e
                     console.log(st_id);
                     setTimeout(() => {
-                        if (std_id == '17') {
+                        if (std_id > '0') {
                             var win = window.open('{{ url('') }}/print_offline_invoice/' + r
                                 .invoice, '_blank');
                         } else {
