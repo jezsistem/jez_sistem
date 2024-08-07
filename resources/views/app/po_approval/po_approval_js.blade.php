@@ -149,11 +149,27 @@
                 },
                 {
                     data: 'poads_purchase_price',
-                    name: 'poads_purchase_price'
+                    name: 'poads_purchase_price',
+                    render: function(data, type, row) {
+                        // Ensure the value is treated as a number
+                        var price = parseFloat(data);
+                        // Round the price to the nearest integer
+                        var roundedPrice = Math.round(price);
+                        // Return the rounded price
+                        return roundedPrice;
+                    }
                 },
                 {
                     data: 'poads_total_price',
-                    name: 'poads_total_price'
+                    name: 'poads_total_price',
+                    render: function(data, type, row) {
+                        // Ensure the value is treated as a number
+                        var price = parseFloat(data);
+                        // Round the price to the nearest integer
+                        var roundedPrice = Math.round(price);
+                        // Return the rounded price
+                        return roundedPrice;
+                    }
                 },
                 {
                     data: 'delete',

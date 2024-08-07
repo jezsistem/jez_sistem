@@ -18,7 +18,7 @@
                     </div>
                         
                 </div>
-                <table class="table table-hover" id="APDtb">
+                <table class="table table-responsive table-hover" id="APDtb">
                     <thead class="bg-primary">
                         <tr>
                             <th class="text-white">No</th>
