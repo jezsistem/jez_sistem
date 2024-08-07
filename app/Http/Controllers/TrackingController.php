@@ -467,7 +467,7 @@ class TrackingController extends Controller
     public function scanOutDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'pst_id', 'pls_qty', 'plst_qty', 'plst_status', 'pl_id', 'u_name', 'p_name', 'br_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created')
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'pst_id', 'pls_qty', 'plst_qty', 'plst_status', 'pl_id', 'u_name', 'p_name', 'br_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created', 'ps_barcode')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -481,9 +481,11 @@ class TrackingController extends Controller
                 ->where('plst_status', '=', 'WAITING TO TAKE'))
                 ->editColumn('article', function ($data) {
                     $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
+                    $dateTime = $data->plst_created; // '2024-08-07 14:13:46'
+                    $time = Carbon::parse($dateTime)->format('H:i:s'); // '14:13:46'
                     return '
                 <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
-                <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>
+                <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>'. $data->ps_barcode . ' - ' .$data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/><span style="white-space: nowrap; font-weight:bold; font-size: 10px;">'. $time .' </span><br/>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->plst_qty . '</span>
                 <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->pl_code . ']</span>
                 <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="' . $data->pls_qty . '" data-pls_id="' . $data->pls_id . '" id="scan_get_out_btn" style="font-weight:bold;">Keluar</a>';
