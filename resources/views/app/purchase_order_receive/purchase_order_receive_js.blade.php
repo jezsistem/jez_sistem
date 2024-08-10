@@ -1258,6 +1258,15 @@
             // Store the po_id for later use
             $('#_po_id').val(po_id);
 
+            // console.log();
+            // jQuery('#st_id').val(r.st_id).trigger('change');
+            // jQuery('#ps_id').val(r.ps_id).trigger('change');
+            // jQuery('#stkt_id').val(r.stkt_id).trigger('change');
+            // jQuery('#tax_id').val(r.tax_id).trigger('change');jQuery('#st_id').val(r.st_id).trigger('change');
+            // jQuery('#ps_id').val(r.ps_id).trigger('change');
+            // jQuery('#stkt_id').val(r.stkt_id).trigger('change');
+            // jQuery('#tax_id').val(r.tax_id).trigger('change');
+
             // Update DataTables AJAX configuration with the new po_id
             purchaseOrderInvoiceTable.ajax.reload();
             purchaseOrderDeliveryOrderImageTable.ajax.reload();

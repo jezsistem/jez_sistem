@@ -2,6 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
+use App\Models\MainColor;
+use App\Models\ProductSupplier;
+use App\Models\Size;
+use App\Models\StockType;
+use App\Models\Store;
+use App\Models\Tax;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -66,6 +73,15 @@ class POReceiveApprovalController extends Controller
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
+            'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
+            'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
             'segment' => request()->segment(1)
         ];
         return view('app.po_approval.po_approval', compact('data'));

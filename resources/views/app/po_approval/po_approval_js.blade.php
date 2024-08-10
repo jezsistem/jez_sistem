@@ -100,6 +100,10 @@
                 url: "{{ url('apd_datatables') }}",
                 data: function(d) {
                     d.poads_invoice = $('#invoice_label').text();
+                    // jQuery('#st_id').val(r.st_id).trigger('change');
+                    // jQuery('#ps_id').val(r.ps_id).trigger('change');
+                    // jQuery('#stkt_id').val(r.stkt_id).trigger('change');
+                    // jQuery('#tax_id').val(r.tax_id).trigger('change');
                 }
             },
             columns: [{
@@ -153,10 +157,14 @@
                     render: function(data, type, row) {
                         // Ensure the value is treated as a number
                         var price = parseFloat(data);
-                        // Round the price to the nearest integer
-                        var roundedPrice = Math.round(price);
-                        // Return the rounded price
-                        return roundedPrice;
+                        // Format the price as Rupiah
+                        var formattedPrice = new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(price);
+                        // Return the formatted price
+                        return formattedPrice;
                     }
                 },
                 {
@@ -165,10 +173,14 @@
                     render: function(data, type, row) {
                         // Ensure the value is treated as a number
                         var price = parseFloat(data);
-                        // Round the price to the nearest integer
-                        var roundedPrice = Math.round(price);
-                        // Return the rounded price
-                        return roundedPrice;
+                        // Format the price as Rupiah
+                        var formattedPrice = new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(price);
+                        // Return the formatted price
+                        return formattedPrice;
                     }
                 },
                 {
