@@ -151,7 +151,7 @@
                                 <input type="text" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau sku" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
 {{--                                <button type="submit"  class="btn btn-primary">Search</button>--}}
                                 <div class="alert alert-danger" role="alert">
-                                    <h4 class="alert-heading"><u>Important !</u> 🐤🐤</h4>
+                                    <h4 class="alert-heading"><u>Important !</u></h4>
                                     <p>Data stok dan Helper Apps dalam masa percobaan, Mohon untuk memberikan feedback jika ada yang dibingungkan. Terima kasih friend 🤍 :)</p>
                                     <hr>
                                     <p class="mb-0">Whenever you need to, Please Contact me on Whatsapps, Click to chat ( <a href="https://wa.me/6285649888272" target="_blank">IT</a>, <a href="https://wa.me/6282112556161" target="_blank">Purchasing</a> , <a href="https://wa.me/621280054034" target="_blank">Logistik Malang</a> ).</p>
