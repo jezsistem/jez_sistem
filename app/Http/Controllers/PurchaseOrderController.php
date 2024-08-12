@@ -29,7 +29,7 @@ use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
 use App\Models\UserActivity;
-use Intervention\Image\Facades\Image;
+    use Intervention\Image\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderController extends Controller
