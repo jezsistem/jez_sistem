@@ -127,7 +127,7 @@
                                         </svg>
                                         <!--end::Svg Icon-->
                                     </span>Reset</button>
-                                    @if (strtolower($data['user']->stt_name) == 'offline')
+{{--                                    @if (strtolower($data['user']->stt_name) == 'offline')--}}
                                     <button style="white-space: nowrap;" type="button" class="btn btn-primary font-weight-bolder mb-2" id="pickup_list_btn" aria-haspopup="true" aria-expanded="false">
                                     <span class="svg-icon svg-icon-md">
                                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -140,7 +140,7 @@
                                         </svg>
                                         <!--end::Svg Icon-->
                                     </span>Pickup List</button>
-                                    @endif
+{{--                                    @endif--}}
                                 </div>
                                 <!--end::Dropdown-->
                             </div>
