@@ -424,6 +424,8 @@ class ProductLocationSetupV2Controller extends Controller
         } else {
             $st_id = Auth::user()->st_id;
         }
+
+        $st_city = Store::select('st_code')->where('id', '=', Auth::user()->st_id)->first();
         if (request()->ajax()) {
             return datatables()->of(ProductLocationSetup::select('product_location_setups.id as pls_id', 'products.id as p_id', 'br_name', 'p_name', 'p_color', 'sz_name', 'mc_name', 'pls_qty', 'ps_barcode')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -434,8 +436,9 @@ class ProductLocationSetupV2Controller extends Controller
                 ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
                 ->where('pl_id', '=', $request->pl_id)
                 ->where('product_locations.pl_code', '!=', 'TRIAL')
-                ->where(function ($w) use ($st_id) {
-                    $w->where('product_locations.st_id', '=', $st_id);
+                ->where(function ($w) use ($st_id, $st_city) {
+//                    $w->where('product_locations.st_id', '=', $st_id);
+                    $w->where('product_locations.pl_description', '=', $st_city->st_code);
                 })
                 ->where('pls_qty', '>', '0')
                 ->groupBy('products.id'))
