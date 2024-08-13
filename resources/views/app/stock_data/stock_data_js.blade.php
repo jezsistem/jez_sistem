@@ -341,8 +341,6 @@
             e.preventDefault();
             var st_id = $('#st_id_filter').val();
 
-            console.log('hellow');
-
             var pst_id = $(this).attr('data-pst_id');
             var pl_id = $(this).attr('data-pl_id');
             var qty = $(this).attr('data-qty');
