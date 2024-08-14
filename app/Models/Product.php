@@ -29,7 +29,9 @@ class Product extends Model
         'p_description',
         'p_image',
         'p_delete',
-        'schema_size'
+        'schema_size',
+        'subcategory1',
+        'subcategory2'
     ];
 
     public function getJoinData($select, $where)

@@ -557,6 +557,44 @@
         }
     });
 
+    var scan_keep_table = $('#ScanIntb').DataTable({
+        destroy: true,
+        processing: false,
+        serverSide: true,
+        responsive: false,
+        dom: 'rt<"text-right"ip>',
+        ajax: {
+            url: "{{ url('scan_product_in_datatables') }}",
+            data: function(d) {
+                d.search = $('#scan_in_search').val();
+                d.st_id = $('#st_id').val();
+                d.waiting = $('#waiting_filter').val();
+            }
+        },
+        columns: [{
+            data: 'article',
+            name: 'article',
+            sortable: false
+        }],
+        columnDefs: [{
+            "targets": 0,
+            "className": "text-left",
+            "width": "0%"
+        }],
+        order: [
+            [0, 'desc']
+        ],
+        drawCallback: function(settings) {
+            var api = this.api();
+            $('#scan_out_search').off('keyup').on('keyup', function(event) {
+                if (event.keyCode === 13) {
+                    scanInTbEnterPressed = true;
+                    api.search(this.value).draw();
+                }
+            });
+        }
+    });
+
 
     $('#ScanIntb').on('draw.dt', function() {
         if (!scanInTbEnterPressed) {
@@ -1273,6 +1311,7 @@
         }
     });
 
+
     $(document).delegate('#get_transfer_item', 'click', function() {
         var stfd_id = $(this).attr('data-stfd_id');
         var p_name = $(this).attr('data-p_name');
@@ -1679,6 +1718,13 @@
         $('#st_id').val('');
         $('#ScanInModal').modal('show');
         scan_in_table.draw();
+    });
+
+    $('#scan_keep_btn').on('click', function(e) {
+        e.preventDefault();
+        $('#st_id').val('');
+        $('#KeepOnModal').modal('show');
+        scan_keep_table.draw();
     });
 
     $('#urban_out_btn').on('click', function(e) {
