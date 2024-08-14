@@ -313,7 +313,9 @@ class ProductController extends Controller
                     'p_sell_price',
                     'p_weight',
                     'p_active',
-                    'schema_size'
+                    'schema_size',
+                    'subcategory1',
+                    'subcategory2'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
@@ -716,7 +718,9 @@ class ProductController extends Controller
                 'p_weight' => $request->input('p_weight'),
                 'article_id' => $request->input('article_id'),
                 'schema_size' => $request->input('sz_schema_modal_id'),
-                'p_delete' => '0'
+                'p_delete' => '0',
+                'subcategory1'  => $request->input('subcatone'),
+                'subcategory2'  => $request->input('subcattwo')
             ];
             $save = $product->storeData($mode, $id, $data);
 

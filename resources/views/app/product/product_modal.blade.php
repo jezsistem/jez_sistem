@@ -199,6 +199,18 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <div class="col-lg-6 pt-1">
+                                <label>Sub Category 1 <span class="text-danger"></span></label>
+                                <textarea class="form-control" id="subcatone" name="subcatone"></textarea>
+{{--                                <input type="text" name="subcatone" id="subcatone" class="form-control" placeholder="Sub Category 1" />--}}
+                            </div>
+                            <div class="col-lg-6 pt-1">
+                                <label>Sub Category 2 <span class="text-danger"></span></label>
+                                <textarea class="form-control" id="subcattwo" name="subcattwo"></textarea>
+{{--                                <input type="text" name="subcattwo" id="subcattwo" class="form-control" placeholder="Sub Category 2" />--}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <div class="col-lg-4 pt-1">
                                 <label>Harga Banderol <span class="text-danger">*</span></label>
                                 <input type="text" name="p_price_tag" id="p_price_tag"

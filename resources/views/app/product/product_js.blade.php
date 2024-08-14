@@ -20,12 +20,12 @@
         $('input').prop('disabled', false);
     }
 
-    tinymce.init({
-        selector: 'textarea',
-        plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
-        toolbar_mode: 'floating',
-        height: '150px'
-    });
+    // tinymce.init({
+    //     selector: 'textarea',
+    //     plugins: 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+    //     toolbar_mode: 'floating',
+    //     height: '150px'
+    // });
 
     $(document).on('focusin', function(e) {
         if ($(e.target).closest(".mce-window").length) {
@@ -863,7 +863,12 @@
             var ss_id = product_table.row(this).data().ss_id;
             var mc_id = product_table.row(this).data().mc_id;
             var schema_size = product_table.row(this).data().schema_size;
+            var subcategory1 = product_table.row(this).data().subcategory1;
+            var subcategory2 = product_table.row(this).data().subcategory2;
             var check_pc_id = $('#pc_id').val();
+
+            console.log(product_table.row(this).data())
+            console.log(subcategory1)
             if (check_pc_id == 'all') {
                 $('#category_arrow_label').hide();
                 {{-- $.ajax({ --}}
@@ -950,6 +955,8 @@
             $('#_current_pc_id').val(pc_id);
             $('#_current_psc_id').val(psc_id);
             $('#_current_pssc_id').val(pssc_id);
+            $('#subcatone').text(subcategory1);
+            $('#subcattwo').text(subcategory2);
             jQuery('#br_id').val(br_id).trigger('change');
             jQuery('#ps_id').val(ps_id).trigger('change');
             jQuery('#pu_id').val(pu_id).trigger('change');
