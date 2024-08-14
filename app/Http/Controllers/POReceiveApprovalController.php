@@ -98,6 +98,7 @@ class POReceiveApprovalController extends Controller
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
                 ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
                 ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->whereNotNull('poads_invoice')
                 ->groupBy('poads_invoice'))
                 ->editColumn('poads_invoice_show', function ($d) {
@@ -127,7 +128,9 @@ class POReceiveApprovalController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('poads_invoice', 'LIKE', "%$search%")
-                                ->orWhere('po_invoice', 'LIKE', "%$search%");
+                                ->orWhere('po_invoice', 'LIKE', "%$search%")
+                                ->orWhere('po_description', 'LIKE', "%$search%")
+                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
                         });
                     }
                     if (!empty($request->get('filter_status'))) {
