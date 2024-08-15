@@ -143,18 +143,17 @@ class StockDataController extends Controller
                     'p_price_tag',
                     'p_sell_price',
                     'ps_price_tag',
-                    'ps_sell_price',
-                    'articles_promo.promo_price')
+                    'ps_sell_price')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                     ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                     ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
+//                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
                     ->where('product_location_setups.pls_qty', '>=', 0)
                     ->whereNotIn('product_locations.pl_code', $exception)
                     ->where('product_locations.st_id', '=', $st_id)
-                    ->groupBy('products.id', 'p_name')
+                    ->groupBy('products.id')
                     ->orderByDesc('products.updated_at'))
                     ->editColumn('article_name', function ($data) {
                         $price_tag = 0;
