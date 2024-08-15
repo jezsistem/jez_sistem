@@ -99,6 +99,15 @@ class StockDataController extends Controller
         return view('app.stock_data.stock_data', compact('data'));
     }
 
+    public function getArticlesPromo($article_id)
+    {
+        $promoData = DB::table('articles_promo')
+            ->where('article_id', $article_id)
+            ->get();
+
+        return response()->json(['data' => $promoData]);
+    }
+
     public function getDatatables(Request $request)
     {
 //        return $request->all();
@@ -314,6 +323,8 @@ class StockDataController extends Controller
                                         }
                                         $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
                                             ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                                            ->join('products', 'products.id', '=', 'product_stocks.p_id')
                                             ->whereNotIn('pl_code', $exception)
                                             ->where('product_locations.st_id', '=', $st_id)
                                             ->where('pst_id', $srow->pst_id)->get();
@@ -326,7 +337,7 @@ class StockDataController extends Controller
                                                 } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
                                                     $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
                                                 } else {
-                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
                                                 }
                                             }
                                         }
