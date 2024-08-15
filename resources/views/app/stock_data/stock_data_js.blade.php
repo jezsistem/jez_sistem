@@ -1,194 +1,189 @@
 <script>
 
-    function reloadCategory(type, id)
-    {
+    function reloadCategory(type, id) {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_type:type, _id:id},
+            data: {_type: type, _id: id},
             dataType: 'html',
             url: "{{ url('stock_data_reload_category')}}",
-            success: function(r) {
+            success: function (r) {
                 $('#pc_id').html(r);
             }
         });
         return false;
     }
 
-    function reloadSubCategory(type, id)
-    {
+    function reloadSubCategory(type, id) {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_type:type, _id:id},
+            data: {_type: type, _id: id},
             dataType: 'html',
             url: "{{ url('stock_data_reload_sub_category')}}",
-            success: function(r) {
+            success: function (r) {
                 $('#psc_id').html(r);
             }
         });
         return false;
     }
 
-    function reloadSubOnSubCategory(type, id)
-    {
+    function reloadSubOnSubCategory(type, id) {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_type:type, _id:id},
+            data: {_type: type, _id: id},
             dataType: 'html',
             url: "{{ url('stock_data_reload_sub_sub_category')}}",
-            success: function(r) {
+            success: function (r) {
                 $('#pssc_id').html(r);
             }
         });
         return false;
     }
 
-    function reloadBrand(type, id)
-    {
+    function reloadBrand(type, id) {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_type:type, _id:id},
+            data: {_type: type, _id: id},
             dataType: 'html',
             url: "{{ url('stock_data_reload_brand')}}",
-            success: function(r) {
+            success: function (r) {
                 $('#br_id').html(r);
             }
         });
         return false;
     }
 
-    function reloadSize(type, id)
-    {
+    function reloadSize(type, id) {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_type:type, _id:id},
+            data: {_type: type, _id: id},
             dataType: 'html',
             url: "{{ url('stock_data_reload_size')}}",
-            success: function(r) {
+            success: function (r) {
                 $('#sz_id').html(r);
             }
         });
         return false;
     }
 
-    function reloadGender(type, id)
-    {
+    function reloadGender(type, id) {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_type:type, _id:id},
+            data: {_type: type, _id: id},
             dataType: 'html',
             url: "{{ url('stock_data_reload_size')}}",
-            success: function(r) {
+            success: function (r) {
                 $('#sz_id').html(r);
             }
         });
         return false;
     }
 
-    function reloadMainColor(type, id)
-    {
+    function reloadMainColor(type, id) {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_type:type, _id:id},
+            data: {_type: type, _id: id},
             dataType: 'html',
             url: "{{ url('stock_data_reload_size')}}",
-            success: function(r) {
+            success: function (r) {
                 $('#sz_id').html(r);
             }
         });
         return false;
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').val('');
         // $('body').addClass('kt-primary--minimize aside-minimize');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
-        var stock_data_table = $('#StockDatatb').DataTable({
-            destroy: true,
-            processing: false,
-            serverSide: true,
-            responsive: false,
-            dom: 'rt<"text-right"ipl>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
-            ajax: {
-                url : "{{ url('stock_data_datatables') }}",
-                data : function (d) {
-                    d.search = $('#stock_data_search').val();
-                    d.search_scan = $('#stock_data_search_scan').val();
-                    d.br_id = $('#br_id').val();
-                    d.pc_id = $('#pc_id').val();
-                    d.psc_id = $('#psc_id').val();
-                    d.pssc_id = $('#pssc_id').val();
-                    d.sz_id = $('#sz_id').val();
-                    d.gender_id = $('#gender_id').val();
-                    d.main_color_id = $('#main_color_id').val();
-                    d.display_status = $('#display_status').val();
-                    d.st_id = $('#st_id_filter').val();
-                }
-            },
-            columns: [
-            { data: 'article_name', name: 'article_name', orderable: false },
-            { data: 'article_stock', name: 'article_stock', orderable: false },
-            ],
-            columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-left",
-                "width": "0%"
-            }],
-            rowCallback: function( row, data, index) {
-                if (data.article_stock.indexOf("<table></table>") >= 0) {
-                    $(row).hide();
-                }
-            },
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            language: {
-                "lengthMenu": "_MENU_",
-            },
-            order: [[0, 'desc']],
-        });
-        var oSettings = stock_data_table.settings();
+        // if ($('stock_data_search').val() != '') {
+            var stock_data_table = $('#StockDatatb').DataTable({
+                destroy: true,
+                processing: false,
+                serverSide: true,
+                responsive: false,
+                dom: 'rt<"text-right"ipl>',
+                buttons: [
+                    {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
+                ],
+                ajax: {
+                    url: "{{ url('stock_data_datatables') }}",
+                    data: function (d) {
+                        d.search = $('#stock_data_search').val();
+                        d.search_scan = $('#stock_data_search_scan').val();
+                        d.br_id = $('#br_id').val();
+                        d.pc_id = $('#pc_id').val();
+                        d.psc_id = $('#psc_id').val();
+                        d.pssc_id = $('#pssc_id').val();
+                        d.sz_id = $('#sz_id').val();
+                        d.gender_id = $('#gender_id').val();
+                        d.main_color_id = $('#main_color_id').val();
+                        d.display_status = $('#display_status').val();
+                        d.st_id = $('#st_id_filter').val();
+                    }
+                },
+                columns: [
+                    {data: 'article_name', name: 'article_name', orderable: false},
+                    {data: 'article_stock', name: 'article_stock', orderable: false},
+                ],
+                columnDefs: [
+                    {
+                        "targets": 0,
+                        "className": "text-left",
+                        "width": "0%"
+                    }],
+                rowCallback: function (row, data, index) {
+                    if (data.article_stock.indexOf("<table></table>") >= 0) {
+                        $(row).hide();
+                    }
+                },
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                language: {
+                    "lengthMenu": "_MENU_",
+                },
+                order: [[0, 'desc']],
+            });
+            var oSettings = stock_data_table.settings();
+        // }
 
         {{--var aging_table = $('#Agingtb').DataTable({--}}
         {{--    destroy: true,--}}
@@ -246,32 +241,32 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             ajax: {
-                url : "{{ url('pickup_list_datatables') }}",
-                data : function (d) {
+                url: "{{ url('pickup_list_datatables') }}",
+                data: function (d) {
                     d.search = $('#pick_data_search').val();
                     d.st_id = "{{ $data['user']->st_id }}";
                 }
             },
             columns: [
-            { data: 'article', name: 'p_name', orderable: false },
-            { data: 'bin', name: 'pl_code, orderable: false' },
-            { data: 'datetime', name: 'plst_created', orderable: false },
-            { data: 'user', name: 'user', orderable: false },
-            { data: 'status', name: 'p_name', orderable: false },
-            { data: 'action', name: 'p_name', orderable: false },
+                {data: 'article', name: 'p_name', orderable: false},
+                {data: 'bin', name: 'pl_code, orderable: false'},
+                {data: 'datetime', name: 'plst_created', orderable: false},
+                {data: 'user', name: 'user', orderable: false},
+                {data: 'status', name: 'p_name', orderable: false},
+                {data: 'action', name: 'p_name', orderable: false},
             ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-left",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-left",
+                    "width": "0%"
+                }],
             order: [[0, 'desc']],
         });
 
         function debounce(func, delay) {
             let timeoutId;
-            return function(...args) {
+            return function (...args) {
                 if (timeoutId) {
                     clearTimeout(timeoutId);
                 }
@@ -281,17 +276,17 @@
             };
         }
 
-        stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn' ));
-        $(document).ready(function() {
-            $('#stock_data_search').on('keyup', debounce(function() {
+        stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn'));
+        $(document).ready(function () {
+            $('#stock_data_search').on('keyup', debounce(function () {
                 var query = $(this).val();
-                if ($.trim(query).length > 5 || $.trim(query).length == 0) {
+                if ($.trim(query).length > 4 || $.trim(query).length != 0) {
                     stock_data_table.draw();
                 }
             }, 400));
         });
 
-        $('#pick_data_search').on('keyup', function() {
+        $('#pick_data_search').on('keyup', function () {
             pickup_list_table.draw();
         });
 
@@ -308,12 +303,12 @@
         //     aging_table.draw();
         // });
 
-        $(document).delegate('#aging_detail', 'click', function(e) {
+        $(document).delegate('#aging_detail', 'click', function (e) {
             // swal($(this).attr('title'));
             alert($(this).attr('title'));
         });
 
-        $(document).delegate('#copy-button', 'click', function(e) {
+        $(document).delegate('#copy-button', 'click', function (e) {
             // swal($(this).attr('title'));
             var textToCopy = $(this).attr('title');
 
@@ -337,7 +332,7 @@
 
         });
 
-        $(document).delegate('#pickup_item', 'click', function(e) {
+        $(document).delegate('#pickup_item', 'click', function (e) {
             e.preventDefault();
             var st_id = $('#st_id_filter').val();
 
@@ -354,27 +349,27 @@
             if (st_id == {{ $data['user']->st_id }}) {
                 swal({
                     title: "Pickup..?",
-                    text: "Yakin pickup item "+p_name+" dari bin "+bin+" ?",
+                    text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
                     icon: "warning",
                     buttons: [
                         'Batal',
                         'Yakin'
                     ],
                     dangerMode: false,
-                }).then(function(isConfirm) {
+                }).then(function (isConfirm) {
                     if (isConfirm) {
                         $.ajaxSetup({
                             headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             }
                         });
                         $.ajax({
                             type: "POST",
-                            data: {_pls_id:pls_id, _pst_id:pst_id, _pl_id:pl_id, _pl_code:pl_code},
+                            data: {_pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},
                             dataType: 'json',
                             url: "{{ url('pickup_item')}}",
-                            success: function(r) {
-                                if (r.status == '200'){
+                            success: function (r) {
+                                if (r.status == '200') {
                                     toast("Berhasil", "Item berhasil dipickup", "success");
                                     stock_data_table.draw();
                                     pickup_list_table.draw();
@@ -389,14 +384,14 @@
             } else {
                 swal({
                     title: "Pickup..?",
-                    text: "Yakin pickup item "+p_name+" dari bin "+bin+" ?",
+                    text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
                     icon: "warning",
                     buttons: [
                         'Batal',
                         'Yakin'
                     ],
                     dangerMode: false,
-                }).then(function(isConfirm) {
+                }).then(function (isConfirm) {
                     if (isConfirm) {
                         $.ajaxSetup({
                             headers: {
@@ -405,11 +400,11 @@
                         });
                         $.ajax({
                             type: "POST",
-                            data: {_pls_id:pls_id, _pst_id:pst_id, _pl_id:pl_id, _pl_code:pl_code},
+                            data: {_pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},
                             dataType: 'json',
                             url: "{{ url('pickup_item')}}",
-                            success: function(r) {
-                                if (r.status == '200'){
+                            success: function (r) {
+                                if (r.status == '200') {
                                     toast("Berhasil", "Item berhasil dipickup", "success");
                                     stock_data_table.draw();
                                     pickup_list_table.draw();
@@ -425,7 +420,7 @@
             @endif
         });
 
-        $(document).delegate('#pickup_approval_item', 'click', function(e) {
+        $(document).delegate('#pickup_approval_item', 'click', function (e) {
             e.preventDefault();
             var st_id = $('#st_id_filter').val();
             var plst_id = $(this).attr('data-plst_id');
@@ -435,27 +430,27 @@
             if (st_id == {{ $data['user']->st_id }}) {
                 swal({
                     title: "Pickup..?",
-                    text: "Yakin pickup item "+p_name+" dari bin "+bin+" ?",
+                    text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
                     icon: "warning",
                     buttons: [
                         'Batal',
                         'Yakin'
                     ],
                     dangerMode: false,
-                }).then(function(isConfirm) {
+                }).then(function (isConfirm) {
                     if (isConfirm) {
                         $.ajaxSetup({
                             headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             }
                         });
                         $.ajax({
                             type: "POST",
-                            data: {plst_id:plst_id},
+                            data: {plst_id: plst_id},
                             dataType: 'json',
                             url: "{{ url('pickup_approval_item')}}",
-                            success: function(r) {
-                                if (r.status == '200'){
+                            success: function (r) {
+                                if (r.status == '200') {
                                     stock_data_table.draw();
                                     pickup_list_table.draw();
                                     toast("Berhasil", "Item berhasil dipickup", "success");
@@ -473,7 +468,7 @@
 
         jQuery.noConflict();
 
-        $('#reset_btn').on('click', function() {
+        $('#reset_btn').on('click', function () {
             $("#br_id").val("");
             $("#br_id").trigger('change');
             $("#pc_id").val("");
@@ -490,11 +485,11 @@
             $("#gender_id").trigger('change');
             $("#stock_data_search").val("");
             $('#display_status').val('');
-            oSettings[0]._iDisplayLength=10;
-            stock_data_table.draw();
+            oSettings[0]._iDisplayLength = 10;
+            // stock_data_table.draw();
         });
 
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').on('change', function() {
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').on('change', function () {
             stock_data_table.draw();
         });
 
@@ -502,8 +497,8 @@
             multiple: true,
             width: "100%",
             dropdownParent: $('#br_id_parent'),
-            closeOnSelect:true,
-            placeholder : "BRANDS",
+            closeOnSelect: true,
+            placeholder: "BRANDS",
             allowClear: true,
         });
         $('#br_id').on('select2:open', function (e) {
@@ -516,8 +511,8 @@
             multiple: true,
             width: "100%",
             dropdownParent: $('#pc_id_parent'),
-            closeOnSelect:true,
-            placeholder : "KATEGORI",
+            closeOnSelect: true,
+            placeholder: "KATEGORI",
             allowClear: true,
         });
         $('#pc_id').on('select2:open', function (e) {
@@ -530,8 +525,8 @@
             multiple: true,
             width: "100%",
             dropdownParent: $('#psc_id_parent'),
-            closeOnSelect:true,
-            placeholder : "SUB KATEGORI",
+            closeOnSelect: true,
+            placeholder: "SUB KATEGORI",
             allowClear: true,
         });
         $('#psc_id').on('select2:open', function (e) {
@@ -544,8 +539,8 @@
             multiple: true,
             width: "100%",
             dropdownParent: $('#pssc_id_parent'),
-            closeOnSelect:true,
-            placeholder : "SUB ON SUB KATEGORI",
+            closeOnSelect: true,
+            placeholder: "SUB ON SUB KATEGORI",
             allowClear: true,
         });
         $('#pssc_id').on('select2:open', function (e) {
@@ -558,8 +553,8 @@
             multiple: true,
             width: "100%",
             dropdownParent: $('#sz_id_parent'),
-            closeOnSelect:true,
-            placeholder : "SIZE / UKURAN",
+            closeOnSelect: true,
+            placeholder: "SIZE / UKURAN",
             allowClear: true,
         });
         $('#sz_id').on('select2:open', function (e) {
@@ -572,8 +567,8 @@
             multiple: true,
             width: "100%",
             dropdownParent: $('#gender_id_parent'),
-            closeOnSelect:true,
-            placeholder : "GENDER",
+            closeOnSelect: true,
+            placeholder: "GENDER",
             allowClear: true,
         });
         $('#gender_id').on('select2:open', function (e) {
@@ -586,8 +581,8 @@
             multiple: true,
             width: "100%",
             dropdownParent: $('#main_color_id_parent'),
-            closeOnSelect:true,
-            placeholder : "MAIN COLOR",
+            closeOnSelect: true,
+            placeholder: "MAIN COLOR",
             allowClear: true,
         });
         $('#main_color_id').on('select2:open', function (e) {
@@ -596,26 +591,26 @@
             $(window).off(evt);
         });
 
-        $('#pc_id').on('change', function() {
+        $('#pc_id').on('change', function () {
             reloadSubCategory('product_category', $(this).val());
         });
 
-        $('#psc_id').on('change', function() {
+        $('#psc_id').on('change', function () {
             reloadSubOnSubCategory('product_sub_category', $(this).val());
         });
 
-        $('#br_id').on('change', function() {
+        $('#br_id').on('change', function () {
             reloadCategory('brand', $(this).val());
         });
 
-        $('#pickup_list_btn').on('click', function() {
+        $('#pickup_list_btn').on('click', function () {
             jQuery.noConflict();
-            $('#PickupListModal').on('show.bs.modal', function() {
+            $('#PickupListModal').on('show.bs.modal', function () {
                 pickup_list_table.draw();
             }).modal('show');
         });
 
-        $(document).delegate('#cancel_pickup_btn', 'click', function() {
+        $(document).delegate('#cancel_pickup_btn', 'click', function () {
             var plst_id = $(this).attr('data-plst_id');
             var pls_id = $(this).attr('data-pls_id');
             var pst_id = $(this).attr('data-pst_id');
@@ -624,27 +619,27 @@
             var pl_code = $(this).attr('data-pl_code');
             swal({
                 title: "Batal..?",
-                text: "Yakin batalkan pickup untuk item "+p_name+" ?",
+                text: "Yakin batalkan pickup untuk item " + p_name + " ?",
                 icon: "warning",
                 buttons: [
                     'Batal',
                     'Yakin'
                 ],
                 dangerMode: false,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_plst_id:plst_id, _pls_id:pls_id, _pst_id:pst_id, _pl_id:pl_id, _pl_code:pl_code},
+                        data: {_plst_id: plst_id, _pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},
                         dataType: 'json',
                         url: "{{ url('cancel_pickup_item')}}",
-                        success: function(r) {
-                            if (r.status == '200'){
+                        success: function (r) {
+                            if (r.status == '200') {
                                 toast("Berhasil", "Pickup item berhasil dibatalkan", "success");
                                 pickup_list_table.draw();
                                 stock_data_table.draw();
@@ -658,7 +653,7 @@
             })
         });
 
-        $('#st_id_filter').on('change', function() {
+        $('#st_id_filter').on('change', function () {
             stock_data_table.draw();
         });
 
@@ -668,7 +663,7 @@
 
             scanMode = !scanMode;
 
-            if(scanMode) {
+            if (scanMode) {
                 $('#scan_mode_btn').html('<i class="fa fa-barcode"></i> Manual Mode');
 
                 $('#stock_data_search_scan').toggle();
@@ -702,12 +697,12 @@
         //     }, 300); // Adjust the delay as needed
         // });
         // Add submit event listener to the form
-        $('#f_search').on('submit', function(event) {
+        $('#f_search').on('submit', function (event) {
             event.preventDefault(); // Prevent the default form submission
 
             clearTimeout(debounceTimeout);
 
-            debounceTimeout = setTimeout(function() {
+            debounceTimeout = setTimeout(function () {
                 var query = $('#stock_data_search').val();
                 stock_data_table.draw();
             }, 300); // Adjust the delay as needed
