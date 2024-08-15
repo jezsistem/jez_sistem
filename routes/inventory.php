@@ -252,6 +252,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Stock Data
     Route::get('data_stok', [StockDataController::class, 'index'])->name('stock_data');
+    Route::get('get_articles_promo/{article_id}', [StockDataController::class, 'getArticlesPromo']);
     Route::get('stock_data_datatables', [StockDataController::class, 'getDatatables']);
     Route::get('aging_datatables', [StockDataController::class, 'getAgingDatatables']);
     Route::get('helper_stock_data_datatables', [StockDataController::class, 'getHelperDatatables']);
