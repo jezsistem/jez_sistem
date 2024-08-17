@@ -277,7 +277,24 @@
         }
 
         stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn'));
+        // $(document).ready(function () {
+        //     $('#stock_data_search').on('keyup', debounce(function () {
+        //         var query = $(this).val();
+        //         if ($.trim(query).length > 4 || $.trim(query).length != 0) {
+        //             stock_data_table.draw();
+        //         }
+        //     }, 400));
+        // });
+
         $(document).ready(function () {
+            // Block the enter key in the input field
+            $('#stock_data_search').on('keydown', function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                }
+            });
+
+            // Debounce function for search
             $('#stock_data_search').on('keyup', debounce(function () {
                 var query = $(this).val();
                 if ($.trim(query).length > 4 || $.trim(query).length != 0) {

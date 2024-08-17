@@ -129,8 +129,7 @@ class StockDataController extends Controller
             $st_id = Auth::user()->st_id;
         }
 
-        if ($st_name && stripos($st_name->st_name, 'ONLINE') === false) {
-            if (request()->ajax()) {
+        if (request()->ajax()) {
 //                return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, ts_products.article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price, promo_price")
 //                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
 //                    ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
@@ -143,674 +142,1027 @@ class StockDataController extends Controller
 //                    ->where('product_locations.st_id', '=', $st_id)
 //                    ->groupBy('p_name_brand')
 //                    ->orderByDesc('products.updated_at'))
-                return datatables()->of(Product::select('products.id as pid',
-                    DB::raw("CONCAT(p_name, ' (', br_name, ')') as p_name_brand"),
-                    'p_name',
-                    'products.article_id',
-                    'brands.br_name',
-                    'product_stocks.ps_qty',
-                    'p_price_tag',
-                    'p_sell_price',
-                    'ps_price_tag',
-                    'ps_sell_price')
-                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                    ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            return datatables()->of(Product::select('products.id as pid',
+                DB::raw("CONCAT(p_name, ' (', br_name, ')') as p_name_brand"),
+                'p_name',
+                'products.article_id',
+                'brands.br_name',
+                'product_stocks.ps_qty',
+                'p_price_tag',
+                'p_sell_price',
+                'ps_price_tag',
+                'ps_sell_price')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
 //                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
-                    ->where('product_location_setups.pls_qty', '>=', 0)
-                    ->whereNotIn('product_locations.pl_code', $exception)
-                    ->where('product_locations.st_id', '=', $st_id)
-                    ->groupBy('products.id')
-                    ->orderByDesc('products.updated_at'))
-                    ->editColumn('article_name', function ($data) {
-                        $price_tag = 0;
-                        $sell_price = 0;
-                        if (!empty($data->p_price_tag)) {
-                            $price_tag = $data->p_price_tag;
-                        } else {
-                            $price_tag = $data->ps_price_tag;
-                        }
-                        if (!empty($data->p_sell_price)) {
-                            $sell_price = $data->p_sell_price;
-                        } else {
-                            $sell_price = $data->ps_sell_price;
-                        }
-                        if (!empty($data->promo_price)) {
-                            $percent = (($data->p_sell_price - $data->promo_price) / $data->p_sell_price) * 100;
-                        }
+                ->where('product_location_setups.pls_qty', '>=', 0)
+                ->whereNotIn('product_locations.pl_code', $exception)
+                ->where('product_locations.st_id', '=', $st_id)
+                ->groupBy('products.id')
+                ->orderByDesc('products.updated_at'))
+                ->editColumn('article_name', function ($data) {
+                    $price_tag = 0;
+                    $sell_price = 0;
+                    if (!empty($data->p_price_tag)) {
+                        $price_tag = $data->p_price_tag;
+                    } else {
+                        $price_tag = $data->ps_price_tag;
+                    }
+                    if (!empty($data->p_sell_price)) {
+                        $sell_price = $data->p_sell_price;
+                    } else {
+                        $sell_price = $data->ps_sell_price;
+                    }
+                    if (!empty($data->promo_price)) {
+                        $percent = (($data->p_sell_price - $data->promo_price) / $data->p_sell_price) * 100;
+                    }
 
-                        if ($data->promo_price != null || $data->promo_price != '') {
-                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
+                    if ($data->promo_price != null || $data->promo_price != '') {
+                        $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
                 background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . ' | P: ' . number_format($data->promo_price) . ' (' . $percent . '%)' . '</span>';
-                        } else {
-                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
+                    } else {
+                        $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
                 background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . '</span>';
-                        }
-                        return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary" id="copy-button" title="' . $data->p_name . '">[' . $data->br_name . '] ' . $data->p_name . ' ' . $hb . '</span>';
-                    })
-                    ->editColumn('article_age', function ($data) {
+                    }
+                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary" id="copy-button" title="' . $data->p_name . '">[' . $data->br_name . '] ' . $data->p_name . ' ' . $hb . '</span>';
+                })
+                ->editColumn('article_age', function ($data) {
 
-                    })
-                    ->editColumn('article_stock', function ($data) use ($request, $exception, $b1g1_setup, $st_id) {
-                        $sz_id = $request->get('sz_id');
-                        $gender_id = $request->get('gender_id');
-                        $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
-                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                            ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                })
+                ->editColumn('article_stock', function ($data) use ($request, $exception, $b1g1_setup, $st_id) {
+                    $sz_id = $request->get('sz_id');
+                    $gender_id = $request->get('gender_id');
+                    $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
+                        ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                        ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                        ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
 //                ->where('pls_qty', '>', 0)
-                            ->where('product_locations.st_id', '=', $st_id)
-                            ->whereNotIn('pl_code', $exception)
-                            ->where('p_name', $data->p_name)
-                            ->where('br_name', $data->br_name)
-                            ->where(function ($w) use ($sz_id) {
-                                if (!empty($sz_id)) {
-                                    if (count($sz_id) > 0) {
-                                        $w->whereIn('sz_id', $sz_id);
-                                    } else {
-                                        $w->where('sz_id', $sz_id);
-                                    }
-                                }
-                            })
-                            ->groupBy('p_color')->get();
-                        if (!empty($item)) {
-                            $item_list = '';
-                            $item_list .= '<table>';
-                            foreach ($item as $row) {
-                                $check_poad = PurchaseOrderArticleDetailStatus::select(DB::raw('max(ts_purchase_order_article_detail_statuses.created_at) as poads_created'), 'po_invoice')
-                                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-                                    ->leftJoin('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
-                                    ->leftJoin('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
-                                    ->where('pst_id', '=', $row->pst_id)
-                                    ->where('purchase_orders.st_id', '=', $st_id)
-                                    ->orderByDesc('purchase_order_article_detail_statuses.id')
-                                    ->get()->first();
-
-                                $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
-                                    ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
-                                    ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
-                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
-                                    ->where('stock_transfers.st_id_end', '=', $st_id)
-                                    ->where('product_stocks.id', '=', $row->pst_id)
-                                    ->orderByDesc('stock_transfer_detail_statuses.id')
-                                    ->whereNotNull('stock_transfer_detail_statuses.created_at')
-                                    ->get()->first();
-                                $title_po = '-';
-                                $title_tf = '-';
-                                $days_remain_po = 99999;
-                                $days_remain_tf = 99999;
-
-                                if (!empty($check_poad)) {
-                                    $title_po = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($check_poad->poads_created)) . ' pada PO ' . $check_poad->po_invoice;
-                                    $date1_remain_po = $check_poad->poads_created;
-                                    $date2_remain_po = date('Y-m-d H:i:s');
-                                    $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
-                                    if ($date1_remain_po > $date2_remain_po) {
-                                        $diff_remain_po = -($diff_remain_po);
-                                    }
-                                    $days_remain_po = round($diff_remain_po / 86400);
-                                }
-                                if (!empty ($stf)) {
-                                    $created_at = $stf->created_at;
-                                    $code = 'kode transfer ' . $stf->stf_code;
-                                    $title_tf = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($created_at)) . ' pada TF ' . $code;
-                                    $date1_remain_tf = $created_at;
-                                    $date2_remain_tf = date('Y-m-d H:i:s');
-                                    $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
-                                    if ($date1_remain_tf > $date2_remain_tf) {
-                                        $diff_remain_tf = -($diff_remain_tf);
-                                    }
-                                    $days_remain_tf = round($diff_remain_tf / 86400);
-                                }
-
-                                $item = '';
-                                if ($days_remain_po <= $days_remain_tf) {
-                                    if ($days_remain_po > 1000) {
-                                        $days_remain_po = '-';
-                                    }
+                        ->where('product_locations.st_id', '=', $st_id)
+                        ->whereNotIn('pl_code', $exception)
+                        ->where('p_name', $data->p_name)
+                        ->where('br_name', $data->br_name)
+                        ->where(function ($w) use ($sz_id) {
+                            if (!empty($sz_id)) {
+                                if (count($sz_id) > 0) {
+                                    $w->whereIn('sz_id', $sz_id);
                                 } else {
-                                    if ($days_remain_tf > 1000) {
-                                        $days_remain_tf = '-';
-                                    }
-                                    $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="' . $title_tf . '">' . $days_remain_tf . ' H</span>';
+                                    $w->where('sz_id', $sz_id);
                                 }
+                            }
+                        })
+                        ->groupBy('p_color')->get();
+                    if (!empty($item)) {
+                        $item_list = '';
+                        $item_list .= '<table>';
+                        foreach ($item as $row) {
+                            $check_poad = PurchaseOrderArticleDetailStatus::select(DB::raw('max(ts_purchase_order_article_detail_statuses.created_at) as poads_created'), 'po_invoice')
+                                ->leftJoin('purchase_order_article_details', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                                ->leftJoin('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                                ->leftJoin('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+                                ->where('pst_id', '=', $row->pst_id)
+                                ->where('purchase_orders.st_id', '=', $st_id)
+                                ->orderByDesc('purchase_order_article_detail_statuses.id')
+                                ->get()->first();
 
-                                $text_search = $request->get('search');
+                            $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
+                                ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
+                                ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
+                                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
+                                ->where('stock_transfers.st_id_end', '=', $st_id)
+                                ->where('product_stocks.id', '=', $row->pst_id)
+                                ->orderByDesc('stock_transfer_detail_statuses.id')
+                                ->whereNotNull('stock_transfer_detail_statuses.created_at')
+                                ->get()->first();
+                            $title_po = '-';
+                            $title_tf = '-';
+                            $days_remain_po = 99999;
+                            $days_remain_tf = 99999;
 
-                                $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
-                                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                                    ->where('product_stocks.ps_barcode', 'like', '%' . $text_search . '%')
-                                    ->get()->first();
+                            if (!empty($check_poad)) {
+                                $title_po = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($check_poad->poads_created)) . ' pada PO ' . $check_poad->po_invoice;
+                                $date1_remain_po = $check_poad->poads_created;
+                                $date2_remain_po = date('Y-m-d H:i:s');
+                                $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
+                                if ($date1_remain_po > $date2_remain_po) {
+                                    $diff_remain_po = -($diff_remain_po);
+                                }
+                                $days_remain_po = round($diff_remain_po / 86400);
+                            }
+                            if (!empty ($stf)) {
+                                $created_at = $stf->created_at;
+                                $code = 'kode transfer ' . $stf->stf_code;
+                                $title_tf = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($created_at)) . ' pada TF ' . $code;
+                                $date1_remain_tf = $created_at;
+                                $date2_remain_tf = date('Y-m-d H:i:s');
+                                $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
+                                if ($date1_remain_tf > $date2_remain_tf) {
+                                    $diff_remain_tf = -($diff_remain_tf);
+                                }
+                                $days_remain_tf = round($diff_remain_tf / 86400);
+                            }
 
-                                $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
+                            $item = '';
+                            if ($days_remain_po <= $days_remain_tf) {
+                                if ($days_remain_po > 1000) {
+                                    $days_remain_po = '-';
+                                }
+                            } else {
+                                if ($days_remain_tf > 1000) {
+                                    $days_remain_tf = '-';
+                                }
+                                $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="' . $title_tf . '">' . $days_remain_tf . ' H</span>';
+                            }
 
-                                $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
-                                $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">' . $item . ' <span class="btn-sm-custom btn-primary">' . $row->article_id . ' ' . $row->p_color . '</span></td>';
-                                $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
-                                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                                    ->whereNotIn('pl_code', $exception)
+                            $text_search = $request->get('search');
+
+                            $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
+                                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                                ->where('product_stocks.ps_barcode', 'like', '%' . $text_search . '%')
+                                ->get()->first();
+
+                            $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
+
+                            $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
+                            $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">' . $item . ' <span class="btn-sm-custom btn-primary">' . $row->article_id . ' ' . $row->p_color . '</span></td>';
+                            $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
+                                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                                ->whereNotIn('pl_code', $exception)
 //                        ->where('pls_qty', '>', 0)
-                                    ->where('product_locations.st_id', '=', $st_id)
-                                    ->where('p_id', $row->pid)
-                                    ->where(function ($w) use ($sz_id) {
-                                        if (!empty($sz_id)) {
-                                            if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
-                                            } else {
-                                                $w->where('sz_id', $sz_id);
-                                            }
+                                ->where('product_locations.st_id', '=', $st_id)
+                                ->where('p_id', $row->pid)
+                                ->where(function ($w) use ($sz_id) {
+                                    if (!empty($sz_id)) {
+                                        if (count($sz_id) > 0) {
+                                            $w->whereIn('sz_id', $sz_id);
+                                        } else {
+                                            $w->where('sz_id', $sz_id);
                                         }
-                                    })
+                                    }
+                                })
 //                        ->orderBy('sizes.sz_name', 'asc')
 //                        ->groupBy('sz_name')->get();
-                                    ->orderByRaw(
-                                        'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
-                                    )
-                                    ->groupBy('sz_name')
-                                    ->get();
-                                if (!empty($item_size_stock)) {
-                                    $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
-                                    foreach ($item_size_stock as $srow) {
-                                        if (count($item_size_stock) > 1) {
-                                            $br = '<br/><br/>';
-                                        } else {
-                                            $br = '<br/>';
-                                        }
-                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
-                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                ->orderByRaw(
+                                    'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
+                                )
+                                ->groupBy('sz_name')
+                                ->get();
+                            if (!empty($item_size_stock)) {
+                                $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
+                                foreach ($item_size_stock as $srow) {
+                                    if (count($item_size_stock) > 1) {
+                                        $br = '<br/><br/>';
+                                    } else {
+                                        $br = '<br/>';
+                                    }
+                                    $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
+                                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
 //                                            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
 //                                            ->join('products', 'products.id', '=', 'product_stocks.p_id')
-                                            ->whereNotIn('pl_code', $exception)
-                                            ->where('product_locations.st_id', '=', $st_id)
-                                            ->where('pst_id', $srow->pst_id)->get();
-                                        $bin = '';
-                                        if (!empty($item_location)) {
-                                            foreach ($item_location as $lrow) {
-                                                if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
+                                        ->whereNotIn('pl_code', $exception)
+                                        ->where('product_locations.st_id', '=', $st_id)
+                                        ->where('pst_id', $srow->pst_id)->get();
+                                    $bin = '';
+                                    if (!empty($item_location)) {
+                                        foreach ($item_location as $lrow) {
+                                            if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
 //                                            $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
-                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">' . $lrow->pls_qty . '</span> ';
-                                                } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
-                                                    $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                                } else {
-                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
-                                                }
-                                            }
-                                        }
-                                        $item_list .= '<span class="btn-sm-custom btn-primary">' . $srow->sz_name . '</span> ' . $bin . ' ';
-                                    }
-                                    $item_list .= '</td>';
-                                }
-                                $item_list .= '</tr>';
-                            }
-                            $item_list .= '</table>';
-                            return $item_list;
-                        } else {
-                            return '-';
-                        }
-                    })
-                    ->rawColumns(['article_name', 'article_age', 'article_stock'])
-                    ->filter(function ($instance) use ($request) {
-                        if (!empty($request->get('br_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $br_id = $request->get('br_id');
-                                $count = (integer)count($br_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $br_id[$i];
-                                    }
-                                    $w->orWhereIn('br_id', $where);
-                                } else {
-                                    $w->orWhere('br_id', '=', $br_id[0]);
-                                }
-                            });
-                        }
-                        if (!empty($request->get('pc_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $pc_id = $request->get('pc_id');
-                                $count = (integer)count($pc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $pc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.pc_id', $where);
-                                } else {
-                                    $w->orWhere('products.pc_id', '=', $pc_id[0]);
-                                }
-                            });
-                        }
-                        if (!empty($request->get('psc_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $psc_id = $request->get('psc_id');
-                                $count = (integer)count($psc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $psc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.psc_id', $where);
-                                } else {
-                                    $w->orWhere('products.psc_id', '=', $psc_id[0]);
-                                }
-                            });
-                        }
-                        if (!empty($request->get('pssc_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $pssc_id = $request->get('pssc_id');
-                                $count = (integer)count($pssc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $pssc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.pssc_id', $where);
-                                } else {
-                                    $w->orWhere('products.pssc_id', '=', $pssc_id[0]);
-                                }
-                            });
-                        }
-                        if (!empty($request->get('sz_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $sz_id = $request->get('sz_id');
-                                $count = (integer)count($sz_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $sz_id[$i];
-                                    }
-                                    $w->orWhereIn('sz_id', $where);
-                                } else {
-                                    $w->orWhere('sz_id', '=', $sz_id[0]);
-                                }
-                                $w->where('pls_qty', '>', 0); // Added condition
-                            });
-                        }
-
-                        if (!empty($request->get('gender_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $gender_id = $request->get('gender_id');
-                                $count = (integer)count($gender_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $gender_id[$i];
-                                    }
-                                    $w->orWhereIn('products.gn_id', $where);
-                                } else {
-                                    $w->orWhere('products.gn_id', '=', $gender_id[0]);
-                                }
-                            });
-                        }
-                        if (!empty($request->get('main_color_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $mc_id = $request->get('main_color_id');
-                                $count = (integer)count($mc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $mc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.mc_id', $where);
-                                } else {
-                                    $w->orWhere('products.mc_id', '=', $mc_id[0]);
-                                }
-                            });
-                        }
-                        if (!empty($request->get('search'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $search = $request->get('search');
-                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
-                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
-                            });
-                        }
-                        if (!empty($request->get('search_scan'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $search = $request->get('search_scan');
-                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
-                            });
-                        }
-                    })
-                    ->addIndexColumn()
-                    ->make(true);
-            }
-        } else {
-            if (request()->ajax()) {
-                return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, ts_products.article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price, promo_price")
-                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                    ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
-                    ->where('pls_qty', '>=', 0)
-                    ->whereNotIn('pl_code', $exception)
-                    ->where('product_locations.pl_description', '=', $st_city)
-                    ->groupBy('p_name_brand')
-                    ->orderByDesc('products.updated_at'))
-                    ->editColumn('article_name', function ($data) {
-                        $price_tag = 0;
-                        $sell_price = 0;
-                        if (!empty($data->p_price_tag)) {
-                            $price_tag = $data->p_price_tag;
-                        } else {
-                            $price_tag = $data->ps_price_tag;
-                        }
-                        if (!empty($data->p_sell_price)) {
-                            $sell_price = $data->p_sell_price;
-                        } else {
-                            $sell_price = $data->ps_sell_price;
-                        }
-                        if (!empty($data->promo_price)) {
-                            $percent = (($data->p_sell_price - $data->promo_price) / $data->p_sell_price) * 100;
-                        }
-
-                        if ($data->promo_price != null || $data->promo_price != '') {
-                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
-                background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . ' | P: ' . number_format($data->promo_price) . ' (' . $percent . '%)' . '</span>';
-                        } else {
-                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
-                background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . '</span>';
-                        }
-                        return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary" id="copy-button" title="' . $data->p_name . '">[' . $data->br_name . '] ' . $data->p_name . ' ' . $hb . '</span>';
-                    })
-                    ->editColumn('article_age', function ($data) {
-
-                    })
-                    ->editColumn('article_stock', function ($data) use ($request, $exception, $b1g1_setup, $st_city, $st_id) {
-                        $sz_id = $request->get('sz_id');
-                        $gender_id = $request->get('gender_id');
-                        $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
-                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                            ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                ->where('pls_qty', '>', 0)
-                            ->where('product_locations.pl_description', '=', $st_city)
-                            ->whereNotIn('pl_code', $exception)
-                            ->where('p_name', $data->p_name)
-                            ->where('br_name', $data->br_name)
-                            ->where(function ($w) use ($sz_id) {
-                                if (!empty($sz_id)) {
-                                    if (count($sz_id) > 0) {
-                                        $w->whereIn('sz_id', $sz_id);
-                                    } else {
-                                        $w->where('sz_id', $sz_id);
-                                    }
-                                }
-                            })
-                            ->groupBy('p_color')->get();
-                        if (!empty($item)) {
-                            $item_list = '';
-                            $item_list .= '<table>';
-                            foreach ($item as $row) {
-                                $check_poad = PurchaseOrderArticleDetailStatus::select(DB::raw('max(ts_purchase_order_article_detail_statuses.created_at) as poads_created'), 'po_invoice')
-                                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-                                    ->leftJoin('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
-                                    ->leftJoin('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
-                                    ->where('pst_id', '=', $row->pst_id)
-                                    ->where('purchase_orders.st_id', '=', $st_id)
-                                    ->orderByDesc('purchase_order_article_detail_statuses.id')
-                                    ->get()->first();
-
-                                $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
-                                    ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
-                                    ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
-                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
-                                    ->where('stock_transfers.st_id_end', '=', $st_id)
-                                    ->where('product_stocks.id', '=', $row->pst_id)
-                                    ->orderByDesc('stock_transfer_detail_statuses.id')
-                                    ->whereNotNull('stock_transfer_detail_statuses.created_at')
-                                    ->get()->first();
-                                $title_po = '-';
-                                $title_tf = '-';
-                                $days_remain_po = 99999;
-                                $days_remain_tf = 99999;
-
-                                if (!empty($check_poad)) {
-                                    $title_po = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($check_poad->poads_created)) . ' pada PO ' . $check_poad->po_invoice;
-                                    $date1_remain_po = $check_poad->poads_created;
-                                    $date2_remain_po = date('Y-m-d H:i:s');
-                                    $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
-                                    if ($date1_remain_po > $date2_remain_po) {
-                                        $diff_remain_po = -($diff_remain_po);
-                                    }
-                                    $days_remain_po = round($diff_remain_po / 86400);
-                                }
-                                if (!empty ($stf)) {
-                                    $created_at = $stf->created_at;
-                                    $code = 'kode transfer ' . $stf->stf_code;
-                                    $title_tf = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($created_at)) . ' pada TF ' . $code;
-                                    $date1_remain_tf = $created_at;
-                                    $date2_remain_tf = date('Y-m-d H:i:s');
-                                    $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
-                                    if ($date1_remain_tf > $date2_remain_tf) {
-                                        $diff_remain_tf = -($diff_remain_tf);
-                                    }
-                                    $days_remain_tf = round($diff_remain_tf / 86400);
-                                }
-
-                                $item = '';
-                                if ($days_remain_po <= $days_remain_tf) {
-                                    if ($days_remain_po > 1000) {
-                                        $days_remain_po = '-';
-                                    }
-                                } else {
-                                    if ($days_remain_tf > 1000) {
-                                        $days_remain_tf = '-';
-                                    }
-                                    $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="' . $title_tf . '">' . $days_remain_tf . ' H</span>';
-                                }
-
-                                $text_search = $request->get('search');
-
-                                $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
-                                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                                    ->where('product_stocks.ps_barcode', 'like', '%' . $text_search . '%')
-                                    ->get()->first();
-
-                                $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
-
-                                $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
-                                $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">' . $item . ' <span class="btn-sm-custom btn-primary">' . $row->article_id . ' ' . $row->p_color . '</span></td>';
-                                $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
-                                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                                    ->whereNotIn('pl_code', $exception)
-//                        ->where('pls_qty', '>', 0)
-                                    ->where('product_locations.pl_description', '=', $st_city)
-                                    ->where('p_id', $row->pid)
-                                    ->where(function ($w) use ($sz_id) {
-                                        if (!empty($sz_id)) {
-                                            if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
+                                                $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">' . $lrow->pls_qty . '</span> ';
+                                            } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
+                                                $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
                                             } else {
-                                                $w->where('sz_id', $sz_id);
+                                                $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
                                             }
                                         }
-                                    })
-//                        ->orderBy('sizes.sz_name', 'asc')
-//                        ->groupBy('sz_name')->get();
-                                    ->orderByRaw(
-                                        'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
-                                    )
-                                    ->groupBy('sz_name')
-                                    ->get();
-                                if (!empty($item_size_stock)) {
-                                    $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
-                                    foreach ($item_size_stock as $srow) {
-                                        if (count($item_size_stock) > 1) {
-                                            $br = '<br/><br/>';
-                                        } else {
-                                            $br = '<br/>';
-                                        }
-                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
-                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                                            ->whereNotIn('pl_code', $exception)
-                                            ->where('product_locations.pl_description', '=', $st_city)
-                                            ->where('pst_id', $srow->pst_id)->get();
-                                        $bin = '';
-                                        if (!empty($item_location)) {
-                                            foreach ($item_location as $lrow) {
-                                                if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
-//                                            $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
-                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">' . $lrow->pls_qty . '</span> ';
-                                                } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
-                                                    $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                                } else {
-                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
-                                                }
-                                            }
-                                        }
-                                        $item_list .= '<span class="btn-sm-custom btn-primary">' . $srow->sz_name . '</span> ' . $bin . ' ';
                                     }
-                                    $item_list .= '</td>';
+                                    $item_list .= '<span class="btn-sm-custom btn-primary">' . $srow->sz_name . '</span> ' . $bin . ' ';
                                 }
-                                $item_list .= '</tr>';
+                                $item_list .= '</td>';
                             }
-                            $item_list .= '</table>';
-                            return $item_list;
-                        } else {
-                            return '-';
+                            $item_list .= '</tr>';
                         }
-                    })
-                    ->rawColumns(['article_name', 'article_age', 'article_stock'])
-                    ->filter(function ($instance) use ($request) {
-                        if (!empty($request->get('br_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $br_id = $request->get('br_id');
-                                $count = (integer)count($br_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $br_id[$i];
-                                    }
-                                    $w->orWhereIn('br_id', $where);
-                                } else {
-                                    $w->orWhere('br_id', '=', $br_id[0]);
+                        $item_list .= '</table>';
+                        return $item_list;
+                    } else {
+                        return '-';
+                    }
+                })
+                ->rawColumns(['article_name', 'article_age', 'article_stock'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('br_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $br_id = $request->get('br_id');
+                            $count = (integer)count($br_id);
+                            $where = array();
+                            if ($count > 0) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $where[] = $br_id[$i];
                                 }
-                            });
-                        }
-                        if (!empty($request->get('pc_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $pc_id = $request->get('pc_id');
-                                $count = (integer)count($pc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $pc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.pc_id', $where);
-                                } else {
-                                    $w->orWhere('products.pc_id', '=', $pc_id[0]);
+                                $w->orWhereIn('br_id', $where);
+                            } else {
+                                $w->orWhere('br_id', '=', $br_id[0]);
+                            }
+                        });
+                    }
+                    if (!empty($request->get('pc_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $pc_id = $request->get('pc_id');
+                            $count = (integer)count($pc_id);
+                            $where = array();
+                            if ($count > 0) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $where[] = $pc_id[$i];
                                 }
-                            });
-                        }
-                        if (!empty($request->get('psc_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $psc_id = $request->get('psc_id');
-                                $count = (integer)count($psc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $psc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.psc_id', $where);
-                                } else {
-                                    $w->orWhere('products.psc_id', '=', $psc_id[0]);
+                                $w->orWhereIn('products.pc_id', $where);
+                            } else {
+                                $w->orWhere('products.pc_id', '=', $pc_id[0]);
+                            }
+                        });
+                    }
+                    if (!empty($request->get('psc_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $psc_id = $request->get('psc_id');
+                            $count = (integer)count($psc_id);
+                            $where = array();
+                            if ($count > 0) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $where[] = $psc_id[$i];
                                 }
-                            });
-                        }
-                        if (!empty($request->get('pssc_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $pssc_id = $request->get('pssc_id');
-                                $count = (integer)count($pssc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $pssc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.pssc_id', $where);
-                                } else {
-                                    $w->orWhere('products.pssc_id', '=', $pssc_id[0]);
+                                $w->orWhereIn('products.psc_id', $where);
+                            } else {
+                                $w->orWhere('products.psc_id', '=', $psc_id[0]);
+                            }
+                        });
+                    }
+                    if (!empty($request->get('pssc_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $pssc_id = $request->get('pssc_id');
+                            $count = (integer)count($pssc_id);
+                            $where = array();
+                            if ($count > 0) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $where[] = $pssc_id[$i];
                                 }
-                            });
-                        }
-                        if (!empty($request->get('sz_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $sz_id = $request->get('sz_id');
-                                $count = (integer)count($sz_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $sz_id[$i];
-                                    }
-                                    $w->orWhereIn('sz_id', $where);
-                                } else {
-                                    $w->orWhere('sz_id', '=', $sz_id[0]);
+                                $w->orWhereIn('products.pssc_id', $where);
+                            } else {
+                                $w->orWhere('products.pssc_id', '=', $pssc_id[0]);
+                            }
+                        });
+                    }
+                    if (!empty($request->get('sz_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $sz_id = $request->get('sz_id');
+                            $count = (integer)count($sz_id);
+                            $where = array();
+                            if ($count > 0) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $where[] = $sz_id[$i];
                                 }
-                                $w->where('pls_qty', '>', 0); // Added condition
-                            });
-                        }
+                                $w->orWhereIn('sz_id', $where);
+                            } else {
+                                $w->orWhere('sz_id', '=', $sz_id[0]);
+                            }
+                            $w->where('pls_qty', '>', 0); // Added condition
+                        });
+                    }
 
-                        if (!empty($request->get('gender_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $gender_id = $request->get('gender_id');
-                                $count = (integer)count($gender_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $gender_id[$i];
-                                    }
-                                    $w->orWhereIn('products.gn_id', $where);
-                                } else {
-                                    $w->orWhere('products.gn_id', '=', $gender_id[0]);
+                    if (!empty($request->get('gender_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $gender_id = $request->get('gender_id');
+                            $count = (integer)count($gender_id);
+                            $where = array();
+                            if ($count > 0) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $where[] = $gender_id[$i];
                                 }
-                            });
-                        }
-                        if (!empty($request->get('main_color_id'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $mc_id = $request->get('main_color_id');
-                                $count = (integer)count($mc_id);
-                                $where = array();
-                                if ($count > 0) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $where[] = $mc_id[$i];
-                                    }
-                                    $w->orWhereIn('products.mc_id', $where);
-                                } else {
-                                    $w->orWhere('products.mc_id', '=', $mc_id[0]);
+                                $w->orWhereIn('products.gn_id', $where);
+                            } else {
+                                $w->orWhere('products.gn_id', '=', $gender_id[0]);
+                            }
+                        });
+                    }
+                    if (!empty($request->get('main_color_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $mc_id = $request->get('main_color_id');
+                            $count = (integer)count($mc_id);
+                            $where = array();
+                            if ($count > 0) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $where[] = $mc_id[$i];
                                 }
-                            });
-                        }
-                        if (!empty($request->get('search'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $search = $request->get('search');
-                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
-                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
-                            });
-                        }
-                        if (!empty($request->get('search_scan'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $search = $request->get('search_scan');
-                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
-                            });
-                        }
-                    })
-                    ->addIndexColumn()
-                    ->make(true);
-            }
+                                $w->orWhereIn('products.mc_id', $where);
+                            } else {
+                                $w->orWhere('products.mc_id', '=', $mc_id[0]);
+                            }
+                        });
+                    }
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+                                ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
+                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+                        });
+                    }
+                    if (!empty($request->get('search_scan'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search_scan');
+                            $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
+
+//        if ($st_name && stripos($st_name->st_name, 'ONLINE') === false) {
+//            if (request()->ajax()) {
+////                return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, ts_products.article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price, promo_price")
+////                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+////                    ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+////                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+////                    ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+////                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+////                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
+////                    ->where('pls_qty', '>=', 0)
+////                    ->whereNotIn('pl_code', $exception)
+////                    ->where('product_locations.st_id', '=', $st_id)
+////                    ->groupBy('p_name_brand')
+////                    ->orderByDesc('products.updated_at'))
+//                return datatables()->of(Product::select('products.id as pid',
+//                    DB::raw("CONCAT(p_name, ' (', br_name, ')') as p_name_brand"),
+//                    'p_name',
+//                    'products.article_id',
+//                    'brands.br_name',
+//                    'product_stocks.ps_qty',
+//                    'p_price_tag',
+//                    'p_sell_price',
+//                    'ps_price_tag',
+//                    'ps_sell_price')
+//                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                    ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+//                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                    ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+//                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+////                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
+//                    ->where('product_location_setups.pls_qty', '>=', 0)
+//                    ->whereNotIn('product_locations.pl_code', $exception)
+//                    ->where('product_locations.st_id', '=', $st_id)
+//                    ->groupBy('products.id')
+//                    ->orderByDesc('products.updated_at'))
+//                    ->editColumn('article_name', function ($data) {
+//                        $price_tag = 0;
+//                        $sell_price = 0;
+//                        if (!empty($data->p_price_tag)) {
+//                            $price_tag = $data->p_price_tag;
+//                        } else {
+//                            $price_tag = $data->ps_price_tag;
+//                        }
+//                        if (!empty($data->p_sell_price)) {
+//                            $sell_price = $data->p_sell_price;
+//                        } else {
+//                            $sell_price = $data->ps_sell_price;
+//                        }
+//                        if (!empty($data->promo_price)) {
+//                            $percent = (($data->p_sell_price - $data->promo_price) / $data->p_sell_price) * 100;
+//                        }
+//
+//                        if ($data->promo_price != null || $data->promo_price != '') {
+//                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
+//                background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . ' | P: ' . number_format($data->promo_price) . ' (' . $percent . '%)' . '</span>';
+//                        } else {
+//                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
+//                background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . '</span>';
+//                        }
+//                        return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary" id="copy-button" title="' . $data->p_name . '">[' . $data->br_name . '] ' . $data->p_name . ' ' . $hb . '</span>';
+//                    })
+//                    ->editColumn('article_age', function ($data) {
+//
+//                    })
+//                    ->editColumn('article_stock', function ($data) use ($request, $exception, $b1g1_setup, $st_id) {
+//                        $sz_id = $request->get('sz_id');
+//                        $gender_id = $request->get('gender_id');
+//                        $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
+//                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                            ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+//                            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+//                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+////                ->where('pls_qty', '>', 0)
+//                            ->where('product_locations.st_id', '=', $st_id)
+//                            ->whereNotIn('pl_code', $exception)
+//                            ->where('p_name', $data->p_name)
+//                            ->where('br_name', $data->br_name)
+//                            ->where(function ($w) use ($sz_id) {
+//                                if (!empty($sz_id)) {
+//                                    if (count($sz_id) > 0) {
+//                                        $w->whereIn('sz_id', $sz_id);
+//                                    } else {
+//                                        $w->where('sz_id', $sz_id);
+//                                    }
+//                                }
+//                            })
+//                            ->groupBy('p_color')->get();
+//                        if (!empty($item)) {
+//                            $item_list = '';
+//                            $item_list .= '<table>';
+//                            foreach ($item as $row) {
+//                                $check_poad = PurchaseOrderArticleDetailStatus::select(DB::raw('max(ts_purchase_order_article_detail_statuses.created_at) as poads_created'), 'po_invoice')
+//                                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+//                                    ->leftJoin('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+//                                    ->leftJoin('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+//                                    ->where('pst_id', '=', $row->pst_id)
+//                                    ->where('purchase_orders.st_id', '=', $st_id)
+//                                    ->orderByDesc('purchase_order_article_detail_statuses.id')
+//                                    ->get()->first();
+//
+//                                $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
+//                                    ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
+//                                    ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
+//                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
+//                                    ->where('stock_transfers.st_id_end', '=', $st_id)
+//                                    ->where('product_stocks.id', '=', $row->pst_id)
+//                                    ->orderByDesc('stock_transfer_detail_statuses.id')
+//                                    ->whereNotNull('stock_transfer_detail_statuses.created_at')
+//                                    ->get()->first();
+//                                $title_po = '-';
+//                                $title_tf = '-';
+//                                $days_remain_po = 99999;
+//                                $days_remain_tf = 99999;
+//
+//                                if (!empty($check_poad)) {
+//                                    $title_po = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($check_poad->poads_created)) . ' pada PO ' . $check_poad->po_invoice;
+//                                    $date1_remain_po = $check_poad->poads_created;
+//                                    $date2_remain_po = date('Y-m-d H:i:s');
+//                                    $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
+//                                    if ($date1_remain_po > $date2_remain_po) {
+//                                        $diff_remain_po = -($diff_remain_po);
+//                                    }
+//                                    $days_remain_po = round($diff_remain_po / 86400);
+//                                }
+//                                if (!empty ($stf)) {
+//                                    $created_at = $stf->created_at;
+//                                    $code = 'kode transfer ' . $stf->stf_code;
+//                                    $title_tf = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($created_at)) . ' pada TF ' . $code;
+//                                    $date1_remain_tf = $created_at;
+//                                    $date2_remain_tf = date('Y-m-d H:i:s');
+//                                    $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
+//                                    if ($date1_remain_tf > $date2_remain_tf) {
+//                                        $diff_remain_tf = -($diff_remain_tf);
+//                                    }
+//                                    $days_remain_tf = round($diff_remain_tf / 86400);
+//                                }
+//
+//                                $item = '';
+//                                if ($days_remain_po <= $days_remain_tf) {
+//                                    if ($days_remain_po > 1000) {
+//                                        $days_remain_po = '-';
+//                                    }
+//                                } else {
+//                                    if ($days_remain_tf > 1000) {
+//                                        $days_remain_tf = '-';
+//                                    }
+//                                    $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="' . $title_tf . '">' . $days_remain_tf . ' H</span>';
+//                                }
+//
+//                                $text_search = $request->get('search');
+//
+//                                $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
+//                                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                                    ->where('product_stocks.ps_barcode', 'like', '%' . $text_search . '%')
+//                                    ->get()->first();
+//
+//                                $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
+//
+//                                $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
+//                                $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">' . $item . ' <span class="btn-sm-custom btn-primary">' . $row->article_id . ' ' . $row->p_color . '</span></td>';
+//                                $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
+//                                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                                    ->whereNotIn('pl_code', $exception)
+////                        ->where('pls_qty', '>', 0)
+//                                    ->where('product_locations.st_id', '=', $st_id)
+//                                    ->where('p_id', $row->pid)
+//                                    ->where(function ($w) use ($sz_id) {
+//                                        if (!empty($sz_id)) {
+//                                            if (count($sz_id) > 0) {
+//                                                $w->whereIn('sz_id', $sz_id);
+//                                            } else {
+//                                                $w->where('sz_id', $sz_id);
+//                                            }
+//                                        }
+//                                    })
+////                        ->orderBy('sizes.sz_name', 'asc')
+////                        ->groupBy('sz_name')->get();
+//                                    ->orderByRaw(
+//                                        'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
+//                                    )
+//                                    ->groupBy('sz_name')
+//                                    ->get();
+//                                if (!empty($item_size_stock)) {
+//                                    $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
+//                                    foreach ($item_size_stock as $srow) {
+//                                        if (count($item_size_stock) > 1) {
+//                                            $br = '<br/><br/>';
+//                                        } else {
+//                                            $br = '<br/>';
+//                                        }
+//                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
+//                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+////                                            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+////                                            ->join('products', 'products.id', '=', 'product_stocks.p_id')
+//                                            ->whereNotIn('pl_code', $exception)
+//                                            ->where('product_locations.st_id', '=', $st_id)
+//                                            ->where('pst_id', $srow->pst_id)->get();
+//                                        $bin = '';
+//                                        if (!empty($item_location)) {
+//                                            foreach ($item_location as $lrow) {
+//                                                if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
+////                                            $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
+//                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">' . $lrow->pls_qty . '</span> ';
+//                                                } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
+//                                                    $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
+//                                                } else {
+//                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+//                                                }
+//                                            }
+//                                        }
+//                                        $item_list .= '<span class="btn-sm-custom btn-primary">' . $srow->sz_name . '</span> ' . $bin . ' ';
+//                                    }
+//                                    $item_list .= '</td>';
+//                                }
+//                                $item_list .= '</tr>';
+//                            }
+//                            $item_list .= '</table>';
+//                            return $item_list;
+//                        } else {
+//                            return '-';
+//                        }
+//                    })
+//                    ->rawColumns(['article_name', 'article_age', 'article_stock'])
+//                    ->filter(function ($instance) use ($request) {
+//                        if (!empty($request->get('br_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $br_id = $request->get('br_id');
+//                                $count = (integer)count($br_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $br_id[$i];
+//                                    }
+//                                    $w->orWhereIn('br_id', $where);
+//                                } else {
+//                                    $w->orWhere('br_id', '=', $br_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('pc_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $pc_id = $request->get('pc_id');
+//                                $count = (integer)count($pc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $pc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.pc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.pc_id', '=', $pc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('psc_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $psc_id = $request->get('psc_id');
+//                                $count = (integer)count($psc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $psc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.psc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.psc_id', '=', $psc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('pssc_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $pssc_id = $request->get('pssc_id');
+//                                $count = (integer)count($pssc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $pssc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.pssc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.pssc_id', '=', $pssc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('sz_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $sz_id = $request->get('sz_id');
+//                                $count = (integer)count($sz_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $sz_id[$i];
+//                                    }
+//                                    $w->orWhereIn('sz_id', $where);
+//                                } else {
+//                                    $w->orWhere('sz_id', '=', $sz_id[0]);
+//                                }
+//                                $w->where('pls_qty', '>', 0); // Added condition
+//                            });
+//                        }
+//
+//                        if (!empty($request->get('gender_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $gender_id = $request->get('gender_id');
+//                                $count = (integer)count($gender_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $gender_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.gn_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.gn_id', '=', $gender_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('main_color_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $mc_id = $request->get('main_color_id');
+//                                $count = (integer)count($mc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $mc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.mc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.mc_id', '=', $mc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('search'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $search = $request->get('search');
+//                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+//                                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
+//                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+//                            });
+//                        }
+//                        if (!empty($request->get('search_scan'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $search = $request->get('search_scan');
+//                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+//                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+//                            });
+//                        }
+//                    })
+//                    ->addIndexColumn()
+//                    ->make(true);
+//            }
+//        } else {
+//            if (request()->ajax()) {
+//                return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, ts_products.article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price, promo_price")
+//                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                    ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+//                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                    ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+//                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
+//                    ->where('pls_qty', '>=', 0)
+//                    ->whereNotIn('pl_code', $exception)
+//                    ->where('product_locations.pl_description', '=', $st_city)
+//                    ->groupBy('p_name_brand')
+//                    ->orderByDesc('products.updated_at'))
+//                    ->editColumn('article_name', function ($data) {
+//                        $price_tag = 0;
+//                        $sell_price = 0;
+//                        if (!empty($data->p_price_tag)) {
+//                            $price_tag = $data->p_price_tag;
+//                        } else {
+//                            $price_tag = $data->ps_price_tag;
+//                        }
+//                        if (!empty($data->p_sell_price)) {
+//                            $sell_price = $data->p_sell_price;
+//                        } else {
+//                            $sell_price = $data->ps_sell_price;
+//                        }
+//                        if (!empty($data->promo_price)) {
+//                            $percent = (($data->p_sell_price - $data->promo_price) / $data->p_sell_price) * 100;
+//                        }
+//
+//                        if ($data->promo_price != null || $data->promo_price != '') {
+//                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
+//                background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . ' | P: ' . number_format($data->promo_price) . ' (' . $percent . '%)' . '</span>';
+//                        } else {
+//                            $hb = '<span style="white-space: nowrap; font-weight:bold; background: rgb(212,18,21);
+//                background: linear-gradient(171deg, rgba(212,18,21,1) 50%, rgba(209,122,0,1) 100%);" class="badge badge-sm badge-primary">B: ' . number_format($price_tag) . ' | J: ' . number_format($sell_price) . '</span>';
+//                        }
+//                        return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary" id="copy-button" title="' . $data->p_name . '">[' . $data->br_name . '] ' . $data->p_name . ' ' . $hb . '</span>';
+//                    })
+//                    ->editColumn('article_age', function ($data) {
+//
+//                    })
+//                    ->editColumn('article_stock', function ($data) use ($request, $exception, $b1g1_setup, $st_city, $st_id) {
+//                        $sz_id = $request->get('sz_id');
+//                        $gender_id = $request->get('gender_id');
+//                        $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
+//                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                            ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+//                            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+//                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+////                ->where('pls_qty', '>', 0)
+//                            ->where('product_locations.pl_description', '=', $st_city)
+//                            ->whereNotIn('pl_code', $exception)
+//                            ->where('p_name', $data->p_name)
+//                            ->where('br_name', $data->br_name)
+//                            ->where(function ($w) use ($sz_id) {
+//                                if (!empty($sz_id)) {
+//                                    if (count($sz_id) > 0) {
+//                                        $w->whereIn('sz_id', $sz_id);
+//                                    } else {
+//                                        $w->where('sz_id', $sz_id);
+//                                    }
+//                                }
+//                            })
+//                            ->groupBy('p_color')->get();
+//                        if (!empty($item)) {
+//                            $item_list = '';
+//                            $item_list .= '<table>';
+//                            foreach ($item as $row) {
+//                                $check_poad = PurchaseOrderArticleDetailStatus::select(DB::raw('max(ts_purchase_order_article_detail_statuses.created_at) as poads_created'), 'po_invoice')
+//                                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+//                                    ->leftJoin('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+//                                    ->leftJoin('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+//                                    ->where('pst_id', '=', $row->pst_id)
+//                                    ->where('purchase_orders.st_id', '=', $st_id)
+//                                    ->orderByDesc('purchase_order_article_detail_statuses.id')
+//                                    ->get()->first();
+//
+//                                $stf = DB::table('stock_transfer_detail_statuses')->select('stf_code', DB::raw('max(ts_stock_transfer_detail_statuses.created_at) as created_at'))
+//                                    ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
+//                                    ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
+//                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
+//                                    ->where('stock_transfers.st_id_end', '=', $st_id)
+//                                    ->where('product_stocks.id', '=', $row->pst_id)
+//                                    ->orderByDesc('stock_transfer_detail_statuses.id')
+//                                    ->whereNotNull('stock_transfer_detail_statuses.created_at')
+//                                    ->get()->first();
+//                                $title_po = '-';
+//                                $title_tf = '-';
+//                                $days_remain_po = 99999;
+//                                $days_remain_tf = 99999;
+//
+//                                if (!empty($check_poad)) {
+//                                    $title_po = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($check_poad->poads_created)) . ' pada PO ' . $check_poad->po_invoice;
+//                                    $date1_remain_po = $check_poad->poads_created;
+//                                    $date2_remain_po = date('Y-m-d H:i:s');
+//                                    $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
+//                                    if ($date1_remain_po > $date2_remain_po) {
+//                                        $diff_remain_po = -($diff_remain_po);
+//                                    }
+//                                    $days_remain_po = round($diff_remain_po / 86400);
+//                                }
+//                                if (!empty ($stf)) {
+//                                    $created_at = $stf->created_at;
+//                                    $code = 'kode transfer ' . $stf->stf_code;
+//                                    $title_tf = '[' . $row->br_name . '] ' . $row->p_name . ' ' . $row->p_color . ' terakhir diterima tanggal ' . date('d/m/Y H:i:s', strtotime($created_at)) . ' pada TF ' . $code;
+//                                    $date1_remain_tf = $created_at;
+//                                    $date2_remain_tf = date('Y-m-d H:i:s');
+//                                    $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
+//                                    if ($date1_remain_tf > $date2_remain_tf) {
+//                                        $diff_remain_tf = -($diff_remain_tf);
+//                                    }
+//                                    $days_remain_tf = round($diff_remain_tf / 86400);
+//                                }
+//
+//                                $item = '';
+//                                if ($days_remain_po <= $days_remain_tf) {
+//                                    if ($days_remain_po > 1000) {
+//                                        $days_remain_po = '-';
+//                                    }
+//                                } else {
+//                                    if ($days_remain_tf > 1000) {
+//                                        $days_remain_tf = '-';
+//                                    }
+//                                    $item = '<span class="btn-sm-custom btn-primary" id="aging_detail" title="' . $title_tf . '">' . $days_remain_tf . ' H</span>';
+//                                }
+//
+//                                $text_search = $request->get('search');
+//
+//                                $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
+//                                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                                    ->where('product_stocks.ps_barcode', 'like', '%' . $text_search . '%')
+//                                    ->get()->first();
+//
+//                                $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
+//
+//                                $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
+//                                $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">' . $item . ' <span class="btn-sm-custom btn-primary">' . $row->article_id . ' ' . $row->p_color . '</span></td>';
+//                                $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
+//                                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                                    ->whereNotIn('pl_code', $exception)
+////                        ->where('pls_qty', '>', 0)
+//                                    ->where('product_locations.pl_description', '=', $st_city)
+//                                    ->where('p_id', $row->pid)
+//                                    ->where(function ($w) use ($sz_id) {
+//                                        if (!empty($sz_id)) {
+//                                            if (count($sz_id) > 0) {
+//                                                $w->whereIn('sz_id', $sz_id);
+//                                            } else {
+//                                                $w->where('sz_id', $sz_id);
+//                                            }
+//                                        }
+//                                    })
+////                        ->orderBy('sizes.sz_name', 'asc')
+////                        ->groupBy('sz_name')->get();
+//                                    ->orderByRaw(
+//                                        'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
+//                                    )
+//                                    ->groupBy('sz_name')
+//                                    ->get();
+//                                if (!empty($item_size_stock)) {
+//                                    $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
+//                                    foreach ($item_size_stock as $srow) {
+//                                        if (count($item_size_stock) > 1) {
+//                                            $br = '<br/><br/>';
+//                                        } else {
+//                                            $br = '<br/>';
+//                                        }
+//                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
+//                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                            ->whereNotIn('pl_code', $exception)
+//                                            ->where('product_locations.pl_description', '=', $st_city)
+//                                            ->where('pst_id', $srow->pst_id)->get();
+//                                        $bin = '';
+//                                        if (!empty($item_location)) {
+//                                            foreach ($item_location as $lrow) {
+//                                                if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
+////                                            $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
+//                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">' . $lrow->pls_qty . '</span> ';
+//                                                } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
+//                                                    $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
+//                                                } else {
+//                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+//                                                }
+//                                            }
+//                                        }
+//                                        $item_list .= '<span class="btn-sm-custom btn-primary">' . $srow->sz_name . '</span> ' . $bin . ' ';
+//                                    }
+//                                    $item_list .= '</td>';
+//                                }
+//                                $item_list .= '</tr>';
+//                            }
+//                            $item_list .= '</table>';
+//                            return $item_list;
+//                        } else {
+//                            return '-';
+//                        }
+//                    })
+//                    ->rawColumns(['article_name', 'article_age', 'article_stock'])
+//                    ->filter(function ($instance) use ($request) {
+//                        if (!empty($request->get('br_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $br_id = $request->get('br_id');
+//                                $count = (integer)count($br_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $br_id[$i];
+//                                    }
+//                                    $w->orWhereIn('br_id', $where);
+//                                } else {
+//                                    $w->orWhere('br_id', '=', $br_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('pc_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $pc_id = $request->get('pc_id');
+//                                $count = (integer)count($pc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $pc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.pc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.pc_id', '=', $pc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('psc_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $psc_id = $request->get('psc_id');
+//                                $count = (integer)count($psc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $psc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.psc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.psc_id', '=', $psc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('pssc_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $pssc_id = $request->get('pssc_id');
+//                                $count = (integer)count($pssc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $pssc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.pssc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.pssc_id', '=', $pssc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('sz_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $sz_id = $request->get('sz_id');
+//                                $count = (integer)count($sz_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $sz_id[$i];
+//                                    }
+//                                    $w->orWhereIn('sz_id', $where);
+//                                } else {
+//                                    $w->orWhere('sz_id', '=', $sz_id[0]);
+//                                }
+//                                $w->where('pls_qty', '>', 0); // Added condition
+//                            });
+//                        }
+//
+//                        if (!empty($request->get('gender_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $gender_id = $request->get('gender_id');
+//                                $count = (integer)count($gender_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $gender_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.gn_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.gn_id', '=', $gender_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('main_color_id'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $mc_id = $request->get('main_color_id');
+//                                $count = (integer)count($mc_id);
+//                                $where = array();
+//                                if ($count > 0) {
+//                                    for ($i = 0; $i < $count; $i++) {
+//                                        $where[] = $mc_id[$i];
+//                                    }
+//                                    $w->orWhereIn('products.mc_id', $where);
+//                                } else {
+//                                    $w->orWhere('products.mc_id', '=', $mc_id[0]);
+//                                }
+//                            });
+//                        }
+//                        if (!empty($request->get('search'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $search = $request->get('search');
+//                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+//                                    ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%")
+//                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+//                            });
+//                        }
+//                        if (!empty($request->get('search_scan'))) {
+//                            $instance->where(function ($w) use ($request) {
+//                                $search = $request->get('search_scan');
+//                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+//                                    ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+//                            });
+//                        }
+//                    })
+//                    ->addIndexColumn()
+//                    ->make(true);
+//            }
+//        }
 
     }
 
