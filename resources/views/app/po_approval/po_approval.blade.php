@@ -76,9 +76,20 @@
                                 <!--begin: Datatable-->
                                 <div class="container">
                                     <div class="row">
-                                        <div class="form-group col-6" style="padding-top:22px;">
+                                        <div class="form-group col-3" style="padding-top:22px;">
                                             <input type="search" class="form-control" id="po_approval_search"
                                                 placeholder="Cari po/invoice" /><br />
+                                        </div>
+
+                                        <div class="form-group ml-4" style="padding-top:22px;">
+                                            <select class="form-control" id="filter_cabang" name="filter_cabang">
+                                                <option value="">- Pilih Cabang -</option>
+                                                <option value="SURABAYA">Surabaya</option>
+                                                <option value="MALANG">Malang</option>
+                                                <option value="KEDIRI">Kediri</option>
+                                                <option value="JEMBER">Jember</option>
+                                            </select>
+                                            <div id="st_id_filter_parent"></div>
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">

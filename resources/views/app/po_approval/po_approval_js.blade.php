@@ -24,7 +24,8 @@
                 data: function(d) {
                     d.search = $('#po_approval_search').val();
                     d.filter_status = $('#filter_status').val();
-                    d.date = $('#po_date').val();                    
+                    d.filter_cabang = $('#filter_cabang').val();
+                    d.date = $('#po_date').val();
                     
                 }
             },
@@ -82,6 +83,11 @@
         });
 
         $('#filter_status').on('change', function() {
+            po_approval_table.draw();
+        });
+
+        $('#filter_cabang').on('change', function() {
+            console.log($('#filter_cabang').val())
             po_approval_table.draw();
         });
 

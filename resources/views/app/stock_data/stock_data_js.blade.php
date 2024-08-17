@@ -290,7 +290,7 @@
             // Block the enter key in the input field
             $('#stock_data_search').on('keydown', function (e) {
                 if (e.key === "Enter") {
-                    e.preventDefault();
+                    e.preventDefault(); 
                 }
             });
 
