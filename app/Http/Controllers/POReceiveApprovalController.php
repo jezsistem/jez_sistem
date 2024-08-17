@@ -112,14 +112,16 @@ class POReceiveApprovalController extends Controller
                 })
                 ->editColumn('u_receive', function ($data) {
                     if(!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0){
-                        return 'Diterima, Belum Dibayar';
+//                        return 'Diterima, Belum Dibayar';
+                        return '<span class="badge badge-primary">Diterima, Belum Dibayar</span>';
                     }
                     else if (!empty($data->u_id_approve)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                        return $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at));
+                        return '<span class="badge badge-success">'.$name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at)) . '</span>';
                     } 
                     else {
-                        return 'Menunggu Approval';
+//                        return 'Menunggu Approval';
+                        return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
                 })
                 ->rawColumns(['poads_invoice_show', 'u_receive'])
@@ -144,6 +146,23 @@ class POReceiveApprovalController extends Controller
 
                         if($request->get('filter_status') == 'wait_cod'){
                             $instance->where('acc_id', '=', 93)->where('is_paid', '=', 0);                        
+                        }
+                    }
+                    if (!empty($request->get('filter_cabang'))) {
+                        if ($request->get('filter_cabang') == 'SURABAYA') {
+                            $instance->where('st_name', 'LIKE', '%SURABAYA%');
+                        }
+
+                        if ($request->get('filter_cabang') == 'MALANG') {
+                            $instance->where('st_name', 'LIKE', '%MALANG%');
+                        }
+
+                        if ($request->get('filter_cabang') == 'KEDIRI') {
+                            $instance->where('st_name', 'LIKE', '%KEDIRI%');
+                        }
+
+                        if ($request->get('filter_cabang') == 'JEMBER') {
+                            $instance->where('st_name', 'LIKE', '%JEMBER%');
                         }
                     }
                     if (!empty($request->get('date'))) {
