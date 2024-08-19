@@ -19,7 +19,7 @@
                 {{ $no }}
             </td>
             <td style="white-space: nowrap;">
-            [{{ $row->br_name }}] {{ $row->p_name }}<br/>{{ $row->p_color }} <img onclick="return deletePoa( {{ $row->poa_id }}, {{ $row->po_id }} )" src="{{ asset('cdn/details_close.png') }}"/><br/>
+            [{{ $row->br_name }}] {{ $row->article_id }} - {{ $row->p_name }}<br/>{{ $row->p_color }} <img onclick="return deletePoa( {{ $row->poa_id }}, {{ $row->po_id }} )" src="{{ asset('cdn/details_close.png') }}"/><br/>
                 <input style="width:155px;" type="month" name="poa_reminder" id="poa_reminder{{ $row->poa_id }}" class="form-control" placeholder="Reminder" value="{{ $row->poa_reminder }}" onchange="return reminder( {{ $row->poa_id }} )"/>
 {{--                <input style="width:155px;" type="text" name="poa_reminder" id="poa_reminder{{ $row->poa_id }}" class="form-control" placeholder="Stok All" value="{{ $row->poa_reminder }}" onchange="return reminder( {{ $row->poa_id }} )"/>--}}
             </td>
