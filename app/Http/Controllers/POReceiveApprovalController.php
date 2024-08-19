@@ -133,6 +133,7 @@ class POReceiveApprovalController extends Controller
                             $w->orWhere('poads_invoice', 'LIKE', "%$search%")
                                 ->orWhere('po_invoice', 'LIKE', "%$search%")
                                 ->orWhere('po_description', 'LIKE', "%$search%")
+                                ->orWhere('article_id', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
                         });
                     }

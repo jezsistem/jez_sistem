@@ -32,10 +32,10 @@ class PurchaseOrderReceiveController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -44,7 +44,7 @@ class PurchaseOrderReceiveController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -57,9 +57,9 @@ class PurchaseOrderReceiveController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -68,8 +68,8 @@ class PurchaseOrderReceiveController extends Controller
         }
         return $sidebar;
     }
-    
-    public function index() 
+
+    public function index()
     {
         $this->validateAccess();
         $user = new User;
@@ -86,8 +86,8 @@ class PurchaseOrderReceiveController extends Controller
             'user' => $user_data,
             'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
             'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
-            ->where('st_delete', '!=', '1')
-            ->orderByDesc('sid')->pluck('store', 'sid'),
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
             'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
@@ -107,70 +107,75 @@ class PurchaseOrderReceiveController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
 
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(
                 PurchaseOrder::select('purchase_orders.id as po_id', 'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft', 'purchase_orders.created_at as po_created_at')
-            ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
-            ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
-            ->where('po_delete', '!=', '1')
-            ->where(function($w) use ($user_data) {
-                if ($user_data->g_name != 'administrator') {
-                    $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
-                }
-            }))
-            ->editColumn('po_created_at_show', function($data){ 
-                return date('d/m/Y H:i:s', strtotime($data->po_created_at));
-            })
-            ->editColumn('po_code', function($data){ 
-                return '#'.$data->po_code;
-            })
-            ->editColumn('po_total', function($data){ 
-                $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
-                if (!empty($poa)) {
-                    $total_price = 0;
-                    foreach ($poa as $poa_row) {
-                        $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
-                        if (!empty($poad)) {
-                            foreach ($poad as $poad_row) {
-                                $total_price += $poad_row->poad_total_price;
+                    ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                    ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                    ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+                    ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                    ->where('po_delete', '!=', '1')
+                    ->where(function ($w) use ($user_data) {
+                        if ($user_data->g_name != 'administrator') {
+                            $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
+                        }
+                    }))
+                ->editColumn('po_created_at_show', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->po_created_at));
+                })
+                ->editColumn('po_code', function ($data) {
+                    return '#' . $data->po_code;
+                })
+                ->editColumn('po_total', function ($data) {
+                    $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
+                    if (!empty($poa)) {
+                        $total_price = 0;
+                        foreach ($poa as $poa_row) {
+                            $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
+                            if (!empty($poad)) {
+                                foreach ($poad as $poad_row) {
+                                    $total_price += $poad_row->poad_total_price;
+                                }
                             }
                         }
                     }
-                }
-                return number_format($total_price);
-            })
-            ->editColumn('po_status', function($data){ 
-                $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
-                if (!empty($poa)) {
-                    $total_qty = 0;
-                    foreach ($poa as $poa_row) {
-                        $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
-                        if (!empty($poad)) {
-                            foreach ($poad as $poad_row) {
-                                $total_qty += $poad_row->poad_qty;
+                    return number_format($total_price);
+                })
+                ->editColumn('po_status', function ($data) {
+                    $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
+                    if (!empty($poa)) {
+                        $total_qty = 0;
+                        foreach ($poa as $poa_row) {
+                            $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
+                            if (!empty($poad)) {
+                                foreach ($poad as $poad_row) {
+                                    $total_qty += $poad_row->poad_qty;
+                                }
                             }
                         }
                     }
-                }
-                if ($data->po_draft == '1') {
-                    return '<a class="btn btn-sm btn-warning">Draft</a>';
-                } else {
-                    return '<a class="btn btn-sm btn-primary">0/'.$total_qty.'</a>';
-                }
-            })
-            ->rawColumns(['po_status'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('po_invoice', 'LIKE', "%$search%")
-                        ->orWhere('st_name', 'LIKE', "%$search%")
-                        ->orWhere('ps_name', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                    if ($data->po_draft == '1') {
+                        return '<a class="btn btn-sm btn-warning">Draft</a>';
+                    } else {
+                        return '<a class="btn btn-sm btn-primary">0/' . $total_qty . '</a>';
+                    }
+                })
+                ->rawColumns(['po_status'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('po_invoice', 'LIKE', "%$search%")
+                                ->orWhere('st_name', 'LIKE', "%$search%")
+                                ->orWhere('ps_name', 'LIKE', "%$search%")
+                                ->orWhere('po_description', 'LIKE', "%$search%")
+                                ->orWhere('article_id', 'LIKE', "%$search%")
+                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -207,7 +212,7 @@ class PurchaseOrderReceiveController extends Controller
         }
         return json_encode($r);
     }
-    
+
     public function checkProductPo(Request $request)
     {
         $check = ProductStock::where(['p_id' => $request->_p_id])->join('purchase_orders', 'purchase_orders.ps_id', '=', 'product_stocks.id')->exists();
@@ -228,7 +233,8 @@ class PurchaseOrderReceiveController extends Controller
         return $invoice;
     }
 
-    public function poInvoiceExists($number) {
+    public function poInvoiceExists($number)
+    {
         return PurchaseOrder::where(['po_invoice' => $number])->exists();
     }
 
@@ -266,7 +272,7 @@ class PurchaseOrderReceiveController extends Controller
         if (!empty($poa)) {
             foreach ($poa as $poa_row) {
                 $poad = DB::table('purchase_order_article_details')->where(['poa_id' => $poa_row->id])->get();
-                foreach ($poad as $poad_row){
+                foreach ($poad as $poad_row) {
                     DB::table('purchase_order_article_details')->where(['id' => $poad_row->id])->delete();
                 }
                 DB::table('purchase_order_articles')->where(['id' => $poa_row->id])->delete();
@@ -366,13 +372,13 @@ class PurchaseOrderReceiveController extends Controller
         $po_id = $request->_po_id;
         if (!empty($po_id)) {
             $check = PurchaseOrder::where(['id' => $po_id])->exists();
-        } else { 
+        } else {
             $check = PurchaseOrder::where(['po_draft' => '1'])->exists();
         }
         if ($check) {
             if (!empty($po_id)) {
                 $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
-            } else { 
+            } else {
                 $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
             }
             $po_st_id = $draft->st_id;
@@ -387,9 +393,9 @@ class PurchaseOrderReceiveController extends Controller
                 'p_color',
                 'poa_discount',
                 'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid')
-            ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(['po_id' => $po_id])->get();
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(['po_id' => $po_id])->get();
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
@@ -424,12 +430,11 @@ class PurchaseOrderReceiveController extends Controller
                     // create to sql
                     if (!empty($poad_data)) {
 
-                        if(!empty($request->excelData))
-                        {
+                        if (!empty($request->excelData)) {
                             foreach ($poad_data as $key => $poad) {
                                 foreach ($request->excelData as $excel) {
                                     if ($poad->ps_barcode == $excel['barcode']) {
-                                        $poad['qty_import']= $excel['qty'];
+                                        $poad['qty_import'] = $excel['qty'];
                                     }
 
                                     if ($poad->ps_barcode != $excel['barcode']) {
@@ -523,12 +528,11 @@ class PurchaseOrderReceiveController extends Controller
 
                     $missingBarcode = array();
                     // create to sql
-                   if (!empty($poad_data)) {
+                    if (!empty($poad_data)) {
 
-                       $poad_data_indexed = collect($poad_data)->keyBy('ps_barcode')->all();
+                        $poad_data_indexed = collect($poad_data)->keyBy('ps_barcode')->all();
 
-                        if(!empty($request->excelData))
-                        {
+                        if (!empty($request->excelData)) {
                             foreach ($request->excelData as $excel_row) {
                                 if (isset($poad_data_indexed[$excel_row['barcode']])) {
                                     $poad_data_indexed[$excel_row['barcode']]->qty_import = $excel_row['qty'];
@@ -589,7 +593,7 @@ class PurchaseOrderReceiveController extends Controller
         }
         return json_encode($r);
     }
-    
+
     public function poExport(Request $request)
     {
         $po_date = $request->input('po_date');
@@ -600,107 +604,106 @@ class PurchaseOrderReceiveController extends Controller
         $end = null;
         $range = null;
         if (!empty($po_date)) {
-          $exp = explode('|', $po_date);
-          if (count($exp) > 1) {
-            $start = $exp[0];
-            $end = $exp[1];
-            $range = 'true';
-          } else {
-            $start = $po_date;
-            $end = $po_date;
-            $range = 'false';
-          }
+            $exp = explode('|', $po_date);
+            if (count($exp) > 1) {
+                $start = $exp[0];
+                $end = $exp[1];
+                $range = 'true';
+            } else {
+                $start = $po_date;
+                $end = $po_date;
+                $range = 'false';
+            }
         }
 
         $get_po = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'po_invoice', 'st_name', 'purchase_orders.created_at as po_created', 'br_name', 'p_name', 'p_color', 'sz_name', 'poad_qty', 'poad_purchase_price')
-        ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-        ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-        ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
-        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-        ->where(function($w) use ($start, $end, $range, $st_id) {
-          if ($range == 'true') {
-            $w->whereDate('purchase_orders.created_at', '>=', $start)
-            ->whereDate('purchase_orders.created_at', '<=', $end);
-          } else {
-            $w->whereDate('purchase_orders.created_at', '=', $start);
-          }
-          if (!empty($st_id)) {
-            $w->where('purchase_orders.st_id', '=', $st_id);
-          }
-        })->get();
+            ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+            ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+            ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->where(function ($w) use ($start, $end, $range, $st_id) {
+                if ($range == 'true') {
+                    $w->whereDate('purchase_orders.created_at', '>=', $start)
+                        ->whereDate('purchase_orders.created_at', '<=', $end);
+                } else {
+                    $w->whereDate('purchase_orders.created_at', '=', $start);
+                }
+                if (!empty($st_id)) {
+                    $w->where('purchase_orders.st_id', '=', $st_id);
+                }
+            })->get();
         if (!empty($get_po)) {
-          foreach ($get_po as $row) {
-            $receive = PurchaseOrderArticleDetailStatus::select('poads_qty')->where('poad_id', '=', $row->poad_id)->sum('poads_qty');
-            if ($po_status == 'full') {
-              if ($receive >= $row->poad_qty) {
-                $data[] = [
-                  'po_created' => date('d/m/Y H:i:s', strtotime($row->po_created)),
-                  'po_invoice' => $row->po_invoice,
-                  'store' => $row->st_name,
-                  'brand' => $row->br_name,
-                  'article' => $row->p_name,
-                  'color' => $row->p_color,
-                  'size' => $row->sz_name,
-                  'order' => $row->poad_qty,
-                  'hpp' => $row->poad_purchase_price,
-                  'total' => $row->poad_qty*$row->poad_purchase_price,
-                  'receive' => $receive,
-                ];
-              } else {
-                continue;
-              }
-            } else {
-              if ($receive < $row->poad_qty) {
-                $data[] = [
-                  'po_created' => date('d/m/Y H:i:s', strtotime($row->po_created)),
-                  'po_invoice' => $row->po_invoice,
-                  'store' => $row->st_name,
-                  'brand' => $row->br_name,
-                  'article' => $row->p_name,
-                  'color' => $row->p_color,
-                  'size' => $row->sz_name,
-                  'order' => $row->poad_qty,
-                  'hpp' => $row->poad_purchase_price,
-                  'total' => $row->poad_qty*$row->poad_purchase_price,
-                  'receive' => $receive,
-                ];
-              } else {
-                continue;
-              }
+            foreach ($get_po as $row) {
+                $receive = PurchaseOrderArticleDetailStatus::select('poads_qty')->where('poad_id', '=', $row->poad_id)->sum('poads_qty');
+                if ($po_status == 'full') {
+                    if ($receive >= $row->poad_qty) {
+                        $data[] = [
+                            'po_created' => date('d/m/Y H:i:s', strtotime($row->po_created)),
+                            'po_invoice' => $row->po_invoice,
+                            'store' => $row->st_name,
+                            'brand' => $row->br_name,
+                            'article' => $row->p_name,
+                            'color' => $row->p_color,
+                            'size' => $row->sz_name,
+                            'order' => $row->poad_qty,
+                            'hpp' => $row->poad_purchase_price,
+                            'total' => $row->poad_qty * $row->poad_purchase_price,
+                            'receive' => $receive,
+                        ];
+                    } else {
+                        continue;
+                    }
+                } else {
+                    if ($receive < $row->poad_qty) {
+                        $data[] = [
+                            'po_created' => date('d/m/Y H:i:s', strtotime($row->po_created)),
+                            'po_invoice' => $row->po_invoice,
+                            'store' => $row->st_name,
+                            'brand' => $row->br_name,
+                            'article' => $row->p_name,
+                            'color' => $row->p_color,
+                            'size' => $row->sz_name,
+                            'order' => $row->poad_qty,
+                            'hpp' => $row->poad_purchase_price,
+                            'total' => $row->poad_qty * $row->poad_purchase_price,
+                            'receive' => $receive,
+                        ];
+                    } else {
+                        continue;
+                    }
+                }
             }
-          }
-          sort($data);
-          $r['status'] = '200';
-          $r['data'] = $data;
+            sort($data);
+            $r['status'] = '200';
+            $r['data'] = $data;
         } else {
-          $r['status'] = '400';
+            $r['status'] = '400';
         }
         return json_encode($r);
-}
+    }
 
     public function getImageInvoiceDatatables(Request $request)
     {
         if ($request->ajax()) {
             $po_id = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
-            if ($po_id)
-            {
-                $images = PurchaseOrderInvoiceImage::select('id','invoice_image')
+            if ($po_id) {
+                $images = PurchaseOrderInvoiceImage::select('id', 'invoice_image')
                     ->where('purchase_order_id', '=', $request->get('_po_id'));
 
                 return datatables()->of($images)
                     ->addColumn('image', function ($row) {
                         if (empty($row->invoice_image)) {
-                            return '<img src="'.asset('upload/image/no_image.png').'"/>';
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
                         } else {
 //                            return '<a href="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).' target=_blank>$row->invoice_image</a>';
                             return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
                         }
                     })
                     ->addColumn('action', function ($row) {
-                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="'.$row->id.'">Delete</a>';
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="' . $row->id . '">Delete</a>';
                     })
                     ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
@@ -717,21 +720,20 @@ class PurchaseOrderReceiveController extends Controller
     {
         if ($request->ajax()) {
             $po_id = PODeliveryOrder::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
-            if ($po_id)
-            {
-                $images = PODeliveryOrder::select('id','delivery_orders_image')
+            if ($po_id) {
+                $images = PODeliveryOrder::select('id', 'delivery_orders_image')
                     ->where('purchase_order_id', '=', $request->get('_po_id'));
 
                 return datatables()->of($images)
                     ->addColumn('image', function ($row) {
                         if (empty($row->delivery_orders_image)) {
-                            return '<img src="'.asset('upload/image/no_image.png').'"/>';
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
                         } else {
-                            return '<img src="'.asset('upload/purchase_order_delivery_order/'.$row->delivery_orders_image).'" width="400px" height="400px">';
+                            return '<img src="' . asset('upload/purchase_order_delivery_order/' . $row->delivery_orders_image) . '" width="400px" height="400px">';
                         }
                     })
                     ->addColumn('action', function ($row) {
-                        return '<a href="#" class="btn btn-danger btn-sm" id="delete-image-po-surat-jalan" data-id="'.$row->id.'">Delete</a>';
+                        return '<a href="#" class="btn btn-danger btn-sm" id="delete-image-po-surat-jalan" data-id="' . $row->id . '">Delete</a>';
                     })
                     ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
@@ -751,10 +753,8 @@ class PurchaseOrderReceiveController extends Controller
 
         $check = PurchaseOrder::where(['id' => $po_id])->exists();
 
-        if ($check)
-        {
-            if ($request->has('deliveryOrderImage'))
-            {
+        if ($check) {
+            if ($request->has('deliveryOrderImage')) {
                 $image_parts = explode(";base64,", $request->input('deliveryOrderImage'));
                 $image_type_aux = explode("image/", $image_parts[0]);
                 $image_type = $image_type_aux[1];
@@ -784,8 +784,7 @@ class PurchaseOrderReceiveController extends Controller
 
         $delete = PurchaseOrderInvoiceImage::where(['id' => $request->id])->first();
 
-        if($delete)
-        {
+        if ($delete) {
             unlink(public_path('upload/purchase_order_invoice/' . $delete->invoice_image));
 
 
@@ -802,7 +801,7 @@ class PurchaseOrderReceiveController extends Controller
 //        return $request->all();
         $delete = PODeliveryOrder::where(['id' => $request->id])->first();
 
-        if($delete) {
+        if ($delete) {
             unlink(public_path('upload/purchase_order_delivery_order/' . $delete->delivery_orders_image));
 
             $delete = PODeliveryOrder::where(['id' => $request->id])->delete();
