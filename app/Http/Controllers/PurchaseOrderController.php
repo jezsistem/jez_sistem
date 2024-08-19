@@ -210,6 +210,7 @@ class PurchaseOrderController extends Controller
                                 ->orWhere('st_name', 'LIKE', "%$search%")
                                 ->orWhere('ps_name', 'LIKE', "%$search%")
                                 ->orWhere('po_description', 'LIKE', "%$search%")
+                                ->orWhere('article_id', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
                         });
                     }
