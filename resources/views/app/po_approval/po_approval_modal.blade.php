@@ -18,7 +18,7 @@
                     </div>
                         
                 </div>
-                <form id="f_po" enctype="multipart/form-data">
+{{--                <form id="f_po" enctype="multipart/form-data">--}}
                     <input type="hidden" id="_mode" name="_mode" />
                     <input type="hidden" id="_po_id" name="_po_id" />
                     <div class="modal-body">
@@ -201,7 +201,7 @@
                         <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn">Tutup
                         </button>
                     </div>
-                </form>
+{{--                </form>--}}
 
             </div>
             <div class="modal-footer">
