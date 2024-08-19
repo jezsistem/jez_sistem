@@ -287,7 +287,8 @@
         });
 
         $('#approve_btn').on('click', function() {
-            if (approval != 'Menunggu Approval') {
+            console.log(approval);
+            if (approval != '<span class="badge badge-warning">Menunggu Approval</span>') {
                 swal('Sudah Approve', 'Invoice ini sudah diapprove', 'warning');
                 return false;
             }
