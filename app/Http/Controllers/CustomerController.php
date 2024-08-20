@@ -784,7 +784,7 @@ class CustomerController extends Controller
                 ->get();
 
             $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
-            if (!empty($data)) {
+            if ($data->isNotEmpty()) {
                 foreach ($data as $row) {
 //                    $customer = Customer::find($row->cust_id);
 //
@@ -795,19 +795,21 @@ class CustomerController extends Controller
                     } else {
                         $cust_active = 'Non-Active';
                     }
-                    $cust_name = strtoupper($row->cust_name) . ' ' . strtoupper($row->cust_phone) . ' [' . strtoupper('GOLD'). '-' .  strtoupper($cust_active) . ']';
+                    $cust_name = strtoupper($row->cust_name) . ' ' . strtoupper($row->cust_phone) . ' [' . strtoupper('GOLD') . '-' . strtoupper($cust_active) . ']';
                     if ($request->get('type') == 'cust') {
                         $output .= '
                       <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->cust_id . '" id="add_to_item_list_cust">' . $cust_name . '</a></li>
                       ';
                     } else {
                         $output .= '
-                      <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->cust_id . '" id="add_to_item_list_sub_cust">' . $cust_name . '</a></li>
+                      <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->cust_id . '" id="add_to_item_list_sub_cust">HALOOOO</a></li>
                       ';
                     }
                 }
             } else {
-                $output .= '<li><a class="btn btn-sm btn-primary">Tidak ditemukan</a></li>';
+                $output .= '
+                      <li><a class="btn btn-sm btn-primary col-12" id="add_new_customer">+ Add New Customer </a></li>
+                      ';
             }
             $output .= '</ul>';
             echo $output;

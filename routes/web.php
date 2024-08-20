@@ -292,7 +292,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('warna_produk', [MainColorController::class, 'index'])->name('main_color');
     Route::get('main_color_datatables', [MainColorController::class, 'getDatatables']);
     Route::post('mc_save', [MainColorController::class, 'storeData']);
-    Route::post('mc_delete', [MainColorController::class, 'deleteData']);
+    Route::post('mc_delete', [MainColorController::class, 'autocomplete_customer']);
     Route::post('mc_import', [MainColorController::class, 'importData']);
     Route::post('check_exists_main_color', [MainColorController::class, 'checkExistsMainColor']);
     // Product Sub Color
