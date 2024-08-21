@@ -4,11 +4,13 @@
         <div class="row align-items-center">
             <div class="col-xl-4 col-lg-4 col-md-6">
                 <div class="greeting-text">
-                    <a href="{{ url('/redirect') }}"><h3
-                                class="card-label mb-0 font-weight-bold text-white">{{ $data['app_title'] }}</h3></a>
-                    <h3 class="card-label mb-0 ">
-                        {{ $data['title'] }}
-                    </h3>
+                    <a href="{{ url('/redirect') }}">
+{{--                        <h3 class="card-label mb-0 font-weight-bold text-white">{{ $data['app_title'] }}</h3>--}}
+                        <img style="width:100px; margin-left: 25px;" alt="Logo" src="{{ asset('logo') }}/jez_pro_putih.png" />
+                    </a>
+{{--                    <h3 class="card-label mb-0 ">--}}
+{{--                        {{ $data['title'] }}--}}
+{{--                    </h3>--}}
                 </div>
             </div>
             <div class="col-xl-4 col-lg-5 col-md-6 clock-main">
