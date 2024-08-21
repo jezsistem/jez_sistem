@@ -3,8 +3,8 @@
     <title>{{ $data['title'] }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Topscore Management System" />
-    <meta name="author" content="Ghaly Fadhillah" />
-    <meta name="developer" content="Ghaly Fadhillah" />
+    <meta name="author" content="PT Zona Kerya Nusantara" />
+    <meta name="developer" content="PT Zona Kerya Nusantara" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="google" content="notranslate">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />

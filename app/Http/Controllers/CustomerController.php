@@ -646,6 +646,7 @@ class CustomerController extends Controller
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
+            $r['data'] = $data;
         }
         return json_encode($r);
     }
