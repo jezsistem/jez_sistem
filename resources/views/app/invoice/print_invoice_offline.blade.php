@@ -197,7 +197,6 @@
                                     $groups[$key]['nameset'] = $groups[$key]['nameset'] + $srow->pos_td_nameset_price;
                                 }
                             }
-
                         @endphp
 
                         @foreach ($row->subitem as $srow)
@@ -237,8 +236,6 @@
                                     {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_sell_price) }}
 
                                 </td>
-
-
                             </tr>
                         @endforeach
                         <!-- Discount -->

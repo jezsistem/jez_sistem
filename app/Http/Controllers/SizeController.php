@@ -159,7 +159,7 @@ class SizeController extends Controller
     public function reloadSizeSchemaModal(Request $request)
     {
         $size = new Size;
-        $select = ['id', 'sz_name', 'sz_description'];
+        $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
         $where = [
             'sz_schema' => $request->_sz_schema
         ];

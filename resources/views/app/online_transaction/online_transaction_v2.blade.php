@@ -112,6 +112,7 @@
                                         <th class="text-dark">Platform Name</th>
                                         <th class="text-dark">Tanggal Order</th>
                                         <th class="text-dark">Item</th>
+                                        <th class="text-dark">Ongkos Kirim</th>
                                         <th class="text-dark">Total Pembayaran</th>
                                         <th class="text-dark">Status Pengiriman</th>
                                     </tr>

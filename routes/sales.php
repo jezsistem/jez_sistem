@@ -97,10 +97,11 @@ Route::middleware(['auth'])->group(function () {
      */
     Route::get('transaksi_online', [TransaksiOnlineController::class, 'index']);
     Route::get('transaksi_online_datatables', [TransaksiOnlineController::class, 'getDatatables']);
-//    Route::get('transaksi_online_datatables_detail', [TransaksiOnlineController::class, 'detailDatatables']);
     Route::get('transaksi_online_datatables_detail', [TransaksiOnlineController::class, 'detailDatatables']);
     Route::post('transaksi_online_detail', [TransaksiOnlineController::class, 'detail']);
     Route::post('transaksi_online_import', [TransaksiOnlineController::class, 'importData']);
     Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
     Route::post('transaksi_online_delete', [TransaksiOnlineController::class, 'delete']);
+    Route::post('print_online_invoice', [TransaksiOnlineController::class, 'cetak_invoice']);
+    Route::get('print_online_nota/{orderNum}', [TransaksiOnlineController::class, 'cetak_nota'])->name('print_online_nota');
 });
