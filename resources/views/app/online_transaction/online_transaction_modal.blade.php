@@ -77,8 +77,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span
-                            id="num_order"></span></h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span id="num_order"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -87,9 +86,9 @@
                 <div class="card-body table-responsive">
                     <!--begin: Datatable-->
                     <input type="hidden" id="to_id" value=""/>
-                    <input type="hidden" id="status_pesanan" value=""/>
+                    <input type="text" id="status_pesanan" value=""/>
 
-{{--                    @if() @endif--}}
+                    {{--                    @if() @endif--}}
                     <button class="btn btn-dark font-weight-bolder" id="add_item_detail_btn">
                                 <span class="svg-icon svg-icon-md">
                                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
@@ -104,6 +103,22 @@
                                     </svg>
                                     <!--end::Svg Icon-->
                                 </span>Tambah Item
+                    </button>
+                    <button class="btn btn-light-primary font-weight-bolder" id="print_invoice">
+                            <span class="svg-icon svg-icon-md">
+                                <!--begin::Svg Icon | Print Icon-->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <rect x="0" y="0" width="24" height="24"/>
+                                        <path d="M6,9 L18,9 C19.1045695,9 20,9.8954305 20,11 L20,17 C20,18.1045695 19.1045695,19 18,19 L6,19 C4.8954305,19 4,18.1045695 4,17 L4,11 C4,9.8954305 4.8954305,9 6,9 Z"
+                                              fill="#000000"/>
+                                        <path d="M8,2 L16,2 C17.1045695,2 18,2.8954305 18,4 L18,8 L6,8 L6,4 C6,2.8954305 6.8954305,2 8,2 Z M10,6 L14,6 C14.5522847,6 15,5.55228475 15,5 C15,4.44771525 14.5522847,4 14,4 L10,4 C9.44771525,4 9,4.44771525 9,5 C9,5.55228475 9.44771525,6 10,6 Z"
+                                              fill="#000000" opacity="0.3"/>
+                                    </g>
+                                </svg>
+                                <!--end::Svg Icon-->
+                            </span>
+                        Print
                     </button>
                     <table class="table table-hover" id="Detailtb">
                         <thead class="bg-light text-dark">
@@ -134,7 +149,6 @@
 </div>
 
 
-
 <!-- Modal-->
 <div class="modal fade" id="addItemModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
@@ -150,11 +164,11 @@
                 <input type="hidden" id="add_item_to_id" value=""/>
                 <div class="form-group mb-1 pb-1">
                     <label for="exampleTextarea">Nomer Pesanan</label>
-                    <input type="text" class="form-control" id="no_pesanan" name="no_pesanan" required disabled />
+                    <input type="text" class="form-control" id="no_pesanan" name="no_pesanan" required disabled/>
                 </div>
                 <div class="form-group mb-1 pb-1">
                     <label for="exampleTextarea">Berat*</label>
-                    <input type="number" class="form-control" id="pssc_weight" name="pssc_weight" required />
+                    <input type="number" class="form-control" id="pssc_weight" name="pssc_weight" required/>
                 </div>
                 <div class="form-group mb-1 pb-1">
                     <label for="exampleTextarea">Deskripsi</label>

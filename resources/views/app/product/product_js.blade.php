@@ -18,6 +18,8 @@
 
     function activateColumn() {
         $('input').prop('disabled', false);
+        $('input[type="text"][data-running-code="' + value.sz_id +
+            '"]').prop('disabled', true);
     }
 
     // tinymce.init({
@@ -174,7 +176,8 @@
                     type: "POST",
                     data: {
                         _running: barcode,
-                        _barcode: barcode
+                        _barcode: barcode,
+                        _id: id
                     },
                     dataType: 'json',
                     url: "{{ url('update_barcode') }}",
@@ -769,6 +772,10 @@
                                 'disabled', true);
                             $('input[type="text"][data-barcode="' + value.sz_id + '"]')
                                 .show();
+                            $('input[type="text"][data-running-code="' + value.sz_id + '"]')
+                                .show();
+                            $('input[type="text"][data-running-code="' + value.sz_id +
+                                '"]').val(value.psid);
                             $('input[type="text"][data-barcode="' + value.sz_id + '"]')
                                 .prop('disabled', true);
                             $('input[type="text"][data-barcode="' + value.sz_id + '"]').val(
@@ -788,17 +795,16 @@
                             if ($('input[type="text"][data-barcode="' + value.sz_id + '"]')
                                 .val() == '') {
                                 $('input[type="text"][data-barcode="' + value.sz_id + '"]')
-                                    .prop('disabled', false);
+                                    .prop('disable d', false);
                             } else {
                                 $('input[type="text"][data-barcode="' + value.sz_id + '"]')
                                     .prop('disabled', true);
                             }
                             $('input[type="number"][data-running-code="' + value.sz_id +
                                 '"]').show();
-                            $('input[type="number"][data-running-code="' + value.sz_id +
+                            $('input[type="text"][data-running-code="' + value.sz_id +
                                 '"]').prop('disabled', true);
-                            $('input[type="number"][data-running-code="' + value.sz_id +
-                                '"]').val(value.ps_running_code);
+
                         });
                         //alert(_sz_barcode_edit);
                         $('#_sz_barcode_edit').val(_sz_barcode_edit);

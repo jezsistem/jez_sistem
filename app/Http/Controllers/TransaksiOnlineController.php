@@ -7,9 +7,12 @@ use App\Imports\StockLocationImport;
 use App\Imports\TransactionOnlineImport;
 use App\Models\OnlineTransactionDetails;
 use App\Models\OnlineTransactions;
+use App\Models\PaymentMethod;
+use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use App\Models\ProductStock;
 use App\Models\Size;
+use App\Models\Store;
 use App\Models\TempMutasi;
 use App\Models\TransaksiOnline;
 use App\Models\TransaksiOnlineDetail;
@@ -88,7 +91,7 @@ class TransaksiOnlineController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return DataTables::of(
                 OnlineTransactions::select([
                     'online_transactions.id as to_id',
@@ -97,25 +100,35 @@ class TransaksiOnlineController extends Controller
                     'platform_name',
                     'order_date_created',
                     'sku',
+                    'shipping_fee',
                     'total_payment',
                     'order_status'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->where('no_resi', '!=', '')
                     ->groupBy('to_id')
             )
                 ->editColumn('order_number', function ($data) {
-                    return '<a class="text-white" href="#" data-to_id="'.$data->to_id.'" data-status="'.$data->order_status.'" data-num_order="'.$data->to_order_number.'" id="detail_btn"><span class="btn btn-sm btn-primary" >'.$data->to_order_number.'</span></a>';
+                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a>';
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
                     return $total_item ? $total_item : '-';
                 })
                 ->editColumn('order_status', function ($data) {
-                    return '<a class="text-white" href="#" data-pt_id="'.$data->order_status.'" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">'.$data->order_status.'</span></a>';
+                    return '<a class="text-white" href="#" data-pt_id="' . $data->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $data->order_status . '</span></a>';
                 })
                 ->rawColumns(['order_number', 'total_item', 'order_status'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('pc_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $pc_id = $request->get('pc_id');
+                            $w->orWhere('pc_id', '=', $pc_id);
+                        });
+                    }
+                })
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -123,8 +136,8 @@ class TransaksiOnlineController extends Controller
 
     public function detailDatatables(Request $request)
     {
-        if(request()->ajax()) {
-            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
+        if (request()->ajax()) {
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode','brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
                 ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->leftJoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -141,6 +154,101 @@ class TransaksiOnlineController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
+    }
+
+    public function cetak_invoice(Request $request)
+    {
+        $invoice = $request->orderNumber;
+        $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
+        $get_invoice = array();
+        $dropshipper = null;
+
+        if ($check) {
+            $trx = PosTransaction::select(
+                'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
+                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
+                'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
+                'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
+                'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
+                'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name')
+                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
+                ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+                ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
+                ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+                ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+                ->where(['pos_invoice' => $invoice])
+                ->first();
+
+            $check_transaction_detail = PosTransactionDetail::
+            leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(['pt_id' => $trx->pt_id])->get();
+            if (!empty($check_transaction_detail)) {
+                $trx->subitem = $check_transaction_detail;
+                if (!empty($trx->pm_id_partial)) {
+                    $trx->pm_name_partial = PaymentMethod::select('pm_name')
+                        ->where('id', $trx->pm_id_partial)->get()->first()->pm_name;
+                }
+                array_push($get_invoice, $trx);
+            }
+        }
+        $stores = Auth::user()->st_id;
+
+        $data_stores = Store::where('id', $stores)->get()->first();
+
+        $stores_code = $data_stores->st_code;
+
+
+        $data = [
+            'title' => 'Invoice '.$invoice,
+            'invoice' => $invoice,
+            'invoice_data' => $get_invoice,
+            'store_code' => $stores_code,
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.invoice.print_invoice_offline', compact('data'));
+    }
+
+    public function cetak_nota($orderNumber)
+    {
+        $get_invoice = array();
+        $check = OnlineTransactions::where(['order_number' => $orderNumber])->exists();
+
+        if ($check) {
+            $trx = OnlineTransactions::where(['order_number' => $orderNumber])->first();
+
+            $check_transaction_detail = OnlineTransactionDetails::leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(['to_id' => $trx->id])->get();
+            if (!empty($check_transaction_detail)) {
+                $trx->subitem = $check_transaction_detail;
+                array_push($get_invoice, $trx);
+            }
+        }
+
+        $stores = Auth::user()->st_id;
+
+        $data_stores = Store::where('id', $stores)->get()->first();
+
+        $stores_code = $data_stores->st_code;
+
+        $data = [
+            'title' => 'Invoice '.$orderNumber,
+            'invoice' => $orderNumber,
+            'invoice_data' => $get_invoice,
+            'store_code' => $stores_code,
+            'segment' => request()->segment(1)
+        ];
+
+//        dd($get_invoice);
+
+        return view('app.invoice.print_invoice_online', compact('data'));
     }
 
     public function importData(Request $request)
@@ -192,7 +300,7 @@ class TransaksiOnlineController extends Controller
         $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'Tiktok';
         $platform = $type;
 
-        if ($type == 'Shopee'){
+        if ($type == 'Shopee') {
             foreach ($data as $item) {
                 $order_number = $item[0];
                 $order_status = $item[1];
@@ -215,11 +323,11 @@ class TransaksiOnlineController extends Controller
                     'no_resi' => $no_resi,
                     'platform_name' => $platform,
                     'shipping_method' => $shipping_method,
-                    'shipping_fee' => $shipping_fee,
+                    'shipping_fee' => str_replace('.', '', $shipping_fee),
                     'order_date_created' => $order_date_created,
                     'payment_date' => $payment_date,
                     'payment_method' => $payment_method,
-                    'total_payment' => $total_payment,
+                    'total_payment' => str_replace('.', '', $total_payment),
                     'city' => $city,
                     'province' => $province
                 ];
@@ -228,8 +336,9 @@ class TransaksiOnlineController extends Controller
 
                 if ($get_order_number == 0) {
                     $processedData[] = $rowData;
-                    if ($rowData['order_status'] != 'Cancel' || $rowData['order_status'] != 'Batal' || $rowData['order_status'] != 'Cancel')
-                    OnlineTransactions::create($rowData);
+                    if ($rowData['order_status'] != 'Cancel' || $rowData['order_status'] != 'Batal' || $rowData['order_status'] != 'Cancel') {
+                        OnlineTransactions::create($rowData);
+                    }
                 } else {
                     $id_trx = OnlineTransactions::select('id', 'order_number')
                         ->where('order_number', $order_number)
@@ -239,7 +348,7 @@ class TransaksiOnlineController extends Controller
                 }
             }
 
-            foreach ($data as $item){
+            foreach ($data as $item) {
                 $order_number = $item[0];
                 $original_price = $item[16];
                 $price_after_discount = $item[20];
@@ -256,16 +365,16 @@ class TransaksiOnlineController extends Controller
                     'to_id' => $to_id->id,
                     'sku' => $sku,
                     'original_price' => str_replace('.', '', $original_price),
-                    'price_after_discount' =>  str_replace('.', '', $price_after_discount),
+                    'price_after_discount' => str_replace('.', '', $price_after_discount),
                     'qty' => $qty,
                     'return_qty' => $return_qty,
-                    'total_discount' =>  str_replace('.', '', $total_discount),
-                    'discount_seller' =>  str_replace('.', '', $discount_seller),
-                    'discount_platform' =>  str_replace('.', '', $discount_platform),
+                    'total_discount' => str_replace('.', '', $total_discount),
+                    'discount_seller' => str_replace('.', '', $discount_seller),
+                    'discount_platform' => str_replace('.', '', $discount_platform),
                 ];
 
                 if ($get_order_number == 0) {
-                    OnlineTransactionDetails::create($rowSku);
+                    OnlineTransactionDetails::insertOrIgnore($rowSku);
                 } else {
                     $id_trx_sku = OnlineTransactionDetails::select('id')->where('order_number', $order_number)->where('sku', $sku)->get()->first();
                     OnlineTransactionDetails::where('id', $id_trx_sku->id)->update($rowSku);

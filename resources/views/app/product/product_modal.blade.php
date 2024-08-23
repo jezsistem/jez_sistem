@@ -229,8 +229,7 @@
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-12 pt-1">
-                                <label>Size Artikel: <span id="barcode_running_label" style="display:none;">(Size |
-                                        Barcode | Running Code | Harga Banderol | Harga Jual | Harga Beli)</span> <a
+                                <label>Size Artikel: <span id="barcode_running_label" style="display:none;"></span> <a
                                         class="btn btn-sm btn-primary"
                                         onclick="return activateColumn()">undisabled</a></label>
                                 <div id="reload_size"> </div>

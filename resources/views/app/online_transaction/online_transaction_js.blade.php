@@ -27,6 +27,7 @@
                 { data: 'platform_name', name: 'platform_name' },
                 { data: 'order_date_created', name: 'order_date_created' },
                 { data: 'total_item', name: 'total_item' },
+                { data: 'shipping_fee', name: 'shipping_fee' },
                 { data: 'total_payment', name: 'total_payment' },
                 { data: 'order_status', name: 'order_status'},
             ],
@@ -45,11 +46,59 @@
             $('#ImportModal').modal('show');
         });
 
-        $('#f_import').on('submit' , function (e) {
+        {{--$('#f_import').on('submit' , function (e) {--}}
+        {{--    e.preventDefault();--}}
+        {{--    jQuery.noConflict();--}}
+        {{--    $('#import_data_btn').html('Proses...');--}}
+        {{--    $('#import_data_btn').attr('disabled', true);--}}
+        {{--    var formData = new FormData(this);--}}
+
+        {{--    $.ajax({--}}
+        {{--        type: 'POST',--}}
+        {{--        url: "{{ url('transaksi_online_import')}}",--}}
+        {{--        data: formData,--}}
+        {{--        dataType: 'json',--}}
+        {{--        cache:false,--}}
+        {{--        contentType: false,--}}
+        {{--        processData: false,--}}
+        {{--        success: function(data) {--}}
+        {{--            // console.log(data.data['missingBarcode']);--}}
+        {{--            $("#import_data_btn").html('Import');--}}
+        {{--            $("#import_data_btn").attr("disabled", false);--}}
+        {{--            jQuery.noConflict();--}}
+        {{--            if (data.status == '200') {--}}
+        {{--                $("#ImportModal").modal('hide');--}}
+
+        {{--                swal('Berhasil', 'Data berhasil diimport', 'success');--}}
+        {{--                $('#f_import')[0].reset();--}}
+        {{--                excelImportData = data.data['processedData'];--}}
+        {{--                console.log(data.data);--}}
+        {{--                console.log(data.name);--}}
+        {{--                // shopee_tables.draw();--}}
+        {{--                // tiktok_tables.draw();--}}
+        {{--            } else if (data.status == '400') {--}}
+        {{--                $("#ImportModal").modal('hide');--}}
+        {{--                console.log(data.data)--}}
+        {{--                swal('Error', 'File yang anda import kosong atau format tidak tepat', 'warning');--}}
+        {{--            } else {--}}
+        {{--                $("#ImportModal").modal('hide');--}}
+
+        {{--            }--}}
+        {{--        },--}}
+        {{--        error: function(data){--}}
+        {{--            swal('Error', data, 'error');--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
+
+        $('#f_import').on('submit', function (e) {
             e.preventDefault();
             jQuery.noConflict();
-            $('#import_data_btn').html('Proses...');
+
+            // Show the spinner and disable the button
+            $('#import_data_btn').html('<span id="spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Proses...');
             $('#import_data_btn').attr('disabled', true);
+
             var formData = new FormData(this);
 
             $.ajax({
@@ -57,34 +106,34 @@
                 url: "{{ url('transaksi_online_import')}}",
                 data: formData,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
-                    // console.log(data.data['missingBarcode']);
-                    $("#import_data_btn").html('Import');
-                    $("#import_data_btn").attr("disabled", false);
-                    jQuery.noConflict();
+                    // Hide the spinner and enable the button
+                    $('#import_data_btn').html('Import');
+                    $('#import_data_btn').attr("disabled", false);
+
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
                         excelImportData = data.data['processedData'];
                         console.log(data.data);
                         console.log(data.name);
-                        // shopee_tables.draw();
-                        // tiktok_tables.draw();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        console.log(data.data)
+                        console.log(data.data);
                         swal('Error', 'File yang anda import kosong atau format tidak tepat', 'warning');
                     } else {
                         $("#ImportModal").modal('hide');
-
                     }
                 },
                 error: function(data){
+                    // Hide the spinner in case of error
+                    $('#import_data_btn').html('Import');
+                    $('#import_data_btn').attr("disabled", false);
+
                     swal('Error', data, 'error');
                 }
             });
@@ -129,6 +178,47 @@
             order: [[0, 'desc']],
         });
         jQuery.noConflict();
+
+        $(document).delegate('#print_invoice', 'click', function() {
+            var numOrder = document.getElementById('num_order').textContent;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to print this invoice #" + numOrder + "?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, print it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log(numOrder);
+
+                    $.ajax({
+                        url: '{{ url('print_online_invoice') }}',
+                        method: 'POST',
+                        data: {
+                            orderNumber: numOrder,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            var printUrl = '{{ url('print_online_nota') }}/' + numOrder;
+                            window.open(printUrl, '_blank');
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle errors here
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'There was a problem printing the invoice. Please try again.',
+                                icon: 'error',
+                                confirmButtonColor: '#3085d6'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
 
         $(document).delegate('#detail_btn', 'click', function() {
             console.log('tes');
