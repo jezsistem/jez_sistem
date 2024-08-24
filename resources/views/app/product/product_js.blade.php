@@ -175,7 +175,7 @@
                 $.ajax({
                     type: "POST",
                     data: {
-                        _running: barcode,
+                        _running: running,
                         _barcode: barcode,
                         _id: id
                     },
