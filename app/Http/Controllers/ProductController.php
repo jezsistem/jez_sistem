@@ -814,7 +814,7 @@ class ProductController extends Controller
         $running = $request->_running;
         $barcode = $request->_barcode;
         $id_barcode = $request->_id;
-        $ps = ProductStock::where(['id' => $id_barcode])->update(['ps_barcode' => $barcode]);
+        $ps = ProductStock::where(['id' => $running])->update(['ps_barcode' => $barcode]);
         if (!empty($ps)) {
             $this->UserActivity('mengubah barcode produk ' . $barcode . ' Berhasil ' );
             $r['status'] = '200';
