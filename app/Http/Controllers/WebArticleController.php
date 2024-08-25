@@ -91,7 +91,8 @@ class WebArticleController extends Controller
             ->where('p_delete', '!=', '1')
             ->whereNotIn('product_locations.pl_code', $exception)
             ->havingRaw('sum(ts_product_location_setups.pls_qty) >= 0')
-            ->groupBy('products.id'))
+            ->groupBy('products.id')
+            ->orderBy('products.id', 'desc'))
             ->editColumn('p_main_image_show', function($data){
                 if (!empty($data->p_main_image)) {
                     $image = "<img data-chart_image='".$data->p_size_chart."' data-main_image='".$data->p_main_image."' data-image='".$data->p_image."' data-name='".$data->br_name." ".$data->p_name." ".$data->p_color."' id='p_image_edit' data-id='".$data->pid."'  style='width:100px;' src='".asset('api/product/300')."/".$data->p_main_image."' alt='main_image'/>";
