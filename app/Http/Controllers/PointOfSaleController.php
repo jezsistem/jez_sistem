@@ -857,6 +857,10 @@ class PointOfSaleController extends Controller
         } else {
             $nameset = '0';
         }
+
+        $count_b1g1 = ProductDiscountDetail::select('pst_id')
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_discount_details.pst_id')->count();
+
         $pos_td_description = null;
         if (session()->get('voc_item') != Auth::user()->id . '-' . $pst_id) {
             if ($pst_id == $voc_pst_id) {
@@ -876,6 +880,12 @@ class PointOfSaleController extends Controller
             $pos_td_discount_price = $item_qty * $price;
         }
 
+        if ($count_b1g1 > 0){
+            $pos_td_description = 'B1G1';
+        } else {
+            $pos_td_description = null;
+        }
+
         $create = PosTransactionDetail::create([
             'pt_id' => $pt_id,
             'pst_id' => $pst_id,
@@ -891,7 +901,7 @@ class PointOfSaleController extends Controller
             'pos_td_description' => $pos_td_description,
             'pos_td_price_item_discount' => $price_item_discount,
             'pos_td_total_price' => $pos_td_discount_price + $nameset_price,
-            'created_at' => date('Y-m-d H:i:s'),
+            'created_at' => date('Y-m-d H:i:s')
         ]);
         if (!empty($create)) {
             $sold = DB::table('products')->select('products.id as p_id', 'sold')
