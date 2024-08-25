@@ -91,6 +91,7 @@ class TransaksiOnlineController extends Controller
 
     public function getDatatables(Request $request)
     {
+        $st_id = Auth::user()->st_id;
         if (request()->ajax()) {
             return DataTables::of(
                 OnlineTransactions::select([
@@ -122,10 +123,10 @@ class TransaksiOnlineController extends Controller
                 })
                 ->rawColumns(['order_number', 'total_item', 'order_status'])
                 ->filter(function ($instance) use ($request) {
-                    if (!empty($request->get('pc_id'))) {
+                    if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
-                            $pc_id = $request->get('pc_id');
-                            $w->orWhere('pc_id', '=', $pc_id);
+                            $search = $request->get('search');
+                            $w->orWhere('no_resi', 'LIKE', "%$search%");
                         });
                     }
                 })
