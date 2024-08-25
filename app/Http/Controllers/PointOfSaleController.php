@@ -858,8 +858,7 @@ class PointOfSaleController extends Controller
             $nameset = '0';
         }
 
-        $count_b1g1 = ProductDiscountDetail::select('pst_id')
-            ->join('product_stocks', 'product_stocks.id', '=', 'product_discount_details.pst_id')
+        $count_b1g1 = ProductDiscountDetail::join('product_stocks', 'product_stocks.id', '=', 'product_discount_details.pst_id')
             ->where('pst_id', '=', $pst_id)->count();
 
         $pos_td_description = null;
