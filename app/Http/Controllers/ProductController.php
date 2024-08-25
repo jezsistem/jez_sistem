@@ -759,7 +759,6 @@ class ProductController extends Controller
                                 'p_id' => $id,
                                 'sz_id' => $size_id,
                                 'ps_qty' => '0',
-//                                'ps_running_code' => $this->generateRunningCode()
                                 'ps_running_code' => $barcode
                             ]);
                         }
@@ -794,8 +793,6 @@ class ProductController extends Controller
                                 'p_id' => $id,
                                 'sz_id' => $exp[$i],
                                 'ps_qty' => '0',
-//                                'ps_running_code' => $this->generateRunningCode()
-//                                'ps_running_code' => $barcode
                             ]);
                         }
                     }

@@ -495,19 +495,24 @@ class PurchaseOrderReceiveController extends Controller
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();
+            $get_product = array();
+            $missingBarcode = array(); // Moved outside the loop
+
             if (!empty($poa_data)) {
-                $get_product = array();
+                // Step 1: Collect poad_data
                 foreach ($poa_data as $poa) {
                     $poad_data = PurchaseOrderArticleDetail::select(
                         'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
                         'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
                         'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
-                        'product_stocks.ps_barcode',)
+                        'product_stocks.ps_barcode',
+                    )
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->groupBy('purchase_order_article_details.id')
-                        ->where(['poa_id' => $poa->poa_id])->get();
+                        ->where(['poa_id' => $poa->poa_id])
+                        ->get();
 
                     // Step 2: Retrieve pls_qty from product_location_setups
                     $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
@@ -526,27 +531,37 @@ class PurchaseOrderReceiveController extends Controller
                         return $item;
                     });
 
-                    $missingBarcode = array();
-                    // create to sql
-                    if (!empty($poad_data)) {
+                    $poa->subitem = $poad_data;
 
-                        $poad_data_indexed = collect($poad_data)->keyBy('ps_barcode')->all();
+                    array_push($get_product, $poa);
+                }
 
-                        if (!empty($request->excelData)) {
-                            foreach ($request->excelData as $excel_row) {
-                                if (isset($poad_data_indexed[$excel_row['barcode']])) {
-                                    $poad_data_indexed[$excel_row['barcode']]->qty_import = $excel_row['qty'];
-                                } else {
-                                    $missingBarcode[] = $excel_row['barcode'];
-                                }
-                            }
+                // After the loop, process missingBarcode and update quantities
+                if (!empty($request->excelData)) {
+                    // Index poad_data by barcode for easier access
+                    $poad_data_indexed = collect($get_product)->flatMap(function ($poa) {
+                        return $poa->subitem;
+                    })->keyBy('ps_barcode')->all();
+
+                    foreach ($request->excelData as $excel_row) {
+                        $excelBarcode = $excel_row['barcode'];
+
+                        // Add all barcodes to missingBarcode initially
+                        if (!in_array($excelBarcode, $missingBarcode)) {
+                            $missingBarcode[] = $excelBarcode;
                         }
 
-                        $poa->subitem = $poad_data;
+                        // Check if the barcode exists in $poad_data_indexed
+                        if (array_key_exists($excelBarcode, $poad_data_indexed)) {
+                            // If the barcode exists, update the quantity
+                            $poad_data_indexed[$excelBarcode]->qty_import = $excel_row['qty'];
 
-                        array_push($get_product, $poa);
-                    } else {
-                        $get_product = null;
+                            // Remove the barcode from $missingBarcode if it exists
+                            $key = array_search($excelBarcode, $missingBarcode);
+                            if ($key !== false) {
+                                unset($missingBarcode[$key]);
+                            }
+                        }
                     }
                 }
             } else {

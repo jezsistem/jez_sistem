@@ -80,19 +80,41 @@
                 excelData: excelData
             },
             url: "{{ url('check_barcode_import') }}",
-            success: function(r) {
-                // check r is empty or not
-                console.log(r);
-                console.log(r.length)
-                if (r.length > 2) {
+            success: function(response) {
+                // Ensure response is parsed as JSON
+                let parsedResponse;
+
+                try {
+                    // Attempt to parse JSON response
+                    parsedResponse = JSON.parse(response);
+                } catch (e) {
+                    console.error("Failed to parse JSON response:", e);
+                    parsedResponse = {}; // or handle the error accordingly
+                }
+
+                if (parsedResponse && typeof parsedResponse === 'object') {
+                    // Convert the JSON object to a formatted string
+                    let formattedResponse = Object.entries(parsedResponse)
+                        .map(([key, value]) => `${key} : ${value}`)
+                        .join("\n");
+
+                    // Display the formatted string using SweetAlert
                     swal({
                         title: "Barcode tidak ditemukan",
-                        text: r,
+                        text: formattedResponse,
                         icon: "warning",
-                    })
+                    });
                 }
+            },
+            error: function(xhr, status, error) {
+                // Handle errors here
+                console.error("AJAX request failed:", status, error);
+                swal({
+                    title: "Error",
+                    text: "An error occurred while processing your request.",
+                    icon: "error",
+                });
             }
-            // }
         });
     }
 
