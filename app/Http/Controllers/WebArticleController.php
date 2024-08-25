@@ -90,7 +90,7 @@ class WebArticleController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->where('p_delete', '!=', '1')
             ->whereNotIn('product_locations.pl_code', $exception)
-            ->havingRaw('sum(ts_product_location_setups.pls_qty) >= 0')
+//            ->havingRaw('sum(ts_product_location_setups.pls_qty) >= 0')
             ->groupBy('products.id')
             ->orderBy('products.id', 'desc'))
             ->editColumn('p_main_image_show', function($data){
