@@ -81,11 +81,9 @@
             },
             url: "{{ url('check_barcode_import') }}",
             success: function(response) {
-                // Ensure response is parsed as JSON
                 let parsedResponse;
 
                 try {
-                    // Attempt to parse JSON response
                     parsedResponse = JSON.parse(response);
                 } catch (e) {
                     console.error("Failed to parse JSON response:", e);
@@ -93,12 +91,10 @@
                 }
 
                 if (parsedResponse && typeof parsedResponse === 'object') {
-                    // Convert the JSON object to a formatted string
                     let formattedResponse = Object.entries(parsedResponse)
                         .map(([key, value]) => `${key} : ${value}`)
                         .join("\n");
 
-                    // Display the formatted string using SweetAlert
                     swal({
                         title: "Barcode tidak ditemukan",
                         text: formattedResponse,
@@ -107,7 +103,6 @@
                 }
             },
             error: function(xhr, status, error) {
-                // Handle errors here
                 console.error("AJAX request failed:", status, error);
                 swal({
                     title: "Error",
@@ -783,7 +778,6 @@
             }
         });
     });
-
 
     $(document).ready(function() {
         $.ajaxSetup({

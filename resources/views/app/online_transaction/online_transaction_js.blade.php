@@ -8,7 +8,7 @@
 
 
 
-        $('#OnlineTransactionb').DataTable({
+        var online_transaction_table =$('#OnlineTransactionb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -19,6 +19,9 @@
             ],
             ajax: {
                 url : "{{ url('transaksi_online_datatables') }}",
+                data: function(d) {
+                    d.search = $('#online_transaction_search').val();
+                }
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'to_id', searchable: false},
@@ -41,9 +44,14 @@
                 "lengthMenu": "_MENU_",
             }
         });
-        //
+
         $(document).delegate('#import_modal', 'click', function() {
             $('#ImportModal').modal('show');
+        });
+
+        $('#online_transaction_search').on('keyup', function() {
+            online_transaction_table.draw(false);
+            console.log($('#online_transaction_search').val())
         });
 
         {{--$('#f_import').on('submit' , function (e) {--}}

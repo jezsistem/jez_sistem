@@ -101,8 +101,8 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="invoice_tracking_search"
-                                       placeholder="Cari invoice / nomor resi / customer"/><br/>
+                                <input type="search" class="form-control  col-6" id="online_transaction_search"
+                                       placeholder="Cari No Order / No resi"/><br/>
                                 <table class="table table-hover table-checkable" id="OnlineTransactionb">
                                     <thead class="bg-light text-dark">
                                     <tr>
