@@ -361,24 +361,29 @@ class TransaksiOnlineController extends Controller
                 $discount_platform = $item[23];
 
                 $to_id = OnlineTransactions::select('id')->where('order_number', $order_number)->get()->first();
-                $rowSku = [
-                    'order_number' => $order_number,
-                    'to_id' => $to_id->id,
-                    'sku' => $sku,
-                    'original_price' => str_replace('.', '', $original_price),
-                    'price_after_discount' => str_replace('.', '', $price_after_discount),
-                    'qty' => $qty,
-                    'return_qty' => $return_qty,
-                    'total_discount' => str_replace('.', '', $total_discount),
-                    'discount_seller' => str_replace('.', '', $discount_seller),
-                    'discount_platform' => str_replace('.', '', $discount_platform),
-                ];
 
-                if ($get_order_number == 0) {
-                    OnlineTransactionDetails::insertOrIgnore($rowSku);
-                } else {
-                    $id_trx_sku = OnlineTransactionDetails::select('id')->where('order_number', $order_number)->where('sku', $sku)->get()->first();
-                    OnlineTransactionDetails::where('id', $id_trx_sku->id)->update($rowSku);
+                $sku_check = OnlineTransactionDetails::select('id')->where('to_id', $to_id->id)->where('sku', $sku)->get()->first();
+
+                if ($sku_check->id == 0){
+                    $rowSku = [
+                        'order_number' => $order_number,
+                        'to_id' => $to_id->id,
+                        'sku' => $sku,
+                        'original_price' => str_replace('.', '', $original_price),
+                        'price_after_discount' => str_replace('.', '', $price_after_discount),
+                        'qty' => $qty,
+                        'return_qty' => $return_qty,
+                        'total_discount' => str_replace('.', '', $total_discount),
+                        'discount_seller' => str_replace('.', '', $discount_seller),
+                        'discount_platform' => str_replace('.', '', $discount_platform),
+                    ];
+
+                    if ($to_id->id == 0) {
+                        OnlineTransactionDetails::insertOrIgnore($rowSku);
+                    } else {
+                        $id_trx_sku = OnlineTransactionDetails::select('id')->where('order_number', $order_number)->where('sku', $sku)->get()->first();
+                        OnlineTransactionDetails::where('id', $id_trx_sku->id)->update($rowSku);
+                    }
                 }
             }
         }

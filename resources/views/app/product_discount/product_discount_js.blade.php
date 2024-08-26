@@ -1,8 +1,8 @@
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -13,35 +13,35 @@
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
             ],
             ajax: {
-                url : "{{ url('product_discount_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_discount_datatables') }}",
+                data: function (d) {
                     d.search = $('#product_discount_search').val();
                     d.st_id = $('#st_id_filter').val();
                 }
             },
             columns: [
-            { data: 'DT_RowIndex', name: 'pd_id', searchable: false},
-            { data: 'pd_name', name: 'pd_name' },
-            { data: 'st_id_show', name: 'st_id' },
-            { data: 'dv_name', name: 'dv_name' },
-            { data: 'pd_type_show', name: 'pd_type' },
-            { data: 'pd_value', name: 'pd_value' },
-            { data: 'pd_date_show', name: 'pd_date' },
-            { data: 'article', name: 'article', orderable: false },
-            ], 
+                {data: 'DT_RowIndex', name: 'pd_id', searchable: false},
+                {data: 'pd_name', name: 'pd_name'},
+                {data: 'st_id_show', name: 'st_id'},
+                {data: 'dv_name', name: 'dv_name'},
+                {data: 'pd_type_show', name: 'pd_type'},
+                {data: 'pd_value', name: 'pd_value'},
+                {data: 'pd_date_show', name: 'pd_date'},
+                {data: 'article', name: 'article', orderable: false},
+            ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
             order: [[0, 'desc']],
         });
-        
-        $('#st_id_filter').on('change', function() {
+
+        $('#st_id_filter').on('change', function () {
             product_discount_table.draw();
         });
 
@@ -52,30 +52,40 @@
             responsive: false,
             dom: 'B<"text-right"l>rt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
             ],
             ajax: {
-                url : "{{ url('product_discount_detail_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_discount_detail_datatables') }}",
+                data: function (d) {
                     d.search = $('#product_discount_detail_search').val();
                     d.pd_id = $('#_pd_id').val();
                 }
             },
             columns: [
-            { data: 'DT_RowIndex', name: 'pdd_id', searchable: false},
-            { data: 'article', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'sz_name', name: 'sz_name' },
-            { data: 'sell_price', name: 'sell_price', orderable: false },
-            { data: 'sell_price_discount', name: 'sell_price_discount', orderable: false },
-            { data: 'action', name: 'action', orderable: false },
-            ], 
+                {data: 'DT_RowIndex', name: 'pdd_id', searchable: false},
+                {data: 'article_id', name: 'article_id'},
+                {data: 'article', name: 'p_name'},
+                {data: 'p_color', name: 'p_color'},
+                {data: 'sz_name', name: 'sz_name'},
+                {data: 'sell_price', name: 'sell_price', orderable: false},
+                {data: 'sell_price_discount', name: 'sell_price_discount', orderable: false},
+                {data: 'action', name: 'action', orderable: false},
+            ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                },
+                {
+                    "targets": 1,
+                    "className": "text-center",
+                    "width": "5%"
+                },
+                {
+                    "targets": 2,
+                    "width": "50%"
+                }],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
                 "lengthMenu": "_MENU_",
@@ -90,40 +100,40 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
             ],
             ajax: {
-                url : "{{ url('product_discount_article_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_discount_article_datatables') }}",
+                data: function (d) {
                     d.search = $('#article_search').val();
                 }
             },
             columns: [
-            { data: 'DT_RowIndex', name: 'p_id', searchable: false},
-            { data: 'br_name', name: 'br_name' },
-            { data: 'p_name', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'sz_name_show', name: 'sz_name_show' },
+                {data: 'DT_RowIndex', name: 'p_id', searchable: false},
+                {data: 'br_name', name: 'br_name'},
+                {data: 'p_name', name: 'p_name'},
+                {data: 'p_color', name: 'p_color'},
+                {data: 'sz_name_show', name: 'sz_name_show'},
             ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
             order: [[0, 'desc']],
         });
 
-        product_discount_table.buttons().container().appendTo($('#product_discount_excel_btn' ));
-        $('#product_discount_search').on('keyup', function() {
+        product_discount_table.buttons().container().appendTo($('#product_discount_excel_btn'));
+        $('#product_discount_search').on('keyup', function () {
             product_discount_table.draw();
         });
 
-        $('#product_discount_detail_search').on('keyup', function() {
+        $('#product_discount_detail_search').on('keyup', function () {
             product_discount_detail_table.draw();
         });
 
-        $('#article_search').on('keyup', function() {
+        $('#article_search').on('keyup', function () {
             article_table.draw();
         });
 
@@ -146,11 +156,11 @@
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ( $data['user']->delete_access == '1' )
-                $('#delete_product_discount_btn').show();
+            $('#delete_product_discount_btn').show();
             @endif
         });
 
-        $(document).delegate('#discount_item_btn', 'click', function(e) {
+        $(document).delegate('#discount_item_btn', 'click', function (e) {
             e.preventDefault();
             jQuery.noConflict();
             var pd_id = $(this).attr('data-pd_id');
@@ -161,7 +171,7 @@
             product_discount_detail_table.draw();
         });
 
-        $(document).delegate('#delete_discount_item', 'click', function(e) {
+        $(document).delegate('#delete_discount_item', 'click', function (e) {
             e.preventDefault();
             var pst_id = $(this).attr('data-pst_id');
             var pd_id = $('#_pd_id').val();
@@ -174,20 +184,20 @@
                     'Hapus'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_pst_id:pst_id, _pd_id:pd_id},
+                        data: {_pst_id: pst_id, _pd_id: pd_id},
                         dataType: 'json',
                         url: "{{ url('delete_item_discount')}}",
-                        success: function(r) {
-                            if (r.status == '200'){
+                        success: function (r) {
+                            if (r.status == '200') {
                                 toast("Berhasil", "Artikel berhasil dihapus dari diskon", "success");
                                 article_table.draw();
                                 product_discount_detail_table.draw();
@@ -202,7 +212,7 @@
             })
         });
 
-        $('#add_product_discount_btn').on('click', function() {
+        $('#add_product_discount_btn').on('click', function () {
             jQuery.noConflict();
             $('#ProductDiscountModal').modal('show');
             $('#_id').val('');
@@ -211,29 +221,29 @@
             $('#delete_product_discount_btn').hide();
         });
 
-        $('#add_product_discount_detail_btn').on('click', function() {
+        $('#add_product_discount_detail_btn').on('click', function () {
             jQuery.noConflict();
             $('#ArticleModal').modal('show');
             article_table.draw();
         });
 
-        $(document).delegate('#add_article_to_list', 'click', function(e) {
+        $(document).delegate('#add_article_to_list', 'click', function (e) {
             e.preventDefault();
             jQuery.noConflict();
             var pst_id = $(this).attr('data-pst_id');
             var pd_id = $('#_pd_id').val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_pst_id:pst_id, _pd_id:pd_id},
+                data: {_pst_id: pst_id, _pd_id: pd_id},
                 dataType: 'json',
                 url: "{{ url('add_item_to_discount')}}",
-                success: function(r) {
-                    if (r.status == '200'){
+                success: function (r) {
+                    if (r.status == '200') {
                         toast("Berhasil", "Artikel berhasil dditambah kedalam diskon", "success");
                         article_table.draw(false);
                         product_discount_detail_table.draw();
@@ -248,20 +258,20 @@
             return false;
         });
 
-        $('#f_pd').on('submit', function(e) {
+        $('#f_pd').on('submit', function (e) {
             e.preventDefault();
             $("#save_product_discount_btn").html('Proses ..');
             $("#save_product_discount_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
+                type: 'POST',
                 url: "{{ url('pd_save')}}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
-                success: function(data) {
+                success: function (data) {
                     $("#save_product_discount_btn").html('Simpan');
                     $("#save_product_discount_btn").attr("disabled", false);
                     if (data.status == '200') {
@@ -273,13 +283,13 @@
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function (data) {
                     swal('Error', data, 'error');
                 }
             });
         });
 
-        $('#delete_product_discount_btn').on('click', function(){
+        $('#delete_product_discount_btn').on('click', function () {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -289,20 +299,20 @@
                     'Hapus'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {_id: $('#_id').val()},
                         dataType: 'json',
                         url: "{{ url('pd_delete')}}",
-                        success: function(r) {
-                            if (r.status == '200'){
+                        success: function (r) {
+                            if (r.status == '200') {
                                 swal("Berhasil", "Data berhasil dihapus", "success");
                                 $('#ProductDiscountModal').modal('hide');
                                 product_discount_table.ajax.reload();
@@ -316,25 +326,25 @@
             })
         });
 
-        $('#import_modal_btn').on('click', function() {
+        $('#import_modal_btn').on('click', function () {
             jQuery.noConflict();
             $('#ImportModal').modal('show');
         });
 
-        $('#f_import').on('submit', function(e) {
+        $('#f_import').on('submit', function (e) {
             e.preventDefault();
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
+                type: 'POST',
                 url: "{{ url('discount_import')}}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
-                success: function(data) {
+                success: function (data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -352,7 +362,7 @@
                         swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
                     }
                 },
-                error: function(data){
+                error: function (data) {
                     swal('Error', data, 'error');
                 }
             });
