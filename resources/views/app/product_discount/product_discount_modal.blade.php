@@ -111,7 +111,8 @@
                     <thead class="bg-light text-dark">
                         <tr>
                             <th class="text-dark">No</th>
-                            <th class="text-dark">Artikel</th>
+                            <th class="text-dark">Artikel ID</th>
+                            <th class="text-dark">Artikel Name</th>
                             <th class="text-dark">Warna</th>
                             <th class="text-dark">Size</th>
                             <th class="text-dark">HB</th>
