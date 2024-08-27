@@ -109,6 +109,7 @@ class TransaksiOnlineController extends Controller
                     ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->where('no_resi', '!=', '')
+                    ->orderBy('id')
                     ->groupBy('to_id')
             )
                 ->editColumn('order_number', function ($data) {
@@ -364,7 +365,7 @@ class TransaksiOnlineController extends Controller
 
                 $sku_check = OnlineTransactionDetails::select('id')->where('to_id', $to_id->id)->where('sku', $sku)->get()->first();
 
-                if ($sku_check->id == 0){
+                if ($sku_check->id == 0 || $sku_check->id == NULL){
                     $rowSku = [
                         'order_number' => $order_number,
                         'to_id' => $to_id->id,
