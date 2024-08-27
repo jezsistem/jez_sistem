@@ -139,7 +139,7 @@ class TransaksiOnlineController extends Controller
     public function detailDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode','brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
                 ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->leftJoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -205,7 +205,7 @@ class TransaksiOnlineController extends Controller
 
 
         $data = [
-            'title' => 'Invoice '.$invoice,
+            'title' => 'Invoice ' . $invoice,
             'invoice' => $invoice,
             'invoice_data' => $get_invoice,
             'store_code' => $stores_code,
@@ -241,7 +241,7 @@ class TransaksiOnlineController extends Controller
         $stores_code = $data_stores->st_code;
 
         $data = [
-            'title' => 'Invoice '.$orderNumber,
+            'title' => 'Invoice ' . $orderNumber,
             'invoice' => $orderNumber,
             'invoice_data' => $get_invoice,
             'store_code' => $stores_code,
@@ -352,41 +352,48 @@ class TransaksiOnlineController extends Controller
 
             foreach ($data as $item) {
                 $order_number = $item[0];
-                $original_price = $item[16];
-                $price_after_discount = $item[20];
+                $original_price = str_replace('.', '', $item[16]);
+                $price_after_discount = str_replace('.', '', $item[20]);
                 $qty = $item[18];
                 $sku = $item[14];
                 $return_qty = $item[19];
-                $total_discount = $item[21];
-                $discount_seller = $item[22];
-                $discount_platform = $item[23];
+                $total_discount = str_replace('.', '', $item[21]);
+                $discount_seller = str_replace('.', '', $item[22]);
+                $discount_platform = str_replace('.', '', $item[23]);
 
-                $to_id = OnlineTransactions::select('id')->where('order_number', $order_number)->get()->first();
+                // Fetch the transaction ID by order number
+                $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
 
-                $sku_check = OnlineTransactionDetails::select('id')->where('to_id', $to_id->id)->where('sku', $sku)->get()->first();
+                // Check if a record with this to_id and SKU exists
+                $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
+                    ->where('sku', $sku)
+                    ->exists();
 
-                if ($sku_check->id == 0 || $sku_check->id == NULL){
-                    $rowSku = [
-                        'order_number' => $order_number,
-                        'to_id' => $to_id->id,
-                        'sku' => $sku,
-                        'original_price' => str_replace('.', '', $original_price),
-                        'price_after_discount' => str_replace('.', '', $price_after_discount),
-                        'qty' => $qty,
-                        'return_qty' => $return_qty,
-                        'total_discount' => str_replace('.', '', $total_discount),
-                        'discount_seller' => str_replace('.', '', $discount_seller),
-                        'discount_platform' => str_replace('.', '', $discount_platform),
-                    ];
+                // Prepare the data for the row
+                $rowSku = [
+                    'order_number' => $order_number,
+                    'to_id' => $to_id,
+                    'sku' => $sku,
+                    'original_price' => $original_price,
+                    'price_after_discount' => $price_after_discount,
+                    'qty' => $qty,
+                    'return_qty' => $return_qty,
+                    'total_discount' => $total_discount,
+                    'discount_seller' => $discount_seller,
+                    'discount_platform' => $discount_platform,
+                ];
 
-                    if ($to_id->id == 0) {
-                        OnlineTransactionDetails::insertOrIgnore($rowSku);
-                    } else {
-                        $id_trx_sku = OnlineTransactionDetails::select('id')->where('order_number', $order_number)->where('sku', $sku)->get()->first();
-                        OnlineTransactionDetails::where('id', $id_trx_sku->id)->update($rowSku);
-                    }
+                // Insert if the SKU does not exist for this transaction
+                if (!$sku_exists) {
+                    OnlineTransactionDetails::create($rowSku);
+                } else {
+                    // Update the existing record
+                    OnlineTransactionDetails::where('to_id', $to_id)
+                        ->where('sku', $sku)
+                        ->update($rowSku);
                 }
             }
+
         }
         return [
             'processedData' => $processedData
