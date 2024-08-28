@@ -2596,7 +2596,7 @@ class PointOfSaleController extends Controller
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
                 ->where('pst_id', $row->pst_id)
-                ->where('pls_qty', '>=', '0')
+//                ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)->get();
             $bin = '';
             $sell_price = 0;
