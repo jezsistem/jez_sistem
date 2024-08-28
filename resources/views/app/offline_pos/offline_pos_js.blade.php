@@ -1539,7 +1539,7 @@
                                         pst_id +
                                         " discount_number' id='discount_number" + (
                                             total_row + 1) +
-                                        "' value='10000' onchange='return changeDiscountNumber(" +
+                                        "' value='' onchange='return changeDiscountNumber(" +
                                         (total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
                                         "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
