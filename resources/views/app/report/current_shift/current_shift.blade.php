@@ -79,6 +79,7 @@
                                 </div>
                             </div>
                             <div class="card-body table-responsive">
+                                {{ \Illuminate\Support\Facades\Auth::user()->id }}
                                 <!--begin: Datatable-->
 {{--                                <input type="search" class="form-control  col-6" id="user_shift_search" placeholder="Cari Nama Shift"/><br/>--}}
                                 <table class="table table-hover table-checkable" id="UserShiftTb">

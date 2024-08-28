@@ -120,6 +120,47 @@ class ReportShiftController extends Controller
     {
         $st_id = $request->st_id;
 
+        $u_id = Auth::user()->id;
+        $date_now = date('Y-m-d');
+
+//        if ($request->ajax()) {
+//            return datatables()->of(
+//                DB::table('users')
+//                    ->select(
+//                        'users.id',
+//                        'stores.id as st_id',
+//                        'users.u_name',
+//                        'user_shifts.start_time',
+//                        'user_shifts.date',
+//                        'stores.st_name',
+////                        DB::raw('SUM(CASE WHEN ts_pos_transactions.u_id = 247 AND DATE(ts_pos_transactions.created_at) = 2024-08-28 THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS total_pos_real_price')
+//                        DB::raw('SUM(CASE WHEN ts_pos_transactions.u_id = '.$u_id.' AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price')
+//                    )
+//                    ->join('stores', 'users.st_id', '=', 'stores.id')
+//                    ->join('user_shifts', 'users.id', '=', 'user_shifts.user_id')
+//                    ->leftJoin('pos_transactions', 'pos_transactions.u_id', '=', 'users.id')
+//                    ->where('users.id', '=', $u_id)
+//                    ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', $date_now)
+//                    ->groupBy(
+//                        'users.id',
+//                        'stores.id',
+//                        'users.u_name',
+//                        'user_shifts.start_time',
+//                        'user_shifts.date',
+//                        'stores.st_name'
+//                    )
+//            )
+//                ->editColumn('start_time', function ($row) {
+//                    return date('H:i:s', strtotime($row->start_time));
+//                })
+//                ->editColumn('total_pos_real_price', function ($row) {
+//                    return 'Rp. ' . number_format($row->total_pos_real_price);
+//                })
+//                ->rawColumns(['total_pos_real_price'])
+//                ->addIndexColumn()
+//                ->make(true);
+//        }
+
         if ($request->ajax()) {
             return datatables()->of(
                 User::select(
@@ -129,17 +170,19 @@ class ReportShiftController extends Controller
                     'user_shifts.start_time',
                     'user_shifts.date',
                     'stores.st_name',
-                // Uncomment the following line if you need the SUM aggregation
-                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_users.st_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price')
+                    // Uncomment the following line if you need the SUM aggregation
+                    DB::raw('SUM(CASE WHEN ts_pos_transactions.u_id = 242 AND DATE(ts_pos_transactions.created_at) = 2024-08-28 THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price')
+//                    DB::raw('SUM(CASE WHEN ts_pos_transactions.u_id = 242 AND DATE(ts_pos_transactions.created_at) = CURDATE() THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS total_pos_real_price')
                 )
                     ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
                     ->join('user_shifts', 'users.id', '=', 'user_shifts.user_id')
-                    ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', '2024-07-23')
+                    ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', $date_now)
+                    ->where('user_id', '=', $u_id)
                     // Uncomment the following lines if you need the INNER JOIN and additional conditions
-                     ->leftJoin('pos_transactions', function ($join) {
-                         $join->on('users.id', '=', 'pos_transactions.u_id')
-                             ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', '2024-07-23');
-                     })
+                    ->leftJoin('pos_transactions', function ($join) {
+                        $join->on('users.id', '=', 'pos_transactions.u_id')
+                            ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', '2024-07-23');
+                    })
                     ->groupBy(
                         'users.id',
                         'users.u_name',
