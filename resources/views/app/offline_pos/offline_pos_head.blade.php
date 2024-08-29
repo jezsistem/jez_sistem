@@ -19,6 +19,28 @@
 	<link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="{{ asset('pos/css') }}/daterangepicker.css" />
 
+	<style>
+		#current-shift-table-wrapper {
+			text-align: center;
+		}
+
+		#current-shift-table {
+			margin: 0 auto;
+			width: 50%;
+			border-collapse: collapse;
+		}
+
+		#current-shift-table td, #current-shift-table th {
+			padding: 10px;
+			text-align: center;
+			border: 1px solid #ddd;
+		}
+
+		#current-shift-table th {
+			background-color: #f2f2f2;
+		}
+	</style>
+
 	<script>
 		var elem = document.documentElement;
 		function forceFullScreen()

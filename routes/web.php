@@ -124,6 +124,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
+    Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
     Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
     Route::get('refund_retur_datatables', [PointOfSaleController::class, 'refundReturDatatables']);
