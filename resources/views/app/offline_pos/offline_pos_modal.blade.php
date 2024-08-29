@@ -749,7 +749,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h4 class="modal-title text-dark" id="myModalLabel13">Input Laba Shift</h4>
+                <h4 class="modal-title text-light" id="myModalLabel13">Detail Information Payment</h4>
                 <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0"
                         data-dismiss="modal" aria-label="Close">
                     <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor"
@@ -759,9 +759,9 @@
                     </svg>
                 </button>
             </div>
-            <h3>Detail Information</h3>
-            <div class="mt-3">
-                <table class="table table-hover table-checkable" id="current-shift-table">
+            <div class="mt-3" style="margin: 20px">
+
+                <table class="table table-hover table-checkable" style="width: 100%;" id="current-shift-table">
                     <thead>
                     <tr>
                         <th>Payment Method</th>

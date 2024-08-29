@@ -226,21 +226,22 @@ class ReportShiftController extends Controller
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_users.st_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_price'),
             )
                 ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
-                ->join('user_shifts', 'users.id', '=', 'user_shifts.user_id')
-                ->join('pos_transactions', function ($join) {
+                ->leftjoin('user_shifts', 'users.id', '=', 'user_shifts.user_id')
+                ->leftjoin('pos_transactions', function ($join) {
                     $join->on('users.id', '=', 'pos_transactions.u_id')
                         ->where('pos_transactions.pos_refund', '=', '0')
                         ->whereBetween('pos_transactions.created_at', [DB::raw('ts_user_shifts.start_time'), DB::raw('ts_user_shifts.end_time')]);
                 })
                 ->groupBy(
                     'users.id',
+                    'user_shifts.id',
                     'users.u_name',
                     'user_shifts.start_time',
                     'user_shifts.date',
                     'user_shifts.end_time',
                     'stores.st_name',
-                    'user_shifts.laba_shift',
-                ))
+                    'user_shifts.laba_shift'
+                )->orderBy('user_shifts.id', 'DESC'))
                 ->editColumn('start_time', function ($row) {
                     return date('H:i:s', strtotime($row->start_time));
                 })
@@ -248,16 +249,16 @@ class ReportShiftController extends Controller
                     return date('H:i:s', strtotime($row->end_time));
                 })
                 ->editColumn('total_pos_payment_price', function ($row) {
-                    return 'Rp. ' . number_format($row->total_pos_payment_price);
+                    return 'Rp. ' . $row->total_pos_payment_price;
                 })
                 ->editColumn('total_pos_real_price', function ($row) {
-                    return 'Rp. ' . number_format($row->total_pos_real_price);
+                    return 'Rp. ' . $row->total_pos_real_price;
                 })
                 ->editColumn('laba_shift', function ($row) {
-                    return 'Rp. ' . number_format($row->laba_shift);
+                    return 'Rp. ' . $row->laba_shift;
                 })
                 ->editColumn('difference', function ($row) {
-                    return 'Rp. ' . number_format($row->total_pos_real_price - $row->total_pos_payment_price);
+                    return 'Rp. ' . $row->total_pos_real_price - $row->total_pos_payment_price;
                 })
                 ->editColumn('start_time_original', function ($row) {
                     return $row->start_time;
