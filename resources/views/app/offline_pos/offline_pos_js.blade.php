@@ -1965,6 +1965,33 @@
             });
         });
 
+        var detail_shift = jQuery('#current-shift-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route("current-shift.data") }}',
+                type: 'GET',
+            },
+            columns: [
+                { data: 'pm_name', name: 'pm_name' },
+                {
+                    data: 'total_pos_real_price',
+                    name: 'total_pos_real_price',
+                    render: function(data, type, row) {
+                        return formatRupiahDetail(data);
+                    }
+                }
+            ],
+            order: [[0, 'asc'], [1, 'asc']],
+            paging: false,
+            searching: false,
+            lengthChange: false
+        });
+
+        function formatRupiahDetail(number) {
+            return number.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
+        }
+
         var refund_retur_table = jQuery('#RefundReturtb').DataTable({
             destroy: true,
             processing: true,
@@ -2913,6 +2940,7 @@
             jQuery('#shiftEmployeeModal').modal('hide');
             jQuery('#InputLabaShift').modal('show');
             product.draw(false);
+            detail_shift.draw();
         });
 
 
@@ -2944,6 +2972,8 @@
             });
         });
 
+
+
         jQuery(document).delegate('#f_laba_input', 'submit', function (e) {
             e.preventDefault();
             var numericValue = document.getElementById('laba_shift').value
@@ -2973,14 +3003,17 @@
 
                         jQuery('#startShiftButton').show();
                         jQuery('#stopShiftButton').hide();
-                        location.reload();
+
                     },
                     error: function (error) {
                         console.error('Error End shift:', error);
                     }
                 });
+                location.reload();
                 return false;
             }
+
+
 
             // jQuery('#stopShiftButton').on('click', function() {
             //     shiftStarted = false;

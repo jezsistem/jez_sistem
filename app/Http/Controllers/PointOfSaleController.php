@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use Yajra\DataTables\Facades\DataTables;
 use App\Models\UserShift;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
@@ -133,6 +134,61 @@ class PointOfSaleController extends Controller
         } else {
             return view('app.offline_pos.offline_pos', compact('data'));
         }
+    }
+
+    public function getCurrentShiftData(Request $request)
+    {
+        $date_now = date('Y-m-d');
+
+
+        $endTime = '2024-08-29 23:59:59';
+        $storeId = Auth::user()->st_id;
+
+        $current_shift = UserShift::join('users', 'user_shifts.user_id', '=', 'users.id')
+            ->join('stores', 'stores.id', '=', 'users.st_id')
+            ->where('user_shifts.end_time', '=', NULL)
+            ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', $date_now)
+//            ->orderBy('user_shifts.id')
+            ->first();
+
+        $startTimeStamp = $current_shift->start_time;
+        $endTime =  $current_shift->end_time;
+
+        $startTime = $startTimeStamp = date('Y-m-d H:i:s', strtotime($startTimeStamp));
+
+
+
+//        $query = DB::table('pos_transactions')
+//            ->join('payment_methods', 'pos_transactions.pm_id', '=', 'payment_methods.id')
+//            ->join('stores', 'pos_transactions.st_id', '=', 'stores.id')
+//            ->select('payment_methods.pm_name', DB::raw("
+//                SUM(
+//                    CASE
+//                        WHEN ts_pos_transactions.created_at > '{$current_shift->start_time}'
+//                             AND ts_pos_transactions.st_id = $storeId
+//                        THEN ts_pos_transactions.pos_real_price
+//                        ELSE 0
+//                    END
+//                ) as total_pos_real_price"))
+//            ->whereBetween('pos_transactions.created_at', [$current_shift->start_time, $current_shift->end_time])
+//            ->where('pos_transactions.st_id', $storeId)
+//            ->groupBy(DB::raw('stores.st_name, DATE(ts_pos_transactions.created_at), ts_payment_methods.pm_name'))
+//            ->orderBy('payment_methods.pm_name');
+
+        $query = DB::table('pos_transactions')
+            ->select(
+                'payment_methods.pm_name',
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.created_at > "' . $startTime . '" AND ts_pos_transactions.st_id = ' . $storeId . ' THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS total_pos_real_price')
+            )
+            ->join('payment_methods', 'pos_transactions.pm_id', '=', 'payment_methods.id')
+            ->join('stores', 'pos_transactions.st_id', '=', 'stores.id')
+            ->where('pos_transactions.created_at', '>', $startTime)
+            ->where('pos_transactions.st_id', '=', $storeId)
+            ->groupBy('stores.st_name', DB::raw('DATE(ts_pos_transactions.created_at)'), 'payment_methods.pm_name')
+//            ->orderBy('stores.st_name')
+            ->orderBy('payment_methods.pm_name');
+
+        return DataTables::of($query)->make(true);
     }
 
 //    public function detailShift(Request $request)
@@ -703,7 +759,7 @@ class PointOfSaleController extends Controller
             $cr_id = $request->_cr_id;
             $pos_total_discount = $request->_total_discount_side;
             $dp_checkbox = $request->_dp_checkBox;
-            $cross = $request->_cross;            
+            $cross = $request->_cross;
             $st_id = $request->_st_id ?? Auth::user()->st_id;
 
             $rand = str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
@@ -1040,7 +1096,7 @@ class PointOfSaleController extends Controller
         } else {
             $nameset = '0';
         }
-        if($nameset_price == NULL){
+        if ($nameset_price == NULL) {
             $nameset_price = 0;
         }
         $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
@@ -1132,7 +1188,7 @@ class PointOfSaleController extends Controller
                         ]);
 
                     $update_pst = ProductStock::where('id', '=', $pls_qty->pst_id)->update([
-                        'ps_qty' =>  $f_item_qty_pst
+                        'ps_qty' => $f_item_qty_pst
                     ]);
                 }
             } else if (in_array(['pl_code' => $pl_code], $b1g1_setup)) {
@@ -1298,7 +1354,7 @@ class PointOfSaleController extends Controller
             $date2_remain_po = date('Y-m-d H:i:s');
             $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
             if ($date1_remain_po > $date2_remain_po) {
-                $diff_remain_po = - ($diff_remain_po);
+                $diff_remain_po = -($diff_remain_po);
             }
             $days_remain_po = round($diff_remain_po / 86400);
         }
@@ -1307,7 +1363,7 @@ class PointOfSaleController extends Controller
             $date2_remain_tf = date('Y-m-d H:i:s');
             $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
             if ($date1_remain_tf > $date2_remain_tf) {
-                $diff_remain_tf = - ($diff_remain_tf);
+                $diff_remain_tf = -($diff_remain_tf);
             }
             $days_remain_tf = round($diff_remain_tf / 86400);
         }
@@ -1698,7 +1754,7 @@ class PointOfSaleController extends Controller
                         $bin = '<span class="btn-lg btn-info">' . strtoupper($row->pl_code) . '</span>';
                     } else {
                         $status = '';
-                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty  . '</span>';
+                        $bin = '<span class="btn-lg btn-info">' . $row->pls_qty . '</span>';
                     }
                     $output .= '
                     <li>
@@ -2512,7 +2568,6 @@ class PointOfSaleController extends Controller
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
                 ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->join('brands', 'brands.id', '=', 'products.br_id')
-                //                ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
                 ->whereIn('plst_status', $plst_status_new)
@@ -2555,7 +2610,6 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
-                //                ->where('pls_qty', '>', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->whereIn('pl_code', $b1g1_setup)
                 ->where('product_stocks.ps_barcode', '=', $barcode)
@@ -2583,7 +2637,6 @@ class PointOfSaleController extends Controller
                 ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
-                //                ->where('pls_qty', '>', '0')
                 ->whereNotIn('pl_code', $exception)
                 ->whereIn('pl_code', ['TOKO'])
                 ->where('product_stocks.ps_barcode', '=', $barcode)

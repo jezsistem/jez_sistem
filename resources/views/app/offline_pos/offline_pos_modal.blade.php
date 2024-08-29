@@ -106,7 +106,7 @@
                             <fieldset class="form-group mb-3">
                                 <select class="form-control" id="cust_token_active" name="cust_token_active">
                                     <option value="null">-- Silahkan Pilih --</option>
-                                    <option value="1" >Active</option>
+                                    <option value="1">Active</option>
                                     <option value="0">Non-Active</option>
                                 </select>
                             </fieldset>
@@ -318,7 +318,8 @@
                     <div class="col-md-6">
                         <label class="text-body"><span class="btn-sm btn-primary font-size-bold">Jumlah yang dibayar Customer</span></label>
                         <fieldset class="form-group mb-3">
-                            <input type="textduagweuiq" name="number" class="form-control bg-light-primary" id="total_payment"
+                            <input type="textduagweuiq" name="number" class="form-control bg-light-primary"
+                                   id="total_payment"
                                    value="" placeholder="Jumlah">
                         </fieldset>
                     </div>
@@ -413,7 +414,8 @@
                     <div class="card-body">
                         <div class="form-group mb-1 pb-10">
                             <label for="exampleTextarea">Scan Barcode Staff Anda</label>
-                            <input type="text" class="form-control" id="u_secret_code" name="u_secret_code" autocomplete="off" autofocus required/>
+                            <input type="text" class="form-control" id="u_secret_code" name="u_secret_code"
+                                   autocomplete="off" autofocus required/>
                         </div>
                     </div>
                 </div>
@@ -611,13 +613,15 @@
             <div class="modal-body">
                 <form id="f_shift_customer">
                     <div class="btn-group" role="group">
-{{--                        <button type="button" class="btn btn-primary" id="startShiftButton">Start Shift</button>--}}
-{{--                        <button type="button" class="btn btn-danger" id="stopShiftButton" style="display: none;">Stop--}}
-                            Shift
+                        {{--                        <button type="button" class="btn btn-primary" id="startShiftButton">Start Shift</button>--}}
+                        {{--                        <button type="button" class="btn btn-danger" id="stopShiftButton" style="display: none;">Stop--}}
+                        Shift
                         </button>
-                    </div><br>
+                    </div>
                     <br>
-                    <div id="shiftStatus">Shift not started</div><br>
+                    <br>
+                    <div id="shiftStatus">Shift not started</div>
+                    <br>
 
 
                     <div class="clock"></div>
@@ -629,7 +633,6 @@
 <!-- /Modal -->
 
 
-
 <!-- Modal -->
 <div class="modal fade text-left" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13"
      style="display: none;" aria-hidden="true">
@@ -637,19 +640,22 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h4 class="modal-title text-dark" id="myModalLabel13">Shift Employee Detail</h4>
-                <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0" data-dismiss="modal" aria-label="Close">
-                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+                <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0"
+                        data-dismiss="modal" aria-label="Close">
+                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                              d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
                     </svg>
                 </button>
             </div>
             <div class="modal-body">
-{{--                <form id="f_shift_customer">--}}
-{{--                    <div class="btn-group" role="group">--}}
-{{--                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>--}}
+                {{--                <form id="f_shift_customer">--}}
+                {{--                    <div class="btn-group" role="group">--}}
+                {{--                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>--}}
 
-{{--                    </div><br>--}}
-{{--                </form>--}}
+                {{--                    </div><br>--}}
+                {{--                </form>--}}
                 <div id="UserShiftModalBody"></div>
             </div>
         </div>
@@ -665,19 +671,22 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h4 class="modal-title text-dark" id="myModalLabel13">Input Kas</h4>
-                <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0" data-dismiss="modal" aria-label="Close">
-                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+                <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0"
+                        data-dismiss="modal" aria-label="Close">
+                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                              d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
                     </svg>
                 </button>
             </div>
             <div class="modal-body">
-{{--                <form id="f_shift_customer">--}}
-{{--                    <div class="btn-group" role="group">--}}
-{{--                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>--}}
+                {{--                <form id="f_shift_customer">--}}
+                {{--                    <div class="btn-group" role="group">--}}
+                {{--                        <button type="button" class="btn btn-primary" id="inputKasButton">Input Kas</button>--}}
 
-{{--                    </div><br>--}}
-{{--                </form>--}}
+                {{--                    </div><br>--}}
+                {{--                </form>--}}
                 <input type="text" class="form-control" name="id_shift" id="id_shift">
                 <div id="UserShiftModalBody"></div>
             </div>
@@ -709,7 +718,7 @@
                         <div class="toggle-button-cover">
                             <div class="button-cover">
                                 <div class="button b2" id="button-12">
-                                    <input type="checkbox" class="checkbox" />
+                                    <input type="checkbox" class="checkbox"/>
                                     <div class="knobs">
                                         <span></span>
                                     </div>
@@ -717,10 +726,12 @@
                                 </div>
                             </div>
                         </div>
-                    </div><br>
+                    </div>
+                    <br>
 
                     <br>
-                    <div id="shiftStatus">Shift not started</div><br>
+                    <div id="shiftStatus">Shift not started</div>
+                    <br>
 
 
                     <div class="clock"></div>
@@ -735,24 +746,41 @@
 <!-- Modal -->
 <div class="modal fade text-left" id="InputLabaShift" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13"
      style="display: none;" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h4 class="modal-title text-dark" id="myModalLabel13">Input Laba Shift</h4>
                 <button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0"
                         data-dismiss="modal" aria-label="Close">
-                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor"
+                         xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd"
                               d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
                     </svg>
                 </button>
             </div>
+            <h3>Detail Information</h3>
+            <div class="mt-3">
+                <table class="table table-hover table-checkable" id="current-shift-table">
+                    <thead>
+                    <tr>
+                        <th>Payment Method</th>
+                        <th>Total POS Real Price</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Static data can be removed if loading data via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+
             <form id="f_laba_input">
                 <div class="modal-body">
                     <div class="card-body">
                         <div class="form-group mb-1 pb-10">
-                            <label for="exampleTextarea">Input Nominal Laba</label>
-                            <input type="number" class="form-control" id="laba_shift" placeholder="Rp. ......." name="laba_shift" autocomplete="off" />
+                            <label for="exampleTextarea">Input Uang Kasir (Cash)</label>
+                            <input type="number" style="border: 2px solid #000;" class="form-control" id="laba_shift"
+                                   placeholder="Rp. ......." name="laba_shift" autocomplete="off"/>
                         </div>
                     </div>
                 </div>
