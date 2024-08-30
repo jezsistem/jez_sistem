@@ -381,6 +381,24 @@
     // setInterval(refreshTable, 3000);
 
     var scanOutTbEnterPressed = false;
+    var previousItemCount = 0;
+
+    // Preload the audio element
+    var audio = new Audio("{{ asset('music/HE3.mp3') }}");
+    audio.preload = 'auto';
+
+    // Function to play sound after user interaction
+    function playSound() {
+        audio.play().catch(function(error) {
+            console.log('Autoplay prevented, user interaction required');
+        });
+    }
+
+    // Ensure user interaction
+    // document.addEventListener('click', function() {
+    //     // Now sound can be played without restriction after this interaction
+    //     playSound();
+    // });
 
     var scan_out_table = $('#ScanOuttb').DataTable({
         destroy: true,
@@ -391,7 +409,6 @@
         ajax: {
             url: "{{ url('scan_product_out_datatables') }}",
             data: function(d) {
-                // d.pl_id = $('#pl_id_out').val();
                 d.search = $('#scan_out_search').val();
                 d.st_id = $('#st_id').val();
             }
@@ -400,7 +417,7 @@
             data: 'article',
             name: 'article',
             sortable: false
-        }, ],
+        }],
         columnDefs: [{
             "targets": 0,
             "className": "text-left",
@@ -411,6 +428,16 @@
         ],
         drawCallback: function(settings) {
             var api = this.api();
+            var currentItemCount = api.rows({ filter: 'applied' }).count();
+
+            // Check if the current item count is greater than the previous count
+            if (currentItemCount > previousItemCount) {
+                playSound();
+            }
+
+            // Update the previous item count
+            previousItemCount = currentItemCount;
+
             $('#scan_out_search').off('keyup').on('keyup', function(event) {
                 if (event.keyCode === 13) {
                     scanOutTbEnterPressed = true;

@@ -1985,7 +1985,8 @@
             order: [[0, 'asc'], [1, 'asc']],
             paging: false,
             searching: false,
-            lengthChange: false
+            lengthChange: false,
+            "info": false
         });
 
         function formatRupiahDetail(number) {

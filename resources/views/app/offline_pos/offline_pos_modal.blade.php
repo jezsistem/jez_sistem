@@ -772,24 +772,26 @@
                     <!-- Static data can be removed if loading data via AJAX -->
                     </tbody>
                 </table>
-            </div>
 
-            <form id="f_laba_input">
-                <div class="modal-body">
-                    <div class="card-body">
-                        <div class="form-group mb-1 pb-10">
-                            <label for="exampleTextarea">Input Uang Kasir (Cash)</label>
-                            <input type="number" style="border: 2px solid #000;" class="form-control" id="laba_shift"
-                                   placeholder="Rp. ......." name="laba_shift" autocomplete="off"/>
+                <form id="f_laba_input">
+                    <div class="modal-body">
+                        <div class="card-body">
+                            <div class="form-group mb-1 pb-10">
+                                <label for="exampleTextarea">Input Uang Kasir (Cash)</label>
+                                <input type="number" style="border: 2px solid #000;" class="form-control" id="laba_shift"
+                                       placeholder="Rp. ......." name="laba_shift" autocomplete="off"/>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Batal
-                    </button>
-                    <button type="submit" class="btn btn-dark font-weight-bold">End Shift</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Batal
+                        </button>
+                        <button type="submit" class="btn btn-dark font-weight-bold">End Shift</button>
+                    </div>
+                </form>
+            </div>
+
+
         </div>
     </div>
 </div>
