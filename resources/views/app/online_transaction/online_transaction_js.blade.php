@@ -21,6 +21,7 @@
                 url : "{{ url('transaksi_online_datatables') }}",
                 data: function(d) {
                     d.search = $('#online_transaction_search').val();
+                    d.st_id = $('#st_id_filter').val();
                 }
             },
             columns: [
@@ -43,6 +44,10 @@
             language: {
                 "lengthMenu": "_MENU_",
             }
+        });
+
+        $('#st_id_filter').on('change', function() {
+            online_transaction_table.draw(false);
         });
 
         $(document).delegate('#import_modal', 'click', function() {
@@ -145,6 +150,7 @@
                     swal('Error', data, 'error');
                 }
             });
+            online_transaction_table.draw(false);
         });
 
         var detail_table = $('#Detailtb').DataTable({
@@ -212,6 +218,7 @@
                         success: function(response) {
                             var printUrl = '{{ url('print_online_nota') }}/' + numOrder;
                             window.open(printUrl, '_blank');
+                            online_transaction_table.draw(false);
                         },
                         error: function(xhr, status, error) {
                             // Handle errors here
@@ -225,6 +232,7 @@
                     });
                 }
             });
+
         });
 
 
