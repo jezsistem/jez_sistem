@@ -292,9 +292,11 @@ class TransaksiOnlineController extends Controller
                 $import = new TransactionOnlineImport();
                 $data = Excel::toArray($import, public_path('excel/' . $nama_file));
 
+                $st_id = Auth::user()->st_id;
+
 
                 if (count($data) >= 0) {
-                    $processData = $this->processImportData($data[0], $original_name);
+                    $processData = $this->processImportData($data[0], $original_name, $st_id);
                     $r['data'] = $file->getClientOriginalName();;
                     $r['status'] = '200';
 
@@ -320,13 +322,13 @@ class TransaksiOnlineController extends Controller
         }
     }
 
-    private function processImportData($data, $original_name)
+    private function processImportData($data, $original_name, $st_id)
     {
         $processedData = [];
-        $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'Tiktok';
+        $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'TikTok';
         $platform = $type;
-
-        $st_id = Auth::user()->st_id;
+//
+//        $st_id = Auth::user()->st_id;
 
         if ($type == 'Shopee') {
             foreach ($data as $item) {
@@ -345,7 +347,7 @@ class TransaksiOnlineController extends Controller
                 $province = $item[47];
 
                 $rowData = [
-                    'st_id' => $st_id,
+                    'st_id' => Auth::user()->st_id,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
@@ -362,19 +364,24 @@ class TransaksiOnlineController extends Controller
                     'online_print'  => false
                 ];
 
-                $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
+                try {
+                    $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
 
-                if ($get_order_number == 0) {
-                    $processedData[] = $rowData;
-                    if ($rowData['order_status'] != 'Cancel' || $rowData['order_status'] != 'Batal' || $rowData['order_status'] != 'Cancel') {
-                        OnlineTransactions::create($rowData);
+                    if ($get_order_number == 0) {
+                        $processedData[] = $rowData;
+                        if ($rowData['order_status'] != 'Cancel' && $rowData['order_status'] != 'Batal') {
+                            OnlineTransactions::create($rowData);
+                        }
+                    } else {
+                        $id_trx = OnlineTransactions::select('id', 'order_number')
+                            ->where('order_number', $order_number)
+                            ->first();
+                        OnlineTransactions::where('id', $id_trx->id)->update($rowData);
+                        $insert_id = $id_trx->id;
                     }
-                } else {
-                    $id_trx = OnlineTransactions::select('id', 'order_number')
-                        ->where('order_number', $order_number)
-                        ->first();
-                    OnlineTransactions::where('id', $id_trx->id)->update($rowData);
-                    $insert_id = $id_trx->id;
+                } catch (\Exception $e) {
+                    // Log the exception message
+                    \Log::error('Error processing Shopee data: ' . $e->getMessage());
                 }
             }
 
@@ -389,43 +396,343 @@ class TransaksiOnlineController extends Controller
                 $discount_seller = str_replace('.', '', $item[22]);
                 $discount_platform = str_replace('.', '', $item[23]);
 
-                // Fetch the transaction ID by order number
-                $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
+                try {
+                    $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
 
-                // Check if a record with this to_id and SKU exists
-                $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
-                    ->where('sku', $sku)
-                    ->exists();
-
-                // Prepare the data for the row
-                $rowSku = [
-                    'order_number' => $order_number,
-                    'to_id' => $to_id,
-                    'sku' => $sku,
-                    'original_price' => $original_price,
-                    'price_after_discount' => $price_after_discount,
-                    'qty' => $qty,
-                    'return_qty' => $return_qty,
-                    'total_discount' => $total_discount,
-                    'discount_seller' => $discount_seller,
-                    'discount_platform' => $discount_platform,
-                ];
-
-                // Insert if the SKU does not exist for this transaction
-                if (!$sku_exists) {
-                    OnlineTransactionDetails::create($rowSku);
-                } else {
-                    // Update the existing record
-                    OnlineTransactionDetails::where('to_id', $to_id)
+                    $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
                         ->where('sku', $sku)
-                        ->update($rowSku);
+                        ->exists();
+
+                    $rowSku = [
+                        'order_number' => $order_number,
+                        'to_id' => $to_id,
+                        'sku' => $sku,
+                        'original_price' => $original_price,
+                        'price_after_discount' => $price_after_discount,
+                        'qty' => $qty,
+                        'return_qty' => $return_qty,
+                        'total_discount' => $total_discount,
+                        'discount_seller' => $discount_seller,
+                        'discount_platform' => $discount_platform,
+                    ];
+
+                    if (!$sku_exists) {
+                        OnlineTransactionDetails::create($rowSku);
+                    } else {
+                        OnlineTransactionDetails::where('to_id', $to_id)
+                            ->where('sku', $sku)
+                            ->update($rowSku);
+                    }
+                } catch (\Exception $e) {
+                    // Log the exception message
+                    \Log::error('Error processing Shopee SKU data: ' . $e->getMessage());
                 }
             }
 
+        } else { // TikTok
+            foreach ($data as $item) {
+                $order_number = $item[0];
+                $order_status = $item[1];
+                $reason_cancellation = $item[32];
+                $no_resi = $item[35];
+                $shipping_method = $item[36];
+                $order_date_created = $item[25];
+                $payment_date = $item[26];
+                $payment_method = $item[50];
+
+                $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
+                $total_payment = str_replace(['IDR ', '.'], '', $item[23]);
+                $city = $item[45];
+                $province = $item[44];
+
+                $rowData = [
+                    'st_id' => Auth::user()->st_id,
+                    'order_number' => $order_number,
+                    'order_status' => $order_status,
+                    'reason_cancellation' => $reason_cancellation,
+                    'no_resi' => $no_resi,
+                    'platform_name' => 'TikTok',
+                    'shipping_method' => $shipping_method,
+                    'shipping_fee' => $shipping_fee,
+                    'order_date_created' => $order_date_created,
+                    'payment_date' => $payment_date,
+                    'payment_method' => $payment_method,
+                    'total_payment' => $total_payment,
+                    'city' => $city,
+                    'province' => $province,
+                    'online_print'  => false
+                ];
+
+                try {
+                    $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
+
+                    if ($get_order_number == 0) {
+                        $processedData[] = $rowData;
+                        if ($rowData['order_status'] != 'Cancel' && $rowData['order_status'] != 'Batal') {
+                            OnlineTransactions::create($rowData);
+                        }
+                    } else {
+                        $id_trx = OnlineTransactions::select('id', 'order_number')
+                            ->where('order_number', $order_number)
+                            ->first();
+                        OnlineTransactions::where('id', $id_trx->id)->update($rowData);
+                        $insert_id = $id_trx->id;
+                    }
+                } catch (\Exception $e) {
+                    // Log the exception message
+                    \Log::error('Error processing TikTok data: ' . $e->getMessage());
+                }
+            }
+
+            foreach ($data as $item) {
+                $order_number = $item[0];
+                $original_price = str_replace(['IDR ', '.'], '', $item[11]);
+                $price_after_discount =  str_replace(['IDR ', '.'], '', $item[15]);
+                $qty = $item[10];
+                $sku = $item[6];
+                $return_qty = $item[10];
+                $total_discount = str_replace(['IDR ', '.'], '', $item[14]);
+                $discount_seller = str_replace(['IDR ', '.'], '', $item[13]);
+                $discount_platform = str_replace('.', '', $item[13]);
+
+                try {
+                    $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
+
+                    $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
+                        ->where('sku', $sku)
+                        ->exists();
+
+                    $rowSku = [
+                        'order_number' => $order_number,
+                        'to_id' => $to_id,
+                        'sku' => $sku,
+                        'original_price' => $original_price,
+                        'price_after_discount' => $price_after_discount,
+                        'qty' => $qty,
+                        'return_qty' => $return_qty,
+                        'total_discount' => $total_discount,
+                        'discount_seller' => $discount_seller,
+                        'discount_platform' => $discount_platform,
+                    ];
+
+                    if (!$sku_exists) {
+                        OnlineTransactionDetails::create($rowSku);
+                    } else {
+                        OnlineTransactionDetails::where('to_id', $to_id)
+                            ->where('sku', $sku)
+                            ->update($rowSku);
+                    }
+                } catch (\Exception $e) {
+                    // Log the exception message
+                    \Log::error('Error processing TikTok SKU data: ' . $e->getMessage());
+                }
+            }
         }
+
         return [
             'processedData' => $processedData
         ];
+
+//        $processedData = [];
+//        $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'TikTok';
+//        $platform = $type;
+//
+//        $st_id = Auth::user()->st_id;
+//
+//        if ($type == 'Shopee') {
+//            foreach ($data as $item) {
+//                $order_number = $item[0];
+//                $order_status = $item[1];
+//                $reason_cancellation = $item[2];
+//                $no_resi = $item[4];
+//                $shipping_method = $item[5];
+//                $order_date_created = $item[9];
+//                $payment_date = $item[10];
+//                $payment_method = $item[11];
+//
+//                $shipping_fee = $item[35];
+//                $total_payment = $item[38];
+//                $city = $item[46];
+//                $province = $item[47];
+//
+//                $rowData = [
+//                    'st_id' => $st_id,
+//                    'order_number' => $order_number,
+//                    'order_status' => $order_status,
+//                    'reason_cancellation' => $reason_cancellation,
+//                    'no_resi' => $no_resi,
+//                    'platform_name' => $platform,
+//                    'shipping_method' => $shipping_method,
+//                    'shipping_fee' => str_replace('.', '', $shipping_fee),
+//                    'order_date_created' => $order_date_created,
+//                    'payment_date' => $payment_date,
+//                    'payment_method' => $payment_method,
+//                    'total_payment' => str_replace('.', '', $total_payment),
+//                    'city' => $city,
+//                    'province' => $province,
+//                    'online_print'  => false
+//                ];
+//
+//                $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
+//
+//                if ($get_order_number == 0) {
+//                    $processedData[] = $rowData;
+//                    if ($rowData['order_status'] != 'Cancel' || $rowData['order_status'] != 'Batal' || $rowData['order_status'] != 'Cancel') {
+//                        OnlineTransactions::create($rowData);
+//                    }
+//                } else {
+//                    $id_trx = OnlineTransactions::select('id', 'order_number')
+//                        ->where('order_number', $order_number)
+//                        ->first();
+//                    OnlineTransactions::where('id', $id_trx->id)->update($rowData);
+//                    $insert_id = $id_trx->id;
+//                }
+//            }
+//
+//            foreach ($data as $item) {
+//                $order_number = $item[0];
+//                $original_price = str_replace('.', '', $item[16]);
+//                $price_after_discount = str_replace('.', '', $item[20]);
+//                $qty = $item[18];
+//                $sku = $item[14];
+//                $return_qty = $item[19];
+//                $total_discount = str_replace('.', '', $item[21]);
+//                $discount_seller = str_replace('.', '', $item[22]);
+//                $discount_platform = str_replace('.', '', $item[23]);
+//
+//                // Fetch the transaction ID by order number
+//                $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
+//
+//                // Check if a record with this to_id and SKU exists
+//                $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
+//                    ->where('sku', $sku)
+//                    ->exists();
+//
+//                // Prepare the data for the row
+//                $rowSku = [
+//                    'order_number' => $order_number,
+//                    'to_id' => $to_id,
+//                    'sku' => $sku,
+//                    'original_price' => $original_price,
+//                    'price_after_discount' => $price_after_discount,
+//                    'qty' => $qty,
+//                    'return_qty' => $return_qty,
+//                    'total_discount' => $total_discount,
+//                    'discount_seller' => $discount_seller,
+//                    'discount_platform' => $discount_platform,
+//                ];
+//
+//                // Insert if the SKU does not exist for this transaction
+//                if (!$sku_exists) {
+//                    OnlineTransactionDetails::create($rowSku);
+//                } else {
+//                    // Update the existing record
+//                    OnlineTransactionDetails::where('to_id', $to_id)
+//                        ->where('sku', $sku)
+//                        ->update($rowSku);
+//                }
+//            }
+//
+//        }
+//        else {
+//            foreach ($data as $item) {
+//                //params
+//                $order_number = $item[0];
+//                $order_status = $item[1];
+//                $reason_cancellation = $item[32];
+//                $no_resi = $item[35];
+//                $shipping_method = $item[36];
+//                $order_date_created = $item[25];
+//                $payment_date = $item[26];
+//                $payment_method = $item[50];
+//
+//                $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
+//                $total_payment = str_replace(['IDR ', '.'], '', $item[23]);
+//                $city = $item[45];
+//                $province = $item[44];
+//
+//                $rowData = [
+//                    'st_id' => $st_id,
+//                    'order_number' => $order_number,
+//                    'order_status' => $order_status,
+//                    'reason_cancellation' => $reason_cancellation,
+//                    'no_resi' => $no_resi,
+//                    'platform_name' => 'TikTok',
+//                    'shipping_method' => $shipping_method,
+//                    'shipping_fee' => $shipping_fee,
+//                    'order_date_created' => $order_date_created,
+//                    'payment_date' => $payment_date,
+//                    'payment_method' => $payment_method,
+//                    'total_payment' => $total_payment,
+//                    'city' => $city,
+//                    'province' => $province,
+//                    'online_print'  => false
+//                ];
+//
+//                $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
+//
+//                if ($get_order_number == 0) {
+//                    $processedData[] = $rowData;
+//                    if ($rowData['order_status'] != 'Cancel' || $rowData['order_status'] != 'Batal' || $rowData['order_status'] != 'Cancel') {
+//                        OnlineTransactions::create($rowData);
+//                    }
+//                } else {
+//                    $id_trx = OnlineTransactions::select('id', 'order_number')
+//                        ->where('order_number', $order_number)
+//                        ->first();
+//                    OnlineTransactions::where('id', $id_trx->id)->update($rowData);
+//                    $insert_id = $id_trx->id;
+//                }
+//            }
+//
+//            foreach ($data as $item) {
+//                $order_number = $item[0];
+//                $original_price = str_replace('.', '', $item[16]);
+//                $price_after_discount = str_replace('.', '', $item[20]);
+//                $qty = $item[18];
+//                $sku = $item[14];
+//                $return_qty = $item[19];
+//                $total_discount = str_replace('.', '', $item[21]);
+//                $discount_seller = str_replace('.', '', $item[22]);
+//                $discount_platform = str_replace('.', '', $item[23]);
+//
+//                // Fetch the transaction ID by order number
+//                $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
+//
+//                // Check if a record with this to_id and SKU exists
+//                $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
+//                    ->where('sku', $sku)
+//                    ->exists();
+//
+//                // Prepare the data for the row
+//                $rowSku = [
+//                    'order_number' => $order_number,
+//                    'to_id' => $to_id,
+//                    'sku' => $sku,
+//                    'original_price' => $original_price,
+//                    'price_after_discount' => $price_after_discount,
+//                    'qty' => $qty,
+//                    'return_qty' => $return_qty,
+//                    'total_discount' => $total_discount,
+//                    'discount_seller' => $discount_seller,
+//                    'discount_platform' => $discount_platform,
+//                ];
+//
+//                // Insert if the SKU does not exist for this transaction
+//                if (!$sku_exists) {
+//                    OnlineTransactionDetails::create($rowSku);
+//                } else {
+//                    // Update the existing record
+//                    OnlineTransactionDetails::where('to_id', $to_id)
+//                        ->where('sku', $sku)
+//                        ->update($rowSku);
+//                }
+//            }
+//
+//        }
+//        return [
+//            'processedData' => $processedData
+//        ];
     }
 
 
