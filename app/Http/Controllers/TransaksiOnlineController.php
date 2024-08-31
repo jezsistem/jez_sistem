@@ -117,7 +117,7 @@ class TransaksiOnlineController extends Controller
                     ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->where('no_resi', '!=', '')
-                    ->where('st_id', '=', $st_id)
+//                    ->where('st_id', '=', $st_id)
                     ->orderBy('online_transactions.created_at', 'DESC')
                     ->groupBy('to_id')
             )
@@ -340,7 +340,6 @@ class TransaksiOnlineController extends Controller
                 $order_date_created = $item[9];
                 $payment_date = $item[10];
                 $payment_method = $item[11];
-
                 $shipping_fee = $item[35];
                 $total_payment = $item[38];
                 $city = $item[46];
@@ -433,12 +432,12 @@ class TransaksiOnlineController extends Controller
             foreach ($data as $item) {
                 $order_number = $item[0];
                 $order_status = $item[1];
-                $reason_cancellation = $item[32];
-                $no_resi = $item[35];
-                $shipping_method = $item[36];
-                $order_date_created = $item[25];
-                $payment_date = $item[26];
-                $payment_method = $item[50];
+                $reason_cancellation = $item[2];
+                $no_resi = $item[3];
+                $shipping_method = $item[4];
+                $order_date_created = $item[5];
+                $payment_date = $item[6];
+                $payment_method = $item[7];
 
                 $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
                 $total_payment = str_replace(['IDR ', '.'], '', $item[23]);
@@ -486,14 +485,14 @@ class TransaksiOnlineController extends Controller
 
             foreach ($data as $item) {
                 $order_number = $item[0];
-                $original_price = str_replace(['IDR ', '.'], '', $item[11]);
-                $price_after_discount =  str_replace(['IDR ', '.'], '', $item[15]);
+                $original_price = str_replace(['IDR ', '.'], '', $item[8]);
+                $price_after_discount =  str_replace(['IDR ', '.'], '', $item[9]);
                 $qty = $item[10];
-                $sku = $item[6];
-                $return_qty = $item[10];
-                $total_discount = str_replace(['IDR ', '.'], '', $item[14]);
-                $discount_seller = str_replace(['IDR ', '.'], '', $item[13]);
-                $discount_platform = str_replace('.', '', $item[13]);
+                $sku = $item[11];
+                $return_qty = $item[12];
+                $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
+                $discount_seller = str_replace(['IDR ', '.'], '', $item[14]);
+                $discount_platform = str_replace('.', '', $item[15]);
 
                 try {
                     $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
