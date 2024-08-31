@@ -394,12 +394,6 @@
         });
     }
 
-    // Ensure user interaction
-    // document.addEventListener('click', function() {
-    //     // Now sound can be played without restriction after this interaction
-    //     playSound();
-    // });
-
     var scan_out_table = $('#ScanOuttb').DataTable({
         destroy: true,
         processing: false,

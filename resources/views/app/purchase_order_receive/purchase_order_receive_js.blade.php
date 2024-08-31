@@ -1450,6 +1450,23 @@
             $("#ImportModalBtn").click(function() {
                 $("#ImportModal").modal("show");
             });
+
+            $("#ExportBtn").click(function() {
+                console.log('Export Nih');
+                // const po_id = 4418;
+
+                // Get the element by its ID
+                var element = document.getElementById('po_invoice_label');
+
+// Get the text content of the element
+                var po_id = element.textContent || element.innerText;
+
+// Log the text content to the console
+                console.log(po_id);
+
+                // let po_id =
+                window.location.href = `/export-purchase-order/${po_id}`;
+            });
         });
 
         $('#f_import').on('submit', function(e) {
