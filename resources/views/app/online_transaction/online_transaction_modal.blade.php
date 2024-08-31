@@ -77,7 +77,8 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span id="num_order"></span></h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span
+                            id="num_order"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -107,7 +108,8 @@
                     <button class="btn btn-light-primary font-weight-bolder" id="print_invoice">
                             <span class="svg-icon svg-icon-md">
                                 <!--begin::Svg Icon | Print Icon-->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24"
+                                     version="1.1">
                                     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                         <rect x="0" y="0" width="24" height="24"/>
                                         <path d="M6,9 L18,9 C19.1045695,9 20,9.8954305 20,11 L20,17 C20,18.1045695 19.1045695,19 18,19 L6,19 C4.8954305,19 4,18.1045695 4,17 L4,11 C4,9.8954305 4.8954305,9 6,9 Z"
@@ -179,6 +181,41 @@
                 <button type="button" class="btn btn-light-primary font-weight-bold">Tutup</button>
                 <button type="button" class="btn btn-dark font-weight-bold">Tambah</button>
             </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->
+
+
+<!-- Modal-->
+<div class="modal fade" id="addItemModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Tambah Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <form id="f_customer">
+                <div class="modal-body">
+                    <input type="hidden" id="add_item_to_id" value=""/>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Nomor Telp</label>
+                        <input type="number" class="form-control" id="nomor_telp" name="nomor_telp" required/>
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Nama Customer</label>
+                        <input type="text" class="form-control" id="nama_customer" name="nama_customer" required
+                               disabled/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold">Tutup</button>
+                    <button type="button" class="btn btn-dark font-weight-bold">Tambah</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

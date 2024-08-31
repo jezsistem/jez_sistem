@@ -409,7 +409,7 @@
             <div class="modal-body table-responsive">
                 <div id="pl_id_out_parent"></div>
                 <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
-                <table class="table table-hover table-checkable table-striped" id="ScanOuttb">
+                    <table class="table table-hover table-checkable table-striped" id="ScanOuttb">
                     <thead class="bg-dark text-light">
                     <tr>
                         <th class="text-dark">Artikel</th>
