@@ -118,7 +118,7 @@ class TransaksiOnlineController extends Controller
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
-                    ->orderBy('created_at', 'DESC')
+                    ->orderBy('online_transactions.created_at', 'DESC')
                     ->groupBy('to_id')
             )
                 ->editColumn('order_number', function ($data) {
