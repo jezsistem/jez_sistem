@@ -271,9 +271,6 @@ class TransaksiOnlineController extends Controller
             'store_code' => $stores_code,
             'segment' => request()->segment(1)
         ];
-
-//        dd($get_invoice);
-
         return view('app.invoice.print_invoice_online', compact('data'));
     }
 
@@ -293,7 +290,6 @@ class TransaksiOnlineController extends Controller
                 $data = Excel::toArray($import, public_path('excel/' . $nama_file));
 
                 $st_id = Auth::user()->st_id;
-
 
                 if (count($data) >= 0) {
                     $processData = $this->processImportData($data[0], $original_name, $st_id);
@@ -327,8 +323,6 @@ class TransaksiOnlineController extends Controller
         $processedData = [];
         $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'TikTok';
         $platform = $type;
-//
-//        $st_id = Auth::user()->st_id;
 
         if ($type == 'Shopee') {
             foreach ($data as $item) {
@@ -440,9 +434,9 @@ class TransaksiOnlineController extends Controller
                 $payment_method = $item[7];
 
                 $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
-                $total_payment = str_replace(['IDR ', '.'], '', $item[23]);
-                $city = $item[45];
-                $province = $item[44];
+                $total_payment = str_replace(['IDR ', '.'], '', $item[17]);
+                $city = $item[18];
+                $province = $item[19];
 
                 $rowData = [
                     'st_id' => Auth::user()->st_id,
@@ -522,7 +516,6 @@ class TransaksiOnlineController extends Controller
                             ->update($rowSku);
                     }
                 } catch (\Exception $e) {
-                    // Log the exception message
                     \Log::error('Error processing TikTok SKU data: ' . $e->getMessage());
                 }
             }
