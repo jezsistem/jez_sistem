@@ -254,6 +254,7 @@
             },
             columns: [
             { data: 'DT_RowIndex', name: 'pid', searchable: false},
+            { data: 'article_id', name: 'article_id' },
             { data: 'br_name', name: 'br_name' },
             { data: 'p_name', name: 'p_name' },
             { data: 'p_color', name: 'p_color' },
