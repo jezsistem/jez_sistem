@@ -102,6 +102,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('transaksi_online_import', [TransaksiOnlineController::class, 'importData']);
     Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
     Route::post('transaksi_online_delete', [TransaksiOnlineController::class, 'delete']);
-    Route::post('print_online_invoice', [TransaksiOnlineController::class, 'cetak_in    voice']);
+    Route::post('print_online_invoice', [TransaksiOnlineController::class, 'cetak_invoice']);
     Route::get('print_online_nota/{orderNum}', [TransaksiOnlineController::class, 'cetak_nota'])->name('print_online_nota');
 });

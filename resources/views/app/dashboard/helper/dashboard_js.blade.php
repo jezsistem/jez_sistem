@@ -384,7 +384,7 @@
     var previousItemCount = 0;
 
     // Preload the audio element
-    var audio = new Audio("{{ asset('music/HE3.mp3') }}");
+    var audio = new Audio("{{ asset('music/ADELE.mp3') }}");
     audio.preload = 'auto';
 
     // Function to play sound after user interaction
