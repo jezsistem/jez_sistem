@@ -1,5 +1,7 @@
 <?php
 
+use App\Exports\BartenderFormatExport;
+use App\Exports\PurchaseOrderExport;
 use App\Http\Controllers\PurchaseOrderArticleController;
 use App\Http\Controllers\PurchaseOrderArticleDetailController;
 use App\Http\Controllers\PurchaseOrderArticleDetailStatusController;
@@ -13,7 +15,9 @@ use App\Http\Controllers\PreOrderArticleController;
 use App\Http\Controllers\PreOrderArticleDetailController;
 use App\Http\Controllers\PreOrderController;
 use App\Http\Controllers\PurchaseOrderReceiveCODController;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
+use Maatwebsite\Excel\Facades\Excel;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +70,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
     Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
+    Route::get('/export-purchase-order/{po_id}', function ($po_id) {
+        $timestamp = Carbon::now()->format('Ymd_His');
+        $fileName = 'purchase_order_' . $timestamp . '.xlsx';
+
+        return Excel::download(new BartenderFormatExport($po_id), $fileName);
+    });
 
     // Purchase Order Article
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);
