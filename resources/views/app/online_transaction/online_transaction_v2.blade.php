@@ -16,6 +16,20 @@
                     <!--end::Page Heading-->
                 </div>
                 <!--end::Info-->
+
+                <div class="form-group" style="padding-top:22px;">
+                    <select class="form-control bg-primary text-white" id="st_id_filter" name="st_id_filter" required>
+                        <option value="">- Storage -</option>
+                        @foreach ($data['st_id'] as $key => $value)
+                            @if ($key == $data['user']->st_id)
+                                <option value="{{ $key }}" selected>{{ $value }}</option>
+                            @else
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <div id="st_id_filter_parent"></div>
+                </div>
             </div>
         </div>
         <!--end::Subheader-->

@@ -13,6 +13,7 @@ use App\Models\PosTransactionDetail;
 use App\Models\ProductStock;
 use App\Models\Size;
 use App\Models\Store;
+use App\Models\StoreTypeDivision;
 use App\Models\TempMutasi;
 use App\Models\TransaksiOnline;
 use App\Models\TransaksiOnlineDetail;
@@ -81,17 +82,23 @@ class TransaksiOnlineController extends Controller
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $data = [
             'title' => $title,
-            'subtitle' => 'tes',
+            'subtitle' => 'Transaksi Online',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
+            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
     }
 
     public function getDatatables(Request $request)
     {
-        $st_id = Auth::user()->st_id;
+        if (!empty($request->st_id)) {
+            $st_id = $request->st_id;
+        } else {
+            $st_id = Auth::user()->st_id;
+        }
         if (request()->ajax()) {
             return DataTables::of(
                 OnlineTransactions::select([
@@ -103,17 +110,22 @@ class TransaksiOnlineController extends Controller
                     'sku',
                     'shipping_fee',
                     'total_payment',
-                    'order_status'
+                    'order_status',
+                    'online_print'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                     ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->where('no_resi', '!=', '')
+                    ->where('st_id', '=', $st_id)
                     ->orderBy('to_id')
                     ->groupBy('to_id')
             )
                 ->editColumn('order_number', function ($data) {
-                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a>';
+                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
+                })
+                ->editColumn('no_resi', function ($data) {
+                    return $data->no_resi. '<br>'. ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
@@ -122,7 +134,7 @@ class TransaksiOnlineController extends Controller
                 ->editColumn('order_status', function ($data) {
                     return '<a class="text-white" href="#" data-pt_id="' . $data->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $data->order_status . '</span></a>';
                 })
-                ->rawColumns(['order_number', 'total_item', 'order_status'])
+                ->rawColumns(['order_number', 'no_resi','total_item', 'order_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -130,6 +142,12 @@ class TransaksiOnlineController extends Controller
                             $w->orWhere('no_resi', 'LIKE', "%$search%");
                         });
                     }
+//                    if (!empty($request->get('status'))) {
+//                        $instance->where(function ($w) use ($request) {
+//                            $search = $request->get('search');
+//                            $w->orWhere('no_resi', 'LIKE', "%$search%");
+//                        });
+//                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -202,6 +220,12 @@ class TransaksiOnlineController extends Controller
         $data_stores = Store::where('id', $stores)->get()->first();
 
         $stores_code = $data_stores->st_code;
+
+        $params = [
+            'online_print' => TRUE
+        ];
+
+        OnlineTransactions::where('order_number', $invoice)->update($params);
 
 
         $data = [
@@ -302,6 +326,8 @@ class TransaksiOnlineController extends Controller
         $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'Tiktok';
         $platform = $type;
 
+        $st_id = Auth::user()->st_id;
+
         if ($type == 'Shopee') {
             foreach ($data as $item) {
                 $order_number = $item[0];
@@ -319,6 +345,7 @@ class TransaksiOnlineController extends Controller
                 $province = $item[47];
 
                 $rowData = [
+                    'st_id' => $st_id,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
@@ -331,7 +358,8 @@ class TransaksiOnlineController extends Controller
                     'payment_method' => $payment_method,
                     'total_payment' => str_replace('.', '', $total_payment),
                     'city' => $city,
-                    'province' => $province
+                    'province' => $province,
+                    'online_print'  => false
                 ];
 
                 $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
