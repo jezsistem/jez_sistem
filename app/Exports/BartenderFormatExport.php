@@ -23,7 +23,7 @@ class BartenderFormatExport implements FromCollection, WithHeadings
         return DB::table('purchase_order_article_details')
             ->join('purchase_order_articles', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
             ->join('purchase_orders', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
-            ->join('purchase_order_article_detail_statuses', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+//            ->join('purchase_order_article_detail_statuses', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
             ->join('product_stocks', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
             ->join('products', 'purchase_order_articles.p_id', '=', 'products.id')
             ->join('product_sub_categories', 'products.psc_id', '=', 'product_sub_categories.id')
@@ -48,7 +48,7 @@ class BartenderFormatExport implements FromCollection, WithHeadings
                 'sz_name',
                 'ps_price_tag',
                 'ps_barcode',
-                'poads_qty',
+                'poad_qty',
                 DB::raw("'Yes'"),
                 DB::raw("'No'"),
                 DB::raw("CAST(0 AS UNSIGNED) as `Variant 1 - Stock Alert`"),
