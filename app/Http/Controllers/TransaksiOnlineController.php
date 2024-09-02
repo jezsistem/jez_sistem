@@ -287,7 +287,7 @@ class TransaksiOnlineController extends Controller
                 $file->move('excel', $nama_file);
 
                 $import = new TransactionOnlineImport();
-                $data = Excel::toArray($import, public_path('excel/' . $nama_file));
+                $data = Excel::toArray($import, public_path('online/' . $nama_file));
 
                 $st_id = Auth::user()->st_id;
 
