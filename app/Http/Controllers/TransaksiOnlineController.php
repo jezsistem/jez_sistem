@@ -284,7 +284,7 @@ class TransaksiOnlineController extends Controller
 
                 $original_name = $file->getClientOriginalName();
 
-                $file->move('excel', $nama_file);
+                $file->move('online', $nama_file);
 
                 $import = new TransactionOnlineImport();
                 $data = Excel::toArray($import, public_path('online/' . $nama_file));
@@ -305,13 +305,13 @@ class TransaksiOnlineController extends Controller
             } else {
                 $r['status'] = '400';
             }
-
-            if (file_exists(public_path('excel/' . $nama_file))) {
-                unlink(public_path('excel/' . $nama_file));
-            }
+//
+//            if (file_exists(public_path('online/' . $nama_file))) {
+//                unlink(public_path('online/' . $nama_file));
+//            }
             return json_encode($r);
         } catch (\Exception $e) {
-            unlink(public_path('excel/' . $nama_file));
+//            unlink(public_path('online/' . $nama_file));
             $r['status'] = '400';
             $r['message'] = $e->getMessage();
             return json_encode($r);
