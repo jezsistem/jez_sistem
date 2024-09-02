@@ -187,7 +187,7 @@
                     @php
                         $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                         $total_item += $srow->qty;
-                        $total_price += $srow->price_after_discount;
+                        $total_price += $srow->original_price - $srow->discount_seller;
                         $nameset += $srow->pos_td_nameset_price;
                         $total_potongan += $srow->total_discount;
                     @endphp

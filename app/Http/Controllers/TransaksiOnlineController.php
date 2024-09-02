@@ -305,10 +305,6 @@ class TransaksiOnlineController extends Controller
             } else {
                 $r['status'] = '400';
             }
-//
-//            if (file_exists(public_path('online/' . $nama_file))) {
-//                unlink(public_path('online/' . $nama_file));
-//            }
             return json_encode($r);
         } catch (\Exception $e) {
 //            unlink(public_path('online/' . $nama_file));
