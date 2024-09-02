@@ -187,9 +187,9 @@
                     @php
                         $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                         $total_item += $srow->qty;
-                        $total_price += $srow->pos_td_discount_price;
+                        $total_price += $srow->price_after_discount;
                         $nameset += $srow->pos_td_nameset_price;
-                        $total_potongan += $srow->pos_td_discount_number;
+                        $total_potongan += $srow->total_discount;
                     @endphp
 
                     <tr style="margin-bottom:15px;">
@@ -198,6 +198,7 @@
                             <td class="qty" style="width: 1px;">{{ $srow->qty }}</td>
                         @else
                             <td class="qty">{{ $srow->qty }}x</td>
+
                             <td class="sell-price">
                                 @if(!empty($srow->total_discount) || $srow->discount_seller != 0)
                                     <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->ps_price_tag) }}</s>
@@ -255,7 +256,7 @@
                         <span style="float:left; font-weight:bold;">TOTAL AKHIR</span>
                     </td>
                     <td class="final-price">
-                        <span style="float:right;">Rp 94,500</span>
+                        <span style="float:right;">{{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}</span>
                     </td>
                 </tr>
 
@@ -286,11 +287,11 @@
             <strong><i>Ketentuan penukaran barang :</i></strong>
             <br/>
             <p style="text-align:left; font-size:11px;">
-                1. Batas waktu penukaran barang maksimal 3 hari dari saat transaksi (Barang yang dapat ditukar hanya produk sepatu)<br/>
-                2. Penukaran barang tidak berlaku untuk produk jersey, t-shirt, asesoris maupun equipment<br/>
-                3. Penukaran barang tidak berlaku untuk barang yang diskon 25% keatas<br/>
-                4. Produk sepatu yang dapat ditukar yaitu belum pernah digunakan untuk beraktifitas dan wajib memiliki dus yang sesuai dengan barang<br/>
-                5. Wajib menyertakan struk pembelanjaan saat proses penukaran barang baik pembelian offline & online<br/>
+                1. Batas waktu penukaran barang maksimal 1x24 jam dari barang diterima dan penukaran wajib datang ke Offline Store (Barang yang dapat ditukar hanya produk sepatu)<br/>
+                2. Penukaran barang tidak berlaku untuk produk jersey, t-shirt, assesoris maupun equipment<br/>
+                3. Produk sepatu yang dapat ditukar yaitu belum pernah digunakan untuk beraktifitas dan wajib memiliki dus yang sesuai dengan barang dan tag wajib masih terpasang, jika tidak maka penukaran tidak akan dilayani<br/>
+                4. Barang hanya boleh ditukar dengan jenis, warna, dan tipe yang sama dengan ketentuan pengembalian harus datang ke store dengan membawa barang lengkap<br/>
+                5. Wajib menyertakan struk pembelanjaan saat proses penukaran barang baik pembelian offline & online <br/>
             </p>
         </div>
     </center>
