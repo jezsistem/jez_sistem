@@ -329,15 +329,15 @@ class TransaksiOnlineController extends Controller
                 $order_number = $item[0];
                 $order_status = $item[1];
                 $reason_cancellation = $item[2];
-                $no_resi = $item[4];
-                $shipping_method = $item[5];
-                $order_date_created = $item[9];
-                $payment_date = $item[10];
-                $payment_method = $item[11];
-                $shipping_fee = $item[35];
-                $total_payment = $item[38];
-                $city = $item[46];
-                $province = $item[47];
+                $no_resi = $item[3];
+                $shipping_method = $item[4];
+                $order_date_created = $item[5];
+                $payment_date = $item[6];
+                $payment_method = $item[7];
+                $shipping_fee = $item[16];
+                $total_payment = $item[17];
+                $city = $item[18];
+                $province = $item[19];
 
                 $rowData = [
                     'st_id' => Auth::user()->st_id,
@@ -432,7 +432,6 @@ class TransaksiOnlineController extends Controller
                 $order_date_created = $item[5];
                 $payment_date = $item[6];
                 $payment_method = $item[7];
-
                 $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
                 $total_payment = str_replace(['IDR ', '.'], '', $item[17]);
                 $city = $item[18];
