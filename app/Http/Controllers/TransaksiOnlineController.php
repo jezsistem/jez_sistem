@@ -380,14 +380,24 @@ class TransaksiOnlineController extends Controller
 
             foreach ($data as $item) {
                 $order_number = $item[0];
-                $original_price = str_replace('.', '', $item[16]);
-                $price_after_discount = str_replace('.', '', $item[20]);
-                $qty = $item[18];
-                $sku = $item[14];
-                $return_qty = $item[19];
-                $total_discount = str_replace('.', '', $item[21]);
-                $discount_seller = str_replace('.', '', $item[22]);
-                $discount_platform = str_replace('.', '', $item[23]);
+                $original_price = str_replace('.', '', $item[8]);
+                $price_after_discount = str_replace('.', '', $item[9]);
+                $qty = $item[10];
+                $sku = $item[11];
+                $return_qty = $item[12];
+                $total_discount = str_replace('.', '', $item[13]);
+                $discount_seller = str_replace('.', '', $item[14]);
+                $discount_platform = str_replace('.', '', $item[15]);
+
+//                $order_number = $item[0];
+//                $original_price = str_replace(['IDR ', '.'], '', $item[8]);
+//                $price_after_discount =  str_replace(['IDR ', '.'], '', $item[9]);
+//                $qty = $item[10];
+//                $sku = $item[11];
+//                $return_qty = $item[12];
+//                $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
+//                $discount_seller = str_replace(['IDR ', '.'], '', $item[14]);
+//                $discount_platform = str_replace('.', '', $item[15]);
 
                 try {
                     $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
@@ -432,6 +442,7 @@ class TransaksiOnlineController extends Controller
                 $order_date_created = $item[5];
                 $payment_date = $item[6];
                 $payment_method = $item[7];
+
                 $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
                 $total_payment = str_replace(['IDR ', '.'], '', $item[17]);
                 $city = $item[18];
