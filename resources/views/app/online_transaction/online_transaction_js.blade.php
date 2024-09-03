@@ -1,5 +1,5 @@
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -7,33 +7,33 @@
         });
 
 
-
-        var online_transaction_table =$('#OnlineTransactionb').DataTable({
+        var online_transaction_table = $('#OnlineTransactionb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
             responsive: true,
             dom: '<"text-right"l>rt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
             ],
             ajax: {
-                url : "{{ url('transaksi_online_datatables') }}",
-                data: function(d) {
+                url: "{{ url('transaksi_online_datatables') }}",
+                data: function (d) {
                     d.search = $('#online_transaction_search').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.status = $('#filter_status').val();
                 }
             },
             columns: [
-                { data: 'DT_RowIndex', name: 'to_id', searchable: false},
-                { data: 'order_number', name: 'to_order_number' },
-                { data: 'no_resi', name: 'no_resi' },
-                { data: 'platform_name', name: 'platform_name' },
-                { data: 'order_date_created', name: 'order_date_created' },
-                { data: 'total_item', name: 'total_item' },
-                { data: 'shipping_fee', name: 'shipping_fee' },
-                { data: 'total_payment', name: 'total_payment' },
-                { data: 'order_status', name: 'order_status'},
+                {data: 'DT_RowIndex', name: 'to_id', searchable: false},
+                {data: 'order_number', name: 'to_order_number'},
+                {data: 'no_resi', name: 'no_resi'},
+                {data: 'platform_name', name: 'platform_name'},
+                {data: 'order_date_created', name: 'order_date_created'},
+                {data: 'total_item', name: 'total_item'},
+                {data: 'shipping_fee', name: 'shipping_fee'},
+                {data: 'total_payment', name: 'total_payment'},
+                {data: 'order_status', name: 'order_status'},
             ],
             columnDefs: [
                 {
@@ -46,15 +46,26 @@
             }
         });
 
-        $('#st_id_filter').on('change', function() {
+        $('#st_id_filter').on('change', function () {
             online_transaction_table.draw(false);
         });
 
-        $(document).delegate('#import_modal', 'click', function() {
+        // Initialize Select2 on the select element
+        $('#filter_status').select2({
+            width: "200px",
+            dropdownParent: $('#filter_status_parent')
+        });
+
+        $('#filter_status').on('change', function () {
+            console.log($(this).val()); // Logs the selected value (0 or 1)
+            online_transaction_table.draw();
+        });
+
+        $(document).delegate('#import_modal', 'click', function () {
             $('#ImportModal').modal('show');
         });
 
-        $('#online_transaction_search').on('keyup', function() {
+        $('#online_transaction_search').on('keyup', function () {
             online_transaction_table.draw(false);
             console.log($('#online_transaction_search').val())
         });
@@ -122,7 +133,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function(data) {
+                success: function (data) {
                     // Hide the spinner and enable the button
                     $('#import_data_btn').html('Import');
                     $('#import_data_btn').attr("disabled", false);
@@ -142,7 +153,7 @@
                         $("#ImportModal").modal('hide');
                     }
                 },
-                error: function(data){
+                error: function (data) {
                     // Hide the spinner in case of error
                     $('#import_data_btn').html('Import');
                     $('#import_data_btn').attr("disabled", false);
@@ -161,24 +172,24 @@
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
             ],
             ajax: {
-                url : "{{ url('transaksi_online_datatables_detail') }}",
-                data : function (d) {
+                url: "{{ url('transaksi_online_datatables_detail') }}",
+                data: function (d) {
                     d.to_id = $('#to_id').val();
                 }
             },
             columns: [
-                { data: 'DT_RowIndex', name: 'to_id'},
-                { data: 'article', name: 'article'},
-                { data: 'ps_barcode', name: 'ps_barcode'},
-                { data: 'to_qty', name: 'to_qty'},
-                { data: 'shopee_price', name: 'shopee_price'},
-                { data: 'jez_price', name: 'jez_price'},
-                { data: 'gap_price', name: 'gap_price'},
-                { data: 'total_discount', name: 'total_discount'},
-                { data: 'final_price', name: 'final_price'},
+                {data: 'DT_RowIndex', name: 'to_id'},
+                {data: 'article', name: 'article'},
+                {data: 'ps_barcode', name: 'ps_barcode'},
+                {data: 'to_qty', name: 'to_qty'},
+                {data: 'shopee_price', name: 'shopee_price'},
+                {data: 'jez_price', name: 'jez_price'},
+                {data: 'gap_price', name: 'gap_price'},
+                {data: 'total_discount', name: 'total_discount'},
+                {data: 'final_price', name: 'final_price'},
             ],
             columnDefs: [
                 {
@@ -193,7 +204,7 @@
         });
         jQuery.noConflict();
 
-        $(document).delegate('#print_invoice', 'click', function() {
+        $(document).delegate('#print_invoice', 'click', function () {
             var numOrder = document.getElementById('num_order').textContent;
 
             Swal.fire({
@@ -215,12 +226,12 @@
                             orderNumber: numOrder,
                             _token: '{{ csrf_token() }}'
                         },
-                        success: function(response) {
+                        success: function (response) {
                             var printUrl = '{{ url('print_online_nota') }}/' + numOrder;
                             window.open(printUrl, '_blank');
                             online_transaction_table.draw(false);
                         },
-                        error: function(xhr, status, error) {
+                        error: function (xhr, status, error) {
                             // Handle errors here
                             Swal.fire({
                                 title: 'Error!',
@@ -236,7 +247,7 @@
         });
 
 
-        $(document).delegate('#detail_btn', 'click', function() {
+        $(document).delegate('#detail_btn', 'click', function () {
             console.log('tes');
             var to_id = $(this).attr('data-to_id');
             var num_order = $(this).attr('data-num_order');
@@ -245,18 +256,19 @@
             $('#num_order').text(num_order);
             $('#status_pesanan').val(status);
 
-            if(status == 'Batal'){
+            if (status == 'Batal') {
                 $('#add_item_detail_btn').hide();
             } else {
                 $('#add_item_detail_btn').show();
             }
 
-            $('#DetailModal').on('show.bs.modal', function() {
+            $('#DetailModal').on('show.bs.modal', function () {
                 detail_table.draw(false);
             }).modal('show');
         });
 
-        $(document).delegate('#add_item_detail_btn', 'click', function() {
+
+        $(document).delegate('#add_item_detail_btn', 'click', function () {
             let to_id = $('#to_id').val();
             let no_pesanan = $('#num_order').text();
 

@@ -125,7 +125,7 @@ class TransaksiOnlineController extends Controller
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
-                    return $data->no_resi. '<br>'. ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
+                    return $data->no_resi . '<br>' . ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
@@ -134,7 +134,7 @@ class TransaksiOnlineController extends Controller
                 ->editColumn('order_status', function ($data) {
                     return '<a class="text-white" href="#" data-pt_id="' . $data->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $data->order_status . '</span></a>';
                 })
-                ->rawColumns(['order_number', 'no_resi','total_item', 'order_status'])
+                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -142,12 +142,18 @@ class TransaksiOnlineController extends Controller
                             $w->orWhere('no_resi', 'LIKE', "%$search%");
                         });
                     }
-//                    if (!empty($request->get('status'))) {
-//                        $instance->where(function ($w) use ($request) {
-//                            $search = $request->get('search');
-//                            $w->orWhere('no_resi', 'LIKE', "%$search%");
-//                        });
-//                    }
+
+                    if (!empty($request->get('status'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $status = $request->get('status');
+
+                            if ($status == 0) {
+                                $w->orWhere('online_print', '=', "0");
+                            } else if ($status == 1) {
+                                $w->orWhere('online_print', '=', "1");
+                            }
+                        });
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -307,7 +313,7 @@ class TransaksiOnlineController extends Controller
             }
             return json_encode($r);
         } catch (\Exception $e) {
-//            unlink(public_path('online/' . $nama_file));
+            unlink(public_path('online/' . $nama_file));
             $r['status'] = '400';
             $r['message'] = $e->getMessage();
             return json_encode($r);
@@ -351,7 +357,7 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
-                    'online_print'  => false
+                    'online_print' => false
                 ];
 
                 try {
@@ -555,7 +561,7 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
-                    'online_print'  => false
+                    'online_print' => false
                 ];
 
                 try {
@@ -582,7 +588,7 @@ class TransaksiOnlineController extends Controller
             foreach ($data as $item) {
                 $order_number = $item[0];
                 $original_price = str_replace(['IDR ', '.'], '', $item[8]);
-                $price_after_discount =  str_replace(['IDR ', '.'], '', $item[9]);
+                $price_after_discount = str_replace(['IDR ', '.'], '', $item[9]);
                 $qty = $item[10];
                 $sku = $item[11];
                 $return_qty = $item[12];
