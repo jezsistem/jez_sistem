@@ -113,10 +113,26 @@
                                     <!--begin::Button-->
                                 </div>
                             </div>
+                                <div class="container mt-6">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <input type="search" class="form-control" id="online_transaction_search"
+                                                   placeholder="Cari No Order / No resi"/>
+                                        </div>
+                                        <div class="col-6">
+                                            <select name="filter_status" id="filter_status" class="form-control col-6">
+                                                <option value="">-- Pilih Status Cetak --</option>
+                                                <option value="0">Belum di Cetak</option>
+                                                <option value="1">Sudah di Cetak</option>
+                                            </select>
+                                            <div id="filter_status_parent"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="online_transaction_search"
-                                       placeholder="Cari No Order / No resi"/><br/>
+{{--                                <input type="search" class="form-control  col-6" id="online_transaction_search"--}}
+{{--                                       placeholder="Cari No Order / No resi"/><br/>--}}
                                 <table class="table table-hover table-checkable" id="OnlineTransactionb">
                                     <thead class="bg-light text-dark">
                                     <tr>
