@@ -87,7 +87,7 @@
                 <div class="card-body table-responsive">
                     <!--begin: Datatable-->
                     <input type="hidden" id="to_id" value=""/>
-                    <input type="text" id="status_pesanan" value=""/>
+                    <input type="hidden" id="status_pesanan" value=""/>
 
                     {{--                    @if() @endif--}}
                     <button class="btn btn-dark font-weight-bolder" id="add_item_detail_btn">
@@ -128,6 +128,7 @@
                             <th class="text-dark">No</th>
                             <th class="text-dark">Artikel</th>
                             <th class="text-dark">SKU</th>
+                            <th class="text-dark">SKU MP</th>
                             <th class="text-dark">Qty</th>
                             <th class="text-dark">Platform Price</th>
                             <th class="text-dark">Jez Price</th>

@@ -184,6 +184,7 @@
                 {data: 'DT_RowIndex', name: 'to_id'},
                 {data: 'article', name: 'article'},
                 {data: 'ps_barcode', name: 'ps_barcode'},
+                {data: 'sku', name: 'sku'},
                 {data: 'to_qty', name: 'to_qty'},
                 {data: 'shopee_price', name: 'shopee_price'},
                 {data: 'jez_price', name: 'jez_price'},
