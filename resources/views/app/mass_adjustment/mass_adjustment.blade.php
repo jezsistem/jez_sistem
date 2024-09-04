@@ -59,8 +59,7 @@
                                     <option value='1'>- Hanya yang Ada Stok -</option>
                                     <option value='0'>- Termasuk yang Sudah Habis -</option>
                                 </select>
-                                <div id="bin_panel"></div>
-                                <br/>
+                                <div id="bin_panel"></div><br/>
                                 <div class="row" id="bin_filter_panel">
 
                                 </div>
@@ -115,20 +114,17 @@
                         <!--begin::Card-->
                         <div class="card card-custom gutter-b">
                             <!--begin::Header-->
-                            <div class="h-auto align-items-center justify-content-between mt-4 ml-10">
+                            <div class="card-header h-auto align-items-center justify-content-between">
                                 <!--begin::Dropdown-->
                                 <a class="btn btn-primary mt-2" id="export_btn">Export Template</a>
-                                <a class="btn btn-primary mt-2" id="import_data_scan_btn">Import Data Scan</a>
                                 <!--end::Dropdown-->
                             </div>
                             <div class="card-body table-responsive">
-                                <input type="search" class="form-control  col-6" id="stock_search"
-                                       placeholder="Cari stok"/><br/>
+                                <input type="search" class="form-control  col-6" id="stock_search" placeholder="Cari stok"/><br/>
                                 <table class="table table-hover table-checkable" id="Stocktb">
                                     <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-                                        <th class="text-dark">SKU</th>
                                         <th class="text-dark">BIN</th>
                                         <th class="text-dark">BRAND</th>
                                         <th class="text-dark">ARTIKEL</th>
@@ -152,8 +148,7 @@
                             <div class="card-body row d-flex">
                                 <div class="col-4">
                                     <a class="btn btn-success mt-2" id="import_btn">Import Template</a>
-                                    <input type="search" class="form-control form-control-sm col-6 mt-2" id="ma_search"
-                                           placeholder="Cari kode"/>
+                                    <input type="search" class="form-control form-control-sm col-6 mt-2" id="ma_search" placeholder="Cari kode"/>
                                 </div>
                             </div>
                             <div class="card-body table-responsive">
@@ -185,21 +180,16 @@
                             <div class="card-body row">
                                 <div class="col-4">
                                     <a class="btn btn-primary mt-2"><span data-id="" id="ma_code">MADJxxxxxx</span></a>
-                                    <input type="search" class="form-control form-control-sm col-12 mt-2"
-                                           id="mad_search" placeholder="Cari artikel"/>
+                                    <input type="search" class="form-control form-control-sm col-12 mt-2" id="mad_search" placeholder="Cari artikel"/>
                                 </div>
                                 <div class="col-4">
                                     Approval
                                     <div class="row">
-                                        <input class="form-control col-8" placeholder="Approval" data-id="" type="text"
-                                               id="approval_label" readonly/> <a class="btn btn-sm btn-success col-2"
-                                                                                 style="background:#007bff;"
-                                                                                 id="approval_btn">Approve</a>
+                                        <input class="form-control col-8" placeholder="Approval" data-id="" type="text" id="approval_label" readonly/> <a class="btn btn-sm btn-success col-2" style="background:#007bff;" id="approval_btn">Approve</a>
                                     </div>
                                 </div>
                                 <div class="col-4">
-                                    <a class="btn btn-success ml-auto" style="float:right; background:#007bff;"
-                                       id="execution_btn">Eksekusi Penyesuaian</a>
+                                    <a class="btn btn-success ml-auto" style="float:right; background:#007bff;" id="execution_btn">Eksekusi Penyesuaian</a>
                                     <a class="btn btn-primary ml-auto mr-2" style="float:right;" id="export_mad_btn">Export</a>
                                 </div>
                             </div>

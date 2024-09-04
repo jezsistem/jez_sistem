@@ -11,8 +11,8 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 class MassImport implements ToCollection, WithStartRow
 {
     /**
-    * @param Collection $collection
-    */
+     * @param Collection $collection
+     */
 
     private $rows = 0;
     private $ma_id_throw = null;
@@ -51,8 +51,8 @@ class MassImport implements ToCollection, WithStartRow
                 return null;
             }
             $pls_id = $r[0];
-            $qty_export = (int)$r[9];
-            $qty_so = (int)$r[10];
+            $qty_export = (int)$r[10];
+            $qty_so = (int)$r[11];
             $type = null;
             $diff = null;
             if ($qty_export > $qty_so) {
