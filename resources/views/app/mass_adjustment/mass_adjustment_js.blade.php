@@ -11,7 +11,7 @@
     {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
@@ -43,7 +43,7 @@
     {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
@@ -70,7 +70,7 @@
         $('#mad_panel').addClass('d-none');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
@@ -154,7 +154,7 @@
         data.append('ma_id', $('#ma_code').attr('data-id'));
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
@@ -205,7 +205,7 @@
         loadAsset(st_id, psc_id, br_id);
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -230,24 +230,23 @@
                 }
             },
             columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'ps_barcode', name: 'ps_barcode'},
-            { data: 'pl_code', name: 'pl_code' },
-            { data: 'br_name', name: 'br_name' },
-            { data: 'p_name', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'sz_name', name: 'sz_name' },
-            { data: 'psc_name', name: 'psc_name' },
-            { data: 'pls_qty', name: 'pls_qty' },
-            { data: 'purchase', name: 'purchase_1'},
-            { data: 'sell', name: 'sell', orderable: false },
+                { data: 'DT_RowIndex', name: 'id', searchable: false},
+                { data: 'pl_code', name: 'pl_code' },
+                { data: 'br_name', name: 'br_name' },
+                { data: 'p_name', name: 'p_name' },
+                { data: 'p_color', name: 'p_color' },
+                { data: 'sz_name', name: 'sz_name' },
+                { data: 'psc_name', name: 'psc_name' },
+                { data: 'pls_qty', name: 'pls_qty' },
+                { data: 'purchase', name: 'purchase_1'},
+                { data: 'sell', name: 'sell', orderable: false },
             ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
             order: [[0, 'desc']],
         });
 
@@ -267,23 +266,23 @@
                 }
             },
             columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'ma_code_show', name: 'ma_code' },
-            { data: 'st_name', name: 'st_name' },
-            { data: 'u_name', name: 'u_name'},
-            { data: 'approve', name: 'approve', orderable:false },
-            { data: 'executor', name: 'executor', orderable:false },
-            { data: 'editor', name: 'editor', orderable:false },
-            { data: 'created_at', name: 'created_at'},
-            { data: 'updated_at', name: 'updated_at'},
-            { data: 'ma_status', name: 'ma_status'},
+                { data: 'DT_RowIndex', name: 'id', searchable: false},
+                { data: 'ma_code_show', name: 'ma_code' },
+                { data: 'st_name', name: 'st_name' },
+                { data: 'u_name', name: 'u_name'},
+                { data: 'approve', name: 'approve', orderable:false },
+                { data: 'executor', name: 'executor', orderable:false },
+                { data: 'editor', name: 'editor', orderable:false },
+                { data: 'created_at', name: 'created_at'},
+                { data: 'updated_at', name: 'updated_at'},
+                { data: 'ma_status', name: 'ma_status'},
             ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
             order: [[0, 'desc']],
         });
 
@@ -304,26 +303,26 @@
                 }
             },
             columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'pl_code', name: 'pl_code' },
-            { data: 'br_name', name: 'br_name' },
-            { data: 'p_name', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'sz_name', name: 'sz_name' },
-            { data: 'psc_name', name: 'psc_name' },
-            { data: 'purchase', name: 'purchase_1', orderable: false },
-            { data: 'sell', name: 'sell', orderable: false },
-            { data: 'qty_export', name: 'qty_export' },
-            { data: 'qty_so', name: 'qty_so' },
-            { data: 'mad_type', name: 'mad_type' },
-            { data: 'mad_diff', name: 'mad_diff' },
+                { data: 'DT_RowIndex', name: 'id', searchable: false},
+                { data: 'pl_code', name: 'pl_code' },
+                { data: 'br_name', name: 'br_name' },
+                { data: 'p_name', name: 'p_name' },
+                { data: 'p_color', name: 'p_color' },
+                { data: 'sz_name', name: 'sz_name' },
+                { data: 'psc_name', name: 'psc_name' },
+                { data: 'purchase', name: 'purchase_1', orderable: false },
+                { data: 'sell', name: 'sell', orderable: false },
+                { data: 'qty_export', name: 'qty_export' },
+                { data: 'qty_so', name: 'qty_so' },
+                { data: 'mad_type', name: 'mad_type' },
+                { data: 'mad_diff', name: 'mad_diff' },
             ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
                 "lengthMenu": "_MENU_",
@@ -397,8 +396,8 @@
             e.preventDefault();
             var id = $(this).attr('data-id');
             pl_id = $.grep(pl_id, function(value) {
-                    return value != id;
-                });
+                return value != id;
+            });
             $('.pl_label'+id).remove();
             stock_table.draw();
             loadLocation(st_id);
@@ -409,12 +408,6 @@
             e.preventDefault();
             jQuery.noConflict();
             $('#ImportModal').modal('show');
-        });
-
-        $(document).delegate('#import_data_scan_btn', 'click', function(e) {
-            e.preventDefault();
-            jQuery.noConflict();
-            $('#ImportScanModal').modal('show');
         });
 
         $(document).delegate('#madj_btn', 'click', function(e) {
@@ -454,7 +447,7 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
@@ -496,7 +489,7 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
@@ -530,7 +523,7 @@
             $("#import_data_btn").attr("disabled", true);
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({

@@ -19,10 +19,10 @@ class MassAdjustmentController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -31,7 +31,7 @@ class MassAdjustmentController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -44,9 +44,9 @@ class MassAdjustmentController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -55,7 +55,7 @@ class MassAdjustmentController extends Controller
         }
         return $sidebar;
     }
-    
+
     protected function UserActivity($activity)
     {
         UserActivity::create([
@@ -86,82 +86,77 @@ class MassAdjustmentController extends Controller
             'br_id' => DB::table('brands')->where('br_delete', '!=', '1')->orderBy('br_name')->pluck('br_name', 'id'),
             'segment' => request()->segment(1),
         ];
-
-//        dd(Auth::user()->st_id);
         return view('app.mass_adjustment.mass_adjustment', compact('data'));
     }
 
     public function stockDatatables(Request $request)
     {
         $exception = ExceptionLocation::select('pl_code')
-        ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
         if(request()->ajax()) {
-            return datatables()->of(DB::table('product_location_setups')->selectRaw(
-                "ts_product_location_setups.id as id, ts_product_stocks.ps_barcode as ps_barcode,pl_code, br_name, p_name, p_color, sz_name, psc_name,
+            return datatables()->of(DB::table('product_location_setups')->selectRaw("ts_product_location_setups.id as id, pl_code, br_name, p_name, p_color, sz_name, psc_name,
             pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->whereRaw('LOWER(p_name) NOT LIKE ?', ['%custom%'])
-            ->where(function($w) use ($exception, $request) {
-                $st_id = $request->get('st_id');
-                $psc_id = $request->get('psc_id');
-                $br_id = $request->get('br_id');
-                $pl_id = $request->get('pl_id');
-                $qty_filter = $request->get('qty_filter');
-                $w->whereNotIn('product_locations.pl_code', $exception);
-                if ($st_id != 'all') {
-                    $w->where('product_locations.st_id', $st_id);
-                }
-                if ($psc_id != 'all') {
-                    $w->where('products.psc_id', $psc_id);
-                }
-                if ($br_id != 'all') {
-                    $w->where('products.br_id', $br_id);
-                }
-                if (!empty($pl_id)) {
-                    $w->whereIn('product_locations.id', $pl_id);
-                }
-                if ($qty_filter == '1') {
-                    $w->where('product_location_setups.pls_qty', '>', '0');
-                }
-            })
-            ->groupBy('product_location_setups.id'))
-            ->editColumn('purchase', function($data) {
-                if (!empty($data->purchase_1)) {
-                    return number_format($data->purchase_1);
-                } else if (!empty($data->purchase_2)) {
-                    return number_format($data->purchase_2);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->ps_purchase_price);
-                } else {
-                    return number_format($data->p_purchase_price);
-                }
-            })
-            ->editColumn('sell', function($data) {
-                if (!empty($data->ps_sell_price)) {
-                    return number_format($data->ps_sell_price);
-                } else {
-                    return number_format($data->p_sell_price);
-                }
-            })
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('pl_code', 'LIKE', "%$search%")
-                        ->orWhere('ps_barcode', 'LIKE', "%$search%")
-                        ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function($w) use ($exception, $request) {
+                    $st_id = $request->get('st_id');
+                    $psc_id = $request->get('psc_id');
+                    $br_id = $request->get('br_id');
+                    $pl_id = $request->get('pl_id');
+                    $qty_filter = $request->get('qty_filter');
+                    $w->whereNotIn('product_locations.pl_code', $exception);
+                    if ($st_id != 'all') {
+                        $w->where('product_locations.st_id', $st_id);
+                    }
+                    if ($psc_id != 'all') {
+                        $w->where('products.psc_id', $psc_id);
+                    }
+                    if ($br_id != 'all') {
+                        $w->where('products.br_id', $br_id);
+                    }
+                    if (!empty($pl_id)) {
+                        $w->whereIn('product_locations.id', $pl_id);
+                    }
+                    if ($qty_filter == '1') {
+                        $w->where('product_location_setups.pls_qty', '>', '0');
+                    }
+                })
+                ->groupBy('product_location_setups.id'))
+                ->editColumn('purchase', function($data) {
+                    if (!empty($data->purchase_1)) {
+                        return number_format($data->purchase_1);
+                    } else if (!empty($data->purchase_2)) {
+                        return number_format($data->purchase_2);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->ps_purchase_price);
+                    } else {
+                        return number_format($data->p_purchase_price);
+                    }
+                })
+                ->editColumn('sell', function($data) {
+                    if (!empty($data->ps_sell_price)) {
+                        return number_format($data->ps_sell_price);
+                    } else {
+                        return number_format($data->p_sell_price);
+                    }
+                })
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhere('pl_code', 'LIKE', "%$search%")
+                                ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -169,113 +164,56 @@ class MassAdjustmentController extends Controller
     {
         if(request()->ajax()) {
             return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at')
-            ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
-            ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
-            ->editColumn('ma_code_show', function ($d) {
-                return "<a class='btn btn-primary' id='madj_btn' data-id='".$d->id."'>".$d->ma_code."</a>";
-            })
-            ->editColumn('approve', function ($d) {
-                if (!empty($d->ma_approve)) {
-                    return DB::table('users')->where('id', '=', $d->ma_approve)->first()->u_name;
-                } else {
-                    return 'Menunggu Approval';
-                }
-            })
-            ->editColumn('editor', function ($d) {
-                if (!empty($d->ma_editor)) {
-                    return DB::table('users')->where('id', '=', $d->ma_editor)->first()->u_name;
-                } else {
-                    return '-';
-                }
-            })
-            ->editColumn('executor', function ($d) {
-                if (!empty($d->ma_executor)) {
-                    return DB::table('users')->where('id', '=', $d->ma_executor)->first()->u_name;
-                } else {
-                    return '-';
-                }
-            })
-            ->editColumn('created_at', function ($d) {
-                return date('d/m/Y H:i:s', strtotime($d->created_at));
-            })
-            ->editColumn('updated_at', function ($d) {
-                return date('d/m/Y H:i:s', strtotime($d->updated_at));
-            })
-            ->editColumn('ma_status', function ($d) {
-                if ($d->ma_status == '0') {
-                    return 'Menunggu Eksekusi';
-                } else {
-                    return 'Selesai';
-                }
-            })
-            ->rawColumns(['ma_code_show'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('ma_code', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
-        }
-    }
-
-    public function adjustmentDatatablesFilter(Request $request)
-    {
-        if(request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at')
-            ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
-            ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
-            ->editColumn('ma_code_show', function ($d) {
-                return "<a class='btn btn-primary' id='madj_btn' data-id='".$d->id."'>".$d->ma_code."</a>";
-            })
-            ->editColumn('approve', function ($d) {
-                if (!empty($d->ma_approve)) {
-                    return DB::table('users')->where('id', '=', $d->ma_approve)->first()->u_name;
-                } else {
-                    return 'Menunggu Approval';
-                }
-            })
-            ->editColumn('editor', function ($d) {
-                if (!empty($d->ma_editor)) {
-                    return DB::table('users')->where('id', '=', $d->ma_editor)->first()->u_name;
-                } else {
-                    return '-';
-                }
-            })
-            ->editColumn('executor', function ($d) {
-                if (!empty($d->ma_executor)) {
-                    return DB::table('users')->where('id', '=', $d->ma_executor)->first()->u_name;
-                } else {
-                    return '-';
-                }
-            })
-            ->editColumn('created_at', function ($d) {
-                return date('d/m/Y H:i:s', strtotime($d->created_at));
-            })
-            ->editColumn('updated_at', function ($d) {
-                return date('d/m/Y H:i:s', strtotime($d->updated_at));
-            })
-            ->editColumn('ma_status', function ($d) {
-                if ($d->ma_status == '0') {
-                    return 'Menunggu Eksekusi';
-                } else {
-                    return 'Selesai';
-                }
-            })
-            ->rawColumns(['ma_code_show'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('ma_code', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
+                ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
+                ->editColumn('ma_code_show', function ($d) {
+                    return "<a class='btn btn-primary' id='madj_btn' data-id='".$d->id."'>".$d->ma_code."</a>";
+                })
+                ->editColumn('approve', function ($d) {
+                    if (!empty($d->ma_approve)) {
+                        return DB::table('users')->where('id', '=', $d->ma_approve)->first()->u_name;
+                    } else {
+                        return 'Menunggu Approval';
+                    }
+                })
+                ->editColumn('editor', function ($d) {
+                    if (!empty($d->ma_editor)) {
+                        return DB::table('users')->where('id', '=', $d->ma_editor)->first()->u_name;
+                    } else {
+                        return '-';
+                    }
+                })
+                ->editColumn('executor', function ($d) {
+                    if (!empty($d->ma_executor)) {
+                        return DB::table('users')->where('id', '=', $d->ma_executor)->first()->u_name;
+                    } else {
+                        return '-';
+                    }
+                })
+                ->editColumn('created_at', function ($d) {
+                    return date('d/m/Y H:i:s', strtotime($d->created_at));
+                })
+                ->editColumn('updated_at', function ($d) {
+                    return date('d/m/Y H:i:s', strtotime($d->updated_at));
+                })
+                ->editColumn('ma_status', function ($d) {
+                    if ($d->ma_status == '0') {
+                        return 'Menunggu Eksekusi';
+                    } else {
+                        return 'Selesai';
+                    }
+                })
+                ->rawColumns(['ma_code_show'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhere('ma_code', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -284,46 +222,46 @@ class MassAdjustmentController extends Controller
         if(request()->ajax()) {
             return datatables()->of(DB::table('mass_adjustment_details')->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
             avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
-            ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
-            ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where('mass_adjustment_details.ma_id', '=', $request->get('ma_id'))
-            ->groupBy('mass_adjustment_details.id'))
-            ->editColumn('purchase', function($data) {
-                if (!empty($data->purchase_1)) {
-                    return number_format($data->purchase_1);
-                } else if (!empty($data->purchase_2)) {
-                    return number_format($data->purchase_2);
-                } else if (!empty($data->ps_purchase_price)) {
-                    return number_format($data->ps_purchase_price);
-                } else {
-                    return number_format($data->p_purchase_price);
-                }
-            })
-            ->editColumn('sell', function($data) {
-                if (!empty($data->ps_sell_price)) {
-                    return number_format($data->ps_sell_price);
-                } else {
-                    return number_format($data->p_sell_price);
-                }
-            })
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('pl_code', 'LIKE', "%$search%")
-                        ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('mass_adjustment_details.ma_id', '=', $request->get('ma_id'))
+                ->groupBy('mass_adjustment_details.id'))
+                ->editColumn('purchase', function($data) {
+                    if (!empty($data->purchase_1)) {
+                        return number_format($data->purchase_1);
+                    } else if (!empty($data->purchase_2)) {
+                        return number_format($data->purchase_2);
+                    } else if (!empty($data->ps_purchase_price)) {
+                        return number_format($data->ps_purchase_price);
+                    } else {
+                        return number_format($data->p_purchase_price);
+                    }
+                })
+                ->editColumn('sell', function($data) {
+                    if (!empty($data->ps_sell_price)) {
+                        return number_format($data->ps_sell_price);
+                    } else {
+                        return number_format($data->p_sell_price);
+                    }
+                })
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhere('pl_code', 'LIKE', "%$search%")
+                                ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -372,7 +310,7 @@ class MassAdjustmentController extends Controller
                     $w->where('product_location_setups.pls_qty', '>', '0');
                 }
             })
-//            ->where('product_location_setups.pls_qty', '>', '0')
+            ->where('product_location_setups.pls_qty', '>', '0')
             ->whereIn('stkt_id', ['1', '3'])
             ->groupBy('product_location_setups.id')
             ->get();
@@ -420,7 +358,7 @@ class MassAdjustmentController extends Controller
                     $w->where('product_location_setups.pls_qty', '>', '0');
                 }
             })
-//            ->where('product_location_setups.pls_qty', '>', '0')
+            ->where('product_location_setups.pls_qty', '>', '0')
             ->where('stkt_id', '=', '2')
             ->groupBy('product_location_setups.id')
             ->get();
@@ -455,12 +393,12 @@ class MassAdjustmentController extends Controller
         $pl_id = $req->post('pl_id');
         $data = [
             'pl_id' => DB::table('product_locations')->where('st_id', '=', $st_id)
-            ->where('pl_delete', '!=', '1')
-            ->where(function($w) use ($pl_id) {
-                if (!empty($pl_id)) {
-                    $w->whereNotIn('id', $pl_id);
-                }
-            })->orderBy('pl_code')->pluck('pl_code', 'id')
+                ->where('pl_delete', '!=', '1')
+                ->where(function($w) use ($pl_id) {
+                    if (!empty($pl_id)) {
+                        $w->whereNotIn('id', $pl_id);
+                    }
+                })->orderBy('pl_code')->pluck('pl_code', 'id')
         ];
         return view('app.mass_adjustment._load_bin', compact('data'));
     }
@@ -472,16 +410,13 @@ class MassAdjustmentController extends Controller
         $br_id = $req->get('br_id');
         $pl_id = $req->get('pl_id');
         $qty_filter = $req->get('qty_filter');
-
-//        $date = $req->get('datepick');
         return Excel::download(new MassExport($st_id, $psc_id, $br_id, $pl_id, $qty_filter), 'mass_adjustment_template.xlsx');
     }
 
     public function exportResult(Request $req)
     {
         $ma_id = $req->post('ma_id');
-        $date_now = date('Y-m-d H:i:s');
-        return Excel::download(new MassResult($ma_id), 'mass_adjustment_results-'.$date_now.'.xlsx');
+        return Excel::download(new MassResult($ma_id), 'mass_adjustment_results.xlsx');
     }
 
     public function importData(Request $req)
@@ -544,8 +479,8 @@ class MassAdjustmentController extends Controller
     {
         $ma_id = $req->post('ma_id');
         $check = DB::table('mass_adjustments')->where('id', '=', $ma_id)
-        ->whereNotNull('ma_approve')
-        ->where('ma_status', '=', '0')->exists();
+            ->whereNotNull('ma_approve')
+            ->where('ma_status', '=', '0')->exists();
         if (!$check) {
             $r['status'] = '400';
             return json_encode($r);
