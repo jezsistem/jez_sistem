@@ -10,6 +10,7 @@ use App\Models\OnlineTransactions;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
+use App\Models\ProductLocationSetup;
 use App\Models\ProductStock;
 use App\Models\Size;
 use App\Models\Store;
@@ -140,21 +141,22 @@ class TransaksiOnlineController extends Controller
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            $w->orWhere('no_resi', 'LIKE', "%$search%");
+                            $w->orWhere('no_resi', 'LIKE', "%$search%")
+                            ->orWhere('order_number', 'LIKE', "%$search%");
                         });
                     }
 
                     if (!empty($request->get('status'))) {
-                        $instance->where(function ($w) use ($request) {
-                            $status = $request->get('status');
+                            $instance->where(function ($w) use ($request) {
+                                $status = $request->get('status');
 
-                            if ($status == 0) {
-                                $w->orWhere('online_print', '=', "0");
-                            } else if ($status == 1) {
-                                $w->orWhere('online_print', '=', "1");
-                            }
-                        });
-                    }
+                                if ($status == 0) {
+                                    $w->orWhere('online_print', '=', "0");
+                                } else if ($status == 1) {
+                                    $w->orWhere('online_print', '=', "1");
+                                }
+                            });
+                        }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -232,8 +234,25 @@ class TransaksiOnlineController extends Controller
             'online_print' => TRUE
         ];
 
+        //tambahan mengurangi stok
         OnlineTransactions::where('order_number', $invoice)->update($params);
+        $sku_current_print = OnlineTransactionDetails::where('order_number', $invoice)->get();
 
+        foreach ($sku_current_print as $key => $data) {
+            $ps_barcode_id = ProductStock::where('ps_barcode', $data->ps_barcode)->first()->id;
+            $pls_qty_current = ProductLocationSetup::where('pst_id', $ps_barcode_id)->where('pl_id', 'NOT LIKE', '%001%')->first();
+
+            if ($pls_qty_current) {
+                $new_qty = $pls_qty_current->pls_qty - $data->qty;
+
+                $paramsUpdate = [
+                    'pls_qty' => $new_qty
+                ];
+
+                ProductLocationSetup::where('id', $pls_qty_current->id)->update($paramsUpdate);
+            }
+        }
+        //Sampai sini tambah
 
         $data = [
             'title' => 'Invoice ' . $invoice,
@@ -274,7 +293,7 @@ class TransaksiOnlineController extends Controller
         $data = [
             'title' => 'Invoice ' . $orderNumber,
             'invoice' => $orderNumber,
-            'invoice_data' => $get_invoice,
+            'invoice_data' => $get_invoice, 
             'store_code' => $stores_code,
             'segment' => request()->segment(1)
         ];
@@ -293,13 +312,13 @@ class TransaksiOnlineController extends Controller
 
                 $file->move('online', $nama_file);
 
+                $st_id_form = $request->input('st_id_form');
+
                 $import = new TransactionOnlineImport();
                 $data = Excel::toArray($import, public_path('online/' . $nama_file));
 
-                $st_id = Auth::user()->st_id;
-
                 if (count($data) >= 0) {
-                    $processData = $this->processImportData($data[0], $original_name, $st_id);
+                    $processData = $this->processImportData($data[0], $original_name, $st_id_form);
                     $r['data'] = $file->getClientOriginalName();;
                     $r['status'] = '200';
 
@@ -321,7 +340,7 @@ class TransaksiOnlineController extends Controller
         }
     }
 
-    private function processImportData($data, $original_name, $st_id)
+    private function processImportData($data, $original_name, $st_id_form)
     {
         $processedData = [];
         $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'TikTok';
@@ -344,12 +363,12 @@ class TransaksiOnlineController extends Controller
                 $province = $item[19];
 
                 $rowData = [
-                    'st_id' => Auth::user()->st_id,
+                    'st_id' => $st_id_form,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
                     'no_resi' => $no_resi,
-                    'platform_name' => 'TikTok',
+                    'platform_name' => 'Shopee',
                     'shipping_method' => $shipping_method,
                     'shipping_fee' => $shipping_fee,
                     'order_date_created' => $order_date_created,
@@ -548,7 +567,7 @@ class TransaksiOnlineController extends Controller
                 $province = $item[19];
 
                 $rowData = [
-                    'st_id' => Auth::user()->st_id,
+                    'st_id' => $st_id_form,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
@@ -834,121 +853,5 @@ class TransaksiOnlineController extends Controller
 //        return [
 //            'processedData' => $processedData
 //        ];
-    }
-
-
-    private function processImportData2(array $data, $originalName)
-    {
-        $processedData = [];
-        $type = strpos($originalName, 'Order') !== false ? 'Shopee' : 'Tiktok';
-
-        //shopee
-        if ($type == 'Shopee') {
-            foreach ($data as $item) {
-                $orderNum = $item[0];
-                $orderStatus = $item[1];
-                $cancelReason = $item[2];
-                $resiNo = $item[4];
-                $shippingMethod = $item[5];
-                $shipDeadline = $item[7];
-                $shipDelive = $item[8];
-                $orderCreated = $item[9];
-                $paymentDate = $item[10];
-                $paymentMethod = $item[11];
-                $sku = $item[14];
-                $originalPrice = $item[16];
-                $PriceAfter = $item[17];
-                $qty = $item[18];
-                $returnQty = $item[19];
-                $total = $item[20];
-                $totalDicount = $item[21];
-                $discountSeller = $item[22];
-                $voucherSeller = $item[27];
-                $cashbackCoin = $item[28];
-                $voucherPlatform = $item[29];
-                $discountPlatform = $item[27];
-                $shopeeCoinPieces = $item[31];
-                $creditCardDiscounts = $item[34];
-                $shippingCosts = $item[35];
-                $totalPayment = $item[38];
-                $city = $item[46];
-                $province = $item[47];
-                $orderCompleteAt = $item[48];
-
-                $transaksi = TransaksiOnline::where('order_number', $orderNum)->get();
-
-                $rowCount = $transaksi->count();
-
-                $rowData = [
-                    'platform_type' => $type,
-                    'order_number' => $orderNum,
-                    'resi_number' => $resiNo,
-                    'shipping_method' => $shippingMethod,
-                    'ship_deadline' => $shipDeadline,
-                    'ship_delivery_date' => $shipDelive,
-                    'order_date_created' => $orderCreated,
-                    'payment_method' => $paymentMethod,
-                    'SKU' => $sku,
-                    'original_price' => $originalPrice,
-                    'price_after_discount' => $PriceAfter,
-                    'quantity' => $qty,
-                    'total_price' => $total,
-                    'total_discount' => $totalDicount,
-                    'discount_seller' => $discountSeller,
-                    'voucher_seller' => $voucherSeller,
-                    'cashback_coin' => $cashbackCoin,
-                    'voucher_platform' => $voucherPlatform,
-                    'discount_platform' => $discountPlatform,
-                    'shopee_coin_pieces' => $shopeeCoinPieces,
-                    'credit_card_discounts' => $creditCardDiscounts,
-                    'shipping_costs' => $shippingCosts,
-                    'total_payment' => $totalPayment,
-                    'city' => $city,
-                    'province' => $province,
-                    'order_complete_at' => $orderCompleteAt
-                ];
-                $processedData[] = $rowData;
-
-
-                if ($rowCount > 0) {
-                    $newTransaksi = TransaksiOnline::where('order_number', $orderNum)->update($rowData);
-
-                    $rawDetail = [
-                        'to_id' => $newTransaksi->id,
-                        'order_status' => $orderStatus,
-                        'reason_cancellation' => $cancelReason,
-                        'payment_date' => $paymentDate,
-                        'return_quantity' => $returnQty,
-                    ];
-                    $processedDetail[] = $rawDetail;
-                    TransaksiOnlineDetail::create($rawDetail);
-                } else {
-                    if (!empty($rowData['resi_number'])) {
-                        $newTransaksi = TransaksiOnline::create($rowData);
-
-                        $rawDetail = [
-                            'to_id' => $newTransaksi->id,
-                            'order_status' => $orderStatus,
-                            'reason_cancellation' => $cancelReason,
-                            'payment_date' => $paymentDate,
-                            'return_quantity' => $returnQty,
-                        ];
-                        $processedDetail[] = $rawDetail;
-
-                        TransaksiOnlineDetail::create($rawDetail);
-                    }
-                }
-
-                $product_id = ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->first();
-                $stock = $product_id->ps_qty;
-
-                $newStock = $stock - $qty;
-                ProductStock::where('ps_barcode', 'LIKE', '%' . $sku . '%')->update(['ps_qty' => $newStock]);
-            }
-        }
-
-        return [
-            'processedData' => $processedDetail
-        ];
     }
 }
