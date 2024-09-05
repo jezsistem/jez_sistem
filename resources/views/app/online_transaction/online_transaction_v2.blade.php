@@ -163,7 +163,7 @@
         <!--end::Entry-->
     </div>
     <!--end::Content-->
-    @include('app.online_transaction.online_traanasnsaction_modal')
+    @include('app.online_transaction.online_transaction_modal')
     @include('app._partials.js')
     @include('app.online_transaction.online_transaction_js')
 @endSection()
