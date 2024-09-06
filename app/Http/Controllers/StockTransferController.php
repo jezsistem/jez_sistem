@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductMutation;
 use App\Models\ProductStock;
 use App\Models\TempMutasi;
 use App\Models\TempTransferStok;
@@ -653,59 +654,6 @@ class StockTransferController extends Controller
         return json_encode($r);
     }
 
-    public function stockTransferExec(Request $request)
-    {
-        $main_validate = $request->validate([
-            '_st_start' => 'required|integer',
-            '_st_end' => 'required|integer',
-            '_bin' => 'required|integer',
-        ]);
-        $check_stf = StockTransfer::select('id')->where('stf_status', '=', '0')->where('u_id', '=', Auth::user()->id)->get()->first();
-        $stf_code = 'TF' . date('YmdHis') . str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
-        if (!empty($check_stf)) {
-            $stf_id = $check_stf->id;
-        } else {
-            $stf_id = DB::table('stock_transfers')->insertGetId([
-                'u_id' => Auth::user()->id,
-                'st_id_start' => $request->_st_start,
-                'st_id_end' => $request->_st_end,
-                'stf_code' => $stf_code,
-                'stf_status' => '0',
-                'created_at' => date('Y-m-d H:i:s')
-            ]);
-        }
-        if (!empty($stf_id)) {
-            $insert = array();
-            $pls_id = array();
-            $pls_qty = array();
-            foreach ($request->_arr as $row) {
-                $insert[] = [
-                    'stf_id' => $stf_id,
-                    'pst_id' => $row[1],
-                    'pl_id' => $request->_bin,
-                    'stfd_qty' => $row[3],
-                    'stfd_status' => '0',
-                    'created_at' => date('Y-m-d H:i:s'),
-                ];
-                $pls_update = ProductLocationSetup::where([
-                    'id' => $row[0],
-                ])->update([
-                    'pls_qty' => ($row[2] - $row[3])
-                ]);
-            }
-            $stfd = StockTransferDetail::insert($insert);
-            if (!empty($stfd)) {
-                $r['status'] = '200';
-                $r['code'] = $stf_code;
-            } else {
-                $r['status'] = '400';
-            }
-        } else {
-            $r['status'] = '400';
-        }
-        return json_encode($r);
-    }
-
     public function stockTransferDraft(Request $request)
     {
         $inv = $request->post('inv');
@@ -769,7 +717,6 @@ class StockTransferController extends Controller
                 // membuat nama file unik
                 $nama_file = rand() . $file->getClientOriginalName();
 
-                // upload ke folder file_siswa di dalam folder public
                 $file->move('excel', $nama_file);
 
                 $import = new TransferImport;
@@ -824,6 +771,7 @@ class StockTransferController extends Controller
                         'product_stock_id' => $product_id->id,
                         'barcode' => $barcode,
                         'qty' => $qty,
+                        'st_id' => Auth::user()->st_id
                     ];
                     $processedData[] = $rowData;
 
@@ -843,4 +791,178 @@ class StockTransferController extends Controller
             'missingBarcode' => $missingBarcode
         ];
     }
+
+
+    public function stockTransferExec(Request $request)
+    {
+        $main_validate = $request->validate([
+            '_st_start' => 'required|integer',
+            '_st_end' => 'required|integer',
+            '_bin' => 'required|integer',
+        ]);
+        $check_stf = StockTransfer::select('id')->where('stf_status', '=', '0')->where('u_id', '=', Auth::user()->id)->get()->first();
+        $stf_code = 'TF' . date('YmdHis') . str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
+        if (!empty($check_stf)) {
+            $stf_id = $check_stf->id;
+        } else {
+            $stf_id = DB::table('stock_transfers')->insertGetId([
+                'u_id' => Auth::user()->id,
+                'st_id_start' => $request->_st_start,
+                'st_id_end' => $request->_st_end,
+                'stf_code' => $stf_code,
+                'stf_status' => '19',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+        if (!empty($stf_id)) {
+            $insert = array();
+            $pls_id = array();
+            $pls_qty = array();
+            foreach ($request->_arr as $row) {
+                $insert[] = [
+                    'stf_id' => $stf_id,
+                    'pst_id' => $row[1],
+                    'pl_id' => $request->_bin,
+                    'stfd_qty' => $row[3],
+                    'stfd_status' => '0',
+                    'created_at' => date('Y-m-d H:i:s'),
+                ];
+                $pls_update = ProductLocationSetup::where([
+                    'id' => $row[0],
+                ])->update([
+                    'pls_qty' => ($row[2] - $row[3])
+                ]);
+            }
+            $stfd = StockTransferDetail::insert($insert);
+            if (!empty($stfd)) {
+                $r['status'] = '200';
+                $r['code'] = $stf_code;
+            } else {
+                $r['status'] = '400';
+            }
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+
+    //proses transfer
+    public function productTransfer(Request $request)
+    {
+        $main_validate = $request->validate([
+            '_st_start' => 'required|integer',
+            '_st_end' => 'required|integer',
+            '_bin' => 'required|integer',
+        ]);
+
+        $check_stf = StockTransfer::select('id')->where('stf_status', '=', '0')->where('u_id', '=', Auth::user()->id)->get()->first();
+
+        $stf_code = 'TF' . date('YmdHis') . str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
+
+        $stf_id = DB::table('stock_transfers')->insertGetId([
+            'u_id' => Auth::user()->id,
+            'st_id_start' => $request->_st_start,
+            'st_id_end' => $request->_st_end,
+            'stf_code' => $stf_code,
+            'stf_status' => '0',
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $r['status'] = $request;
+
+
+//        //Delete Temp Data
+//        TempMutasi::truncate();
+//
+//        $check_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->exists();
+//        if ($check_destination) {
+//            $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
+//            if ($pmt_qty > $or_qty) {
+//                $r['status'] = '400';
+//                return false;
+//            }
+//
+//            $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->get()->first();
+//            $qty_destination = $data_destination->pls_qty;
+//            if ($qty_destination < 0) {
+//                $qty_destination = 0;
+//            }
+//            $update_data_destination = [
+//                'pls_qty' => $pmt_qty + $qty_destination
+//            ];
+//            $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->update($update_data_destination);
+//            if (!empty($update_destination)) {
+//                $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
+//                $qty_origin = $data_origin->pls_qty;
+//                $remain = $qty_origin - $pmt_qty;
+//                $update_data_origin = [
+//                    'pls_qty' => $remain
+//                ];
+//                $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
+//                if (!empty($update_origin)) {
+//                    $mutation = ProductMutation::create([
+//                        'pls_id' => $pls_id,
+//                        'pl_id' => $pl_id_end,
+//                        'u_id' => Auth::user()->id,
+//                        'pmt_old_qty' => $pmt_old_qty,
+//                        'pmt_qty' => $pmt_qty,
+//                        'created_at' => date('Y-m-d H:i:s')
+//                    ]);
+//                    if (!empty($mutation)) {
+//                        $r['status'] = '200';
+//                    } else {
+//                        $r['status'] = '400';
+//                    }
+//                } else {
+//                    $r['status'] = '400';
+//                }
+//            } else {
+//                $r['status'] = '400';
+//            }
+//        } else {
+//            $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
+//            if ($pmt_qty > $or_qty) {
+//                $r['status'] = '400';
+//                return false;
+//            }
+//            $insert_data_destination = [
+//                'pls_qty' => $pmt_qty,
+//                'pl_id' => $pl_id_end,
+//                'pst_id' => $pst_id,
+//                'created_at' => date('Y-m-d H:i:s')
+//            ];
+//            $insert_destination = ProductLocationSetup::create($insert_data_destination);
+//            if (!empty($insert_destination)) {
+//                $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
+//                $qty_origin = $data_origin->pls_qty;
+//                $remain = $qty_origin - $pmt_qty;
+//                $update_data_origin = [
+//                    'pls_qty' => $remain
+//                ];
+//                $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
+//                if (!empty($update_origin)) {
+//                    $mutation = ProductMutation::create([
+//                        'pls_id' => $pls_id,
+//                        'pl_id' => $pl_id_end,
+//                        'u_id' => Auth::user()->id,
+//                        'pmt_old_qty' => $pmt_old_qty,
+//                        'pmt_qty' => $pmt_qty,
+//                        'created_at' => date('Y-m-d H:i:s')
+//                    ]);
+//                    if (!empty($mutation)) {
+//                        $r['status'] = '200';
+//                    } else {
+//                        $r['status'] = '400';
+//                    }
+//                } else {
+//                    $r['status'] = '400';
+//                }
+//            } else {
+//                $r['status'] = '400';
+//            }
+//        }
+        return json_encode($r);
+    }
+
 }

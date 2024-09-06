@@ -227,6 +227,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('stock_transfer_done', [StockTransferController::class, 'stockTransferDone']);
     Route::post('stock_transfer_import', [StockTransferController::class, 'importData']);
     Route::delete('cancel_import_transfer', [StockTransferController::class, 'cancelImportData']);
+    Route::post('product_transfer', [StockTransferController::class, 'productTransfer']);
+//    Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
 
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');

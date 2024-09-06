@@ -392,7 +392,7 @@
                         }
                         arr[i++] = [pls_id, pst_id, pls_qty, stf_qty];
 
-                        // console.log(arr);
+                        console.log({_st_start:st_start, _st_end:st_end, _bin:bin, _arr:arr});
                     });
                     $.ajaxSetup({
                         headers: {
@@ -403,7 +403,7 @@
                         type: "POST",
                         data: {_st_start:st_start, _st_end:st_end, _bin:bin, _arr:arr},
                         dataType: 'json',
-                        url: "{{ url('stock_transfer_exec')}}",
+                        url: "{{ url('product_transfer')}}",
                         success: function(r) {
                             if (r.status == '200'){
                                 if ($('#stf_code').text() == '') {
@@ -424,6 +424,35 @@
                 }
             })
         });
+
+        function saveTransfer(pls_id, index, pst_id, pls_qty)
+        {
+            var st_id_end = $('#st_id_end').val();
+            var stfd_qty = $('.transfer_qty'+index).val();
+            if  (stfd_qty == 0 || stfd_qty == '') {
+                return true;
+            }
+            alert(pls_id+' | '+st_id_end+' | '+stfd_qty);
+            {{--$.ajaxSetup({--}}
+            {{--    headers: {--}}
+            {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+            {{--    }--}}
+            {{--});--}}
+            {{--$.ajax({--}}
+            {{--    type: "POST",--}}
+            {{--    data: {_pls_id:pls_id, _pl_id_end:pl_id_end, _pmt_qty:pmt_qty, _pmt_old_qty:pls_qty, _pst_id:pst_id},--}}
+            {{--    dataType: 'json',--}}
+            {{--    url: "{{ url('product_transfer')}}",--}}
+            {{--    success: function(r) {--}}
+            {{--        if (r.status == '200'){--}}
+
+            {{--        } else {--}}
+            {{--            toast('Error', 'Ada error, info ke programmer', 'error');--}}
+            {{--        }--}}
+            {{--    }--}}
+            {{--});--}}
+            return false;
+        }
 
         $(document).delegate('#transfer_draft_btn', 'click', function() {
             var inv = $('#stf_code').text();

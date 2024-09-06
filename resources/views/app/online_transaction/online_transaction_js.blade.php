@@ -115,6 +115,61 @@
         {{--    });--}}
         {{--});--}}
 
+        {{--$('#f_import').on('submit', function (e) {--}}
+        {{--    e.preventDefault();--}}
+        {{--    jQuery.noConflict();--}}
+
+        {{--    // Show the spinner and disable the button--}}
+        {{--    $('#import_data_btn').html('<span id="spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Proses...');--}}
+        {{--    $('#import_data_btn').attr('disabled', true);--}}
+
+        {{--    var formData = new FormData(this);--}}
+
+        {{--    // Manually append the value of st_id_form to the FormData--}}
+        {{--    var st_id_form_value = $('#st_id_form').val();  // Get the value of the disabled input--}}
+        {{--    formData.append('st_id_form', st_id_form_value); // Append it to the FormData--}}
+        {{--    --}}
+        {{--    console.log($('#st_id_form').val());--}}
+
+        {{--    $.ajax({--}}
+        {{--        type: 'POST',--}}
+        {{--        url: "{{ url('transaksi_online_import')}}",--}}
+        {{--        data: formData,--}}
+        {{--        dataType: 'json',--}}
+        {{--        cache: false,--}}
+        {{--        contentType: false,--}}
+        {{--        processData: false,--}}
+        {{--        success: function (data) {--}}
+        {{--            // Hide the spinner and enable the button--}}
+        {{--            $('#import_data_btn').html('Import');--}}
+        {{--            $('#import_data_btn').attr("disabled", false);--}}
+
+        {{--            if (data.status == '200') {--}}
+        {{--                $("#ImportModal").modal('hide');--}}
+        {{--                swal('Berhasil', 'Data berhasil diimport', 'success');--}}
+        {{--                $('#f_import')[0].reset();--}}
+        {{--                excelImportData = data.data['processedData'];--}}
+        {{--                console.log(data.data);--}}
+        {{--                console.log(data.name);--}}
+        {{--            } else if (data.status == '400') {--}}
+        {{--                $("#ImportModal").modal('hide');--}}
+        {{--                console.log(data.data);--}}
+        {{--                swal('Error', 'File yang anda import kosong atau format tidak tepat', 'warning');--}}
+        {{--            } else {--}}
+        {{--                $("#ImportModal").modal('hide');--}}
+        {{--            }--}}
+        {{--        },--}}
+        {{--        error: function (data) {--}}
+        {{--            // Hide the spinner in case of error--}}
+        {{--            $('#import_data_btn').html('Import');--}}
+        {{--            $('#import_data_btn').attr("disabled", false);--}}
+
+        {{--            swal('Error', data, 'error');--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--    online_transaction_table.draw(false);--}}
+        {{--});--}}
+
         $('#f_import').on('submit', function (e) {
             e.preventDefault();
             jQuery.noConflict();
@@ -123,11 +178,18 @@
             $('#import_data_btn').html('<span id="spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Proses...');
             $('#import_data_btn').attr('disabled', true);
 
+            // Create a new FormData object from the form
             var formData = new FormData(this);
+
+            // Manually append the value of st_id_form to the FormData
+            var st_id_form_value = $('#st_id_form').val();  // Get the value of the disabled input
+            formData.append('st_id_form', st_id_form_value); // Append it to the FormData
+
+            console.log(formData);
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('transaksi_online_import')}}",
+                url: "{{ url('transaksi_online_import') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -163,6 +225,62 @@
             });
             online_transaction_table.draw(false);
         });
+        $('#f_import').on('submit', function (e) {
+            e.preventDefault();
+            jQuery.noConflict();
+
+            // Show the spinner and disable the button
+            $('#import_data_btn').html('<span id="spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Proses...');
+            $('#import_data_btn').attr('disabled', true);
+
+            // Create a new FormData object from the form
+            var formData = new FormData(this);
+
+            // Manually append the value of st_id_form to the FormData
+            var st_id_form_value = $('#st_id_form').val();  // Get the value of the disabled input
+            formData.append('st_id_form', st_id_form_value); // Append it to the FormData
+
+            console.log(formData);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('transaksi_online_import') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    // Hide the spinner and enable the button
+                    $('#import_data_btn').html('Import');
+                    $('#import_data_btn').attr("disabled", false);
+
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_import')[0].reset();
+                        excelImportData = data.data['processedData'];
+                        console.log(data.data);
+                        console.log(data.name);
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        console.log(data.data);
+                        swal('Error', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                    }
+                },
+                error: function (data) {
+                    // Hide the spinner in case of error
+                    $('#import_data_btn').html('Import');
+                    $('#import_data_btn').attr("disabled", false);
+
+                    swal('Error', data, 'error');
+                }
+            });
+            online_transaction_table.draw(false);
+        });
+
 
         var detail_table = $('#Detailtb').DataTable({
 

@@ -15,5 +15,6 @@ class TempTransferStok extends Model
         'pls_id',
         'pls_qty',
         'ps_barcode',
+        'st_id'
     ];
 }
