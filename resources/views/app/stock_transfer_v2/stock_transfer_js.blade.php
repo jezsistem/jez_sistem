@@ -16,15 +16,18 @@
         });
     }
 
+    let excelImportData = [];
+
     $(document).ready(function() {
         // $('body').addClass('kt-primary--minimize aside-minimize');
         reloadPendingTransfer();
         $.ajaxSetup({
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
+        // kiri
         var transfer_bin_table = $('#TransferBintb').DataTable({
             destroy: true,
             processing: true,
@@ -39,21 +42,22 @@
                 data : function (d) {
                     d.pl_id = $('#pl_id').val();
                     d.search = $('#article_search').val();
+                    d.excelImport = excelImportData;
                 }
             },
             columns: [
-                { data: 'DT_RowIndex', name: 'pls_id', searchable: false},
-                { data: 'br_name', name: 'br_name', orderable: false },
-                { data: 'article', name: 'article', orderable: false },
-                { data: 'qty', name: 'qty', orderable: false },
-                { data: 'transfer', name: 'transfer', orderable: false },
+            { data: 'DT_RowIndex', name: 'pls_id', searchable: false},
+            { data: 'br_name', name: 'br_name', orderable: false },
+            { data: 'article', name: 'article', orderable: false },
+            { data: 'qty', name: 'qty', orderable: false },
+            { data: 'transfer', name: 'transfer', orderable: false },
             ],
             columnDefs: [
-                {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
+            {
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
                 "lengthMenu": "_MENU_",
@@ -65,6 +69,7 @@
             transfer_bin_table.draw();
         });
 
+        // Kanan
         var in_transfer_bin_table = $('#InTransferBintb').DataTable({
             destroy: true,
             processing: true,
@@ -82,12 +87,12 @@
                 }
             },
             columns: [
-                { data: 'article', name: 'article', orderable: false },
-                { data: 'pl_code', name: 'pl_code', orderable: false },
-                { data: 'stfd_qty', name: 'stfd_qty', orderable: false },
-                { data: 'st_start', name: 'st_start', orderable: false },
-                { data: 'st_end', name: 'st_end', orderable: false },
-                { data: 'status', name: 'status', orderable: false },
+            { data: 'article', name: 'article', orderable: false },
+            { data: 'pl_code', name: 'pl_code', orderable: false },
+            { data: 'stfd_qty', name: 'stfd_qty', orderable: false },
+            { data: 'st_start', name: 'st_start', orderable: false },
+            { data: 'st_end', name: 'st_end', orderable: false },
+            { data: 'status', name: 'status', orderable: false },
             ],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
@@ -127,22 +132,22 @@
                 }
             },
             columns: [
-                { data: 'DT_RowIndex', name: 'stf_id', searchable: false},
-                { data: 'stf_code', name: 'stf_code' },
-                { data: 'u_name', name: 'u_name', orderable: false },
-                { data: 'qty', name: 'qty', orderable: false },
-                { data: 'start_store', name: 'start_store', orderable: false },
-                { data: 'end_store', name: 'end_store', orderable: false },
-                { data: 'u_name_receive', name: 'u_name_receive', orderable: false },
-                { data: 'stf_created', name: 'stf_created' },
-                { data: 'stf_status', name: 'stf_status' },
+            { data: 'DT_RowIndex', name: 'stf_id', searchable: false},
+            { data: 'stf_code', name: 'stf_code' },
+            { data: 'u_name', name: 'u_name', orderable: false },
+            { data: 'qty', name: 'qty', orderable: false },
+            { data: 'start_store', name: 'start_store', orderable: false },
+            { data: 'end_store', name: 'end_store', orderable: false },
+            { data: 'u_name_receive', name: 'u_name_receive', orderable: false },
+            { data: 'stf_created', name: 'stf_created' },
+            { data: 'stf_status', name: 'stf_status' },
             ],
             columnDefs: [
-                {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
+            {
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
                 "lengthMenu": "_MENU_",
@@ -215,6 +220,33 @@
             }
         });
 
+        $('#CancelBtn').on('click', function() {
+            jQuery.noConflict();
+
+            if (confirm('Apakah anda yakin untuk menghapus data import?')) {
+                fetch('{{ url('cancel_import_transfer') }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            swal('Berhasil', 'Cancel berhasil', 'success');
+                            transfer_bin_table.draw();
+                        } else {
+                            swal('Gagal', 'Terjadi kesalahan saat melakukan cancel', 'warning');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('An error occurred');
+                    });
+            }
+
+        });
+
         $(document).delegate('#cancel_transfer_item', 'click', function() {
             if ($('#transfer_done_btn').hasClass('d-none')) {
                 swal('Dilarang', 'Anda tidak boleh melakukan tindakan ini, karena status sudah done / in progress', 'warning');
@@ -238,7 +270,7 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
@@ -279,7 +311,7 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
@@ -359,17 +391,19 @@
                             return true;
                         }
                         arr[i++] = [pls_id, pst_id, pls_qty, stf_qty];
+
+                        console.log({_st_start:st_start, _st_end:st_end, _bin:bin, _arr:arr});
                     });
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
                         data: {_st_start:st_start, _st_end:st_end, _bin:bin, _arr:arr},
                         dataType: 'json',
-                        url: "{{ url('stock_transfer_exec')}}",
+                        url: "{{ url('product_transfer')}}",
                         success: function(r) {
                             if (r.status == '200'){
                                 if ($('#stf_code').text() == '') {
@@ -391,6 +425,35 @@
             })
         });
 
+        function saveTransfer(pls_id, index, pst_id, pls_qty)
+        {
+            var st_id_end = $('#st_id_end').val();
+            var stfd_qty = $('.transfer_qty'+index).val();
+            if  (stfd_qty == 0 || stfd_qty == '') {
+                return true;
+            }
+            alert(pls_id+' | '+st_id_end+' | '+stfd_qty);
+            {{--$.ajaxSetup({--}}
+            {{--    headers: {--}}
+            {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+            {{--    }--}}
+            {{--});--}}
+            {{--$.ajax({--}}
+            {{--    type: "POST",--}}
+            {{--    data: {_pls_id:pls_id, _pl_id_end:pl_id_end, _pmt_qty:pmt_qty, _pmt_old_qty:pls_qty, _pst_id:pst_id},--}}
+            {{--    dataType: 'json',--}}
+            {{--    url: "{{ url('product_transfer')}}",--}}
+            {{--    success: function(r) {--}}
+            {{--        if (r.status == '200'){--}}
+
+            {{--        } else {--}}
+            {{--            toast('Error', 'Ada error, info ke programmer', 'error');--}}
+            {{--        }--}}
+            {{--    }--}}
+            {{--});--}}
+            return false;
+        }
+
         $(document).delegate('#transfer_draft_btn', 'click', function() {
             var inv = $('#stf_code').text();
             if (inv == '') {
@@ -411,7 +474,7 @@
                     $(this).addClass('disabled');
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
@@ -457,7 +520,7 @@
                     $(this).addClass('disabled');
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
@@ -499,52 +562,113 @@
             $('#transfer_done_btn').addClass('d-none');
         });
 
-        $(document).delegate('#f_import', 'submit', function(e) {
+        $('#f_import').on('submit' , function (e) {
             e.preventDefault();
-            var template_size = document.getElementById('template').files.length;
+            $('#import_data_btn').html('Proses...');
+            $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
-            if (template_size < 1) {
-                swal('Template', 'Silahkan pilih template yang akan diupload', 'warning');
-                return false;
-            }
-            swal({
-                title: "Import..?",
-                text: "Yakin import template ini ?",
-                icon: "warning",
-                buttons: [
-                    'Batal',
-                    'Yakin'
-                ],
-                dangerMode: true,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        url: "{{ url('stock_transfer_import')}}",
-                        data: formData,
-                        dataType: 'json',
-                        cache:false,
-                        contentType: false,
-                        processData: false,
-                        success: function(r) {
-                            if (r.status == '200'){
-                                $('#f_import')[0].reset();
-                                transfer_history_table.draw();
-                                swal("Berhasil", "Data berhasil import", "success");
-                            } else {
-                                swal('Gagal', 'Gagal import data', 'error');
-                            }
-                        }
-                    });
-                    return false;
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('stock_transfer_import')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    console.log(data.data['missingBarcode']);
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+
+                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        $('#f_import')[0].reset();
+                        // TODO : buat function buat return alert apabila barcode missing
+                        excelImportData = data.data['processedData'];
+
+                        transfer_bin_table.draw();
+
+                        checkMissingBarcode(data.data['missingBarcode']);
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
                 }
-            })
+            });
         });
 
+        $('#ImportModalBtn').on('click', function() {
+            jQuery.noConflict();
+            $('#ImportModal').modal('show');
+        });
+
+        // function checkMissingBarcode()
+        // {
+        //     var tableData = transfer_bin_table.rows().data();
+        //     var tableDataArray = [];
+        //     tableData.each(function(value, index) {
+        //         // tableDataArray.push(value.ps_barcode);
+        //         var htmlString = value.transfer;
+        //
+        //         var tempElement = $(htmlString);
+        //
+        //         // Loop through the elements, starting from index 0, with a step of 2
+        //         for (var i = 0; i < tempElement.length; i += 2) {
+        //             // Get the input element
+        //             var inputElement = tempElement[i];
+        //
+        //             // Get the data-ps_barcode attribute value
+        //             var psBarcodeValue = $(inputElement).data('ps_barcode');
+        //
+        //             // Log the value to the console
+        //
+        //             if(psBarcodeValue != undefined) {
+        //                 tableDataArray.push(psBarcodeValue);
+        //             }
+        //         }
+        //     });
+        //
+        //     // console.log(excelImportData);
+        //     // each file excelImportData
+        //     var importData = [];
+        //     for (var i = 0; i < excelImportData.length; i++) {
+        //         importData.push(excelImportData[i].barcode);
+        //     }
+        //
+        //     // compare array from tableDataArray and importData
+        //     var missingBarcode = [];
+        //     for (var i = 0; i < importData.length; i++) {
+        //         if(!tableDataArray.includes(importData[i])) {
+        //             missingBarcode.push(importData[i]);
+        //         }
+        //     }
+        //
+        //     if(missingBarcode.length > 0) {
+        //         swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '), 'warning');
+        //     }
+        // }
+
+        function checkMissingBarcode(missingBarcodeData) {
+            // each from missingBarcodeData array
+            var missingBarcode = [];
+            for (var i = 0; i < missingBarcodeData.length; i++) {
+                missingBarcode.push(missingBarcodeData[i]);
+            }
+
+            if(missingBarcode.length > 0) {
+                swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '), 'warning');
+            }
+        }
     });
+
+
 </script>

@@ -1,71 +1,76 @@
 @extends('app.structure')
 @section('content')
-    <!--begin::Content-->
-    <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-        <!--begin::Subheader-->
-        <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
-            <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
-                <!--begin::Info-->
-                <div class="d-flex align-items-center flex-wrap mr-1">
-                    <!--begin::Page Heading-->
-                    <div class="d-flex align-items-baseline flex-wrap mr-5">
-                        <!--begin::Page Title-->
-                        <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
-                        <!--end::Page Title-->
-                    </div>
-                    <!--end::Page Heading-->
+<!--begin::Content-->
+<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+    <!--begin::Subheader-->
+    <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
+        <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+            <!--begin::Info-->
+            <div class="d-flex align-items-center flex-wrap mr-1">
+                <!--begin::Page Heading-->
+                <div class="d-flex align-items-baseline flex-wrap mr-5">
+                    <!--begin::Page Title-->
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
+                    <!--end::Page Title-->
                 </div>
-                <!--end::Info-->
+                <!--end::Page Heading-->
             </div>
+            <!--end::Info-->
         </div>
-        <!--end::Subheader-->
-        <!--begin::Entry-->
-        <div class="d-flex flex-column-fluid">
-            <!--begin::Container-->
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <!--begin::Card-->
-                        <div class="card card-custom gutter-b">
-                            <div class="card-header h-auto">
-                                <!--begin::Title-->
-                                <div class="card-title py-5">
-                                    <h3 class="card-label">By Manual</h3>
-                                </div>
-                                <!--end::Title-->
+    </div>
+    <!--end::Subheader-->
+    <!--begin::Entry-->
+    <div class="d-flex flex-column-fluid">
+        <!--begin::Container-->
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <!--begin::Card-->
+                    <div class="card card-custom gutter-b">
+                        <div class="card-header h-auto">
+                            <!--begin::Title-->
+                            <div class="card-title py-5">
+                                <h3 class="card-label">By Manual</h3>
                             </div>
-                            <div class="card-body table-responsive">
-                                <!--begin: Datatable-->
-                                <div class="row">
-                                    <div class="form-group mb-1 pb-1 col-4">
-                                        <!-- <input type="hidden" id="_pc_id" value="" /> -->
-                                        <select class="form-control" id="st_id_start" name="st_id_start" required>
-                                            <option value="">- Store Awal -</option>
-                                            @foreach ($data['st_id'] as $key => $value)
-                                                <option value="{{ $key }}">{{ $value }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div id="st_id_start_parent"></div>
-                                    </div>
-                                    <div class="form-group mb-1 pb-1 col-4">
-                                        <!-- <input type="hidden" id="_pc_id" value="" /> -->
-                                        <select class="form-control" id="st_id_end" name="st_id_end" required>
-                                            <option value="">- Store Tujuan -</option>
-                                            @foreach ($data['st_id'] as $key => $value)
-                                                <option value="{{ $key }}">{{ $value }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div id="st_id_end_parent"></div>
-                                    </div>
-                                    <div class="form-group mb-1 pb-1 col-4">
-                                        <a class="btn btn-primary col-12" id="transfer_btn" style="white-space:nowrap;">Transfer</a>
-                                    </div>
-                                </div>
-                                <div class="form-group mb-1 pb-1">
-                                    <select class="form-control" id="pl_id" name="pl_id" required>
-                                        <option value="">- BIN Untuk Ditransfer -</option>
+                            <!--end::Title-->
+                        </div>
+                        <div class="card-body table-responsive">
+                            <!--begin: Datatable-->
+                            <div class="row">
+                                <div class="form-group mb-1 pb-1 col-4">
+                                    <!-- <input type="hidden" id="_pc_id" value="" /> -->
+                                    <select class="form-control" id="st_id_start" name="st_id_start" required>
+                                        <option value="">- Store Awal -</option>
+                                        @foreach ($data['st_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
                                     </select>
-                                    <div id="pl_id_parent"></div>
+                                    <div id="st_id_start_parent"></div>
+                                </div>
+                                <div class="form-group mb-1 pb-1 col-4">
+                                    <!-- <input type="hidden" id="_pc_id" value="" /> -->
+                                    <select class="form-control" id="st_id_end" name="st_id_end" required>
+                                        <option value="">- Store Tujuan -</option>
+                                        @foreach ($data['st_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="st_id_end_parent"></div>
+                                </div>
+                                <div class="form-group mb-1 pb-1 col-4">
+                                    <a class="btn btn-primary col-12" id="transfer_btn" style="white-space:nowrap;">Transfer</a>
+                                </div>
+                            </div>
+                            <div class="form-group mb-1 pb-1">
+                                <select class="form-control" id="pl_id" name="pl_id" required>
+                                    <option value="">- BIN Untuk Ditransfer -</option>
+                                </select>
+                                <div id="pl_id_parent"></div>
+                            </div>
+                            <!--end: Datatable-->
+                            <div class="row">
+                                <div class="form-group mb-1 pb-1 col-8">
+                                    <input type="search" class="form-control" id="article_search" placeholder="Cari artikel / brand / warna"/>
                                 </div>
                                 <div class="form-group mb-1 pb-1 col-2">
                                     <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
@@ -81,12 +86,21 @@
                                         <!--end::Svg Icon-->
                                     </span>Import</a>
                                 </div>
-                                <!--end: Datatable-->
-                                <div class="row col-12">
-                                    <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari artikel / brand / warna"/>
+
+                                <div class="form-group mb-1 pb-1 col-2">
+                                    <a type="button" class="btn btn-light-primary font-weight-bolder" id="CancelBtn" aria-haspopup="true" aria-expanded="false">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 30 30">
+                                            <path d="M15,3C8.373,3,3,8.373,3,15c0,6.627,5.373,12,12,12s12-5.373,12-12C27,8.373,21.627,3,15,3z M16.414,15 c0,0,3.139,3.139,3.293,3.293c0.391,0.391,0.391,1.024,0,1.414c-0.391,0.391-1.024,0.391-1.414,0C18.139,19.554,15,16.414,15,16.414 s-3.139,3.139-3.293,3.293c-0.391,0.391-1.024,0.391-1.414,0c-0.391-0.391-0.391-1.024,0-1.414C10.446,18.139,13.586,15,13.586,15 s-3.139-3.139-3.293-3.293c-0.391-0.391-0.391-1.024,0-1.414c0.391-0.391,1.024-0.391,1.414,0C11.861,10.446,15,13.586,15,13.586 s3.139-3.139,3.293-3.293c0.391-0.391,1.024-0.391,1.414,0c0.391,0.391,0.391,1.024,0,1.414C19.554,11.861,16.414,15,16.414,15z"></path>
+                                        </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>Cancel</a>
                                 </div>
-                                <table class="table table-hover table-checkable pr-4" id="TransferBintb">
-                                    <thead class="bg-light text-dark">
+                            </div>
+
+                            <table class="table table-hover table-checkable pr-4" id="TransferBintb">
+                                <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Brand</th>
@@ -94,37 +108,36 @@
                                         <th class="text-dark">[Size] [Qty]</th>
                                         <th class="text-dark">Transfer</th>
                                     </tr>
-                                    </thead>
-                                    <tbody>
+                                </thead>
+                                <tbody>
 
-                                    </tbody>
-                                </table>
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
-                        <!--end::Card-->
                     </div>
-                    <div class="col-lg-6">
-                        <!--begin::Card-->
-                        <div class="card card-custom gutter-b">
-                            <div class="card-body table-responsive">
-                                <!--begin: Datatable-->
-                                <div class="row">
-                                    <div class="form-group mb-1 pb-1 col-4">
-                                        <a class="btn btn-primary col-12" id="stf_code" style="white-space:nowrap;"></a>
-                                    </div>
-                                    <div class="form-group mb-1 pb-1 col-6 row ml-auto">
-                                        <a class="btn btn-danger col-4" id="transfer_cancel_btn" style="white-space:nowrap;">DELETE</a>
-                                        <a class="btn btn-warning col-4" id="transfer_draft_btn" style="white-space:nowrap;">DRAFT</a>
-                                        <a class="btn btn-success col-4" id="transfer_done_btn" style="white-space:nowrap;">DONE</a>
-                                    </div>
+                    <!--end::Card-->
+                </div>
+                <div class="col-lg-12">
+                    <!--begin::Card-->
+                    <div class="card card-custom gutter-b">
+                        <div class="card-body table-responsive">
+                            <!--begin: Datatable-->
+                            <div class="row">
+                                <div class="form-group mb-1 pb-1 col-4">
+                                    <a class="btn btn-primary col-12" id="stf_code" style="white-space:nowrap;"></a>
                                 </div>
-
-                                <!--end: Datatable-->
-                                <div class="row col-12">
-                                    <input type="search" class="form-control form-control-sm col-12" id="in_transfer_search" placeholder="Cari artikel / brand / warna"/>
+                                <div class="form-group mb-1 pb-1 col-6 row ml-auto">
+                                    <a class="btn btn-danger col-4" id="transfer_cancel_btn" style="white-space:nowrap;">DELETE</a>
+                                    <a class="btn btn-warning col-4" id="transfer_draft_btn" style="white-space:nowrap;">DRAFT</a>
+                                    <a class="btn btn-success col-4" id="transfer_done_btn" style="white-space:nowrap;">DONE</a>
                                 </div>
-                                <table class="table table-hover table-checkable pr-4" id="InTransferBintb">
-                                    <thead class="bg-light text-dark">
+                            </div>
+                            <!--end: Datatable-->
+                            <div class="row col-12">
+                            <input type="search" class="form-control form-control-sm col-12" id="in_transfer_search" placeholder="Cari artikel / brand / warna"/>
+                            </div>
+                            <table class="table table-hover table-checkable pr-4" id="InTransferBintb">
+                                <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">Artikel</th>
                                         <th class="text-dark">BIN</th>
@@ -133,42 +146,42 @@
                                         <th class="text-dark">Tujuan</th>
                                         <th class="text-dark"></th>
                                     </tr>
-                                    </thead>
-                                    <tbody>
+                                </thead>
+                                <tbody>
 
-                                    </tbody>
-                                </table>
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
-                        <!--end::Card-->
                     </div>
+                    <!--end::Card-->
                 </div>
+            </div>
 
-                <div class="row">
-                    <div class="col-lg-12">
-                        <!--begin::Card-->
-                        <div class="card card-custom gutter-b">
-                            <!--begin::Header-->
-                            <div class="card-header h-auto">
-                                <!--begin::Title-->
-                                <div class="card-title py-5">
-                                    <h3 class="card-label">History Transfer</h3>
-                                </div>
-                                <!--end::Title-->
+            <div class="row">
+                <div class="col-lg-12">
+                    <!--begin::Card-->
+                    <div class="card card-custom gutter-b">
+                        <!--begin::Header-->
+                        <div class="card-header h-auto">
+                            <!--begin::Title-->
+                            <div class="card-title py-5">
+                                <h3 class="card-label">History Transfer</h3>
                             </div>
-                            <!--end::Header-->
-                            <div class="card-body table-responsive">
-                                <div class="row d-flex justify-content-between">
-                                    <select class="form-control col-5" id="status_filter" name="status_filter" required>
-                                        <option value="">- Status -</option>
-                                        <option value="1">In Progress</option>
-                                        <option value="2">Done</option>
-                                        <option value="3">Draft</option>
-                                    </select>
-                                    <input type="search" class="form-control form-control-sm col-5" id="history_search" placeholder="Cari user / artikel"/>
-                                </div>
-                                <table class="table table-hover table-checkable" id="TransferHistorytb">
-                                    <thead class="bg-light text-dark">
+                            <!--end::Title-->
+                        </div>
+                        <!--end::Header-->
+                        <div class="card-body table-responsive">
+                            <div class="row d-flex justify-content-between">
+                            <select class="form-control col-5" id="status_filter" name="status_filter" required>
+                                <option value="">- Status -</option>
+                                <option value="1">In Progress</option>
+                                <option value="2">Done</option>
+                                <option value="3">Draft</option>
+                            </select>
+                            <input type="search" class="form-control form-control-sm col-5" id="history_search" placeholder="Cari user / artikel"/>
+                            </div>
+                            <table class="table table-hover table-checkable" id="TransferHistorytb">
+                                <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Kode</th>
@@ -180,24 +193,24 @@
                                         <th class="text-dark" style="white-space: nowrap;">Tanggal</th>
                                         <th class="text-dark">Status</th>
                                     </tr>
-                                    </thead>
-                                    <tbody>
+                                </thead>
+                                <tbody>
 
-                                    </tbody>
-                                </table>
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
-                        <!--end::Card-->
                     </div>
+                    <!--end::Card-->
                 </div>
-
             </div>
-            <!--end::Container-->
+
         </div>
-        <!--end::Entry-->
+        <!--end::Container-->
     </div>
-    <!--end::Content-->
-    @include('app.stock_transfer.stock_transfer_modal')
-    @include('app._partials.js')
-    @include('app.stock_transfer.stock_transfer_js')
+    <!--end::Entry-->
+</div>
+<!--end::Content-->
+@include('app.stock_transfer.stock_transfer_modal')
+@include('app._partials.js')
+@include('app.stock_transfer.stock_transfer_js')
 @endSection()

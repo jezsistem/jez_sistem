@@ -230,6 +230,39 @@ Route::middleware(['auth'])->group(function () {
     Route::post('product_transfer', [StockTransferController::class, 'productTransfer']);
 //    Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
 
+
+    // Stock Transfer
+    Route::get('transfer_stok', [StockTransferController::class, 'index'])->name('stock_transfer');
+    Route::get('start_transfer_datatables', [StockTransferController::class, 'startTransferDatatables']);
+    Route::get('end_transfer_datatables', [StockTransferController::class, 'endTransferDatatables']);
+    Route::get('transfer_history_datatables', [StockTransferController::class, 'transferHistoryDatatables']);
+    Route::get('stock_transfer_list_datatables', [StockTransferController::class, 'transferListDatatables']);
+    Route::get('reload_transfer_bin', [StockTransferController::class, 'reloadTransferBin']);
+    Route::get('transfer_bin_datatables', [StockTransferController::class, 'transferBinDatatables']);
+    Route::get('in_transfer_bin_datatables', [StockTransferController::class, 'inTransferBinDatatables']);
+    Route::get('get_pending_stf_code', [StockTransferController::class, 'getPendingStfCode']);
+    Route::get('reload_transfer_invoice', [StockTransferController::class, 'reloadTransferInvoice']);
+    Route::get('reload_scan_transfer_invoice', [StockTransferController::class, 'reloadScanTransferInvoice']);
+    Route::get('reload_transfer_invoice_check', [StockTransferController::class, 'reloadTransferInvoiceCheck']);
+    Route::get('reload_order_invoice', [StockTransferController::class, 'reloadOrderInvoice']);
+    Route::post('stock_transfer_exec', [StockTransferController::class, 'stockTransferExec']);
+    Route::post('stock_transfer_draft', [StockTransferController::class, 'stockTransferDraft']);
+    Route::post('stock_transfer_cancel', [StockTransferController::class, 'stockTransferCancel']);
+    Route::post('stock_transfer_confirm', [StockTransferController::class, 'stockTransferConfirm']);
+    Route::post('get_transfer_item', [StockTransferController::class, 'getTransferItem']);
+    Route::post('cancel_transfer_item', [StockTransferController::class, 'cancelTransferItem']);
+    Route::post('stock_transfer_done', [StockTransferController::class, 'stockTransferDone']);
+    Route::post('stock_transfer_import', [StockTransferController::class, 'importData']);
+    // Stock Transfer Data
+    Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
+    Route::get('transfer_data_datatables', [StockTransferDataController::class, 'getDatatables']);
+    Route::get('transfer_data_accept_datatables', [StockTransferDataController::class, 'getAcceptDatatables']);
+    Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
+    Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
+    Route::get('std_export', [StockTransferDataController::class, 'exportData']);
+    Route::post('std_receive_transfer_data_import', [StockTransferDataController::class, 'importReceiveTransferData']);
+
+
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
     Route::get('transfer_data_datatables', [StockTransferDataController::class, 'getDatatables']);
