@@ -142,7 +142,7 @@ class TransaksiOnlineController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('no_resi', 'LIKE', "%$search%")
-                            ->orWhere('order_number', 'LIKE', "%$search%");
+                            ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
                         });
                     }
 
