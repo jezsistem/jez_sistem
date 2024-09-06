@@ -133,7 +133,7 @@ class StockTransferController extends Controller
 
                                 $this->table_row += 1;
 //                                $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-6" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-6" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
-                                $sz_name .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" disabled type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="[' . $row->sz_name . '] - ['. $row->pls_qty .']" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>';
+                                $sz_name .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" disabled type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="[' . $row->sz_name . '] - [' . $row->pls_qty . ']" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>';
                             }
                             return $sz_name;
                         } else {
@@ -157,9 +157,10 @@ class StockTransferController extends Controller
                                 $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
 
                                 $this->table_row += 1;
-                                $transfer .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+//                                $transfer .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+//                                <i class="fa fa-eye d-none" onclick="return saveTransfer(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ')" id="saveTransfer' . $this->table_row . '"></i>';
+                                $transfer .= '<input data-transfer-qty data-pls_id="' . $row->pls_id . '" data-pst_id="' . $row->pst_id . '" data-qty="' . $row->pls_qty . '" id="transfer_qty" type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
                                 <i class="fa fa-eye d-none" onclick="return saveTransfer(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ')" id="saveTransfer' . $this->table_row . '"></i>';
-
                             }
                             return $transfer;
                         } else {
@@ -207,7 +208,7 @@ class StockTransferController extends Controller
                             $sz_name = '';
                             foreach ($check_pst as $row) {
 //                                $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-6" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-6" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
-                                $sz_name .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" disabled type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="[' . $row->sz_name . '] - ['. $row->pls_qty .']" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>';
+                                $sz_name .= '<input data-transfer-qty data-qty="' . $row->pls_qty . '" id="transfer_qty" disabled type="text" class="form-control col-12 transfer_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="[' . $row->sz_name . '] - [' . $row->pls_qty . ']" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>';
                             }
                             return $sz_name;
                         } else {
@@ -259,9 +260,10 @@ class StockTransferController extends Controller
 
         }
     }
+
     public function transferBinDatatables2(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(ProductLocationSetup::select('product_location_setups.id as pls_id', 'products.id as p_id', 'br_name', 'p_name', 'p_color', 'sz_name', 'mc_name', 'pls_qty', 'ps_barcode')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -272,10 +274,10 @@ class StockTransferController extends Controller
                 ->where('pl_id', '=', $request->pl_id)
                 ->where('pls_qty', '>', '0')
                 ->groupBy('products.id'))
-                ->editColumn('article', function($data){
-                    return '<span style="white-space: nowrap;">'.$data->p_name.'<br/>'.$data->p_color.'</span>';
+                ->editColumn('article', function ($data) {
+                    return '<span style="white-space: nowrap;">' . $data->p_name . '<br/>' . $data->p_color . '</span>';
                 })
-                ->editColumn('qty', function($data) use ($request) {
+                ->editColumn('qty', function ($data) use ($request) {
                     $check_pst = ProductLocationSetup::select('product_stocks.id as pst_id', 'sz_name', 'pls_qty', 'ps_barcode')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
@@ -285,17 +287,17 @@ class StockTransferController extends Controller
                         ->where('product_stocks.p_id', '=', $data->p_id)
                         ->where('pls_qty', '>', 0)
                         ->get();
-                    if (!empty($check_pst)){
+                    if (!empty($check_pst)) {
                         $sz_name = '';
                         foreach ($check_pst as $row) {
-                            $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-6" style="white-space: nowrap;">'.$row->sz_name.'</a> <a class="btn btn-sm btn-primary col-6" onclick="return mutation('.$row->pst_id.', '.$request->_pl_id.', \''.$data->p_name.'\', \''.$data->p_color.'\', \''.$row->sz_name.'\', '.$row->pls_qty.')">'.$row->pls_qty.'</a></div>';
+                            $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-6" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-6" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
                         }
                         return $sz_name;
                     } else {
                         return 'Data belum disetup';
                     }
                 })
-                ->editColumn('transfer', function($data) use ($request) {
+                ->editColumn('transfer', function ($data) use ($request) {
                     $check_pst = ProductLocationSetup::select('product_location_setups.id as pls_id', 'product_stocks.id as pst_id', 'sz_name', 'pls_qty', 'ps_barcode')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
@@ -305,24 +307,24 @@ class StockTransferController extends Controller
                         ->where('product_stocks.p_id', '=', $data->p_id)
                         ->where('pls_qty', '>', 0)
                         ->get();
-                    if (!empty($check_pst)){
+                    if (!empty($check_pst)) {
                         $transfer = '';
                         foreach ($check_pst as $row) {
                             $this->table_row += 1;
                             $transfer .= '
                         <input
                         data-transfer-qty
-                        data-qty="'.$row->pls_qty.'"
-                        data-pls_id = "'.$row->pls_id.'"
-                        data-table_row = "'.$this->table_row.'"
-                        data-pst_id = "'.$row->pst_id.'"
-                        data-pls_qty = "'.$row->pls_qty.'"
+                        data-qty="' . $row->pls_qty . '"
+                        data-pls_id = "' . $row->pls_id . '"
+                        data-table_row = "' . $this->table_row . '"
+                        data-pst_id = "' . $row->pst_id . '"
+                        data-pls_qty = "' . $row->pls_qty . '"
                         id="transfer_qty"
                         type="number"
                         class="form-control col-12 transfer_qty"
                         style="padding:10px; margin-bottom:2px;"
-                        value="" title="'.$data->p_name.' '.$data->p_color.' '.$row->sz_name.'"/>
-                        <i class="fa fa-eye d-none" onclick="return saveTransfer('.$row->pls_id.', '.$this->table_row.', '.$row->pst_id.', '.$row->pls_qty.')" id="saveTransfer'.$this->table_row.'"></i>';
+                        value="" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                        <i class="fa fa-eye d-none" onclick="return saveTransfer(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ')" id="saveTransfer' . $this->table_row . '"></i>';
                         }
                         return $transfer;
                     } else {
@@ -332,7 +334,7 @@ class StockTransferController extends Controller
                 ->rawColumns(['article', 'qty', 'transfer'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
-                        $instance->where(function($w) use($request){
+                        $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
                                 ->orWhere('p_name', 'LIKE', "%$search%")
@@ -793,6 +795,59 @@ class StockTransferController extends Controller
     }
 
 
+//    public function stockTransferExec(Request $request)
+//    {
+//        $main_validate = $request->validate([
+//            '_st_start' => 'required|integer',
+//            '_st_end' => 'required|integer',
+//            '_bin' => 'required|integer',
+//        ]);
+//        $check_stf = StockTransfer::select('id')->where('stf_status', '=', '0')->where('u_id', '=', Auth::user()->id)->get()->first();
+//        $stf_code = 'TF' . date('YmdHis') . str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
+//        if (!empty($check_stf)) {
+//            $stf_id = $check_stf->id;
+//        } else {
+//            $stf_id = DB::table('stock_transfers')->insertGetId([
+//                'u_id' => Auth::user()->id,
+//                'st_id_start' => $request->_st_start,
+//                'st_id_end' => $request->_st_end,
+//                'stf_code' => $stf_code,
+//                'stf_status' => '19',
+//                'created_at' => date('Y-m-d H:i:s')
+//            ]);
+//        }
+//        if (!empty($stf_id)) {
+//            $insert = array();
+//            $pls_id = array();
+//            $pls_qty = array();
+//            foreach ($request->_arr as $row) {
+//                $insert[] = [
+//                    'stf_id' => $stf_id,
+//                    'pst_id' => $row[1],
+//                    'pl_id' => $request->_bin,
+//                    'stfd_qty' => $row[3],
+//                    'stfd_status' => '0',
+//                    'created_at' => date('Y-m-d H:i:s'),
+//                ];
+//                $pls_update = ProductLocationSetup::where([
+//                    'id' => $row[0],
+//                ])->update([
+//                    'pls_qty' => ($row[2] - $row[3])
+//                ]);
+//            }
+//            $stfd = StockTransferDetail::insert($insert);
+//            if (!empty($stfd)) {
+//                $r['status'] = '200';
+//                $r['code'] = $stf_code;
+//            } else {
+//                $r['status'] = '400';
+//            }
+//        } else {
+//            $r['status'] = '400';
+//        }
+//        return json_encode($r);
+//    }
+
     public function stockTransferExec(Request $request)
     {
         $main_validate = $request->validate([
@@ -855,113 +910,49 @@ class StockTransferController extends Controller
             '_st_end' => 'required|integer',
             '_bin' => 'required|integer',
         ]);
-
         $check_stf = StockTransfer::select('id')->where('stf_status', '=', '0')->where('u_id', '=', Auth::user()->id)->get()->first();
-
         $stf_code = 'TF' . date('YmdHis') . str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
-
-        $stf_id = DB::table('stock_transfers')->insertGetId([
-            'u_id' => Auth::user()->id,
-            'st_id_start' => $request->_st_start,
-            'st_id_end' => $request->_st_end,
-            'stf_code' => $stf_code,
-            'stf_status' => '0',
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
-
-        $r['status'] = $request;
-
-
-//        //Delete Temp Data
-//        TempMutasi::truncate();
-//
-//        $check_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->exists();
-//        if ($check_destination) {
-//            $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
-//            if ($pmt_qty > $or_qty) {
-//                $r['status'] = '400';
-//                return false;
-//            }
-//
-//            $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->get()->first();
-//            $qty_destination = $data_destination->pls_qty;
-//            if ($qty_destination < 0) {
-//                $qty_destination = 0;
-//            }
-//            $update_data_destination = [
-//                'pls_qty' => $pmt_qty + $qty_destination
-//            ];
-//            $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->update($update_data_destination);
-//            if (!empty($update_destination)) {
-//                $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
-//                $qty_origin = $data_origin->pls_qty;
-//                $remain = $qty_origin - $pmt_qty;
-//                $update_data_origin = [
-//                    'pls_qty' => $remain
-//                ];
-//                $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
-//                if (!empty($update_origin)) {
-//                    $mutation = ProductMutation::create([
-//                        'pls_id' => $pls_id,
-//                        'pl_id' => $pl_id_end,
-//                        'u_id' => Auth::user()->id,
-//                        'pmt_old_qty' => $pmt_old_qty,
-//                        'pmt_qty' => $pmt_qty,
-//                        'created_at' => date('Y-m-d H:i:s')
-//                    ]);
-//                    if (!empty($mutation)) {
-//                        $r['status'] = '200';
-//                    } else {
-//                        $r['status'] = '400';
-//                    }
-//                } else {
-//                    $r['status'] = '400';
-//                }
-//            } else {
-//                $r['status'] = '400';
-//            }
-//        } else {
-//            $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
-//            if ($pmt_qty > $or_qty) {
-//                $r['status'] = '400';
-//                return false;
-//            }
-//            $insert_data_destination = [
-//                'pls_qty' => $pmt_qty,
-//                'pl_id' => $pl_id_end,
-//                'pst_id' => $pst_id,
-//                'created_at' => date('Y-m-d H:i:s')
-//            ];
-//            $insert_destination = ProductLocationSetup::create($insert_data_destination);
-//            if (!empty($insert_destination)) {
-//                $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
-//                $qty_origin = $data_origin->pls_qty;
-//                $remain = $qty_origin - $pmt_qty;
-//                $update_data_origin = [
-//                    'pls_qty' => $remain
-//                ];
-//                $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
-//                if (!empty($update_origin)) {
-//                    $mutation = ProductMutation::create([
-//                        'pls_id' => $pls_id,
-//                        'pl_id' => $pl_id_end,
-//                        'u_id' => Auth::user()->id,
-//                        'pmt_old_qty' => $pmt_old_qty,
-//                        'pmt_qty' => $pmt_qty,
-//                        'created_at' => date('Y-m-d H:i:s')
-//                    ]);
-//                    if (!empty($mutation)) {
-//                        $r['status'] = '200';
-//                    } else {
-//                        $r['status'] = '400';
-//                    }
-//                } else {
-//                    $r['status'] = '400';
-//                }
-//            } else {
-//                $r['status'] = '400';
-//            }
-//        }
+        if (!empty($check_stf)) {
+            $stf_id = $check_stf->id;
+        } else {
+            $stf_id = DB::table('stock_transfers')->insertGetId([
+                'u_id' => Auth::user()->id,
+                'st_id_start' => $request->_st_start,
+                'st_id_end' => $request->_st_end,
+                'stf_code' => $stf_code,
+                'stf_status' => '19',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+        if (!empty($stf_id)) {
+            $insert = array();
+            $pls_id = array();
+            $pls_qty = array();
+            foreach ($request->_arr as $row) {
+                $insert[] = [
+                    'stf_id' => $stf_id,
+                    'pst_id' => $row[1],
+                    'pl_id' => $request->_bin,
+                    'stfd_qty' => $row[3],
+                    'stfd_status' => '0',
+                    'created_at' => date('Y-m-d H:i:s'),
+                ];
+                $pls_update = ProductLocationSetup::where([
+                    'id' => $row[0],
+                ])->update([
+                    'pls_qty' => ($row[2] - $row[3])
+                ]);
+            }
+            $stfd = StockTransferDetail::insert($insert);
+            if (!empty($stfd)) {
+                $r['status'] = '200';
+                $r['code'] = $stf_code;
+            } else {
+                $r['status'] = '400';
+            }
+        } else {
+            $r['status'] = '400';
+        }
         return json_encode($r);
     }
 
