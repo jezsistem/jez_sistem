@@ -201,9 +201,13 @@
 
         function success(result) {
 
-            alert(result);
+            var hasil = result;
 
-            $('#stock_data_search').val(result);
+            if (hasil.startsWith(']C1')) {
+                hasil = hasil.replace(']C1', '');
+            }
+
+            $('#stock_data_search').val(hasil);
             stock_data_table.draw();
 
             // let today = new Date().toISOString().slice(0, 10)
