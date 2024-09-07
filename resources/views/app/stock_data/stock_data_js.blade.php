@@ -1,5 +1,7 @@
 <script>
 
+
+
     function reloadCategory(type, id) {
         $.ajaxSetup({
             headers: {
@@ -185,6 +187,81 @@
             var oSettings = stock_data_table.settings();
         // }
 
+        const scanner = new Html5QrcodeScanner('reader', {
+            // Scanner will be initialized in DOM inside element with id of 'reader'
+            qrbox: {
+                width: 250,
+                height: 250,
+            },  // Sets dimensions of scanning box (set relative to reader element width)
+            fps: 20, // Frames per second to attempt a scan
+        });
+
+
+        scanner.render(success, error);
+
+        function success(result) {
+
+            alert(result);
+
+            $('#stock_data_search').val(result);
+            stock_data_table.draw();
+
+            // let today = new Date().toISOString().slice(0, 10)
+            //
+            // const date_obj = new Date();
+            //
+            // time = new Date().toLocaleTimeString();
+            //
+            // document.getElementById('result').innerHTML = `
+            //
+            // <div class="card" style="width: 18rem; onload="console_log(${result});">
+            //
+            // <img src="barcode-scan.gif" class="card-img-top" alt="...">
+            //
+            // <div class="card-body">
+            //
+            // <form action="validator.php" method="post">
+            //
+            // <p style="font-size: 14px;" class="card-text">Bar Code Read Successfully : <span class="badge bg-primary">${result}</span></p>
+            //
+            // <p style="font-size: 14px;" class="card-text">Date : <span class="badge bg-primary">${today}</span></p>
+            //
+            // <p style="font-size: 14px;" class="card-text">Capture Time : <span class="badge bg-primary">${time}</span></p>
+            //
+            // <input type="hidden" name="number_index" value="${result}" id="result">
+            //
+            // <input type="hidden" name="time_val" value="${time}" id="capture_time">
+            //
+            // <input type="hidden" name="date_val" value="${today}" id="capture_date">
+            //
+            // <button type="submit" name="submit" class="btn btn-outline-primary btn-sm">Validation</button>
+            //
+            // </form>
+            //
+            // </div>
+            //
+            // </div>
+            // `;
+            //
+            // // Prints result as a link inside result element
+            //
+            // scanner.clear();
+            // // Clears scanning instance
+
+            // document.getElementById('reader').remove();
+            // Removes reader element from DOM since no longer needed
+
+        }
+
+        function error(err) {
+            console.error(err);
+            // Prints any errors to the console
+        }
+
+        function console_log(result)
+        {
+            console.log(result);
+        }
         {{--var aging_table = $('#Agingtb').DataTable({--}}
         {{--    destroy: true,--}}
         {{--    processing: true,--}}

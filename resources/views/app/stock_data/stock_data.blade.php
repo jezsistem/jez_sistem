@@ -148,6 +148,9 @@
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
                             <form id="f_search">
+                                <div id="reader" class="rounded"></div>
+
+                                <div id="result"></div>
                                 <input type="text" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau sku" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
 {{--                                <button type="submit"  class="btn btn-primary">Search</button>--}}
                                 <div class="alert alert-danger" role="alert">
