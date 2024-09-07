@@ -10,13 +10,9 @@
 
 
     #reader {
-        width: 600px;
+        width: 500px;
 
         border-radius: 60px;
-
-        justify-content: center;
-
-        margin-left: 30%;
 
         margin-bottom: 20px;
     }
