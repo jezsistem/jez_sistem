@@ -10,7 +10,7 @@
 <!-- Paste this code after body tag -->
 <div class="se-pre-con">
     <div class="pre-loader">
-        <img class="img-fluid" src="{{ asset('pos/images') }}/loadergif.gif" alt="loading">
+        <img class="img-fluid" src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%">
     </div>
 </div>
 @include('app.offline_pos.offline_pos_header')

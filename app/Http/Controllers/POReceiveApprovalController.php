@@ -92,11 +92,12 @@ class POReceiveApprovalController extends Controller
         if (request()->ajax()) {
             return datatables()->of(DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
-                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid")
+                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost")
                 ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
                 ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->whereNotNull('poads_invoice')
@@ -192,10 +193,13 @@ class POReceiveApprovalController extends Controller
             return datatables()->of(DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
             u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, poads_purchase_price, 
-            ts_product_stocks.ps_barcode,ts_product_stocks.ps_qty,poads_total_price, ts_purchase_order_article_detail_statuses.created_at")
+            ts_product_stocks.ps_barcode,ts_product_stocks.ps_qty,poads_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name")
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->Join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->Join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_order_article_detail_statuses.stkt_id')

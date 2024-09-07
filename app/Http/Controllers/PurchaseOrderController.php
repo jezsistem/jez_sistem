@@ -660,6 +660,37 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    public function uploadPembayaranInvoice(Request $request)
+    {
+
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            if ($request->hasFile('imageInvoices')) {
+                foreach ($request->file('imageInvoices') as $file) {
+                    $image = $file;
+                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_COD_' . time() . '.' . $image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_invoice');
+
+                    // save destination path
+                    $image->move($destinationPath, $name);
+
+                    PurchaseOrderInvoiceImage::create([
+                        'purchase_order_id' => $po_id,
+                        'invoice_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
     public function uploadImageTransfer(Request $request)
     {
         $po_id = $request->_po_id;

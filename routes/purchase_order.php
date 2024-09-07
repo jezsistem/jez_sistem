@@ -54,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_detail', [PurchaseOrderController::class, 'poDetail']);
     Route::post('po_import', [PurchaseOrderImportExcelController::class, 'importExcel']);
     Route::post('po_invoice_image', [PurchaseOrderController::class, 'uploadImageInvoice']);
+    Route::post('po_pembayaran_image', [PurchaseOrderController::class, 'uploadPembayaranInvoice']);
     Route::get('po_article_export', [PurchaseOrderController::class, 'exportPurchaseOrderArticleData']);
     Route::post('po_transfer_image', [PurchaseOrderController::class, 'uploadImageTransfer']);
 
@@ -100,10 +101,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('ap_datatables', [POReceiveApprovalController::class, 'getDatatables']);
     Route::get('apd_datatables', [POReceiveApprovalController::class, 'getDetailDatatables']);
     Route::post('ap_save', [POReceiveApprovalController::class, 'saveData']);
-    Route::post(
-        'ap_delete',
-        [POReceiveApprovalController::class, 'deleteData']
-    );
+    Route::post('ap_delete',[POReceiveApprovalController::class, 'deleteData']);
     Route::post('apd_approve', [POReceiveApprovalController::class, 'approveData']);
     Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
 
