@@ -26,6 +26,10 @@
     <!-- DatePicker -->
     <link href="{{ asset('app') }}/assets/css/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js"
+            integrity="sha512-k/KAe4Yff9EUdYI5/IAHlwUswqeipP+Cp5qnrsUjTPCgl51La2/JhyyjNciztD7mWNKLSXci48m7cctATKfLlQ==" crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+
 {{--    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>--}}
 {{--    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>--}}
 {{--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">--}}
