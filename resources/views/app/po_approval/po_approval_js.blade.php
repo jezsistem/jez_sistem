@@ -91,6 +91,45 @@
             po_approval_table.draw();
         });
 
+        // var po_id = po_approval_table.row(this).data().po_id;
+
+
+        var purchaseOrderInvoiceTable = $('#InvoiceImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_invoice_image_datatable') }}",
+                data: function(d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'image',
+                name: 'invoice_image',
+                searchable: false
+            },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": [0, 1],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+
         var apd_table = $('#APDtb').DataTable({
             destroy: true,
             processing: true,
@@ -114,7 +153,7 @@
             },
             columns: [{
                     data: 'DT_RowIndex',
-                    name: 'id',
+                    name: 'po_id',
                     searchable: false
                 },
                 {
@@ -218,10 +257,21 @@
 
         $('#APtb tbody').on('click', 'tr', function() {
             var id = po_approval_table.row(this).data().id;
+            var po_id = po_approval_table.row(this).data().po_id;
+            var st_name = po_approval_table.row(this).data().st_name;
+            var ps_name = po_approval_table.row(this).data().ps_name;
+            var full_date = po_approval_table.row(this).data().created_at;
+            var tgl_terima = full_date.split(' ')[0];
+            var po_description = po_approval_table.row(this).data().po_description;
+            var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
+
+            console.log('STORES : ', tgl_terima);
+            console.log('POADS ID :',poads_invoice);
+
 
             // call ajax apd_total_price 
             $.ajax({
@@ -233,21 +283,42 @@
                 url: "{{ url('apd_total_price') }}",
                 success: function(r) {
                     console.log(r);
+                    console.log(st_name);
+
+                    $('#st_id').val(st_name);
+                    $('#ps_name').val(ps_name);
+                    $('#po_description').val(po_description);
+                    $('#receive_date').val(tgl_terima);
+                    $('#shipping_cost').val(shipping_cost);
+                    $('#_po_id').val(po_id);
                     $('#total_approval_price').text("Rp. " + r);
+
+                    purchaseOrderInvoiceTable.draw();
                 }
             });
-
             $('#ApproveModal').modal('show');
             $('#invoice_label').text(poads_invoice.replace("&amp;", "&"));
 
             apd_table.draw();
+
+
         });
+
+        $(document).ready(function() {
+            $("#InvoiceImagesBtn").click(function() {
+                $("#InvoiceImagesModal").modal("show");
+                console.log($('#po_id').val());
+            });
+        });
+
+
 
 
 
         $(document).delegate('#delete_poads', 'click', function(e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
+            // console.log(id);
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",

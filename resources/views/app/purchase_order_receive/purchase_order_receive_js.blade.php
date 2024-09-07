@@ -1270,58 +1270,113 @@
         });
 
         $('#PurchaseOrdertb tbody').on('click', 'tr', function() {
+            // Retrieve the po_id from the selected row's data
             var po_id = purchase_order_table.row(this).data().po_id;
+
             // Store the po_id for later use
             $('#_po_id').val(po_id);
 
-            // console.log();
-            // jQuery('#st_id').val(r.st_id).trigger('change');
-            // jQuery('#ps_id').val(r.ps_id).trigger('change');
-            // jQuery('#stkt_id').val(r.stkt_id).trigger('change');
-            // jQuery('#tax_id').val(r.tax_id).trigger('change');jQuery('#st_id').val(r.st_id).trigger('change');
-            // jQuery('#ps_id').val(r.ps_id).trigger('change');
-            // jQuery('#stkt_id').val(r.stkt_id).trigger('change');
-            // jQuery('#tax_id').val(r.tax_id).trigger('change');
+            //
+            console.log(po_id);
 
-            // Update DataTables AJAX configuration with the new po_id
+            // Update DataTables with new po_id and reload
             purchaseOrderInvoiceTable.ajax.reload();
             purchaseOrderDeliveryOrderImageTable.ajax.reload();
 
+            // Setup the CSRF token for the AJAX request
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+
+            // Send AJAX request to fetch purchase order details
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {
-                    _po_id: po_id
-                },
+                data: { _po_id: po_id },
                 url: "{{ url('po_receive_detail') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        jQuery.noConflict();
+                        // Reset the form and open the modal
                         $('#f_po')[0].reset();
                         $('#PurchaseOrderModal').modal('show');
                         $('#po_invoice_label').text(r.po_invoice);
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         $('#po_description').val(r.po_description);
-                        // $('#shipping_cost').val(r.po_shipping_cost);
-                        $('#shipping_cost').attr('placeholder', r.po_shipping_cost +
-                            ' tetap diisi sesuai angka yang tertera');
+
+                        // Set the shipping cost placeholder
+                        $('#shipping_cost').attr('placeholder', r.po_shipping_cost + ' tetap diisi sesuai angka yang tertera');
+
+                        // Update select fields and trigger change events
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
+
+                        // Reload article details
                         reloadArticleDetail(po_id);
                     } else {
-                        swal('Error', 'terjadi kesalahan', 'warning');
+                        // Show error alert if the request fails
+                        swal('Error', 'Terjadi kesalahan', 'warning');
                     }
                 }
             });
         });
+        {{--$('#PurchaseOrdertb tbody').on('click', 'tr', function() {--}}
+        {{--    var po_id = purchase_order_table.row(this).data().po_id;--}}
+        {{--    // Store the po_id for later use--}}
+        {{--    $('#_po_id').val(po_id);--}}
+
+        {{--    console.log();--}}
+        {{--    jQuery('#st_id').val(r.st_id).trigger('change');--}}
+        {{--    jQuery('#ps_id').val(r.ps_id).trigger('change');--}}
+        {{--    jQuery('#stkt_id').val(r.stkt_id).trigger('change');--}}
+        {{--    jQuery('#tax_id').val(r.tax_id).trigger('change');jQuery('#st_id').val(st_id).trigger('change');--}}
+        {{--    jQuery('#ps_id').val(r.ps_id).trigger('change');--}}
+        {{--    jQuery('#stkt_id').val(r.stkt_id).trigger('change');--}}
+        {{--    jQuery('#tax_id').val(r.tax_id).trigger('change');--}}
+
+        {{--    // Update DataTables AJAX configuration with the new po_id--}}
+        {{--    purchaseOrderInvoiceTable.ajax.reload();--}}
+        {{--    purchaseOrderDeliveryOrderImageTable.ajax.reload();--}}
+
+        {{--    $.ajaxSetup({--}}
+        {{--        headers: {--}}
+        {{--            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--    $.ajax({--}}
+        {{--        type: "POST",--}}
+        {{--        dataType: 'json',--}}
+        {{--        data: {--}}
+        {{--            _po_id: po_id--}}
+        {{--        },--}}
+        {{--        url: "{{ url('po_receive_detail') }}",--}}
+        {{--        success: function(r) {--}}
+        {{--            if (r.status == '200') {--}}
+        {{--                jQuery.noConflict();--}}
+        {{--                $('#f_po')[0].reset();--}}
+        {{--                $('#PurchaseOrderModal').modal('show');--}}
+        {{--                $('#po_invoice_label').text(r.po_invoice);--}}
+        {{--                $('#_mode').val('edit');--}}
+        {{--                $('#_po_id').val(r.po_id);--}}
+        {{--                $('#po_description').val(r.po_description);--}}
+        {{--                // $('#shipping_cost').val(r.po_shipping_cost);--}}
+        {{--                $('#shipping_cost').attr('placeholder', r.po_shipping_cost +--}}
+        {{--                    ' tetap diisi sesuai angka yang tertera');--}}
+        {{--                jQuery('#st_id').val(r.st_id).trigger('change');--}}
+        {{--                jQuery('#ps_id').val(r.ps_id).trigger('change');--}}
+        {{--                jQuery('#stkt_id').val(r.stkt_id).trigger('change');--}}
+        {{--                jQuery('#tax_id').val(r.tax_id).trigger('change');--}}
+        {{--                reloadArticleDetail(po_id);--}}
+        {{--            } else {--}}
+        {{--                swal('Error', 'terjadi kesalahan', 'warning');--}}
+        {{--            }--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
 
         $('#f_poads').on('submit', function(e) {
             e.preventDefault();

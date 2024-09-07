@@ -403,7 +403,7 @@ class PurchaseOrderReceiveController extends Controller
                         'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
                         'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
                         'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
-                        'product_stocks.ps_barcode',)
+                        'product_stocks.ps_barcode')
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
