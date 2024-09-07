@@ -10,7 +10,7 @@
 
 
     #reader {
-        width: 500px;
+        width: 350px;
 
         border-radius: 60px;
 
