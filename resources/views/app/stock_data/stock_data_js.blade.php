@@ -207,6 +207,8 @@
                 hasil = hasil.replace(']C1', '');
             }
 
+            alert(hasil);
+
             $('#stock_data_search').val(hasil);
             stock_data_table.draw();
 
