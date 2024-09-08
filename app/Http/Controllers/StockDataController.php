@@ -288,30 +288,54 @@ class StockDataController extends Controller
 
                             $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
                             $item_list .= '<td style="white-space: nowrap; border:0px; font-weight:bold;">' . $item . ' <span class="btn-sm-custom btn-primary">' . $row->article_id . ' ' . $row->p_color . '</span></td>';
-                            $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
-                                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                                ->whereNotIn('pl_code', $exception)
-//                        ->where('pls_qty', '>', 0)
-                                ->where('product_locations.st_id', '=', $st_id)
-                                ->where('p_id', $row->pid)
-                                ->where(function ($w) use ($sz_id) {
-                                    if (!empty($sz_id)) {
-                                        if (count($sz_id) > 0) {
-                                            $w->whereIn('sz_id', $sz_id);
-                                        } else {
-                                            $w->where('sz_id', $sz_id);
+
+                            if ($request->is_zero != 1) {
+                                $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
+                                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                                    ->Join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                                    ->whereNotIn('pl_code', $exception)
+                                    ->where('pls_qty', '<>', 0)
+                                    ->where('product_locations.st_id', '=', $st_id)
+                                    ->where('p_id', $row->pid)
+                                    ->where(function ($w) use ($sz_id) {
+                                        if (!empty($sz_id)) {
+                                            if (count($sz_id) > 0) {
+                                                $w->whereIn('sz_id', $sz_id);
+                                            } else {
+                                                $w->where('sz_id', $sz_id);
+                                            }
                                         }
-                                    }
-                                })
-//                        ->orderBy('sizes.sz_name', 'asc')
-//                        ->groupBy('sz_name')->get();
-                                ->orderByRaw(
-                                    'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
-                                )
-                                ->groupBy('sz_name')
-                                ->get();
+                                    })
+                                    ->orderByRaw(
+                                        'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
+                                    )
+                                    ->groupBy('sz_name')
+                                    ->get();
+                            } else {
+                                $item_size_stock = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pls_qty', 'pl_id', 'product_stocks.id as pst_id', 'sz_name', 'ps_qty')
+                                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                                    ->whereNotIn('pl_code', $exception)
+                                    ->where('product_locations.st_id', '=', $st_id)
+                                    ->where('p_id', $row->pid)
+                                    ->where(function ($w) use ($sz_id) {
+                                        if (!empty($sz_id)) {
+                                            if (count($sz_id) > 0) {
+                                                $w->whereIn('sz_id', $sz_id);
+                                            } else {
+                                                $w->where('sz_id', $sz_id);
+                                            }
+                                        }
+                                    })
+                                    ->orderByRaw(
+                                        'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
+                                    )
+                                    ->groupBy('sz_name')
+                                    ->get();
+                            }
+
                             if (!empty($item_size_stock)) {
                                 $item_list .= '<td style="white-space: nowrap; font-weight:bold; border:0px;">';
                                 foreach ($item_size_stock as $srow) {
@@ -320,13 +344,20 @@ class StockDataController extends Controller
                                     } else {
                                         $br = '<br/>';
                                     }
-                                    $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
-                                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                                            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-//                                            ->join('products', 'products.id', '=', 'product_stocks.p_id')
-                                        ->whereNotIn('pl_code', $exception)
-                                        ->where('product_locations.st_id', '=', $st_id)
-                                        ->where('pst_id', $srow->pst_id)->get();
+                                    if ($request->is_zero != 1) {
+                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
+                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                            ->where('pls_qty', '<>', 0)
+                                            ->whereNotIn('pl_code', $exception)
+                                            ->where('product_locations.st_id', '=', $st_id)
+                                            ->where('pst_id', $srow->pst_id)->get();
+                                    } else {
+                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id')
+                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                            ->whereNotIn('pl_code', $exception)
+                                            ->where('product_locations.st_id', '=', $st_id)
+                                            ->where('pst_id', $srow->pst_id)->get();
+                                    }
                                     $bin = '';
                                     if (!empty($item_location)) {
                                         foreach ($item_location as $lrow) {

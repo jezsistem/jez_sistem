@@ -1,7 +1,6 @@
 <script>
 
 
-
     function reloadCategory(type, id) {
         $.ajaxSetup({
             headers: {
@@ -138,54 +137,68 @@
         });
 
         // if ($('stock_data_search').val() != '') {
-            var stock_data_table = $('#StockDatatb').DataTable({
-                destroy: true,
-                processing: false,
-                serverSide: true,
-                responsive: false,
-                dom: 'rt<"text-right"ipl>',
-                buttons: [
-                    {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
-                ],
-                ajax: {
-                    url: "{{ url('stock_data_datatables') }}",
-                    data: function (d) {
-                        d.search = $('#stock_data_search').val();
-                        d.search_scan = $('#stock_data_search_scan').val();
-                        d.br_id = $('#br_id').val();
-                        d.pc_id = $('#pc_id').val();
-                        d.psc_id = $('#psc_id').val();
-                        d.pssc_id = $('#pssc_id').val();
-                        d.sz_id = $('#sz_id').val();
-                        d.gender_id = $('#gender_id').val();
-                        d.main_color_id = $('#main_color_id').val();
-                        d.display_status = $('#display_status').val();
-                        d.st_id = $('#st_id_filter').val();
-                    }
-                },
-                columns: [
-                    {data: 'article_name', name: 'article_name', orderable: false},
-                    {data: 'article_stock', name: 'article_stock', orderable: false},
-                ],
-                columnDefs: [
-                    {
-                        "targets": 0,
-                        "className": "text-left",
-                        "width": "0%"
-                    }],
-                rowCallback: function (row, data, index) {
-                    if (data.article_stock.indexOf("<table></table>") >= 0) {
-                        $(row).hide();
-                    }
-                },
-                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-                language: {
-                    "lengthMenu": "_MENU_",
-                },
-                order: [[0, 'desc']],
-            });
-            var oSettings = stock_data_table.settings();
+        var stock_data_table = $('#StockDatatb').DataTable({
+            destroy: true,
+            processing: false,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ipl>',
+            buttons: [
+                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
+            ],
+            ajax: {
+                url: "{{ url('stock_data_datatables') }}",
+                data: function (d) {
+                    d.search = $('#stock_data_search').val();
+                    d.search_scan = $('#stock_data_search_scan').val();
+                    d.br_id = $('#br_id').val();
+                    d.pc_id = $('#pc_id').val();
+                    d.psc_id = $('#psc_id').val();
+                    d.pssc_id = $('#pssc_id').val();
+                    d.sz_id = $('#sz_id').val();
+                    d.gender_id = $('#gender_id').val();
+                    d.main_color_id = $('#main_color_id').val();
+                    d.display_status = $('#display_status').val();
+                    d.st_id = $('#st_id_filter').val();
+                    d.is_zero = $('#is_zero').val();
+                }
+            },
+            columns: [
+                {data: 'article_name', name: 'article_name', orderable: false},
+                {data: 'article_stock', name: 'article_stock', orderable: false},
+            ],
+            columnDefs: [
+                {
+                    "targets": 0,
+                    "className": "text-left",
+                    "width": "0%"
+                }],
+            rowCallback: function (row, data, index) {
+                if (data.article_stock.indexOf("<table></table>") >= 0) {
+                    $(row).hide();
+                }
+            },
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            language: {
+                "lengthMenu": "_MENU_",
+            },
+            order: [[0, 'desc']],
+        });
+        var oSettings = stock_data_table.settings();
         // }
+
+        $('#pickZeroBtn').on('click', function () {
+            var is_zero = $('#is_zero').val();
+
+            if (is_zero == 0 || is_zero == '') {
+                $('#is_zero').val(1);
+                $('#pickZeroBtn').text('Pick Available Stocks')
+            } else {
+                $('#is_zero').val(0);
+                $('#pickZeroBtn').text('Pick Zero Stocks')
+            }
+            // stock_data_table.draw();
+        });
 
         const scanner = new Html5QrcodeScanner('reader', {
             // Scanner will be initialized in DOM inside element with id of 'reader'
@@ -219,8 +232,7 @@
             // Prints any errors to the console
         }
 
-        function console_log(result)
-        {
+        function console_log(result) {
             console.log(result);
         }
         {{--var aging_table = $('#Agingtb').DataTable({--}}
@@ -328,7 +340,7 @@
             // Block the enter key in the input field
             $('#stock_data_search').on('keydown', function (e) {
                 if (e.key === "Enter") {
-                    e.preventDefault(); 
+                    e.preventDefault();
                 }
             });
 
@@ -401,42 +413,42 @@
 
 
             @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
-            {{--if (st_id == {{ $data['user']->st_id }}) {--}}
-            {{--    swal({--}}
-            {{--        title: "Pickup..?",--}}
-            {{--        text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",--}}
-            {{--        icon: "warning",--}}
-            {{--        buttons: [--}}
-            {{--            'Batal',--}}
-            {{--            'Yakin'--}}
-            {{--        ],--}}
-            {{--        dangerMode: false,--}}
-            {{--    }).then(function (isConfirm) {--}}
-            {{--        if (isConfirm) {--}}
-            {{--            $.ajaxSetup({--}}
-            {{--                headers: {--}}
-            {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
-            {{--                }--}}
-            {{--            });--}}
-            {{--            $.ajax({--}}
-            {{--                type: "POST",--}}
-            {{--                data: {_pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},--}}
-            {{--                dataType: 'json',--}}
-            {{--                url: "{{ url('pickup_item')}}",--}}
-            {{--                success: function (r) {--}}
-            {{--                    if (r.status == '200') {--}}
-            {{--                        toast("Berhasil", "Item berhasil dipickup", "success");--}}
-            {{--                        stock_data_table.draw();--}}
-            {{--                        pickup_list_table.draw();--}}
-            {{--                    } else {--}}
-            {{--                        toast('Gagal', 'Gagal pickup item', 'error');--}}
-            {{--                    }--}}
-            {{--                }--}}
-            {{--            });--}}
-            {{--            return false;--}}
-            {{--        }--}}
-            {{--    })--}}
-            {{--}--}}
+                    {{--if (st_id == {{ $data['user']->st_id }}) {--}}
+                    {{--    swal({--}}
+                    {{--        title: "Pickup..?",--}}
+                    {{--        text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",--}}
+                    {{--        icon: "warning",--}}
+                    {{--        buttons: [--}}
+                    {{--            'Batal',--}}
+                    {{--            'Yakin'--}}
+                    {{--        ],--}}
+                    {{--        dangerMode: false,--}}
+                    {{--    }).then(function (isConfirm) {--}}
+                    {{--        if (isConfirm) {--}}
+                    {{--            $.ajaxSetup({--}}
+                    {{--                headers: {--}}
+                    {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+                    {{--                }--}}
+                    {{--            });--}}
+                    {{--            $.ajax({--}}
+                    {{--                type: "POST",--}}
+                    {{--                data: {_pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},--}}
+                    {{--                dataType: 'json',--}}
+                    {{--                url: "{{ url('pickup_item')}}",--}}
+                    {{--                success: function (r) {--}}
+                    {{--                    if (r.status == '200') {--}}
+                    {{--                        toast("Berhasil", "Item berhasil dipickup", "success");--}}
+                    {{--                        stock_data_table.draw();--}}
+                    {{--                        pickup_list_table.draw();--}}
+                    {{--                    } else {--}}
+                    {{--                        toast('Gagal', 'Gagal pickup item', 'error');--}}
+                    {{--                    }--}}
+                    {{--                }--}}
+                    {{--            });--}}
+                    {{--            return false;--}}
+                    {{--        }--}}
+                    {{--    })--}}
+                    {{--}--}}
             if (st_id == {{ $data['user']->st_id }}) {
                 // Fetch the articles_promo data first
                 let article_id = $(this).data('p_article');
@@ -459,10 +471,10 @@
 
                         if (response.data && response.data.length > 0) {
                             promoInfo = '';
-                            promoPrice =  '';
-                            response.data.forEach(function(promo) {
+                            promoPrice = '';
+                            response.data.forEach(function (promo) {
                                 promoInfo += 'Promo: ' + promo.promo_note + '';
-                                promoPrice +=  'Discount Price: ' + promo.promo_price + '';
+                                promoPrice += 'Discount Price: ' + promo.promo_price + '';
                             });
                             promoInfo += '';
                             promoPrice += '';
@@ -503,13 +515,12 @@
                             }
                         });
                     },
-                    error: function() {
+                    error: function () {
                         // Handle error
                         swal('Error', 'Failed to fetch promo data', 'error');
                     }
                 });
-            }
-            else {
+            } else {
                 swal({
                     title: "Pickup..?",
                     text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
@@ -763,7 +774,13 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_plst_id: plst_id, _pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},
+                        data: {
+                            _plst_id: plst_id,
+                            _pls_id: pls_id,
+                            _pst_id: pst_id,
+                            _pl_id: pl_id,
+                            _pl_code: pl_code
+                        },
                         dataType: 'json',
                         url: "{{ url('cancel_pickup_item')}}",
                         success: function (r) {
