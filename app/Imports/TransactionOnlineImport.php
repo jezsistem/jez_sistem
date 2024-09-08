@@ -12,7 +12,7 @@ class TransactionOnlineImport implements ToCollection, WithStartRow
 
     public function startRow(): int
     {
-        return 2;
+        return 1;
     }
 
     public function getRowCount(): int

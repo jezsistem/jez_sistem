@@ -142,21 +142,21 @@ class TransaksiOnlineController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('no_resi', 'LIKE', "%$search%")
-                            ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
+                                ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
                         });
                     }
 
                     if (!empty($request->get('status'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $status = $request->get('status');
+                        $instance->where(function ($w) use ($request) {
+                            $status = $request->get('status');
 
-                                if ($status == 0) {
-                                    $w->orWhere('online_print', '=', "0");
-                                } else if ($status == 1) {
-                                    $w->orWhere('online_print', '=', "1");
-                                }
-                            });
-                        }
+                            if ($status == 0) {
+                                $w->orWhere('online_print', '=', "0");
+                            } else if ($status == 1) {
+                                $w->orWhere('online_print', '=', "1");
+                            }
+                        });
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -166,7 +166,7 @@ class TransaksiOnlineController extends Controller
     public function detailDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku','brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
                 ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->leftJoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -293,7 +293,7 @@ class TransaksiOnlineController extends Controller
         $data = [
             'title' => 'Invoice ' . $orderNumber,
             'invoice' => $orderNumber,
-            'invoice_data' => $get_invoice, 
+            'invoice_data' => $get_invoice,
             'store_code' => $stores_code,
             'segment' => request()->segment(1)
         ];
@@ -403,6 +403,7 @@ class TransaksiOnlineController extends Controller
 
             foreach ($data as $item) {
                 $order_number = $item[0];
+                $order_status = $item[1];
                 $original_price = str_replace('.', '', $item[8]);
                 $price_after_discount = str_replace('.', '', $item[9]);
                 $qty = $item[10];
@@ -413,31 +414,35 @@ class TransaksiOnlineController extends Controller
                 $discount_platform = str_replace('.', '', $item[15]);
 
                 try {
-                    $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
+                    $to_id = OnlineTransactions::where('order_number', $order_number)->get()->first();
 
-                    $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
-                        ->where('sku', $sku)
-                        ->exists();
+                    //cek current status
+                    if ($order_status != 'Batal' || $order_status != 'Cancel') {
+                        if ($to_id != null) {
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=',$order_number)->where('sku', '=',$sku)->where('to_id', '=',$to_id->id)->exists();
 
-                    $rowSku = [
-                        'order_number' => $order_number,
-                        'to_id' => $to_id,
-                        'sku' => $sku,
-                        'original_price' => $original_price,
-                        'price_after_discount' => $price_after_discount,
-                        'qty' => $qty,
-                        'return_qty' => $return_qty,
-                        'total_discount' => $total_discount,
-                        'discount_seller' => $discount_seller,
-                        'discount_platform' => $discount_platform,
-                    ];
+                            $rowSku = [
+                                'order_number' => $order_number,
+                                'to_id' => $to_id->id,
+                                'sku' => $sku,
+                                'original_price' => $original_price,
+                                'price_after_discount' => $price_after_discount,
+                                'qty' => $qty,
+                                'return_qty' => $return_qty,
+                                'total_discount' => $total_discount,
+                                'discount_seller' => $discount_seller,
+                                'discount_platform' => $discount_platform,
+                            ];
 
-                    if (!$sku_exists) {
-                        OnlineTransactionDetails::create($rowSku);
-                    } else {
-                        OnlineTransactionDetails::where('to_id', $to_id)
-                            ->where('sku', $sku)
-                            ->update($rowSku);
+//                            $processedData[] = $rowSku;
+                            if (!$sku_exists) {
+                                OnlineTransactionDetails::create($rowSku);
+                            } else {
+                                OnlineTransactionDetails::where('to_id', '=',$to_id->id)
+                                    ->where('sku', $sku)
+                                    ->update($rowSku);
+                            }
+                        }
                     }
                 } catch (\Exception $e) {
                     \Log::error('Error processing TikTok SKU data: ' . $e->getMessage());
@@ -483,7 +488,7 @@ class TransaksiOnlineController extends Controller
 
                     if ($get_order_number == 0) {
                         $processedData[] = $rowData;
-                        if ($rowData['order_status'] != 'Cancel' && $rowData['order_status'] != 'Batal') {
+                        if ($rowData['order_status'] != 'Canceled' && $rowData['order_status'] != 'Batal') {
                             OnlineTransactions::create($rowData);
                         }
                     } else {
@@ -501,6 +506,7 @@ class TransaksiOnlineController extends Controller
 
             foreach ($data as $item) {
                 $order_number = $item[0];
+                $order_status = $item[1];
                 $original_price = str_replace(['IDR ', '.'], '', $item[8]);
                 $price_after_discount = str_replace(['IDR ', '.'], '', $item[9]);
                 $qty = $item[10];
@@ -511,31 +517,33 @@ class TransaksiOnlineController extends Controller
                 $discount_platform = str_replace('.', '', $item[15]);
 
                 try {
-                    $to_id = OnlineTransactions::where('order_number', $order_number)->value('id');
+                    $to_id = OnlineTransactions::where('order_number', $order_number)->get()->first();
 
-                    $sku_exists = OnlineTransactionDetails::where('to_id', $to_id)
-                        ->where('sku', $sku)
-                        ->exists();
+                    if ($order_status != 'Batal' || $order_status != 'Canceled') {
+                        if ($to_id != null) {
+                            $sku_exists = OnlineTransactionDetails::where('order_number', '=',$order_number)->where('sku', '=',$sku)->exists();
 
-                    $rowSku = [
-                        'order_number' => $order_number,
-                        'to_id' => $to_id,
-                        'sku' => $sku,
-                        'original_price' => $original_price,
-                        'price_after_discount' => $price_after_discount,
-                        'qty' => $qty,
-                        'return_qty' => $return_qty,
-                        'total_discount' => $total_discount,
-                        'discount_seller' => $discount_seller,
-                        'discount_platform' => $discount_platform,
-                    ];
+                            $rowSku = [
+                                'order_number' => $order_number,
+                                'to_id' => $to_id->id,
+                                'sku' => $sku,
+                                'original_price' => $original_price,
+                                'price_after_discount' => $price_after_discount,
+                                'qty' => $qty,
+                                'return_qty' => $return_qty,
+                                'total_discount' => $total_discount,
+                                'discount_seller' => $discount_seller,
+                                'discount_platform' => $discount_platform,
+                            ];
 
-                    if (!$sku_exists) {
-                        OnlineTransactionDetails::create($rowSku);
-                    } else {
-                        OnlineTransactionDetails::where('to_id', $to_id)
-                            ->where('sku', $sku)
-                            ->update($rowSku);
+                            if (!$sku_exists) {
+                                OnlineTransactionDetails::create($rowSku);
+                            } else {
+                                OnlineTransactionDetails::where('to_id', $to_id->id)
+                                    ->where('sku', $sku)
+                                    ->update($rowSku);
+                            }
+                        }
                     }
                 } catch (\Exception $e) {
                     \Log::error('Error processing TikTok SKU data: ' . $e->getMessage());
