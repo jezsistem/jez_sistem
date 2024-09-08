@@ -178,7 +178,7 @@
                             $total_item = 0;
                             $total_price = 0;
                             $nameset = 0;
-                            $total_discount = $data['invoice_data'][0]['pos_total_discount'];
+                            $total_discount = 0;
                             $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
                             foreach ($row->subitem as $srow) {
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
@@ -197,7 +197,9 @@
                                     $groups[$key]['nameset'] = $groups[$key]['nameset'] + $srow->pos_td_nameset_price;
                                 }
                             }
+//                            dd($row->subitem)
                         @endphp
+
 
                         @foreach ($row->subitem as $srow)
                             @php
