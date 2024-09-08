@@ -343,7 +343,7 @@ class TransaksiOnlineController extends Controller
     private function processImportData($data, $original_name, $st_id_form)
     {
         $processedData = [];
-        $type = strpos($original_name, 'Order') !== false ? 'Shopee' : 'TikTok';
+        $type = strpos($original_name, 'Shopee') !== false ? 'Shopee' : 'TikTok';
         $platform = $type;
 
         if ($type == 'Shopee') {
