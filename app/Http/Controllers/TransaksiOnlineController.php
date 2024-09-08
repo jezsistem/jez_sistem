@@ -357,10 +357,10 @@ class TransaksiOnlineController extends Controller
                 $payment_date = $item[6];
                 $payment_method = $item[7];
 
-                $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
-                $total_payment = str_replace(['IDR ', '.'], '', $item[17]);
-                $city = $item[18];
-                $province = $item[19];
+                $shipping_fee = str_replace(['IDR ', '.'], '', $item[15]);
+                $total_payment = str_replace(['IDR ', '.'], '', $item[16]);
+                $city = $item[17];
+                $province = $item[18];
 
                 $rowData = [
                     'st_id' => $st_id_form,
@@ -410,8 +410,8 @@ class TransaksiOnlineController extends Controller
                 $sku = $item[11];
                 $return_qty = $item[12];
                 $total_discount = str_replace('.', '', $item[13]);
-                $discount_seller = str_replace('.', '', $item[14]);
-                $discount_platform = str_replace('.', '', $item[15]);
+                $discount_seller = str_replace('.', '', $item[13]);
+                $discount_platform = str_replace('.', '', $item[14]);
 
                 try {
                     $to_id = OnlineTransactions::where('order_number', $order_number)->get()->first();
@@ -460,10 +460,10 @@ class TransaksiOnlineController extends Controller
                 $payment_date = $item[6];
                 $payment_method = $item[7];
 
-                $shipping_fee = str_replace(['IDR ', '.'], '', $item[16]);
-                $total_payment = str_replace(['IDR ', '.'], '', $item[17]);
-                $city = $item[18];
-                $province = $item[19];
+                $shipping_fee = str_replace(['IDR ', '.'], '', $item[15]);
+                $total_payment = str_replace(['IDR ', '.'], '', $item[16]);
+                $city = $item[17];
+                $province = $item[18];
 
                 $rowData = [
                     'st_id' => $st_id_form,
@@ -513,8 +513,8 @@ class TransaksiOnlineController extends Controller
                 $sku = $item[11];
                 $return_qty = $item[12];
                 $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
-                $discount_seller = str_replace(['IDR ', '.'], '', $item[14]);
-                $discount_platform = str_replace('.', '', $item[15]);
+                $discount_seller = 0;
+                $discount_platform = str_replace('.', '', $item[14]);
 
                 try {
                     $to_id = OnlineTransactions::where('order_number', $order_number)->get()->first();

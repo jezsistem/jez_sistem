@@ -308,7 +308,7 @@ class StockDataController extends Controller
                                         }
                                     })
                                     ->orderByRaw(
-                                        'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
+                                        'FIELD(sz_name, "XS", "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47")'
                                     )
                                     ->groupBy('sz_name')
                                     ->get();
