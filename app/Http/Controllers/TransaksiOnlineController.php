@@ -167,11 +167,11 @@ class TransaksiOnlineController extends Controller
     {
         if (request()->ajax()) {
             return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price')
-                ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
-                ->leftJoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->Join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                ->Join('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+                ->Join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->Join('brands', 'brands.id', '=', 'products.br_id')
+                ->Join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->where('online_transactions.id', '=', $request->to_id))
                 ->editColumn('article', function ($data) {
                     return '<span class="btn btn-primary">[' . $data->br_name . '] ' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
