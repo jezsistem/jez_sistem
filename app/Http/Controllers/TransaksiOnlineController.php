@@ -407,7 +407,7 @@ class TransaksiOnlineController extends Controller
                 $original_price = str_replace('.', '', $item[8]);
                 $price_after_discount = str_replace('.', '', $item[9]);
                 $qty = $item[10];
-                $sku = $item[11];
+                $sku = ltrim($item[11], 'X');
                 $return_qty = $item[12];
                 $total_discount = str_replace('.', '', $item[13]);
                 $discount_seller = str_replace('.', '', $item[13]);
@@ -510,7 +510,7 @@ class TransaksiOnlineController extends Controller
                 $original_price = str_replace(['IDR ', '.'], '', $item[8]);
                 $price_after_discount = str_replace(['IDR ', '.'], '', $item[9]);
                 $qty = $item[10];
-                $sku = $item[11];
+                $sku = $sku = ltrim($item[11], 'X');
                 $return_qty = $item[12];
                 $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
                 $discount_seller = 0;
