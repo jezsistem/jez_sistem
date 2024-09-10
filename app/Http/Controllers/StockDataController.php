@@ -200,7 +200,6 @@ class StockDataController extends Controller
                         ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                         ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                ->where('pls_qty', '>', 0)
                         ->where('product_locations.st_id', '=', $st_id)
                         ->whereNotIn('pl_code', $exception)
                         ->where('p_name', $data->p_name)
@@ -359,11 +358,21 @@ class StockDataController extends Controller
                                             ->where('pst_id', $srow->pst_id)->get();
                                     }
                                     $bin = '';
+                                    $st_user = Auth::user()->st_id;
+                                    $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
+                                    $st_city = $st_name->st_code;
+
                                     if (!empty($item_location)) {
                                         foreach ($item_location as $lrow) {
                                             if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
-//                                            $bin .= '<span class="btn-sm-custom btn-info" title="['.$lrow->pl_code.'] '.$lrow->pl_name.'">'.$lrow->pls_qty.'</span> ';
-                                                $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">' . $lrow->pls_qty . '</span> ';
+//                                                if (stripos($st_name->st_name, 'ONLINE') === FALSE) {
+//                                                } else {
+//                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '">' . $lrow->pls_qty . '</span> ';
+//                                                }
+
+                                                $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+
+
                                             } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
                                                 $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
                                             } else {
