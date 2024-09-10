@@ -411,44 +411,7 @@
             var pl_code = $(this).attr('data-pl_code');
             var bin = $(this).attr('data-bin');
 
-
             @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
-                    {{--if (st_id == {{ $data['user']->st_id }}) {--}}
-                    {{--    swal({--}}
-                    {{--        title: "Pickup..?",--}}
-                    {{--        text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",--}}
-                    {{--        icon: "warning",--}}
-                    {{--        buttons: [--}}
-                    {{--            'Batal',--}}
-                    {{--            'Yakin'--}}
-                    {{--        ],--}}
-                    {{--        dangerMode: false,--}}
-                    {{--    }).then(function (isConfirm) {--}}
-                    {{--        if (isConfirm) {--}}
-                    {{--            $.ajaxSetup({--}}
-                    {{--                headers: {--}}
-                    {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
-                    {{--                }--}}
-                    {{--            });--}}
-                    {{--            $.ajax({--}}
-                    {{--                type: "POST",--}}
-                    {{--                data: {_pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},--}}
-                    {{--                dataType: 'json',--}}
-                    {{--                url: "{{ url('pickup_item')}}",--}}
-                    {{--                success: function (r) {--}}
-                    {{--                    if (r.status == '200') {--}}
-                    {{--                        toast("Berhasil", "Item berhasil dipickup", "success");--}}
-                    {{--                        stock_data_table.draw();--}}
-                    {{--                        pickup_list_table.draw();--}}
-                    {{--                    } else {--}}
-                    {{--                        toast('Gagal', 'Gagal pickup item', 'error');--}}
-                    {{--                    }--}}
-                    {{--                }--}}
-                    {{--            });--}}
-                    {{--            return false;--}}
-                    {{--        }--}}
-                    {{--    })--}}
-                    {{--}--}}
             if (st_id == {{ $data['user']->st_id }}) {
                 // Fetch the articles_promo data first
                 let article_id = $(this).data('p_article');
