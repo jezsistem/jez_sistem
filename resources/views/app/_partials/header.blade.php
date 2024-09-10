@@ -18,6 +18,10 @@
                 </ul>
             </div>
         </div>
+        <div class="alert alert-danger" style="width: 70%">
+            <center><b>DEVELOP MODE (DATA TESTING)<b></center>
+        </div>
+
         <div class="topbar">
             <div class="header-mobile header-mobile-fixed col-2">
                 <div class="topbar-item btn-sm bg-dark" id="kt_aside_mobile_toggle">
