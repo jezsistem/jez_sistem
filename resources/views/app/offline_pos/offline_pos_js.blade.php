@@ -1969,7 +1969,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("current-shift.data") }}',
+                url: '{{ route("current-shift-data") }}',
                 type: 'GET',
             },
             columns: [
