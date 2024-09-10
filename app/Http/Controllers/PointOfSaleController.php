@@ -145,32 +145,13 @@ class PointOfSaleController extends Controller
             ->join('stores', 'stores.id', '=', 'users.st_id')
             ->where('user_shifts.end_time', '=', NULL)
             ->where(DB::raw('DATE(ts_user_shifts.date)'), '=', $date_now)
-//            ->orderBy('user_shifts.id')
+            ->where('user_id', Auth::user()->id)
             ->first();
 
         $startTimeStamp = $current_shift->start_time;
         $endTime =  $current_shift->end_time;
 
         $startTime = $startTimeStamp = date('Y-m-d H:i:s', strtotime($startTimeStamp));
-
-
-
-//        $query = DB::table('pos_transactions')
-//            ->join('payment_methods', 'pos_transactions.pm_id', '=', 'payment_methods.id')
-//            ->join('stores', 'pos_transactions.st_id', '=', 'stores.id')
-//            ->select('payment_methods.pm_name', DB::raw("
-//                SUM(
-//                    CASE
-//                        WHEN ts_pos_transactions.created_at > '{$current_shift->start_time}'
-//                             AND ts_pos_transactions.st_id = $storeId
-//                        THEN ts_pos_transactions.pos_real_price
-//                        ELSE 0
-//                    END
-//                ) as total_pos_real_price"))
-//            ->whereBetween('pos_transactions.created_at', [$current_shift->start_time, $current_shift->end_time])
-//            ->where('pos_transactions.st_id', $storeId)
-//            ->groupBy(DB::raw('stores.st_name, DATE(ts_pos_transactions.created_at), ts_payment_methods.pm_name'))
-//            ->orderBy('payment_methods.pm_name');
 
         $query = DB::table('pos_transactions')
             ->select(
