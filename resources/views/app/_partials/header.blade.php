@@ -1,3 +1,4 @@
+
 <div id="kt_header" class="header header-fixed">
     <div class="container-fluid d-flex align-items-stretch justify-content-between">
         <div class="header-menu-wrapper header-menu-wrapper-left" id="kt_header_menu_wrapper">
@@ -22,8 +23,11 @@
                 <div class="topbar-item btn-sm bg-dark" id="kt_aside_mobile_toggle">
                     <img alt="Logo" src="{{ asset('logo') }}/logo-colors.png" width="100px"/>
                 </div>
+
             </div>
+
             <div class="topbar-item">
+
                 <div class="btn btn-icon btn-icon-mobile w-auto btn-clean d-flex align-items-center px-3"
                      id="kt_quick_user_toggle">
                     <span class="text-muted font-weight-bold font-size-base d-none d-md-inline mr-1">Hi,</span>
