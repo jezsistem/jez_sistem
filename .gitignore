@@ -22,3 +22,4 @@ yarn-error.log
 README2.md
 
 /storage/*
+/resources/views/app/_partials/header.blade.php
