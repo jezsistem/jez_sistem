@@ -31,7 +31,7 @@ class ArticleReportExport implements FromCollection , withHeadings
     public function headings(): array
     {
         if ($this->type == 'article' || $this->type == 'cross') {
-            return ["Tanggal", "STORE", "Invoice", "Cross", "Customer", "Kasir", "Divisi", "Tipe Stok", "Brand", "Artikel", "Warna", "Size", "Kategori", "Sub Kategori", "Sub Sub Kategori", "Qty", "Bandrol", "Harga Beli", "Harga Jual", "Discount", "Total Price", "Total Invoice", "B1G1"];
+            return ["Tanggal", "STORE", "Invoice", "Cross", "Customer", "Kasir", "Divisi", "Tipe Stok", "Brand", "SKU","Artikel", "Warna", "Size", "Kategori", "Sub Kategori", "Sub Sub Kategori", "Qty", "Bandrol", "Harga Beli", "Harga Jual", "Discount", "Total Price", "Total Invoice", "B1G1"];
         } else {
             return ["Tanggal", "STORE", "Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Value-Admin", "Total", "Tipe Bayar 1", "Jumlah Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Tanggal Bayar Sisa DP", "Status", "Note"];
         }
@@ -42,7 +42,7 @@ class ArticleReportExport implements FromCollection , withHeadings
         $export = array();
         if ($this->type == 'article') {
             $data = DB::table('pos_transaction_details')->select('pos_transaction_details.id as ptd_id', 'st_name', 'pos_transaction_details.created_at as ptd_created', 'pos_transaction_details.pst_id as pst_id', 'pos_invoice', 'cross_order', 'u_name',
-                    'dv_name', 'br_name', 'pc_name', 'psc_name', 'pssc_name', 'cust_name', 'p_name', 'p_color', 'pos_td_sell_price', 'sz_name', 'pos_td_qty', 'stkt_name', 'ps_price_tag', 'p_price_tag', 'std_id', 'ps_sell_price', 'p_sell_price', 
+                    'dv_name', 'br_name', 'ps_barcode','pc_name', 'psc_name', 'pssc_name', 'cust_name', 'p_name', 'p_color', 'pos_td_sell_price', 'sz_name', 'pos_td_qty', 'stkt_name', 'ps_price_tag', 'p_price_tag', 'std_id', 'ps_sell_price', 'p_sell_price',
                     'pos_td_discount_price', 'pos_td_marketplace_price', 'pos_status', 'pos_note', 'pos_refund', 'pt_id',
                     'p_purchase_price', 'ps_purchase_price', DB::raw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase", 'poad_total_price', 'poad_qty'))
                     ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
@@ -131,7 +131,7 @@ class ArticleReportExport implements FromCollection , withHeadings
                         $b1g1 = '0';
                     }
 
-                    $export[] = [date('d/m/Y H:i:s', strtotime($row->ptd_created)), $row->st_name, $row->pos_invoice, $row->cross_order, $row->cust_name, $row->u_name, $row->dv_name, $row->stkt_name, $row->br_name, $row->p_name, $row->p_color, $row->sz_name, $row->pc_name, $row->psc_name, $row->pssc_name, $row->pos_td_qty, $bandrol, $purchase, $row->pos_td_sell_price, $discount, $total, $total_price, $b1g1];
+                    $export[] = [date('d/m/Y H:i:s', strtotime($row->ptd_created)), $row->st_name, $row->pos_invoice, $row->cross_order, $row->cust_name, $row->u_name, $row->dv_name, $row->stkt_name, $row->br_name, $row->ps_barcode, $row->p_name, $row->p_color, $row->sz_name, $row->pc_name, $row->psc_name, $row->pssc_name, $row->pos_td_qty, $bandrol, $purchase, $row->pos_td_sell_price, $discount, $total, $total_price, $b1g1];
                 }
             }
         }
