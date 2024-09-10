@@ -432,10 +432,23 @@ class TransaksiOnlineController extends Controller
                             OnlineTransactions::create($rowData);
                         }
                     } else {
+                        $rowUpdate = [
+                            'order_number' => $order_number,
+                            'order_status' => $order_status,
+                            'reason_cancellation' => $reason_cancellation,
+                            'no_resi' => $no_resi,
+                            'shipping_method' => $shipping_method,
+                            'shipping_fee' => $shipping_fee,
+                            'payment_method' => $payment_method,
+                            'total_payment' => $total_payment,
+                            'city' => $city,
+                            'province' => $province,
+                        ];
+
                         $id_trx = OnlineTransactions::select('id', 'order_number')
                             ->where('order_number', $order_number)
                             ->first();
-                        OnlineTransactions::where('id', $id_trx->id)->update($rowData);
+                        OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
                         $insert_id = $id_trx->id;
                     }
                 } catch (\Exception $e) {
@@ -477,7 +490,6 @@ class TransaksiOnlineController extends Controller
                                 'discount_platform' => $discount_platform,
                             ];
 
-//                            $processedData[] = $rowSku;
                             if (!$sku_exists) {
                                 OnlineTransactionDetails::create($rowSku);
                             } else {
@@ -547,10 +559,23 @@ class TransaksiOnlineController extends Controller
                             OnlineTransactions::create($rowData);
                         }
                     } else {
+                        $rowUpdate = [
+                            'order_number' => $order_number,
+                            'order_status' => $order_status,
+                            'reason_cancellation' => $reason_cancellation,
+                            'no_resi' => $no_resi,
+                            'shipping_method' => $shipping_method,
+                            'shipping_fee' => $shipping_fee,
+                            'payment_method' => $payment_method,
+                            'total_payment' => $total_payment,
+                            'city' => $city,
+                            'province' => $province,
+                        ];
+
                         $id_trx = OnlineTransactions::select('id', 'order_number')
                             ->where('order_number', $order_number)
                             ->first();
-                        OnlineTransactions::where('id', $id_trx->id)->update($rowData);
+                        OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
                         $insert_id = $id_trx->id;
                     }
                 } catch (\Exception $e) {
