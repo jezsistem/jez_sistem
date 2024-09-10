@@ -11,6 +11,7 @@ use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use App\Models\ProductLocationSetup;
+use App\Models\ProductLocationSetupTransaction;
 use App\Models\ProductStock;
 use App\Models\Size;
 use App\Models\Store;
@@ -230,17 +231,17 @@ class TransaksiOnlineController extends Controller
 
         $stores_code = $data_stores->st_code;
 
-        $params = [
-            'online_print' => TRUE
-        ];
 
-        //tambahan mengurangi stok
-        OnlineTransactions::where('order_number', $invoice)->update($params);
+        $online_transactions = [];
+
+
         $sku_current_print = OnlineTransactionDetails::where('order_number', $invoice)->get();
+
+//        dd($sku_current_print);
 
         foreach ($sku_current_print as $key => $data) {
             $ps_barcode_id = ProductStock::where('ps_barcode', $data->ps_barcode)->first()->id;
-            $pls_qty_current = ProductLocationSetup::where('pst_id', $ps_barcode_id)->where('pl_id', 'NOT LIKE', '%001%')->first();
+            $pls_qty_current = ProductLocationSetup::where('pst_id', $ps_barcode_id)->where('pl_id', 'NOT LIKE', '%001%')->get()->first();
 
             if ($pls_qty_current) {
                 $new_qty = $pls_qty_current->pls_qty - $data->qty;
@@ -251,18 +252,61 @@ class TransaksiOnlineController extends Controller
 
                 ProductLocationSetup::where('id', $pls_qty_current->id)->update($paramsUpdate);
             }
+
+            $cek_keep_online = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->where('product_stocks.ps_barcode' , '=', $data->sku)
+//                ->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
+                ->count();
+
+            $data_keep_online = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id')
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->where('product_stocks.ps_barcode' , '=', $data->sku)
+                ->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
+                ->get()->first();
+
+            if ($cek_keep_online > 0) {
+                // If $cek_keep_online is 0, set status to 400 and break the loop
+                $online_transactions[] = [
+                    'ps_barcode' => $data->ps_barcode,
+                    'qty' => $data->qty,
+                    'transaction_date' => date('Y-m-d'),
+                    'id' => $data_keep_online->plst_id,
+                    'online_id' => $data->to_id
+                ];
+            }
         }
-        //Sampai sini tambah
+        $sku_count = OnlineTransactionDetails::where('order_number', $invoice)->count();
 
-        $data = [
-            'title' => 'Invoice ' . $invoice,
-            'invoice' => $invoice,
-            'invoice_data' => $get_invoice,
-            'store_code' => $stores_code,
-            'segment' => request()->segment(1)
-        ];
+        if($sku_count == count($online_transactions)){
+            foreach ($online_transactions as $transaction) {
+                // Access individual fields from the $transaction array
+                $paramsPlst = [
+                    'plst_status' => 'DONE AMP',
+                    'updated_at'  => date('Y-m-d H:i:s'),
+                    'u_id_packer' => Auth::user()->id,
+                    'pt_id'       => $transaction['online_id']
+                ];
 
-        return view('app.invoice.print_invoice_offline', compact('data'));
+
+                ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
+            }
+
+            $params = [
+                'online_print' => TRUE,
+                'time_print'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ];
+            OnlineTransactions::where('order_number', $invoice)->update($params);
+
+            $response['status'] = 200;
+        }
+        else {
+            $response['status'] = $sku_count . ' ' . count($online_transactions);
+        }
+
+        return $response;
     }
 
     public function cetak_nota($orderNumber)
@@ -377,7 +421,6 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
-                    'online_print' => false
                 ];
 
                 try {
@@ -493,7 +536,6 @@ class TransaksiOnlineController extends Controller
                     'total_payment' => $total_payment,
                     'city' => $city,
                     'province' => $province,
-                    'online_print' => false
                 ];
 
                 try {
