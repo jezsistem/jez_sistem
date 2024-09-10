@@ -1913,7 +1913,7 @@
 
         jQuery(document).delegate('#add_new_customer', 'click', function () {
             console.log(jQuery('#cust_id_label').val());
-
+            jQuery('#_mode').val('add');
             var custIdLabelValue = jQuery('#cust_id_label').val();
             jQuery('#choosecustomer').modal('show');
             jQuery('#cust_phone').val(custIdLabelValue);

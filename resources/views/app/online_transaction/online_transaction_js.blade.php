@@ -346,9 +346,20 @@
                             _token: '{{ csrf_token() }}'
                         },
                         success: function (response) {
-                            var printUrl = '{{ url('print_online_nota') }}/' + numOrder;
-                            window.open(printUrl, '_blank');
-                            online_transaction_table.draw(false);
+                            console.log(response);
+                            if (response.status == 200){
+                                var printUrl = '{{ url('print_online_nota') }}/' + numOrder;
+                                window.open(printUrl, '_blank');
+                                online_transaction_table.draw(false);
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Harap melakukan Picker di Data Stok.',
+                                    icon: 'error',
+                                    confirmButtonColor: '#3085d6'
+                                });
+                            }
+
                         },
                         error: function (xhr, status, error) {
                             // Handle errors here
