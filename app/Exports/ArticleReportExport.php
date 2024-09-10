@@ -33,7 +33,7 @@ class ArticleReportExport implements FromCollection , withHeadings
         if ($this->type == 'article' || $this->type == 'cross') {
             return ["Tanggal", "STORE", "Invoice", "Cross", "Customer", "Kasir", "Divisi", "Tipe Stok", "Brand", "SKU","Artikel", "Warna", "Size", "Kategori", "Sub Kategori", "Sub Sub Kategori", "Qty", "Bandrol", "Harga Beli", "Harga Jual", "Discount", "Total Price", "Total Invoice", "B1G1"];
         } else {
-            return ["Tanggal", "STORE", "Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Value-Admin", "Total", "Tipe Bayar 1", "Jumlah Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Tanggal Bayar Sisa DP", "Status", "Note"];
+            return ["Tanggal", "STORE", "Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Total before Discount", "Total Discount","Total", "Tipe Bayar 1", "Jumlah Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Tanggal Bayar Sisa DP", "Status", "Note"];
         }
     }
 
@@ -224,7 +224,7 @@ class ArticleReportExport implements FromCollection , withHeadings
         }
         if ($this->type == 'invoice') {
             $data = DB::table('pos_transactions')->select('pos_transactions.id as pt_id', 'st_name', 'pos_transactions.created_at as pos_created', 'pos_invoice', 'pos_shipping', 'pos_unique_code', 'pos_admin_cost', 'pos_another_cost',
-            'dv_name', 'cross_order', 'u_name', 'pos_payment', 'pos_payment_partial', 'pos_note', 'pm_id', 'pm_id_partial', 'cp_id', 'cp_id_partial', 'cust_name', 'pos_refund', 'pos_status', 'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'pos_paid_dp', 'pos_paid_dp_date')
+            'dv_name', 'cross_order', 'u_name', 'pos_payment', 'pos_payment_partial', 'pos_note', 'pm_id', 'pm_id_partial', 'cp_id', 'cp_id_partial', 'cust_name', 'pos_refund', 'pos_status', 'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'pos_paid_dp', 'pos_paid_dp_date', 'pos_total_discount', 'pos_real_price')
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
@@ -285,7 +285,7 @@ class ArticleReportExport implements FromCollection , withHeadings
                     if (!empty($row->cp_id_partial)) {
                         $cp_two = DB::table('card_providers')->select('cp_name')->where('id', '=', $row->cp_id_partial)->get()->first()->cp_name;
                     }
-                    $export[] = [date('d/m/Y H:i:s', strtotime($row->pos_created)), $row->st_name, $row->pos_invoice, $row->cust_name, $row->cross_order, $row->u_name, $row->dv_name, $item_qty, $item_value, $row->pos_shipping, $row->pos_unique_code, $row->pos_admin_cost, $row->pos_another_cost, $nameset, $value_admin, $total, $pm_one.' '.$cp_one, $row->pos_payment, $row->pos_card_number, $row->pos_ref_number, $pm_two.' '.$cp_two, $row->pos_payment_partial, $row->pos_card_number_two, $row->pos_ref_number_two, $row->pos_paid_dp, $row->pos_paid_dp_date, $row->pos_status, $row->pos_note];
+                    $export[] = [date('d/m/Y H:i:s', strtotime($row->pos_created)), $row->st_name, $row->pos_invoice, $row->cust_name, $row->cross_order, $row->u_name, $row->dv_name, $item_qty, $item_value, $row->pos_shipping, $row->pos_unique_code, $row->pos_admin_cost, $row->pos_another_cost, $nameset, $value_admin, $row->pos_total_discount, $row->pos_real_price,$total, $pm_one.' '.$cp_one, $row->pos_payment, $row->pos_card_number, $row->pos_ref_number, $pm_two.' '.$cp_two, $row->pos_payment_partial, $row->pos_card_number_two, $row->pos_ref_number_two, $row->pos_paid_dp, $row->pos_paid_dp_date, $row->pos_status, $row->pos_note];
                 }
             }
         }
