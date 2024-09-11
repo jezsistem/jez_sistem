@@ -263,7 +263,7 @@ class TransaksiOnlineController extends Controller
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->where('product_stocks.ps_barcode' , '=', $data->sku)
                 ->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
-                ->where('status', )
+                ->where('status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
                 ->get()->first();
 
             if ($cek_keep_online > 0) {
