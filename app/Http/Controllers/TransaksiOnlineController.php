@@ -263,13 +263,13 @@ class TransaksiOnlineController extends Controller
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->where('product_stocks.ps_barcode' , '=', $data->sku)
                 ->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
+                ->where('status', )
                 ->get()->first();
 
             if ($cek_keep_online > 0) {
                 $online_transactions[] = [
                     'ps_barcode' => $data->ps_barcode,
                     'qty' => $data->qty,
-                    'transaction_date' => date('Y-m-d'),
                     'id' => $data_keep_online->plst_id,
                     'online_id' => $data->to_id
                 ];
