@@ -269,12 +269,11 @@ class TransaksiOnlineController extends Controller
                 ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->where('product_stocks.ps_barcode' , '=', $data->sku)
-                ->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
                 ->where(function($query) {
                     $query->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
                         ->orWhereDate('product_location_setup_transactions.created_at', Carbon::now()->subDay());
                 })
-                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
+//                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
                 ->get()->first();
             
             dd($data_keep_online);
