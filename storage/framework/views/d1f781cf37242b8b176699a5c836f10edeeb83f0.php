@@ -153,6 +153,13 @@
             }
         });
 
+        $('#ExportBtn').on('click', function() {
+            console.log('Export Nih');
+            var stf_code = $('#stf_code_label').val();
+            // let stf_code =
+            window.location.href = `/export-stock-transfer/${stf_code}`;
+        });
+
         $('#accept_qty_btn').on('click', function() {
             swal({
                 title: "Terima..?",
@@ -244,6 +251,8 @@
                 $("#ImportModal").modal("show");
             });
         });
+
+
 
         $('#f_import').on('submit' , function (e) {
             e.preventDefault();
