@@ -206,6 +206,21 @@ class StockTransferDataController extends Controller
         }
     }
 
+    public function exportStockTransfer()
+    {
+        $stfCode = 'TF20240705145631200';
+
+        $data = DB::table('ts_stock_transfer_details as T1')
+            ->join('ts_product_stocks as T2', 'T1.pst_id', '=', 'T2.id')
+            ->join('ts_stock_transfers as T3', 'T1.stf_id', '=', 'T3.id')
+            ->select('T1.ps_barcode', 'T1.stfd_qty')
+            ->where('T3.stf_code', $stfCode)
+            ->get();
+
+        // Convert the data to CSV or Excel using Laravel Excel
+        return Excel::download(new StockTransferExport($data), 'stock_transfer.xlsx');
+    }
+
     public function getHistoryDatatables(Request $request)
     {
         $user = new User;
