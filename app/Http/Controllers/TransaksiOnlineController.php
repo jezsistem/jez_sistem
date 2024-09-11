@@ -274,10 +274,10 @@ class TransaksiOnlineController extends Controller
                     $query->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
                         ->orWhereDate('product_location_setup_transactions.created_at', Carbon::now()->subDay());
                 })
-//                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
+                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
                 ->get()->first();
             
-            dd($cek_keep_online);
+//            dd($cek_keep_online);
 
             if ($cek_keep_online > 0) {
                 $online_transactions[] = [
