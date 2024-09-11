@@ -256,7 +256,7 @@ class TransaksiOnlineController extends Controller
             $cek_keep_online = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->where('product_stocks.ps_barcode' , '=', $data->sku)
-                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
+//                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
                 ->count();
 
             $data_keep_online = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id')
@@ -264,7 +264,7 @@ class TransaksiOnlineController extends Controller
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->where('product_stocks.ps_barcode' , '=', $data->sku)
                 ->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
-                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
+//                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
                 ->get()->first();
 
             if ($cek_keep_online > 0) {
@@ -278,7 +278,7 @@ class TransaksiOnlineController extends Controller
         }
         $sku_count = OnlineTransactionDetails::where('order_number', $invoice)->count();
 
-        if($sku_count == count($online_transactions)){
+        if($sku_count == count($online_transactions) || $sku_count < count($online_transactions)){
             foreach ($online_transactions as $transaction) {
                 // Access individual fields from the $transaction array
                 $paramsPlst = [
