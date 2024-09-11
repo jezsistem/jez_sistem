@@ -24,7 +24,7 @@ class StockTransferExport implements FromCollection
         return DB::table('stock_transfer_details as stock_transfer_details')
             ->join('product_stocks as product_stocks', 'stock_transfer_details.pst_id', '=', 'product_stocks.id')
             ->join('stock_transfers as stock_transfers', 'stock_transfer_details.stf_id', '=', 'stock_transfers.id')
-            ->select('product_stocks.ps_barcode', 'stock_transfer_details.stfd_qty'),
+            ->select('product_stocks.ps_barcode', 'stock_transfer_details.stfd_qty')
             ->where('stock_transfers.stf_code', $this->po_id)
             ->get();
     }
