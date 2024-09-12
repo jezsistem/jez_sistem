@@ -25,7 +25,7 @@ class StockTransferExport implements FromCollection
             ->join('product_stocks as product_stocks', 'stock_transfer_details.pst_id', '=', 'product_stocks.id')
             ->join('stock_transfers as stock_transfers', 'stock_transfer_details.stf_id', '=', 'stock_transfers.id')
             ->leftJoin('stock_transfer_detail_statuses', 'stock_transfer_detail_statuses.stfd_id', '=', 'stock_transfer_details.id')
-            ->select('product_stocks.ps_barcode', 'stock_transfer_details.stfd_qty',  DB::raw('SUM(stock_transfer_detail_statuses.stfds_qty) as qty_transfer'))
+            ->select('product_stocks.ps_barcode', 'stock_transfer_details.stfd_qty',  DB::raw('SUM(ts_stock_transfer_detail_statuses.stfds_qty) as qty_transfer'))
             ->where('stock_transfers.stf_code', $this->po_id)
             ->groupBy('product_stocks.ps_barcode', 'stock_transfer_details.stfd_qty')
             ->get();
