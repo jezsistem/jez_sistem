@@ -354,6 +354,46 @@ class TransaksiOnlineController extends Controller
         return view('app.invoice.print_invoice_online', compact('data'));
     }
 
+//    public function importData(Request $request)
+//    {
+//        try {
+//            if ($request->hasFile('importFile')) {
+//                $file = $request->file('importFile');
+//
+//                $nama_file = rand() . $file->getClientOriginalName();
+//
+//                $original_name = $file->getClientOriginalName();
+//
+//                $file->move('online', $nama_file);
+//
+//                $st_id_form = Auth::user()->st_id;
+//
+//                $import = new TransactionOnlineImport();
+//                $data = Excel::toArray($import, public_path('online/' . $nama_file));
+//
+//                if (count($data) >= 0) {
+//                    $processData = $this->processImportData($data[0], $original_name, $st_id_form);
+//                    $r['data'] = $file->getClientOriginalName();;
+//                    $r['status'] = '200';
+//
+//                    if ($r['status'] = '200') {
+//
+//                    }
+//                } else {
+//                    $r['status'] = '419';
+//                }
+//            } else {
+//                $r['status'] = '400';
+//            }
+//            return json_encode($r);
+//        } catch (\Exception $e) {
+//            unlink(public_path('online/' . $nama_file));
+//            $r['status'] = '400';
+//            $r['message'] = $e->getMessage();
+//            return json_encode($r);
+//        }
+//    }
+
     public function importData(Request $request)
     {
         try {
@@ -361,24 +401,27 @@ class TransaksiOnlineController extends Controller
                 $file = $request->file('importFile');
 
                 $nama_file = rand() . $file->getClientOriginalName();
-
                 $original_name = $file->getClientOriginalName();
 
                 $file->move('online', $nama_file);
 
-                $st_id_form = $request->input('st_id_form');
+                // Check if the user is authenticated
+                if (Auth::check()) {
+                    $st_id_form = $request->input('st_id_form');
+                } else {
+                    throw new \Exception('User not authenticated');
+                }
+
+                \Log::info('st_id_form: ' . $st_id_form);
 
                 $import = new TransactionOnlineImport();
                 $data = Excel::toArray($import, public_path('online/' . $nama_file));
 
                 if (count($data) >= 0) {
                     $processData = $this->processImportData($data[0], $original_name, $st_id_form);
-                    $r['data'] = $file->getClientOriginalName();;
+                    $r['data'] = $file->getClientOriginalName();
                     $r['status'] = '200';
 
-                    if ($r['status'] = '200') {
-
-                    }
                 } else {
                     $r['status'] = '419';
                 }
@@ -387,7 +430,9 @@ class TransaksiOnlineController extends Controller
             }
             return json_encode($r);
         } catch (\Exception $e) {
-            unlink(public_path('online/' . $nama_file));
+            if (isset($nama_file)) {
+                unlink(public_path('online/' . $nama_file));
+            }
             $r['status'] = '400';
             $r['message'] = $e->getMessage();
             return json_encode($r);
@@ -400,7 +445,10 @@ class TransaksiOnlineController extends Controller
         $type = strpos($original_name, 'Shopee') !== false ? 'Shopee' : 'TikTok';
         $platform = $type;
 
-        if ($type == 'Shopee') {
+//        dd($st_id_form);
+        $st_id = $st_id_form;
+
+        if ($type === 'Shopee') {
             foreach ($data as $item) {
                 $order_number = $item[0];
                 $order_status = $item[1];
@@ -417,7 +465,7 @@ class TransaksiOnlineController extends Controller
                 $province = $item[18];
 
                 $rowData = [
-                    'st_id' => $st_id_form,
+                    'st_id' => 20,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
@@ -439,7 +487,9 @@ class TransaksiOnlineController extends Controller
                     if ($get_order_number == 0) {
                         $processedData[] = $rowData;
                         if ($rowData['order_status'] != 'Cancel' && $rowData['order_status'] != 'Batal') {
-                            OnlineTransactions::create($rowData);
+                            $transaction =  OnlineTransactions::create($rowData);
+
+                            OnlineTransactions::where('id', $transaction->id)->update(['st_id' => Auth::user()->st_id]);
                         }
                     } else {
                         $rowUpdate = [
@@ -544,7 +594,7 @@ class TransaksiOnlineController extends Controller
                 $province = $item[18];
 
                 $rowData = [
-                    'st_id' => $st_id_form,
+                    'st_id' => $st_id,
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
@@ -560,13 +610,17 @@ class TransaksiOnlineController extends Controller
                     'province' => $province,
                 ];
 
+//                dd($rowData);
+
                 try {
                     $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
 
                     if ($get_order_number == 0) {
                         $processedData[] = $rowData;
                         if ($rowData['order_status'] != 'Canceled' && $rowData['order_status'] != 'Batal') {
-                            OnlineTransactions::create($rowData);
+                            $transaction =  OnlineTransactions::create($rowData);
+
+                            OnlineTransactions::where('id', $transaction->id)->update(['st_id' => Auth::user()->st_id]);
                         }
                     } else {
                         $rowUpdate = [
