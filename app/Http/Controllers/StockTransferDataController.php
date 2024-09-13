@@ -121,7 +121,7 @@ class StockTransferDataController extends Controller
                     return '<span class="btn-sm btn-primary">' . $data->stf_code . '</span>';
                 })
                 ->editColumn('qty', function ($data) {
-                    $qty = StockTransferDetail::select('stfd_qty')->where('stf_id', '=', $data->stf_id)->sum('stfd_qty');
+                        $qty = StockTransferDetail::select('stfd_qty')->where('stf_id', '=', $data->stf_id)->sum('stfd_qty');
                     return '<span class="btn-sm btn-success">' . $qty . '</span>';
                 })
                 ->editColumn('start_store', function ($data) {
