@@ -191,6 +191,7 @@ class StockTransferController extends Controller
                             $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
                                 ->orWhere('p_name', 'LIKE', "%$search%")
                                 ->orWhere('br_name', 'LIKE', "%$search%")
+                                ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                 ->orWhere('p_color', 'LIKE', "%$search%");
                         });
                     }
