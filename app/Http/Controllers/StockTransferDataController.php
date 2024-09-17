@@ -121,7 +121,7 @@ class StockTransferDataController extends Controller
                     return '<span class="btn-sm btn-primary">' . $data->stf_code . '</span>';
                 })
                 ->editColumn('qty', function ($data) {
-                    $qty = StockTransferDetail::select('stfd_qty')->where('stf_id', '=', $data->stf_id)->sum('stfd_qty');
+                        $qty = StockTransferDetail::select('stfd_qty')->where('stf_id', '=', $data->stf_id)->sum('stfd_qty');
                     return '<span class="btn-sm btn-success">' . $qty . '</span>';
                 })
                 ->editColumn('start_store', function ($data) {
@@ -204,6 +204,21 @@ class StockTransferDataController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
+    }
+
+    public function exportStockTransfer()
+    {
+        $stfCode = 'TF20240705145631200';
+
+        $data = DB::table('ts_stock_transfer_details as T1')
+            ->join('ts_product_stocks as T2', 'T1.pst_id', '=', 'T2.id')
+            ->join('ts_stock_transfers as T3', 'T1.stf_id', '=', 'T3.id')
+            ->select('T1.ps_barcode', 'T1.stfd_qty')
+            ->where('T3.stf_code', $stfCode)
+            ->get();
+
+        // Convert the data to CSV or Excel using Laravel Excel
+        return Excel::download(new StockTransferExport($data), 'stock_transfer.xlsx');
     }
 
     public function getHistoryDatatables(Request $request)

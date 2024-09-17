@@ -261,6 +261,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
     Route::get('std_export', [StockTransferDataController::class, 'exportData']);
     Route::post('std_receive_transfer_data_import', [StockTransferDataController::class, 'importReceiveTransferData']);
+//    Route::get('/export-stock-transfer', [StockTransferDataController::class, 'exportStockTransfer'])->name('export.stock.transfer');
+    Route::get('/export-stock-transfer/{stf_code}', function ($stf_code) {
+        $timestamp = \Carbon\Carbon::now()->format('Ymd_His');
+        $fileName = 'stock_transfer_' . $timestamp . '.xlsx';
+
+        return Excel::download(new \App\Exports\StockTransferExport($stf_code), $fileName);
+    });
 
 
     // Stock Transfer Data
