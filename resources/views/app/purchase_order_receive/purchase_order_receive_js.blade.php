@@ -1732,7 +1732,8 @@
 
         $('#excel_report').on('click', function() {
             jQuery("#PoReporttb").table2excel({
-                filename: "Laporan Penerimaan Jez System",
+                timestamp = date('Ymd_Hi');
+                filename: "Laporan Penerimaan Jez System" + timestamp +,
             });
         });
 
