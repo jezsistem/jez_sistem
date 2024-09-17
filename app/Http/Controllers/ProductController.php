@@ -27,6 +27,7 @@ use App\Imports\ProductImport;
 use App\Exports\ProductExport;
 use Maatwebsite\Excel\Facades\Excel;
 
+
 class ProductController extends Controller
 {
     protected function validateAccess()
@@ -100,10 +101,10 @@ class ProductController extends Controller
             'total_accessories' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '3')->get()->count(),
             'total_others' => Product::where('p_delete', '!=', '1')->where('pc_id', '=', '4')->get()->count(),
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
-            'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
+            'br_id' => Brand::where('br_delete', '!=', '1')->orderBy('br_name', 'asc')->pluck('br_name', 'id'),
             'pu_id' => ProductUnit::where('pu_delete', '!=', '1')->orderByDesc('id')->pluck('pu_name', 'id'),
-            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
-            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
+            'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderBy('mc_name', 'asc')->pluck('mc_name', 'id'),
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderBy('ps_name','asc')->pluck('ps_name', 'id'),
             'gn_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
             'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
@@ -313,6 +314,7 @@ class ProductController extends Controller
                     'p_sell_price',
                     'p_weight',
                     'p_active',
+                    'p_delete',
                     'schema_size',
                     'subcategory1',
                     'subcategory2'
@@ -915,4 +917,6 @@ class ProductController extends Controller
 //        set_time_limit(4096);
         return Excel::download(new ProductExport, 'product_data_barcode.xlsx');
     }
+
+
 }
