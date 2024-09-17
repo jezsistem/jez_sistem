@@ -225,61 +225,61 @@
             });
             online_transaction_table.draw(false);
         });
-        $('#f_import').on('submit', function (e) {
-            e.preventDefault();
-            jQuery.noConflict();
+        
+        
+        
 
-            // Show the spinner and disable the button
-            $('#import_data_btn').html('<span id="spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Proses...');
-            $('#import_data_btn').attr('disabled', true);
+        
+        
+        
 
-            // Create a new FormData object from the form
-            var formData = new FormData(this);
+        
+        
 
-            // Manually append the value of st_id_form to the FormData
-            var st_id_form_value = $('#st_id_form').val();  // Get the value of the disabled input
-            formData.append('st_id_form', st_id_form_value); // Append it to the FormData
+        
+        
+        
 
-            console.log(formData);
+        
 
-            $.ajax({
-                type: 'POST',
-                url: "<?php echo e(url('transaksi_online_import')); ?>",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function (data) {
-                    // Hide the spinner and enable the button
-                    $('#import_data_btn').html('Import');
-                    $('#import_data_btn').attr("disabled", false);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
-                    if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_import')[0].reset();
-                        excelImportData = data.data['processedData'];
-                        console.log(data.data);
-                        console.log(data.name);
-                    } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        console.log(data.data);
-                        swal('Error', 'File yang anda import kosong atau format tidak tepat', 'warning');
-                    } else {
-                        $("#ImportModal").modal('hide');
-                    }
-                },
-                error: function (data) {
-                    // Hide the spinner in case of error
-                    $('#import_data_btn').html('Import');
-                    $('#import_data_btn').attr("disabled", false);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
-                    swal('Error', data, 'error');
-                }
-            });
-            online_transaction_table.draw(false);
-        });
+        
+        
+        
+        
+        
 
 
         var detail_table = $('#Detailtb').DataTable({
@@ -409,6 +409,10 @@
             $('#addItemModal').modal('show');
         })
 
+        $('#sales_online_export').on('click', function () {
+            console.log('Halo');
+        });
+
         $('#download_template_shopee').on('click', function () {
             console.log('Halo');
         });
@@ -416,6 +420,56 @@
         $('#download_template_tiktok').on('click', function () {
             console.log('Halo tiktok');
         });
+
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+            var st_id = $('#st_id_filter').val();
+
+            if ((end - start) < 100 || label == 'Hari Ini') {
+                title = 'Hari Ini:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Kemarin') {
+                title = 'Kemarin:';
+                range = start.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else {
+                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+            $('#sales_date').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+            invoice_report_table.draw();
+            article_report_table.draw();
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'center',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+                'Hari Ini': [moment(), moment()],
+                'Kemarin': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
+                '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
+                'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
+                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end, '');
 
 
     });
