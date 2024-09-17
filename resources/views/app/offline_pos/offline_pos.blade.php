@@ -7,6 +7,7 @@
 
 <body id="tc_body" class="header-fixed header-mobile-fixed subheader-enabled aside-enabled aside-fixed"
       style="background-color:#e2e2e2;" onload="forceFullScreen()">
+
 <!-- Paste this code after body tag -->
 <div class="se-pre-con">
     <div class="pre-loader">

@@ -24,7 +24,9 @@
         <!--begin::Stats-->
         <div class="card-spacer" style="padding-top: 0px;">
             <!--begin::Row-->
+            
             <div class="row m-0">
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
@@ -39,6 +41,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_product'] }} Total</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -53,6 +56,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_apparel'] }} Apparel</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -67,6 +71,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_footwear'] }} Footwear</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -81,6 +86,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_accessories'] }} Accessories</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -95,6 +101,8 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_others'] }} Others</a>
                 </div>
+
+
             </div>
             <!--end::Row-->
         </div>

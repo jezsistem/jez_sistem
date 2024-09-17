@@ -464,7 +464,12 @@ class StockTrackingController extends Controller
             ->where('product_stocks.id', $pst_id)
             ->get()->first();
             $this->UserActivity('melakukan pickup ['.$item->br_name.'] '.$item->p_name.' '.$item->p_color.' '.$item->sz_name.' pada BIN '.$pl_code);
-            if (strtoupper($pl_code) == 'TOKO') {
+
+            $st_user = Auth::user()->st_id;
+            $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
+            $st_city = $st_name->st_code;
+
+            if (strtoupper($pl_code) == 'TOKO' && stripos($st_name->st_name, 'ONLINE') === true) {
                 $insert = DB::table('product_location_setup_transactions')->insert([
                     'pls_id' => $pls_id,
                     'u_id' => Auth::user()->id,
@@ -474,12 +479,6 @@ class StockTrackingController extends Controller
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
             } else {
-                $st_user = Auth::user()->st_id;
-
-                $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
-
-                $st_city = $st_name->st_code;
-
                 if ($st_name && stripos($st_name->st_name, 'ONLINE') === false) {
                     $insert = DB::table('product_location_setup_transactions')->insert([
                         'pls_id' => $pls_id,

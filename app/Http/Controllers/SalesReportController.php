@@ -546,12 +546,25 @@ class SalesReportController extends Controller
             $stt_id = $request->get('stt_id');
             $st_id = $request->get('st_id');
             $dp_id = $request->get('dp_id');
-            return Excel::download(new ArticleReportExport($type, $start, $end, $stt_id, $st_id, $dp_id), 'Export Laporan.xlsx');
+
+
+        // Mendapatkan tanggal dan waktu saat ini
+        $now = new \DateTime();
+        $timestamp = $now->format('d-m-Y_H.i');
+
+        // Membuat nama file dengan format yang diinginkan
+        $fileName = 'Export_Laporan_' . $timestamp . '.xlsx';
+
+
+
+            return Excel::download(new ArticleReportExport($type, $start, $end, $stt_id, $st_id, $dp_id), $fileName);
 
         } catch (\Exception $e) {
             return $e->getMessage();
         }
     }
+
+
     public function hbhjDatatables(Request $request)
     {
         if(request()->ajax()) {
