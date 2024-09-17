@@ -726,8 +726,13 @@ class PurchaseOrderController extends Controller
         $po_id = $request->get('po_id');
         $st_id = $request->get('st_id');
 
+        $timestamp = date('Ymd_Hi');
+
         $export = new PurchaseOrderArticleExport($po_id, $st_id);
 
-        return Excel::download($export, 'purchase_order_article.xlsx');
+         // Get current date and time (format: YYYYMMDD_HHmm)
+        
+        $fileName = 'purchase_order_article_' . $timestamp . '.xlsx';
+        return Excel::download($export, $fileName);
     }
 }

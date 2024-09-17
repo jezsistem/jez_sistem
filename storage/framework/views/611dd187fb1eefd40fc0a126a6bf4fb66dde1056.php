@@ -1,6 +1,6 @@
 <!-- DATERANGE -->
-<script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
-<script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
+<script src="<?php echo e(asset('app')); ?>/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
+<script src="<?php echo e(asset('cdn')); ?>/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.min.js"></script>
 <script>
     Webcam.set({
@@ -59,7 +59,7 @@
                 _po_id: id,
                 excelData: excelData
             },
-            url: "{{ url('check_po_receive_detail') }}",
+            url: "<?php echo e(url('check_po_receive_detail')); ?>",
             success: function(r) {
 
                 $('#purchase_order_detail_content').html(r);
@@ -79,7 +79,7 @@
                 _po_id: id,
                 excelData: excelData
             },
-            url: "{{ url('check_barcode_import') }}",
+            url: "<?php echo e(url('check_barcode_import')); ?>",
             success: function(response) {
                 let parsedResponse;
 
@@ -199,7 +199,7 @@
                     type: "POST",
                     data: formData,
                     dataType: 'json',
-                    url: "{{ url('poads_save') }}",
+                    url: "<?php echo e(url('poads_save')); ?>",
                     success: function(r) {
                         if (r.status == '200') {
                             console.log(r);
@@ -268,7 +268,7 @@
             type: "POST",
             data: formData,
             dataType: 'json',
-            url: "{{ url('poads_save') }}",
+            url: "<?php echo e(url('poads_save')); ?>",
             contentType: false,
             processData: false,
             success: function(r) {
@@ -351,7 +351,7 @@
                         _id: id
                     },
                     dataType: 'json',
-                    url: "{{ url('poad_delete') }}",
+                    url: "<?php echo e(url('poad_delete')); ?>",
                     success: function(r) {
                         if (r.status == '200') {
                             swal("Berhasil", "Data berhasil dihapus", "success");
@@ -389,7 +389,7 @@
                         _id: id
                     },
                     dataType: 'json',
-                    url: "{{ url('poa_delete') }}",
+                    url: "<?php echo e(url('poa_delete')); ?>",
                     success: function(r) {
                         if (r.status == '200') {
                             swal("Berhasil", "Data berhasil dihapus", "success");
@@ -419,7 +419,7 @@
                 _purchase_price: purchase_price
             },
             dataType: 'json',
-            url: "{{ url('poad_save_purchase_price') }}",
+            url: "<?php echo e(url('poad_save_purchase_price')); ?>",
             success: function(r) {
                 if (r.status == '200') {
 
@@ -679,7 +679,7 @@
                 _reminder: reminder
             },
             dataType: 'json',
-            url: "{{ url('poa_save_reminder') }}",
+            url: "<?php echo e(url('poa_save_reminder')); ?>",
             success: function(r) {
                 if (r.status == '200') {
                     toast('Disimpan', 'Informasi berhasil disimpan', 'success');
@@ -711,7 +711,7 @@
                             _id: id
                         },
                         dataType: 'json',
-                        url: "{{ url('po_invoice_image_delete') }}",
+                        url: "<?php echo e(url('po_invoice_image_delete')); ?>",
                         success: function(r) {
                             if (r.status == '200') {
                                 toast('Dihapus', 'Gambar berhasil dihapus', 'success');
@@ -767,7 +767,7 @@
                 _psid: psid,
                 _status: status
             },
-            url: "{{ url('create_po_detail') }}",
+            url: "<?php echo e(url('create_po_detail')); ?>",
             success: function(r) {
                 if (r.status == '200') {
 
@@ -801,7 +801,7 @@
                 }
             }],
             ajax: {
-                url: "{{ url('purchase_order_datatables') }}",
+                url: "<?php echo e(url('purchase_order_datatables')); ?>",
                 data: function(d) {
                     d.search = $('#purchase_order_search').val();
                     d.st_id = $('#st_id_filter').val();
@@ -873,7 +873,7 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('product_item_datatables') }}",
+                url: "<?php echo e(url('product_item_datatables')); ?>",
                 data: function(d) {
                     d.search = $('#product_search').val();
                     d.ps_id = $('#ps_id').val();
@@ -932,7 +932,7 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('poads_datatables') }}",
+                url: "<?php echo e(url('poads_datatables')); ?>",
                 data: function(d) {
                     d.poad_id = $('#poad_id').val();
                 }
@@ -1000,7 +1000,7 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             ajax: {
-                url: "{{ url('po_invoice_image_datatable') }}",
+                url: "<?php echo e(url('po_invoice_image_datatable')); ?>",
                 data: function(d) {
                     d._po_id = $('#_po_id').val();
                 },
@@ -1035,7 +1035,7 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             ajax: {
-                url: "{{ url('po_delivery_order_image_datatable') }}",
+                url: "<?php echo e(url('po_delivery_order_image_datatable')); ?>",
                 data: function(d) {
                     d._po_id = $('#_po_id').val();
                 },
@@ -1191,7 +1191,7 @@
                 data: {
                     invoice: invoice
                 },
-                url: "{{ url('check_po_invoice') }}",
+                url: "<?php echo e(url('check_po_invoice')); ?>",
                 success: function(r) {
                     if (r.status == '200') {
                         $('#receive_invoice').val('');
@@ -1206,7 +1206,7 @@
             var imageId = purchaseOrderInvoiceTable.row($(this).parents('tr')).data().id;
 
             $.ajax({
-                url: "{{ url('po_invoice_image_delete') }}",
+                url: "<?php echo e(url('po_invoice_image_delete')); ?>",
                 type: 'POST',
                 data: {
                     id: imageId,
@@ -1226,7 +1226,7 @@
             var imageId = purchaseOrderDeliveryOrderImageTable.row($(this).parents('tr')).data().id;
 
             $.ajax({
-                url: "{{ url('po_delivery_order_image_delete') }}",
+                url: "<?php echo e(url('po_delivery_order_image_delete')); ?>",
                 type: 'POST',
                 data: {
                     id: imageId,
@@ -1264,9 +1264,9 @@
             $('#poads_extra_discount').val(poads_extra_discount);
             $('#poads_purchase_price').val(poads_purchase_price);
             $('#poads_total_price').val(poads_total_price);
-            @if ($data['user']->delete_access == '1')
+            <?php if($data['user']->delete_access == '1'): ?>
                 $('#delete_poads_btn').show();
-            @endif
+            <?php endif; ?>
         });
 
         $('#PurchaseOrdertb tbody').on('click', 'tr', function() {
@@ -1295,7 +1295,7 @@
                 type: "POST",
                 dataType: 'json',
                 data: { _po_id: po_id },
-                url: "{{ url('po_receive_detail') }}",
+                url: "<?php echo e(url('po_receive_detail')); ?>",
                 success: function(r) {
                     if (r.status == '200') {
                         // Reset the form and open the modal
@@ -1324,59 +1324,59 @@
                 }
             });
         });
-        {{--$('#PurchaseOrdertb tbody').on('click', 'tr', function() {--}}
-        {{--    var po_id = purchase_order_table.row(this).data().po_id;--}}
-        {{--    // Store the po_id for later use--}}
-        {{--    $('#_po_id').val(po_id);--}}
+        
+        
+        
+        
 
-        {{--    console.log();--}}
-        {{--    jQuery('#st_id').val(r.st_id).trigger('change');--}}
-        {{--    jQuery('#ps_id').val(r.ps_id).trigger('change');--}}
-        {{--    jQuery('#stkt_id').val(r.stkt_id).trigger('change');--}}
-        {{--    jQuery('#tax_id').val(r.tax_id).trigger('change');jQuery('#st_id').val(st_id).trigger('change');--}}
-        {{--    jQuery('#ps_id').val(r.ps_id).trigger('change');--}}
-        {{--    jQuery('#stkt_id').val(r.stkt_id).trigger('change');--}}
-        {{--    jQuery('#tax_id').val(r.tax_id).trigger('change');--}}
+        
+        
+        
+        
+        
+        
+        
+        
 
-        {{--    // Update DataTables AJAX configuration with the new po_id--}}
-        {{--    purchaseOrderInvoiceTable.ajax.reload();--}}
-        {{--    purchaseOrderDeliveryOrderImageTable.ajax.reload();--}}
+        
+        
+        
 
-        {{--    $.ajaxSetup({--}}
-        {{--        headers: {--}}
-        {{--            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--    $.ajax({--}}
-        {{--        type: "POST",--}}
-        {{--        dataType: 'json',--}}
-        {{--        data: {--}}
-        {{--            _po_id: po_id--}}
-        {{--        },--}}
-        {{--        url: "{{ url('po_receive_detail') }}",--}}
-        {{--        success: function(r) {--}}
-        {{--            if (r.status == '200') {--}}
-        {{--                jQuery.noConflict();--}}
-        {{--                $('#f_po')[0].reset();--}}
-        {{--                $('#PurchaseOrderModal').modal('show');--}}
-        {{--                $('#po_invoice_label').text(r.po_invoice);--}}
-        {{--                $('#_mode').val('edit');--}}
-        {{--                $('#_po_id').val(r.po_id);--}}
-        {{--                $('#po_description').val(r.po_description);--}}
-        {{--                // $('#shipping_cost').val(r.po_shipping_cost);--}}
-        {{--                $('#shipping_cost').attr('placeholder', r.po_shipping_cost +--}}
-        {{--                    ' tetap diisi sesuai angka yang tertera');--}}
-        {{--                jQuery('#st_id').val(r.st_id).trigger('change');--}}
-        {{--                jQuery('#ps_id').val(r.ps_id).trigger('change');--}}
-        {{--                jQuery('#stkt_id').val(r.stkt_id).trigger('change');--}}
-        {{--                jQuery('#tax_id').val(r.tax_id).trigger('change');--}}
-        {{--                reloadArticleDetail(po_id);--}}
-        {{--            } else {--}}
-        {{--                swal('Error', 'terjadi kesalahan', 'warning');--}}
-        {{--            }--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         $('#f_poads').on('submit', function(e) {
             e.preventDefault();
@@ -1404,7 +1404,7 @@
                         cache: false,
                         contentType: false,
                         processData: false,
-                        url: "{{ url('sv_poads_revision') }}",
+                        url: "<?php echo e(url('sv_poads_revision')); ?>",
                         success: function(r) {
                             if (r.status == '200') {
                                 $('#EditPoadsModal').modal('hide');
@@ -1444,7 +1444,7 @@
                             _id: $('#_poads_id').val()
                         },
                         dataType: 'json',
-                        url: "{{ url('dl_poads_revision') }}",
+                        url: "<?php echo e(url('dl_poads_revision')); ?>",
                         success: function(r) {
                             if (r.status == '200') {
                                 $('#EditPoadsModal').modal('hide');
@@ -1484,7 +1484,7 @@
                             _id: $('#_poads_id').val()
                         },
                         dataType: 'json',
-                        url: "{{ url('dl_poads_revision') }}",
+                        url: "<?php echo e(url('dl_poads_revision')); ?>",
                         success: function(r) {
                             if (r.status == '200') {
                                 $('#EditPoadsModal').modal('hide');
@@ -1508,11 +1508,16 @@
 
             $("#ExportBtn").click(function() {
                 console.log('Export Nih');
+                // const po_id = 4418;
 
+                // Get the element by its ID
                 var element = document.getElementById('po_invoice_label');
 
+// Get the text content of the element
                 var po_id = element.textContent || element.innerText;
 
+// Log the text content to the console
+                console.log(po_id);
 
                 // let po_id =
                 window.location.href = `/export-purchase-order/${po_id}`;
@@ -1527,7 +1532,7 @@
             var po_id = $('#_po_id').val();
             $.ajax({
                 type: 'POST',
-                url: "{{ url('por_import') }}",
+                url: "<?php echo e(url('por_import')); ?>",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -1572,7 +1577,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('po_delivery_order_image') }}",
+                url: "<?php echo e(url('po_delivery_order_image')); ?>",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -1626,7 +1631,7 @@
                             _id: $('#_po_id').val()
                         },
                         dataType: 'json',
-                        url: "{{ url('cancel_po') }}",
+                        url: "<?php echo e(url('cancel_po')); ?>",
                         success: function(r) {
                             if (r.status == '200') {
                                 $('#PurchaseOrderModal').modal('hide');
@@ -1694,7 +1699,7 @@
                             st_id: st_id
                         },
                         dataType: 'json',
-                        url: "{{ url('po_export') }}",
+                        url: "<?php echo e(url('po_export')); ?>",
                         success: function(r) {
                             if (r.status == '200') {
                                 $('#PoReportModal').modal('show');
@@ -1785,3 +1790,4 @@
 
     });
 </script>
+<?php /**PATH C:\laragon\www\jez\jez_sistem\resources\views/app/purchase_order_receive/purchase_order_receive_js.blade.php ENDPATH**/ ?>
