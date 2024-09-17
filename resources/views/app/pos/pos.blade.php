@@ -114,7 +114,7 @@
 									<input type="hidden" id="_voc_value"/>
 									<input type="hidden" id="_voc_id"/>
 									<thead class="bg-primary">
-									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;">
+									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#c4ba9b;">
 										<th class="col-6">
 												Produk
 										</th>
