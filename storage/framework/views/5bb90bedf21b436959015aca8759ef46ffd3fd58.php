@@ -78,7 +78,6 @@
                                         Export laporan
                                     </a>
                                 </div>
-                                <!--end::Title-->
                             </div>
                         </div>
                         <!--end::Card-->

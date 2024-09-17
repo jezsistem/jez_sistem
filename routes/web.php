@@ -576,13 +576,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('user_start_shift', [UserShiftController::class, 'startShift']);
     Route::post('user_end_shift', [UserShiftController::class, 'endShift']);
     Route::get('check_user_shift', [UserShiftController::class, 'checkUserShift']);
-
-
-
-
-
-
-
 });
 
 require __DIR__ . '/purchase_order.php';

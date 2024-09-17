@@ -34,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
     // User Rating
     Route::get('user_rating', [UserRatingController::class, 'index']);
     Route::get('rating_by_customer', [UserRatingController::class, 'customerIndex']);
-    Route::get('customer', [UserRatingController::class, 'customerIndex']);
+//    Route::get('customer', [UserRatingController::class, 'customerIndex']);
     Route::get('rating_datatables', [UserRatingController::class, 'getDatatables']);
     Route::get('rating_history_datatables', [UserRatingController::class, 'getHistoryDatatables']);
     Route::post('autocomplete_subdistrict', [UserRatingController::class, 'fetchSubdistrict']);
