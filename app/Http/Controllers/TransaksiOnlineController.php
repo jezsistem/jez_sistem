@@ -297,6 +297,7 @@ class TransaksiOnlineController extends Controller
                 ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
             }
 
+            //Update Header Transactions
             $params = [
                 'online_print' => TRUE,
                 'u_print'      => Auth::user()->id,
@@ -304,7 +305,6 @@ class TransaksiOnlineController extends Controller
                 'updated_at'   => date('Y-m-d H:i:s')
             ];
             OnlineTransactions::where('order_number', $invoice)->update($params);
-
             $response['status'] = 200;
         }
         else {
