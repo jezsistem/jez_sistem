@@ -410,6 +410,7 @@
             var p_name = $(this).attr('data-p_name');
             var pl_code = $(this).attr('data-pl_code');
             var bin = $(this).attr('data-bin');
+            var st_id = {{ \Illuminate\Support\Facades\Auth::user()->st_id }}
 
             @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
             if (st_id == {{ $data['user']->st_id }}) {
@@ -461,7 +462,7 @@
                                 // Proceed with the existing POST request to pickup the item
                                 $.ajax({
                                     type: "POST",
-                                    data: {_pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code},
+                                    data: {_pls_id: pls_id, _pst_id: pst_id, _pl_id: pl_id, _pl_code: pl_code, _st_id: st_id},
                                     dataType: 'json',
                                     url: "{{ url('pickup_item')}}",
                                     success: function (r) {
