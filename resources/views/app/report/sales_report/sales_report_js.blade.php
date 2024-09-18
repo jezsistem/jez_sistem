@@ -28,6 +28,20 @@
             left: 40,
             width: 522
         };
+// Mendapatkan tanggal dan waktu saat ini
+var now = new Date();
+    var day = String(now.getDate()).padStart(2, '0');
+    var month = String(now.getMonth() + 1).padStart(2, '0'); // Bulan dimulai dari 0, jadi ditambah 1
+    var year = now.getFullYear();
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    var seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Membuat format nama file dengan tanggal dan waktu
+ // Membuat format nama file dengan format tanggal/bulan/tahun-jam
+    var timestamp = `${day}-${month}-${year}_${hours}-${minutes}-${seconds}`;
+    var fileName = `Summary_Penjualan_Cabang_${day}/${month}/${year}/${hours}.${minutes}.pdf`;
+
         pdf.fromHTML(
             source, 
             margins.left, 
@@ -36,8 +50,9 @@
                 'elementHandlers': specialElementHandlers
             },
             function (dispose) {
-                pdf.save('Cabang Offline Omset.pdf');
-            }, margins
+            pdf.save(fileName); // Simpan PDF dengan nama file yang berisi timestamp
+        },
+             margins
         );
     }
     
