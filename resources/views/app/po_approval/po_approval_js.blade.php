@@ -43,6 +43,10 @@
                     name: 'po_invoice'
                 },
                 {
+                    data: 'ps_name',
+                    name: 'ps_name'
+                },
+                {
                     data: 'poads_invoice_show',
                     name: 'poads_invoice'
                 },
@@ -63,10 +67,10 @@
                     name: 'u_receive',
                     orderable: false
                 },
-                {
-                    data: 'qty',
-                    name: 'qty'
-                },
+                // {
+                //     data: 'qty',
+                //     name: 'qty'
+                // },
             ],
             columnDefs: [{
                 "targets": 0,

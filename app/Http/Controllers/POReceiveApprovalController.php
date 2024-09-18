@@ -100,6 +100,7 @@ class POReceiveApprovalController extends Controller
                 ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+//                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->whereNotNull('poads_invoice')
                 ->groupBy('poads_invoice'))
                 ->editColumn('poads_invoice_show', function ($d) {
