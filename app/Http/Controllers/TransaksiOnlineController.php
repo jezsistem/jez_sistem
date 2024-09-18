@@ -237,8 +237,6 @@ class TransaksiOnlineController extends Controller
 
         $sku_current_print = OnlineTransactionDetails::where('order_number', $invoice)->get();
 
-//        dd($sku_current_print);
-
         foreach ($sku_current_print as $key => $data) {
             $ps_barcode_id = ProductStock::where('ps_barcode', $data->ps_barcode)->first()->id;
             $pls_qty_current = ProductLocationSetup::where('pst_id', $ps_barcode_id)->where('pl_id', 'NOT LIKE', '%001%')->get()->first();
@@ -275,9 +273,6 @@ class TransaksiOnlineController extends Controller
                 })
 //                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
                 ->get()->first();
-            
-//            dd($data_keep_online);
-
             if ($cek_keep_online > 0) {
                 $online_transactions[] = [
                     'ps_barcode' => $data->ps_barcode,
@@ -299,17 +294,17 @@ class TransaksiOnlineController extends Controller
                     'pt_id'       => $transaction['online_id']
                 ];
 
-
                 ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
             }
 
+            //Update Header Transactions
             $params = [
                 'online_print' => TRUE,
+                'u_print'      => Auth::user()->id,
                 'time_print'   => date('Y-m-d H:i:s'),
                 'updated_at'   => date('Y-m-d H:i:s')
             ];
             OnlineTransactions::where('order_number', $invoice)->update($params);
-
             $response['status'] = 200;
         }
         else {
