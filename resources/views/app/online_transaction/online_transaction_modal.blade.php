@@ -56,7 +56,7 @@
                         <div class="form-group">
                             <label>Pilih template yang sudah di download dan diisi
                                 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" value="{{ \Illuminate\Support\Facades\Auth::user()->st_id }}" name="st_id_form" id="st_id_form" disabled>
+                            <input type="hidden" class="form-control" value="{{ \Illuminate\Support\Facades\Auth::user()->st_id }}" name="st_id_form" id="st_id_form" disabled>
                             <input type="file" class="form-control" name="importFile" id="importFile" required/>
                         </div>
                     </div>
