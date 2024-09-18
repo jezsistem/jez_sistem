@@ -32,61 +32,60 @@
                 </div>
             </div>
         </div>
-{{--        <div class="d-flex flex-column-fluid">--}}
-{{--            <!--begin::Container-->--}}
-{{--            <div class="container">--}}
-{{--                <div class="row">--}}
-{{--                    <div class="col-lg-12 col-xxl-12">--}}
-{{--                        <!--begin::Card-->--}}
-{{--                        <div class="card card-custom gutter-b">--}}
-{{--                            <Label style="margin-left: 20px; margin-top: 20px;">--}}
-{{--                                <h5 class="text-dark font-weight-bold my-1 mr-5">Export Laporan</h5>--}}
-{{--                            </Label><br>--}}
-{{--                            <div class="card-header h-auto align-items-center justify-content-between">--}}
-{{--                                <!--begin::Title-->--}}
-{{--                                <input type="hidden" id="sales_date" value=""/>--}}
+        <div class="d-flex flex-column-fluid">
+            <!--begin::Container-->
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12 col-xxl-12">
+                        <!--begin::Card-->
+                        <div class="card card-custom gutter-b">
+                            <Label style="margin-left: 20px; margin-top: 20px;">
+                                <h5 class="text-dark font-weight-bold my-1 mr-5">Export Laporan</h5>
+                            </Label><br>
+                            <div class="card-header h-auto align-items-center justify-content-between">
+                                <!--begin::Title-->
+                                <input type="hidden" id="sales_date" value=""/>
 
-{{--                                <div class="card-title py-5">--}}
-{{--                                    <select class="form-control" id="branch">--}}
-{{--                                        <option value="">-- Pilih Cabang ---</option>--}}
-{{--                                        <option value="">Semua Cabang</option>--}}
-{{--                                        <option value="">Surabaya</option>--}}
-{{--                                        <option value="auto">Malang</option>--}}
-{{--                                    </select>--}}
-{{--                                </div>--}}
+                                <div class="card-title py-5">
+                                    <select class="form-control" id="branch">
+                                        <option value="">-- Pilih Cabang ---</option>
+                                        <option value="">Semua Cabang</option>
+                                        <option value="">Surabaya</option>
+                                        <option value="auto">Malang</option>
+                                    </select>
+                                </div>
 
-{{--                                <div class="card-title py-5">--}}
-{{--                                    <select class="form-control" id="status">--}}
-{{--                                        <option value="">-- Pilih Status Cetak ---</option>--}}
-{{--                                        <option value="">Sudah di Cetak</option>--}}
-{{--                                        <option value="auto">Belum di Cetak</option>--}}
-{{--                                    </select>--}}
-{{--                                </div>--}}
-{{--                                <div class="alert alert-custom alert-white alert-shadow fade show gutter-b"--}}
-{{--                                     role="alert">--}}
-{{--                                    <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12"--}}
-{{--                                       id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal"--}}
-{{--                                       data-placement="left">--}}
-{{--                                        <span class="text-muted font-size-base font-weight-bold mr-2"--}}
-{{--                                              id="kt_dashboard_daterangepicker_title">Today</span>--}}
-{{--                                        <span class="text-primary font-size-base font-weight-bolder"--}}
-{{--                                              id="kt_dashboard_daterangepicker_date"></span>--}}
-{{--                                    </a>--}}
-{{--                                </div>--}}
-{{--                                <div class="alert alert-custom alert-white alert-shadow fade show gutter-b">--}}
-{{--                                    <a href="#" class="btn btn-sm btn-success mr-2 col-12" id="sales_online_export">--}}
-{{--                                        Export laporan--}}
-{{--                                    </a>--}}
-{{--                                </div>--}}
-{{--                                <!--end::Title-->--}}
-{{--                            </div>--}}
-{{--                        </div>--}}
-{{--                        <!--end::Card-->--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--            <!--end::Container-->--}}
-{{--        </div>--}}
+                                <div class="card-title py-5">
+                                    <select class="form-control" id="status">
+                                        <option value="">-- Pilih Status Cetak ---</option>
+                                        <option value="">Sudah di Cetak</option>
+                                        <option value="auto">Belum di Cetak</option>
+                                    </select>
+                                </div>
+                                <div class="alert alert-custom alert-white alert-shadow fade show gutter-b"
+                                     role="alert">
+                                    <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12"
+                                       id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal"
+                                       data-placement="left">
+                                        <span class="text-muted font-size-base font-weight-bold mr-2"
+                                              id="kt_dashboard_daterangepicker_title">Today</span>
+                                        <span class="text-primary font-size-base font-weight-bolder"
+                                              id="kt_dashboard_daterangepicker_date"></span>
+                                    </a>
+                                </div>
+                                <div class="alert alert-custom alert-white alert-shadow fade show gutter-b">
+                                    <a href="#" class="btn btn-sm btn-success mr-2 col-12" id="sales_online_export">
+                                        Export laporan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Card-->
+                    </div>
+                </div>
+            </div>
+            <!--end::Container-->
+        </div>
         <!--begin::Entry-->
         <div class="d-flex flex-column-fluid">
             <!--begin::Container-->

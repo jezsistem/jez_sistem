@@ -20,13 +20,8 @@
         </div>
         <div class="topbar">
             <div class="header-mobile header-mobile-fixed col-2">
-<<<<<<< HEAD:resources/views/app/_partials/header.blade.php
-                <div class="topbar-item btn-sm" id="kt_aside_mobile_toggle">
-                    <img alt="Logo" src="{{ asset('logo') }}/jez_pro.png" width="100px"/>
-=======
                 <div class="topbar-item btn-sm bg-dark" id="kt_aside_mobile_toggle">
                     <img alt="Logo" src="<?php echo e(asset('logo')); ?>/logo-colors.png" width="100px"/>
->>>>>>> dcdcccf2916f6e7a272373b691c9ef4ba87c22ed:storage/framework/views/3996f8e4366a676a9010b7d852fa943695946732.php
                 </div>
 
             </div>
