@@ -282,7 +282,7 @@ class TransaksiOnlineController extends Controller
         }
         $sku_count = OnlineTransactionDetails::where('order_number', $invoice)->count();
 
-        if(count($online_transactions) == $sku_count){
+        if(count($online_transactions) >= $sku_count){
             foreach ($online_transactions as $transaction) {
                 // Access individual fields from the $transaction array
                 $paramsPlst = [
@@ -291,7 +291,6 @@ class TransaksiOnlineController extends Controller
                     'u_id_packer' => Auth::user()->id,
                     'pt_id'       => $transaction['online_id']
                 ];
-
                 ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
             }
 
