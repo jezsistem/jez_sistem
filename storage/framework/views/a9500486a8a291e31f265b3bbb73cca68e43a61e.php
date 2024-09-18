@@ -1,13 +1,13 @@
-<script src="{{ asset('pos/js') }}/plugin.bundle.min.js"></script>
-<script src="{{ asset('pos/js') }}/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('pos/js') }}/jquery.dataTables.min.js"></script>
-<script src="{{ asset('pos/js') }}/multiple-select.min.js"></script>
+<script src="<?php echo e(asset('pos/js')); ?>/plugin.bundle.min.js"></script>
+<script src="<?php echo e(asset('pos/js')); ?>/bootstrap.bundle.min.js"></script>
+<script src="<?php echo e(asset('pos/js')); ?>/jquery.dataTables.min.js"></script>
+<script src="<?php echo e(asset('pos/js')); ?>/multiple-select.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
         integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="{{ asset('pos/js') }}/script.bundle.js"></script>
-<script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
-<script src="{{ asset('cdn/select2.min.js') }}"></script>
+<script src="<?php echo e(asset('pos/js')); ?>/script.bundle.js"></script>
+<script src="<?php echo e(asset('cdn/jquery.toast.min.js')); ?>"></script>
+<script src="<?php echo e(asset('cdn/select2.min.js')); ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -196,7 +196,7 @@
         });
         jQuery.ajax({
             type: 'POST',
-            url: "{{ url('check_waiting_for_checkout') }}",
+            url: "<?php echo e(url('check_waiting_for_checkout')); ?>",
             dataType: 'html',
             success: function (r) {
                 jQuery('#orderTable tr:last').after(r)
@@ -216,7 +216,7 @@
         });
         jQuery.ajax({
             type: 'POST',
-            url: "{{ url('check_offline_complaint') }}",
+            url: "<?php echo e(url('check_offline_complaint')); ?>",
             dataType: 'html',
             success: function (r) {
                 jQuery('#orderTable tr:last').after(r)
@@ -235,7 +235,7 @@
                 _province: province
             },
             dataType: 'html',
-            url: "{{ url('reload_city') }}",
+            url: "<?php echo e(url('reload_city')); ?>",
             success: function (r) {
                 jQuery('#cust_city').html(r);
             }
@@ -249,7 +249,7 @@
                 _city: city
             },
             dataType: 'html',
-            url: "{{ url('reload_subdistrict') }}",
+            url: "<?php echo e(url('reload_subdistrict')); ?>",
             success: function (r) {
                 jQuery('#cust_subdistrict').html(r);
             }
@@ -298,7 +298,7 @@
                 _pt_id: pt_id
             },
             dataType: 'json',
-            url: "{{ url('reload_item_total') }}",
+            url: "<?php echo e(url('reload_item_total')); ?>",
             success: function (r) {
                 if (r.status == '200') {
                     jQuery('#total_item_side').text(r.total_item);
@@ -322,7 +322,7 @@
         jQuery.ajax({
             type: "GET",
             dataType: 'html',
-            url: "{{ url('reload_refund_offline') }}",
+            url: "<?php echo e(url('reload_refund_offline')); ?>",
             success: function (r) {
                 jQuery('#refund_reload').html(r);
                 toast('Reloaded', 'Refund berhasil direload', 'success');
@@ -357,7 +357,7 @@
         });
         jQuery.ajax({
             type: 'POST',
-            url: "{{ url('save_transaction_detail_offline') }}",
+            url: "<?php echo e(url('save_transaction_detail_offline')); ?>",
             data: {
                 voc_pst_id: voc_pst_id,
                 voc_value: value_price_voc,
@@ -454,7 +454,7 @@
         });
         jQuery.ajax({
             type: 'POST',
-            url: "{{ url('change_waiting_status') }}",
+            url: "<?php echo e(url('change_waiting_status')); ?>",
             data: {
                 _pst_id: pst_id,
                 _pl_id: pl_id,
@@ -593,7 +593,7 @@
         });
         jQuery.ajax({
             type: 'POST',
-            url: "{{ url('save_transaction_offline') }}",
+            url: "<?php echo e(url('save_transaction_offline')); ?>",
             data: {
                 voc_id: voc_id,
                 voc_pst_id: voc_pst_id,
@@ -709,14 +709,14 @@
                     jQuery('#total_discount_value_side').text('0');
                     toast('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
 
-                    var win = window.open('{{ url('') }}/print_offline_invoice/' + r.invoice, '_blank');
+                    var win = window.open('<?php echo e(url('')); ?>/print_offline_invoice/' + r.invoice, '_blank');
 
                     if (win) {
                         win.focus();
                     } else {
                         alert('Please allow popups for this website');
                     }
-                    @php  session()->forget('voc_item') @endphp
+                    <?php  session()->forget('voc_item') ?>
                         b1g1_temp = [];
                     // reloadRefund();
                     console.log(r.invoice);
@@ -724,20 +724,20 @@
 
                     // print nota off dulu sam e
                     console.log(st_id);
-                    {{--setTimeout(() => {--}}
-                    {{--    if (std_id > '0') {--}}
-                    {{--        var win = window.open('{{ url('') }}/print_offline_invoice/' + r--}}
-                    {{--            .invoice, '_blank');--}}
-                    {{--    } else {--}}
-                    {{--        var win = window.open('{{ url('') }}/print_invoice/' + r.invoice,--}}
-                    {{--            '_blank');--}}
-                    {{--    }--}}
-                    {{--    if (win) {--}}
-                    {{--        win.focus();--}}
-                    {{--    } else {--}}
-                    {{--        alert('Please allow popups for this website');--}}
-                    {{--    }--}}
-                    {{--}, 2000);--}}
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                 } else if (r.status == '400') {
                     swal('Gagal', 'Gagal simpan transaksi', 'warning');
                 }
@@ -1015,10 +1015,10 @@
         jQuery('#itemList').fadeOut();
         jQuery('#_exchange').val('true');
         var pt_id = '';
-        // var st_id = "{{ $data['user']->st_id }}";
+        // var st_id = "<?php echo e($data['user']->st_id); ?>";
         // create condition for st_id, check from click or auth
-        var st_id = jQuery('#st_id').val() ?? "{{ $data['user']->st_id }}";
-        if (st_id != "{{ $data['user']->st_id }}") {
+        var st_id = jQuery('#st_id').val() ?? "<?php echo e($data['user']->st_id); ?>";
+        if (st_id != "<?php echo e($data['user']->st_id); ?>") {
             var cross = jQuery(this).attr('data-cross');
             jQuery('#cross_order').val('true');
 
@@ -1113,7 +1113,7 @@
         });
         jQuery.ajax({
             type: 'POST',
-            url: "{{ url('change_waiting_status') }}",
+            url: "<?php echo e(url('change_waiting_status')); ?>",
             data: {
                 _pt_id: pt_id,
                 _pst_id: pst_id,
@@ -1228,7 +1228,7 @@
     jQuery(document).delegate('#add_custom_amount', 'click', function (e) {
     e.preventDefault();
     var pt_id = '';
-    var st_id = "{{ $data['user']->st_id }}";
+    var st_id = "<?php echo e($data['user']->st_id); ?>";
     var p_name = 'Custom Amount'; //sinii
     var sell_price = document.getElementsByTagName('p')[0].innerHTML;
     var mode = 'add';
@@ -1253,7 +1253,7 @@
         }
     });
     jQuery.ajax({
-        url: "{{ url('add_custom_amount') }}",
+        url: "<?php echo e(url('add_custom_amount')); ?>",
         type: 'POST',
         data: {
             _pt_id: pt_id,
@@ -1426,7 +1426,7 @@
             }
         });
         jQuery.ajax({
-            url: "{{ url('pos_barcode_scan') }}",
+            url: "<?php echo e(url('pos_barcode_scan')); ?>",
             method: "POST",
             dataType: "json",
             data: {
@@ -1438,7 +1438,7 @@
             success: function (r) {
                 if (r.status == '200') {
                     var pt_id = '';
-                    var st_id = "{{ $data['user']->st_id }}";
+                    var st_id = "<?php echo e($data['user']->st_id); ?>";
                     var p_name = r.p_name;
                     var pst_id = r.pst_id;
                     var fs = r.fs;
@@ -1519,7 +1519,7 @@
                     });
                     jQuery.ajax({
                         type: 'POST',
-                        url: "{{ url('change_waiting_status') }}",
+                        url: "<?php echo e(url('change_waiting_status')); ?>",
                         data: {
                             _pt_id: pt_id,
                             _pst_id: pst_id,
@@ -1684,7 +1684,7 @@
             "className": 'btn btn-primary btn-xs'
         }],
         ajax: {
-            url: "{{ url('scan_adjustment_product_datatables') }}",
+            url: "<?php echo e(url('scan_adjustment_product_datatables')); ?>",
             data: function (d) {
                 d.search = jQuery('#p_search').val();
             }
@@ -1752,7 +1752,7 @@
                 barcode: barcode
             },
             dataType: 'json',
-            url: "{{ url('scan_adjustment_barcode_update') }}",
+            url: "<?php echo e(url('scan_adjustment_barcode_update')); ?>",
             success: function (r) {
                 if (r.status == '200') {
                     swal("Berhasil", "Data berhasil diupdate", "success");
@@ -1778,7 +1778,7 @@
                 }
             });
             jQuery.ajax({
-                url: "{{ url('check_rating_for_checkout') }}",
+                url: "<?php echo e(url('check_rating_for_checkout')); ?>",
                 method: "POST",
                 dataType: "JSON",
                 success: function (r) {
@@ -1808,7 +1808,7 @@
         });
         jQuery.ajax({
             type: 'POST',
-            url: "{{ url('delete_rating') }}",
+            url: "<?php echo e(url('delete_rating')); ?>",
             dataType: 'json',
             success: function (r) {
                 jQuery('#waiting_customer_label').addClass('d-none');
@@ -1836,7 +1836,7 @@
             }
         });
         jQuery.ajax({
-            url: "{{ url('get_free_sock') }}",
+            url: "<?php echo e(url('get_free_sock')); ?>",
             method: "POST",
             data: {
                 _access_code: access_code
@@ -1911,7 +1911,7 @@
                         }
                     });
                     jQuery.ajax({
-                        url: "{{ url('autocomplete_customer') }}",
+                        url: "<?php echo e(url('autocomplete_customer')); ?>",
                         method: "POST",
                         data: {
                             query: query,
@@ -1959,7 +1959,7 @@
             });
             jQuery.ajax({
                 type: 'POST',
-                url: "{{ url('check_customer') }}",
+                url: "<?php echo e(url('check_customer')); ?>",
                 data: {
                     _cust_id: cust_id
                 },
@@ -1998,7 +1998,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("current-shift.data") }}',
+                url: '<?php echo e(route("current-shift.data")); ?>',
                 type: 'GET',
             },
             columns: [
@@ -2034,7 +2034,7 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('refund_retur_datatables') }}",
+                url: "<?php echo e(url('refund_retur_datatables')); ?>",
                 data: function (d) {
                     d.pt_id = jQuery('#refund_retur_pt_id').val();
 
@@ -2194,7 +2194,7 @@
                     _pt_id: pt_id
                 },
                 dataType: 'json',
-                url: "{{ url('refund_exchange_list') }}",
+                url: "<?php echo e(url('refund_exchange_list')); ?>",
                 success: function (r) {
                     if (r.status == '200') {
                         toast('Added', 'Added to refund list', 'success');
@@ -2332,13 +2332,13 @@
             refund_retur_table.draw();
         });
 
-        @if (strtolower($data['user']->stt_name) == 'offline')
+        <?php if(strtolower($data['user']->stt_name) == 'offline'): ?>
         jQuery('#posContent').show();
         jQuery('.sidebarPOS').show();
-        @else
+        <?php else: ?>
         jQuery('#posContent').hide();
         jQuery('.sidebarPOS').hide();
-        @endif
+        <?php endif; ?>
 
         jQuery('#filter_product_btn').on('click', function (e) {
             e.preventDefault();
@@ -2732,7 +2732,7 @@
                         _u_secret_code: u_secret_code
                     },
                     dataType: 'json',
-                    url: "{{ url('check_secret_code') }}",
+                    url: "<?php echo e(url('check_secret_code')); ?>",
                     beforeSend: function () {
                         Swal.fire({
                             html: '<h5>Loading...</h5>',
@@ -2790,7 +2790,7 @@
             var st_id = jQuery('#st_id').val();
 
             if (st_id == '') {
-                st_id = {{ Auth::user()->st_id }};
+                st_id = <?php echo e(Auth::user()->st_id); ?>;
             }
             if (jQuery.trim(query) != '' || jQuery.trim(query) != null) {
                 console.log("running fadein")
@@ -2801,7 +2801,7 @@
                         }
                     });
                     jQuery.ajax({
-                        url: "{{ url('autocomplete_by_waiting') }}",
+                        url: "<?php echo e(url('autocomplete_by_waiting')); ?>",
                         method: "POST",
                         data: {
                             query: query,
@@ -2834,7 +2834,7 @@
                         }
                     });
                     jQuery.ajax({
-                        url: "{{ url('autocomplete_invoice_offline') }}",
+                        url: "<?php echo e(url('autocomplete_invoice_offline')); ?>",
                         method: "POST",
                         data: {
                             query: query
@@ -2888,7 +2888,7 @@
             });
             jQuery.ajax({
                 type: 'POST',
-                url: "{{ url('cust_save') }}",
+                url: "<?php echo e(url('cust_save')); ?>",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -3025,7 +3025,7 @@
                         _laba_: laba
                     },
                     dataType: 'json',
-                    url: "{{ url('user_end_shift') }}",
+                    url: "<?php echo e(url('user_end_shift')); ?>",
                     success: function (response) {
                         console.log(response);
                         swal('Berhasil', 'Laporan Shift Berhasil Disimpan', 'success');
@@ -3070,59 +3070,59 @@
             //     });
             // });
 
-            {{-- var code = jQuery('#voucher_code').val(); --}}
-            {{-- var item = shoes_voucher_temp; --}}
-            {{-- var total_final = jQuery('#total_final_price_side').text(); --}}
-            {{-- var total = replaceComma(total_final); --}}
-            {{-- if (shoes_voucher_temp.length <= 0) { --}}
-            {{--    swal('Tidak ada sepatu', 'Tidak ada item yang berupa sepatu, voucher hanya berlaku untuk sepatu', 'warning'); --}}
-            {{--    return false; --}}
-            {{-- } --}}
-            {{-- jQuery.ajaxSetup({ --}}
-            {{--    headers: { --}}
-            {{--        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content') --}}
-            {{--    } --}}
-            {{-- }); --}}
-            {{-- jQuery.ajax({ --}}
-            {{--    type: "POST", --}}
-            {{--    data: {code:code, item:item}, --}}
-            {{--    dataType: 'json', --}}
-            {{--    url: "{{ url('verify_voucher')}}", --}}
-            {{--    success: function(r) { --}}
-            {{--        if (r.status == '200') { --}}
-            {{--            // ditemukan --}}
-            {{--            var new_total = parseFloat(total) - parseFloat(r.sell) + parseFloat(r.value); --}}
-            {{--            jQuery('#_voc_id').val(r.voc_id); --}}
-            {{--            jQuery('#_voc_pst_id').val(r.pst_id); --}}
-            {{--            jQuery('#_voc_value').val(r.disc_value); --}}
-            {{--            jQuery('#_voc_article').text(r.article); --}}
-            {{--            jQuery('#_voc_bandrol').text(addCommas(r.bandrol)); --}}
-            {{--            jQuery('#_voc_disc').text(addCommas(r.disc)); --}}
-            {{--            jQuery('#_voc_disc_type').text(addCommas(r.disc_type)); --}}
-            {{--            jQuery('#_voc_disc_value').text('('+addCommas(r.disc_value)+')'); --}}
-            {{--            jQuery('#_voc_value_show').text(addCommas(r.value)); --}}
-            {{--            jQuery('#total_final_price_side').text(addCommas(new_total)); --}}
-            {{--            sell_price_voc = r.sell; --}}
-            {{--            value_price_voc = r.value; --}}
-            {{--            jQuery('#voucher_information').removeClass("d-none"); --}}
-            {{--            jQuery('#voucher_code').prop('disabled', true); --}}
-            {{--        } else if (r.status == '201') { --}}
-            {{--            // salah --}}
-            {{--            alert('beda platform'); --}}
-            {{--        } else if (r.status == '202') { --}}
-            {{--            // salah --}}
-            {{--            alert('sudah pernah dipakai'); --}}
-            {{--        } else if (r.status == '203') { --}}
-            {{--            // salah --}}
-            {{--            alert('sudah pernah dipakai namun belum 1 bulan'); --}}
-            {{--        } else if (r.status == '204') { --}}
-            {{--            // salah --}}
-            {{--            alert('tidak ada item untuk diskon'); --}}
-            {{--        } else { --}}
-            {{--            alert('kode salah'); --}}
-            {{--        } --}}
-            {{--    } --}}
-            {{-- }); --}}
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
         });
 
         document.getElementById('total_payment').addEventListener('input', function (e) {
@@ -3221,7 +3221,7 @@
                 _cust_phone: cust_phone
             },
             dataType: 'json',
-            url: "{{ url('check_exists_customer') }}",
+            url: "<?php echo e(url('check_exists_customer')); ?>",
             success: function (r) {
                 if (r.status == '200') {
                     swal('No Telepon',
@@ -3257,7 +3257,7 @@
                 item: item
             },
             dataType: 'json',
-            url: "{{ url('verify_voucher') }}",
+            url: "<?php echo e(url('verify_voucher')); ?>",
             success: function (r) {
                 if (r.status == '200') {
                     // ditemukan
@@ -3428,7 +3428,7 @@
 
         jQuery.ajax({
             type: "POST",
-            url: "{{ url('verify-vouchers') }}",
+            url: "<?php echo e(url('verify-vouchers')); ?>",
             data: {
                 formData: formData,
                 item: item,
@@ -3494,7 +3494,7 @@
 
         jQuery.ajax({
             type: "POST",
-            url: "{{ url('pos-total-discount') }}",
+            url: "<?php echo e(url('pos-total-discount')); ?>",
             data: {
                 formData: formData,
             },
@@ -3526,3 +3526,4 @@
         });
     })
 </script>
+<?php /**PATH C:\laragon\www\JEZ_S7\JEZ sistem\jez_sistem\resources\views/app/offline_pos/offline_pos_js.blade.php ENDPATH**/ ?>
