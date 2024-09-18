@@ -282,6 +282,8 @@ class TransaksiOnlineController extends Controller
         }
         $sku_count = OnlineTransactionDetails::where('order_number', $invoice)->count();
 
+        dd(count($online_transactions), $sku_count);
+
         if(count($online_transactions) == $sku_count){
             foreach ($online_transactions as $transaction) {
                 // Access individual fields from the $transaction array
