@@ -31,7 +31,7 @@
         @include('app._partials.sidebar')
         <!--begin::Wrapper-->
         <div class="d-flex flex-column flex-row-fluid wrapper" id="kt_wrapper">
-            @include('app._partials.head')
+            @include('app._partials.header')
             @yield('content')
         </div>
         <!--end::Wrapper-->
