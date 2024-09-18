@@ -105,7 +105,7 @@
                                             <option value="store" selected>STORE</option>
                                             <option value="b1g1">B1G1</option>
                                         </select>
-                                        <input style="background:#fef6df; color:black;" type="text"
+                                        <input style="background:#bdb499; color:black;" type="text"
                                                class="form-control border-dark col-3 mr-1" id="product_name_input"
                                                placeholder="Ketik minimal 3 huruf pertama nama artikel"
                                                autocomplete="off">
@@ -132,29 +132,34 @@
                             </div>
                         </div>
                         <br/>
+                        
                         <div class="table-datapos">
-                            <div class="table-responsive" id="printableTable">
-                                <input type="hidden" id="total_row" value="0"/>
-                                <table id="orderTable" class="display table table-hover" style="width:100%">
-                                    <thead class="bg-primary">
-                                    <tr>
-                                        <th class="text-white">Produk</th>
-                                        <th class="text-white">Stok</th>
-                                        <th class="text-white">Qty</th>
-                                        <th class="text-white">Discount (%)</th>
-                                        <th class="text-white">Discount (Rp)</th>
-                                        <th class="text-white">Nameset</th>
-                                        
-                                        <th class="text-white">Harga</th>
-                                        <th class="text-white">Subtotal</th>
-                                        <th class="text-right no-sort"></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
 
-                                    </tbody>
-                                </table>
-                            </div>
+
+          <div class="table-container">
+
+    <input type="hidden" id="total_row" value="0"/>
+    <table id="orderTable" class="display table table-hover" style="width:100%">
+        <thead class="table-header">
+        <tr>
+            <th>Produk</th>
+            <th>Stok</th>
+            <th>Qty</th>
+            <th>Discount (%)</th>
+            <th>Discount (Rp)</th>
+            <th>Nameset</th>
+            <th>Harga</th>
+            <th>Subtotal</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Table rows go here -->
+        </tbody>
+    </table>
+</div>
+
+
                             <div id="voucher_informatio n" class='d-none'>
                                 <input type="hidden" id="_voucher_value"/>
                                 
@@ -200,6 +205,12 @@
                                 
                             </div>
                         </div>
+
+
+
+
+
+
                     </div>
                 </div>
             </div>
@@ -211,5 +222,45 @@
 <?php echo $__env->make('app.offline_pos.offline_pos_js', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
 </body>
+
+
+<style>
+    .table-container {
+        margin: 20px auto;
+        max-width: 1200px; /* Adjust based on your layout */
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: #ffffff; /* Light background for better contrast */
+    }
+
+    .table-header {
+        background-color: #C02727; /* Header background color */
+    }
+
+    .table-header th {
+        color: #ffffff; /* Header text color */
+        padding: 12px;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .table td, .table th {
+        border: 1px solid #dddddd;
+        padding: 10px;
+        text-align: center;
+    }
+
+
+    .table tbody tr:hover {
+        background-color: #F4806D; /* Row hover color */
+        color: #ffffff; /* Text color on hover */
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+</style>
 
 </html><?php /**PATH C:\laragon\www\JEZ_S7\JEZ sistem\jez_sistem\resources\views/app/offline_pos/offline_pos.blade.php ENDPATH**/ ?>
