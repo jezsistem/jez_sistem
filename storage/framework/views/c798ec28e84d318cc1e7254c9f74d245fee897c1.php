@@ -150,7 +150,7 @@
 
                                     <input type="hidden" id="total_row" value="0" />
                                     <table id="orderTable" class="display table table-hover"
-                                        style="width: 80%; margin: 0 auto; text-align: center; font-size: 10px;">
+                                        style="width: 100%; margin: 0 auto; text-align: center; font-size: 10px;">
                                         <thead class="table-header">
                                             <tr>
                                                 <th>Produk</th>
@@ -236,7 +236,7 @@
 
     .table-container {
         margin: 10px auto;
-        max-width: 1000px;
+        max-width: 1200px;
         /* padding: 12px; */
         background-color: #ffffff;
         overflow-x: auto; /* Enables horizontal scrolling */

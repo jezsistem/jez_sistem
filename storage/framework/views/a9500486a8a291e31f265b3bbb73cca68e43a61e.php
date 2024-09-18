@@ -1226,190 +1226,161 @@
     });
 
     jQuery(document).delegate('#add_custom_amount', 'click', function (e) {
-    e.preventDefault();
-    var pt_id = '';
-    var st_id = "<?php echo e($data['user']->st_id); ?>";
-    var p_name = 'Custom Amount'; //sinii
-    var sell_price = document.getElementsByTagName('p')[0].innerHTML;
-    var mode = 'add';
-    var pst_id = document.getElementById('pst_custom').value;
-    var pl_id = document.getElementById('pl_custom').value;
-    var psc_id = document.getElementById('psc_custom').value;
-    var plst_id = jQuery(this).attr('data-plst_id');
-    var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
-    var item_type = jQuery('#item_type option:selected').val();
-    var b1g1_id = jQuery(this).attr('data-b1g1_id');
-    var b1g1_price = jQuery(this).attr('data-b1g1_price');
-    var highlight = '';
-    var b1g1_mode = '';
-    var total_row = parseFloat(jQuery('#total_row').val());
-    var total_item = jQuery('#total_item_side').text();
-    var total_price = jQuery('#total_price_side').text();
-    var total_final_price = jQuery('#total_final_price_side').text();
+        e.preventDefault();
+        var pt_id = '';
+        var st_id = "<?php echo e($data['user']->st_id); ?>";
+        var p_name = 'Custom Amount'; //sinii
+        var sell_price = document.getElementsByTagName('p')[0].innerHTML;
+        var mode = 'add';
+        var pst_id = document.getElementById('pst_custom').value;
+        var pl_id = document.getElementById('pl_custom').value;
+        var psc_id = document.getElementById('psc_custom').value;
+        ;
+        var plst_id = jQuery(this).attr('data-plst_id');
+        var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
+        var item_type = jQuery('#item_type option:selected').val();
+        var b1g1_id = jQuery(this).attr('data-b1g1_id');
+        var b1g1_price = jQuery(this).attr('data-b1g1_price');
+        var highlight = '';
+        var b1g1_mode = '';
+        var total_row = parseFloat(jQuery('#total_row').val());
+        var total_item = jQuery('#total_item_side').text();
+        var total_price = jQuery('#total_price_side').text();
+        var total_final_price = jQuery('#total_final_price_side').text();
 
-    jQuery.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-        }
-    });
-    jQuery.ajax({
-        url: "<?php echo e(url('add_custom_amount')); ?>",
-        type: 'POST',
-        data: {
-            _pt_id: pt_id,
-            _pst_id: pst_id,
-            _pl_id: pl_id,
-            _mode: mode,
-            _item_type: item_type,
-            _plst_id: plst_id,
-            _sell_price: sell_price
-        },
-        dataType: 'json',
-        success: function (r) {
-            jQuery.noConflict();
-            if (r.status == '200') {
-                toast('Ditambah', 'Item berhasil ditambah', 'success');
-                jQuery('#total_item_side').text(parseInt(total_item) + 1);
-                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(
-                    total_price)) + parseFloat(sell_price)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(
-                    total_price)) + parseFloat(sell_price)));
+        console.log('pt_id: ', pt_id);
+        console.log('st_id: ', st_id);
+        console.log('p_name: ', p_name);
+        console.log('sell_price: ', sell_price);
+        console.log('mode: ', mode);
+        console.log('pst_id: ', pst_id);
+        console.log('pl_id: ', pl_id);
+        console.log('psc_id: ', psc_id);
+        console.log('plst_id: ', plst_id);
+        console.log('pos_item: ', pos_item_list);
+        console.log('item_type: ', item_type);
 
-                // Logic for resizing and centering the table
-                jQuery('#orderTable').css({
-                    'transform': 'scale(0.9)',  // Reducing the size to 90%
-                    'transition': 'transform 0.5s ease',  // Smooth transition effect
-                    'display': 'flex', // Set table as flexbox
-                    'justify-content': 'center', // Center horizontally
-                    'align-items': 'center', // Center vertically
-                    'margin': '0 auto'  // Center table within the page
-                });
 
-                // Responsive design with media query in CSS
-                var style = document.createElement('style');
-                style.type = 'text/css';
-                style.innerHTML = `
-                    @media (max-width: 1024px) {
-                        #orderTable {
-                            transform: scale(0.8);  // Adjust for tablet view
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            margin: 0 auto;
-                        }
-                        #orderTable td {
-                            font-size: 15px;  // Smaller font size for tablet
-                        }
-                        #orderTable input {
-                            width: 100%;  // Make input elements full width
-                        }
-                    }
-                    @media (max-width: 768px) {
-                        #orderTable {
-                            transform: scale(0.7);  // Adjust for smaller devices
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            margin: 0 auto;
-                        }
-                        #orderTable td {
-                            font-size: 10px;  // Smaller font size for mobile
-                        }
-                        #orderTable input {
-                            width: 100%;  // Full width for inputs on mobile
-                        }
-                    }
-                `;
-                document.getElementsByTagName('head')[0].appendChild(style);
-
-                if (item_type == 'waiting') {
-                    jQuery('#orderTable tr:last').after(
-                        "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
-                        b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
-                        "<td style='white-space: nowrap; font-size:14px; " + highlight +
-                        "' id='item_name" + (total_row + 1) + "'>" + p_name + "</td>" +
-                        " <td>" + (1) + "</td> " +
-                        " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
-                        pst_id + " item_qty' id='item_qty" + (total_row + 1) +
-                        "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
-                        pst_id + ", " + (1) + ")' readonly></td>" +
-                        " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
-                        pst_id + " discount_percentage' id='discount_percentage" + (
-                            total_row + 1) +
-                        "' value='0' onchange='return changeDiscountPercentage(" + (
-                            total_row + 1) + ", " + pst_id + ", " + (1) + ")'></td>" +
-                        " <td><input type='text' class='form-control border-dark col-8 basicInput2" +
-                        pst_id + " discount_number' id='discount_number" + (total_row + 1) +
-                        "' value='0' onchange='return changeDiscountNumber(" + (total_row +
-                            1) + ", " + pst_id + ", " + (1) + ")'></td>" +
-                        " <td><input type='number' class='col-8 nameset_price' id='nameset_price" +
-                        (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
-                            1) + ")'/></td>" +
-                        " <td><span class='sell_price_item' id='sell_price_item" + (
-                            total_row + 1) + "'>" + addCommas(sell_price) + "</span></td>" +
-                        " <td><span class='subtotal_item' id='subtotal_item" + (total_row +
-                            1) + "'>" + addCommas(sell_price) + "</span></td>" +
-                        " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
-                        (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
-                        ", " + pst_id + ", " + sell_price + ", " + plst_id + ", " + pl_id +
-                        ")'>" +
-                        " <i class='fa fa-eye' style='display:none;'></i></a> " +
-                        " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
-                        pst_id + ", " + sell_price + ", " + (total_row + 1) + ", " + pl_id +
-                        ", " + plst_id +
-                        ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
-                } else {
-                    jQuery('#orderTable tr:last').after("" +
-                        "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
-                        b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
-                        "<td style='white-space: nowrap; font-size:14px;' id='item_name" + (
-                            total_row + 1) + "'>" + p_name + "</td>" +
-                        "<td>" + (1) + "</td> " +
-                        "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
-                        pst_id + " item_qty' id='item_qty" + (total_row + 1) +
-                        "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
-                        pst_id + ", " + (1) + ")'></td> " +
-                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
-                        pst_id + " discount_percentage' id='discount_percentage" + (
-                            total_row + 1) +
-                        "' value='0' onchange='return changeDiscountPercentage(" + (
-                            total_row + 1) + ", " + pst_id + ", " + (1) + ")'></td>" +
-                        " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
-                        pst_id + " discount_number' id='discount_number" + (total_row + 1) +
-                        "' value='0' onchange='return changeDiscountNumber(" + (total_row +
-                            1) + ", " + pst_id + ", " + (1) + ")'></td>" +
-                        "<td><input type='number' class='col-8 nameset_price' id='nameset_price" +
-                        (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
-                            1) + ")'/></td>" +
-                        "<td><span class='sell_price_item' id='sell_price_item" + (total_row +
-                            1) + "'>" + addCommas(sell_price) + "</span></td> " +
-                        "<td><span class='subtotal_item' id='subtotal_item" + (total_row +
-                            1) + "'>" + addCommas(sell_price) + "</span></td> " +
-                        "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
-                        (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
-                        ", " + pst_id + ", " + sell_price + ", " + plst_id + ", " + pl_id +
-                        ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
-                        "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
-                        pst_id + ", " + sell_price + ", " + (total_row + 1) + ", " + pl_id +
-                        ", " + plst_id +
-                        ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
-                }
-
-                jQuery('#total_row').val(total_row + 1);
-            } else if (r.status == '400') {
-                toast('Gagal', 'Item gagal ditambah', 'danger');
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
+        });
+        jQuery.ajax({
+            url: "<?php echo e(url('add_custom_amount')); ?>",
+            type: 'POST',
+            data: {
+                _pt_id: pt_id,
+                _pst_id: pst_id,
+                _pl_id: pl_id,
+                _mode: mode,
+                _item_type: item_type,
+                _plst_id: plst_id,
+                _sell_price: sell_price
+            },
+            dataType: 'json',
+            success: function (r) {
+                jQuery.noConflict();
+                console.log(r.status);
+                if (r.status == '200') {
+                    toast('Ditambah', 'Item berhasil ditambah', 'success');
+                    jQuery('#total_item_side').text(parseInt(total_item) + 1);
+                    jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(
+                        total_price)) + parseFloat(sell_price)));
+                    jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(
+                        total_price)) + parseFloat(sell_price)));
+                    if (item_type == 'waiting') {
+                        jQuery('#orderTable tr:last').after(
+                            "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
+                            b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
+                            "<td style='white-space: nowrap; font-size:14px; " + highlight +
+                            "' id='item_name" + (total_row + 1) + "'>" + p_name + "</td>" +
+                            " <td>" + (1) + "</td> " +
+                            " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
+                            pst_id + " item_qty' id='item_qty" + (total_row + 1) +
+                            "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
+                            pst_id + ", " + (1) + ")' readonly></td>" +
+                            " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
+                            pst_id + " discount_percentage' id='discount_percentage" + (
+                                total_row + 1) +
+                            "' value='0' onchange='return changeDiscountPercentage(" + (
+                                total_row + 1) + ", " + pst_id + ", " + (1) + ")'></td>" +
+                            " <td><input type='text' class='form-control border-dark col-8 basicInput2" +
+                            pst_id + " discount_number' id='discount_number" + (total_row + 1) +
+                            "' value='0' onchange='return changeDiscountNumber(" + (total_row +
+                                1) + ", " + pst_id + ", " + (1) + ")'></td>" +
+                            " <td><input type='number' class='col-8 nameset_price' id='nameset_price" +
+                            (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
+                                1) + ")'/></td>" +
+                            " <td><span class='sell_price_item' id='sell_price_item" + (
+                                total_row + 1) + "'>" + addCommas(sell_price) + "</span></td>" +
+                            " <td><span class='subtotal_item' id='subtotal_item" + (total_row +
+                                1) + "'>" + addCommas(sell_price) + "</span></td>" +
+                            " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
+                            (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
+                            ", " + pst_id + ", " + sell_price + ", " + plst_id + ", " + pl_id +
+                            ")'>" +
+                            " <i class='fa fa-eye' style='display:none;'></i></a> " +
+                            " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
+                            pst_id + ", " + sell_price + ", " + (total_row + 1) + ", " + pl_id +
+                            ", " + plst_id +
+                            ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                    } else {
+                        jQuery('#orderTable tr:last').after("" +
+                            "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
+                            b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
+                            "<td style='white-space: nowrap; font-size:14px;' id='item_name" + (
+                                total_row + 1) + "'>" + p_name + "</td>" +
+                            "<td>" + (1) + "</td> " +
+                            "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
+                            pst_id + " item_qty' id='item_qty" + (total_row + 1) +
+                            "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
+                            pst_id + ", " + (1) + ")'></td> " +
+                            "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
+                            pst_id + " discount_percentage' id='discount_percentage" + (
+                                total_row + 1) +
+                            "' value='0' onchange='return changeDiscountPercentage(" + (
+                                total_row + 1) + ", " + pst_id + ", " + (1) + ")'></td>" +
+                            " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
+                            pst_id + " discount_number' id='discount_number" + (total_row + 1) +
+                            "' value='0' onchange='return changeDiscountNumber(" + (total_row +
+                                1) + ", " + pst_id + ", " + (1) + ")'></td>" +
+                            "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
+                            (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
+                                1) + ")'/></td> " +
+                            "<td><span class='sell_price_item' id='sell_price_item" + (
+                                total_row + 1) + "'>" + addCommas(sell_price) +
+                            "</span></td> " +
+                            "<td><span class='subtotal_item' id='subtotal_item" + (total_row +
+                                1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                            "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
+                            (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
+                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " +
+                            pl_id + ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
+                            "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
+                            pst_id + ", " + sell_price + ", " + (total_row + 1) + ", " + pl_id +
+                            ", " + r.plst_id +
+                            ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                    }
+                    // console.log(b1g1_temp);
+                } else if (r.status == '400') {
+                    toast('Gagal', 'Item gagal ditambah', 'danger');
+                }
+            },
+            error: function (data) {
+                swal('Error', data, 'error');
+            }
+        });
+        if (jQuery('#voucher_code').val() != '') {
+            var code = jQuery('#voucher_code').val();
+            jQuery('#cancel_voucher').trigger('click');
+            jQuery('#voucher_code').val(code);
+            setTimeout(() => {
+                jQuery('#f_voucher').trigger('submit');
+            }, 300);
         }
+        return false;
     });
-});
-
-
-
-
-
-
-
-
 
     jQuery(document).delegate('#barcode_input', 'change', function (e) {
         e.preventDefault();
