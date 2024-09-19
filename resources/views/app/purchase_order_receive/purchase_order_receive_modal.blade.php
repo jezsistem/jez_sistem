@@ -4,9 +4,8 @@
     <div class="modal-dialog modal-xl" role="document" style="width:100%; max-width:1300px;">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel"><span
-                            id="po_invoice_label"></span></h5>Penerimaan PO #<span
-                        id="po_invoice_label"></span></h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Penerimaan PO #<span
+                            id="po_invoice_label"></span></h5>
                 <!--begin::Button Import-->
                 <div class="mr-2">
                     <div class="dropdown dropdown-inline mr-2">
@@ -31,22 +30,20 @@
                         </a>
                         <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn"
                            aria-haspopup="true" aria-expanded="false">
-                            <span class="svg-icon svg-icon-md">
-                                <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
-                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-                                     width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                        <rect x="0" y="0" width="24" height="24"/>
-                                        <path
-                                                d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                fill="#000000" opacity="0.3"/>
-                                        <path
-                                                d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                fill="#000000"/>
-                                    </g>
-                                </svg>
-                                <!--end::Svg Icon-->
-                            </span>Import
+                                <span class="svg-icon svg-icon-md">
+                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                         width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24"/>
+                                            <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                  fill="#000000" opacity="0.3"/>
+                                            <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                  fill="#000000"/>
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>Import
                         </a>
                     </div>
                     <!--begin::Dropdown Menu-->
@@ -58,9 +55,9 @@
                             </li>
                             <li class="navi-item">
                                 <a href="#" class="navi-link">
-                                    <span class="navi-icon">
-                                        <i class="la la-copy"></i>
-                                    </span>
+                                                    <span class="navi-icon">
+                                                        <i class="la la-copy"></i>
+                                                    </span>
                                     <span id="purchase_order_excel_btn"></span>
                                 </a>
                             </li>
@@ -99,8 +96,8 @@
                         </div>
                         <div class="col-4">
                             <label>Deskripsi</label>
-                            <textarea class="form-control" name="po_description" id="po_description"
-                                      rows="3"></textarea>
+                            <textarea class="form-control" name="po_description" id="po_description" rows="3"
+                                      readonly></textarea>
                         </div>
                         <div class="col-4">
                             <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
@@ -128,8 +125,7 @@
                         </div>
                         <div class="col-4 mt-4">
                             <label class="badge badge-primary">Invoice</label>
-                            <input type="text" id="receive_invoice" class="form-control" value=""
-                                   placeholder="INVxx"/>
+                            <input type="text" id="receive_invoice" class="form-control" value="" placeholder="INVxx"/>
                         </div>
                         <div class="col-4 mt-4">
                             <label class="badge badge-primary">Tanggal Invoice</label>
@@ -138,23 +134,20 @@
                         <div class="col-4 mt-4 d-flex flex-column">
                             <label class="badge badge-primary">Bukti Gambar Invoice dan Paket</label>
                             <div class="row  justify-content-between">
-                                <a class="input-group col-5" type="button" id="InvoiceImagesBtn"
-                                   aria-haspopup="true" aria-expanded="false">
+                                <a class="input-group col-5" type="button" id="InvoiceImagesBtn" aria-haspopup="true"
+                                   aria-expanded="false">
                                     <label class="input-group-text" for="invoiceImage">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
-                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                                                 height="24px" viewBox="0 0 24 24" version="1.1">
-                                                <g stroke="none" stroke-width="1" fill="none"
-                                                   fill-rule="evenodd">
+                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                                 viewBox="0 0 24 24" version="1.1">
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                                     <rect x="0" y="0" width="24" height="24"/>
-                                                    <path
-                                                            d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                            fill="#000000" opacity="0.3"/>
-                                                    <path
-                                                            d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                            fill="#000000"/>
+                                                    <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                          fill="#000000" opacity="0.3"/>
+                                                    <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                          fill="#000000"/>
                                                 </g>
                                             </svg>
                                             <!--end::Svg Icon-->
@@ -168,17 +161,14 @@
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
-                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                                                 height="24px" viewBox="0 0 24 24" version="1.1">
-                                                <g stroke="none" stroke-width="1" fill="none"
-                                                   fill-rule="evenodd">
+                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                                 viewBox="0 0 24 24" version="1.1">
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                                     <rect x="0" y="0" width="24" height="24"/>
-                                                    <path
-                                                            d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                            fill="#000000" opacity="0.3"/>
-                                                    <path
-                                                            d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                            fill="#000000"/>
+                                                    <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                          fill="#000000" opacity="0.3"/>
+                                                    <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                          fill="#000000"/>
                                                 </g>
                                             </svg>
                                             <!--end::Svg Icon-->
@@ -190,24 +180,21 @@
                                     <a class="input-group col-5" type="button" id="SuratJalanImageBtn"
                                        aria-haspopup="true" aria-expanded="false">
                                         <label class="input-group-text" for="suratJalan">
-                                            <span class="svg-icon svg-icon-md">
-                                                <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
-                                                <svg xmlns="http://www.w3.org/2000/svg"
-                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
-                                                     height="24px" viewBox="0 0 24 24" version="1.1">
-                                                    <g stroke="none" stroke-width="1" fill="none"
-                                                       fill-rule="evenodd">
-                                                        <rect x="0" y="0" width="24" height="24"/>
-                                                        <path
-                                                                d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                                fill="#000000" opacity="0.3"/>
-                                                        <path
-                                                                d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                                fill="#000000"/>
-                                                    </g>
-                                                </svg>
-                                                <!--end::Svg Icon-->
-                                            </span>
+                                        <span class="svg-icon svg-icon-md">
+                                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                                 viewBox="0 0 24 24" version="1.1">
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                    <rect x="0" y="0" width="24" height="24"/>
+                                                    <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                          fill="#000000" opacity="0.3"/>
+                                                    <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                          fill="#000000"/>
+                                                </g>
+                                            </svg>
+                                            <!--end::Svg Icon-->
+                                        </span>
                                             Gambar Surat Jalan
                                         </label>
                                     </a>
@@ -220,11 +207,6 @@
                             <label> * diisi setelah mengisi kolom terima </label>
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                    onchange="updateCogs()" required/>
-                        </div>
-                        <div class="col-4 mt-4">
-                            <label class="badge badge-primary">Note</label>
-                            <input type="text" id="invoice_note" class="form-control" value=""
-                                   placeholder="RTO,RTR,INSTOCK"/>
                         </div>
                     </div>
                     <!--end::Row-->
@@ -276,9 +258,7 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold"
-                        data-dismiss="modal">Tutup
-                </button>
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -335,8 +315,7 @@
                         </div>
                         <div class="form-group mb-1 pb-1">
                             <label for="exampleTextarea">Total</label>
-                            <input type="text" class="form-control" id="poads_total_price"
-                                   name="poads_total_price"/>
+                            <input type="text" class="form-control" id="poads_total_price" name="poads_total_price"/>
                         </div>
                     </div>
                 </div>
@@ -387,9 +366,7 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold"
-                        data-dismiss="modal">Tutup
-                </button>
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -414,8 +391,8 @@
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi data</label>
                             <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="importFile" id="importFile"
-                                   accept=".csv" required/>
+                            <input type="file" class="form-control" name="importFile" id="importFile" accept=".csv"
+                                   required/>
                         </div>
                     </div>
                 </div>
@@ -528,16 +505,15 @@
                                     <div id="my_camera"></div>
                                     <br/>
                                     <input type=button value="Take Snapshot" onClick="take_snapshot()">
-                                    {{--                                        <input type="hidden" name="image" class="image-tag"> --}}
-                                    <input type="hidden" name="deliveryOrderImage" id="image-tag"
-                                           class="image-tag">
+                                    {{--                                        <input type="hidden" name="image" class="image-tag">--}}
+                                    <input type="hidden" name="deliveryOrderImage" id="image-tag" class="image-tag">
                                 </div>
                                 <div class="col-md-6">
                                     <div id="results">Your captured image will appear here...</div>
                                 </div>
                                 <div class="col-md-12 text-center">
                                     <br/>
-                                    {{--                                        <button class="btn btn-success">Submit</button> --}}
+                                    {{--                                        <button class="btn btn-success">Submit</button>--}}
                                     <button type="submit" class="btn btn-dark font-weight-bold" id="take_photo_btn">
                                         Submit
                                     </button>

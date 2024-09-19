@@ -130,18 +130,6 @@ class StockDataController extends Controller
         }
 
         if (request()->ajax()) {
-//                return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, ts_products.article_id, br_name, ps_qty, p_price_tag, p_sell_price, ps_price_tag, ps_sell_price, promo_price")
-//                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-//                    ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-//                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                    ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-//                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                    ->leftJoin('articles_promo', 'articles_promo.article_id', '=', 'products.article_id')
-//                    ->where('pls_qty', '>=', 0)
-//                    ->whereNotIn('pl_code', $exception)
-//                    ->where('product_locations.st_id', '=', $st_id)
-//                    ->groupBy('p_name_brand')
-//                    ->orderByDesc('products.updated_at'))
             return datatables()->of(Product::select('products.id as pid',
                 DB::raw("CONCAT(p_name, ' (', br_name, ')') as p_name_brand"),
                 'p_name',

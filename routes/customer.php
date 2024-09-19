@@ -30,11 +30,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('update_traffic_customer', [CustomerController::class, 'updateTrafficCustomer']);
     Route::get('count_total_customer_type', [CustomerController::class, 'countTotalCustomerType']);
     Route::get('customer_data_export', [CustomerController::class, 'exportData']);
-
     // User Rating
     Route::get('user_rating', [UserRatingController::class, 'index']);
     Route::get('rating_by_customer', [UserRatingController::class, 'customerIndex']);
-//    Route::get('customer', [UserRatingController::class, 'customerIndex']);
     Route::get('rating_datatables', [UserRatingController::class, 'getDatatables']);
     Route::get('rating_history_datatables', [UserRatingController::class, 'getHistoryDatatables']);
     Route::post('autocomplete_subdistrict', [UserRatingController::class, 'fetchSubdistrict']);
@@ -43,7 +41,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('save_rating', [UserRatingController::class, 'storeData']);
     Route::post('check_customer_rating_phone', [UserRatingController::class, 'checkCustomerPhone']);
     Route::post('check_rating_for_checkout', [UserRatingController::class, 'checkWaitingForCheckout']);
-
     // Whatsapp
     Route::get('whatsapp', [WhatsappController::class, 'index']);
     Route::get('whatsapp_datatables', [WhatsappController::class, 'getDatatables']);

@@ -22,4 +22,5 @@ yarn-error.log
 README2.md
 
 /storage/logs/laravel.log
-/resources/views/app/_partials/header.blade.php
+/storage/*
+#/resources/views/app/_partials/header.blade.php

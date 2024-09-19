@@ -192,6 +192,7 @@ class TransaksiOnlineController extends Controller
         $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
         $get_invoice = array();
         $dropshipper = null;
+        $st_id = Auth::user()->st_id;
 
         if ($check) {
             $trx = PosTransaction::select(
@@ -237,10 +238,9 @@ class TransaksiOnlineController extends Controller
 
         $sku_current_print = OnlineTransactionDetails::where('order_number', $invoice)->get();
 
-//        dd($sku_current_print);
-
         foreach ($sku_current_print as $key => $data) {
             $ps_barcode_id = ProductStock::where('ps_barcode', $data->ps_barcode)->first()->id;
+
             $pls_qty_current = ProductLocationSetup::where('pst_id', $ps_barcode_id)->where('pl_id', 'NOT LIKE', '%001%')->get()->first();
 
             if ($pls_qty_current) {
@@ -256,28 +256,21 @@ class TransaksiOnlineController extends Controller
             $cek_keep_online = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->where('product_stocks.ps_barcode' , '=', $data->sku)
-                ->where(function($query) {
-                    $query->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
-                        ->orWhereDate('product_location_setup_transactions.created_at', Carbon::now()->subDay());
-                })
-//                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
+                ->where('st_id', '=', $st_id)
+                ->where('plst_status', '=', 'WAITING ONLINE')
                 ->count();
-
-            
 
             $data_keep_online = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id')
                 ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->where('product_stocks.ps_barcode' , '=', $data->sku)
-                ->where(function($query) {
-                    $query->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
-                        ->orWhereDate('product_location_setup_transactions.created_at', Carbon::now()->subDay());
-                })
-//                ->where('plst_status', 'IN', ['WAITING ONLINE', 'DONE AMP'])
+                ->where('st_id', '=', $st_id)
+//                ->where(function($query) {
+//                    $query->whereDate('product_location_setup_transactions.created_at', date('Y-m-d'))
+//                        ->orWhereDate('product_location_setup_transactions.created_at', Carbon::now()->subDay());
+//                })
+                ->where('plst_status', '=', 'WAITING ONLINE')
                 ->get()->first();
-            
-//            dd($data_keep_online);
-
             if ($cek_keep_online > 0) {
                 $online_transactions[] = [
                     'ps_barcode' => $data->ps_barcode,
@@ -289,7 +282,9 @@ class TransaksiOnlineController extends Controller
         }
         $sku_count = OnlineTransactionDetails::where('order_number', $invoice)->count();
 
-        if($sku_count >= count($online_transactions)){
+//        dd(count($online_transactions), $sku_count);
+
+        if(count($online_transactions) >= $sku_count){
             foreach ($online_transactions as $transaction) {
                 // Access individual fields from the $transaction array
                 $paramsPlst = [
@@ -298,22 +293,21 @@ class TransaksiOnlineController extends Controller
                     'u_id_packer' => Auth::user()->id,
                     'pt_id'       => $transaction['online_id']
                 ];
-
-
                 ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
             }
 
+            //Update Header Transactions
             $params = [
                 'online_print' => TRUE,
+                'u_print'      => Auth::user()->id,
                 'time_print'   => date('Y-m-d H:i:s'),
                 'updated_at'   => date('Y-m-d H:i:s')
             ];
             OnlineTransactions::where('order_number', $invoice)->update($params);
-
             $response['status'] = 200;
         }
         else {
-            $response['status'] = $sku_count . ' ' . count($online_transactions);
+            $response['status'] = 400;
         }
 
         return $response;
