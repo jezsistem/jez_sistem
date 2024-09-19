@@ -123,12 +123,13 @@
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">Store</th>
                                             <th class="text-dark">PO</th>
+                                            <th class="text-dark">Supplier</th>
                                             <th class="text-dark">Invoice</th>
                                             <th class="text-dark">Tgl Invoice</th>
                                             <th class="text-dark">Tgl Terima</th>
                                             <th class="text-dark">Penerima</th>
                                             <th class="text-dark">Approval</th>
-                                            <th class="text-dark">Qty</th>
+{{--                                            <th class="text-dark">Qty</th>--}}
                                         </tr>
                                     </thead>
                                     <tbody>
