@@ -47,9 +47,16 @@
                                     <input type="hidden" id="cust_id" value="1"/>
                                     <input type="hidden" id="cust_id" value="{{ Auth::user()->st_id }}"/>
                                     <input type="search" id="cust_id_label"
-                                           placeholder="Ketik minimal 4 huruf customer" autocomplete="off"/> <a
-                                            href="#" class="btn btn-inventory" data-id=""
-                                            id="check_customer">Check</a>
+                                           placeholder="Ketik minimal 4 huruf customer" autocomplete="off" style="background: #F7DAD9"/> 
+                                           <a href="#" 
+                                           class="btn-inventory" 
+                                           data-id="" 
+                                           id="check_customer" 
+                                           style="background:#FFDB89; font-weight: bold; color:black; font-size: 11px; text-decoration: none; padding: 10px 20px; border: none; border-radius: 4px; display: inline-block;"
+                                           onmouseover="this.style.background='#FFE1E6'; this.style.color='white'; this.style.fontWeight='bold';" 
+                                           onmouseout="this.style.background='#FFDB89'; this.style.color='black'; this.style.fontWeight='bold';">
+                                           Check
+                                        </a>
                                     <div id="itemListCust"></div>
                                     <br/>
                                     <select class="form-control border-dark col-12 mr-1 bg-info text-white"
@@ -97,7 +104,7 @@
                         <div class="card-body bg-primary rounded">
                             <div class="form-group row mb-0">
                                 <div class="col-md-12">
-                                    <label class="text-white">LOKASI</label>
+                                    <label class="text-white" style="font-weight: bold; font-size: 13px">LOKASI</label>
                                     <fieldset class="form-group mb-0 d-flex barcodeselection">
                                         <select class="form-control border-dark col-2 mr-2 bg-info text-white"
                                                 id="item_type">
@@ -105,7 +112,7 @@
                                             <option value="store" selected>STORE</option>
                                             <option value="b1g1">B1G1</option>
                                         </select>
-                                        <input style="background:#bdb499; color:black;" type="text"
+                                        <input style="background:#FFDB89; color:black;" type="text"
                                                class="form-control border-dark col-3 mr-1" id="product_name_input"
                                                placeholder="Ketik minimal 3 huruf pertama nama artikel"
                                                autocomplete="off">
@@ -140,7 +147,7 @@
 
                                     <input type="hidden" id="total_row" value="0" />
                                     <table id="orderTable" class="display table table-hover"
-                                        style="width: 100%; margin: 0 auto; text-align: center; font-size: 10px;">
+                                        style="width: 90%; margin: 0 auto; text-align: center; font-size: 12px;">
                                         <thead class="table-header">
                                             <tr>
                                                 <th>Produk</th>
@@ -151,6 +158,7 @@
                                                 <th>Nameset</th>
                                                 <th>Harga</th>
                                                 <th>Subtotal</th>
+                                                <th></th>
 
         </tr>
         </thead>
@@ -247,7 +255,7 @@
     .table-header th {
         color: #ffffff; /* Header text color */
         padding: 12px;
-        font-size: 14px;
+        font-size: 12px;
         text-align: center;
     }
 
@@ -259,7 +267,7 @@
 
 
     .table tbody tr:hover {
-        background-color: #F4806D; /* Row hover color */
+        background-color: #c28a81; /* Row hover color */
         color: #ffffff; /* Text color on hover */
     }
 

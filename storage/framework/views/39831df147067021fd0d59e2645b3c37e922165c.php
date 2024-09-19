@@ -106,7 +106,7 @@
                         </td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between item-price pl-3 pr-3"
-                    style="background:#FFCB8E">
+                    style="background:#FFDB89">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-primary" >
                             Grand Total
                         </th>
