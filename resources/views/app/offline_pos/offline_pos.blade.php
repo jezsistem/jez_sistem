@@ -150,7 +150,7 @@
 
                                     <input type="hidden" id="total_row" value="0" />
                                     <table id="orderTable" class="display table table-hover"
-                                        style="width: 100%; margin: 0 auto; text-align: center; font-size: 10px;">
+                                        style="width: 80%; margin: 0 auto; text-align: center; font-size: 10px;">
                                         <thead class="table-header">
                                             <tr>
                                                 <th>Produk</th>
@@ -161,6 +161,7 @@
                                                 <th>Nameset</th>
                                                 <th>Harga</th>
                                                 <th>Subtotal</th>
+                                                <th></th>
 
                                             </tr>
                                         </thead>
@@ -236,7 +237,7 @@
 
     .table-container {
         margin: 10px auto;
-        max-width: 1200px;
+        max-width: 1000px;
         /* padding: 12px; */
         background-color: #ffffff;
         overflow-x: auto; /* Enables horizontal scrolling */
@@ -244,7 +245,7 @@
     }
 
     .table {
-        width: 100%; /* Ensures the table takes up the full width of the container */
+        width: 80%; /* Ensures the table takes up the full width of the container */
         border-collapse: collapse; /* Ensures borders are collapsed */
     }
 
@@ -255,7 +256,7 @@
     .table-header th {
         color: #ffffff;
         padding: 12px;
-        font-size: 14px;
+        font-size: 12px;
         text-align: center;
     }
 
@@ -279,7 +280,7 @@
     @media (max-width: 768px) {
         .table-container {
             padding: 8px;
-            max-width: 100%;
+            max-width: 80%;
         }
 
         .table-header th {
@@ -312,6 +313,8 @@
             background-color: #f5b0a6;
         }
     }
+
+
 </style>
 
 
