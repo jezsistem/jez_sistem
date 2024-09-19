@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <!--begin::Head-->
-@include('app.offline_pos.offline_pos_head')
+<?php echo $__env->make('app.offline_pos.offline_pos_head', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 <!--end::Head-->
 <!--begin::Body-->
 
@@ -11,10 +11,10 @@
 <!-- Paste this code after body tag -->
 <div class="se-pre-con">
     <div class="pre-loader">
-        <img class="img-fluid" src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%">
+        <img class="img-fluid" src="<?php echo e(asset('pos')); ?>/jez.gif" alt="loading" width="20%">
     </div>
 </div>
-@include('app.offline_pos.offline_pos_header')
+<?php echo $__env->make('app.offline_pos.offline_pos_header', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 <div class="contentPOS">
     <div class="container-fluid">
         <div class="row">
@@ -45,7 +45,7 @@
                                             </span>
                                     </label>
                                     <input type="hidden" id="cust_id" value="1"/>
-                                    <input type="hidden" id="cust_id" value="{{ Auth::user()->st_id }}"/>
+                                    <input type="hidden" id="cust_id" value="<?php echo e(Auth::user()->st_id); ?>"/>
                                     <input type="search" id="cust_id_label"
                                            placeholder="Ketik minimal 4 huruf customer" autocomplete="off"/> <a
                                             href="#" class="btn btn-inventory" data-id=""
@@ -78,17 +78,17 @@
                                     <a class="btn-sm btn-primary" id="product_barcode_btn"
                                        style="cursor:pointer;">Lengkapi Barcode</a>
                                 </div>
-                                {{--                                <div class="selectmain">--}}
-                                {{--                                    <label--}}
-                                {{--                                            class="btn btn-inventory col-12 rounded text-white d-flex font-weight-bold">Store</label>--}}
-                                {{--                                    <select class="arabic-select-store select-down " id="st_id"--}}
-                                {{--                                            name="st_id">--}}
-                                {{--                                        <option value="">- Store -</option>--}}
-                                {{--                                        @foreach ($data['st_id'] as $key => $value)--}}
-                                {{--                                            <option value="{{ $key }}">{{ $value }}</option>--}}
-                                {{--                                        @endforeach--}}
-                                {{--                                    </select>--}}
-                                {{--                                </div>--}}
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                             </div>
                         </div>
                     </div>
@@ -116,18 +116,18 @@
                                                id="invoice_input" placeholder="Invoice (ketik 5 angka invoice)">
                                     </fieldset>
                                     <div id="itemList"></div>
-                                    <input type="hidden" value="{{ Auth::user()->u_name }}" name="u_name"
+                                    <input type="hidden" value="<?php echo e(Auth::user()->u_name); ?>" name="u_name"
                                            class="form-control border-dark col-3" id="invoice_input">
-                                    <input type="hidden" value="{{ $data['pst_custom']->id }}" name="u_name"
+                                    <input type="hidden" value="<?php echo e($data['pst_custom']->id); ?>" name="u_name"
                                            class="form-control border-dark col-3" id="pst_custom">
-                                    <input type="hidden" value="{{ $data['psc_custom']->id }}" name="u_name"
+                                    <input type="hidden" value="<?php echo e($data['psc_custom']->id); ?>" name="u_name"
                                            class="form-control border-dark col-3" id="psc_custom">
-                                    <input type="hidden" value="{{ $data['pl_custom']->id }}" name="u_name"
+                                    <input type="hidden" value="<?php echo e($data['pl_custom']->id); ?>" name="u_name"
                                            class="form-control border-dark col-3" id="pl_custom">
-                                    <input type="hidden" value="{{ $data['store']->st_name }}" name="st_name"
+                                    <input type="hidden" value="<?php echo e($data['store']->st_name); ?>" name="st_name"
                                            class="form-control border-dark col-3" id="invoice_input">
-{{--                                    <input type="hidden" value="{{ $data['starting_date'] }}" name="st_name"--}}
-{{--                                           class="form-control border-dark col-3" id="invoice_input">--}}
+
+
                                 </div>
                             </div>
                         </div>
@@ -162,47 +162,47 @@
 
                             <div id="voucher_informatio n" class='d-none'>
                                 <input type="hidden" id="_voucher_value"/>
-                                {{--								<table id="orderTable" class="display table table-hover" style="width:100%"> --}}
-                                {{--								<input type="hidden" id="_voc_pst_id"/> --}}
+                                
+                                
                                 <input type="hidden" id="_voc_value"/>
                                 <input type="hidden" id="_voc_disc_value"/>
                                 <input type="hidden" id="_voc_total_disc_value">
-                                {{--									<input type="hidden" id="_voc_id"/> --}}
-                                {{--									<thead class="bg-primary"> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Produk --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												<span id="_voc_article"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Bandrol --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_bandrol"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Disc --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_disc"></span> <span id="_voc_disc_type"></span> <span id="_voc_disc_value"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Harga Baru --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_value_show"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									</thead> --}}
-                                {{--								</table> --}}
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                             </div>
                         </div>
 
@@ -214,13 +214,13 @@
                     </div>
                 </div>
             </div>
-            @include('app.offline_pos.offline_pos_sidebar')
+            <?php echo $__env->make('app.offline_pos.offline_pos_sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
         </div>
     </div>
 </div>
-@include('app.offline_pos.offline_pos_modal')
-@include('app.offline_pos.offline_pos_js')
-{{--	asdasd --}}
+<?php echo $__env->make('app.offline_pos.offline_pos_modal', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+<?php echo $__env->make('app.offline_pos.offline_pos_js', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
 </body>
 
 
@@ -263,4 +263,4 @@
 
 </style>
 
-</html>
+</html><?php /**PATH C:\laragon\www\jez\jez_sistem\resources\views/app/offline_pos/offline_pos.blade.php ENDPATH**/ ?>
