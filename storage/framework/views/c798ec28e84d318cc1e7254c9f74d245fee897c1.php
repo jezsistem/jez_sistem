@@ -52,8 +52,8 @@
                                            class="btn-inventory" 
                                            data-id="" 
                                            id="check_customer" 
-                                           style="background:#FFDB89; font-weight: bold; color:black; font-size: 11px; text-decoration: none; padding: 10px 20px; border: none; border-radius: 4px; display: inline-block;"
-                                           onmouseover="this.style.background='#FFE1E6'; this.style.color='white'; this.style.fontWeight='bold';" 
+                                           style="background:#FFDB89 ; font-weight: bold; color:black; font-size: 11px; text-decoration: none; padding: 4px 8px; border: none; border-radius: 4px; display: inline-block;"
+                                           onmouseover="this.style.background='#e18080'; this.style.color='white'; this.style.fontWeight='bold';" 
                                            onmouseout="this.style.background='#FFDB89'; this.style.color='black'; this.style.fontWeight='bold';">
                                            Check
                                         </a>
