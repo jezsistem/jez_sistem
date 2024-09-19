@@ -230,7 +230,7 @@ class TransaksiOnlineController extends Controller
 
         $data_stores = Store::where('id', $stores)->get()->first();
 
-        $stores_code = $data_stores->st_code;
+//        $stores_code = $data_stores->st_code;
 
 
         $online_transactions = [];
@@ -347,47 +347,7 @@ class TransaksiOnlineController extends Controller
         ];
         return view('app.invoice.print_invoice_online', compact('data'));
     }
-
-//    public function importData(Request $request)
-//    {
-//        try {
-//            if ($request->hasFile('importFile')) {
-//                $file = $request->file('importFile');
-//
-//                $nama_file = rand() . $file->getClientOriginalName();
-//
-//                $original_name = $file->getClientOriginalName();
-//
-//                $file->move('online', $nama_file);
-//
-//                $st_id_form = Auth::user()->st_id;
-//
-//                $import = new TransactionOnlineImport();
-//                $data = Excel::toArray($import, public_path('online/' . $nama_file));
-//
-//                if (count($data) >= 0) {
-//                    $processData = $this->processImportData($data[0], $original_name, $st_id_form);
-//                    $r['data'] = $file->getClientOriginalName();;
-//                    $r['status'] = '200';
-//
-//                    if ($r['status'] = '200') {
-//
-//                    }
-//                } else {
-//                    $r['status'] = '419';
-//                }
-//            } else {
-//                $r['status'] = '400';
-//            }
-//            return json_encode($r);
-//        } catch (\Exception $e) {
-//            unlink(public_path('online/' . $nama_file));
-//            $r['status'] = '400';
-//            $r['message'] = $e->getMessage();
-//            return json_encode($r);
-//        }
-//    }
-
+    
     public function importData(Request $request)
     {
         try {
