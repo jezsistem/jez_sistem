@@ -112,16 +112,14 @@ class POReceiveApprovalController extends Controller
                     return date('d/m/Y H:i:s', strtotime($data->created_at));
                 })
                 ->editColumn('u_receive', function ($data) {
-                    if(!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0){
+                    if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
 //                        return 'Diterima, Belum Dibayar';
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                        return '<span class="badge badge-primary">'. $name . '<br/> Diterima, Belum Dibayar</span>';
-                    }
-                    else if (!empty($data->u_id_approve)) {
+                        return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
+                    } else if (!empty($data->u_id_approve)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                        return '<span class="badge badge-success">'.$name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at)) . '</span>';
-                    } 
-                    else {
+                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at)) . '</span>';
+                    } else {
 //                        return 'Menunggu Approval';
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
@@ -147,8 +145,8 @@ class POReceiveApprovalController extends Controller
                             $instance->whereNull('u_id_approve');
                         }
 
-                        if($request->get('filter_status') == 'wait_cod'){
-                            $instance->where('acc_id', '=', 93)->where('is_paid', '=', 0);                        
+                        if ($request->get('filter_status') == 'wait_cod') {
+                            $instance->where('acc_id', '=', 93)->where('is_paid', '=', 0);
                         }
                     }
                     if (!empty($request->get('filter_cabang'))) {
@@ -192,8 +190,8 @@ class POReceiveApprovalController extends Controller
         if (request()->ajax()) {
             return datatables()->of(DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
-            u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, poads_purchase_price, 
-            ts_product_stocks.ps_barcode,ts_product_stocks.ps_qty,poads_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name")
+            u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, poad_purchase_price, 
+            ts_product_stocks.ps_barcode,ts_product_stocks.ps_qty,poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name")
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->Join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')

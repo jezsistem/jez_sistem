@@ -197,8 +197,8 @@
                     name: 'ps_qty'
                 },
                 {
-                    data: 'poads_purchase_price',
-                    name: 'poads_purchase_price',
+                    data: 'poad_purchase_price',
+                    name: 'poad_purchase_price',
                     render: function(data, type, row) {
                         // Ensure the value is treated as a number
                         var price = parseFloat(data);
@@ -213,8 +213,8 @@
                     }
                 },
                 {
-                    data: 'poads_total_price',
-                    name: 'poads_total_price',
+                    data: 'poad_total_price',
+                    name: 'poad_total_price',
                     render: function(data, type, row) {
                         // Ensure the value is treated as a number
                         var price = parseFloat(data);
