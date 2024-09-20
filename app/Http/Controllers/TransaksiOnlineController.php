@@ -320,7 +320,7 @@ class TransaksiOnlineController extends Controller
 
         if ($check_status_print > 0) {
             // If already printed, return a 200 OK status
-            return $response['status'] = 200;
+            $response['status'] = 200;
         } else {
             $online_transactions = [];
             $sku_current_print = OnlineTransactionDetails::where('order_number', $invoice)->get();

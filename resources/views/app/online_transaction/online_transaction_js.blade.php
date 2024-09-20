@@ -346,8 +346,8 @@
                             _token: '{{ csrf_token() }}'
                         },
                         success: function (response) {
-                            console.log(response);
-                            if (response == 200){
+                            console.log(response.status);
+                            if (response.status == 200){
                                 var printUrl = '{{ url('print_online_nota') }}/' + numOrder;
                                 window.open(printUrl, '_blank');
                                 online_transaction_table.draw(false);
