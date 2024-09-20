@@ -314,7 +314,6 @@ class TransaksiOnlineController extends Controller
 
         $response = [];
 
-// Check if the order has been printed
         $check_status_print = OnlineTransactions::where('order_number', $invoice)
             ->whereNotNull('time_print')
             ->count();
