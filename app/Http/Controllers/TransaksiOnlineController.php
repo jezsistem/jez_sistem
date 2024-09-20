@@ -554,11 +554,14 @@ class TransaksiOnlineController extends Controller
                             'province' => $province,
                         ];
 
-                        $id_trx = OnlineTransactions::select('id', 'order_number')
+                        $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
                             ->where('order_number', $order_number)
                             ->first();
-                        OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
-                        $insert_id = $id_trx->id;
+
+                        if($id_trx->time_print == NULL){
+                            OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
+                            $insert_id = $id_trx->id;
+                        }
                     }
                 } catch (\Exception $e) {
                     // Log the exception message
@@ -685,11 +688,15 @@ class TransaksiOnlineController extends Controller
                             'province' => $province,
                         ];
 
-                        $id_trx = OnlineTransactions::select('id', 'order_number')
+
+                        $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
                             ->where('order_number', $order_number)
                             ->first();
-                        OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
-                        $insert_id = $id_trx->id;
+
+                        if($id_trx->time_print == NULL){
+                            OnlineTransactions::where('id', $id_trx->id)->update($rowUpdate);
+                            $insert_id = $id_trx->id;
+                        }
                     }
                 } catch (\Exception $e) {
                     // Log the exception message
