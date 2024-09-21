@@ -157,13 +157,6 @@ class ArticleReportExport implements FromCollection , withHeadings
                     ->leftJoin('stock_types', 'purchase_order_article_detail_statuses.stkt_id', '=', 'stock_types.id')
                     ->whereNotIn('pos_status', ['WAITING FOR CONFIRMATION', 'CANCEL', 'UNPAID'])
                     ->where(function($w) {
-                        //Matikan kondisi filter toko jika admin
-//                        if (!empty($this->st_id)) {
-//                            $w->where('pos_transactions.st_id_ref', '=', $this->st_id);
-//                        }
-//                        if (!empty($this->stt_id)) {
-//                            $w->where('pos_transactions.stt_id', '=', $this->stt_id);
-//                        }
                         if (!empty($this->end)) {
                             $w->whereDate('pos_transactions.created_at', '>=', $this->start)
                             ->whereDate('pos_transactions.created_at', '<=', $this->end);
