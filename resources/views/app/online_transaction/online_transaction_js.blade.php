@@ -347,7 +347,7 @@
                         },
                         success: function (response) {
                             console.log(response.status);
-                            if (response.status == 200){
+                            if (response.status == 200) {
                                 var printUrl = '{{ url('print_online_nota') }}/' + numOrder;
                                 window.open(printUrl, '_blank');
                                 online_transaction_table.draw(false);
@@ -409,8 +409,13 @@
             $('#addItemModal').modal('show');
         })
 
-        $('#sales_online_export').on('click', function () {
-            console.log('Halo');
+        // $('#sales_online_export').on('click', function () {
+        $(document).delegate('#sales_online_export', 'click', function (e) {
+            e.preventDefault();
+            let date = $('#sales_date').val() //daterange
+            let branch_trx = $('#branch_trx').val();
+            let status_trx = $('#status_trx').val();
+            window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + "&date=" + date + "&status=" + status_trx + "";
         });
 
         $('#download_template_shopee').on('click', function () {
@@ -449,8 +454,8 @@
             $('#sales_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
-            invoice_report_table.draw();
-            article_report_table.draw();
+            online_transaction_table.draw();
+            // article_report_table.draw();
         }
 
         picker.daterangepicker({

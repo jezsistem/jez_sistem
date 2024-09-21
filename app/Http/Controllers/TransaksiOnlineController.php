@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ArticleReportExport;
+use App\Exports\OnlineReportExport;
 use App\Imports\PurchaseOrderExcelImport;
 use App\Imports\StockLocationImport;
 use App\Imports\TransactionOnlineImport;
@@ -88,7 +90,7 @@ class TransaksiOnlineController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
-            'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
+            'st_id' => Store::where('st_delete', '!=', '1')->where('st_name', 'like', '%ONLINE%')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
         ];
         return view('app.online_transaction.online_transaction_v2', compact('data'));
@@ -161,6 +163,32 @@ class TransaksiOnlineController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    public function exportDataOnline(Request $request)
+    {
+        try {
+            $branch = $request->get('branch');
+            $status = $request->get('status');
+            $date = $request->get('date');
+            $exp = explode('|', $date);
+            $start = null;
+            $end = null;
+            if (!empty($exp[1])) {
+                $start = $exp[0];
+                $end = $exp[1];
+            } else {
+                $start = $request->get('date');
+            }
+            // Mendapatkan tanggal dan waktu saat ini
+            $now = new \DateTime();
+            $timestamp = $now->format('d-m-Y_H.i.s');
+            $fileName = 'item_online_details' . $timestamp . '.xlsx';
+
+            return Excel::download(new OnlineReportExport($branch, $start, $end, $status), $fileName);
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
     }
 
@@ -661,8 +689,6 @@ class TransaksiOnlineController extends Controller
                     'city' => $city,
                     'province' => $province,
                 ];
-
-//                dd($rowData);
 
                 try {
                     $get_order_number = OnlineTransactions::where('order_number', $order_number)->count();
