@@ -54,7 +54,13 @@ class OnlineReportExport implements FromCollection, withHeadings
                 'online_transaction_details.price_after_discount',
                 'online_transaction_details.created_at'
             )
-            ->whereBetween('online_transactions.time_print', [$this->start . ' 00:00:01', $this->end . ' 23:59:59'])
+            ->where(function($w) {
+                if (!empty($this->end)) {
+                    $w->whereBetween('online_transactions.time_print', [$this->start . ' 00:00:01', $this->end . ' 23:59:59']);
+                } else {
+                    $w->whereBetween('online_transactions.time_print', [$this->start . ' 00:00:01', $this->start . ' 23:59:59']);
+                }
+            })
             ->where('online_transactions.online_print', '=', 1)
             ->where('online_transactions.st_id', '=', $this->branch) // Filter by branch
             ->get();
