@@ -47,23 +47,25 @@
                                 <input type="hidden" id="sales_date" value=""/>
 
                                 <div class="card-title py-5">
-                                    <select class="form-control" id="branch">
-                                        <option value="">-- Pilih Cabang ---</option>
-                                        <option value="">Semua Cabang</option>
-                                        <option value="">Surabaya</option>
-                                        <option value="auto">Malang</option>
+                                    <select class="form-control" id="branch_trx" name="st_id_filter" required>
+                                        <option value="">-- Cabang --</option>
+                                        @foreach ($data['st_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
                                 <div class="card-title py-5">
-                                    <select class="form-control" id="status">
+                                    <select class="form-control" id="status_trx">
                                         <option value="">-- Pilih Status Cetak ---</option>
-                                        <option value="">Sudah di Cetak</option>
-                                        <option value="auto">Belum di Cetak</option>
+                                        <option value="2">Semua Status</option>
+                                        <option value="1">Sudah di Cetak</option>
+                                        <option value="0">Belum di Cetak</option>
                                     </select>
                                 </div>
                                 <div class="alert alert-custom alert-white alert-shadow fade show gutter-b"
                                      role="alert">
+                                    <input type="hidden" id="sales_date" value=""/>
                                     <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12"
                                        id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal"
                                        data-placement="left">

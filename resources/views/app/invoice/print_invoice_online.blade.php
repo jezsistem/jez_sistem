@@ -137,13 +137,13 @@
         </div>
         <div class="head-desc">
             <div class="date">
-                23 August 2024<br/>
+                {{ now()->format('d F Y') }}<br/>
                 Kasir<br/>
                 Customer<br/>
                 Pembayaran
             </div>
             <div class="user">
-                15:30<br/>
+                {{ now()->format('H:i') }}<br/>
                 @php
                     $kasir = \Illuminate\Support\Facades\Auth::user()->u_name;
                     $kasirLimited = substr($kasir, 0, 15);
