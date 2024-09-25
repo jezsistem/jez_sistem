@@ -119,6 +119,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('product_out_datatables', [TrackingController::class, 'outDatatables']);
     Route::get('scan_product_out_datatables', [TrackingController::class, 'scanOutDatatables']);
     Route::get('scan_product_in_datatables', [TrackingController::class, 'scanInDatatables']);
+    Route::get('scan_product_online_datatables', [TrackingController::class, 'scanOnlineDatatables']);
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
 

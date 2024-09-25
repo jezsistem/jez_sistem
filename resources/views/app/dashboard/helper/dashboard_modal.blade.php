@@ -246,7 +246,7 @@
                 <h5 class="modal-title text-light" id="exampleModalLabel">Barang Masuk</h5>
             </div>
             <div class="modal-body table-responsive">
-                <select class="form-control form-control-sm bg-info text-white" id="waiting_filter">
+                <select class="form-control form-control-sm bg-info text-white" id="waiting_filter_masuk">
                     <option value='WAITING OFFLINE'>Waiting Offline</option>
                     <option value='WAITING ONLINE'>Waiting Online</option>
                     <option value='REFUND'>Refund</option>
@@ -437,12 +437,23 @@
                 <h5 class="modal-title text-light" id="exampleModalLabel">Scan Barang Masuk</h5>
             </div>
             <div class="modal-body table-responsive">
-                <select class="form-control form-control-sm bg-info text-white" id="waiting_filter">
-                    <option value='WAITING OFFLINE'>Waiting Offline</option>
-                    <option value='WAITING ONLINE'>Waiting Online</option>
-                    <option value='REFUND'>Refund</option>
-                    <option value='EXCHANGE'>Exchange</option>
-                </select><br/>
+                <div class="row">
+                    <div class="col-md-9">
+                        <select class="form-control form-control-sm bg-info text-white" id="waiting_filter">
+                            <option value='WAITING OFFLINE'>Waiting Offline</option>
+                            <option value='WAITING ONLINE'>Waiting Online</option>
+                            <option value='WAITING FOR CHECKOUT'>Waiting For Checkout</option>
+                            <option value='REFUND'>Refund</option>
+                            <option value='EXCHANGE'>Exchange</option>
+                        </select>
+                        <input type="hidden" id="filter_status" value="">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary btn-sm" id="btn_filter">Submit</button>
+                    </div>
+                </div>
+                <br>
+
                 <input type="search" class="form-control" id="scan_in_search" placeholder="Cari brand artikel"/>
                 <table class="table table-hover table-checkable table-striped" id="ScanIntb">
                     <thead class="bg-dark text-light">
@@ -473,11 +484,11 @@
                 <h5 class="modal-title text-light" id="exampleModalLabel">Scan SKU Keep Online</h5>
             </div>
             <div class="modal-body table-responsive">
-                <select class="form-control form-control-sm bg-info text-white" id="waiting_filter">
+                <select class="form-control form-control-sm bg-info text-white" id="waiting_filter_online">
                     <option value='WAITING ONLINE'>Waiting Online</option>
                 </select><br/>
                 <input type="search" class="form-control" id="scan_in_search" placeholder="Scan SKU" autofocus autocomplete="off"/>
-                <table class="table table-hover table-checkable table-striped" id="ScanKeeptb">
+                <table class="table table-hover table-checkable table-striped" id="ScanInOnlinetb">
                     <thead class="bg-dark text-light">
                     <tr>
                         <th class="text-dark">Artikel</th>
