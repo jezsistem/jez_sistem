@@ -654,7 +654,7 @@ class TrackingController extends Controller
                         $btn = 'btn-danger';
                     }
 
-                    $dateTime = $data->plst_created; // '2024-08-07 14:13:46'
+                    $dateTime = $data->created_at; // '2024-08-07 14:13:46'
                     $time = Carbon::parse($dateTime)->format('Y-m-d H:i:s'); // '14:13:46'
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span> | '. $time .' <br/>
                 <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
