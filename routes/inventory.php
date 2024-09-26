@@ -30,7 +30,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pl_import', [ProductLocationController::class, 'importData']);
     Route::post('pl_code_check_data', [ProductLocationController::class, 'checkCode']);
 
-
     // StoreAgingController
     Route::get(
         'store_aging',
