@@ -79,8 +79,10 @@
                                         </div>
                                     </div>
                                     <div class="text-right col-6 px-0">
-                                        <a class="font-weight-bold fs-5 btn btn-dark" id="nett_sales_label"><span
-                                                id="nett_sales_label_reload" style="white-space:nowrap;"></span></a>
+                                        <a class="font-weight-bold fs-9 btn" id="nett_sales_label" style="background-color: transparent; color: #000; border: none;">
+                                            <span id="nett_sales_label_reload" style="white-space:nowrap;"></span>
+                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
+                                        </a>
                                     </div>
                                 </div>
                                 <center class="button-show_ns pt-10">
@@ -120,8 +122,11 @@
                                         </div>
                                     </div>
                                     <div class="text-right col-6 px-0">
-                                        <span class="font-weight-bold fs-5 btn btn-dark" id="profit_label"><span
-                                                id="profit_label_reload" style="white-space:nowrap;"></span></span>
+                                        <span class="font-weight-bold fs-9 btn" id="profit_label" style="background-color: transparent; color: #000; border: none;"><span
+                                                id="profit_label_reload" style="white-space:nowrap;">
+                                            
+                                            </span><img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;"></span>
+                                                
                                     </div>
                                 </div>
                                 <center class="button-show_pr pt-10">
@@ -154,8 +159,9 @@
                                         Cross Sales
                                     </span>
                                     <div class="d-flex flex-column text-right">
-                                        <span class="font-weight-bold fs-5 btn btn-dark" id="cnett_sales_label"><span
-                                                id="cnett_sales_label_reload"></span></span>
+                                        <span class="font-weight-bold fs-9 btn" id="cnett_sales_label" style="background-color: transparent; color: #000; border: none;"><span
+                                                id="cnett_sales_label_reload"></span>
+                                                <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;"></span>
                                     </div>
                                 </div>
                                 <center class="button-show_cns pt-20">
@@ -189,8 +195,11 @@
                                         Cross Profit
                                     </span>
                                     <div class="d-flex flex-column text-right">
-                                        <span class="font-weight-bold fs-5 btn btn-dark" id="cprofit_label"><span
-                                                id="cprofit_label_reload"></span></span>
+                                        <span class="font-weight-bold fs-9 btn" id="cprofit_label" style="background-color: transparent; color: #000; border: none;" >
+                                            <span
+                                                id="cprofit_label_reload"></span>
+                                                <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
+                                            </span>
                                     </div>
                                 </div>
                                 <center class="button-show_cpr pt-20">
@@ -221,8 +230,12 @@
                                         Pembelian
                                     </span>
                                     <div class="d-flex flex-column text-right">
-                                        <span class="font-weight-bold fs-5 btn btn-dark" id="purchase_label"><span
-                                                id="purchase_label_reload"></span></span>
+                                        <span class="font-weight-bold fs-9 btn" id="purchase_label" style="background-color: transparent; color: #000; border: none;">
+                                            <span
+                                                id="purchase_label_reload"></span>
+                                                <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
+                                            </span>
+                                            </span>
                                     </div>
                                 </div>
                                 <center class="button-show_pc pt-20">
@@ -252,7 +265,9 @@
                                         Aset Cash/Credit
                                     </span>
                                     <div class="d-flex flex-column text-right">
-                                        <span class="font-weight-bold fs-5 btn btn-dark" id="assets_label"></span>
+                                        <span class="font-weight-bold fs-5 btn btn-dark" id="assets_label">
+                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
+                                        </span>
                                     </div>
                                 </div>
                                 <center class="button-show_a pt-20">
@@ -341,8 +356,60 @@
 
 
     <style>
-        
-        </style>
+        .card-custom {
+            background-color: #ffeded;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            border-radius: .625rem;
+        }
+
+        .title {
+            color: #C02727;
+        }
+
+        .btn-inventory {
+            background-color: #fe6d6a;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 50px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-inventory:hover {
+            background-color: #001F3F;
+            color: #ffffff;
+        }
+
+        .btn-dark {
+            background-color: FF5C58;
+            color: #C02727;
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+
+        .button-show_d {
+            margin-top: 20px;
+        }
+
+        #d_loading {
+            display: block;
+            margin: 20px auto;
+        }
+
+        .fs-4 {
+            font-size: 1.25rem;
+        }
+
+        .fs-5 {
+            font-size: 1rem;
+        }
+    </style>
+
 
 
     @include('app.dashboard.dashboard_modal')
