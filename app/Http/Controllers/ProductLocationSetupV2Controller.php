@@ -102,6 +102,7 @@ class ProductLocationSetupV2Controller extends Controller
         } else {
             $st_id = Auth::user()->st_id;
         }
+        $st_city = Store::select('st_code')->where('id', '=', Auth::user()->st_id)->first();
         if (request()->ajax()) {
             $count = TempMutasi::count();
             if ($count > 0) {
@@ -115,8 +116,8 @@ class ProductLocationSetupV2Controller extends Controller
                     ->join('temp_mutasi', 'temp_mutasi.ps_barcode', '=', 'product_stocks.ps_barcode')
                     ->where('pl_id', '=', $request->pl_id)
                     ->where('product_locations.pl_code', '!=', 'TRIAL')
-                    ->where(function ($w) use ($st_id) {
-                        $w->where('product_locations.st_id', '=', $st_id);
+                    ->where(function ($w) use ($st_id, $st_city) {
+                        $w->where('product_locations.pl_description', '=', $st_city->st_code);
                     })
                     ->where('product_location_setups.pls_qty', '>', '0')
                     ->groupBy('products.id'))
@@ -206,6 +207,8 @@ class ProductLocationSetupV2Controller extends Controller
                                 $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
                                     ->orWhere('p_name', 'LIKE', "%$search%")
                                     ->orWhere('br_name', 'LIKE', "%$search%")
+                                    ->orWhere('article_id', 'LIKE', "%$search%")
+                                    ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                     ->orWhere('p_color', 'LIKE', "%$search%");
                             });
                         }
