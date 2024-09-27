@@ -225,8 +225,8 @@ class ProductLocationSetupV2Controller extends Controller
                     ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
                     ->where('pl_id', '=', $request->pl_id)
                     ->where('product_locations.pl_code', '!=', 'TRIAL')
-                    ->where(function ($w) use ($st_id) {
-                        $w->where('product_locations.st_id', '=', $st_id);
+                    ->where(function ($w) use ($st_id, $st_city) {
+                        $w->where('product_locations.pl_description', '=', $st_city->st_code);
                     })
                     ->where('pls_qty', '>', '0')
                     ->groupBy('products.id'))
@@ -316,6 +316,8 @@ class ProductLocationSetupV2Controller extends Controller
                                 $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
                                     ->orWhere('p_name', 'LIKE', "%$search%")
                                     ->orWhere('br_name', 'LIKE', "%$search%")
+                                    ->orWhere('article_id', 'LIKE', "%$search%")
+                                    ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                     ->orWhere('p_color', 'LIKE', "%$search%");
                             });
                         }
