@@ -268,7 +268,7 @@ class StockDataController extends Controller
 
                             $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
                                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                                ->where('product_stocks.ps_barcode', 'like', '%' . $text_search . '%')
+                                ->where('product_stocks.ps_barcode', 'like', '' . $text_search . '%')
                                 ->get()->first();
 
                             $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
