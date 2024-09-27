@@ -7,6 +7,7 @@ use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\WebConfig;
 
 class AllstockController extends Controller
 {
@@ -67,7 +68,8 @@ class AllstockController extends Controller
             ['name' => 'Produk B', 'quantity' => 5, 'price' => 30000],
             ['name' => 'Produk C', 'quantity' => 20, 'price' => 15000],
         ];
-
+        $this->validateAccess();
+        $user = new User;
         $user = new User();
         $select = ['*'];
         $where = [
@@ -75,11 +77,15 @@ class AllstockController extends Controller
         ];
 
         $user_data = $user->checkJoinData($select, $where)->first();
+        $select_activity = ['user_activities.id as uaid', 'u_name', 'ua_description', 'user_activities.created_at as ua_created_at'];
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
 
         $data = [
             'title' => 'Halaman Stok Produk',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'segment' => request()->segment(1)
         ];
         
         // Mengirim data ke view

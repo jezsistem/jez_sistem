@@ -79,9 +79,11 @@
                                         </div>
                                     </div>
                                     <div class="text-right col-6 px-0">
-                                        <a class="font-weight-bold fs-9 btn" id="nett_sales_label" style="background-color: transparent; color: #000; border: none;">
+                                        <a class="font-weight-bold fs-9 btn" id="nett_sales_label"
+                                            style="background-color: transparent; color: #000; border: none;">
                                             <span id="nett_sales_label_reload" style="white-space:nowrap;"></span>
-                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
+                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist"
+                                                style="width: 30px; height: 30px;">
                                         </a>
                                     </div>
                                 </div>
@@ -122,11 +124,13 @@
                                         </div>
                                     </div>
                                     <div class="text-right col-6 px-0">
-                                        <span class="font-weight-bold fs-9 btn" id="profit_label" style="background-color: transparent; color: #000; border: none;"><span
+                                        <span class="font-weight-bold fs-9 btn" id="profit_label"
+                                            style="background-color: transparent; color: #000; border: none;"><span
                                                 id="profit_label_reload" style="white-space:nowrap;">
-                                            
-                                            </span><img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;"></span>
-                                                
+
+                                            </span><img src="{{ asset('logo/printer1.png') }}" alt="checklist"
+                                                style="width: 30px; height: 30px;"></span>
+
                                     </div>
                                 </div>
                                 <center class="button-show_pr pt-10">
@@ -159,9 +163,11 @@
                                         Cross Sales
                                     </span>
                                     <div class="d-flex flex-column text-right">
-                                        <span class="font-weight-bold fs-9 btn" id="cnett_sales_label" style="background-color: transparent; color: #000; border: none;"><span
+                                        <span class="font-weight-bold fs-9 btn" id="cnett_sales_label"
+                                            style="background-color: transparent; color: #000; border: none;"><span
                                                 id="cnett_sales_label_reload"></span>
-                                                <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;"></span>
+                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist"
+                                                style="width: 30px; height: 30px;"></span>
                                     </div>
                                 </div>
                                 <center class="button-show_cns pt-20">
@@ -195,11 +201,12 @@
                                         Cross Profit
                                     </span>
                                     <div class="d-flex flex-column text-right">
-                                        <span class="font-weight-bold fs-9 btn" id="cprofit_label" style="background-color: transparent; color: #000; border: none;" >
-                                            <span
-                                                id="cprofit_label_reload"></span>
-                                                <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
-                                            </span>
+                                        <span class="font-weight-bold fs-9 btn" id="cprofit_label"
+                                            style="background-color: transparent; color: #000; border: none;">
+                                            <span id="cprofit_label_reload"></span>
+                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist"
+                                                style="width: 30px; height: 30px;">
+                                        </span>
                                     </div>
                                 </div>
                                 <center class="button-show_cpr pt-20">
@@ -230,12 +237,13 @@
                                         Pembelian
                                     </span>
                                     <div class="d-flex flex-column text-right">
-                                        <span class="font-weight-bold fs-9 btn" id="purchase_label" style="background-color: transparent; color: #000; border: none;">
-                                            <span
-                                                id="purchase_label_reload"></span>
-                                                <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
-                                            </span>
-                                            </span>
+                                        <span class="font-weight-bold fs-9 btn" id="purchase_label"
+                                            style="background-color: transparent; color: #000; border: none;">
+                                            <span id="purchase_label_reload"></span>
+                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist"
+                                                style="width: 30px; height: 30px;">
+                                        </span>
+                                        </span>
                                     </div>
                                 </div>
                                 <center class="button-show_pc pt-20">
@@ -266,7 +274,8 @@
                                     </span>
                                     <div class="d-flex flex-column text-right">
                                         <span class="font-weight-bold fs-5 btn btn-dark" id="assets_label">
-                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist" style="width: 30px; height: 30px;">
+                                            <img src="{{ asset('logo/printer1.png') }}" alt="checklist"
+                                                style="width: 30px; height: 30px;">
                                         </span>
                                     </div>
                                 </div>

@@ -126,6 +126,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
 
+    //POS NEWPAGE 27-09-24
+    
+
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');

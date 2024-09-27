@@ -29,7 +29,7 @@
                                 <input type="hidden" id="_exchange" value=""/>
                                 <input type="hidden" id="cross_order" value="0"/>
                                 <div class="selectmain bg-primary" style="padding:5px; border-radius:10px;">
-                                    <label class="text-white d-flex font-weight-bold">Customer
+                                    <label class="text-white d-flex font-weight-bold"> Customer
                                         <span class="badge badge-success white rounded-circle" id="add_customer_btn"
                                               data-toggle="modal" data-target="#shiftCustomerModal">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="svg-sm"

@@ -14,6 +14,7 @@
 @section('content')
     <div class="container mt-5 d-flex justify-content-center align-items-center flex-column">
 
+        
         <div class="subheader py-2 py-lg-8 subheader-solid" id="kt_subheader" style="background: #ffeded">
             <div class="container-fluid justify-content-between">
                 <!--begin::Toolbar-->
@@ -68,7 +69,7 @@
 
         @keyframes backgroundChange {
             33% {
-                background-color: #fa9999;
+                background-color: #fc8b8b;
             }
 
             66% {
@@ -296,5 +297,6 @@
 
 
     @include('app.allstock.allstock_modal')
+    @include('app._partials.js')
     @include('app.allstock.allstock_js')
 @endSection()
