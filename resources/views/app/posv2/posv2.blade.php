@@ -1,5 +1,5 @@
 @extends('app.layout')
-@section('public3.assets.css')
+@section('css')
 @endsection
 @section('content');
 
@@ -178,9 +178,11 @@
     </div>
 </div>
 
+@endsection
+@section('public3.compiled.js')
 
 <!-- Need: Apexcharts -->
-<script src="public3/assets/extensions/apexcharts/apexcharts.min.js"></script>
+<script src="/public3/assets/extensions/apexcharts/apexcharts.min.js"></script>
 
 <script>
     $(document).ready(function() {
@@ -266,3 +268,4 @@
         });
     });
 </script>
+@endsection

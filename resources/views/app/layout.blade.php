@@ -10,10 +10,10 @@
     <title>POS By sikoding</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="shortcut icon" href="/public3/assets/img/logo.svg" type="image/x-icon" />
-    <link rel="stylesheet" href="{{ asset('public3/assets/compiled/css/app.css') }}" />
-    <link rel="stylesheet" href="/public3/assets/compiled/css/app-dark.css" />
-    <link href="/public3/assets/extensions/toastr/toastr.min.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="{{ asset('assetnew') }}/assets/img/logo.svg" type="image/x-icon" />
+    <link rel="stylesheet" href="{{ asset('assetnew') }}/assets/compiled/css/app-dark.css" />
+    <link rel="stylesheet" href="{{ asset('assetnew') }}/assets/compiled/css/app-dark.css" />
+    <link href="{{ asset('assetnew') }} /assets/extensions/toastr/toastr.min.css" rel="stylesheet" />
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -92,18 +92,18 @@
         }
     </style>
 
-@yield('public3/assets/css')
+@section('assetnew/assets/compiled/css')
 </head>
 
 <body>
-    <script src="public3/assets/static/js/initTheme.js"></script>
+    <script src="/assetnew/assets/static/js/initTheme.js"></script>
     <div id="app">
         <div id="sidebar">
             <div class="sidebar-wrapper active">
                 <div class="sidebar-header position-relative">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="logo">
-                            <a href="/dashboard"><img src="public3/assets/img/logo.svg" alt="Logo" style="height: 40px;" /></a>
+                            <a href="/dashboard"><img src="/public3/assets/img/logo.svg" alt="Logo" style="height: 40px;" /></a>
                         </div>
                         <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--system-uicons" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 21 21">
@@ -132,6 +132,7 @@
                 <div class="sidebar-menu">
                     <ul class="menu">
                         <li class="sidebar-title">Menu</li>
+                        ini menu
 {{--  --}}
                     </ul>
                 </div>
@@ -164,7 +165,7 @@
                                         </div>
                                         <div class="user-img d-flex align-items-center">
                                             <div class="avatar avatar-md">
-                                                <img src="public3/assets/compiled/jpg/1.jpg">
+                                                <img src="assetnew/assets/compiled/jpg/1.jpg">
                                             </div>
                                         </div>
                                     </div>
@@ -206,10 +207,10 @@
                                 </div>
                                 <div class="avatar-preview">
                                     @if (session('logo'))
-                                        <div id="imagePreview" style="background-image: url('{{ asset('public3/assets/img/logo/' . session('logo')) }}');">
+                                        <div id="imagePreview" style="background-image: url('{{ asset('/assetnew/assets/img/logo/' . session('logo')) }}');">
                                         </div>
                                     @else
-                                        <div id="imagePreview" style="background-image: url('{{ asset('public3/assets/compiled/jpg/1.jpg') }}');">
+                                        <div id="imagePreview" style="background-image: url('{{ asset('/assetnew/assets/compiled/jpg/1.jpg') }}');">
                                         </div>
                                     @endif
                                 </div>                                
@@ -240,14 +241,14 @@
         </div>
     </div>
 
-    <script src="public3/static/js/components/dark.js"></script>
-    <script src="public3/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="/assetnew/assets/static/js/components/dark.js"></script>
+    <script src="/assetnew/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
 
-    <script src="public3/compiled/js/app.js"></script>
+    <script src="/assetnew/assets/compiled/js/app.js"></script>
 
-    <script src="public3/extensions/jquery/jquery.min.js"></script>
-    <script src="public3/extensions/blockui/jquery.blockui.min.js"></script>
-    <script src="public3/extensions/toastr/toastr.min.js"></script>
+    <script src="/assetnew/assets/extensions/jquery/jquery.min.js"></script>
+    <script src="/assetnew/assets/extensions/blockui/jquery.blockui.min.js"></script>
+    <script src="/assetnew/assets/extensions/toastr/toastr.min.js"></script>
 
     <script>
         var modalp = $('#modalp');
@@ -394,7 +395,7 @@
         });
     </script>
 
-@yield('public3.js')
+@yield('assetnew/assets/compiled/js')
 </body>
 
 </html>
