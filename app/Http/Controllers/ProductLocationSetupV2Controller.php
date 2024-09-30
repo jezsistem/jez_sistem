@@ -102,6 +102,7 @@ class ProductLocationSetupV2Controller extends Controller
         } else {
             $st_id = Auth::user()->st_id;
         }
+        $st_city = Store::select('st_code')->where('id', '=', Auth::user()->st_id)->first();
         if (request()->ajax()) {
             $count = TempMutasi::count();
             if ($count > 0) {
@@ -115,8 +116,8 @@ class ProductLocationSetupV2Controller extends Controller
                     ->join('temp_mutasi', 'temp_mutasi.ps_barcode', '=', 'product_stocks.ps_barcode')
                     ->where('pl_id', '=', $request->pl_id)
                     ->where('product_locations.pl_code', '!=', 'TRIAL')
-                    ->where(function ($w) use ($st_id) {
-                        $w->where('product_locations.st_id', '=', $st_id);
+                    ->where(function ($w) use ($st_id, $st_city) {
+                        $w->where('product_locations.pl_description', '=', $st_city->st_code);
                     })
                     ->where('product_location_setups.pls_qty', '>', '0')
                     ->groupBy('products.id'))
@@ -154,7 +155,7 @@ class ProductLocationSetupV2Controller extends Controller
                             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                             ->where('product_location_setups.pl_id', '=', $request->pl_id)
                             ->where('product_stocks.p_id', '=', $data->p_id)
-                            ->where('pls_qty', '>', 0)
+//                            ->where('pls_qty', '>', 0)
                             ->get();
                         if (!empty($check_pst)) {
                             $sz_name = '';
@@ -206,6 +207,8 @@ class ProductLocationSetupV2Controller extends Controller
                                 $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
                                     ->orWhere('p_name', 'LIKE', "%$search%")
                                     ->orWhere('br_name', 'LIKE', "%$search%")
+                                    ->orWhere('article_id', 'LIKE', "%$search%")
+                                    ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                     ->orWhere('p_color', 'LIKE', "%$search%");
                             });
                         }
@@ -222,8 +225,8 @@ class ProductLocationSetupV2Controller extends Controller
                     ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
                     ->where('pl_id', '=', $request->pl_id)
                     ->where('product_locations.pl_code', '!=', 'TRIAL')
-                    ->where(function ($w) use ($st_id) {
-                        $w->where('product_locations.st_id', '=', $st_id);
+                    ->where(function ($w) use ($st_id, $st_city) {
+                        $w->where('product_locations.pl_description', '=', $st_city->st_code);
                     })
                     ->where('pls_qty', '>', '0')
                     ->groupBy('products.id'))
@@ -261,7 +264,7 @@ class ProductLocationSetupV2Controller extends Controller
                             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                             ->where('product_location_setups.pl_id', '=', $request->pl_id)
                             ->where('product_stocks.p_id', '=', $data->p_id)
-                            ->where('pls_qty', '>', 0)
+//                            ->where('pls_qty', '>', 0)
                             ->get();
                         if (!empty($check_pst)) {
                             $sz_name = '';
@@ -313,6 +316,8 @@ class ProductLocationSetupV2Controller extends Controller
                                 $w->orWhereRaw('CONCAT(p_name," ", p_color) LIKE ?', "%$search%")
                                     ->orWhere('p_name', 'LIKE', "%$search%")
                                     ->orWhere('br_name', 'LIKE', "%$search%")
+                                    ->orWhere('article_id', 'LIKE', "%$search%")
+                                    ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                     ->orWhere('p_color', 'LIKE', "%$search%");
                             });
                         }
@@ -735,11 +740,13 @@ class ProductLocationSetupV2Controller extends Controller
         $exception = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
+        $st_city = Store::select('st_code')->where('id', '=', Auth::user()->st_id)->first();
         $pl_id = ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
             ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
             ->where('pl_delete', '!=', '1')
-            ->where(function ($w) use ($exception, $access) {
-                $w->where('product_locations.st_id', '=', Auth::user()->st_id);
+            ->where(function ($w) use ($exception, $access, $st_city) {
+//                $w->where('product_locations.st_id', '=', Auth::user()->st_id);
+                $w->where('product_locations.pl_description', '=', $st_city->st_code);
             })
             ->orderByDesc('pl_code')->pluck('location', 'pl_id');
 
