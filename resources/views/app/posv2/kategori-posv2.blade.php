@@ -7,7 +7,7 @@
 <div class="page-heading">
     <div class="row">
         <div class="col-6">
-            <h3>Daftar Kategori Produk</h3>
+            <h3>Daftar Kategori ngok</h3>
         </div>
         <div class="col-6 text-end">
             <button class="btn btn-primary" onclick="tambah()"><i class="fa fa-plus"></i>&nbsp; Tambah Kategori</button>
