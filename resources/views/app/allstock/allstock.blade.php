@@ -14,7 +14,7 @@
 @section('content')
     <div class="container mt-5 d-flex justify-content-center align-items-center flex-column">
 
-        
+
         <div class="subheader py-2 py-lg-8 subheader-solid" id="kt_subheader" style="background: #ffeded">
             <div class="container-fluid justify-content-between">
                 <!--begin::Toolbar-->
@@ -37,22 +37,25 @@
 
         <div class="table-responsive">
             <table class="table table-striped table-borderless text-center">
-                <thead class="table-header">
+                <thead>
                     <tr>
-                        <th>#</th>
                         <th>Status Tracking</th>
                         <th>Total Count</th>
                     </tr>
-                </thead>
+                </thead class="table-header">
+
                 <tbody>
-                    @foreach ($stocks as $stock)
+                    @foreach($data as $item)
                         <tr>
-                            <td>{{ $stock['name'] }}</td>
-                            <td>{{ $stock['quantity'] }}</td>
-                            <td>{{ $stock['price'] }}</td>
+                            {{-- <td>{{ $item->{'Status Tracking'} }}</td> --}}
+                            <td>{{ $item->total_count }}</td>
                         </tr>
                     @endforeach
                 </tbody>
+                
+                
+                
+
             </table>
         </div>
 
