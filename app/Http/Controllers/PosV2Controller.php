@@ -35,7 +35,7 @@ class PosV2Controller extends Controller
         ];
         
         // Mengarahkan ke view yang ingin ditampilkan
-        return view('app.posv2.posv2');
+        return view('app.posv2.dashboard-posv2');
 
     }
 }

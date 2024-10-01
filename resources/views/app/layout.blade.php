@@ -10,10 +10,10 @@
     <title>POS By sikoding</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="shortcut icon" href="{{ asset('assetnew') }}/assets/img/logo.svg" type="image/x-icon" />
-    <link rel="stylesheet" href="{{ asset('assetnew') }}/assets/compiled/css/app-dark.css" />
-    <link rel="stylesheet" href="{{ asset('assetnew') }}/assets/compiled/css/app-dark.css" />
-    <link href="{{ asset('assetnew') }} /assets/extensions/toastr/toastr.min.css" rel="stylesheet" />
+    <link href="{{ asset('assetsnew/assets/img/logo.svg')}}" type="image/x-icon" rel="shortcut icon"/>
+    <link href="{{ asset('assetsnew/assets/compiled/css/app.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assetsnew/assets/compiled/css/app-dark.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assetsnew/assets/extensions/toastr/toastr.min.css') }}" rel="stylesheet" />
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -92,18 +92,18 @@
         }
     </style>
 
-@section('assetnew/assets/compiled/css')
-</head>
 
+</head>
 <body>
-    <script src="/assetnew/assets/static/js/initTheme.js"></script>
+    <script src="{{asset('assetsnew/assets/static/js/initTheme.js') }}"></script>
+   
     <div id="app">
         <div id="sidebar">
             <div class="sidebar-wrapper active">
                 <div class="sidebar-header position-relative">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="logo">
-                            <a href="/dashboard"><img src="/public3/assets/img/logo.svg" alt="Logo" style="height: 40px;" /></a>
+                            <a href="/dashboard"><img src="{{ asset('assetsnew/assets/img/logo.svg') }}" alt="Logo" style="height: 40px;" /></a>
                         </div>
                         <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--system-uicons" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 21 21">
@@ -132,7 +132,126 @@
                 <div class="sidebar-menu">
                     <ul class="menu">
                         <li class="sidebar-title">Menu</li>
-                        ini menu
+                            <li class="sidebar-item active">
+                                                    <a href="/pos_v2" class="sidebar-link">
+                                                        <i class="bi bi-grid-fill"></i>
+                                                        <span>Dashboard</span>
+                                                    </a>
+                                                </li>
+                                                                                                                                <li class="sidebar-item has-sub ">
+                                                    <a href="/master" class="sidebar-link">
+                                                        <i class="bi bi-database-fill"></i>
+                                                        <span>Master Data</span>
+                                                    </a>
+                                                    <ul class="submenu submenu-closed" style="--submenu-height: 172px;">
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/kategori" class="submenu-link">Kategori Produk</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/satuan" class="submenu-link">Satuan</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/bahan-baku" class="submenu-link">Bahan Baku</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/produk" class="submenu-link">Produk</a>
+                                                            </li>
+                                                                                            </ul>
+                                                </li>
+                                                                                                                                <li class="sidebar-item has-sub ">
+                                                    <a href="/user" class="sidebar-link">
+                                                        <i class="bi bi-people-fill"></i>
+                                                        <span>User</span>
+                                                    </a>
+                                                    <ul class="submenu submenu-closed" style="--submenu-height: 86px;">
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/user" class="submenu-link">Data User</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/pelanggan" class="submenu-link">Pelanggan</a>
+                                                            </li>
+                                                                                            </ul>
+                                                </li>
+                                                                                                                                <li class="sidebar-item has-sub ">
+                                                    <a href="/pencatatan" class="sidebar-link">
+                                                        <i class="fas fa-address-book"></i>
+                                                        <span>Pencatatan</span>
+                                                    </a>
+                                                    <ul class="submenu submenu-closed" style="--submenu-height: 172px;">
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/pengeluaran" class="submenu-link">Pengeluaran</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/pemasukan" class="submenu-link">Pemasukan</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/utang" class="submenu-link">Utang</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/piutang" class="submenu-link">Piutang</a>
+                                                            </li>
+                                                                                            </ul>
+                                                </li>
+                                                                                                                                <li class="sidebar-item has-sub ">
+                                                    <a href="/report" class="sidebar-link">
+                                                        <i class="bi bi-journal-text"></i>
+                                                        <span>Laporan</span>
+                                                    </a>
+                                                    <ul class="submenu submenu-closed" style="--submenu-height: 129px;">
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/penjualan" class="submenu-link">Penjualan Kasir</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/bestseller" class="submenu-link">Produk Best Seller</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/summary" class="submenu-link">Laporan Penjualan</a>
+                                                            </li>
+                                                                                            </ul>
+                                                </li>
+                                                                                                                                <li class="sidebar-item has-sub ">
+                                                    <a href="/biaya_layanan" class="sidebar-link">
+                                                        <i class="bi bi-coin"></i>
+                                                        <span>Biaya Layanan</span>
+                                                    </a>
+                                                    <ul class="submenu submenu-closed" style="--submenu-height: 86px;">
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/biaya" class="submenu-link">Biaya Lainnya</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/discount" class="submenu-link">Diskon</a>
+                                                            </li>
+                                                                                            </ul>
+                                                </li>
+                                                                                                                                <li class="sidebar-item has-sub ">
+                                                    <a href="/config" class="sidebar-link">
+                                                        <i class="bi bi-gear-fill"></i>
+                                                        <span>Konfigurasi</span>
+                                                    </a>
+                                                    <ul class="submenu submenu-closed" style="--submenu-height: 129px;">
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/reward" class="submenu-link">Reward Transaksi</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/tipebayar" class="submenu-link">Tipe Pembayaran</a>
+                                                            </li>
+                                                                                                    <li class="submenu-item ">
+                                                                <a href="/setting" class="submenu-link">Setting Toko</a>
+                                                            </li>
+                                                                                            </ul>
+                                                </li>
+                                                                                                                                <li class="sidebar-item ">
+                                                    <a href="/kasir" class="sidebar-link">
+                                                        <i class="bi bi-grid-1x2-fill"></i>
+                                                        <span>Kasir</span>
+                                                    </a>
+                                                </li>
+                                                                                        </ul>
+                                </div>
+                            <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 598px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 585px;"></div></div></div>
+                        </div>
+               
+
 {{--  --}}
                     </ul>
                 </div>
@@ -165,7 +284,7 @@
                                         </div>
                                         <div class="user-img d-flex align-items-center">
                                             <div class="avatar avatar-md">
-                                                <img src="assetnew/assets/compiled/jpg/1.jpg">
+                                                <img src="assetsnew/assets/compiled/jpg/1.jpg">
                                             </div>
                                         </div>
                                     </div>
@@ -187,7 +306,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal Profile-->
     <div class="modal fade" id="modalp" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -207,10 +325,10 @@
                                 </div>
                                 <div class="avatar-preview">
                                     @if (session('logo'))
-                                        <div id="imagePreview" style="background-image: url('{{ asset('/assetnew/assets/img/logo/' . session('logo')) }}');">
+                                        <div id="imagePreview" style="background-image: url('{{ asset('/assetsnew/assets/img/logo/' . session('logo')) }}');">
                                         </div>
                                     @else
-                                        <div id="imagePreview" style="background-image: url('{{ asset('/assetnew/assets/compiled/jpg/1.jpg') }}');">
+                                        <div id="imagePreview" style="background-image: url('{{ asset('/assetsnew/assets/compiled/jpg/1.jpg') }}');">
                                         </div>
                                     @endif
                                 </div>                                
@@ -241,14 +359,12 @@
         </div>
     </div>
 
-    <script src="/assetnew/assets/static/js/components/dark.js"></script>
-    <script src="/assetnew/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-
-    <script src="/assetnew/assets/compiled/js/app.js"></script>
-
-    <script src="/assetnew/assets/extensions/jquery/jquery.min.js"></script>
-    <script src="/assetnew/assets/extensions/blockui/jquery.blockui.min.js"></script>
-    <script src="/assetnew/assets/extensions/toastr/toastr.min.js"></script>
+    <script src="{{ asset('assetsnew/assets/static/js/components/dark.js') }}"></script>
+    <script src="{{ asset('assetsnew/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
+    <script src="{{ asset('assetsnew/assets/compiled/js/app.js') }}"></script>
+    <script src="{{ asset('assetsnew/assets/extensions/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('assetsnew/assets/extensions/blockui/jquery.blockui.min.js') }}"></script>
+    <script src="{{ asset('assetsnew/assets/extensions/toastr/toastr.min.js') }}"></script>
 
     <script>
         var modalp = $('#modalp');
@@ -395,7 +511,7 @@
         });
     </script>
 
-@yield('assetnew/assets/compiled/js')
+@yield('js')
 </body>
 
 </html>
