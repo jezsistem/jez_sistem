@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use App\Models\KategoriPosV2;
 class KategoriPosV2Controller extends Controller
 {
         public function __construct()
         {
-            $this->kategori = new Model_kategori();
+            $this->kategori = new KategoriPosV2();
         }
     
-        public function index()
+        public function kategori()
         {
     
             $data_page = [

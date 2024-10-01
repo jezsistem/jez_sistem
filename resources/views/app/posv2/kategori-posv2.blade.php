@@ -1,6 +1,5 @@
 @extends('app.layout')
 @section('css')
-@section('css')
 <link href="{{ asset('assetsnew/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet" />
 <link href="{{ asset('assetsnew/assets/extensions/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css') }}" rel="stylesheet" />
 @endsection
@@ -339,4 +338,4 @@
         });
     });
 </script>
-<?= $this->endSection() ?>
+@endSection()
