@@ -15,10 +15,10 @@ class AllstockController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -27,7 +27,7 @@ class AllstockController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -40,9 +40,9 @@ class AllstockController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -51,7 +51,7 @@ class AllstockController extends Controller
         }
         return $sidebar;
     }
-    
+
     protected function UserActivity($activity)
     {
         UserActivity::create([
@@ -62,12 +62,6 @@ class AllstockController extends Controller
     }
     public function index()
     {
-        // Contoh data statis untuk stok barang
-        $stocks = [
-            ['name' => 'Produk A', 'quantity' => 10, 'price' => 50000],
-            ['name' => 'Produk B', 'quantity' => 5, 'price' => 30000],
-            ['name' => 'Produk C', 'quantity' => 20, 'price' => 15000],
-        ];
         $this->validateAccess();
         $user = new User;
         $user = new User();
@@ -75,7 +69,13 @@ class AllstockController extends Controller
         $where = [
             'users.id' => Auth::user()->id
         ];
+        $allstock = DB::select('CALL OnlineTransactionStatus("")');
 
+        // Debug data untuk melihat apakah bentuknya string atau array objek
+        dd($allstock);
+    
+        // Kirim data ke view (jika data sudah benar)
+        
         $user_data = $user->checkJoinData($select, $where)->first();
         $select_activity = ['user_activities.id as uaid', 'u_name', 'ua_description', 'user_activities.created_at as ua_created_at'];
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
@@ -87,8 +87,25 @@ class AllstockController extends Controller
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'segment' => request()->segment(1)
         ];
-        
+
         // Mengirim data ke view
-        return view('app.allstock.allstock', ['stocks' => $stocks], compact('data'));
+        // return view('app.allstock.allstock', [], compact('data'));
+        // return view('app.allstock.allstock', ['data' => $data]);
     }
+
+
+    public function allStock()
+{
+    // Memanggil stored procedure
+    $data = DB::select('CALL OnlineTransactionStatus("")');
+
+    // Debug data untuk melihat apakah bentuknya string atau array objek
+    dd($data);
+
+    // Kirim data ke view (jika data sudah benar)
+    //  return view('app.allstock.allstock', ['data' => $data]);
 }
+
+}
+
+
