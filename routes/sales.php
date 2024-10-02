@@ -15,6 +15,8 @@ use App\Http\Controllers\ProductLocationSetupV2Controller;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PosV2Controller;
 use App\Http\Controllers\KategoriPosV2Controller;
+use App\Http\Controllers\DataUserPosV2Controller;
+
 
 Route::middleware(['auth'])->group(function () {
 
@@ -112,7 +114,8 @@ POS VERSI 2 -- 27-09-24
 */
 Route::prefix('pos_v2')->group(function () {
     Route::get('/', [PosV2Controller::class, 'index'])->name('pos.dashboard-posv2'); // Dashboard
-    Route::get('/kategori', [KategoriPosV2Controller::class, 'kategori'])->name('pos.kategori-posv2'); // Halaman Produk
+    Route::get('/kategori', [KategoriPosV2Controller::class, 'kategori'])->name('posv2.masterdata.kategori-posv2'); // Halaman Produk
+    Route::get('/user/datauser', [DataUserPosV2Controller::class, 'datauser'])->name('posv2.user.datauser-posv2');
     // Tambahkan rute untuk submenu lainnya sesuai kebutuhan
 });
 
