@@ -24,7 +24,11 @@ class KategoriPosV2Controller extends Controller
             'title'   => 'Kategori'
         ];
 
+<<<<<<< HEAD
         return view('app.posv2.kategori-posv2', $data_page);
+=======
+        return view('app.posv2.masterdata.kategori-posv2', $data_page);
+>>>>>>> afb666ece44c3f16d1024e19263d7f58ba0983e1
     }
 
     public function datatable(Request $request)
@@ -142,4 +146,9 @@ class KategoriPosV2Controller extends Controller
             }
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+    
+>>>>>>> afb666ece44c3f16d1024e19263d7f58ba0983e1

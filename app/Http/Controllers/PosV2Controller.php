@@ -33,7 +33,7 @@ class PosV2Controller extends Controller
 
         $data = [
         ];
-        
+
         // Mengarahkan ke view yang ingin ditampilkan
         return view('app.posv2.dashboard-posv2');
 
