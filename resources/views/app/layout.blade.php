@@ -145,13 +145,13 @@
                                                     </a>
                                                     <ul class="submenu submenu-closed" style="--submenu-height: 172px;">
                                                                                                     <li class="submenu-item ">
-                                                                <a href="/kategori" class="submenu-link">Kategori Produk</a>
+                                                                <a href="pos_v2/kategori" class="submenu-link">Kategori Produk</a>
                                                             </li>
                                                                                                     <li class="submenu-item ">
-                                                                <a href="/satuan" class="submenu-link">Satuan</a>
+                                                                <a href="pos_v2/satuan" class="submenu-link">Satuan</a>
                                                             </li>
                                                                                                     <li class="submenu-item ">
-                                                                <a href="/bahan-baku" class="submenu-link">Bahan Baku</a>
+                                                                <a href="pos_v2/bahanbaku" class="submenu-link">Bahan Baku</a>
                                                             </li>
                                                                                                     <li class="submenu-item ">
                                                                 <a href="/produk" class="submenu-link">Produk</a>

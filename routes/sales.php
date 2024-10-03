@@ -15,6 +15,8 @@ use App\Http\Controllers\ProductLocationSetupV2Controller;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PosV2Controller;
 use App\Http\Controllers\KategoriPosV2Controller;
+use App\Http\Controllers\SatuanPosV2Controller;
+use App\Http\Controllers\BahanBakuPosV2Controller;
 
 Route::middleware(['auth'])->group(function () {
 
@@ -113,8 +115,15 @@ POS VERSI 2 -- 27-09-24
 Route::prefix('pos_v2')->group(function () {
     Route::get('/', [PosV2Controller::class, 'index'])->name('pos.dashboard-posv2'); // Dashboard
     Route::get('/kategori', [KategoriPosV2Controller::class, 'kategori'])->name('pos.kategori-posv2'); // Halaman Produk
-    // Tambahkan rute untuk submenu lainnya sesuai kebutuhan
+    Route::get('/satuan', [SatuanPosV2Controller::class, 'satuan'])->name('pos.satuan-posv2');
+    Route::get('/bahanbaku', [BahanBakuPosV2Controller::class, 'bahan'])->name('pos.bahanbaku-posv2');
+});
+
+    Route::post('getdata', [SatuanPosV2Controller::class, 'getdata'])->name('satuan.getdata');
+    Route::post('datatable', [SatuanPosV2Controller::class, 'datatable'])->name('satuan.datatable');
+    Route::post('setStatus', [SatuanPosV2Controller::class, 'setStatus'])->name('satuan.setStatus');
+    Route::post('simpan', [SatuanPosV2Controller::class, 'simpan'])->name('satuan.simpan');
+    Route::post('hapus', [SatuanPosV2Controller::class, 'hapus'])->name('satuan.hapus');
 });
 
 
-});
