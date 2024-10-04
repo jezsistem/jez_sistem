@@ -23,7 +23,7 @@ class SatuanPosV2Controller extends Controller
             'title'   => 'Satuan'
         ];
 
-        return view('app.posv2.satuan-posv2', $data_page);
+        return view('app.posv2.masterdata.satuan-posv2', $data_page);
     }
 
     public function datatable(Request $request)

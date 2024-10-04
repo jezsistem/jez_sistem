@@ -15,13 +15,13 @@ use App\Http\Controllers\ProductLocationSetupV2Controller;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PosV2Controller;
 use App\Http\Controllers\KategoriPosV2Controller;
-<<<<<<< HEAD
+use App\Http\Controllers\ProdukPosV2Controller;
+
+
 use App\Http\Controllers\SatuanPosV2Controller;
 use App\Http\Controllers\BahanBakuPosV2Controller;
-=======
 use App\Http\Controllers\DataUserPosV2Controller;
-
->>>>>>> afb666ece44c3f16d1024e19263d7f58ba0983e1
+use App\Models\ProdukbarangPosV2;
 
 Route::middleware(['auth'])->group(function () {
 
@@ -119,10 +119,9 @@ POS VERSI 2 -- 27-09-24
 */
 Route::prefix('pos_v2')->group(function () {
     Route::get('/', [PosV2Controller::class, 'index'])->name('pos.dashboard-posv2'); // Dashboard
-<<<<<<< HEAD
-    Route::get('/kategori', [KategoriPosV2Controller::class, 'kategori'])->name('pos.kategori-posv2'); // Halaman Produk
-    Route::get('/satuan', [SatuanPosV2Controller::class, 'satuan'])->name('pos.satuan-posv2');
-    Route::get('/bahanbaku', [BahanBakuPosV2Controller::class, 'bahan'])->name('pos.bahanbaku-posv2');
+
+    Route::get('/satuan', [SatuanPosV2Controller::class, 'satuan'])->name('posv2.masterdata.satuan-posv2');
+    Route::get('/bahanbaku', [BahanBakuPosV2Controller::class, 'bahan'])->name('posv2.masterdata.bahanbaku-posv2');
 });
 
     Route::post('getdata', [SatuanPosV2Controller::class, 'getdata'])->name('satuan.getdata');
@@ -130,11 +129,12 @@ Route::prefix('pos_v2')->group(function () {
     Route::post('setStatus', [SatuanPosV2Controller::class, 'setStatus'])->name('satuan.setStatus');
     Route::post('simpan', [SatuanPosV2Controller::class, 'simpan'])->name('satuan.simpan');
     Route::post('hapus', [SatuanPosV2Controller::class, 'hapus'])->name('satuan.hapus');
-=======
+
     Route::get('/kategori', [KategoriPosV2Controller::class, 'kategori'])->name('posv2.masterdata.kategori-posv2'); // Halaman Produk
     Route::get('/user/datauser', [DataUserPosV2Controller::class, 'datauser'])->name('posv2.user.datauser-posv2');
+    Route::get('/produk', [ProdukPosV2Controller::class, 'produk'])->name('posv2.masterdata.produk-posv2');
     // Tambahkan rute untuk submenu lainnya sesuai kebutuhan
->>>>>>> afb666ece44c3f16d1024e19263d7f58ba0983e1
+
 });
 
 

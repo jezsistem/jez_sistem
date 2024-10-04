@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -128,135 +127,6 @@
                         <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
                     </div>
                 </div>
-<<<<<<< HEAD
-                <div class="sidebar-menu">
-                    <ul class="menu">
-                        <li class="sidebar-title">Menu</li>
-                            <li class="sidebar-item active">
-                                                    <a href="/pos_v2" class="sidebar-link">
-                                                        <i class="bi bi-grid-fill"></i>
-                                                        <span>Dashboard</span>
-                                                    </a>
-                                                </li>
-                                                                                                                                <li class="sidebar-item has-sub ">
-                                                    <a href="/master" class="sidebar-link">
-                                                        <i class="bi bi-database-fill"></i>
-                                                        <span>Master Data</span>
-                                                    </a>
-                                                    <ul class="submenu submenu-closed" style="--submenu-height: 172px;">
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="pos_v2/kategori" class="submenu-link">Kategori Produk</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="pos_v2/satuan" class="submenu-link">Satuan</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="pos_v2/bahanbaku" class="submenu-link">Bahan Baku</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/produk" class="submenu-link">Produk</a>
-                                                            </li>
-                                                                                            </ul>
-                                                </li>
-                                                                                                                                <li class="sidebar-item has-sub ">
-                                                    <a href="/user" class="sidebar-link">
-                                                        <i class="bi bi-people-fill"></i>
-                                                        <span>User</span>
-                                                    </a>
-                                                    <ul class="submenu submenu-closed" style="--submenu-height: 86px;">
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/user" class="submenu-link">Data User</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/pelanggan" class="submenu-link">Pelanggan</a>
-                                                            </li>
-                                                                                            </ul>
-                                                </li>
-                                                                                                                                <li class="sidebar-item has-sub ">
-                                                    <a href="/pencatatan" class="sidebar-link">
-                                                        <i class="fas fa-address-book"></i>
-                                                        <span>Pencatatan</span>
-                                                    </a>
-                                                    <ul class="submenu submenu-closed" style="--submenu-height: 172px;">
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/pengeluaran" class="submenu-link">Pengeluaran</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/pemasukan" class="submenu-link">Pemasukan</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/utang" class="submenu-link">Utang</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/piutang" class="submenu-link">Piutang</a>
-                                                            </li>
-                                                                                            </ul>
-                                                </li>
-                                                                                                                                <li class="sidebar-item has-sub ">
-                                                    <a href="/report" class="sidebar-link">
-                                                        <i class="bi bi-journal-text"></i>
-                                                        <span>Laporan</span>
-                                                    </a>
-                                                    <ul class="submenu submenu-closed" style="--submenu-height: 129px;">
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/penjualan" class="submenu-link">Penjualan Kasir</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/bestseller" class="submenu-link">Produk Best Seller</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/summary" class="submenu-link">Laporan Penjualan</a>
-                                                            </li>
-                                                                                            </ul>
-                                                </li>
-                                                                                                                                <li class="sidebar-item has-sub ">
-                                                    <a href="/biaya_layanan" class="sidebar-link">
-                                                        <i class="bi bi-coin"></i>
-                                                        <span>Biaya Layanan</span>
-                                                    </a>
-                                                    <ul class="submenu submenu-closed" style="--submenu-height: 86px;">
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/biaya" class="submenu-link">Biaya Lainnya</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/discount" class="submenu-link">Diskon</a>
-                                                            </li>
-                                                                                            </ul>
-                                                </li>
-                                                                                                                                <li class="sidebar-item has-sub ">
-                                                    <a href="/config" class="sidebar-link">
-                                                        <i class="bi bi-gear-fill"></i>
-                                                        <span>Konfigurasi</span>
-                                                    </a>
-                                                    <ul class="submenu submenu-closed" style="--submenu-height: 129px;">
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/reward" class="submenu-link">Reward Transaksi</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/tipebayar" class="submenu-link">Tipe Pembayaran</a>
-                                                            </li>
-                                                                                                    <li class="submenu-item ">
-                                                                <a href="/setting" class="submenu-link">Setting Toko</a>
-                                                            </li>
-                                                                                            </ul>
-                                                </li>
-                                                                                                                                <li class="sidebar-item ">
-                                                    <a href="/kasir" class="sidebar-link">
-                                                        <i class="bi bi-grid-1x2-fill"></i>
-                                                        <span>Kasir</span>
-                                                    </a>
-                                                </li>
-                                                                                        </ul>
-                                </div>
-                            <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 598px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 585px;"></div></div></div>
-                        </div>
-               
-
-{{--  --}}
-                    </ul>
-                </div>
-=======
->>>>>>> afb666ece44c3f16d1024e19263d7f58ba0983e1
             </div>
             <div class="sidebar-menu">
                 <ul class="menu">
@@ -276,14 +146,14 @@
                                     <li class="submenu-item {{ request()->routeIs('posv2.masterdata.kategori-posv2') ? 'active' : '' }}">
                                         <a href="{{ route('posv2.masterdata.kategori-posv2') }}">Kategori</a>
                                     </li>
-                                    <li class="submenu-item ">
-                                        <a href="/satuan" class="submenu-link">Produk</a>
+                                    <li class="submenu-item {{ request()->routeIs('posv2.masterdata.satuan-posv2') ? 'active' : '' }}">
+                                        <a href="{{ route('posv2.masterdata.satuan-posv2') }}">Satuan</a>
                                     </li>
-                                    <li class="submenu-item ">
-                                        <a href="/bahan-baku" class="submenu-link">SKU</a>
+                                    <li class="submenu-item {{ request()->routeIs('posv2.masterdata.bahanbaku-posv2') ? 'active' : '' }}">
+                                        <a href="{{ route('posv2.masterdata.bahanbaku-posv2') }}">Bahan Baku</a>
                                     </li>
-                                    <li class="submenu-item ">
-                                        <a href="/produk" class="submenu-link">Data Artikel</a>
+                                    <li class="submenu-item {{ request()->routeIs('posv2.masterdata.produk-posv2') ? 'active' : '' }}">
+                                        <a href="{{ route('posv2.masterdata.produk-posv2') }}">Product</a>
                                     </li>
                                 </ul>
                             </li>
@@ -384,7 +254,7 @@
                     </li>
                 </ul>
             </div>
-                        <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 598px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 585px;"></div></div></div>
+                        <div class="ps_rail-x" style="left: 0px; bottom: 0px;"><div class="psthumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="psrail-y" style="top: 0px; height: 598px; right: 0px;"><div class="ps_thumb-y" tabindex="0" style="top: 0px; height: 585px;"></div></div></div>
                     </div>
 
                 </ul>

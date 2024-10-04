@@ -23,7 +23,7 @@ class BahanBakuPosV2Controller extends Controller
             'title'   => 'Bahan Baku'
         ];
 
-        return view('app.posv2.bahanbaku-posv2', $data_page);
+        return view('app.posv2.masterdata.bahanbaku-posv2', $data_page);
     }
 
     public function datatable()
