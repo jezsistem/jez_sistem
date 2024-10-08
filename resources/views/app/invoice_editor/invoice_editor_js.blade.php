@@ -171,6 +171,9 @@
             { data: 'division', name: 'pos_invoice', orderable:false },
             { data: 'subdivision', name: 'pos_invoice', orderable:false },
             { data: 'method', name: 'pm_id', orderable:false },
+            { data: 'pos_payment', name: 'pos_payment', orderable:false },
+            { data: 'method_two', name: 'pm_id_partial', orderable:false },
+            { data: 'pos_payment_partial', name: 'pos_payment_partial', orderable:false },
             { data: 'admin', name: 'pos_admin_cost', orderable:false },
             { data: 'pos_real_price', name: 'pos_real_price'},
             { data: 'pos_status', name: 'pos_status' },
@@ -369,7 +372,7 @@
             })
         });
 
-        function doEdit(type, id, value, pt_id, qty, nameset, price) {
+        function doEdit(type, id, value, pt_id, qty, nameset, price, payment_other) {
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -377,7 +380,7 @@
             });
             $.ajax({
                 type: "POST",
-                data: {type:type, id:id, value:value, pt_id:pt_id, qty:qty, nameset:nameset, price:price},
+                data: {type:type, id:id, value:value, pt_id:pt_id, qty:qty, nameset:nameset, price:price, payment_other:payment_other},
                 dataType: 'json',
                 url: "{{ url('ie_permission_do_edit')}}",
                 success: function(r) {
@@ -398,7 +401,7 @@
             var type = 'cashier';
             var id = $(this).attr('data-pt_id');
             var value = $(this).val();
-            doEdit(type, id, value, '', '', '', '');
+            doEdit(type, id, value, '', '', '', '', '');
         });
 
         $(document).delegate('#division', 'change', function(e) {
@@ -406,7 +409,7 @@
             var type = 'division';
             var id = $(this).attr('data-pt_id');
             var value = $(this).val();
-            doEdit(type, id, value, '', '', '', '');
+            doEdit(type, id, value, '', '', '', '', '');
         });
 
         $(document).delegate('#subdivision', 'change', function(e) {
@@ -414,7 +417,7 @@
             var type = 'subdivision';
             var id = $(this).attr('data-pt_id');
             var value = $(this).val();
-            doEdit(type, id, value, '', '', '', '');
+            doEdit(type, id, value, '', '', '', '', '');
         });
 
         $(document).delegate('#method', 'change', function(e) {
@@ -430,15 +433,37 @@
             var type = 'admin';
             var id = $(this).attr('data-pt_id');
             var value = $(this).val();
-            doEdit(type, id, value, '', '', '', '');
+            doEdit(type, id, value, '', '', '', '', '');
         });
+
+        $(document).delegate('#pos_payment', 'change', function(e) {
+            e.preventDefault();
+            var type = 'pos_payment';
+            var id = $(this).attr('data-pt_id');
+            var value = $(this).val();
+            var payment_other = $(this).closest('tr').find('.pos_payment_partial').val();
+
+            console.log(payment_other);
+            doEdit(type, id, value, '', '', '', '', payment_other);
+        });
+
+        $(document).delegate('#pos_payment_partial', 'change', function(e) {
+            e.preventDefault();
+            var type = 'pos_payment_partial';
+            var id = $(this).attr('data-pt_id');
+            var value = $(this).val();
+            var payment_other = $(this).closest('tr').find('.pos_payment').val();
+            doEdit(type, id, value, '', '', '', '', payment_other);
+        });
+
+
 
         $(document).delegate('#date', 'change', function(e) {
             e.preventDefault();
             var type = 'date';
             var id = $(this).attr('data-pt_id');
             var value = $(this).val();
-            doEdit(type, id, value, '', '', '', '');
+            doEdit(type, id, value, '', '', '', '', '');
         });
 
         $(document).delegate('#price', 'change', function(e) {
@@ -449,7 +474,7 @@
             var qty = $(this).attr('data-qty');
             var nameset = $(this).attr('data-nameset');
             var value = $(this).val();
-            doEdit(type, id, value, pt_id, qty, nameset, '');
+            doEdit(type, id, value, pt_id, qty, nameset, '', '');
         });
 
         $(document).delegate('#nameset', 'change', function(e) {
@@ -460,7 +485,7 @@
             var qty = $(this).attr('data-qty');
             var price = $(this).attr('data-price');
             var value = $(this).val();
-            doEdit(type, id, value, pt_id, qty, '', price);
+            doEdit(type, id, value, pt_id, qty, '', price, '');
         });
 
         $(document).delegate('#status', 'change', function(e) {
@@ -468,7 +493,7 @@
             var type = 'status';
             var id = $(this).attr('data-id');
             var value = $(this).val();
-            doEdit(type, id, value, '', '', '', '');
+            doEdit(type, id, value, '', '', '', '', '');
         });
 
         $(document).delegate('#cancel_item_btn', 'click', function(e) {

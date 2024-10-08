@@ -302,16 +302,7 @@
                                         </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="3" class="final-price">
-                                <span style="float:left;">CHARGE (CC)</span>
-                            </td>
-                            <td class="final-price">
-                                        <span style="float:right; white-space: nowrap;">
-                                        {{ $row->pos_cc_charge }} % (+ {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset)/100*$row->pos_cc_charge) }})
-                                        </span>
-                            </td>
-                        </tr>
+
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left;">BIAYA LAIN</span>

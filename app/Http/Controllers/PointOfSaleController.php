@@ -85,10 +85,6 @@ class PointOfSaleController extends Controller
         $store = Store::where('id', Auth::user()->st_id)->get()->first();
         $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->where('st_id', Auth::user()->st_id)->orderByDesc('pm_name')->pluck('pm_name', 'id');
 
-//        $time_start = UserShift::where('start_time', '!=', null)
-//            ->where('end_time', null)
-//            ->where('user_id', Auth::user()->id)
-//            ->orderBy('id', 'desc')->first();
         $data = [
             'app_title' => 'JEZ SYSTEM',
             'title' => 'POINT OF SALE',
