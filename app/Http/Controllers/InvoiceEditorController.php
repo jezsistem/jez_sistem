@@ -147,7 +147,7 @@ class InvoiceEditorController extends Controller
         $pt_id = $request->get('pt_id');
         if (request()->ajax()) {
             return datatables()->of(DB::table('pos_transactions')
-                ->select('pos_transactions.id', 'pos_invoice', 'u_id', 'stt_id', 'std_id', 'pm_id', 'pos_payment','pm_id_partial', 'pos_payment_partial','pos_admin_cost', 'pos_real_price', 'pos_status', 'created_at')
+                ->select('pos_transactions.id', 'pos_invoice', 'u_id', 'stt_id', 'std_id', 'pm_id', 'pos_payment', 'pm_id_partial', 'pos_payment_partial', 'pos_admin_cost', 'pos_real_price', 'pos_status', 'created_at')
                 ->where(function ($w) use ($pt_id) {
                     if (!empty($pt_id)) {
                         $w->where('pos_transactions.id', '=', $pt_id);
@@ -247,13 +247,21 @@ class InvoiceEditorController extends Controller
                 ->editColumn('admin', function ($d) {
                     return "<input type'number' data-pt_id='" . $d->id . "' id='admin' value='" . $d->pos_admin_cost . "'/>";
                 })
+                ->editColumn('pos_status', function ($d) {
+                    return "<select name='pos_status_change' id='pos_status_change' class='form-control-sm' data-pt_id='" . $d->id . "'>
+                                <option value='DP' " . ($d->pos_status == 'DP' ? 'selected' : '') . ">DP</option>
+                                <option value='DONE' " . ($d->pos_status == 'DONE' ? 'selected' : '') . ">DONE</option>
+                                <option value='CANCEL' " . ($d->pos_status == 'CANCEL' ? 'selected' : '') . ">CANCEL</option>
+                                <option value='REFUND' " . ($d->pos_status == 'REFUND' ? 'selected' : '') . ">REFUND</option>
+                            </select>";
+                })
                 ->editColumn('created_at', function ($d) {
                     return "<input type='text' value='" . $d->created_at . "' data-pt_id='" . $d->id . "' id='date'/>";
                 })
                 ->editColumn('action', function ($d) {
                     return "<a class='btn btn-sm btn-danger' data-pt_id='" . $d->id . "' id='cancel_btn'>Batalkan</a>";
                 })
-                ->rawColumns(['cashier', 'division', 'subdivision', 'method', 'pos_payment','method_two', 'pos_payment_partial','admin', 'created_at', 'action'])
+                ->rawColumns(['cashier', 'division', 'subdivision', 'method', 'pos_payment', 'method_two', 'pos_payment_partial', 'pos_status','admin', 'created_at', 'action'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -669,6 +677,12 @@ class InvoiceEditorController extends Controller
             $update = DB::table('pos_transactions')->where('id', '=', $id)
                 ->update([
                     'std_id' => $value,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+        } else if ($type == 'pos_status_change') {
+            $update = DB::table('pos_transactions')->where('id', '=', $id)
+                ->update([
+                    'pos_status' => $value,
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
         } else if ($type == 'method') {

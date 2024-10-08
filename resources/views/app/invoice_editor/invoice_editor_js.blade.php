@@ -420,6 +420,14 @@
             doEdit(type, id, value, '', '', '', '', '');
         });
 
+        $(document).delegate('#pos_status_change', 'change', function(e) {
+            e.preventDefault();
+            var type = 'pos_status_change';
+            var id = $(this).attr('data-pt_id');
+            var value = $(this).val();
+            doEdit(type, id, value, '', '', '', '', '');
+        });
+
         $(document).delegate('#method', 'change', function(e) {
             e.preventDefault();
             var type = 'method';
