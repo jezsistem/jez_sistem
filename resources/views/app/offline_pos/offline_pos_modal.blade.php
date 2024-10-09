@@ -397,6 +397,46 @@
 </div>
 <!-- /Modal -->
 
+
+<!-- Modal-->
+<div class="modal fade" id="DpExchangeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header btn-primary">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Refund / Penukaran [<span
+                            id="dp_invoice_label">INV0000000</span>]</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body table-responsive">
+                <input id="dp_pt_id" type="hidden"/>
+                <h5>Item Details</h5>
+                <table class="table table-hover table-checkable" id="DpInvoicetb" width="100%">
+                    <thead class="text-dark">
+                    <tr>
+                        <th class="text-dark">No</th>
+                        <th class="text-dark">Artikel</th>
+                        <th class="text-dark">Tanggal Trx</th>
+                        <th class="text-dark">Qty</th>
+                        <th class="text-dark">Price</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark font-weight-bold" data-dismiss="modal">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->
+
+
 <!-- Modal-->
 <div class="modal fade" id="InputCodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">

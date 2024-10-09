@@ -71,24 +71,18 @@
                                     <input type="hidden" id="free_sock_customer_id" value=""/>
                                     <input type="hidden" id="free_sock_customer_ur_id" value=""/>
                                 </div>
+                                {{--                                <div class="selectmain">--}}
+                                {{--                                    <label class="btn-sm btn-primary col-12 rounded text-white d-flex"--}}
+                                {{--                                           id="reload_refund_list">Refund / Penukaran</label>--}}
+                                {{--                                    <div id="refund_reload"></div>--}}
+                                {{--                                    <a class="btn-sm btn-primary" id="product_barcode_btn"--}}
+                                {{--                                       style="cursor:pointer;">Lengkapi Barcode</a>--}}
+                                {{--                                </div>--}}
                                 <div class="selectmain">
                                     <label class="btn-sm btn-primary col-12 rounded text-white d-flex"
-                                           id="reload_refund_list">Refund / Penukaran</label>
-                                    <div id="refund_reload"></div>
-                                    <a class="btn-sm btn-primary" id="product_barcode_btn"
-                                       style="cursor:pointer;">Lengkapi Barcode</a>
+                                           id="reload_dp_list">Pelunasan DP (Click to Refresh list)</label>
+                                    <div id="dp_invoice_reload"></div>
                                 </div>
-                                {{--                                <div class="selectmain">--}}
-                                {{--                                    <label--}}
-                                {{--                                            class="btn btn-inventory col-12 rounded text-white d-flex font-weight-bold">Store</label>--}}
-                                {{--                                    <select class="arabic-select-store select-down " id="st_id"--}}
-                                {{--                                            name="st_id">--}}
-                                {{--                                        <option value="">- Store -</option>--}}
-                                {{--                                        @foreach ($data['st_id'] as $key => $value)--}}
-                                {{--                                            <option value="{{ $key }}">{{ $value }}</option>--}}
-                                {{--                                        @endforeach--}}
-                                {{--                                    </select>--}}
-                                {{--                                </div>--}}
                             </div>
                         </div>
                     </div>
@@ -126,38 +120,38 @@
                                            class="form-control border-dark col-3" id="pl_custom">
                                     <input type="hidden" value="{{ $data['store']->st_name }}" name="st_name"
                                            class="form-control border-dark col-3" id="invoice_input">
-{{--                                    <input type="hidden" value="{{ $data['starting_date'] }}" name="st_name"--}}
-{{--                                           class="form-control border-dark col-3" id="invoice_input">--}}
+                                    {{--                                    <input type="hidden" value="{{ $data['starting_date'] }}" name="st_name"--}}
+                                    {{--                                           class="form-control border-dark col-3" id="invoice_input">--}}
                                 </div>
                             </div>
                         </div>
                         <br/>
-                        
+
                         <div class="table-datapos">
 
 
-          <div class="table-container">
+                            <div class="table-container">
 
-    <input type="hidden" id="total_row" value="0"/>
-    <table id="orderTable" class="display table table-hover" style="width:100%">
-        <thead class="table-header">
-        <tr>
-            <th>Produk</th>
-            <th>Stok</th>
-            <th>Qty</th>
-            <th>Discount (%)</th>
-            <th>Discount (Rp)</th>
-            <th>Nameset</th>
-            <th>Harga</th>
-            <th>Subtotal</th>
+                                <input type="hidden" id="total_row" value="0"/>
+                                <table id="orderTable" class="display table table-hover" style="width:100%">
+                                    <thead class="table-header">
+                                    <tr>
+                                        <th>Produk</th>
+                                        <th>Stok</th>
+                                        <th>Qty</th>
+                                        <th>Discount (%)</th>
+                                        <th>Discount (Rp)</th>
+                                        <th>Nameset</th>
+                                        <th>Harga</th>
+                                        <th>Subtotal</th>
 
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Table rows go here -->
-        </tbody>
-    </table>
-</div>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <!-- Table rows go here -->
+                                    </tbody>
+                                </table>
+                            </div>
 
 
                             <div id="voucher_informatio n" class='d-none'>
@@ -205,10 +199,6 @@
                                 {{--								</table> --}}
                             </div>
                         </div>
-
-
-
-
 
 
                     </div>

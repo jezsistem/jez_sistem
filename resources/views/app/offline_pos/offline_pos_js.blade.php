@@ -313,7 +313,24 @@
         });
     };
 
-    function reloadRefund() {
+    {{--function reloadRefund() {--}}
+    {{--    jQuery.ajaxSetup({--}}
+    {{--        headers: {--}}
+    {{--            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')--}}
+    {{--        }--}}
+    {{--    });--}}
+    {{--    jQuery.ajax({--}}
+    {{--        type: "GET",--}}
+    {{--        dataType: 'html',--}}
+    {{--        url: "{{ url('reload_refund_offline') }}",--}}
+    {{--        success: function (r) {--}}
+    {{--            jQuery('#refund_reload').html(r);--}}
+    {{--            toast('Reloaded', 'Refund berhasil direload', 'success');--}}
+    {{--        }--}}
+    {{--    });--}}
+    {{--};--}}
+
+    function dpInvoiceRefund() {
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -322,10 +339,10 @@
         jQuery.ajax({
             type: "GET",
             dataType: 'html',
-            url: "{{ url('reload_refund_offline') }}",
+            url: "{{ url('reload_dp_offline') }}",
             success: function (r) {
-                jQuery('#refund_reload').html(r);
-                toast('Reloaded', 'Refund berhasil direload', 'success');
+                jQuery('#dp_invoice_reload').html(r);
+                toast('Reloaded', 'Invoice DP berhasil direload', 'success');
             }
         });
     };
@@ -1833,7 +1850,8 @@
         jQuery('#_exchange').val('');
         reloadWaitingForCheckout();
         reloadComplaint();
-        reloadRefund();
+        // reloadRefund();
+        dpInvoiceRefund();
         jQuery('#card_provider_content').addClass('d-none');
         jQuery('#card_provider_content').removeClass('d-flex');
         jQuery('#card_number_label').addClass('d-none');
@@ -2053,6 +2071,61 @@
             ],
         });
 
+        var dp_invoice_table = jQuery('#DpInvoicetb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'Brt<"text-right"ip>',
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
+            ajax: {
+                url: "{{ url('dp_invoice_datatables') }}",
+                data: function (d) {
+                    d.pt_id = jQuery('#dp_pt_id').val();
+
+                    // console.log("test");
+                }
+            },
+            columns: [{
+                data: 'DT_RowIndex',
+                name: 'ptd_id',
+                searchable: false
+            },
+                {
+                    data: 'article',
+                    name: 'article',
+                    orderable: false
+                },
+                {
+                    data: 'datetime',
+                    name: 'datetime',
+                    orderable: false
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    orderable: false
+                },
+                {
+                    data: 'price',
+                    name: 'price',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         jQuery('#choosecustomer').on('hide.bs.modal', function () {
             jQuery('#f_customer')[0].reset();
         });
@@ -2147,8 +2220,12 @@
             }
         });
 
-        jQuery('#reload_refund_list').on('click', function () {
-            reloadRefund();
+        // jQuery('#reload_refund_list').on('click', function () {
+        //     reloadRefund();
+        // });
+
+        jQuery('#reload_dp_list').on('click', function () {
+            dpInvoiceRefund();
         });
 
         function addRefundExchangeList(type, plst_id, pt_id) {
@@ -2301,6 +2378,17 @@
             jQuery('#refund_retur_pt_id').val(pt_id);
             jQuery('#RefundExchangeModal').modal('show');
             refund_retur_table.draw();
+        });
+
+        jQuery(document).delegate('#dp_invoice', 'change', function (e) {
+            e.preventDefault();
+            var invoice = jQuery('option:selected', this).text();
+            var pt_id = jQuery(this).val();
+            //alert(invoice+' '+pt_id);
+            jQuery('#dp_invoice_label').text(invoice);
+            jQuery('#dp_pt_id').val(pt_id);
+            jQuery('#DpExchangeModal').modal('show');
+            dp_invoice_table.draw();
         });
 
         @if (strtolower($data['user']->stt_name) == 'offline')
