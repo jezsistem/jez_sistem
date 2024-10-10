@@ -47,38 +47,9 @@
                 <option value="19">Shopee</option>
             </select>
         </div>
-        <input type="hidden" id="free_sock_customer_mode" value=""/>
-        <div class="btn btn-info d-none" id="waiting_customer_label">
-            menunggu customer isi rating ..
-            <a class="btn-sm btn-danger" id="cancel_rating_btn">X</a>
-        </div>
-        <div class="btn btn-info d-none" id="free_sock_customer_panel">
-            <label class="text-white d-flex">[RATING CUSTOMER]</label>
-            <input type="text" id="free_sock_customer_label" value=""/>
-            <input type="hidden" id="free_sock_customer_id" value=""/>
-            <input type="hidden" id="free_sock_customer_ur_id" value=""/>
-        </div>
-        <div class="selectmain">
-            <label class="btn-sm btn-primary col-12 rounded text-white d-flex"
-                   id="reload_refund_list">Refund / Penukaran</label>
-            <div id="refund_reload"></div>
-            <a class="btn-sm btn-primary" id="product_barcode_btn"
-               style="cursor:pointer;">Lengkapi Barcode</a>
-        </div>
-        {{--                                <div class="selectmain">--}}
-        {{--                                    <label--}}
-        {{--                                            class="btn btn-inventory col-12 rounded text-white d-flex font-weight-bold">Store</label>--}}
-        {{--                                    <select class="arabic-select-store select-down " id="st_id"--}}
-        {{--                                            name="st_id">--}}
-        {{--                                        <option value="">- Store -</option>--}}
-        {{--                                        @foreach ($data['st_id'] as $key => $value)--}}
-        {{--                                            <option value="{{ $key }}">{{ $value }}</option>--}}
-        {{--                                        @endforeach--}}
-        {{--                                    </select>--}}
-        {{--                                </div>--}}
     </div>
 </div>
-
+<br>
 <section class="section">
     <div class="card">
         <div class="card-header">
@@ -109,7 +80,6 @@
         </div>
     </div>
 </section>
-
 <!-- Modal -->
 <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
