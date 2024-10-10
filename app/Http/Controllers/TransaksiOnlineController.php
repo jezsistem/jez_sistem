@@ -208,6 +208,11 @@ class TransaksiOnlineController extends Controller
                 ->editColumn('gap_price', function ($data) {
                     return $data->jez_price - $data->shopee_price;
                 })
+
+                ->editColumn('ns_before_admin', function ($data) {
+                    return $data->original_price - $data->discount_seller;
+                    // $ns_before_admin = $original_price - $discount_seller;
+                })
                 ->rawColumns(['article'])
                 ->addIndexColumn()
                 ->make(true);
@@ -609,6 +614,8 @@ class TransaksiOnlineController extends Controller
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
 
+                
+
                 try {
                     $to_id = OnlineTransactions::where('order_number', $order_number)->get()->first();
 
@@ -627,6 +634,7 @@ class TransaksiOnlineController extends Controller
                                 'return_qty' => $return_qty,
                                 'total_discount' => $total_discount,
                                 'discount_seller' => $discount_seller,
+                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                             ];
 
@@ -739,8 +747,10 @@ class TransaksiOnlineController extends Controller
                 $sku = $sku = ltrim($item[11], 'X');
                 $return_qty = $item[12];
                 $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
-                $discount_seller = 0;
+                $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
+
+                
 
                 try {
                     $to_id = OnlineTransactions::where('order_number', $order_number)->get()->first();
@@ -748,6 +758,7 @@ class TransaksiOnlineController extends Controller
                     if ($order_status != 'Batal' || $order_status != 'Canceled') {
                         if ($to_id != null) {
                             $sku_exists = OnlineTransactionDetails::where('order_number', '=', $order_number)->where('sku', '=', $sku)->exists();
+
 
                             $rowSku = [
                                 'order_number' => $order_number,
@@ -759,6 +770,7 @@ class TransaksiOnlineController extends Controller
                                 'return_qty' => $return_qty,
                                 'total_discount' => $total_discount,
                                 'discount_seller' => $discount_seller,
+                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                             ];
 

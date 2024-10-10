@@ -28,7 +28,7 @@ class ProdukPosV2Controller extends Controller
     public function produk()
     {
         $id_toko = session('id_toko');
-        $kategori = kategori::where('id_toko', $id_toko)
+        $kategori = ProdukbarangPosV2::where('id_toko', $id_toko)
             ->where('status', 1)
             ->orderBy('nama_kategori', 'ASC')
             ->get();
@@ -59,100 +59,100 @@ class ProdukPosV2Controller extends Controller
         ]);
     }
 
-    public function datatable()
-    {
-        $id_toko = session('id_toko');
+    // public function datatable()
+    // {
+    //     $id_toko = session('id_toko');
 
-        $builder = ProdukbarangPosV2::select('id', 'nama_barang', 'status', 'kelola_stok', 'foto', 'id_kategori')
-            ->where('id_toko', $id_toko)
-            ->orderBy('id', 'DESC');
+    //     $builder = ProdukbarangPosV2::select('id', 'nama_barang', 'status', 'kelola_stok', 'foto', 'id_kategori')
+    //         ->where('id_toko', $id_toko)
+    //         ->orderBy('id', 'DESC');
 
-        return DataTables::of($builder)
-            ->addIndexColumn()
-            ->editColumn('action', function ($row) {
-                $disabled = $row->kelola_stok == 0 ? 'disabled' : '';
-                return '
-                    <button type="button" class="btn btn-light ' . $disabled . '" title="Kelola Stok" onclick="stok(\'' . $row->id . '\')" id="btnkel' . $row->id . '"><i class="fa fa-sitemap"></i></button>
-                    <a href="' . route('produk.varian', base64_encode($row->id)) . '" class="btn btn-light" title="Varian"><i class="fas fa-th"></i></a>
-                    <button type="button" class="btn btn-light" title="Edit Data" onclick="edit(\'' . $row->id . '\')"><i class="fa fa-edit"></i></button>
-                    <button type="button" class="btn btn-light" title="Hapus Data" onclick="hapus(\'' . $row->id . '\', \'' . $row->nama_barang . '\', \'' . $row->foto . '\')"><i class="fa fa-trash"></i></button>
-                ';
-            })
-            ->editColumn('is_active', function ($row) {
-                return '
-                    <div class="form-switch">
-                        <input type="checkbox" class="form-check-input" onclick="changeStatus(\'' . $row->id . '\');" id="set_active' . $row->id . '" ' . isChecked($row->status) . '>
-                        <label class="form-check-label" for="set_active' . $row->id . '">' . isLabelChecked($row->status) . '</label>
-                    </div>
-                ';
-            })
-            ->editColumn('foto', function ($row) {
-                $src = $row->foto ? asset('assets/img/barang/' . $row->foto) : asset('assets/img/noimage.png');
-                return '<img data-fancybox data-src="' . $src . '" src="' . $src . '" height="70" width="80" style="cursor: zoom-in; border-radius: 5px;"/>';
-            })
-            ->editColumn('varian', function ($row) {
-                $varianCount = ProdukVarianPosV2::where('id_barang', $row->id)->count();
-                return '<span class="badge bg-success">Total varian: ' . $varianCount . '</span>';
-            })
-            ->editColumn('stok', function ($row) {
-                return '
-                    <div class="form-switch">
-                        <input type="checkbox" class="form-check-input" onclick="changeStok(\'' . $row->id . '\');" id="set_active2' . $row->id . '" ' . isChecked($row->kelola_stok) . '>
-                        <label class="form-check-label" for="set_active2' . $row->id . '">' . isLabelChecked($row->kelola_stok) . '</label>
-                    </div>
-                ';
-            })
-            ->toJson();
-    }
+    //     return DataTables::of($builder)
+    //         ->addIndexColumn()
+    //         ->editColumn('action', function ($row) {
+    //             $disabled = $row->kelola_stok == 0 ? 'disabled' : '';
+    //             return '
+    //                 <button type="button" class="btn btn-light ' . $disabled . '" title="Kelola Stok" onclick="stok(\'' . $row->id . '\')" id="btnkel' . $row->id . '"><i class="fa fa-sitemap"></i></button>
+    //                 <a href="' . route('produk.varian', base64_encode($row->id)) . '" class="btn btn-light" title="Varian"><i class="fas fa-th"></i></a>
+    //                 <button type="button" class="btn btn-light" title="Edit Data" onclick="edit(\'' . $row->id . '\')"><i class="fa fa-edit"></i></button>
+    //                 <button type="button" class="btn btn-light" title="Hapus Data" onclick="hapus(\'' . $row->id . '\', \'' . $row->nama_barang . '\', \'' . $row->foto . '\')"><i class="fa fa-trash"></i></button>
+    //             ';
+    //         })
+    //         ->editColumn('is_active', function ($row) {
+    //             return '
+    //                 <div class="form-switch">
+    //                     <input type="checkbox" class="form-check-input" onclick="changeStatus(\'' . $row->id . '\');" id="set_active' . $row->id . '" ' . isChecked($row->status) . '>
+    //                     <label class="form-check-label" for="set_active' . $row->id . '">' . isLabelChecked($row->status) . '</label>
+    //                 </div>
+    //             ';
+    //         })
+    //         ->editColumn('foto', function ($row) {
+    //             $src = $row->foto ? asset('assets/img/barang/' . $row->foto) : asset('assets/img/noimage.png');
+    //             return '<img data-fancybox data-src="' . $src . '" src="' . $src . '" height="70" width="80" style="cursor: zoom-in; border-radius: 5px;"/>';
+    //         })
+    //         ->editColumn('varian', function ($row) {
+    //             $varianCount = ProdukVarianPosV2::where('id_barang', $row->id)->count();
+    //             return '<span class="badge bg-success">Total varian: ' . $varianCount . '</span>';
+    //         })
+    //         ->editColumn('stok', function ($row) {
+    //             return '
+    //                 <div class="form-switch">
+    //                     <input type="checkbox" class="form-check-input" onclick="changeStok(\'' . $row->id . '\');" id="set_active2' . $row->id . '" ' . isChecked($row->kelola_stok) . '>
+    //                     <label class="form-check-label" for="set_active2' . $row->id . '">' . isLabelChecked($row->kelola_stok) . '</label>
+    //                 </div>
+    //             ';
+    //         })
+    //         ->toJson();
+    // }
 
-    public function datatableVarian(Request $request)
-    {
-        $builder = ProdukVarianPosV2::select('id', 'nama_varian', 'harga_jual', 'harga_modal', 'kelola_stok', 'status', 'created_at', 'id_satuan')
-            ->with('satuan')
-            ->orderBy('id', 'DESC');
+    // public function datatableVarian(Request $request)
+    // {
+    //     $builder = ProdukVarianPosV2::select('id', 'nama_varian', 'harga_jual', 'harga_modal', 'kelola_stok', 'status', 'created_at', 'id_satuan')
+    //         ->with('satuan')
+    //         ->orderBy('id', 'DESC');
 
-        return DataTables::of($builder)
-            ->filter(function ($query) use ($request) {
-                if ($request->has('id_barang')) {
-                    $query->where('id_barang', $request->id_barang);
-                }
-            })
-            ->addIndexColumn()
-            ->editColumn('action', function ($row) {
-                $disabled = $row->kelola_stok == 0 ? 'disabled' : '';
-                return '
-                    <button type="button" class="btn btn-light ' . $disabled . '" title="Kelola Stok" onclick="stok(\'' . $row->id . '\')" id="btnkel' . $row->id . '"><i class="fa fa-sitemap"></i></button>
-                    <button type="button" class="btn btn-light" title="Edit Data" onclick="edit(\'' . $row->id . '\')"><i class="fa fa-edit"></i></button>
-                    <button type="button" class="btn btn-light" title="Hapus Data" onclick="hapus(\'' . $row->id . '\', \'' . $row->nama_varian . '\')"><i class="fa fa-trash"></i></button>
-                ';
-            })
-            ->editColumn('is_active', function ($row) {
-                return '
-                    <div class="form-switch">
-                        <input type="checkbox" class="form-check-input" onclick="changeStatus(\'' . $row->id . '\');" id="set_active' . $row->id . '" ' . isChecked($row->status) . '>
-                        <label class="form-check-label" for="set_active' . $row->id . '">' . isLabelChecked($row->status) . '</label>
-                    </div>
-                ';
-            })
-            ->editColumn('stok', function ($row) {
-                return '
-                    <div class="form-switch">
-                        <input type="checkbox" class="form-check-input" onclick="changeStok(\'' . $row->id . '\');" id="set_active2' . $row->id . '" ' . isChecked($row->kelola_stok) . '>
-                        <label class="form-check-label" for="set_active2' . $row->id . '">' . isLabelChecked($row->kelola_stok) . '</label>
-                    </div>
-                ';
-            })
-            ->editColumn('harga_jual', function ($row) {
-                return 'Rp.' . number_format($row->harga_jual);
-            })
-            ->editColumn('harga_modal', function ($row) {
-                return 'Rp.' . number_format($row->harga_modal);
-            })
-            ->editColumn('tgl', function ($row) {
-                return $row->created_at->format('d-m-Y');
-            })
-            ->toJson();
-    }
+    //     return DataTables::of($builder)
+    //         ->filter(function ($query) use ($request) {
+    //             if ($request->has('id_barang')) {
+    //                 $query->where('id_barang', $request->id_barang);
+    //             }
+    //         })
+    //         ->addIndexColumn()
+    //         ->editColumn('action', function ($row) {
+    //             $disabled = $row->kelola_stok == 0 ? 'disabled' : '';
+    //             return '
+    //                 <button type="button" class="btn btn-light ' . $disabled . '" title="Kelola Stok" onclick="stok(\'' . $row->id . '\')" id="btnkel' . $row->id . '"><i class="fa fa-sitemap"></i></button>
+    //                 <button type="button" class="btn btn-light" title="Edit Data" onclick="edit(\'' . $row->id . '\')"><i class="fa fa-edit"></i></button>
+    //                 <button type="button" class="btn btn-light" title="Hapus Data" onclick="hapus(\'' . $row->id . '\', \'' . $row->nama_varian . '\')"><i class="fa fa-trash"></i></button>
+    //             ';
+    //         })
+    //         ->editColumn('is_active', function ($row) {
+    //             return '
+    //                 <div class="form-switch">
+    //                     <input type="checkbox" class="form-check-input" onclick="changeStatus(\'' . $row->id . '\');" id="set_active' . $row->id . '" ' . isChecked($row->status) . '>
+    //                     <label class="form-check-label" for="set_active' . $row->id . '">' . isLabelChecked($row->status) . '</label>
+    //                 </div>
+    //             ';
+    //         })
+    //         ->editColumn('stok', function ($row) {
+    //             return '
+    //                 <div class="form-switch">
+    //                     <input type="checkbox" class="form-check-input" onclick="changeStok(\'' . $row->id . '\');" id="set_active2' . $row->id . '" ' . isChecked($row->kelola_stok) . '>
+    //                     <label class="form-check-label" for="set_active2' . $row->id . '">' . isLabelChecked($row->kelola_stok) . '</label>
+    //                 </div>
+    //             ';
+    //         })
+    //         ->editColumn('harga_jual', function ($row) {
+    //             return 'Rp.' . number_format($row->harga_jual);
+    //         })
+    //         ->editColumn('harga_modal', function ($row) {
+    //             return 'Rp.' . number_format($row->harga_modal);
+    //         })
+    //         ->editColumn('tgl', function ($row) {
+    //             return $row->created_at->format('d-m-Y');
+    //         })
+    //         ->toJson();
+    // }
 
     public function setStatus(Request $request)
     {
@@ -234,132 +234,132 @@ class ProdukPosV2Controller extends Controller
         ]);
     }
 
-    public function getStok(Request $request)
-    {
-        $id = $request->post('id');
-        $stok = ProdukKelolastokPosV2::where('id_varian', $id)->get();
-        $sales = DetailPenjualan::with('penjualan')
-            ->where('id_varian', $id)
-            ->get(['qty', 'penjualan.tgl']);
+    // public function getStok(Request $request)
+    // {
+    //     $id = $request->post('id');
+    //     $stok = ProdukKelolastokPosV2::where('id_varian', $id)->get();
+    //     $sales = DetailPenjualan::with('penjualan')
+    //         ->where('id_varian', $id)
+    //         ->get(['qty', 'penjualan.tgl']);
         
-        $html = '';
+    //     $html = '';
 
-        if ($stok->isNotEmpty()) {
-            foreach ($stok as $key) {
-                $date = \Carbon\Carbon::parse($key->tanggal)->format('d F Y, H:i');
-                $typeText = $key->tipe == 1 ? 'Penambahan Stok' : 'Pengurangan Stok';
-                $colorClass = $key->tipe == 1 ? 'text-success' : 'text-danger';
-                $amount = $key->tipe == 1 ? '+' . $key->jumlah : '-' . $key->jumlah;
+    //     if ($stok->isNotEmpty()) {
+    //         foreach ($stok as $key) {
+    //             $date = \Carbon\Carbon::parse($key->tanggal)->format('d F Y, H:i');
+    //             $typeText = $key->tipe == 1 ? 'Penambahan Stok' : 'Pengurangan Stok';
+    //             $colorClass = $key->tipe == 1 ? 'text-success' : 'text-danger';
+    //             $amount = $key->tipe == 1 ? '+' . $key->jumlah : '-' . $key->jumlah;
 
-                $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
-                            <div class="card-body">
-                                ' . $typeText . ' &nbsp;<span class="' . $colorClass . '">' . $amount . '</span>
-                                <br>
-                                <small style="font-size: x-small;">' . $date . '</small>
-                            </div>
-                          </div>';
-            }
-        } else {
-            $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;" id="nostok">
-                            <div class="card-body">
-                                <p class="text-center mb-0">Tidak ada riwayat pengaturan stok pada varian ini.</p>
-                            </div>
-                         </div>';
-        }
+    //             $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
+    //                         <div class="card-body">
+    //                             ' . $typeText . ' &nbsp;<span class="' . $colorClass . '">' . $amount . '</span>
+    //                             <br>
+    //                             <small style="font-size: x-small;">' . $date . '</small>
+    //                         </div>
+    //                       </div>';
+    //         }
+    //     } else {
+    //         $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;" id="nostok">
+    //                         <div class="card-body">
+    //                             <p class="text-center mb-0">Tidak ada riwayat pengaturan stok pada varian ini.</p>
+    //                         </div>
+    //                      </div>';
+    //     }
 
-        if ($sales->isNotEmpty()) {
-            foreach ($sales as $key) {
-                $date = \Carbon\Carbon::parse($key->penjualan->tgl)->format('d F Y, H:i');
-                $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
-                            <div class="card-body">
-                                Penjualan &nbsp;<span class="text-danger">-' . $key->qty . '</span>
-                                <br>
-                                <small style="font-size: x-small;">' . $date . '</small>
-                            </div>
-                          </div>';
-            }
-        }
+    //     if ($sales->isNotEmpty()) {
+    //         foreach ($sales as $key) {
+    //             $date = \Carbon\Carbon::parse($key->penjualan->tgl)->format('d F Y, H:i');
+    //             $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
+    //                         <div class="card-body">
+    //                             Penjualan &nbsp;<span class="text-danger">-' . $key->qty . '</span>
+    //                             <br>
+    //                             <small style="font-size: x-small;">' . $date . '</small>
+    //                         </div>
+    //                       </div>';
+    //         }
+    //     }
 
-        $varianData = ProdukVarianPosV2::select('id', 'nama_varian', 'stok', 'stok_min')->where('id', $id)->first();
+    //     $varianData = ProdukVarianPosV2::select('id', 'nama_varian', 'stok', 'stok_min')->where('id', $id)->first();
 
-        $response = [
-            'html' => $html,
-            'data' => $varianData,
-        ];
+    //     $response = [
+    //         'html' => $html,
+    //         'data' => $varianData,
+    //     ];
 
-        return response()->json($response);
-    }
+    //     return response()->json($response);
+    // }
 
-    public function getStokBarang(Request $request)
-    {
-        $id = $request->post('id');
-        $stok = ProdukKelolastokPosV2::where('id_barang', $id)->get();
-        $sales = DetailPenjualan::with('penjualan')
-            ->where('id_barang', $id)
-            ->get(['qty', 'penjualan.tgl']);
+    // public function getStokBarang(Request $request)
+    // {
+    //     $id = $request->post('id');
+    //     $stok = ProdukKelolastokPosV2::where('id_barang', $id)->get();
+    //     $sales = DetailPenjualan::with('penjualan')
+    //         ->where('id_barang', $id)
+    //         ->get(['qty', 'penjualan.tgl']);
         
-        $html = '';
+    //     $html = '';
 
-        if ($stok->isNotEmpty()) {
-            foreach ($stok as $key) {
-                $date = \Carbon\Carbon::parse($key->tanggal)->format('d F Y, H:i');
-                $typeText = $key->tipe == 1 ? 'Penambahan Stok' : 'Pengurangan Stok';
-                $colorClass = $key->tipe == 1 ? 'text-success' : 'text-danger';
-                $amount = $key->tipe == 1 ? '+' . $key->jumlah : '-' . $key->jumlah;
+    //     if ($stok->isNotEmpty()) {
+    //         foreach ($stok as $key) {
+    //             $date = \Carbon\Carbon::parse($key->tanggal)->format('d F Y, H:i');
+    //             $typeText = $key->tipe == 1 ? 'Penambahan Stok' : 'Pengurangan Stok';
+    //             $colorClass = $key->tipe == 1 ? 'text-success' : 'text-danger';
+    //             $amount = $key->tipe == 1 ? '+' . $key->jumlah : '-' . $key->jumlah;
 
-                $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
-                            <div class="card-body">
-                                ' . $typeText . ' &nbsp;<span class="' . $colorClass . '">' . $amount . '</span>
-                                <br>
-                                <small style="font-size: x-small;">' . $date . '</small>
-                            </div>
-                          </div>';
-            }
-        } else {
-            $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;" id="nostok">
-                            <div class="card-body">
-                                <p class="text-center mb-0">Tidak ada riwayat pengaturan stok pada varian ini.</p>
-                            </div>
-                         </div>';
-        }
+    //             $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
+    //                         <div class="card-body">
+    //                             ' . $typeText . ' &nbsp;<span class="' . $colorClass . '">' . $amount . '</span>
+    //                             <br>
+    //                             <small style="font-size: x-small;">' . $date . '</small>
+    //                         </div>
+    //                       </div>';
+    //         }
+    //     } else {
+    //         $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;" id="nostok">
+    //                         <div class="card-body">
+    //                             <p class="text-center mb-0">Tidak ada riwayat pengaturan stok pada varian ini.</p>
+    //                         </div>
+    //                      </div>';
+    //     }
 
-        if ($sales->isNotEmpty()) {
-            foreach ($sales as $key) {
-                $date = \Carbon\Carbon::parse($key->penjualan->tgl)->format('d F Y, H:i');
-                $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
-                            <div class="card-body">
-                                Penjualan &nbsp;<span class="text-danger">-' . $key->qty . '</span>
-                                <br>
-                                <small style="font-size: x-small;">' . $date . '</small>
-                            </div>
-                          </div>';
-            }
-        }
+    //     if ($sales->isNotEmpty()) {
+    //         foreach ($sales as $key) {
+    //             $date = \Carbon\Carbon::parse($key->penjualan->tgl)->format('d F Y, H:i');
+    //             $html .= '<div class="card mb-2 mt-2" style="background-color: #f2f7ff;">
+    //                         <div class="card-body">
+    //                             Penjualan &nbsp;<span class="text-danger">-' . $key->qty . '</span>
+    //                             <br>
+    //                             <small style="font-size: x-small;">' . $date . '</small>
+    //                         </div>
+    //                       </div>';
+    //         }
+    //     }
 
-        $barangData = ProdukbarangPosV2::select('id', 'nama_barang', 'stok', 'stok_min')->where('id', $id)->first();
+    //     $barangData = ProdukbarangPosV2::select('id', 'nama_barang', 'stok', 'stok_min')->where('id', $id)->first();
 
-        $response = [
-            'html' => $html,
-            'data' => $barangData,
-        ];
+    //     $response = [
+    //         'html' => $html,
+    //         'data' => $barangData,
+    //     ];
 
-        return response()->json($response);
-    }
+    //     return response()->json($response);
+    // }
 
-    public function getSatuan(Request $request)
-    {
-        $id_toko = session('id_toko');
-        $searchTerm = strtolower($request->get('q'));
-        $data = \DB::table('satuan')
-            ->where("LOWER(nama_satuan)", 'like', "%{$searchTerm}%")
-            ->where("id_toko", $id_toko)
-            ->where("status", 1)
-            ->select('id as id', 'nama_satuan as text')
-            ->orderBy('nama_satuan', 'ASC')
-            ->get();
+    // public function getSatuan(Request $request)
+    // {
+    //     $id_toko = session('id_toko');
+    //     $searchTerm = strtolower($request->get('q'));
+    //     $data = \DB::table('satuan')
+    //         ->where("LOWER(nama_satuan)", 'like', "%{$searchTerm}%")
+    //         ->where("id_toko", $id_toko)
+    //         ->where("status", 1)
+    //         ->select('id as id', 'nama_satuan as text')
+    //         ->orderBy('nama_satuan', 'ASC')
+    //         ->get();
 
-        return response()->json($data);
-    }
+    //     return response()->json($data);
+    // }
 
     public function updateStok(Request $request)
     {
@@ -496,81 +496,81 @@ class ProdukPosV2Controller extends Controller
     return $rules;
 }
 
-public function simpan()
-{
-    $validator = Validator::make(request()->all(), $this->validation());
+// public function simpan()
+// {
+//     $validator = Validator::make(request()->all(), $this->validation());
 
-    if ($validator->fails()) {
-        $errors = $validator->errors()->toArray();
+//     if ($validator->fails()) {
+//         $errors = $validator->errors()->toArray();
 
-        $respond = [
-            'status' => false,
-            'errors' => [
-                'nama' => $errors['nama'][0] ?? null,
-                'kategori' => $errors['kategori'][0] ?? null,
-                'modal' => $errors['modal'][0] ?? null,
-                'harga' => $errors['harga'][0] ?? null,
-                'stok' => $errors['stok'][0] ?? null,
-                'stokmin' => $errors['stokmin'][0] ?? null,
-            ],
-        ];
-    } else {
-        $id = request()->input('id');
-        $id_toko = session('id_toko');
-        $nama = request()->input('nama');
-        $harga = request()->input('harga');
-        $modal = request()->input('modal');
-        $barcode = request()->input('barcode');
-        $kategori = request()->input('kategori');
-        $foto = request()->file('foto');
-        $stok = request()->input('stok');
-        $stokmin = request()->input('stokmin');
-        $stokcheck = request()->input('stokcheck');
+//         $respond = [
+//             'status' => false,
+//             'errors' => [
+//                 'nama' => $errors['nama'][0] ?? null,
+//                 'kategori' => $errors['kategori'][0] ?? null,
+//                 'modal' => $errors['modal'][0] ?? null,
+//                 'harga' => $errors['harga'][0] ?? null,
+//                 'stok' => $errors['stok'][0] ?? null,
+//                 'stokmin' => $errors['stokmin'][0] ?? null,
+//             ],
+//         ];
+//     } else {
+//         $id = request()->input('id');
+//         $id_toko = session('id_toko');
+//         $nama = request()->input('nama');
+//         $harga = request()->input('harga');
+//         $modal = request()->input('modal');
+//         $barcode = request()->input('barcode');
+//         $kategori = request()->input('kategori');
+//         $foto = request()->file('foto');
+//         $stok = request()->input('stok');
+//         $stokmin = request()->input('stokmin');
+//         $stokcheck = request()->input('stokcheck');
 
-        $sc = ($stokcheck == 'on') ? 1 : 0;
+//         $sc = ($stokcheck == 'on') ? 1 : 0;
 
-        $data = [
-            'id' => $id,
-            'id_toko' => $id_toko,
-            'id_kategori' => $kategori,
-            'nama_barang' => $nama,
-            'harga_jual' => getAmount($harga),
-            'harga_modal' => getAmount($modal),
-            'kelola_stok' => $sc,
-            'stok' => $stok,
-            'stok_min' => $stokmin,
-            'barcode' => $barcode,
-            'status' => !$id ? 1 : null,
-        ];
+//         $data = [
+//             'id' => $id,
+//             'id_toko' => $id_toko,
+//             'id_kategori' => $kategori,
+//             'nama_barang' => $nama,
+//             'harga_jual' => getAmount($harga),
+//             'harga_modal' => getAmount($modal),
+//             'kelola_stok' => $sc,
+//             'stok' => $stok,
+//             'stok_min' => $stokmin,
+//             'barcode' => $barcode,
+//             'status' => !$id ? 1 : null,
+//         ];
 
-        if ($foto && $foto->isValid()) {
-            $namafile = $foto->store('barang', 'public');
-            if ($id) {
-                $oldFoto = DB::table('barang')->where('id', $id)->value('foto');
-                $path = public_path('storage/' . $oldFoto);
-                if (file_exists($path)) {
-                    @unlink($path);
-                }
-            }
-            $data['foto'] = $namafile;
-        }
+//         if ($foto && $foto->isValid()) {
+//             $namafile = $foto->store('barang', 'public');
+//             if ($id) {
+//                 $oldFoto = DB::table('barang')->where('id', $id)->value('foto');
+//                 $path = public_path('storage/' . $oldFoto);
+//                 if (file_exists($path)) {
+//                     @unlink($path);
+//                 }
+//             }
+//             $data['foto'] = $namafile;
+//         }
 
-        $save = ProdukbarangPosV2::updateOrCreate(['id' => $id], $data);
+//         $save = ProdukbarangPosV2::updateOrCreate(['id' => $id], $data);
 
-        if ($save) {
-            $notif = $id ? "Data berhasil diperbaharui" : "Data berhasil ditambahkan";
-            $respond = [
-                'status' => true,
-                'notif' => $notif,
-            ];
-        } else {
-            $respond = [
-                'status' => false,
-            ];
-        }
-    }
-    return response()->json($respond);
-}
+//         if ($save) {
+//             $notif = $id ? "Data berhasil diperbaharui" : "Data berhasil ditambahkan";
+//             $respond = [
+//                 'status' => true,
+//                 'notif' => $notif,
+//             ];
+//         } else {
+//             $respond = [
+//                 'status' => false,
+//             ];
+//         }
+//     }
+//     return response()->json($respond);
+// }
 
 private function validationVarian()
 {
@@ -657,69 +657,69 @@ private function validationVarian()
     return $rules;
 }
 
-public function simpanVarian()
-{
-    // Validasi
-    $validator = Validator::make(request()->all(), $this->validationVarian());
+// public function simpanVarian()
+// {
+//     // Validasi
+//     $validator = Validator::make(request()->all(), $this->validationVarian());
 
-    if ($validator->fails()) {
-        $errors = $validator->errors()->toArray();
+//     if ($validator->fails()) {
+//         $errors = $validator->errors()->toArray();
 
-        $respond = [
-            'status' => false,
-            'errors' => $errors,
-        ];
-    } else {
-        $id         = request()->input('id');
-        $id_barang  = request()->input('id_barang');
-        $nama       = request()->input('nama');
-        $harga      = request()->input('harga');
-        $modal      = request()->input('modal');
-        $satuan     = request()->input('satuan');
-        $keterangan = request()->input('keterangan');
-        $stok       = request()->input('stok');
-        $stokmin    = request()->input('stokmin');
-        $stokcheck  = request()->input('stokcheck');
+//         $respond = [
+//             'status' => false,
+//             'errors' => $errors,
+//         ];
+//     } else {
+//         $id         = request()->input('id');
+//         $id_barang  = request()->input('id_barang');
+//         $nama       = request()->input('nama');
+//         $harga      = request()->input('harga');
+//         $modal      = request()->input('modal');
+//         $satuan     = request()->input('satuan');
+//         $keterangan = request()->input('keterangan');
+//         $stok       = request()->input('stok');
+//         $stokmin    = request()->input('stokmin');
+//         $stokcheck  = request()->input('stokcheck');
 
-        // Tentukan nilai kelola_stok
-        $sc = ($stokcheck == 'on') ? 1 : 0;
+//         // Tentukan nilai kelola_stok
+//         $sc = ($stokcheck == 'on') ? 1 : 0;
 
-        // Persiapkan data untuk disimpan
-        $data = [
-            'id'              => $id,
-            'id_barang'       => $id_barang,
-            'id_satuan'       => $satuan,
-            'nama_varian'     => $nama,
-            'harga_jual'      => getAmount($harga),
-            'harga_modal'     => getAmount($modal),
-            'keterangan'      => $keterangan,
-            'kelola_stok'     => $sc,
-            'stok'            => $stok,
-            'stok_min'        => $stokmin,
-            'status'          => $id ? null : 1, // Status hanya ditambahkan jika id tidak ada
-        ];
+//         // Persiapkan data untuk disimpan
+//         $data = [
+//             'id'              => $id,
+//             'id_barang'       => $id_barang,
+//             'id_satuan'       => $satuan,
+//             'nama_varian'     => $nama,
+//             'harga_jual'      => getAmount($harga),
+//             'harga_modal'     => getAmount($modal),
+//             'keterangan'      => $keterangan,
+//             'kelola_stok'     => $sc,
+//             'stok'            => $stok,
+//             'stok_min'        => $stokmin,
+//             'status'          => $id ? null : 1, // Status hanya ditambahkan jika id tidak ada
+//         ];
 
-        // Simpan data varian
-        $save = ProdukVarianPosV2::updateOrCreate(
-            ['id' => $id], // Jika id ada, update; jika tidak, buat baru
-            $data
-        );
+//         // Simpan data varian
+//         $save = ProdukVarianPosV2::updateOrCreate(
+//             ['id' => $id], // Jika id ada, update; jika tidak, buat baru
+//             $data
+//         );
 
-        if ($save) {
-            $notif = $id ? "Data berhasil diperbaharui" : "Data berhasil ditambahkan";
-            $respond = [
-                'status' => true,
-                'notif'  => $notif,
-            ];
-        } else {
-            $respond = [
-                'status' => false,
-            ];
-        }
-    }
+//         if ($save) {
+//             $notif = $id ? "Data berhasil diperbaharui" : "Data berhasil ditambahkan";
+//             $respond = [
+//                 'status' => true,
+//                 'notif'  => $notif,
+//             ];
+//         } else {
+//             $respond = [
+//                 'status' => false,
+//             ];
+//         }
+//     }
 
-    return response()->json($respond);
-}
+//     return response()->json($respond);
+// }
 
 public function getdata()
 {
@@ -744,32 +744,32 @@ public function getdata()
     return response()->json($response);
 }
 
-public function getdataVarian()
-{
-    $id = request()->input('id');
+// public function getdataVarian()
+// {
+//     $id = request()->input('id');
 
-    // Mengambil data varian berdasarkan ID dengan join ke tabel satuan
-    $data = DB::table('varian as a')
-        ->select('a.*', 'b.nama_satuan')
-        ->join('satuan as b', 'b.id', '=', 'a.id_satuan')
-        ->where('a.id', $id)
-        ->first();
+//     // Mengambil data varian berdasarkan ID dengan join ke tabel satuan
+//     $data = DB::table('varian as a')
+//         ->select('a.*', 'b.nama_satuan')
+//         ->join('satuan as b', 'b.id', '=', 'a.id_satuan')
+//         ->where('a.id', $id)
+//         ->first();
 
-    if ($data) {
-        $response = [
-            'status'  => true,
-            'data'    => $data,
-            'harga'   => 'Rp. ' . number_format($data->harga_jual, 0, ',', '.'),
-            'modal'   => 'Rp. ' . number_format($data->harga_modal, 0, ',', '.'),
-        ];
-    } else {
-        $response = [
-            'status' => false,
-        ];
-    }
+//     if ($data) {
+//         $response = [
+//             'status'  => true,
+//             'data'    => $data,
+//             'harga'   => 'Rp. ' . number_format($data->harga_jual, 0, ',', '.'),
+//             'modal'   => 'Rp. ' . number_format($data->harga_modal, 0, ',', '.'),
+//         ];
+//     } else {
+//         $response = [
+//             'status' => false,
+//         ];
+//     }
 
-    return response()->json($response);
-}
+//     return response()->json($response);
+// }
 
 public function hapus()
 {
