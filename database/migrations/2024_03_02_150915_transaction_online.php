@@ -42,6 +42,7 @@ class TransactionOnline extends Migration
             $table->string('credit_card_discounts', 100)->nullable();
             $table->string('shipping_costs', 100)->nullable();
             $table->string('total_payment', 100)->nullable();
+            $table->string('ns_before_admin', 100)->nullable();
             $table->dateTime('order_complete_at')->nullable();
             $table->timestamps();
         });

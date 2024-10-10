@@ -21,6 +21,17 @@ use App\Http\Controllers\PointOfSaleController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
+
+
+
+
+/* new 25-09-2024*/
+use App\Http\Controllers\AllstockController;
+
+Route::get('/allstock', [AllstockController::class, 'index']);
+
+
+
 Route::middleware(['auth'])->group(function () {
     // Product Location
     Route::get('lokasi_simpan', [ProductLocationController::class, 'index'])->name('product_location');
@@ -29,7 +40,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pl_delete', [ProductLocationController::class, 'deleteData']);
     Route::post('pl_import', [ProductLocationController::class, 'importData']);
     Route::post('pl_code_check_data', [ProductLocationController::class, 'checkCode']);
-
 
     // StoreAgingController
     Route::get(

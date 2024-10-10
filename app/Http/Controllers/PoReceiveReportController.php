@@ -13,6 +13,7 @@ use App\Models\PurchaseOrderArticleDetail;
 use App\Models\PurchaseOrderArticleDetailStatus;
 use App\Exports\PoReceiveExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class PoReceiveReportController extends Controller
 {
@@ -242,6 +243,8 @@ class PoReceiveReportController extends Controller
         } else {
             $start = $date;
         }
-        return Excel::download(new PoReceiveExport($st_id, $start, $end, $status_filter, $date_filter), 'laporan_datang_barang.xlsx');
-    }
+        return Excel::download(
+            new PoReceiveExport($st_id, $start, $end, $status_filter, $date_filter), 
+            'laporan_datang_barang_' . Carbon::now()->format('dmY_Hi') . '.xlsx');
+}
 }

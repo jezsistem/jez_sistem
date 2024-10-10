@@ -308,6 +308,7 @@
                 {data: 'jez_price', name: 'jez_price'},
                 {data: 'gap_price', name: 'gap_price'},
                 {data: 'total_discount', name: 'total_discount'},
+                {data: 'ns_before_admin', name: 'ns_before_admin'},
                 {data: 'final_price', name: 'final_price'},
             ],
             columnDefs: [
