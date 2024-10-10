@@ -68,8 +68,6 @@ class ProductLocationSetupV2Controller extends Controller
 
     public function index()
     {
-//        dd(Auth::user()->st_id);
-//        die;
         $this->validateAccess();
         $user = new User;
         $select = ['*'];

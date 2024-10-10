@@ -644,6 +644,7 @@ class CustomerController extends Controller
                 $this->UserActivity('mengubah data customer ' . strtoupper($request->input('cust_name')) . ' ' . $request->input('cust_phone'));
             }
             $r['status'] = '200';
+            $r['new_id'] = $save;
         } else {
             $r['status'] = '400';
             $r['data'] = $data;
