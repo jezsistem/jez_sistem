@@ -456,6 +456,10 @@
                             <label for="exampleTextarea">Scan Barcode Staff Anda</label>
                             <input type="text" class="form-control" id="u_secret_code" name="u_secret_code"
                                    autocomplete="off" autofocus required/>
+                            <input type="hidden" class="form-control" id="cust_id_num" name="cust_id_num"
+                                   autocomplete="off" autofocus required/>
+
+
                         </div>
                     </div>
                 </div>

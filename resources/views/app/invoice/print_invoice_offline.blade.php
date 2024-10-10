@@ -123,15 +123,6 @@
     @foreach ($data['invoice_data'] as $row)
         <center class="content">
             <center>
-                {{--                @if($data['store_code'] == 'JZ')--}}
-                {{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
-                {{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
-                {{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
-                {{--                @elseif($data['store_code'] == 'SZ')--}}
-                {{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
-                {{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
-                {{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
-                {{--                @endif--}}
                 <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"
                      src="{{ asset('logo/logo_jez_sport.png') }}"
                      style="width:43%; padding:10px; background-color:#000;"/>
@@ -222,9 +213,9 @@
                                         @endif
 
 
-                                            @if(!empty($srow->pos_td_discount_number))
-                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number) }})</span>
-                                            @endif
+                                        @if(!empty($srow->pos_td_discount_number))
+                                            <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number) }})</span>
+                                        @endif
 
 
                                         @if (!empty($srow->pos_td_discount))

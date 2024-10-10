@@ -45,7 +45,7 @@
                                             </span>
                                     </label>
                                     <input type="hidden" id="cust_id" value="1"/>
-                                    <input type="hidden" id="cust_id" value="{{ Auth::user()->st_id }}"/>
+{{--                                    <input type="text" id="cust_id" value="{{ Auth::user()->st_id }}"/>--}}
                                     <input type="search" id="cust_id_label"
                                            placeholder="Ketik minimal 4 huruf customer" autocomplete="off"/> <a
                                             href="#" class="btn btn-inventory" data-id=""
@@ -156,51 +156,11 @@
 
                             <div id="voucher_informatio n" class='d-none'>
                                 <input type="hidden" id="_voucher_value"/>
-                                {{--								<table id="orderTable" class="display table table-hover" style="width:100%"> --}}
-                                {{--								<input type="hidden" id="_voc_pst_id"/> --}}
                                 <input type="hidden" id="_voc_value"/>
                                 <input type="hidden" id="_voc_disc_value"/>
                                 <input type="hidden" id="_voc_total_disc_value">
-                                {{--									<input type="hidden" id="_voc_id"/> --}}
-                                {{--									<thead class="bg-primary"> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Produk --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												<span id="_voc_article"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Bandrol --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_bandrol"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Disc --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_disc"></span> <span id="_voc_disc_type"></span> <span id="_voc_disc_value"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Harga Baru --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_value_show"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									</thead> --}}
-                                {{--								</table> --}}
                             </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>

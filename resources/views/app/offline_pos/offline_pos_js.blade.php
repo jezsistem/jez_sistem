@@ -541,6 +541,27 @@
         })
     }
 
+    function send_nota() {
+        var nohp = '085649888272'; // nomer wa customer
+        var pesan = 'Your message content here'; // Customize your message as needed
+        jQuery.ajax({
+            type: "GET",
+            url: "http://jezdb.com:3000/api",
+            data: {
+                nohp: nohp,
+                pesan: pesan
+            },
+            success: function (response) {
+                console.log("Message sent successfully:", response);
+                // You can add additional success handling here if needed
+            },
+            error: function (xhr, status, error) {
+                console.error("Error sending message:", error);
+                // You can add error handling here if needed
+            }
+        });
+    }
+
 
     function checkout() {
         var payement = document.getElementById('total_payment').value
@@ -2731,37 +2752,10 @@
                     return false;
                 }
                 jQuery("#InputCodeModal").modal('show');
-                //Open Modal
-                // swal({
-                //     title: "Data pembelian sudah sesuai ..?",
-                //     text: "",
-                //     icon: "warning",
-                //     buttons: [
-                //         'Batal',
-                //         'Benar'
-                //     ],
-                //     dangerMode: false,
-                // }).then(function(isConfirm) {
-                //     if (isConfirm) {
-                //         checkout()
-                //     }
-                // })
+
             } else {
                 jQuery("#InputCodeModal").modal('show');
-                // swal({
-                //     title: "Data pembelian sudah sesuai ..?",
-                //     text: "",
-                //     icon: "warning",
-                //     buttons: [
-                //         'Batal',
-                //         'Benar'
-                //     ],
-                //     dangerMode: false,
-                // }).then(function(isConfirm) {
-                //     if (isConfirm) {
-                //         checkout()
-                //     }
-                // })
+
             }
         });
 
@@ -2775,6 +2769,7 @@
 
             e.preventDefault();
             var u_secret_code = jQuery('#u_secret_code').val();
+            var cust_id_num = jQuery('#cust_id_num').val();
             var type = jQuery('#_type').val();
             if (jQuery.trim(u_secret_code) == '') {
                 swal("Kode Akses", "Scan Kode Akses Anda");
@@ -2788,7 +2783,8 @@
                 jQuery.ajax({
                     type: "POST",
                     data: {
-                        _u_secret_code: u_secret_code
+                        _u_secret_code: u_secret_code,
+                        _cust_id: cust_id_num
                     },
                     dataType: 'json',
                     url: "{{ url('check_secret_code') }}",
@@ -2803,6 +2799,7 @@
                     },
                     success: function (r) {
                         if (r.status == '200') {
+                            // send_nota();
                             checkout();
                             Swal.fire({
                                 icon: 'success',
@@ -2810,6 +2807,9 @@
                                 timer: 1000, // Close after 2 seconds (2000 milliseconds)
                                 showConfirmButton: false
                             });
+                            lov
+                            // Send a message using the external API
+
                         } else {
                             swal.fire('Salah', 'Kode salah', 'warning');
                         }
@@ -2957,9 +2957,11 @@
                     jQuery("#save_customer_btn").html('Simpan');
                     jQuery("#save_customer_btn").attr("disabled", false);
                     if (data.status == '200') {
-                        jQuery('#cust_id').val(1);
+                        // console.log(data.new_id);
+                        jQuery('#cust_id').val(data.new_id);
+                        jQuery('#cust_id_num').val(data.new_id);
                         jQuery('#cust_id_label').val('');
-                        jQuery("#f_customer")[0].reset();
+                        // jQuery("#f_customer")[0].reset();
                         jQuery("#choosecustomer").modal('hide');
                         toast('Berhasil', 'Data berhasil disimpan', 'success');
                     } else if (data.status == '400') {

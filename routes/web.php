@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
 use App\Http\Controllers\PowerBiDashboardController;
+use App\Http\Controllers\ApiController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
@@ -94,6 +95,8 @@ Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
+Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
+
 
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
