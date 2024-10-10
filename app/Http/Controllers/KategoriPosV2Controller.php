@@ -23,7 +23,6 @@ class KategoriPosV2Controller extends Controller
             'submenu' => 'kategori',
             'title'   => 'Kategori'
         ];
-
         return view('app.posv2.masterdata.kategori-posv2', $data_page);
     }
 
@@ -143,4 +142,3 @@ class KategoriPosV2Controller extends Controller
         }
     }
 }
-    

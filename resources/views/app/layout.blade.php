@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -148,14 +147,14 @@
                                     <li class="submenu-item {{ request()->routeIs('posv2.masterdata.kategori-posv2') ? 'active' : '' }}">
                                         <a href="{{ route('posv2.masterdata.kategori-posv2') }}">Kategori</a>
                                     </li>
-                                    <li class="submenu-item ">
-                                        <a href="/satuan" class="submenu-link">Produk</a>
+                                    <li class="submenu-item {{ request()->routeIs('posv2.masterdata.satuan-posv2') ? 'active' : '' }}">
+                                        <a href="{{ route('posv2.masterdata.satuan-posv2') }}">Satuan</a>
                                     </li>
-                                    <li class="submenu-item ">
-                                        <a href="/bahan-baku" class="submenu-link">SKU</a>
+                                    <li class="submenu-item {{ request()->routeIs('posv2.masterdata.bahanbaku-posv2') ? 'active' : '' }}">
+                                        <a href="{{ route('posv2.masterdata.bahanbaku-posv2') }}">Bahan Baku</a>
                                     </li>
-                                    <li class="submenu-item ">
-                                        <a href="/produk" class="submenu-link">Data Artikel</a>
+                                    <li class="submenu-item {{ request()->routeIs('posv2.masterdata.produk-posv2') ? 'active' : '' }}">
+                                        <a href="{{ route('posv2.masterdata.produk-posv2') }}">Product</a>
                                     </li>
                                 </ul>
                             </li>
@@ -256,7 +255,7 @@
                     </li>
                 </ul>
             </div>
-                        <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 598px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 585px;"></div></div></div>
+                        <div class="ps_rail-x" style="left: 0px; bottom: 0px;"><div class="psthumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="psrail-y" style="top: 0px; height: 598px; right: 0px;"><div class="ps_thumb-y" tabindex="0" style="top: 0px; height: 585px;"></div></div></div>
                     </div>
 
                 </ul>
