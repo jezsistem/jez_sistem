@@ -803,11 +803,6 @@ class PointOfSaleController extends Controller
                 $store = Store::where('id', $st_id)->first(); // Assuming you want the store object
                 $store_name = $store->name;
 
-//                $client = new Client();
-//                $nohp = $customer->cust_phone;
-//                $receipt_url = url('/e_receipt/'.$invoice);
-//                $pesan = 'Struk belanja ' . $store_name . ', \n\nTerima kasih telah melakukan pembelian dengan total pembelian Rp. ' . $real_price . '. Lihat detail & beri saran di '.$receipt_url.' \n\n[ABAIKAN BILA TIDAK MEMBELI]';
-
 
                 $client = new Client();
                 $nohp = $customer->cust_phone;
