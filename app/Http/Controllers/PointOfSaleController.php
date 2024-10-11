@@ -832,7 +832,7 @@ class PointOfSaleController extends Controller
                     }
                 } else {
                     try {
-                        $response = $client->get('http://192.168.1.200:3001/api', [
+                        $response = $client->get('http://jezdb.com:3001/api', [
                             'query' => [
                                 'nohp' => $nohp,
                                 'pesan' => $pesan,
