@@ -165,7 +165,8 @@
     </div>
 </div>
 @endsection
-@section('js') ?>
+@section('js')
+@include('app.posv2.posv2_js')
 <script src="{{ asset('assets/extensions/datatables.net/js/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
 <script src="{{ asset('assets/extensions/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>

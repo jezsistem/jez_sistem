@@ -154,7 +154,7 @@
                                         <a href="{{ route('posv2.masterdata.bahanbaku-posv2') }}">Bahan Baku</a>
                                     </li>
                                     <li class="submenu-item {{ request()->routeIs('posv2.masterdata.produk-posv2') ? 'active' : '' }}">
-                                        <a href="{{ route('posv2.masterdata.produk-posv2') }}">Product</a>
+                                        <a href="{{ route('posv2.masterdata.produk-posv2') }}">Produk</a>
                                     </li>
                                 </ul>
                             </li>
