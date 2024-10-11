@@ -796,7 +796,6 @@ class PointOfSaleController extends Controller
                     ]);
                 }
 
-                // consume API WA JEZ
                 $customer = Customer::where('id', '=', $cust_id)->first();
 
                 $st_id = Auth::user()->st_id;
@@ -804,12 +803,10 @@ class PointOfSaleController extends Controller
                 $store = Store::where('id', $st_id)->first(); // Assuming you want the store object
                 $store_name = $store->name;
 
-                $total = '392.600';
-
                 $client = new Client();
                 $nohp = $customer->cust_phone;
                 $receipt_url = url('/e_receipt/'.$invoice);
-                $pesan = 'Struk belanja ' . $store_name . ', Terima kasih telah melakukan pembelian dengan total pembelian Rp. ' . $real_price . '. Lihat detail & beri saran di '.$receipt_url.' [ABAIKAN BILA TIDAK MEMBELI]';
+                $pesan = 'Struk belanja ' . $store_name . ', \n\nTerima kasih telah melakukan pembelian dengan total pembelian Rp. ' . $real_price . '. Lihat detail & beri saran di '.$receipt_url.' \n\n[ABAIKAN BILA TIDAK MEMBELI]';
 
 
                 $st_code = $store->st_code;
