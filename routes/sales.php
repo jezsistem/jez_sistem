@@ -21,7 +21,6 @@ use App\Http\Controllers\ProdukPosV2Controller;
 use App\Http\Controllers\SatuanPosV2Controller;
 use App\Http\Controllers\BahanBakuPosV2Controller;
 use App\Http\Controllers\DataUserPosV2Controller;
-use App\Models\ProdukbarangPosV2;
 
 Route::middleware(['auth'])->group(function () {
 
