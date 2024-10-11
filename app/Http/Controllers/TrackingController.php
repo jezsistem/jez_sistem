@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,7 @@ use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use App\Models\UserActivity;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
 
 class TrackingController extends Controller
 {
@@ -99,13 +101,20 @@ class TrackingController extends Controller
     public function checkSecretCode(Request $request)
     {
         $u_secret_code = $request->_u_secret_code;
+        $cust_id = $request->_cust_id;
         $check = User::where('u_secret_code', '=', $u_secret_code)->exists();
+        $r = []; // Initialize response array
+
+
+
         if ($check) {
             $r['level'] = User::select('g_name')
                 ->join('user_groups', 'user_groups.user_id', '=', 'users.id')
                 ->join('groups', 'groups.id', '=', 'user_groups.group_id')
                 ->where('u_secret_code', '=', $u_secret_code)->get()->first()->g_name;
             $r['status'] = '200';
+
+
         } else {
             $r['status'] = '400';
         }
