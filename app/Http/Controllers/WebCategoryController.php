@@ -185,4 +185,46 @@ class WebCategoryController extends Controller
         }
         return json_encode($r);
     }
+
+    public function deleteImage(Request $request)
+    {
+        $id = $request->post('id');
+        $image = $request->post('image');
+        if(File::exists(public_path('api/category_slug/100/'. $image))){
+            File::delete(public_path('api/category_slug/100/'. $image));
+        }
+        if(File::exists(public_path('api/category_slug/100/'. $image))){
+            File::delete(public_path('api/category_slug/100/'. $image));
+        }
+        $brand = CategorySlug::where('id', '=', $id)->update([
+            'cs_image' => null
+        ]);
+        if (!empty($brand)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function deleteBannerImage(Request $request)
+    {
+        $id = $request->post('id');
+        $image = $request->post('image');
+        if(File::exists(public_path('api/category_slug/banner/'. $image))){
+            File::delete(public_path('api/category_slug/banner/'. $image));
+        }
+        if(File::exists(public_path('api/category_slug/banner/'. $image))){
+            File::delete(public_path('api/category_slug/banner/'. $image));
+        }
+        $brand = CategorySlug::where('id', '=', $id)->update([
+            'cs_banner' => null
+        ]);
+        if (!empty($brand)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
 }

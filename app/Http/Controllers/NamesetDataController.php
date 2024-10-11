@@ -74,47 +74,63 @@ class NameSetDataController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
-            return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name', 'sz_name', 'p_color', 'pos_invoice', 'stt_name', 'pos_transaction_details.created_at as pos_created')
-            ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-            ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where('pos_td_nameset', '=', '1')
-            ->where('pos_td_nameset_price', '!=', null))
-            ->editColumn('pos_invoice', function($data){
-                return '<span class="btn btn-sm btn-primary">'.$data->pos_invoice.'</span>';
-            })
-            ->editColumn('stt_name', function($data){
-                if (strtolower($data->stt_name) == 'offline') {
-                    return '<span class="btn btn-sm btn-warning" style="white-space: nowrap;">'.$data->stt_name.'</span>';
-                } else {
-                    return '<span class="btn btn-sm btn-light-warning" style="white-space: nowrap;">'.$data->stt_name.'</span>';
-                }
-            })
-            ->editColumn('article', function($data){
-                return '<span class="btn btn-sm btn-primary" style="white-space: nowrap;">['.$data->br_name.'] '.$data->p_name.' '.$data->p_color.' '.$data->sz_name.'</span>';
-            })
-            ->editColumn('pos_created', function($data){
-                return '<span style="white-space: nowrap;">'.$data->pos_created.'</span>';
-            })
-            ->editColumn('action', function($data){
-                return '<span data-ptd_id="'.$data->ptd_id.'" class="btn btn-sm btn-success" id="nameset_finish_btn">Selesai</span>';
-            })
-            ->rawColumns(['pos_invoice', 'stt_name', 'article', 'action', 'pos_created'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('pos_invoice', 'LIKE', "%$search%")
-                        ->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+        try {
+            if(request()->ajax()) {
+                return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name',
+                    'sz_name', 'p_color', 'pos_invoice', 'stt_name',
+                    'pos_transaction_details.created_at as pos_created', 'pos_transactions.pos_note as pos_note', 'pos_transactions.pos_status as pos_status')
+                    ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+                    ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
+                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where('pos_td_nameset', '=', '1')
+                    ->where('pos_td_nameset_price', '!=', null))
+                    ->editColumn('pos_invoice', function ($data) {
+                        return '<span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span>';
+                    })
+                    ->editColumn('stt_name', function ($data) {
+                        if (strtolower($data->stt_name) == 'offline') {
+                            return '<span class="btn btn-sm btn-warning" style="white-space: nowrap;">' . $data->stt_name . '</span>';
+                        } else {
+                            return '<span class="btn btn-sm btn-light-warning" style="white-space: nowrap;">' . $data->stt_name . '</span>';
+                        }
+                    })
+                    ->editColumn('article', function ($data) {
+                        return '<span class="btn btn-sm btn-primary" style="white-space: nowrap;">[' . $data->br_name . '] ' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '</span>';
+                    })
+                    ->editColumn('pos_created', function ($data) {
+                        return '<span style="white-space: nowrap;">' . $data->pos_created . '</span>';
+                    })
+                    ->editColumn('pos_note', function ($data) {
+                        if ($data->pos_status == 'NAMESET') {
+                            return '<span style="white-space: nowrap;">' . $data->pos_note . '</span>';;
+                        } else {
+                            return '<span style="white-space: nowrap;"></span>';
+                        }
+                    })
+                    ->editColumn('action', function ($data) {
+                        return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm btn-success" id="nameset_finish_btn">Selesai</span>';
+                    })
+                    ->rawColumns(['pos_invoice', 'stt_name', 'article', 'action', 'pos_created', 'pos_note'])
+                    ->filter(function ($instance) use ($request) {
+                        if (!empty($request->get('search'))) {
+                            $instance->where(function ($w) use ($request) {
+                                $search = $request->get('search');
+                                $w->orWhere('pos_invoice', 'LIKE', "%$search%")
+                                    ->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                            });
+                        }
+                    })
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
         }
     }
 

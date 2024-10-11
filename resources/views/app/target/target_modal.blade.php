@@ -44,7 +44,8 @@
             <div class="modal-body">
                 <input type="hidden" id="target_date" value=""/>
                 <input type="hidden" id="tr_id" value=""/>
-                <a style="margin-bottom:10px;" class="btn btn-sm btn-primary float-right" id="add_target_detail_btn">Tambah Data</a>
+                <a style="margin-bottom:10px;" class="btn btn-sm btn-light-primary font-weight-bolder float-right mr-2" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">Import Data</a>
+                <a style="margin-bottom:10px;" class="btn btn-sm btn-primary float-right mr-2" id="add_target_detail_btn">Tambah Data</a>
                 <table class="table table-hover table-checkable" id="TargetDetailtb">
                     <thead class="bg-light text-dark">
                         <tr>
@@ -113,4 +114,53 @@
         </div>
     </div>
 </div>
+<!-- /Modal -->
+
+<!-- Modal-->
+<form id="f_import" enctype="multipart/form-data">
+    @csrf
+    <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Import Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">Store</label>
+                            <select class="form-control" id="import_st_id" name="import_st_id" required>
+                                <option value="">- Pilih Store -</option>
+                                @foreach ($data['st_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">Divisi</label>
+                            <select class="form-control" id="import_stt_id" name="import_stt_id" required>
+                                <option value="">- Pilih Divisi -</option>
+                                @foreach ($data['stt_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Pilih template yang sudah diisi data</label>
+                            <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="importFile" id="importFile" accept=".csv" required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 <!-- /Modal -->

@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PurchaseOrderArticleExport;
+use App\Models\Account;
+use App\Models\PreOrder;
+use App\Models\ProductLocationSetup;
+use App\Models\ProductSubCategory;
+use App\Models\PurchaseOrderInvoiceImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,20 +22,25 @@ use App\Models\ProductStock;
 use App\Models\Store;
 use App\Models\Brand;
 use App\Models\MainColor;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\PurchaseOrderTransferImage;
 use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
 use App\Models\UserActivity;
+    use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderController extends Controller
 {
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -38,7 +49,7 @@ class PurchaseOrderController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -51,9 +62,9 @@ class PurchaseOrderController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -62,7 +73,7 @@ class PurchaseOrderController extends Controller
         }
         return $sidebar;
     }
-    
+
     protected function UserActivity($activity)
     {
         UserActivity::create([
@@ -71,8 +82,8 @@ class PurchaseOrderController extends Controller
             'created_at' => date('Y-m-d H:i:s')
         ]);
     }
-    
-    public function index() 
+
+    public function index()
     {
         $user = new User;
         $select = ['*'];
@@ -87,16 +98,20 @@ class PurchaseOrderController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderByDesc('id')->pluck('ps_name', 'id'),
-            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
-            ->where('st_delete', '!=', '1')
-            ->orderByDesc('sid')->pluck('store', 'sid'),
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')->where('st_name', 'NOT LIKE', '%ONLINE%')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
             'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
             'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
+            'pro_id' => PreOrder::getAllDataPO(),
             'segment' => request()->segment(1),
         ];
+        //        dd($data['acc_id']);
         return view('app.purchase_order.purchase_order', compact('data'));
     }
 
@@ -110,90 +125,104 @@ class PurchaseOrderController extends Controller
             'users.id' => Auth::user()->id
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
-        if(request()->ajax()) {
-            return datatables()->of(PurchaseOrder::select('purchase_orders.id as po_id', 'st_name', 'ps_name', 'po_invoice', 'po_description', 'po_draft', 'purchase_orders.created_at as po_created_at')
-            ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
-            ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-            ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
-            ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
-            ->where('po_delete', '!=', '1')
-            ->where(function($w) use ($user_data, $st_id) {
-                if ($user_data->g_name != 'administrator') {
-                    $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
-                } else {
-                    if (!empty($st_id)) {
-                        $w->where('purchase_orders.st_id', '=',$st_id);
+        if (request()->ajax()) {
+            return datatables()->of(PurchaseOrder::select(
+                'purchase_orders.id as po_id',
+                'st_name',
+                'ps_name',
+                'po_invoice',
+                'po_description',
+                'po_draft',
+                'purchase_orders.created_at as po_created_at'
+            )
+                ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->where('po_delete', '!=', '1')
+                ->where(function ($w) use ($user_data, $st_id) {
+                    if ($user_data->g_name != 'administrator') {
+                        $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
+                    } else {
+                        if (!empty($st_id)) {
+                            $w->where('purchase_orders.st_id', '=', $st_id);
+                        }
                     }
-                }
-            })
-            ->groupBy('po_id'))
-            ->editColumn('po_created_at_show', function($data){ 
-                return date('d/m/Y H:i:s', strtotime($data->po_created_at));
-            })
-            ->editColumn('po_code', function($data){ 
-                return '#'.$data->po_code;
-            })
-            ->editColumn('po_total', function($data){ 
-                $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
-                if (!empty($poa)) {
-                    $total_price = 0;
-                    foreach ($poa as $poa_row) {
-                        $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
-                        if (!empty($poad)) {
-                            foreach ($poad as $poad_row) {
-                                $total_price += $poad_row->poad_total_price;
+                })
+                ->groupBy('po_id'))
+                ->editColumn('po_created_at_show', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->po_created_at));
+                })
+                ->editColumn('po_code', function ($data) {
+                    return '#' . $data->po_code;
+                })
+                ->editColumn('po_total', function ($data) {
+                    $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
+                    if (!empty($poa)) {
+                        $total_price = 0;
+                        foreach ($poa as $poa_row) {
+                            $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
+                            if (!empty($poad)) {
+                                foreach ($poad as $poad_row) {
+                                    $total_price += $poad_row->poad_total_price;
+                                }
                             }
                         }
                     }
-                }
-                return number_format($total_price);
-            })
-            ->editColumn('po_status', function($data){ 
-                $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
-                if (!empty($poa)) {
-                    $total_qty = 0;
-                    $total_qty_receive = 0;
-                    foreach ($poa as $poa_row) {
-                        $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
-                        if (!empty($poad)) {
-                            foreach ($poad as $poad_row) {
-                                $total_qty += $poad_row->poad_qty;
-                                $poads = PurchaseOrderArticleDetailStatus::where(['poad_id' => $poad_row->id, 'poads_type' => 'IN'])->get();
-                                if (!empty($poads)) {
-                                    foreach ($poads as $poads_row) {
-                                        $total_qty_receive += $poads_row->poads_qty;
+                    return number_format($total_price);
+                })
+                ->editColumn('po_status', function ($data) {
+                    $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
+                    if (!empty($poa)) {
+                        $total_qty = 0;
+                        $total_qty_receive = 0;
+                        foreach ($poa as $poa_row) {
+                            $poad = PurchaseOrderArticleDetail::where(['poa_id' => $poa_row->id])->get();
+                            if (!empty($poad)) {
+                                foreach ($poad as $poad_row) {
+                                    $total_qty += $poad_row->poad_qty;
+                                    $poads = PurchaseOrderArticleDetailStatus::where(['poad_id' => $poad_row->id, 'poads_type' => 'IN'])->get();
+                                    if (!empty($poads)) {
+                                        foreach ($poads as $poads_row) {
+                                            $total_qty_receive += $poads_row->poads_qty;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                if ($data->po_draft == '1') {
-                    return '<a class="btn btn-sm btn-warning">Draft</a>';
-                } else {
-                    return '<a class="btn btn-sm btn-primary">'.$total_qty_receive.'/'.$total_qty.'</a>';
-                }
-            })
-            ->rawColumns(['po_status'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('po_invoice', 'LIKE', "%$search%")
-                        ->orWhere('st_name', 'LIKE', "%$search%")
-                        ->orWhere('ps_name', 'LIKE', "%$search%")
-                        ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                    if ($data->po_draft == '1') {
+                        return '<a class="btn btn-sm btn-warning">Draft</a>';
+                    } else {
+                        if ($total_qty_receive == $total_qty) {
+                            return '<a class="btn btn-sm btn-light-success">' . $total_qty_receive . '/' . $total_qty . '</a>';
+                        } else {
+                            return '<a class="btn btn-sm btn-primary">' . $total_qty_receive . '/' . $total_qty . '</a>';
+                        }
+                    }
+                })
+                ->rawColumns(['po_status'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('po_invoice', 'LIKE', "%$search%")
+                                ->orWhere('st_name', 'LIKE', "%$search%")
+                                ->orWhere('ps_name', 'LIKE', "%$search%")
+                                ->orWhere('po_description', 'LIKE', "%$search%")
+                                ->orWhere('article_id', 'LIKE', "%$search%")
+                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
     public function storeData(Request $request)
     {
-        $product_category = new ProductCategory;
+        $product_category = new ProductCategory();
         $mode = $request->input('_mode');
         $id = $request->input('_id');
 
@@ -224,7 +253,7 @@ class PurchaseOrderController extends Controller
         }
         return json_encode($r);
     }
-    
+
     public function checkProductPo(Request $request)
     {
         $check = ProductStock::where(['p_id' => $request->_p_id])->join('purchase_orders', 'purchase_orders.ps_id', '=', 'product_stocks.id')->exists();
@@ -240,12 +269,13 @@ class PurchaseOrderController extends Controller
     {
         $invoice = date('YmdHis');
         if ($this->poInvoiceExists($invoice)) {
-            return generatePoInvoice();
+            return $this->generatePoInvoice();
         }
         return $invoice;
     }
 
-    public function poInvoiceExists($number) {
+    public function poInvoiceExists($number)
+    {
         return PurchaseOrder::where(['po_invoice' => $number])->exists();
     }
 
@@ -256,12 +286,13 @@ class PurchaseOrderController extends Controller
             'po_draft' => '0',
             'created_at' => date('Y-m-d H:i:s'),
             'po_delete' => '0',
+            //            'created_by' =>
         ]);
         if (!empty($po_id)) {
             $r['status'] = '200';
             $r['po_id'] = $po_id;
             $r['po_invoice'] = DB::table('purchase_orders')->select('po_invoice')->where(['id' => $po_id])->get()->first()->po_invoice;
-            $this->UserActivity('membuat PO '.$r['po_invoice']);
+            $this->UserActivity('membuat PO ' . $r['po_invoice']);
         } else {
             $r['status'] = '400';
         }
@@ -274,13 +305,13 @@ class PurchaseOrderController extends Controller
         if (!empty($poa)) {
             foreach ($poa as $poa_row) {
                 $poad = DB::table('purchase_order_article_details')->where(['poa_id' => $poa_row->id])->get();
-                foreach ($poad as $poad_row){
+                foreach ($poad as $poad_row) {
                     DB::table('purchase_order_article_details')->where(['id' => $poad_row->id])->delete();
                 }
                 DB::table('purchase_order_articles')->where(['id' => $poa_row->id])->delete();
             }
             $item_name = PurchaseOrder::select('po_invoice')->where('id', $request->_id)->get()->first()->po_invoice;
-            $this->UserActivity('menghapus PO '.$item_name);
+            $this->UserActivity('menghapus PO ' . $item_name);
             $check = DB::table('purchase_orders')->where(['id' => $request->_id])->delete();
             if (!empty($check)) {
                 $r['status'] = '200';
@@ -289,7 +320,7 @@ class PurchaseOrderController extends Controller
             }
         } else {
             $item_name = PurchaseOrder::select('po_invoice')->where('id', $request->_id)->get()->first()->po_invoice;
-            $this->UserActivity('menghapus PO '.$item_name);
+            $this->UserActivity('menghapus PO ' . $item_name);
             $check = DB::table('purchase_orders')->where(['id' => $request->_id])->delete();
             if (!empty($check)) {
                 $r['status'] = '200';
@@ -303,6 +334,28 @@ class PurchaseOrderController extends Controller
     public function chooseStorePo(Request $request)
     {
         $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['st_id' => $request->_st_id]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function chooseTaxPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['tax_id' => $request->_tax_id]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function choosePaymentPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['acc_id' => $request->_acc_id]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
@@ -325,7 +378,7 @@ class PurchaseOrderController extends Controller
     public function chooseStockType(Request $request)
     {
         $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])
-        ->update(['stkt_id' => $request->_stkt_id]);
+            ->update(['stkt_id' => $request->_stkt_id]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
@@ -345,6 +398,18 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    public function shippingCostPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_shipping_cost' => $request->_po_shipping_cost]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+            $r['po_shipping_cost'] = $request->_po_shipping_cost;
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
     public function createPoDetail(Request $request)
     {
         $poid = $request->_poid;
@@ -353,11 +418,15 @@ class PurchaseOrderController extends Controller
         $psid = $request->_psid;
         $status = $request->_status;
 
+
         $check_poa = PurchaseOrderArticle::where(['po_id' => $poid, 'p_id' => $pid])->exists();
+        $get_aging = Product::select('p_aging')->where('id', $pid)->get()->first()->p_aging;
+
         if (!$check_poa) {
             $poa_id = DB::table('purchase_order_articles')->insertGetId([
                 'po_id' => $poid,
                 'p_id' => $pid,
+                'poa_reminder' => $get_aging
             ]);
         } else {
             $poa_id = DB::table('purchase_order_articles')->select('id')->where([
@@ -400,17 +469,87 @@ class PurchaseOrderController extends Controller
                 $draft = PurchaseOrder::where(['po_draft' => '1'])->get()->first();
             }
             $po_id = $draft->id;
-            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
-            ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->where(['po_id' => $po_id])->get();
+            $po_st_id = $draft->st_id;
+
+            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder', 'article_id', 'article_id')
+                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+//                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(['po_id' => $po_id])->get();
+
+
+            //            $pst_article = $poa_data->pluck('article_id');
+
+            //            $total_stok = DB::table('product_location_setups as t1')
+            //                ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
+            //                ->join('products as t3', 't2.p_id', '=', 't3.id')
+            //                ->select(DB::raw('SUM(pls_qty) as total_qty'))
+            //                ->where('article_id', $pst_article)
+            //                ->groupBy('t3.p_name')
+            //                ->get()->first()->total_qty;
+
+
+            //            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
+            //                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+            //                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            //                ->where(['po_id' => $po_id])->get();
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
-                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price')
+                    $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                        //                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where(['poa_id' => $poa->poa_id])->get();
+
+                    // Step 2: Retrieve pls_qty from product_location_setups
+                    $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
+                    $pIds = $poad_data->pluck('p_id'); // Get all unique pst_ids from the $poad_data
+
+                    $plsQtyData = ProductLocationSetup::whereIn('pst_id', $pstIds)
+                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty'), 'p_id')
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                        ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                        ->where(['stores.id' => $po_st_id])
+                        ->groupBy('pst_id')
+                        ->get();
+
+                    //                    $plsQtyDataAll = ProductLocationSetup::whereIn('p_id', $pIds)
+                    //                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty_all'))
+                    //                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    //                        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    //                        ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                    //                        ->where(['products.id' => '11040092'])
+                    //                        ->groupBy('pst_id')
+                    //                        ->get();
+
+                    //                    $plsQtyDataAll = ProductLocationSetup::select('ts_products.p_name', DB::raw('SUM(ts_product_location_setups.pls_qty) as total_pls_qty_all'))
+                    //                        ->join('ts_product_stocks', 'ts_product_location_setups.pst_id', '=', 'ts_product_stocks.id')
+                    //                        ->join('ts_products', 'ts_product_stocks.p_id', '=', 'ts_products.id')
+                    //                        ->whereIn('ts_products.id', $pIds)
+                    //                        ->groupBy('pst_id')
+                    //                        ->get();
+
+                    // Step 3: Merge data with $poad_data
+                    $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
+                        $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
+                        //                        $item['total_pls_qty_all'] = $plsQtyDataAll->where('pst_id', $item['pst_id'])->first()['total_pls_qty_all'] ?? 0;
+                        return $item;
+                    });
+
+                    //                    $pst_article = $poad_data->pluck('ps_barcode');
+
+                    // Step 4: Get Stok ALl Cabang
+                    //                    $total_stok = DB::table('product_location_setups as t1')
+                    //                        ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
+                    //                        ->join('products as t3', 't2.p_id', '=', 't3.id')
+                    //                        ->select(DB::raw('SUM(pls_qty) as total_qty'))
+                    //                        ->where('article_id', $pst_article)
+                    //                        ->groupBy('t3.p_name')
+                    //                        ->get();
+
                     if (!empty($poad_data)) {
                         $poa->subitem = $poad_data;
                         array_push($get_product, $poa);
@@ -425,7 +564,7 @@ class PurchaseOrderController extends Controller
             $get_product = null;
         }
         $data = [
-            'product' => $get_product,
+            'product'   => $get_product
         ];
         return view('app.purchase_order._purchase_order_article_detail', compact('data'));
     }
@@ -434,7 +573,7 @@ class PurchaseOrderController extends Controller
     {
         $po_id = $request->_po_id;
         $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id')
-        ->where(['po_id' => $po_id])->get();
+            ->where(['po_id' => $po_id])->get();
         $total_po = 0;
         if (!empty($poa_data)) {
             foreach ($poa_data as $poa) {
@@ -479,12 +618,121 @@ class PurchaseOrderController extends Controller
             $r['po_id'] = $draft->id;
             $r['st_id'] = $draft->st_id;
             $r['ps_id'] = $draft->ps_id;
+            $r['tax_id'] = $draft->tax_id;
             $r['stkt_id'] = $draft->stkt_id;
             $r['po_description'] = $draft->po_description;
             $r['po_invoice'] = $draft->po_invoice;
+            $r['acc_id'] = $draft->acc_id;
         } else {
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function uploadImageInvoice(Request $request)
+    {
+
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            if ($request->hasFile('imageInvoices')) {
+                foreach ($request->file('imageInvoices') as $file) {
+                    $image = $file;
+                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_invoice');
+
+                    // save destination path
+                    $image->move($destinationPath, $name);
+
+                    PurchaseOrderInvoiceImage::create([
+                        'purchase_order_id' => $po_id,
+                        'invoice_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function uploadPembayaranInvoice(Request $request)
+    {
+
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            if ($request->hasFile('imageInvoices')) {
+                foreach ($request->file('imageInvoices') as $file) {
+                    $image = $file;
+                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_COD_' . time() . '.' . $image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_invoice');
+
+                    // save destination path
+                    $image->move($destinationPath, $name);
+
+                    PurchaseOrderInvoiceImage::create([
+                        'purchase_order_id' => $po_id,
+                        'invoice_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function uploadImageTransfer(Request $request)
+    {
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            if ($request->hasFile('imageTransfers')) {
+                foreach ($request->file('imageTransfers') as $file) {
+                    $image = $file;
+                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_transfer');
+
+                    // save destination path
+                    $image->move($destinationPath, $name);
+
+                    PurchaseOrderTransferImage::create([
+                        'purchase_order_id' => $po_id,
+                        'transfer_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function exportPurchaseOrderArticleData(Request $request)
+    {
+        $po_id = $request->get('po_id');
+        $st_id = $request->get('st_id');
+
+        $timestamp = date('Ymd_Hi');
+
+        $export = new PurchaseOrderArticleExport($po_id, $st_id);
+
+         // Get current date and time (format: YYYYMMDD_HHmm)
+        
+        $fileName = 'purchase_order_article_' . $timestamp . '.xlsx';
+        return Excel::download($export, $fileName);
     }
 }

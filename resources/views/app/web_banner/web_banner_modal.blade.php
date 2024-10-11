@@ -25,6 +25,7 @@
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Gambar</label>
+                        <small style="color: grey;">2000x960px</small>
                         <input class="form-control"  type="file" name="bn_image" id="bn_image" accept="image/*" onchange="loadFile(event)">
                         <center><img id="imagePreview" style="width:40%; padding-top:10px;"/></center>
                     </div>

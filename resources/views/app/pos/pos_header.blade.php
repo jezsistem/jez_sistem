@@ -31,6 +31,16 @@
                     <div class="col-md-6">
                         Hallo, {{ $data['user']->u_name }}
                     </div>
+                    <div class="topbar-item">
+                        <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3"  data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn">
+                            <!-- <span class="badge badge-pill badge-primary">5</span> -->
+                            <span class="symbol symbol-35 symbol-light-success">
+                                <span class="symbol-label bg-warning font-size-h5">
+                                    <i class="fas fa-clock" style="color: white;"></i>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
                     <div class="dropdown mega-dropdown">
                         <div id="id2" class="topbar-item "  data-toggle="dropdown" data-display="static">
                             <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -70,26 +71,33 @@ class SizeController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
-            'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
-            'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
+            'size_id' => Size::where('sz_delete', '!=', '1')->distinct()->pluck('sz_schema'),
+
         ];
+//        dd($data['size_id']);
         return view('app.size.size', compact('data'));
     }
 
     public function getDatatables(Request $request)
     {
+        $sz_id = $request->sz_id;
         if(request()->ajax()) {
-            return datatables()->of(Size::select('sizes.id as sid', 'psc_name', 'sz_name', 'sz_description')
-            ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+            return datatables()->of(Size::select('sizes.id as sid', 'sz_name', 'sz_schema' ,'sz_description')
             ->where('sz_delete', '!=', '1')
-            ->where('psc_id', '=', $request->psc_id)
-            ->orderBy('sz_name'))
+            ->where(function ($query) use ($sz_id) {
+                if (!empty($sz_id)) {
+                    $query->where('sz_schema', $sz_id);
+                }
+            })
+            ->where('sz_schema','!=', '')
+            ->orderBy('sz_schema'))
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhere('sz_name', 'LIKE', "%$search%")
-                        ->orWhere('sz_description', 'LIKE', "%$search%");
+                        ->orWhere('sz_description', 'LIKE', "%$search%")
+                        ->orWhere('sz_schema', 'LIKE', "%$search%");
                     });
                 }
             })
@@ -105,8 +113,9 @@ class SizeController extends Controller
         $id = $request->input('_id');
 
         $data = [
-            'psc_id' => $request->input('psc_id'),
+//            'psc_id' => $request->input('psc_id'),
             'sz_name' => $request->input('sz_name'),
+            'sz_schema' => strtoupper($request->input('sz_schema')),
             'sz_description' => $request->input('sz_description'),
             'sz_delete' => '0',
         ];
@@ -147,6 +156,31 @@ class SizeController extends Controller
         return view('app.product._reload_size', compact('data'));
     }
 
+    public function reloadSizeSchemaModal(Request $request)
+    {
+        $size = new Size;
+        $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
+        $where = [
+            'sz_schema' => $request->_sz_schema
+        ];
+        $size_data = $size->getAllData($select, $where);
+        $data = [
+            'size' => $size_data
+        ];
+
+        return view('app.product._reload_size_schema', compact('data'));
+    }
+
+    public function reloadSizeSchema(Request $request)
+    {
+        try {
+            return  Size::where('sz_delete', '!=', '1')
+            ->Where('sz_schema', $request->schema_id)->get();
+        }catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
     public function checkExistsSize(Request $request)
     {
         $check = Size::where(['sz_name' => strtoupper($request->_sz_name), 'psc_id' => $request->_psc_id])->exists();
@@ -156,5 +190,27 @@ class SizeController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function checkSchemaSizeProductStock(Request $request)
+    {
+        try {
+            $pid = $request->_p_id;
+            $product_stock = DB::table('product_stocks')
+                ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
+                ->select('sizes.sz_schema')
+                ->where('product_stocks.p_id', trim($pid))
+                ->get();
+
+            if (!empty($product_stock)) {
+                $r['status'] = '200';
+                $r['size_schema'] = $product_stock[0]->sz_schema;
+            } else {
+                $r['status'] = '400';
+            }
+            return json_encode($r);
+        }catch (\Exception $e) {
+            return json_encode($e->getMessage());
+        }
     }
 }

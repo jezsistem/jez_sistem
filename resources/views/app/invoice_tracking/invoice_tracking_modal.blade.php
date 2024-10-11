@@ -103,3 +103,46 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="DPPaymentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="f_payment_dp">
+                @csrf
+                <input type="hidden" name="_pt_id" id="_pt_id" value="" />
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">DP Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group mb-1 pb-1 justify-content-between d-flex">
+                                <span>Harga Total : </span>
+                                <span class="btn btn-primary" id="total_payment_real_price"></span>
+                        </div>
+                        <div class="form-group mb-1 pb-1 justify-content-between d-flex">
+                            <span>Kurang : </span>
+                            <span class="btn btn-primary" id="difference_payment"></span>
+                        </div>
+                        <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">Payment</label>
+                            <input type="number" class="form-control" id="payment_dp" name="payment_dp" required />
+                        </div>
+                        <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">Tanggal Pembayaran</label>
+                            <input type="date" class="form-control" id="payment_dp_date" name="payment_dp_date" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="save_payment_dp_btn">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->

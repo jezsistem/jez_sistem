@@ -83,15 +83,16 @@ class WebArticleController extends Controller
         $exception = ExceptionLocation::select('pl_code')
         ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
         if(request()->ajax()) {
-            return datatables()->of(Product::selectRaw('ts_products.id as pid, br_name, p_name, p_color, p_main_image, p_image, p_size_chart, p_slug, p_description, p_video, p_weight, sum(ts_product_location_setups.pls_qty) as stok')
+            return datatables()->of(Product::selectRaw('ts_products.id as pid, article_id ,br_name, p_name, p_color, p_main_image, p_image, p_size_chart, p_slug, p_description, p_video, p_weight, sum(ts_product_location_setups.pls_qty) as stok')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
             ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->where('p_delete', '!=', '1')
             ->whereNotIn('product_locations.pl_code', $exception)
-            ->havingRaw('sum(ts_product_location_setups.pls_qty) >= 0')
-            ->groupBy('products.id'))
+//            ->havingRaw('sum(ts_product_location_setups.pls_qty) >= 0')
+            ->groupBy('products.id')
+            ->orderBy('products.id', 'desc'))
             ->editColumn('p_main_image_show', function($data){
                 if (!empty($data->p_main_image)) {
                     $image = "<img data-chart_image='".$data->p_size_chart."' data-main_image='".$data->p_main_image."' data-image='".$data->p_image."' data-name='".$data->br_name." ".$data->p_name." ".$data->p_color."' id='p_image_edit' data-id='".$data->pid."'  style='width:100px;' src='".asset('api/product/300')."/".$data->p_main_image."' alt='main_image'/>";
@@ -139,7 +140,8 @@ class WebArticleController extends Controller
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color) LIKE ?', "%$search%");
+                        $w->orWhereRaw('CONCAT(article_id," ",br_name," ", p_name," ", p_color) LIKE ?', "%$search%")
+                        ->orWhereRaw('article_id LIKE ?', "%$search%");
                     });
                 }
                 if (!empty($request->get('pc_id'))) {

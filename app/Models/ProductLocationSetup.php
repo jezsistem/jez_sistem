@@ -70,7 +70,7 @@ class ProductLocationSetup extends Model
     public static function getExport($st_id)
     {
         $export = DB::table('product_location_setups')
-                    ->selectRaw("CONCAT(pl_name,' (',pl_code,')') as location, CONCAT(p_name) as article, CONCAT(br_name) as br_name, CONCAT(p_color) as p_color, CONCAT(sz_name) as sz_name, CONCAT(ps_barcode) as ps_barcode, CONCAT(pls_qty) as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as hpp, p_sell_price")
+                    ->selectRaw("CONCAT(pl_name,' (',pl_code,')') as location, CONCAT(article_id) as article_id,CONCAT(p_name) as article, CONCAT(br_name) as br_name, CONCAT(p_color) as p_color, CONCAT(sz_name) as sz_name, CONCAT(ps_barcode) as ps_barcode, CONCAT(pls_qty) as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as hpp, p_sell_price")
                     ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
                     ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                     ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')

@@ -1,82 +1,146 @@
 @extends('app.structure')
 @section('content')
-<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
-    <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
-        <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
-            <div class="d-flex align-items-center flex-wrap mr-1">
-                <div class="d-flex align-items-baseline flex-wrap mr-5">
-                    <h5 class="text-dark font-weight-bold mt-2 mb-2 mr-5 fs-3">{{ $data['subtitle'] }}</h5>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="d-flex flex-column-fluid">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 col-xxl-12">
-                    <div class="card card-custom gutter-b">
-                        <div class="card-header flex-wrap py-3 mt-4">
-                            <form class="row col-sm-12 col-12 col-md-12 col-lg-12 col-xl-12 px-0" id="f_filter">
-                            <div class="form-group col-sm-12 col-12 col-md-12 col-lg-6 col-xl-3">
-                                <label class="form-label" for="exampleTextarea">STORE</label>
-                                <div class="select-card-lg">
-                                    <select class="form-control bg-light-primary" id="st_id" name="st_id" required>
-                                        <option value="">-</option>
-                                        @foreach ($data['st_id'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group col-sm-12 col-12 col-md-12 col-lg-6 col-xl-2 pr-0">
-                                <label class="form-label" for="exampleTextarea">TIPE DATA</label>
-                                <div class="select-card-lg">
-                                    <select class="form-control bg-light-primary" id="data_filter" name="data_filter" required>
-                                        <option value="">-</option>
-                                        <option value="brand">Brand</option>
-                                        <option value="article">Artikel</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group col-sm-12 col-12 col-md-12 col-lg-6 col-xl-2">
-                                <label class="form-label" for="exampleTextarea">DATA ARTIKEL</label>
-                                <div class="select-card-lg">
-                                    <select class="form-control bg-light-primary" id="article_filter" name="article_filter">
-                                        <option value="">-</option> 
-                                        <option value="color">Warna</option>
-                                        <option value="size">Size</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group col-sm-12 col-12 col-md-12 col-lg-6 offset-xl-2 col-xl-3 pr-0 text-right">
-                                <!-- <label class="form-label"  for="exampleTextarea">RANGE TANGGAL</label><br/> -->
-                                <a class="btn btn-date-info font-weight-bold" id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Select dashboard daterange" data-placement="left" style="cursor:pointer;">
-                                        <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
-                                        <span class="font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
-                                        <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                                        </svg>
-                                </a>
-                            </div>
-                            <div class="card-footer w-100 px-0 pt-6 pb-4">
-                                <div class="col-sm-12 col-12 col-md-12 col-lg-6 col-xl-6 offset-xl-6 text-right pr-0">
-                                    <button type="button" class="btn btn-light-primary font-weight-bold mr-2" id="export_btn">Export</button>
-                                    <button type="submit" class="btn btn-dark font-weight-bold">Tampilkan</button>
-                                </div>
-                            </div>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="card card-custom gutter-b">
-                        <div class="card-body table-responsive">
-                            <div id="table"></div>
-                        </div>
+    <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+        <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
+            <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+                <div class="d-flex align-items-center flex-wrap mr-1">
+                    <div class="d-flex align-items-baseline flex-wrap mr-5">
+                        <h5 class="text-dark font-weight-bold mt-2 mb-2 mr-5 fs-3">{{ $data['subtitle'] }}</h5>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="d-flex flex-column-fluid">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12 col-xxl-12">
+                        <div class="card card-custom gutter-b">
+                            <div class="card-header flex-wrap py-3 mt-4"  style="background: #ffeded">
+                                <form class="row col-sm-12 col-12 col-md-12 col-lg-12 col-xl-12 px-0" id="f_filter">
+                                    <div class="form-group col-sm-12 col-12 col-md-12 col-lg-6 col-xl-3">
+                                        <label class="form-label" for="exampleTextarea">STORE</label>
+                                        <div class="select-card-lg">
+                                            <select class="form-control bg-light-primary" id="st_id" name="st_id"
+                                                required>
+                                                <option value="">-</option>
+                                                @foreach ($data['st_id'] as $key => $value)
+                                                    <option value="{{ $key }}">{{ $value }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-sm-12 col-12 col-md-12 col-lg-6 col-xl-2 pr-0">
+                                        <label class="form-label" for="exampleTextarea">TIPE DATA</label>
+                                        <div class="select-card-lg">
+                                            <select class="form-control bg-light-primary" id="data_filter"
+                                                name="data_filter" required>
+                                                <option value="">-</option>
+                                                <option value="brand">Brand</option>
+                                                <option value="article">Artikel</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-sm-12 col-12 col-md-12 col-lg-6 col-xl-2">
+                                        <label class="form-label" for="exampleTextarea">DATA ARTIKEL</label>
+                                        <div class="select-card-lg">
+                                            <select class="form-control bg-light-primary" id="article_filter"
+                                                name="article_filter">
+                                                <option value="">-</option>
+                                                <option value="color">Warna</option>
+                                                <option value="size">Size</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="form-group col-sm-12 col-12 col-md-12 col-lg-6 offset-xl-2 col-xl-3 pr-0 text-right">
+                                        <!-- <label class="form-label"  for="exampleTextarea">RANGE TANGGAL</label><br/> -->
+                                        <a class="btn btn-date-info font-weight-bold" id="kt_dashboard_daterangepicker"
+                                            data-toggle="tooltip" title="Select dashboard daterange" data-placement="left"
+                                            style="cursor:pointer;">
+                                            <span class="font-size-base"
+                                                id="kt_dashboard_daterangepicker_title">Today</span>
+                                            <span class="font-size-base font-weight-bolder"
+                                                id="kt_dashboard_daterangepicker_date"></span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                    <div class="card-footer w-100 px-0 pt-6 pb-4">
+                                        <div
+                                            class="col-sm-12 col-12 col-md-12 col-lg-6 col-xl-6 offset-xl-6 text-right pr-0">
+                                            <button type="button" class="btn btn-light-primary font-weight-bold mr-2"
+                                                id="export_btn">Export</button>
+                                            <button type="submit" class="btn btn-dark font-weight-bold">Tampilkan</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="card card-custom gutter-b">
+                            <div class="card-body table-responsive">
+                                <div id="table"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-@include('app._partials.js')
-@include('app.asset_detail.asset_detail_js')
+    @include('app._partials.js')
+    @include('app.asset_detail.asset_detail_js')
 @endSection()
+
+
+
+<style>
+   /* Apply soft pink background to the card headers */
+.card-header {
+    background-color: #ffeded;
+    border-bottom: 1px solid #ffffff; /* Optional: light border for separation */
+}
+
+/* Apply soft pink background to the card body */
+.card-body {
+    background-color: #ffeded;
+}
+
+/* Button styles */
+.btn-light-primary {
+    background-color: #ffeded; /* Light pink background */
+    color: #000; /* Text color */
+    border: 1px solid #ffffff; /* Optional: light border */
+}
+
+/* Change hover effect for buttons */
+.btn-light-primary:hover {
+    background-color: #ffb3b3; /* Slightly darker pink on hover */
+}
+
+.btn-dark {
+    background-color: #ffffff; /* Dark button background */
+    color: #000; /* Text color */
+}
+
+/* Form select backgrounds */
+.form-control {
+    background-color: #ffeded; /* Soft pink for select inputs */
+}
+
+/* Add some styles for the footer buttons */
+.card-footer {
+    background-color: #ffeded; /* Soft pink background for the footer */
+    border-top: 1px solid #ffffff; /* Optional: light border */
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .card-header, .card-body, .card-footer {
+        padding: 15px; /* Adjust padding for smaller screens */
+    }
+}
+
+</style>
+

@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Models\ProductLocation;
 use App\Models\UserActivity;
 use App\Models\PosTransaction;
-use Hash;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -88,14 +88,24 @@ class AuthController extends Controller
     {
         $user = new User;
         $password = $request->_password;
+        $old_password = $request->_old_password;
         $data = [
             'password' => Hash::make($password),
         ];
+
+        if(!Hash::check($old_password, Auth::user()->password)){
+            $r['status'] = '400';
+            $r['message'] = 'Password lama tidak sesuai';
+            return json_encode($r);
+        }
+
         if ($user->storePassword(Auth::user()->id, $data)) {
             $this->UserActivity('mengubah password akun');
             $r['status'] = '200';
+            $r['message'] = 'Password berhasil diubah';
         } else {
             $r['status'] = '400';
+            $r['message'] = 'Password gagal diubah';
         }
         return json_encode($r);
     }

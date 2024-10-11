@@ -29,6 +29,9 @@ class Product extends Model
         'p_description',
         'p_image',
         'p_delete',
+        'schema_size',
+        'subcategory1',
+        'subcategory2'
     ];
 
     public function getJoinData($select, $where)
@@ -102,7 +105,7 @@ class Product extends Model
     public static function getExport()
     {
         $export = DB::table('products')
-                    ->select('p_name', 'pc_name', 'psc_name', 'pssc_name', 'br_name', 'ps_name', 'pu_name', 'gn_name', 'ss_name', 'p_aging', 'mc_name', 'p_color', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'sz_name', 'ps_barcode')
+                    ->select('p_name', 'ps_qty','pc_name', 'psc_name', 'pssc_name', 'br_name', 'ps_name', 'pu_name', 'gn_name', 'ss_name', 'p_aging', 'mc_name', 'p_color', 'p_price_tag', 'p_purchase_price', 'p_sell_price', 'sz_name', 'ps_barcode')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->leftJoin('product_categories', 'product_categories.id', '=', 'products.pc_id')
                     ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
@@ -113,7 +116,19 @@ class Product extends Model
                     ->leftJoin('genders', 'genders.id', '=', 'products.gn_id')
                     ->leftJoin('seasons', 'seasons.id', '=', 'products.ss_id')
                     ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')->get()->toArray();
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->get();
+//                    ->get()->toArray();
+        return $export;
+    }
+
+    public static function getArticleExport()
+    {
+        $export = DB::table('products')
+                    ->select('article_id','p_name', 'p_color', 'br_name', 'ps_name', 'p_aging', 'p_price_tag', 'p_purchase_price', 'p_sell_price')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'products.ps_id')
+                    ->get();
         return $export;
     }
 }

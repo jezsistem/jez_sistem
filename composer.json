@@ -7,13 +7,15 @@
     "require": {
         "php": "^7.3|^8.0",
         "anhskohbo/no-captcha": "^3.3",
+        "doctrine/dbal": "^3.7",
         "fideloper/proxy": "^4.4",
         "fruitcake/laravel-cors": "^2.0",
-        "guzzlehttp/guzzle": "^7.0.1",
+        "guzzlehttp/guzzle": "^7.9",
         "intervention/image": "^2.6",
         "laravel/framework": "^8.40",
         "laravel/tinker": "^2.5",
         "maatwebsite/excel": "^3.1",
+        "phpoffice/phpspreadsheet": "^1.29",
         "yajra/laravel-datatables-buttons": "^4.13",
         "yajra/laravel-datatables-oracle": "^9.18"
     },
@@ -29,7 +31,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "App\\Libraries\\": "app/Libraries/"
         }
     },
     "autoload-dev": {

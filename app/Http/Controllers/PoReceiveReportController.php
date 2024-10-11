@@ -13,6 +13,7 @@ use App\Models\PurchaseOrderArticleDetail;
 use App\Models\PurchaseOrderArticleDetailStatus;
 use App\Exports\PoReceiveExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class PoReceiveReportController extends Controller
 {
@@ -89,6 +90,7 @@ class PoReceiveReportController extends Controller
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
             ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
             ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+            ->where('poads_qty', '!=', '0')
             ->where('po_delete', '!=', '1')
             ->where('po_draft', '!=', '1')
             ->groupBy('purchase_orders.id'))
@@ -241,6 +243,8 @@ class PoReceiveReportController extends Controller
         } else {
             $start = $date;
         }
-        return Excel::download(new PoReceiveExport($st_id, $start, $end, $status_filter, $date_filter), 'laporan_datang_barang.xlsx');
-    }
+        return Excel::download(
+            new PoReceiveExport($st_id, $start, $end, $status_filter, $date_filter), 
+            'laporan_datang_barang_' . Carbon::now()->format('dmY_Hi') . '.xlsx');
+}
 }

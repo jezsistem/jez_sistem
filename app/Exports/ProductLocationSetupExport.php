@@ -20,7 +20,7 @@ class ProductLocationSetupExport implements FromCollection , withHeadings
 
     public function headings(): array
     {
-        return ["RAK LOKASI", "ARTIKEL", "BRAND", "WARNA", "SIZE", "BARCODE", "QTY", "HPP", "HJ"];
+        return ["RAK LOKASI", "ARTICLE ID","ARTIKEL", "BRAND", "WARNA", "SIZE", "BARCODE", "QTY", "HPP", "HJ"];
     }
     
     public function collection()

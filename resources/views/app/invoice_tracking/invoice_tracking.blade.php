@@ -57,6 +57,7 @@
                             <option value="REFUND">REFUND</option>
                             <option value="SHIPPING NUMBER">SHIPPING NUMBER</option>
                             <option value="IN DELIVERY">IN DELIVERY</option>
+                            <option value="DP">DP</option>
                         </select>
                         <div class="col-sm-6 col-lg-4">
                             <a class="btn btn-sm btn-light font-weight-bold bg-inventory" id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Select dashboard daterange" data-placement="left" style="cursor:pointer;">

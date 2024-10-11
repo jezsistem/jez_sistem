@@ -299,6 +299,7 @@
         $(document).delegate('#detail_btn', 'click', function() {
             var pt_id = $(this).attr('data-pt_id');
             $('#pt_id').val(pt_id);
+            console.log(pt_id);
             $('#DetailModal').on('show.bs.modal', function() {
                 detail_table.draw(false);
             }).modal('show');

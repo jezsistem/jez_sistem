@@ -4,6 +4,55 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Purchase Order (PO) #<span id="po_invoice_label"></span></h5>
+                <!--begin::Button Import-->
+                <div class="mr-2">
+                    <div class="dropdown dropdown-inline mr-2">
+                        <a type="button" class="btn btn-light-primary font-weight-bolder" id="ExportArticleData">
+                                <span class="svg-icon svg-icon-md">
+                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24" />
+                                            <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z" fill="#000000" opacity="0.3" />
+                                            <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z" fill="#000000" />
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>Export</a>
+                    </div>
+                    <div class="dropdown dropdown-inline mr-2">
+                        <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
+                                <span class="svg-icon svg-icon-md">
+                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24" />
+                                            <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z" fill="#000000" opacity="0.3" />
+                                            <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z" fill="#000000" />
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>Import</a>
+                    </div>
+                    <!--begin::Dropdown Menu-->
+                    <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                        <!--begin::Navigation-->
+                        <ul class="navi flex-column navi-hover py-2">
+                            <li class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">Bentuk File :</li>
+                            <li class="navi-item">
+                                <a href="#" class="navi-link">
+                                                    <span class="navi-icon">
+                                                        <i class="la la-copy"></i>
+                                                    </span>
+                                    <span id="purchase_order_excel_btn"></span>
+                                </a>
+                            </li>
+                        </ul>
+                        <!--end::Navigation-->
+                    </div>
+                    <!--end::Dropdown Menu-->
+                </div>
+                <!--end::Dropdown-->
             </div>
             <form id="f_po">
             <input type="hidden" id="_mode" name="_mode"/>
@@ -44,6 +93,114 @@
                             @endforeach
                         </select>
                         <div id="stkt_id_parent"></div>
+                    </div>
+                    <div class="col-4">
+                        <label>Ongkos Kirim</label>
+                        <input type="number" class="form-control" placeholder="Ongkos Kirim" name="shipping_cost" id="shipping_cost" required />
+                    </div>
+                    <div class="col-2 mt-2">
+                        <label>Gambar Invoice</label>
+                        <div class="mr-2">
+                            <div class="dropdown dropdown-inline mr-2">
+                                <a type="button" class="btn btn-light-primary font-weight-bolder" id="UploadImageInvoiceBtn" aria-haspopup="true" aria-expanded="false">
+                                <span class="svg-icon svg-icon-md">
+                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24" />
+                                            <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z" fill="#000000" opacity="0.3" />
+                                            <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z" fill="#000000" />
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>Upload Gambar</a>
+                            </div>
+                            <!--begin::Dropdown Menu-->
+                            <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                                <!--begin::Navigation-->
+                                <ul class="navi flex-column navi-hover py-2">
+                                    <li class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">Bentuk File :</li>
+                                    <li class="navi-item">
+                                        <a href="#" class="navi-link">
+                                                    <span class="navi-icon">
+                                                        <i class="la la-copy"></i>
+                                                    </span>
+                                            <span id="purchase_order_excel_btn"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <!--end::Navigation-->
+                            </div>
+                            <!--end::Dropdown Menu-->
+                        </div>
+                    </div>
+                    <div class="col-2 mt-2">
+                        <label>Gambar Transafer</label>
+                        <div class="mr-2">
+                            <div class="dropdown dropdown-inline mr-2">
+                                <a type="button" class="btn btn-light-primary font-weight-bolder" id="UploadImageTransferBtn" aria-haspopup="true" aria-expanded="false">
+                                <span class="svg-icon svg-icon-md">
+                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <rect x="0" y="0" width="24" height="24" />
+                                            <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z" fill="#000000" opacity="0.3" />
+                                            <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z" fill="#000000" />
+                                        </g>
+                                    </svg>
+                                    <!--end::Svg Icon-->
+                                </span>Upload Gambar</a>
+                            </div>
+                            <!--begin::Dropdown Menu-->
+                            <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                                <!--begin::Navigation-->
+                                <ul class="navi flex-column navi-hover py-2">
+                                    <li class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">Bentuk File :</li>
+                                    <li class="navi-item">
+                                        <a href="#" class="navi-link">
+                                                    <span class="navi-icon">
+                                                        <i class="la la-copy"></i>
+                                                    </span>
+                                            <span id="purchase_order_excel_btn"></span>
+                                        </a>
+                                    </li>
+                                </ul>
+                                <!--end::Navigation-->
+                            </div>
+                            <!--end::Dropdown Menu-->
+                        </div>
+                    </div>
+                    <div class="col-4 mt-5">
+                        <label>Pajak</label>
+                        <select class="form-control" id="tax_id" name="tax_id" required>
+                            <option value="">- Pajak -</option>
+                            @foreach ($data['tax_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="tax_id_parent"></div>
+                    </div>
+
+                    <div class="col-4 mt-5">
+                        <label>Payment</label>
+                        <select class="form-control" id="acc_id" name="acc_id" required>
+                            <option value="">- Payment -</option>
+                            @foreach ($data['acc_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="acc_id_parent"></div>
+                    </div>
+
+                    <div class="col-4 mt-5">
+                        <label>Pre Order</label>
+                        <select class="form-control" id="pro_id" name="pro_id" required>
+                            <option value="">- Pre Order -</option>
+                            @foreach ($data['pro_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="pro_id_parent"></div>
                     </div>
                 </div>
                 <!--end::Row-->
@@ -106,6 +263,15 @@
                             </select>
                             <div id="mc_id_filter_parent_item"></div>
                         </div>
+                        <div class="col-lg-4 pt-1">
+                            <select class="form-control" id="psc_id_filter_item" name="psc_id_filter_item" required>
+                                <option value="">- Sub Kategori -</option>
+                                @foreach ($data['psc_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                            <div id="psc_id_filter_parent_item"></div>
+                        </div>
                         <!-- <div class="col-lg-4 pt-1">
                             <select class="form-control" id="sz_id_filter_item" name="sz_id_filter_item" required>
                                 <option value="">- Size/All -</option>
@@ -125,6 +291,7 @@
                             <tr>
                                 <th class="text-dark">No</th>
                                 <th style="white-space: nowrap;" class="text-light">Nama</th>
+                                <th style="white-space: nowrap;" class="text-light">Article ID</th>
                                 <th style="white-space: nowrap;" class="text-light">Warna</th>
                                 <th style="white-space: nowrap;" class="text-light">Brand</th>
                                 <th style="white-space: nowrap;" class="text-light">Size</th>
@@ -143,4 +310,102 @@
         </div>
     </div>
 </div>
+<!-- /Modal -->
+
+<!-- Modal-->
+<form id="f_import" enctype="multipart/form-data">
+    @csrf
+    <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Import Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Download Template
+                                <span class="text-danger">*</span></label>
+                            <a href="{{ asset('upload/template/po_pembelian.csv') }}" class="btn btn-xs btn-primary">Download</a>
+                        </div>
+                        <div class="form-group">
+                            <label>Pilih template yang sudah diisi data</label>
+                            <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="importFile" id="importFile" required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- /Modal -->
+
+<!-- Modal-->
+<form id="f_upload_invoice_image" enctype="multipart/form-data">
+    @csrf
+    <div class="modal fade" id="UploadImageInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Upload Gambar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Pilih Gambar Invoice</label>
+                            <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="imageInvoices[]" id="imageInvoices" multiple required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="upload_image_invoice_btn">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- /Modal -->
+
+<!-- Modal-->
+<form id="f_upload_transfer_image" enctype="multipart/form-data">
+    @csrf
+    <div class="modal fade" id="UploadImageTransferModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Upload Gambar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Pilih Gambar Transafer</label>
+                            <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="imageTransfers[]" id="imageTransfers" multiple required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="upload_image_transfer_btn">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 <!-- /Modal -->

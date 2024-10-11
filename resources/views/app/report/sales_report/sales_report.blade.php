@@ -55,6 +55,12 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div class="card-title py-5">
+                                <select class="form-control" id="dp_id" name="dp_id" required>
+                                    <option value="">- Status -</option>
+                                    <option value="DP">DP</option>
+                                </select>
+                            </div>
                             <div class="alert alert-custom alert-white alert-shadow fade show gutter-b bg-primary" role="alert">
                                 <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12" id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal" data-placement="left">
                                     <span class="text-muted font-size-base font-weight-bold mr-2" id="kt_dashboard_daterangepicker_title">Today</span>
@@ -79,6 +85,7 @@
                                     <tr>
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Tanggal</th>
+                                        <th class="text-dark">Store</th>
                                         <th class="text-dark">Invoice</th>
                                         <th class="text-dark">Customer</th>
                                         <th class="text-dark" style="white-space:nowrap;">Cross Order</th>
@@ -89,6 +96,7 @@
                                         <th class="text-dark">Ongkir</th>
                                         <th class="text-dark" style="white-space:nowrap;">Kode Unik</th>
                                         <th class="text-dark" style="white-space:nowrap;">Biaya Admin</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Diskon Penjual</th>
                                         <th class="text-dark" style="white-space:nowrap;">Biaya Lain</th>
                                         <th class="text-dark">Nameset</th>
                                         <th class="text-dark" style="white-space:nowrap;">Value - Admin</th>
@@ -101,6 +109,9 @@
                                         <th class="text-dark" style="white-space:nowrap;">Jumlah Bayar 2</th>
                                         <th class="text-dark" style="white-space:nowrap;">Kartu 2</th>
                                         <th class="text-dark" style="white-space:nowrap;">Ref 2</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Pelunasan</th>
+                                        <th class="text-dark" style="white-space:nowrap;">Tanggal Pelunasan</th>
+                                        <th class="text-dark">Status</th>
                                         <th class="text-dark">Note</th>
                                     </tr>
                                 </thead>
