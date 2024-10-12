@@ -320,13 +320,13 @@
                     success: function(r) {
                         console.log(r);
                         if (r.status == '200') {
-                            swal("Berhasil", "Berhasil Mengirim Whatsapp Notifikasi", "success");
+                            toast("Berhasil", "Berhasil Mengirim Whatsapp Notifikasi", "success");
                         } else {
-                            swal('Gagal', 'Gagal mengirim pesan', 'error');
+                            toast('Gagal', 'Gagal mengirim pesan', 'error');
                         }
                     },
                     error: function(xhr, status, error) {
-                        swal('Error', 'Terjadi kesalahan saat mengirim notifikasi', 'error');
+                        toast('Error', 'Terjadi kesalahan saat mengirim notifikasi', 'error');
                     }
                 });
                 reloadArticleDetail(po_id);

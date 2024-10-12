@@ -40,5 +40,7 @@ class SendNotificationController extends Controller
             $r['message'] = 'Error communicating with external API';
         }
 
+        return response()->json($r);
+
     }
 }
