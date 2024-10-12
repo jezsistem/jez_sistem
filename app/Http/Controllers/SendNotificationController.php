@@ -32,9 +32,9 @@ class SendNotificationController extends Controller
 
             if ($response->getStatusCode() == 200) {
                 $responseData = json_decode($response->getBody()->getContents(), true);
+                $r['status'] = '200';
             }
 
-            $r['status'] = '200';
         } catch (\Exception $e) {
             $r['status'] = '500';
             $r['message'] = 'Error communicating with external API';
