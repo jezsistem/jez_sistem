@@ -69,6 +69,7 @@ use App\Http\Controllers\UserMenuAccessController;
 use App\Http\Controllers\MainMenuController;
 use App\Http\Controllers\MenuAccessController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\SendNotificationController;
 
 
 use App\Http\Controllers\WebConfigController;
@@ -95,6 +96,7 @@ Route::post('user_login', [AuthController::class, 'login']);
 Route::get('payment_check/88991703/show', [PaymentCheckController::class, 'checkData']);
 Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAutoUpdateArticleInformation']);
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
+Route::post('send_notification_whatsapp', [SendNotificationController::class, 'sendNotification']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');

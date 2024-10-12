@@ -287,7 +287,7 @@
 
         swal({
             title: "Simpan..?",
-            text: "Yakin 2 simpan data penerimaan ini ?",
+            text: "Yakin simpan data penerimaan ini ?",
             icon: "info",
             buttons: [
                 'Batalkan',
@@ -297,9 +297,38 @@
         }).then(function(isConfirm) {
             if (isConfirm) {
                 var total_row = $('img[data-img-poads]').length;
+                var no_order = $('#po_invoice_label').text();
                 for (let i = 0; i < total_row; ++i) {
                     $('#savePoads'+i).trigger('dblclick');
                 }
+
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('send_notification_whatsapp') }}",
+                    data: {
+                        division: 'purchasing',
+                        mode: 'penerimaan',
+                        no_order: no_order
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        console.log(r);
+                        if (r.status == '200') {
+                            swal("Berhasil", "Berhasil Mengirim Whatsapp Notifikasi", "success");
+                        } else {
+                            swal('Gagal', 'Gagal mengirim pesan', 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        swal('Error', 'Terjadi kesalahan saat mengirim notifikasi', 'error');
+                    }
+                });
                 reloadArticleDetail(po_id);
             }
         });
