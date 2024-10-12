@@ -55,6 +55,7 @@ class TransaksiOnline extends Model
         'city',
         'province',
         'order_complete_at',
+        'ns_before_admin',
     ];
 
 

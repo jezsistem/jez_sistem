@@ -123,7 +123,7 @@
                             </span>
                         Print
                     </button>
-                    <table class="table table-hover" id="Detailtb">
+                    <table class="table table-hover to" id="Detailtb">
                         <thead class="bg-light text-dark">
                         <tr>
                             <th class="text-dark">No</th>
@@ -134,8 +134,10 @@
                             <th class="text-dark">Platform Price</th>
                             <th class="text-dark">Jez Price</th>
                             <th class="text-dark">Diff Price</th>
-                            <th class="text-dark">Discount Total</th>
+                            <th class="text-dark">Discount Seller</th>
+                            <th class="text-dark">N.S Before Admin</th>
                             <th class="text-dark">Final Price</th>
+                            
                         </tr>
                         </thead>
                         <tbody>
@@ -222,3 +224,73 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<style>
+    /* Global table styling */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Arial', sans-serif;
+  font-size: 15px;
+  color: #333;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+/* Table header styling */
+.table thead {
+  background-color: #FFEDD3;
+  color: #333;
+}
+
+.table thead th {
+  padding: 12px 15px;
+  border-bottom: 2px solid #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 14px;
+  /* font-weight: bold; */
+}
+
+/* Table body styling */
+.table tbody tr {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #FFEDD3;
+}
+
+.table tbody tr:hover {
+  color: rgb(255, 0, 0);
+  transition: all 0.3s ease;
+}
+
+/* Table cell padding */
+.table td {
+  padding: 10px 15px;
+  border-bottom: 1px solid #FFEDD3;
+}
+
+/* Final column adjustments */
+.table tbody tr td:last-child {
+  font-weight: bold;
+}
+
+/* Hover effect on the table rows */
+.table-hover tbody tr:hover td {
+  color: rgb(255, 0, 0);
+}
+
+.text-dark {
+  color: #333 !important;
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+  .table {
+    font-size: 14px;
+  }
+}
+
+</style>

@@ -7,6 +7,8 @@ use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
+use App\Http\Controllers\PowerBiDashboardController;
+use App\Http\Controllers\ApiController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
@@ -71,6 +73,9 @@ use App\Http\Controllers\RedirectController;
 
 use App\Http\Controllers\WebConfigController;
 
+
+
+
 use Illuminate\Support\Facades\DB;
 /*
 |--------------------------------------------------------------------------
@@ -93,6 +98,8 @@ Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
+Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
+
 
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
@@ -123,12 +130,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
 
+    //POS NEWPAGE 27-09-24
+    
+
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
     Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
+    Route::get('reload_dp_offline', [PointOfSaleController::class, 'reloadDpOffline']);
     Route::get('refund_retur_datatables', [PointOfSaleController::class, 'refundReturDatatables']);
+    Route::get('dp_invoice_datatables', [PointOfSaleController::class, 'dpInvoiceDatatables']);
     Route::post('refund_exchange_list', [PointOfSaleController::class, 'refundExchangeList']);
     Route::post('check_barcode', [PointOfSaleController::class, 'checkBarcode']);
     Route::post('check_barcode_by_waiting', [PointOfSaleController::class, 'checkBarcodeWaiting']);
@@ -546,6 +558,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ad_load_data', [AssetDetailController::class, 'loadData']);
     Route::get('ad_export', [AssetDetailController::class, 'exportData']);
     Route::post('get_asset_sales_summaries', [AssetDetailController::class, 'getSummary']);
+
+    // Power BI Dashboard
+    Route::get('power_bi_dashboard', [PowerBiDashboardController::class, 'index']);
 
     // UserMenuAccessController
     Route::get('uma_datatables', [UserMenuAccessController::class, 'getDatatables']);

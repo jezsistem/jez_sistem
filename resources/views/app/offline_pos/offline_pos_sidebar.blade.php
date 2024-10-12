@@ -93,19 +93,19 @@
                                     id="total_discount_value_side">0</span></td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between bg-primary rounded">
-                        <th class="border-0 font-size-h5 mb-0 font-size-bold text-white pl-2">
+                        <th class="border-0 font-size-h5 mb-0 font-size-bold text-white pl-3">
                             Voucher
                         </th>
                         <td class="border-0 justify-content-end d-flex text-dark font-size-base pl-4">
                             <form id="f_voucher">
-                                <input class="col-10" id="voucher_code" placeholder="Enter stl input" type="text"/>
+                                <input class="col-8" id="voucher_code" placeholder="Enter stl input" type="text"/>
                                 <a href="#" id="cancel_voucher" class="btn-sm btn-danger ml-2">X</a>
                             </form>
                         </td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between item-price pl-3 pr-3"
-                        style="background:#fef6df;">
-                        <th class="border-0 font-size-h5 mb-0 font-size-bold text-primary">
+                    style="background:#FFDB89">
+                        <th class="border-0 font-size-h5 mb-0 font-size-bold text-primary" >
                             Grand Total
                         </th>
                         <td class="border-0 justify-content-end d-flex text-primary font-size-base"><span

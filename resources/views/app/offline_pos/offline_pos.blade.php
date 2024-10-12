@@ -126,40 +126,38 @@
                                            class="form-control border-dark col-3" id="pl_custom">
                                     <input type="hidden" value="{{ $data['store']->st_name }}" name="st_name"
                                            class="form-control border-dark col-3" id="invoice_input">
-{{--                                    <input type="hidden" value="{{ $data['starting_date'] }}" name="st_name"--}}
-{{--                                           class="form-control border-dark col-3" id="invoice_input">--}}
+                                    {{--                                    <input type="hidden" value="{{ $data['starting_date'] }}" name="st_name"--}}
+                                    {{--                                           class="form-control border-dark col-3" id="invoice_input">--}}
                                 </div>
                             </div>
                         </div>
                         <br/>
-                        
+
                         <div class="table-datapos">
 
 
-          <div class="table-container">
+                            <div class="table-container">
 
-    <input type="hidden" id="total_row" value="0"/>
-    <table id="orderTable" class="display table table-hover" style="width:100%">
-        <thead class="table-header">
-        <tr>
-            <th>Produk</th>
-            <th>Stok</th>
-            <th>Qty</th>
-            <th>Discount (%)</th>
-            <th>Discount (Rp)</th>
-            <th>Nameset</th>
-            <th>Harga</th>
-            <th>Subtotal</th>
+                                <input type="hidden" id="total_row" value="0"/>
+                                <table id="orderTable" class="display table table-hover" style="width:100%">
+                                    <thead class="table-header">
+                                    <tr>
+                                        <th>Produk</th>
+                                        <th>Stok</th>
+                                        <th>Qty</th>
+                                        <th>Discount (%)</th>
+                                        <th>Discount (Rp)</th>
+                                        <th>Nameset</th>
+                                        <th>Harga</th>
+                                        <th>Subtotal</th>
 
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Table rows go here -->
-        </tbody>
-    </table>
-</div>
-
-
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <!-- Table rows go here -->
+                                    </tbody>
+                                </table>
+                            </div>
                             <div id="voucher_informatio n" class='d-none'>
                                 <input type="hidden" id="_voucher_value"/>
                                 {{--								<table id="orderTable" class="display table table-hover" style="width:100%"> --}}
@@ -167,50 +165,8 @@
                                 <input type="hidden" id="_voc_value"/>
                                 <input type="hidden" id="_voc_disc_value"/>
                                 <input type="hidden" id="_voc_total_disc_value">
-                                {{--									<input type="hidden" id="_voc_id"/> --}}
-                                {{--									<thead class="bg-primary"> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Produk --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												<span id="_voc_article"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Bandrol --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_bandrol"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Disc --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_disc"></span> <span id="_voc_disc_type"></span> <span id="_voc_disc_value"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									<tr class="d-flex align-items-center justify-content-between pl-3 pr-3" style="background:#fef6df;"> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--												Harga Baru --}}
-                                {{--										</th> --}}
-                                {{--										<th class="col-6"> --}}
-                                {{--											<span id="_voc_value_show"></span> --}}
-                                {{--										</th> --}}
-                                {{--									</tr> --}}
-                                {{--									</thead> --}}
-                                {{--								</table> --}}
                             </div>
                         </div>
-
-
-
-
-
-
                     </div>
                 </div>
             </div>
