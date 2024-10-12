@@ -19,7 +19,7 @@ class SendNotificationController extends Controller
             $no_order = $request->no_order;
             $divisi_direct = StoreType::where('stt_name', $division)->first()->stt_description;
             $noHp = $divisi_direct;
-            $pesan = "[Testing Notification Penerimaan], \n\nLogistik telah melakukan Penerimaan pada nomor Purchase Order . $no_order. \nHarap segera melakukan cross cek pada nomor order tersebut.";
+            $pesan = "[Notification Penerimaan], \n\nLogistik telah melakukan Penerimaan pada nomor Purchase Order: $no_order \nHarap segera melakukan cross cek pada nomor order tersebut.";
         }
 
         try {
