@@ -10,7 +10,7 @@
         $.ajax({
             type: "POST",
             dataType: 'json',
-            url: "{{ url('ie_permission_check_active_edit')}}",
+            url: "{{ url('ie_online_permission_check_active_edit')}}",
             success: function(r) {
                 if (r.status == '200'){
                     $('#pos_invoice_online').val(r.invoice);
@@ -42,7 +42,7 @@
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
             ajax: {
-                url : "{{ url('ie_permission_datatables') }}",
+                url : "{{ url('ie_online_permission_datatables') }}",
                 data : function (d) {
                     d.search = $('#data_search').val();
                 }
@@ -84,7 +84,7 @@
             var formData = new FormData(this);
             $.ajax({
                 type:'POST',
-                url: "{{ url('ie_permission_save')}}",
+                url: "{{ url('ie_online_permission_save')}}",
                 data: formData,
 				dataType: 'json',
                 cache:false,
@@ -131,7 +131,7 @@
                         type: "POST",
                         data: {id:id},
                         dataType: 'json',
-                        url: "{{ url('ie_permission_delete')}}",
+                        url: "{{ url('ie_online_permission_delete')}}",
                         success: function(r) {
                             if (r.status == '200'){
                                 data_table.draw();
@@ -166,19 +166,19 @@
             },
             columns: [
             { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'pos_invoice', name: 'pos_invoice' },
-            { data: 'cashier', name: 'pos_invoice', orderable:false },
-            { data: 'division', name: 'pos_invoice', orderable:false },
-            { data: 'subdivision', name: 'pos_invoice', orderable:false },
-            { data: 'method', name: 'pm_id', orderable:false },
-            { data: 'pos_payment', name: 'pos_payment', orderable:false },
-            { data: 'method_two', name: 'pm_id_partial', orderable:false },
-            { data: 'pos_payment_partial', name: 'pos_payment_partial', orderable:false },
-            { data: 'admin', name: 'pos_admin_cost', orderable:false },
-            { data: 'pos_real_price', name: 'pos_real_price'},
-            { data: 'pos_status', name: 'pos_status' },
-            { data: 'created_at', name: 'created_at' },
-            { data: 'action', name: 'action', orderable:false },
+            { data: 'order_number', name: 'order_number' },
+            { data: 'no_resi', name: 'no_resi'},
+            { data: 'st_name', name: 'st_name'},
+            { data: 'u_name', name: 'u_name'},
+            { data: 'order_status', name: 'order_status'},
+            { data: 'platform_name', name: 'platform_name'},
+            { data: 'order_date_created', name: 'order_date_created'},
+            { data: 'shipping_method', name: 'shipping_method'},
+            { data: 'shipping_fee', name: 'shipping_fee'},
+            { data: 'payment_method', name: 'payment_method' },
+            { data: 'total_payment', name: 'total_payment' },
+            { data: 'time_print', name: 'time_print' },
+            { data: 'action', name: 'action'},
             ],
             columnDefs: [
             {
@@ -200,7 +200,7 @@
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
             ajax: {
-                url : "{{ url('ie_permission_detail_datatables') }}",
+                url : "{{ url('ie_online_permission_detail_datatables') }}",
                 data : function (d) {
                     d.pt_id = pt_id;
                 }
@@ -208,10 +208,12 @@
             columns: [
             { data: 'DT_RowIndex', name: 'id', searchable: false},
             { data: 'article', name: 'article' },
-            { data: 'pos_td_qty', name: 'pos_td_qty' },
-            { data: 'price', name: 'price', orderable:false},
-            { data: 'nameset', name: 'pos_td_nameset'},
-            { data: 'pos_td_total_price', name: 'pos_td_total_price'},
+            { data: 'sku', name: 'sku' },
+            { data: 'qty', name: 'qty' },
+            { data: 'original_price', name: 'original_price', orderable:false},
+            { data: 'discount_seller', name: 'discount_seller'},
+            { data: 'total_discount', name: 'total_discount'},
+            { data: 'final_price', name: 'final_price'},
             { data: 'action', name: 'action', orderable:false },
             ],
             columnDefs: [
@@ -234,7 +236,7 @@
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
             ajax: {
-                url : "{{ url('ie_permission_tracking_datatables') }}",
+                url : "{{ url('ie_online_permission_tracking_datatables') }}",
                 data : function (d) {
                     d.pt_id = pt_id;
                 }
@@ -266,14 +268,14 @@
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
             ajax: {
-                url : "{{ url('ie_permission_history_datatables') }}",
+                url : "{{ url('ie_online_permission_history_datatables') }}",
                 data : function (d) {
                     d.search = $('#history_search').val();
                 }
             },
             columns: [
             { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'pos_invoice', name: 'pos_invoice' },
+            { data: 'order_number', name: 'order_number' },
             { data: 'u_name', name: 'u_name' },
             { data: 'activity', name: 'activity' },
             { data: 'note', name: 'note' },
@@ -305,7 +307,6 @@
                 dataType: 'json',
                 url: "{{ url('ie_online_permission_invoice')}}",
                 success: function(r) {
-                    console.log(r)
                     if (r.status == '200'){
                         pt_id = r.id;
                         $('.editor_panel').removeClass('d-none');
@@ -314,7 +315,7 @@
                     } else {
                         pt_id = '';
                         $('.editor_panel').addClass('d-none');
-                        toast('Gagal', 'Invoice tidak ditemukan, atau sudah lewat dari 2 hari, hanya administrator yang bisa edit lebih dari 2 hari', 'error');
+                        toast('Gagal', 'Invoice tidak ditemukan, atau sudah lewat dari 7 hari, hanya administrator yang bisa edit lebih dari 2 hari', 'error');
                     }
                     invoice_table.draw();
                     detail_table.draw();
@@ -353,7 +354,7 @@
                         type: "POST",
                         data: {pt_id:pt_id, note:note},
                         dataType: 'json',
-                        url: "{{ url('ie_permission_done_edit')}}",
+                        url: "{{ url('ie_online_permission_done_edit')}}",
                         success: function(r) {
                             if (r.status == '200'){
                                 $('.editor_panel').addClass('d-none');
@@ -383,7 +384,31 @@
                 type: "POST",
                 data: {type:type, id:id, value:value, pt_id:pt_id, qty:qty, nameset:nameset, price:price, payment_other:payment_other},
                 dataType: 'json',
-                url: "{{ url('ie_permission_do_edit')}}",
+                url: "{{ url('ie_online_permission_do_edit')}}",
+                success: function(r) {
+                    if (r.status == '200'){
+                        invoice_table.draw();
+                        detail_table.draw();
+                        tracking_table.draw();
+                        history_table.draw();
+                        toast('Berhasil', 'Data berhasil diubah', 'success');
+                    }
+                }
+            });
+            return false;
+        }
+
+        function editSku(type, id, sku, value) {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                data: {type:type, id:id, sku:value},
+                dataType: 'json',
+                url: "{{ url('ie_online_permission_edit_sku')}}",
                 success: function(r) {
                     if (r.status == '200'){
                         invoice_table.draw();
@@ -486,6 +511,15 @@
             doEdit(type, id, value, pt_id, qty, nameset, '', '');
         });
 
+        $(document).delegate('#sku', 'change', function(e) {
+            e.preventDefault();
+            var type = 'sku';
+            var id = $(this).attr('data-tod_id');
+            var sku = $(this).attr('data-sku');
+            var value = $(this).val();
+            editSku(type, id, sku, value);
+        });
+
         $(document).delegate('#nameset', 'change', function(e) {
             e.preventDefault();
             var type = 'nameset';
@@ -507,10 +541,9 @@
 
         $(document).delegate('#cancel_item_btn', 'click', function(e) {
             e.preventDefault();
-            var ptd_id = $(this).attr('data-ptd_id');
-            var pt_id = $(this).attr('data-pt_id');
-            var pl_id = $(this).attr('data-pl_id');
-            var pst_id = $(this).attr('data-pst_id');
+            var id = $(this).attr('data-tod_id');
+            var to_id = $(this).attr('data-to_id');
+
             swal({
                 title: "Cancel Item..?",
                 text: "Jika cancel item akan dihapus dari invoice dan status tracking akan menjadi waiting untuk diinstock..",
@@ -529,9 +562,9 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {ptd_id:ptd_id, pt_id:pt_id, pl_id:pl_id, pst_id:pst_id},
+                        data: {tod_id:id, to_id:to_id},
                         dataType: 'json',
-                        url: "{{ url('ie_permission_cancel_item')}}",
+                        url: "{{ url('ie_online_permission_cancel_item')}}",
                         success: function(r) {
                             if (r.status == '200'){
                                 invoice_table.draw();
@@ -570,7 +603,7 @@
                         type: "POST",
                         data: {pt_id:pt_id},
                         dataType: 'json',
-                        url: "{{ url('ie_permission_cancel_invoice')}}",
+                        url: "{{ url('ie_online_permission_cancel_invoice')}}",
                         success: function(r) {
                             if (r.status == '200'){
                                 $('.editor_panel').addClass('d-none');
