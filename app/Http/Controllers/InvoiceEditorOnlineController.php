@@ -144,126 +144,23 @@ class InvoiceEditorOnlineController extends Controller
 
     public function getInvoiceDatatables(Request $request)
     {
-        $to_id = $request->get('pt_id');
+        $pt_id = $request->get('pt_id');
         if (request()->ajax()) {
             return datatables()->of(DB::table('online_transactions')
-                ->select('online_transactions.id', 'order_number', 'no_resi', 'stores.st_name as st_name', 'users.u_print as u_print', 'platform_name', 'order_date_created', 'payment_date', 'payment_method', 'shipping_fee', 'total_payment','time_print')
-                ->join('stores', 'stores.id', '=', 'online_transactions.st_id')
-                ->join('users', 'users.id', '=', 'online_transactions.u_print')
-                ->where(function ($w) use ($to_id) {
-                    if (!empty($to_id)) {
-                        $w->where('online_transactions.id', '=', $to_id);
+                ->select('online_transactions.id', 'order_number', 'no_resi', 'stores.st_name', 'users.u_name', 'order_status', 'platform_name', 'order_date_created', 'shipping_method', 'shipping_fee', 'payment_method', 'total_payment', 'time_print')
+                ->leftJoin('stores', 'stores.id', '=', 'online_transactions.st_id')
+                ->leftJoin('users', 'users.id', '=', 'online_transactions.u_print')
+                ->where(function ($w) use ($pt_id) {
+                    if (!empty($pt_id)) {
+                        $w->where('online_transactions.id', '=', $pt_id);
                     } else {
-                        $w->where('pos_transactions.id', '=', '!@@#$%');
+                        $w->where('online_transactions.id', '=', '!@@#$%');
                     }
                 }))
-                ->editColumn('u_print', function ($d) {
-                    $cash = '';
-                    $user = DB::table('users')->select('id', 'u_name')
-                        ->where('u_delete', '!=', '1')->where('stt_id', '=', Auth::user()->stt_id)->get();
-                    $cash .= "<select data-pt_id='" . $d->id . "' id='cashier'>";
-                    if (!empty($user->first())) {
-                        foreach ($user as $row) {
-                            if ($d->u_id == $row->id) {
-                                $cash .= "<option value='" . $row->id . "' selected>" . $row->u_name . "</option>";
-                            } else {
-                                $cash .= "<option value='" . $row->id . "'>" . $row->u_name . "</option>";
-                            }
-                        }
-                    }
-                    $cash .= "</select>";
-                    return $cash;
-                })
-                ->editColumn('division', function ($d) {
-                    $div = '';
-                    $div .= "<select data-pt_id='" . $d->id . "' id='division'>";
-                    if ($d->stt_id == '1') {
-                        $div .= "<option value='1' selected>ONLINE</option>";
-                        $div .= "<option value='2'>OFFLINE</option>";
-                    } else if ($d->stt_id == '2') {
-                        $div .= "<option value='2' selected>OFFLINE</option>";
-                        $div .= "<option value='1'>ONLINE</option>";
-                    }
-                    $div .= "</select>";
-                    return $div;
-                })
-                ->editColumn('subdivision', function ($d) {
-                    $subdiv = '';
-                    $sd = DB::table('store_type_divisions')->select('id', 'dv_name')
-                        ->where('dv_delete', '!=', '1')->get();
-                    $subdiv .= "<select data-pt_id='" . $d->id . "' id='subdivision'>";
-                    if (!empty($sd->first())) {
-                        foreach ($sd as $row) {
-                            if ($row->id == $d->std_id) {
-                                $subdiv .= "<option value='" . $row->id . "' selected>" . $row->dv_name . "</option>";
-                            } else {
-                                $subdiv .= "<option value='" . $row->id . "'>" . $row->dv_name . "</option>";
-                            }
-                        }
-                    }
-                    $subdiv .= "</select>";
-                    return $subdiv;
-                })
-                ->editColumn('method', function ($d) {
-                    $method = '';
-                    $mtd = DB::table('payment_methods')->select('id', 'pm_name')
-                        ->where('pm_delete', '!=', '1')
-                        ->get();
-                    $method .= "<select data-pt_id='" . $d->id . "' id='method'>";
-                    if (!empty($mtd->first())) {
-                        foreach ($mtd as $row) {
-                            if ($d->pm_id == $row->id) {
-                                $method .= "<option value='" . $row->id . "' selected>" . $row->pm_name . "</option>";
-                            } else {
-                                $method .= "<option value='" . $row->id . "'>" . $row->pm_name . "</option>";
-                            }
-                        }
-                    }
-                    $method .= "</select>";
-                    return $method;
-                })
-                ->editColumn('pos_payment', function ($d) {
-                    return "<input type'number' data-pt_id='" . $d->id . "' id='pos_payment' class='pos_payment' value='" . $d->pos_payment . "'/>";
-                })
-                ->editColumn('method_two', function ($d) {
-                    $method_two = '';
-                    $mtd = DB::table('payment_methods')->select('id', 'pm_name')
-                        ->where('pm_delete', '!=', '1')
-                        ->get();
-                    $method_two .= "<select data-pt_id='" . $d->id . "' id='method'>";
-                    if (!empty($mtd->first())) {
-                        foreach ($mtd as $row) {
-                            if ($d->pm_id_partial == $row->id) {
-                                $method_two .= "<option value='" . $row->id . "' selected>" . $row->pm_name . "</option>";
-                            } else {
-                                $method_two .= "<option value='" . $row->id . "'>" . $row->pm_name . "</option>";
-                            }
-                        }
-                    }
-                    $method_two .= "</select>";
-                    return $method_two;
-                })
-                ->editColumn('pos_payment_partial', function ($d) {
-                    return "<input type'number' data-pt_id='" . $d->id . "' id='pos_payment_partial' class='pos_payment_partial' value='" . $d->pos_payment_partial . "'/>";
-                })
-                ->editColumn('admin', function ($d) {
-                    return "<input type'number' data-pt_id='" . $d->id . "' id='admin' value='" . $d->pos_admin_cost . "'/>";
-                })
-                ->editColumn('pos_status', function ($d) {
-                    return "<select name='pos_status_change' id='pos_status_change' class='form-control-sm' data-pt_id='" . $d->id . "'>
-                                <option value='DP' " . ($d->pos_status == 'DP' ? 'selected' : '') . ">DP</option>
-                                <option value='DONE' " . ($d->pos_status == 'DONE' ? 'selected' : '') . ">DONE</option>
-                                <option value='CANCEL' " . ($d->pos_status == 'CANCEL' ? 'selected' : '') . ">CANCEL</option>
-                                <option value='REFUND' " . ($d->pos_status == 'REFUND' ? 'selected' : '') . ">REFUND</option>
-                            </select>";
-                })
-                ->editColumn('created_at', function ($d) {
-                    return "<input type='text' value='" . $d->created_at . "' data-pt_id='" . $d->id . "' id='date'/>";
-                })
                 ->editColumn('action', function ($d) {
                     return "<a class='btn btn-sm btn-danger' data-pt_id='" . $d->id . "' id='cancel_btn'>Batalkan</a>";
                 })
-                ->rawColumns(['cashier', 'division', 'subdivision', 'method', 'pos_payment', 'method_two', 'pos_payment_partial', 'pos_status','admin', 'created_at', 'action'])
+                ->rawColumns(['action'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -273,51 +170,40 @@ class InvoiceEditorOnlineController extends Controller
     {
         $pt_id = $request->get('pt_id');
         if (request()->ajax()) {
-            return datatables()->of(DB::table('pos_transaction_details')
-                ->selectRaw("ts_pos_transaction_details.id as id, CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) as article,
-            pt_id, pos_td_qty, pst_id, pl_id, pos_td_discount_price, pos_td_marketplace_price, pos_td_nameset_price, pos_td_total_price")
-                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+            return datatables()->of(DB::table('online_transaction_details')
+                ->selectRaw("ts_online_transaction_details.id as id, CONCAT(br_name,' ',p_name,' ',p_color,' ',sz_name) as article, to_id, sku,qty, original_price, discount_seller, total_discount, price_after_discount as final_price")
+                ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->where(function ($w) use ($pt_id) {
                     if (!empty($pt_id)) {
-                        $w->where('pos_transaction_details.pt_id', '=', $pt_id);
+                        $w->where('online_transaction_details.to_id', '=', $pt_id);
                     } else {
-                        $w->where('pos_transaction_details.pt_id', '=', '!@@#$%');
+                        $w->where('online_transaction_details.to_id', '=', '!@@#$%');
                     }
                 }))
-                ->editColumn('pos_td_qty', function ($d) {
-                    return $d->pos_td_qty;
+                ->editColumn('qty', function ($d) {
+                    return $d->qty;
                 })
-                ->editColumn('price', function ($d) {
-                    $price = 0;
-                    if (!empty($d->pos_td_marketplace_price)) {
-                        $price = $d->pos_td_marketplace_price;
-                    } else {
-                        $price = $d->pos_td_discount_price;
+                ->editColumn('sku', function ($d) {
+                    $sku = '';
+                    if (!empty($d->sku)) {
+                        $sku = $d->sku;
                     }
-                    return "<input type='number' data-pt_id='" . $d->pt_id . "' data-qty='" . $d->pos_td_qty . "' data-ptd_id='" . $d->id . "' data-nameset='" . $d->pos_td_nameset_price . "' value='" . $price . "' id='price'/>";
-                })
-                ->editColumn('nameset', function ($d) {
-                    $price = 0;
-                    if (!empty($d->pos_td_marketplace_price)) {
-                        $price = $d->pos_td_marketplace_price;
-                    } else {
-                        $price = $d->pos_td_discount_price;
-                    }
-                    return "<input type='number' data-pt_id='" . $d->pt_id . "' data-qty='" . $d->pos_td_qty . "' data-ptd_id='" . $d->id . "' data-price='" . $price . "' value='" . $d->pos_td_nameset_price . "' id='nameset'/>";
+                    return "<input type='text' data-tod_id='" . $d->id . "' data-sku='" . $d->sku . "' value='" . $sku . "' id='sku'/>";
                 })
                 ->editColumn('action', function ($d) use ($pt_id) {
                     $status = null;
                     if (!empty($pt_id)) {
-                        $status = DB::table('pos_transactions')->select('pos_status')->where('id', '=', $pt_id)->first()->pos_status;
+                        $status = DB::table('online_transactions')->select('order_status')->where('id', '=', $pt_id)->first()->order_status;
                     }
-                    if ($status != 'WAITING FOR CONFIRMATION') {
-                        return "<a class='btn btn-sm btn-danger' data-pst_id='" . $d->pst_id . "' data-pl_id='" . $d->pl_id . "' data-pt_id='" . $d->pt_id . "' data-ptd_id='" . $d->id . "' id='cancel_item_btn'>Batalkan</a>";
+                    if ($status != '0') {
+//                        return "<a class='btn btn-sm btn-danger' data-pst_id='" . $d->pst_id . "' data-pl_id='" . $d->pl_id . "' data-pt_id='" . $d->pt_id . "' data-ptd_id='" . $d->id . "' id='cancel_item_btn'>Batalkan</a>";
+                        return "<a class='btn btn-sm btn-danger' data-tod_id='" . $d->id . "'  data-to_id='" . $d->to_id . "'  id='cancel_item_btn'>Batalkan</a>";
                     }
                 })
-                ->rawColumns(['price', 'nameset', 'action'])
+                ->rawColumns(['sku', 'action'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -365,250 +251,45 @@ class InvoiceEditorOnlineController extends Controller
 
     public function cancelInvoice(Request $request)
     {
-        $auto_instock = BuyOneGetOne::select('pl_code')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->get()->toArray();
-        array_push($auto_instock, ['pl_code' => 'TOKO']);
-        array_push($auto_instock, ['pl_code' => 'WGN1']);
-
         $pt_id = $request->post('pt_id');
-        $stt_id = DB::table('pos_transactions')->select('stt_id')
-            ->where('id', '=', $pt_id)->first()->stt_id;
 
-        if ($stt_id == '1') {
-            $status = 'WAITING ONLINE';
+
+        $delete = DB::table('online_transactions')
+            ->where('id', '=', $pt_id)
+            ->delete();
+
+        if ($delete) {
+
+            $r['status'] = 200;
         } else {
-            $status = 'WAITING OFFLINE';
-        }
-
-        $cek_ref = DB::table('pos_transactions')->where('pt_id_ref', '=', $pt_id)->first();
-        if (!empty($cek_ref)) {
-            $r['invoice'] = $cek_ref->pos_invoice;
             $r['status'] = 400;
-            return json_encode($r);
         }
 
-        $statusx = DB::table('pos_transactions')->select('pos_status')->where('id', '=', $pt_id)->first()->pos_status;
-        if ($statusx == 'WAITING FOR CONFIRMATION') {
-            $delete = DB::table('product_location_setup_transactions')->where('pt_id', '=', $pt_id)->delete();
-            $delete = DB::table('pos_transaction_details')->where('pt_id', '=', $pt_id)->delete();
-            $delete = DB::table('invoice_editors')->where('pt_id', '=', $pt_id)->delete();
-            $delete = DB::table('pos_transactions')->where('id', '=', $pt_id)->delete();
-            $r['status'] = 200;
-            return json_encode($r);
-        }
-
-        $get = DB::table('pos_transactions')->select('id', 'pt_id_ref')->where([
-            'id' => $pt_id
-        ])->first();
-        if (!empty($get->pt_id_ref)) {
-            $update = DB::table('pos_transactions')
-                ->where('id', '=', $get->pt_id_ref)->update([
-                    'pos_refund' => '0',
-                    'pos_status' => 'DONE'
-                ]);
-            $delete = DB::table('product_location_setup_transactions')
-                ->where('pt_id', '=', $get->pt_id_ref)
-                ->whereIn('plst_status', ['REFUND', 'EXCHANGE'])
-                ->delete();
-
-            $instock = DB::table('product_location_setup_transactions')
-                ->where('pt_id', '=', $get->pt_id_ref)
-                ->where('plst_status', '=', 'INSTOCK')->get();
-            if (!empty($instock->first())) {
-                foreach ($instock as $row) {
-                    $pls = DB::table('product_location_setups')->select('pls_qty')->where('id', '=', $row->pls_id)->first();
-                    $update = DB::table('product_location_setups')->where('id', '=', $row->pls_id)
-                        ->update([
-                            'pls_qty' => ($pls->pls_qty - $row->plst_qty)
-                        ]);
-                }
-                $delete = DB::table('product_location_setup_transactions')
-                    ->where('pt_id', '=', $get->pt_id_ref)
-                    ->where('plst_status', '=', 'INSTOCK')
-                    ->delete();
-            }
-            //////////////////////////////////
-            $plst = DB::table('product_location_setup_transactions')
-                ->select('product_location_setup_transactions.id as id', 'pls_id', 'pl_code', 'plst_qty', 'plst_status', 'pls_qty')
-                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->where('pt_id', '=', $pt_id)->get();
-            if (!empty($plst->first())) {
-                foreach ($plst as $row) {
-                    if (in_array(['pl_code' => $row->pl_code], $auto_instock)) {
-                        $update = DB::table('product_location_setups')
-                            ->where('id', '=', $row->pls_id)->update([
-                                'pls_qty' => $row->pls_qty + $row->plst_qty
-                            ]);
-                        $update = DB::table('product_location_setup_transactions')
-                            ->where('id', '=', $row->id)
-                            ->update([
-                                // 'pt_id' => null,
-                                'plst_status' => 'INSTOCK'
-                            ]);
-                    } else {
-                        if ($row->plst_status == 'WAITING ONLINE') {
-                            $update = DB::table('product_location_setups')
-                                ->where('id', '=', $row->pls_id)->update([
-                                    'pls_qty' => $row->pls_qty + $row->plst_qty
-                                ]);
-                            $update = DB::table('product_location_setup_transactions')
-                                ->where('id', '=', $row->id)
-                                ->update([
-                                    // 'pt_id' => null,
-                                    'plst_status' => 'INSTOCK'
-                                ]);
-                        } else {
-                            $update = DB::table('product_location_setup_transactions')
-                                ->where('id', '=', $row->id)
-                                ->update([
-                                    // 'pt_id' => null,
-                                    'plst_status' => $status
-                                ]);
-                        }
-                    }
-                }
-            }
-            ///////////////////////////////////
-            // $delete = DB::table('pos_transaction_details')->where('pt_id', '=', $pt_id)->delete();
-            // $delete = DB::table('invoice_editors')->where('pt_id', '=', $pt_id)->delete();
-            // $delete = DB::table('pos_transactions')->where('id', '=', $pt_id)->delete();
-            $delete = DB::table('pos_transactions')->where('id', '=', $pt_id)->update([
-                'pt_id_ref' => null,
-                'pos_status' => 'CANCEL'
-            ]);
-            $r['status'] = 200;
-        } else {
-            $plst = DB::table('product_location_setup_transactions')
-                ->select('product_location_setup_transactions.id as id', 'pls_id', 'pl_code', 'plst_qty', 'plst_status', 'pls_qty')
-                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->where('pt_id', '=', $pt_id)->get();
-            if (!empty($plst->first())) {
-                foreach ($plst as $row) {
-                    if (in_array(['pl_code' => $row->pl_code], $auto_instock)) {
-                        $update = DB::table('product_location_setups')
-                            ->where('id', '=', $row->pls_id)->update([
-                                'pls_qty' => $row->pls_qty + $row->plst_qty
-                            ]);
-                        $update = DB::table('product_location_setup_transactions')
-                            ->where('id', '=', $row->id)
-                            ->update([
-                                // 'pt_id' => null,
-                                'plst_status' => 'INSTOCK'
-                            ]);
-                    } else {
-                        if ($row->plst_status == 'WAITING ONLINE') {
-                            $update = DB::table('product_location_setups')
-                                ->where('id', '=', $row->pls_id)->update([
-                                    'pls_qty' => $row->pls_qty + $row->plst_qty
-                                ]);
-                            $update = DB::table('product_location_setup_transactions')
-                                ->where('id', '=', $row->id)
-                                ->update([
-                                    // 'pt_id' => null,
-                                    'plst_status' => 'INSTOCK'
-                                ]);
-                        } else {
-                            $update = DB::table('product_location_setup_transactions')
-                                ->where('id', '=', $row->id)
-                                ->update([
-                                    // 'pt_id' => null,
-                                    'plst_status' => $status
-                                ]);
-                        }
-                    }
-                }
-            }
-            // $delete = DB::table('pos_transaction_details')->where('pt_id', '=', $pt_id)->delete();
-            // $delete = DB::table('invoice_editors')->where('pt_id', '=', $pt_id)->delete();
-            // $delete = DB::table('pos_transactions')->where('id', '=', $pt_id)->delete();
-            $delete = DB::table('pos_transactions')->where('id', '=', $pt_id)->update([
-                'pos_status' => 'CANCEL'
-            ]);
-            $r['status'] = 200;
-        }
         return json_encode($r);
     }
 
     public function cancelItem(Request $request)
     {
-        $auto_instock = BuyOneGetOne::select('pl_code')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->get()->toArray();
-        array_push($auto_instock, ['pl_code' => 'TOKO']);
-        array_push($auto_instock, ['pl_code' => 'WGN1']);
+        $tod_id = $request->tod_id;
+        $to_id = $request->to_id;
+        $delete = DB::table('online_transaction_details')->where('id', '=', $tod_id)->delete();
 
-        $pt_id = $request->post('pt_id');
-        $ptd_id = $request->post('ptd_id');
-        $pl_id = $request->post('pl_id');
-        $pst_id = $request->post('pst_id');
 
-        $pls_id = DB::table('product_location_setups')->select('id')
-            ->where([
-                'pst_id' => $pst_id,
-                'pl_id' => $pl_id,
-            ])->first()->id;
+        if ($delete) {
+            $total = DB::table('online_transactions')
+                ->where('pt_id', '=', $to_id)
+                ->sum('price_after_discount');
 
-        $stt_id = DB::table('pos_transactions')->select('stt_id')
-            ->where('id', '=', $pt_id)->first()->stt_id;
-        if ($stt_id == '1') {
-            $status = 'WAITING ONLINE';
-        } else {
-            $status = 'WAITING OFFLINE';
-        }
-
-        $plst = DB::table('product_location_setup_transactions')
-            ->select('product_location_setup_transactions.id as id', 'pls_id', 'pl_code', 'pls_qty', 'plst_status', 'plst_qty')
-            ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-            ->where([
-                'pt_id' => $pt_id,
-                'pls_id' => $pls_id
-            ])->first();
-        if (in_array(['pl_code' => $plst->pl_code], $auto_instock)) {
-            $update = DB::table('product_location_setups')->where('id', '=', $plst->pls_id)
+            DB::table('online_transactions')->where('id', '=', $to_id)
                 ->update([
-                    'pls_qty' => $plst->pls_qty + $plst->plst_qty
+                    'total_payment' => $total,
+                    'updated_at' => date('Y-m-d H:i:s')
                 ]);
-            $plst = DB::table('product_location_setup_transactions')
-                ->where('id', '=', $plst->id)->update([
-                    'pt_id' => null,
-                    'plst_status' => 'INSTOCK'
-                ]);
+            $r['status'] = 200;
         } else {
-            if ($plst->plst_status == 'WAITING ONLINE') {
-                $update = DB::table('product_location_setups')
-                    ->where('id', '=', $plst->pls_id)->update([
-                        'pls_qty' => $plst->pls_qty + $plst->plst_qty
-                    ]);
-                $update = DB::table('product_location_setup_transactions')
-                    ->where('id', '=', $plst->id)
-                    ->update([
-                        'pt_id' => null,
-                        'plst_status' => 'INSTOCK'
-                    ]);
-            } else {
-                $plst = DB::table('product_location_setup_transactions')
-                    ->where('id', '=', $plst->id)->update([
-                        'pt_id' => null,
-                        'plst_status' => $status
-                    ]);
-            }
+            $r['status'] = 400;
         }
 
-        $delete = DB::table('pos_transaction_details')->where('id', '=', $ptd_id)->delete();
-
-        $total = DB::table('pos_transaction_details')
-            ->where('pt_id', '=', $pt_id)
-            ->sum('pos_td_total_price');
-        $admin = DB::table('pos_transactions')->select('pos_admin_cost')->where('id', '=', $pt_id)->first()->pos_admin_cost;
-        $update = DB::table('pos_transactions')->where('id', '=', $pt_id)
-            ->update([
-                'pos_real_price' => ($total - $admin),
-                'updated_at' => date('Y-m-d H:i:s')
-            ]);
-
-        $r['status'] = 200;
         return json_encode($r);
     }
 
@@ -622,13 +303,13 @@ class InvoiceEditorOnlineController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
 
         if (request()->ajax()) {
-            return datatables()->of(DB::table('invoice_editors')
-                ->select("invoice_editors.id", "pos_invoice", "u_name", "activity", "note", "invoice_editors.created_at", "invoice_editors.updated_at")
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'invoice_editors.pt_id')
-                ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id')
+            return datatables()->of(DB::table('invoice_editor_onlines')
+                ->select("invoice_editor_onlines.id", "order_number", "u_name", "activity", "note", "invoice_editor_onlines.created_at", "invoice_editor_onlines.updated_at")
+                ->leftJoin('online_transactions', 'online_transactions.id', '=', 'invoice_editor_onlines.to_id')
+                ->leftJoin('users', 'users.id', '=', 'invoice_editor_onlines.u_id')
                 ->where(function ($w) use ($user_data) {
                     if ($user_data->g_name != 'administrator') {
-                        $w->where('invoice_editors.u_id', '=', Auth::user()->id);
+                        $w->where('invoice_editor_onlines.u_id', '=', Auth::user()->id);
                     }
                 }))
                 ->editColumn('created_at', function ($d) {
@@ -642,7 +323,7 @@ class InvoiceEditorOnlineController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('u_name', 'LIKE', "%$search%")
-                                ->orWhere('pos_invoice', 'LIKE', "%$search%");
+                                ->orWhere('order_number', 'LIKE', "%$search%");
                         });
                     }
                 })
@@ -788,12 +469,33 @@ class InvoiceEditorOnlineController extends Controller
         return json_encode($r);
     }
 
+    public function doEditSku(Request $request)
+    {
+        $type = $request->post('type');
+        $id = $request->post('id');
+        $sku = $request->post('sku');
+
+        if ($type == 'sku') {
+            $update = DB::table('online_transaction_details')->where('id', '=', $id)
+                ->update([
+                    'sku' => $sku,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+        }
+        if (!empty($update)) {
+            $r['status'] = 200;
+        } else {
+            $r['status'] = 400;
+        }
+        return json_encode($r);
+    }
+
     public function doneEdit(Request $request)
     {
         $pt_id = $request->post('pt_id');
         $note = $request->post('note');
 
-        $update = DB::table('invoice_editors')->where('pt_id', '=', $pt_id)
+        $update = DB::table('invoice_editor_onlines')->where('to_id', '=', $pt_id)
             ->update([
                 'note' => $note,
                 'status' => '1',
@@ -815,11 +517,11 @@ class InvoiceEditorOnlineController extends Controller
 
         $check = DB::table('online_transactions')
             ->select('id')
-            ->where(function($query) use ($pos_invoice) {
+            ->where(function ($query) use ($pos_invoice) {
                 $query->where('no_resi', '=', $pos_invoice)
                     ->orWhere('order_number', '=', $pos_invoice);
             })
-            ->where('time_print', '!=', null)
+//            ->where('time_print', '!=', null)
             ->first();
 
 

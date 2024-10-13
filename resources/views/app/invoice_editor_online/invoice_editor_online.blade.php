@@ -54,18 +54,19 @@
                                     <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-                                        <th class="text-dark">Order Number</th>
-                                        <th class="text-dark">No Resi</th>
+                                        <th class="text-dark">Nomor Order</th>
+                                        <th class="text-dark">Nomor Resi</th>
                                         <th class="text-dark">Store</th>
-                                        <th class="text-dark">PIC Transaksi</th>
-                                        <th class="text-dark">Platform</th>
+                                        <th class="text-dark">Kasir</th>
+                                        <th class="text-dark">Order Status</th>
+                                        <th class="text-dark">Platform Name</th>
                                         <th class="text-dark">Order Date</th>
-                                        <th class="text-dark">Payment Date</th>
-                                        <th class="text-dark">Payment Method</th>
+                                        <th class="text-dark">Shipping Method</th>
                                         <th class="text-dark">Shipping Fee</th>
+                                        <th class="text-dark">Payment Method</th>
                                         <th class="text-dark">Total Payment</th>
-                                        <th class="text-dark">Time Print</th>
-                                        <th class="text-dark">Tindakan</th>
+                                        <th class="text-dark">Tgl Transaksi</th>
+                                        <th class="text-dark">Action</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -82,16 +83,21 @@
                         <div class="card card-custom gutter-b">
                             <div class="card-body table-responsive">
                                 <h6>Detail Invoice</h6>
+                                <div class="alert alert-danger" role="alert">
+                                    !Important.. Jika Sudah Scan Harap mencatat dan memberitahu logistik SKU yang di hapus
+                                </div>
                                 <table class="table table-hover table-checkable" id="InvoiceDetailtb">
                                     <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">Artikel</th>
+                                        <th class="text-dark">SKU</th>
                                         <th class="text-dark">Qty</th>
-                                        <th class="text-dark">Harga</th>
-                                        <th class="text-dark">Nameset</th>
-                                        <th class="text-dark">Total</th>
-                                        <th class="text-dark">Tindakan</th>
+                                        <th class="text-dark">Original Price</th>
+                                        <th class="text-dark">Discount Seller</th>
+                                        <th class="text-dark">Total Discount</th>
+                                        <th class="text-dark">Final Price</th>
+                                        <th class="text-dark">Action</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -139,7 +145,7 @@
                                         <thead class="bg-light text-dark">
                                         <tr>
                                             <th class="text-dark">No</th>
-                                            <th class="text-dark">Invoice</th>
+                                            <th class="text-dark">Order number</th>
                                             <th class="text-dark">User</th>
                                             <th class="text-dark">Aktifitas</th>
                                             <th class="text-dark">Catatan</th>

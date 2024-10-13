@@ -182,10 +182,20 @@ Route::group(['middleware' => 'auth'], function () {
 
     // InvoiceEditorController
     Route::get('invoice_editor_online', [InvoiceEditorOnlineController::class, 'index']);
-    Route::post('ie_online_permission_invoice', [InvoiceEditorOnlineController::class, 'checkInvoice']);
     Route::get('ie_online_permission_datatables', [InvoiceEditorOnlineController::class, 'getPermissionDatatables']);
     Route::get('ie_online_permission_invoice_datatables', [InvoiceEditorOnlineController::class, 'getInvoiceDatatables']);
+    Route::get('ie_online_permission_detail_datatables', [InvoiceEditorOnlineController::class, 'getDetailDatatables']);
+    Route::get('ie_online_permission_tracking_datatables', [InvoiceEditorOnlineController::class, 'getTrackingDatatables']);
+    Route::get('ie_online_permission_history_datatables', [InvoiceEditorOnlineController::class, 'getHistoryDatatables']);
+    Route::post('ie_online_permission_save', [InvoiceEditorOnlineController::class, 'storePermissionData']);
+    Route::post('ie_online_permission_delete', [InvoiceEditorOnlineController::class, 'deletePermissionData']);
+    Route::post('ie_online_permission_invoice', [InvoiceEditorOnlineController::class, 'checkInvoice']);
     Route::post('ie_online_permission_check_active_edit', [InvoiceEditorOnlineController::class, 'checkActiveEdit']);
+    Route::post('ie_online_permission_done_edit', [InvoiceEditorOnlineController::class, 'doneEdit']);
+    Route::post('ie_online_permission_do_edit', [InvoiceEditorOnlineController::class, 'doEdit']);
+    Route::post('ie_online_permission_edit_sku', [InvoiceEditorOnlineController::class, 'doEditSku']);
+    Route::post('ie_online_permission_cancel_item', [InvoiceEditorOnlineController::class, 'cancelItem']);
+    Route::post('ie_online_permission_cancel_invoice', [InvoiceEditorOnlineController::class, 'cancelInvoice']);
 
     // Auth Controller
     Route::get('logout', [AuthController::class, 'logout'])->name('logout');
