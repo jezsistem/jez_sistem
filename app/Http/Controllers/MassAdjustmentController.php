@@ -221,25 +221,25 @@ class MassAdjustmentController extends Controller
     {
         if(request()->ajax()) {
             // Step 1: Update `qty_export` to match `pls_qty` where needed
-            DB::table('mass_adjustment_details')
-                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
-                ->whereColumn('mass_adjustment_details.qty_export', '<>', 'product_location_setups.pls_qty')
-                ->update(['mass_adjustment_details.qty_export' => DB::raw('ts_product_location_setups.pls_qty')]);
-
-            // Step 2: Update `mad_type` and `mad_diff` based on comparison between `qty_so` and `qty_export`
-            DB::table('mass_adjustment_details')
-                ->whereColumn('qty_so', '>', 'qty_export')
-                ->update([
-                    'mad_type' => '+',
-                    'mad_diff' => DB::raw('qty_so - qty_export')
-                ]);
-
-            DB::table('mass_adjustment_details')
-                ->whereColumn('qty_so', '<', 'qty_export')
-                ->update([
-                    'mad_type' => '-',
-                    'mad_diff' => DB::raw('qty_so - qty_export')
-                ]);
+//            DB::table('mass_adjustment_details')
+//                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+//                ->whereColumn('mass_adjustment_details.qty_export', '<>', 'product_location_setups.pls_qty')
+//                ->update(['mass_adjustment_details.qty_export' => DB::raw('ts_product_location_setups.pls_qty')]);
+//
+//            // Step 2: Update `mad_type` and `mad_diff` based on comparison between `qty_so` and `qty_export`
+//            DB::table('mass_adjustment_details')
+//                ->whereColumn('qty_so', '>', 'qty_export')
+//                ->update([
+//                    'mad_type' => '+',
+//                    'mad_diff' => DB::raw('qty_so - qty_export')
+//                ]);
+//
+//            DB::table('mass_adjustment_details')
+//                ->whereColumn('qty_so', '<', 'qty_export')
+//                ->update([
+//                    'mad_type' => '-',
+//                    'mad_diff' => DB::raw('qty_so - qty_export')
+//                ]);
 
             // Proceed with the DataTables query
             return datatables()->of(
