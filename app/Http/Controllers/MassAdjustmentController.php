@@ -163,7 +163,7 @@ class MassAdjustmentController extends Controller
     public function adjustmentDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at')
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
                 ->editColumn('ma_code_show', function ($d) {
@@ -220,20 +220,44 @@ class MassAdjustmentController extends Controller
     public function adjustmentDetailDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustment_details')->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
+            // Step 1: Update `qty_export` to match `pls_qty` where needed
+//            DB::table('mass_adjustment_details')
+//                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+//                ->whereColumn('mass_adjustment_details.qty_export', '<>', 'product_location_setups.pls_qty')
+//                ->update(['mass_adjustment_details.qty_export' => DB::raw('ts_product_location_setups.pls_qty')]);
+//
+//            // Step 2: Update `mad_type` and `mad_diff` based on comparison between `qty_so` and `qty_export`
+//            DB::table('mass_adjustment_details')
+//                ->whereColumn('qty_so', '>', 'qty_export')
+//                ->update([
+//                    'mad_type' => '+',
+//                    'mad_diff' => DB::raw('qty_so - qty_export')
+//                ]);
+//
+//            DB::table('mass_adjustment_details')
+//                ->whereColumn('qty_so', '<', 'qty_export')
+//                ->update([
+//                    'mad_type' => '-',
+//                    'mad_diff' => DB::raw('qty_so - qty_export')
+//                ]);
+
+            // Proceed with the DataTables query
+            return datatables()->of(
+                DB::table('mass_adjustment_details')
+                    ->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
             avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
-                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
-                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
-                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->where('mass_adjustment_details.ma_id', '=', $request->get('ma_id'))
-                ->groupBy('mass_adjustment_details.id'))
-                ->editColumn('purchase', function($data) {
+                    ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
+                    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where('mass_adjustment_details.ma_id', '=', $request->get('ma_id'))
+                    ->groupBy('mass_adjustment_details.id'))
+                ->editColumn('purchase', function ($data) {
                     if (!empty($data->purchase_1)) {
                         return number_format($data->purchase_1);
                     } else if (!empty($data->purchase_2)) {
@@ -244,7 +268,7 @@ class MassAdjustmentController extends Controller
                         return number_format($data->p_purchase_price);
                     }
                 })
-                ->editColumn('sell', function($data) {
+                ->editColumn('sell', function ($data) {
                     if (!empty($data->ps_sell_price)) {
                         return number_format($data->ps_sell_price);
                     } else {
@@ -253,10 +277,10 @@ class MassAdjustmentController extends Controller
                 })
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
-                        $instance->where(function($w) use($request){
+                        $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('pl_code', 'LIKE', "%$search%")
-                                ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                                ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', ["%$search%"]);
                         });
                     }
                 })
@@ -426,9 +450,10 @@ class MassAdjustmentController extends Controller
         $br_id = $req->post('br_id');
         $pl_id = $req->post('pl_id');
         $qty_filter = $req->post('qty_filter');
+        $note = $req->post('note_adjustment');
 
         if (request()->hasFile('template')) {
-            $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter);
+            $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note);
             Excel::import($import, request()->file('template'));
             $r['ma_id'] = $import->getRowCount()['ma_id'];
             $r['ma_code'] = $import->getRowCount()['ma_code'];
