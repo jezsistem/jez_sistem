@@ -7,6 +7,7 @@ use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
+use App\Http\Controllers\InvoiceEditorOnlineController;
 use App\Http\Controllers\PowerBiDashboardController;
 use App\Http\Controllers\ApiController;
 
@@ -179,6 +180,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
     Route::post('ie_permission_cancel_invoice', [InvoiceEditorController::class, 'cancelInvoice']);
 
+    // InvoiceEditorController
+    Route::get('invoice_editor_online', [InvoiceEditorOnlineController::class, 'index']);
+    Route::post('ie_online_permission_invoice', [InvoiceEditorOnlineController::class, 'checkInvoice']);
+    Route::get('ie_online_permission_datatables', [InvoiceEditorOnlineController::class, 'getPermissionDatatables']);
+    Route::get('ie_online_permission_invoice_datatables', [InvoiceEditorOnlineController::class, 'getInvoiceDatatables']);
+    Route::post('ie_online_permission_check_active_edit', [InvoiceEditorOnlineController::class, 'checkActiveEdit']);
 
     // Auth Controller
     Route::get('logout', [AuthController::class, 'logout'])->name('logout');
@@ -197,13 +204,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('load_assets', [AssetController::class, 'loadAssets']);
     Route::post('load_cassets', [AssetController::class, 'loadCAssets']);
 
-
     // ==== Dashboard ==== //
     Route::get('asset_by_store_datatables', [AssetController::class, 'assetByStoreDatatables']);
     Route::get('debt_by_store_datatables', [AssetController::class, 'debtByStoreDatatables']);
     Route::get('nett_sale_by_store_datatables', [AssetController::class, 'nettSaleByStoreDatatables']);
     Route::get('brand_value_datatables', [AssetController::class, 'getAssetByBrand']);
-    // ==== Dashboard ==== //
+
     // Helper Backup //
     Route::get('helper_backup', [HelperBackupController::class, 'index']);
     // Customer Type
