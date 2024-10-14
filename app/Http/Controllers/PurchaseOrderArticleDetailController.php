@@ -42,7 +42,11 @@ class PurchaseOrderArticleDetailController extends Controller
         $qty = $request->_qty;
         $total = $request->_total;
         $poad_id = $request->_poad_id;
-        $save = PurchaseOrderArticleDetail::where(['id' => $poad_id])->update(['poad_qty' => $qty, 'poad_total_price' => $total]);
+        $poad_purchase_price = $request->_purchase_price;
+        // dd($poad_purchase_price);
+        $save = PurchaseOrderArticleDetail::where(['id' => $poad_id])
+        ->update(['poad_qty' => $qty, 'poad_total_price' => $total, 'poad_purchase_price' => $poad_purchase_price]);
+
         if (!empty($save)) {
             $r['status'] = '200';
         } else {

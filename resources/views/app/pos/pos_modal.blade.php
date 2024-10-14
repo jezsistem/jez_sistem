@@ -62,7 +62,7 @@
 					<div class="col-md-12">
 						<label  class="text-body">Provinsi *</label>
 						<fieldset class="form-group mb-3">
-							<select class="form-control" id="cust_province" name="cust_province" required>
+							<select class="form-control" id="cust_province" name="cust_province">
 								<option value="">- Pilih -</option>
 								@foreach ($data['cust_province'] as $key => $value)
 									<option value="{{ $key }}">{{ $value }}</option>
@@ -75,7 +75,7 @@
 					<div class="col-md-12">
 						<label  class="text-body">Kota *</label>
 						<fieldset class="form-group mb-3">
-							<select class="form-control" id="cust_city" name="cust_city" required>
+							<select class="form-control" id="cust_city" name="cust_city">
 								<option value="">- Pilih -</option>
 							</select>
 						</fieldset>
@@ -85,7 +85,7 @@
 					<div class="col-md-12">
 						<label  class="text-body">Kecamatan *</label>
 						<fieldset class="form-group mb-3">
-							<select class="form-control" id="cust_subdistrict" name="cust_subdistrict" required>
+							<select class="form-control" id="cust_subdistrict" name="cust_subdistrict">
 								<option value="">- Pilih -</option>
 							</select>
 						</fieldset>
@@ -255,6 +255,14 @@
 					</tr>
 					<tr class="d-flex align-items-center justify-content-between">
 						<th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
+							Diskon Penjual (-)
+						</th>
+						<td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
+							<input type="number" placeholder="" id="discount_seller" class="bg-light-primary"/>
+						</td>
+					</tr>
+					<tr class="d-flex align-items-center justify-content-between">
+						<th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
 								Biaya Admin (-) 
 						</th>
 						<td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
@@ -331,5 +339,123 @@
             </div>
         </div>
     </div>
+</div>
+<!-- /Modal -->
+
+<!-- Modal -->
+<div class="modal fade text-left" id="voucherModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1444" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable  modal-dialog-centered modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-light">
+				<h3 class="modal-title text-primary" id="myModalLabel1444">Tambah Voucher</h3>
+				<button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0" data-dismiss="modal" aria-label="Close">
+					<svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+						<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="f_add_voucher">
+					<div class="form-group row">
+						<div class="col-md-6">
+							<label class="text-body">Voucher</label>
+							<fieldset class="form-group mb-3">
+								<div id="voucher-container">
+									<div class="input-group mb-3">
+										<input type="text" name="voucher-list[]" class="form-control" placeholder="Kode Voucher" value="">
+										<div class="input-group-append ml-3">
+											<button class="btn btn-xs btn-outline-secondary add-voucher" type="button">+</button>
+										</div>
+									</div>
+								</div>
+							</fieldset>
+						</div>
+					</div>
+
+					<div class="form-group row justify-content-end mb-0">
+						<div class="col-md-6  text-right">
+							<button type="submit" class="btn btn-primary">Tambah</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Modal -->
+
+<!-- Modal -->
+<div class="modal fade text-left" id="totalDiscountModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1444" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable  modal-dialog-centered modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-light">
+				<h3 class="modal-title text-primary" id="myModalLabel1444">Tambah Diskon</h3>
+				<button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0" data-dismiss="modal" aria-label="Close">
+					<svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+						<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="f_add_total_discount">
+							<div class="form-group col-md-6">
+								<label  class="text-body">Tipe Diskon</label>
+								<fieldset class="form-group mb-3">
+									<select class="form-control" name="discount-type-list">
+										<option value="nominal">Nominal</option>
+										<option value="percentage">Percentage</option>
+									</select>
+								</fieldset>
+							</div>
+							<div class="col-md-6">
+								<label class="text-body">Diskon</label>
+								<fieldset class="form-group mb-3">
+									<div id="total-discount-container">
+										<div class="input-group mb-3">
+											<input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
+											<div class="input-group-append ml-3">
+												<button class="btn btn-xs btn-outline-secondary add-total-discount" type="button">+</button>
+											</div>
+										</div>
+									</div>
+								</fieldset>
+							</div>
+					<div class="form-group row justify-content-end mb-0">
+						<div class="col-md-6 text-right">
+							<button type="button" class="btn btn-warning" id="total_discount_reset">Reset</button>
+							<button type="submit" class="btn btn-primary">Tambah</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Modal -->
+
+<!-- Modal -->
+<div class="modal fade text-left" id="shiftEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13" style="display: none;" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-light">
+				<h4 class="modal-title text-dark" id="myModalLabel13">Shift Employee</h4>
+				<button type="button" class="close rounded-pill btn btn-sm btn-icon btn-light btn-hover-primary m-0" data-dismiss="modal" aria-label="Close">
+					<svg width="20px" height="20px" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+						<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="f_shift_customer">
+					<div class="btn-group" role="group">
+						<button type="button" class="btn btn-primary" id="startShiftButton">Start Shift</button>
+						<button type="button" class="btn btn-danger" id="stopShiftButton" style="display: none;">Stop Shift</button>
+					</div>
+					<div id="shiftStatus">Shift not started</div>
+					<div class="clock"></div>
+				</form>
+			</div>
+		</div>
+	</div>
 </div>
 <!-- /Modal -->

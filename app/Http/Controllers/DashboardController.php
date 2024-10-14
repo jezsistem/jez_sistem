@@ -64,6 +64,8 @@ class DashboardController extends Controller
     
     public function index()
     {
+
+//        dd(Auth::user()->st_id);
         $this->validateAccess();
         $user = new User;
         $user_activity = new UserActivity;

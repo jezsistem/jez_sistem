@@ -1,6 +1,6 @@
 <head>
 	<meta charset="utf-8" />
-	<title>TOPSYSTEM | Point Of Sale</title>
+	<title>JEZ SYSTEM | Point Of Sale</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 	<meta name="description" content="Updates and statistics" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -18,4 +18,40 @@
     <link href="{{ asset('cdn/select2.min.css') }}" rel="stylesheet" type="text/css" >
 	<link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="{{ asset('pos/css') }}/daterangepicker.css" />
+
+	<style>
+		#current-shift-table-wrapper {
+			text-align: center;
+		}
+
+		#current-shift-table {
+			margin: 0 auto;
+			width: 50%;
+			border-collapse: collapse;
+		}
+
+		#current-shift-table td, #current-shift-table th {
+			padding: 10px;
+			text-align: center;
+			border: 1px solid #ddd;
+		}
+
+		#current-shift-table th {
+			background-color: #f2f2f2;
+		}
+	</style>
+
+	<script>
+		var elem = document.documentElement;
+		function forceFullScreen()
+		{
+			if (elem.requestFullscreen) {
+				elem.requestFullscreen();
+			} else if (elem.webkitRequestFullscreen) { /* Safari */
+				elem.webkitRequestFullscreen();
+			} else if (elem.msRequestFullscreen) { /* IE11 */
+				elem.msRequestFullscreen();
+			}
+		}
+	</script>
 </head>

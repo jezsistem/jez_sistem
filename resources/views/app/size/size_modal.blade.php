@@ -50,6 +50,10 @@
             <div class="modal-body">
                 <div class="card-body">
                     <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Schema*</label>
+                        <input type="text" class="form-control" id="sz_schema" name="sz_schema" required />
+                    </div>
+                    <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Size Artikel*</label>
                         <input type="text" class="form-control" id="sz_name" name="sz_name" required />
                     </div>

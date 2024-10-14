@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\TargetDetailImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ use App\Models\Store;
 use App\Models\StoreType;
 use App\Models\PosTransactionDetail;
 use App\Models\UserActivity;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TargetController extends Controller
 {
@@ -371,4 +373,65 @@ class TargetController extends Controller
         }
         return json_encode($r);
     }
+
+    public function saveTargetDetailImport(Request $request)
+    {
+        try {
+            if ($request->hasFile('importFile')) {
+
+                $file = $request->file('importFile');
+                // membuat nama file unik
+                $nama_file = rand() . $file->getClientOriginalName();
+
+                // upload ke folder file_siswa di dalam folder public
+                $file->move('excel', $nama_file);
+
+                $tr_id = $request->_tr_id;
+                $st_id = $request->_st_id;
+                $stt_id = $request->_stt_id;
+                $import = new TargetDetailImport($tr_id, $st_id, $stt_id);
+                Excel::import($import, public_path('/excel/' . $nama_file));
+
+                $r['status'] = '200';
+                unlink(public_path('/excel/' . $nama_file));
+                } else {
+                $r['status'] = '400';
+            }
+
+        return json_encode($r);
+        } catch (\Exception $e) {
+            return json_encode($e->getMessage());
+        }
+    }
+
+//    public function saveTargetDetail(Request $request)
+//    {
+//        $tr_id = $request->_tr_id;
+//        $st_id = $request->_st_id;
+//        $stt_id = $request->_stt_id;
+//        $arr = $request->_arr;
+//        $str_id = DB::table('sub_targets')->insertGetId([
+//            'tr_id' => $tr_id,
+//            'st_id' => $st_id,
+//            'stt_id' => $stt_id,
+//            'created_at' => date('Y-m-d H:i:s')
+//        ]);
+//        $insert = array();
+//        foreach ($arr as $row) {
+//            $insert[] = [
+//                'str_id' => $str_id,
+//                'sstr_date' => $row[0],
+//                'sstr_amount' => $row[1],
+//                'created_at' => date('Y-m-d H:i:s')
+//            ];
+//        }
+//        $save = DB::table('sub_sub_targets')->insert($insert);
+//        if (!empty($save)) {
+//            $r['status'] = '200';
+//        } else {
+//            $r['status'] = '400';
+//        }
+//        return json_encode($r);
+//    }
+
 }

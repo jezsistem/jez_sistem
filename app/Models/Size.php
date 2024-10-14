@@ -12,14 +12,17 @@ class Size extends Model
     protected $table = 'sizes';
     protected $fillable = [
         'sz_name',
+        'sz_schema',
         'sz_description',
         'sz_delete',
     ];
 
     public function getAllData($select, $where)
     {
-        $affected = DB::table($this->table)
+        $affected = DB::table('sizes')
             ->select($select)
+//            ->leftjoin('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+//            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
             ->where($where)
             ->where('sz_delete', '!=', '1')
             ->orderBy('sz_name')

@@ -160,17 +160,21 @@
                 swal('Pilih Bintang', 'Silahkan pilih bintang terlebih dahulu', 'warning');
             }
         });
-        @if (request()->segment(1) != 'rating_app')
+
         $('#f_rating').on('submit', function(e) {
+            $("#kt_login_signin_submit").html('Proses ..');
+            $("#kt_login_signin_submit").attr("disabled", true);
             e.preventDefault();
             jQuery.noConflict();
             var rating = $('#rating_value').val();
-            var cust_id = $('#cust_id').val();
-            var cust_name = $('#cust_name').val();
-            var cust_phone = $('#cust_phone').val();
-            var cust_subdistrict = $('#cust_subdistrict').val();
+            // var cust_id = $('#cust_id').val();
+            // var cust_name = $('#cust_name').val();
+            // var cust_phone = $('#cust_phone').val();
             var ur_description = $('#ur_description').val();
             var ur_id = $('#ur_id').val();
+
+            // console.log(rating);
+            // console.log(ur_description)
             if (rating == '') {
                 swal({
                     title: "Pilih Bintang",
@@ -180,33 +184,7 @@
                 });
                 return false;
             }
-            if (cust_name == '') {
-                swal({
-                    title: "Input Nama Lengkap",
-                    text: "Silahkan input nama lengkap",
-                    type: "info",
-                    timer: 3000
-                });
-                return false;
-            }
-            if (cust_phone == '') {
-                swal({
-                    title: "Input No. HP / Whatsapp",
-                    text: "Silahkan input nomor hp / whatsapp",
-                    type: "info",
-                    timer: 3000
-                });
-                return false;
-            }
-            if (cust_subdistrict == '') {
-                swal({
-                    title: "Input Kecamatan",
-                    text: "Silahkan ketik dan pilih kecamatan pada list",
-                    type: "info",
-                    timer: 3000
-                });
-                return false;
-            }
+
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -214,7 +192,7 @@
             });
             $.ajax({
                 type: "POST",
-                data: {_ur_id:ur_id, _ur_description:ur_description, _rating:rating, _cust_id:cust_id, _cust_name:cust_name, _cust_phone:cust_phone, _cust_subdistrict:cust_subdistrict},
+                data: {_ur_id:ur_id, _ur_description:ur_description, _rating:rating},
                 dataType: 'json',
                 url: "{{  url('save_rating') }}",
                 success:function(r){
@@ -238,7 +216,6 @@
             });
             
         });
-        @endif
 
         $('#cust_phone').on('change', function() {
             var cust_phone = $(this).val();

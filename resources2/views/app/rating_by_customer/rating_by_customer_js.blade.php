@@ -160,7 +160,7 @@
                 swal('Pilih Bintang', 'Silahkan pilih bintang terlebih dahulu', 'warning');
             }
         });
-        @if (request()->segment(1) != 'rating_app')
+{{--        @if (request()->segment(1) != 'rating_app')--}}
         $('#f_rating').on('submit', function(e) {
             e.preventDefault();
             jQuery.noConflict();
@@ -171,74 +171,76 @@
             var cust_subdistrict = $('#cust_subdistrict').val();
             var ur_description = $('#ur_description').val();
             var ur_id = $('#ur_id').val();
-            if (rating == '') {
-                swal({
-                    title: "Pilih Bintang",
-                    text: "Silahkan pilih bintang / rating terlebih dahulu",
-                    type: "info",
-                    timer: 3000
-                });
-                return false;
-            }
-            if (cust_name == '') {
-                swal({
-                    title: "Input Nama Lengkap",
-                    text: "Silahkan input nama lengkap",
-                    type: "info",
-                    timer: 3000
-                });
-                return false;
-            }
-            if (cust_phone == '') {
-                swal({
-                    title: "Input No. HP / Whatsapp",
-                    text: "Silahkan input nomor hp / whatsapp",
-                    type: "info",
-                    timer: 3000
-                });
-                return false;
-            }
-            if (cust_subdistrict == '') {
-                swal({
-                    title: "Input Kecamatan",
-                    text: "Silahkan ketik dan pilih kecamatan pada list",
-                    type: "info",
-                    timer: 3000
-                });
-                return false;
-            }
-            $.ajaxSetup({
-                headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            $.ajax({
-                type: "POST",
-                data: {_ur_id:ur_id, _ur_description:ur_description, _rating:rating, _cust_id:cust_id, _cust_name:cust_name, _cust_phone:cust_phone, _cust_subdistrict:cust_subdistrict},
-                dataType: 'json',
-                url: "{{  url('save_rating') }}",
-                success:function(r){
-                    if (r.status == '200') {
-                        $('#f_rating')[0].reset();
-                        $('.rating-css div').css('color', '#fff');
-                        $('#rating_label').text('Pilih Bintang');
-                        $('#rating_mode').val('');
-                        $('#ThankyouModal').on('show.bs.modal', function() {
-                            setTimeout(() => {
-                                $('#ThankyouModal').modal('hide');
-                                if (!$('#device_background_panel').hasClass('d-none')) {
-                                    $('#device_background_panel').addClass('d-none');
-                                }
-                            }, 5000);
-                        }).modal('show');
-                    } else {
-                        window.location.reload();
-                    }
-                }
-            });
+
+            console.log(rating)
+            {{--if (rating == '') {--}}
+            {{--    swal({--}}
+            {{--        title: "Pilih Bintang",--}}
+            {{--        text: "Silahkan pilih bintang / rating terlebih dahulu",--}}
+            {{--        type: "info",--}}
+            {{--        timer: 3000--}}
+            {{--    });--}}
+            {{--    return false;--}}
+            {{--}--}}
+            {{--if (cust_name == '') {--}}
+            {{--    swal({--}}
+            {{--        title: "Input Nama Lengkap",--}}
+            {{--        text: "Silahkan input nama lengkap",--}}
+            {{--        type: "info",--}}
+            {{--        timer: 3000--}}
+            {{--    });--}}
+            {{--    return false;--}}
+            {{--}--}}
+            {{--if (cust_phone == '') {--}}
+            {{--    swal({--}}
+            {{--        title: "Input No. HP / Whatsapp",--}}
+            {{--        text: "Silahkan input nomor hp / whatsapp",--}}
+            {{--        type: "info",--}}
+            {{--        timer: 3000--}}
+            {{--    });--}}
+            {{--    return false;--}}
+            {{--}--}}
+            {{--if (cust_subdistrict == '') {--}}
+            {{--    swal({--}}
+            {{--        title: "Input Kecamatan",--}}
+            {{--        text: "Silahkan ketik dan pilih kecamatan pada list",--}}
+            {{--        type: "info",--}}
+            {{--        timer: 3000--}}
+            {{--    });--}}
+            {{--    return false;--}}
+            {{--}--}}
+            {{--$.ajaxSetup({--}}
+            {{--    headers: {--}}
+            {{--    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+            {{--    }--}}
+            {{--});--}}
+            {{--$.ajax({--}}
+            {{--    type: "POST",--}}
+            {{--    data: {_ur_id:ur_id, _ur_description:ur_description, _rating:rating, _cust_id:cust_id, _cust_name:cust_name, _cust_phone:cust_phone, _cust_subdistrict:cust_subdistrict},--}}
+            {{--    dataType: 'json',--}}
+            {{--    url: "{{  url('save_rating') }}",--}}
+            {{--    success:function(r){--}}
+            {{--        if (r.status == '200') {--}}
+            {{--            $('#f_rating')[0].reset();--}}
+            {{--            $('.rating-css div').css('color', '#fff');--}}
+            {{--            $('#rating_label').text('Pilih Bintang');--}}
+            {{--            $('#rating_mode').val('');--}}
+            {{--            $('#ThankyouModal').on('show.bs.modal', function() {--}}
+            {{--                setTimeout(() => {--}}
+            {{--                    $('#ThankyouModal').modal('hide');--}}
+            {{--                    if (!$('#device_background_panel').hasClass('d-none')) {--}}
+            {{--                        $('#device_background_panel').addClass('d-none');--}}
+            {{--                    }--}}
+            {{--                }, 5000);--}}
+            {{--            }).modal('show');--}}
+            {{--        } else {--}}
+            {{--            window.location.reload();--}}
+            {{--        }--}}
+            {{--    }--}}
+            {{--});--}}
             
         });
-        @endif
+{{--        @endif--}}
 
         $('#cust_phone').on('change', function() {
             var cust_phone = $(this).val();

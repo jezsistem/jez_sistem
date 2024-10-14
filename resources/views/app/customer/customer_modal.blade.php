@@ -148,6 +148,14 @@
                         <label for="exampleTextarea">Alamat</label>
                         <input type="text" class="form-control" id="cust_address" name="cust_address" required/>
                     </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Status Customer</label>
+                        <select class="form-control" id="cust_token_active" name="cust_token_active">
+                            <option value="null">-- Silahkan Pilih --</option>
+                            <option value="1">Active</option>
+                            <option value="0">Non-Active</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
