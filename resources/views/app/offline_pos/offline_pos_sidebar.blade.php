@@ -91,7 +91,10 @@
                         </th>
                         <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span
                                     id="total_discount_value_side">0</span></td>
+
                     </tr>
+                    <br>
+                    <input type="hidden" id="discount_total_temporary" value="">
                     <tr class="d-flex align-items-center justify-content-between bg-primary rounded">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-white pl-3">
                             Voucher
