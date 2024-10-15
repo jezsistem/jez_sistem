@@ -30,8 +30,7 @@ class InvoiceController extends Controller
 
     protected function sidebar()
     {
-        $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+        $ma_id = DB::table('user_menu_accesses')->select('ma_id')->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -73,6 +72,7 @@ class InvoiceController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1),
         ];
+
         return view('app.invoice.invoice', compact('data'));
     }
 
@@ -464,16 +464,11 @@ class InvoiceController extends Controller
                 array_push($get_invoice, $trx);
             }
         }
-        $stores = Auth::user()->st_id;
 
-        $data_stores = Store::where('id', $stores)->get()->first();
-
-        $stores_code = $data_stores->st_code;
         $data = [
             'title' => 'Invoice '.$invoice,
             'invoice' => $invoice,
             'invoice_data' => $get_invoice,
-            'store_code' => $stores_code,
             'segment' => request()->segment(1)
         ];
 

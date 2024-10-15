@@ -636,7 +636,7 @@ class TransaksiOnlineController extends Controller
                                 'return_qty' => $return_qty,
                                 'total_discount' => $total_discount,
                                 'discount_seller' => $discount_seller,
-                                'ns_before_admin' => $ns_before_admin,
+//                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                             ];
 
@@ -772,7 +772,7 @@ class TransaksiOnlineController extends Controller
                                 'return_qty' => $return_qty,
                                 'total_discount' => $total_discount,
                                 'discount_seller' => $discount_seller,
-                                'ns_before_admin' => $ns_before_admin,
+//                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
                             ];
 

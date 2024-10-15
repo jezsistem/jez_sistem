@@ -853,6 +853,7 @@
     //disini diskon totalnya
     function changeDiscountNumber(row, pst_id, pls_qty) {
         var item_qty = jQuery('#item_qty' + row).val();
+        // var temporary_discount = jQuery('#discount_total_temporary').val();
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
         var subtotal_item = replaceComma(jQuery('#subtotal_item' + row).text());
         var total_row = jQuery('tr[data-list-item]').length;
@@ -866,7 +867,12 @@
                 total_disc_item += parseFloat(disc_item);
             }
         });
-        jQuery('#total_discount_value_side').text(addCommas(total_disc_item));
+        var temporary_discount = parseFloat(jQuery('#discount_total_temporary').val()) || 0;
+        console.log('Total Discount Items:', total_disc_item);
+        console.log('Temporary Discount:', temporary_discount);
+
+        var total_discount = total_disc_item + temporary_discount;
+        jQuery('#total_discount_value_side').text(addCommas(total_discount));
 
         var b1g1_total_row = b1g1_temp.length;
         var b1g1_qty_total = 0;
@@ -939,7 +945,7 @@
 
         // jQuery('#total_price_side').text(addCommas(final_price - discount));
 
-        jQuery('#total_final_price_side').text(addCommas(final_price + nameset - discount));
+        jQuery('#total_final_price_side').text(addCommas(final_price + nameset - total_discount));
     }
 
 
@@ -1466,6 +1472,7 @@
                     var b1g1_price = r.b1g1_price;
                     var highlight = '';
                     var b1g1_mode = '';
+                    var total_discount = jQuery('#total_discount_value_side').text();
 
                     if (psc_id == '1') {
                         shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
@@ -1545,12 +1552,8 @@
                                 toast('Ditambah', 'Item berhasil ditambah', 'success');
                                 jQuery('#total_item_side').text(parseInt(total_item) +
                                     1);
-                                jQuery('#total_price_side').text(addCommas(parseFloat(
-                                    replaceComma(total_price)) + parseFloat(
-                                    sell_price)));
-                                jQuery('#total_final_price_side').text(addCommas(
-                                    parseFloat(replaceComma(total_price)) +
-                                    parseFloat(sell_price)));
+                                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price)));
+                                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))));
                                 if (item_type == 'waiting') {
                                     jQuery('#orderTable tr:last').after("" +
                                         "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
@@ -3546,6 +3549,10 @@
             }
         });
 
+        var temporary_disc = jQuery('#discount_total_temporary').val();
+
+        console.log('TOTAL DISKON :', temporary_disc);
+
         var new_discount = 0;
         var total_final = jQuery('#total_final_price_side').text();
         var curren_discount = removeCommasAndConvertToNumber(jQuery('#total_discount_value_side').text());
@@ -3570,15 +3577,29 @@
                         jQuery('#total_final_price_side').text(addCommas(new_total));
                         jQuery('#total_discount_value_side').text(addCommas(new_discount));
 
+
                         console.log(discount, 'discount hitung persen');
                         console.log(curren_discount, 'current discount');
                         console.log(new_discount, 'diskon baru');
+                        var total_temporary = new_discount + temporary_disc;
+
+                        jQuery('#discount_total_temporary').val(total_temporary);
                     }
 
                     if (r.discountType == 'nominal') {
-                        var new_total = parseFloat(total) - parseFloat(r.total);
+                        var discount = parseFloat(r.total);
+                        var new_discount = curren_discount + discount;
+                        var new_total = parseFloat(total) - parseFloat(discount);
+
                         jQuery('#total_final_price_side').text(addCommas(new_total));
-                        jQuery('#total_discount_value_side').text(addCommas(r.total));
+                        jQuery('#total_discount_value_side').text(addCommas(new_discount));
+
+                        console.log(discount, 'discount hitung persen');
+                        console.log(curren_discount, 'current discount');
+                        console.log(new_discount, 'diskon baru');
+                        var total_temporary = new_discount + temporary_disc;
+
+                        jQuery('#discount_total_temporary').val(total_temporary);
                     }
                 } else {
                     alert('kode salah');

@@ -7,6 +7,7 @@ use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
+use App\Http\Controllers\InvoiceEditorOnlineController;
 use App\Http\Controllers\PowerBiDashboardController;
 use App\Http\Controllers\ApiController;
 
@@ -69,6 +70,7 @@ use App\Http\Controllers\UserMenuAccessController;
 use App\Http\Controllers\MainMenuController;
 use App\Http\Controllers\MenuAccessController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\SendNotificationController;
 
 
 use App\Http\Controllers\WebConfigController;
@@ -95,6 +97,7 @@ Route::post('user_login', [AuthController::class, 'login']);
 Route::get('payment_check/88991703/show', [PaymentCheckController::class, 'checkData']);
 Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAutoUpdateArticleInformation']);
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
+Route::post('send_notification_whatsapp', [SendNotificationController::class, 'sendNotification']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
@@ -177,6 +180,22 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
     Route::post('ie_permission_cancel_invoice', [InvoiceEditorController::class, 'cancelInvoice']);
 
+    // InvoiceEditorController
+    Route::get('invoice_editor_online', [InvoiceEditorOnlineController::class, 'index']);
+    Route::get('ie_online_permission_datatables', [InvoiceEditorOnlineController::class, 'getPermissionDatatables']);
+    Route::get('ie_online_permission_invoice_datatables', [InvoiceEditorOnlineController::class, 'getInvoiceDatatables']);
+    Route::get('ie_online_permission_detail_datatables', [InvoiceEditorOnlineController::class, 'getDetailDatatables']);
+    Route::get('ie_online_permission_tracking_datatables', [InvoiceEditorOnlineController::class, 'getTrackingDatatables']);
+    Route::get('ie_online_permission_history_datatables', [InvoiceEditorOnlineController::class, 'getHistoryDatatables']);
+    Route::post('ie_online_permission_save', [InvoiceEditorOnlineController::class, 'storePermissionData']);
+    Route::post('ie_online_permission_delete', [InvoiceEditorOnlineController::class, 'deletePermissionData']);
+    Route::post('ie_online_permission_invoice', [InvoiceEditorOnlineController::class, 'checkInvoice']);
+    Route::post('ie_online_permission_check_active_edit', [InvoiceEditorOnlineController::class, 'checkActiveEdit']);
+    Route::post('ie_online_permission_done_edit', [InvoiceEditorOnlineController::class, 'doneEdit']);
+    Route::post('ie_online_permission_do_edit', [InvoiceEditorOnlineController::class, 'doEdit']);
+    Route::post('ie_online_permission_edit_sku', [InvoiceEditorOnlineController::class, 'doEditSku']);
+    Route::post('ie_online_permission_cancel_item', [InvoiceEditorOnlineController::class, 'cancelItem']);
+    Route::post('ie_online_permission_cancel_invoice', [InvoiceEditorOnlineController::class, 'cancelInvoice']);
 
     // Auth Controller
     Route::get('logout', [AuthController::class, 'logout'])->name('logout');
@@ -195,13 +214,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('load_assets', [AssetController::class, 'loadAssets']);
     Route::post('load_cassets', [AssetController::class, 'loadCAssets']);
 
-
     // ==== Dashboard ==== //
     Route::get('asset_by_store_datatables', [AssetController::class, 'assetByStoreDatatables']);
     Route::get('debt_by_store_datatables', [AssetController::class, 'debtByStoreDatatables']);
     Route::get('nett_sale_by_store_datatables', [AssetController::class, 'nettSaleByStoreDatatables']);
     Route::get('brand_value_datatables', [AssetController::class, 'getAssetByBrand']);
-    // ==== Dashboard ==== //
+
     // Helper Backup //
     Route::get('helper_backup', [HelperBackupController::class, 'index']);
     // Customer Type

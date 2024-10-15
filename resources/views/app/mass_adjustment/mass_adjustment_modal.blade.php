@@ -18,6 +18,11 @@
                                 <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="template" id="template" required/>
                         </div>
+
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>Note Adjustment</label>
+                            <textarea class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
