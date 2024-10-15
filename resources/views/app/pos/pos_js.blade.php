@@ -435,6 +435,8 @@
         var st_id = jQuery('#st_id').val();
         var voc_pst_id = jQuery('#_voc_pst_id').val();
         var voc_value = jQuery('#_voc_value').val();
+        // var subsidi_ongkir = jQuery('#subsidi_ongkir').val(); // Add this line
+        // var real_price = jQuery('#real_price').val(); 
         if (st_id == '4') {
             cross = 'false';
         }
@@ -465,6 +467,8 @@
                 _marketplace_price:marketplace_price,
                 _sell_price_item:replaceComma(sell_price_item),
                 _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
+                // _subsidi_ongkir: subsidi_ongkir,          // Add this line
+                // _real_price: parseFloat(replaceComma(real_price))
             dataType: 'json',
             success: function(r) {
                 jQuery.noConflict();
@@ -676,6 +680,7 @@
             jQuery('#marketplace_side').val('');
             jQuery('#marketplace_real_price').val('');
             jQuery('#discount_seller_side').val('');
+            // jQuery('#subsidi_ongkir').val('');
         });
 
         jQuery('#choosecustomer').on('hide.bs.modal', function() {
@@ -742,6 +747,7 @@
             jQuery('#real_price').val('');
             jQuery('#cross_order').val('');
             jQuery('#discount_seller').val('');
+            // jQuery('#subsidi_ongkir').val('');
         });
         
 		function addRefundExchangeList(type, plst_id, pt_id)
@@ -1030,6 +1036,7 @@
             var admin_cost = jQuery('#admin_cost').val();
             var another_cost = jQuery('#another_cost').val();
             var real_price = jQuery('#real_price').val();
+            // var subsidi_ongkir = jQuery('#subsidi_ongkir').val();
             var total_row = jQuery('tr[data-list-item]').length;
             var exchange = jQuery('#_exchange').val();
             var cross = jQuery('#cross_order').val();
@@ -1122,6 +1129,7 @@
                             jQuery('#admin_cost').val('');
                             jQuery('#another_cost').val('');
                             jQuery('#real_price').val('');
+                            // jQuery('#subsidi_ongkir').val('');
                             jQuery('#courier').val('');
                             jQuery('#_pt_id_complaint').val('');
                             jQuery('#_exchange').val('');
@@ -1340,15 +1348,18 @@
         jQuery('#discount_seller').on('change', function(){
             var discount = jQuery(this).val();
             var unique = jQuery('#unique_code').val();
+            var subsidi_ongkir = jQuery('#subsidi_ongkir').val();
             if (unique == '')  {
                 jQuery('#unique_code').val(0).trigger('change');
             }
             if (discount == '') {
                 discount = 0;
             }
-
+            if (subsidi_ongkir == '') {
+                subsidi_ongkir = 0; // Add this to default the value if empty
+            }
             var final_total = jQuery('#final_total_unique_code').val();
-            var final_total_discount = parseFloat(replaceComma(final_total)) - parseFloat(discount);
+            var final_total_discount = parseFloat(replaceComma(final_total)) - parseFloat(discount) - parseFloat(subsidi_ongkir);
 
             jQuery('#real_price').val(addCommas(final_total_discount));
             jQuery('#admin_cost').val('');
@@ -1358,14 +1369,18 @@
             var cost = jQuery(this).val();
             var discount_seller = jQuery('#discount_seller').val();
             var unique = jQuery('#unique_code').val();
+            var subsidi_ongkir = jQuery('#subsidi_ongkir').val();
             if (unique == '')  {
                 jQuery('#unique_code').val(0).trigger('change');
             }
             if (cost == '') {
                 cost = 0;
             }
+            if (subsidi_ongkir == '') {
+                subsidi_ongkir = 0; // Add this line
+            }
             var final_total = jQuery('#final_total_unique_code').val();
-            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(cost) - parseFloat(discount_seller);
+            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(cost) - parseFloat(discount_seller) - parseFloat(subsidi_ongkir);
             //alert(unique+' '+total+' '+final_total);
             jQuery('#real_price').val(addCommas(final_total_admin));
         });
@@ -1375,16 +1390,48 @@
             var cost = jQuery(this).val();
             var unique = jQuery('#unique_code').val();
             var discount_seller = jQuery('#discount_seller').val();
+            var subsidi_ongkir = jQuery('#subsidi_ongkir').val();
             if (unique == '')  {
                 jQuery('#unique_code').val(0).trigger('change');
             }
             if (cost == '') {
                 cost = 0;
             }
+            if (subsidi_ongkir == '') {
+            subsidi_ongkir = 0;
+            }
             var final_total = jQuery('#final_total_unique_code').val();
-            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(admin_cost) + parseFloat(cost) - parseFloat(discount_seller);
+            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(admin_cost) + parseFloat(cost) - parseFloat(discount_seller) - parseFloat(subsidi_ongkir);
             jQuery('#real_price').val(addCommas(final_total_admin));
         });
+        jQuery('#subsidi_ongkir').on('change', function(){
+            var subsidi_ongkir = jQuery(this).val();
+            var discount_seller = jQuery('#discount_seller').val();
+            var unique = jQuery('#unique_code').val();
+            var admin_cost = jQuery('#admin_cost').val();
+            var another_cost = jQuery('#another_cost').val();
+            if (unique == '')  {
+                jQuery('#unique_code').val(0).trigger('change');
+            }
+            if (discount_seller == '') {
+                discount_seller = 0;
+            }
+            if (admin_cost == '') {
+                admin_cost = 0;
+            }
+            if (subsidi_ongkir == '') {
+                subsidi_ongkir = 0;
+            }
+            if (another_cost == '') {
+                another_cost = 0;
+            }
+
+            var final_total = jQuery('#final_total_unique_code').val();
+            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(admin_cost) - parseFloat(discount_seller) - parseFloat(subsidi_ongkir) + parseFloat(another_cost); // Final calculation
+
+            jQuery('#real_price').val(addCommas(final_total_admin));
+        });
+
 
         jQuery('#f_ongkir').on('submit', function(e) {
             e.preventDefault();
