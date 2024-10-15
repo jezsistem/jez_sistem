@@ -55,15 +55,15 @@
                     data: 'shipping_fee',
                     name: 'shipping_fee',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
                 },
                 {
                     data: 'total_payment',
                     name: 'total_payment',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
 
                 },
                 {
@@ -362,51 +362,51 @@
                     data: 'to_qty',
                     name: 'to_qty',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
                 },
                 {
                     data: 'shopee_price',
                     name: 'shopee_price',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
 
                 },
                 {
                     data: 'jez_price',
                     name: 'jez_price',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
                 },
                 {
                     data: 'gap_price',
                     name: 'gap_price',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
                 },
                 {
                     data: 'total_discount',
                     name: 'total_discount',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
                 },
                 {
                     data: 'ns_before_admin',
                     name: 'ns_before_admin',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
                 },
                 {
                     data: 'final_price',
                     name: 'final_price',
                     render: function(data, type, row) {
-                    return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
-                }
+                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                    }
                 },
             ],
             columnDefs: [{
@@ -516,8 +516,16 @@
             let date = $('#sales_date').val() //daterange
             let branch_trx = $('#branch_trx').val();
             let status_trx = $('#status_trx').val();
+            // let changeplatform = $('#changeplatform').val(); 
+
+            // Mengarahkan pengguna ke URL ekspor dengan parameter query, termasuk platform
+            //     window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + "&date=" +
+            //         date + "&status=" + status_trx + "&changeplatform=" + changeplatform;
+            // });
+
+            // Mengarahkan pengguna ke URL ekspor dengan parameter query, termasuk platform
             window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + "&date=" +
-                date + "&status=" + status_trx + "";
+                date + "&status=" + status_trx;
         });
 
         $('#download_template_shopee').on('click', function() {

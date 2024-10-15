@@ -172,6 +172,7 @@ class TransaksiOnlineController extends Controller
             $branch = $request->get('branch');
             $status = $request->get('status');
             $date = $request->get('date');
+            // $changeplatform = $request->input('changeplatform');
             $exp = explode('|', $date);
             $start = null;
             $end = null;
@@ -186,6 +187,7 @@ class TransaksiOnlineController extends Controller
             $timestamp = $now->format('d-m-Y_H.i.s');
             $fileName = 'item_online_details' . $timestamp . '.xlsx';
 
+            // return Excel::download(new OnlineReportExport($branch, $start, $end, $status, $changeplatform), $fileName);
             return Excel::download(new OnlineReportExport($branch, $start, $end, $status), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
