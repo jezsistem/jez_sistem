@@ -516,17 +516,14 @@
             let date = $('#sales_date').val() //daterange
             let branch_trx = $('#branch_trx').val();
             let status_trx = $('#status_trx').val();
-            // let changeplatform = $('#changeplatform').val(); 
+            let changeplatform = $('#changeplatform').val();
 
-            // Mengarahkan pengguna ke URL ekspor dengan parameter query, termasuk platform
-            //     window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + "&date=" +
-            //         date + "&status=" + status_trx + "&changeplatform=" + changeplatform;
-            // });
 
-            // Mengarahkan pengguna ke URL ekspor dengan parameter query, termasuk platform
             window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + "&date=" +
-                date + "&status=" + status_trx;
+                date + "&status=" + status_trx + "&changeplatform=" + changeplatform;
         });
+
+
 
         $('#download_template_shopee').on('click', function() {
             console.log('Halo');

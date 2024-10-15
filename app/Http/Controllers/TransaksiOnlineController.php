@@ -172,7 +172,7 @@ class TransaksiOnlineController extends Controller
             $branch = $request->get('branch');
             $status = $request->get('status');
             $date = $request->get('date');
-            // $changeplatform = $request->input('changeplatform');
+            $changeplatform = $request->input('changeplatform');
             $exp = explode('|', $date);
             $start = null;
             $end = null;
@@ -187,8 +187,7 @@ class TransaksiOnlineController extends Controller
             $timestamp = $now->format('d-m-Y_H.i.s');
             $fileName = 'item_online_details' . $timestamp . '.xlsx';
 
-            // return Excel::download(new OnlineReportExport($branch, $start, $end, $status, $changeplatform), $fileName);
-            return Excel::download(new OnlineReportExport($branch, $start, $end, $status), $fileName);
+            return Excel::download(new OnlineReportExport($branch, $start, $end, $status, $changeplatform), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -197,7 +196,7 @@ class TransaksiOnlineController extends Controller
     public function detailDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller')
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller', 'platform_name')
                 ->Join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->Join('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                 ->Join('products', 'products.id', '=', 'product_stocks.p_id')
@@ -213,7 +212,7 @@ class TransaksiOnlineController extends Controller
 
                 ->editColumn('ns_before_admin', function ($data) {
                     return $data->shopee_price - $data->discount_seller;
-                    // $ns_before_admin = $original_price - $discount_seller;
+    
                 })
                 ->rawColumns(['article'])
                 ->addIndexColumn()
