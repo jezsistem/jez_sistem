@@ -234,7 +234,7 @@
   width: 100%;
   border-collapse: collapse;
   font-family: 'Arial', sans-serif;
-  font-size: 15px;
+  font-size: 12px;
   color: #333;
   text-align: left;
   margin-bottom: 20px;

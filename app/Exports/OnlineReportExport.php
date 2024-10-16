@@ -15,13 +15,16 @@ class OnlineReportExport implements FromCollection, withHeadings
     protected $status;
     protected $start;
     protected $end;
+    // protected $changeplatform; 
 
     function __construct($branch, $start, $end, $status)
+    // function __construct($branch, $start, $end, $status, $changeplatform)
     {
         $this->start = $start;
         $this->end = $end;
         $this->status = $status;
         $this->branch = $branch;
+        // $this->changeplatform = $changeplatform;
     }
 
     public function headings(): array

@@ -87,6 +87,8 @@
             $('#delete_product_supplier_btn').hide();
         });
 
+        //import.js
+
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
             $("#import_data_btn").html('Proses ..');
@@ -119,6 +121,10 @@
                 }
             });
         });
+
+
+
+
 
         $('#ps_name').on('change', function() {
             var ps_name = $(this).val();

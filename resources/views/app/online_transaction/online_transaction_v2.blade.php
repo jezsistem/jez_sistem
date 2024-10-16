@@ -41,46 +41,63 @@
 
 
                         <!--begin::Card-->
-                        <div class="card card-custom gutter-b edit-style">
-                            <Label style="margin-left: 20px; margin-top: 20px;">
-                                <h5 class="text-dark font-weight-bold my-1 mr-5">Export Laporan</h5>
-                            </Label><br>
-                            <div class="card-header h-auto align-items-center justify-content-between">
-                                <!--begin::Title-->
-                                <input type="hidden" id="sales_date" value="" />
-
-                                <div class="card-title py-5">
-                                    <select class="form-control" id="branch_trx" name="st_id_filter" required>
-                                        <option value="">-- Cabang --</option>
-                                        @foreach ($data['st_id'] as $key => $value)
-                                            <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="card-title py-5">
-                                    <select class="form-control" id="status_trx">
-                                        <option value="">-- Pilih Status Cetak ---</option>
-                                        <option value="2">Semua Status</option>
-                                        <option value="1">Sudah di Cetak</option>
-                                        <option value="0">Belum di Cetak</option>
-                                    </select>
-                                </div>
-                                <div class="alert alert-custom alert-white alert-shadow fade show gutter-b" role="alert">
+                        <div class="d-flex justify-content-center">
+                            <div class="card card-custom gutter-b edit-style">
+                                <Label style="margin-left: 20px; margin-top: 20px;">
+                                    <h5 class="text-dark font-weight-bold my-1 mr-5">Export Laporan</h5>
+                                </Label><br>
+                                <div class="card-header h-auto align-items-center justify-content-between">
+                                    <!--begin::Title-->
                                     <input type="hidden" id="sales_date" value="" />
-                                    <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12"
-                                        id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal"
-                                        data-placement="left">
-                                        <span class="text-muted font-size-base font-weight-bold mr-2"
-                                            id="kt_dashboard_daterangepicker_title">Today</span>
-                                        <span class="text-primary font-size-base font-weight-bolder"
-                                            id="kt_dashboard_daterangepicker_date"></span>
-                                    </a>
-                                </div>
-                                <div class="alert alert-custom alert-white alert-shadow fade show gutter-b">
-                                    <a href="#" class="btn btn-sm btn-success mr-2 col-12" id="sales_online_export">
-                                        Export laporan
-                                    </a>
+
+                                    <div class="card-title py-5">
+                                        <select class="form-control" id="branch_trx" name="st_id_filter" required>
+                                            <option value="">-- Cabang --</option>
+                                            @foreach ($data['st_id'] as $key => $value)
+                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="card-title py-5">
+                                        <select class="form-control" id="status_trx">
+                                            <option value="">-- Pilih Status Cetak ---</option>
+                                            <option value="2">Semua Status</option>
+                                            <option value="1">Sudah di Cetak</option>
+                                            <option value="0">Belum di Cetak</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="card-title py-5">
+                                        <select class="form-control" id="changeplatform">
+                                            <option value="">-- Platform ---</option>
+                                            <option value="">Semua Platform</option>
+                                            <option value="Shopee">Shopee</option>
+                                            <option value="TikTok">Tiktok</option>
+                                        </select>
+                                    </div>
+
+
+                                    <div class="" role="alert">
+                                        <input type="hidden" id="sales_date" value="" />
+                                        <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12"
+                                            id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal"
+                                            data-placement="left">
+                                            <span class="text-muted font-size-base font-weight-bold mr-2"
+                                                id="kt_dashboard_daterangepicker_title">Today</span>
+                                            <span class="text-primary font-size-base font-weight-bolder"
+                                                id="kt_dashboard_daterangepicker_date"></span>
+                                        </a>
+                                    </div>&nbsp;
+
+                                    <div class="justify-content-center">
+                                        <a href="#" class="btn btn-sm btn-success mr-2 col-12"
+                                            id="sales_online_export">
+                                            Export laporan
+                                        </a>
+                                    </div>
+
+
                                 </div>
                             </div>
                         </div>
@@ -133,6 +150,8 @@
                                     </div>
                                 </div>
                             </div>
+
+
                             <div class="container mt-6">
                                 <div class="row">
                                     <div class="col-6">
@@ -170,6 +189,9 @@
                                 </table>
                                 <!--end: Datatable-->
                             </div>
+
+
+
                         </div>
                         <!--end::Card-->
                     </div>
@@ -187,13 +209,19 @@
 
 
 <style>
-    .card.card-custom.gutter-b.edit-style{
-    background-color: #fff0f4; /* Ganti warna ini dengan warna yang Anda inginkan */
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    border: 1px solid #dee2e6;
-}
+    .card.card-custom.gutter-b.edit-style {
+        background-color: #fff0f4;
+        /* Ganti warna ini dengan warna yang Anda inginkan */
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dee2e6;
+    }
 
-
+    .table-responsive {
+        overflow-x: auto;
+        /* Mengaktifkan scroll horizontal */
+        -webkit-overflow-scrolling: touch;
+        /* Menambahkan smooth scrolling pada perangkat sentuh */
+    }
 </style>
