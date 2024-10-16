@@ -365,14 +365,8 @@
             </div>
 
             <div class="separate"></div>
-
             <div class="nota">
-                {{ $data['invoice'] }}<br/>
-                @if ($data['transaction']->is_website == '1')
-                <strong>{{ $data['transaction']->pos_courier }}</strong>
-                @else
-                <strong>{{ $data['transaction']->cr_name }}</strong>
-                @endif
+                <strong>{{ $data['transaction']->pos_order_number }}</strong>
             </div>
             <div class="title-left">
                 <strong>PENERIMA</strong><br/>

@@ -200,6 +200,23 @@
             // stock_data_table.draw();
         });
 
+        //     // Handle Pick Zero Stocks button
+        // $('#pickZeroBtn').on('click', function () {
+        //     $('#is_zero').val(1);
+        //     // Optionally, perform additional actions for picking zero stocks
+        //     alert('Picking zero stocks');
+        //     // stock_data_table.draw();
+        // });
+
+        // // Handle Pick Available Stocks button
+        // $('#pickAvailableBtn').on('click', function () {
+        //     $('#is_zero').val(0);
+        //     // Optionally, perform additional actions for picking available stocks
+        //     alert('Picking available stocks');
+        //     // stock_data_table.draw();
+        // });
+
+
         const scanner = new Html5QrcodeScanner('reader', {
             // Scanner will be initialized in DOM inside element with id of 'reader'
             qrbox: {
