@@ -173,12 +173,10 @@
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>
 
                                     <div class="mt-3">
-                                        <button type="button" class="btn btn-primary btn-sm" id="pickZeroBtn">Pick Zero
+                                        <button type="button" class="btn btn-secondary btn-sm" id="pickZeroBtn">Pick Zero
                                             Stocks</button>
-                                        <button type="button" class="btn btn-secondary btn-sm"
-                                            id="pickAvailableBtn">Pick
-                                            Available
-                                            Stocks</button>
+                                        <button type="button" class="btn btn-primary btn-sm"
+                                            id="pickAvailableBtn">Pick Available Stocks</button>
                                         <input type="hidden" value="" id="is_zero">
                                     </div>
                                 </form>
@@ -187,9 +185,9 @@
                                 <table class="table table-hover table-checkable" id="StockDatatb">
                                     <thead class="bg-light text-dark">
                                         <tr>
-                                            <th class="text-dark">Stok Tersedia
+                                            <th class="text-dark">Available Stock
                                             </th>
-                                            <th class="text-dark"></th>
+                                            <th class="hidden"></th>
                                         </tr>
                                     </thead>
                                     <tbody>

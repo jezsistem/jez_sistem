@@ -236,23 +236,25 @@
 
         $('#pickAvailableBtn').on('click', function() {
             $('#is_zero').val(0);
-
-            // Ubah kelas tombol
             $('#pickZeroBtn').removeClass('btn-primary').addClass('btn-secondary');
             $('#pickAvailableBtn').removeClass('btn-secondary').addClass('btn-primary');
 
+            // Pastikan hanya satu elemen th yang diubah
+            $('th.text-dark').text('Available Stocks');
             stock_data_table.draw();
         });
 
         $('#pickZeroBtn').on('click', function() {
             $('#is_zero').val(1);
-
-            // Ubah kelas tombol
             $('#pickZeroBtn').removeClass('btn-secondary').addClass('btn-primary');
             $('#pickAvailableBtn').removeClass('btn-primary').addClass('btn-secondary');
 
+            // Pastikan hanya satu elemen th yang diubah
+            $('th.text-dark').text('Zero Stocks');
             stock_data_table.draw();
         });
+
+
 
 
 
