@@ -244,6 +244,23 @@
             stock_data_table.draw();
         });
 
+<<<<<<< HEAD
+        //     // Handle Pick Zero Stocks button
+        // $('#pickZeroBtn').on('click', function () {
+        //     $('#is_zero').val(1);
+        //     // Optionally, perform additional actions for picking zero stocks
+        //     alert('Picking zero stocks');
+        //     // stock_data_table.draw();
+        // });
+
+        // // Handle Pick Available Stocks button
+        // $('#pickAvailableBtn').on('click', function () {
+        //     $('#is_zero').val(0);
+        //     // Optionally, perform additional actions for picking available stocks
+        //     alert('Picking available stocks');
+        //     // stock_data_table.draw();
+        // });
+=======
         $('#pickZeroBtn').on('click', function() {
             $('#is_zero').val(1);
             $('#pickZeroBtn').removeClass('btn-secondary').addClass('btn-primary');
@@ -255,6 +272,7 @@
         });
 
 
+>>>>>>> 13224731c2f2bf487134772edeee9675176099b5
 
 
 

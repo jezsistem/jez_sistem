@@ -1319,7 +1319,7 @@
             reloadCity(province);
         });
 
-        jQuery('#cust_city').on('change', function() {
+        jQuery('#cust_city').on('chandata_stokge', function() {
             var city = jQuery(this).val();
             reloadSubdistrict(city);
         });

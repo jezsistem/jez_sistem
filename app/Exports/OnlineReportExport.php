@@ -29,7 +29,7 @@ class OnlineReportExport implements FromCollection, withHeadings
 
     public function headings(): array
     {
-        return ["Store", "Store", "Resi", "Platform", "Sku", "Item Name", "Qty", "Order Date", "Time Transaksi", "Status Transaksi", "Diskon Penjual", "Diskon Platform", "Total Diskon", "Original Price", "Final Price", "Date Import"];
+        return ["Store", "Nomor Pesanan", "Resi", "Platform", "Sku", "Item Name", "Qty", "Order Date", "Time Transaksi", "Status Transaksi", "Diskon Penjual", "Diskon Platform", "Total Diskon", "Original Price", "Final Price", "Date Import"];
     }
 
     public function collection()
