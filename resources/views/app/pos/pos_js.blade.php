@@ -868,6 +868,14 @@
             });
         });
 
+        jQuery(document).delegate('#add_new_customer', 'click', function () {
+            console.log(jQuery('#cust_id_label').val());
+            jQuery('#_mode').val('add');
+            var custIdLabelValue = jQuery('#cust_id_label').val();
+            jQuery('#choosecustomer').modal('show');
+            jQuery('#cust_phone').val(custIdLabelValue);
+        })
+
         jQuery(document).delegate('#check_customer', 'click', function() {
             jQuery('#_mode').val('edit');
             var cust_id = jQuery(this).attr('data-id');
@@ -1454,7 +1462,7 @@
             jQuery('#shippingcost').modal('hide');
         });
 
-        jQuery('#f_customer').on('submit', function(e) {
+        jQuery('#f_customer').on('submit', function (e) {
             e.preventDefault();
             jQuery("#save_customer_btn").html('Proses ..');
             jQuery("#save_customer_btn").attr("disabled", true);
@@ -1493,7 +1501,7 @@
                         toast('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function (data) {
                     swal('Error', data, 'error');
                 }
             });

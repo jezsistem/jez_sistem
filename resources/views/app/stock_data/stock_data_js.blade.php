@@ -240,39 +240,19 @@
             $('#pickAvailableBtn').removeClass('btn-secondary').addClass('btn-primary');
 
             // Pastikan hanya satu elemen th yang diubah
-            $('th.text-dark').text('Available Stocks');
+            $('th.text-dark').text('Stok Tersedia');
             stock_data_table.draw();
         });
 
-<<<<<<< HEAD
-        //     // Handle Pick Zero Stocks button
-        // $('#pickZeroBtn').on('click', function () {
-        //     $('#is_zero').val(1);
-        //     // Optionally, perform additional actions for picking zero stocks
-        //     alert('Picking zero stocks');
-        //     // stock_data_table.draw();
-        // });
-
-        // // Handle Pick Available Stocks button
-        // $('#pickAvailableBtn').on('click', function () {
-        //     $('#is_zero').val(0);
-        //     // Optionally, perform additional actions for picking available stocks
-        //     alert('Picking available stocks');
-        //     // stock_data_table.draw();
-        // });
-=======
         $('#pickZeroBtn').on('click', function() {
             $('#is_zero').val(1);
             $('#pickZeroBtn').removeClass('btn-secondary').addClass('btn-primary');
             $('#pickAvailableBtn').removeClass('btn-primary').addClass('btn-secondary');
 
             // Pastikan hanya satu elemen th yang diubah
-            $('th.text-dark').text('Zero Stocks');
+            $('th.text-dark').text('Stok Semua Varian');
             stock_data_table.draw();
         });
-
-
->>>>>>> 13224731c2f2bf487134772edeee9675176099b5
 
 
 

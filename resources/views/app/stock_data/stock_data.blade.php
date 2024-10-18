@@ -173,10 +173,10 @@
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>
 
                                     <div class="mt-3">
-                                        <button type="button" class="btn btn-secondary btn-sm" id="pickZeroBtn">Pick Zero
-                                            Stocks</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="pickZeroBtn">Stok Semua Varian
+                                            </button>
                                         <button type="button" class="btn btn-primary btn-sm"
-                                            id="pickAvailableBtn">Pick Available Stocks</button>
+                                            id="pickAvailableBtn">Stok Tersedia</button>
                                         <input type="hidden" value="" id="is_zero">
                                     </div>
                                 </form>
