@@ -126,8 +126,8 @@
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
+                                <th style="border: 1px solid #dddddd; padding: 8px;">Qty</th>
                                 <th style="border: 1px solid #dddddd; padding: 8px;">SKU</th>
-                                <th style="border: 1px solid #dddddd; padding: 8px;">Quantity</th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -182,9 +182,9 @@
 
     // Function to export the data to Excel
     function exportToExcel(data) {
-        let worksheet = XLSX.utils.json_to_sheet(Object.entries(data).map(([sku, qty]) => ({
-            SKU: sku,
-            Quantity: qty
+        let worksheet = XLSX.utils.json_to_sheet(Object.entries(data).map(([qty, sku]) => ({
+            Qty: qty,
+            SKU: sku
         })));
         let workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "NotFoundBarcodes");
