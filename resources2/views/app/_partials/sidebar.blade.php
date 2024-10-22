@@ -5,7 +5,7 @@
     <div class="brand flex-column-auto" id="kt_brand">
         <!--begin::Logo-->
         <a href="{{ url('/dashboard') }}" class="brand-logo">
-            <img style="width:130px;" alt="Logo" src="{{ asset('logo') }}/logo-colors.png" />
+            <img style="width:130px;" alt="Logo" src="{{ asset('logo') }}/jez_pro.png" />
         </a>
         <!--end::Logo-->
         <!--begin::Toggle-->

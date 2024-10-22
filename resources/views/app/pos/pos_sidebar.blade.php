@@ -1,4 +1,4 @@
-<div class="col-xl-2 col-lg-3 col-md-3 sidebarPOS" style="display:none;">
+<div class="col-xl-3 col-lg-3 col-md-3 sidebarPOS" style="display:none;">
     <div class="card card-custom gutter-b bg-white border-0">
         <div class="card-body" >
             <div class="shop-profile bg-primary">
@@ -99,7 +99,7 @@
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between item-price">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-primary">
-                                <span class="btn-sm btn-primary">TOTAL</span>
+                                <span class="btn-sm btn-primary font-size-bold">TOTAL</span>
                         </th>
                         <td class="border-0 justify-content-end d-flex text-primary font-size-base"><span id="total_final_price_side">0</span></td>
                     </tr>

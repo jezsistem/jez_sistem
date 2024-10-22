@@ -761,7 +761,7 @@
                     // swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
 
                     // print nota off dulu sam e
-                    console.log(st_id);
+                    // console.log(st_id);
                     {{--setTimeout(() => {--}}
                     {{--    if (std_id > '0') {--}}
                     {{--        var win = window.open('{{ url('') }}/print_offline_invoice/' + r--}}
@@ -2810,7 +2810,6 @@
                                 timer: 1000, // Close after 2 seconds (2000 milliseconds)
                                 showConfirmButton: false
                             });
-                            lov
                             // Send a message using the external API
 
                         } else {
