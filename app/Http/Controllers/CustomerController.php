@@ -629,7 +629,6 @@ class CustomerController extends Controller
             'cust_city' => $request->input('cust_city'),
             'cust_subdistrict' => $request->input('cust_subdistrict'),
             'cust_address' => $request->input('cust_address'),
-            'cust_token_active' => $request->input('cust_token_active'),
             'cust_delete' => '0'
         ];
         if (!empty($request->input('password'))) {

@@ -57,6 +57,6 @@ class DataUserPOSV2Controller extends Controller
             })
             ->toJson(true);
     }
-
+    
     // Other methods remain unchanged
 }
