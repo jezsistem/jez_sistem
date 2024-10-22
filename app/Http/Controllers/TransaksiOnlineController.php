@@ -722,7 +722,6 @@ class TransaksiOnlineController extends Controller
                             'province' => $province,
                         ];
 
-
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
                             ->where('order_number', $order_number)
                             ->first();
