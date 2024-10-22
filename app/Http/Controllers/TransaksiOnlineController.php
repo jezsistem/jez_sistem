@@ -172,7 +172,7 @@ class TransaksiOnlineController extends Controller
             $branch = $request->get('branch');
             $status = $request->get('status');
             $date = $request->get('date');
-            $changeplatform = $request->input('changeplatform');
+            $changeplatform = $request->get('changeplatform');
             $exp = explode('|', $date);
             $start = null;
             $end = null;
