@@ -15,18 +15,21 @@ class OnlineReportExport implements FromCollection, withHeadings
     protected $status;
     protected $start;
     protected $end;
+    // protected $changeplatform; 
 
     function __construct($branch, $start, $end, $status)
+    // function __construct($branch, $start, $end, $status, $changeplatform)
     {
         $this->start = $start;
         $this->end = $end;
         $this->status = $status;
         $this->branch = $branch;
+        // $this->changeplatform = $changeplatform;
     }
 
     public function headings(): array
     {
-        return ["Store", "Store", "Resi", "Platform", "Sku", "Item Name", "Qty", "Order Date", "Time Transaksi", "Status Transaksi", "Diskon Penjual", "Diskon Platform", "Total Diskon", "Original Price", "Final Price", "Date Import"];
+        return ["Store", "Nomor Pesanan", "Resi", "Platform", "Sku", "Item Name", "Qty", "Order Date", "Time Transaksi", "Status Transaksi", "Diskon Penjual", "Diskon Platform", "Total Diskon", "Original Price", "Final Price", "Date Import"];
     }
 
     public function collection()

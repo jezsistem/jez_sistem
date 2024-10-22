@@ -72,9 +72,12 @@
 </div>
 
 
+
+
 <!-- Modal-->
 <div class="modal fade" id="DetailModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
+   
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -141,7 +144,7 @@
                         </tr>
                         </thead>
                         <tbody>
-
+                            {{-- <td>{{ $transaksiOnlineDetail->formatted_amount }}</td> --}}
                         </tbody>
                     </table>
                     <!--end: Datatable-->
@@ -231,7 +234,7 @@
   width: 100%;
   border-collapse: collapse;
   font-family: 'Arial', sans-serif;
-  font-size: 15px;
+  font-size: 12px;
   color: #333;
   text-align: left;
   margin-bottom: 20px;
@@ -239,7 +242,7 @@
 
 /* Table header styling */
 .table thead {
-  background-color: #FFEDD3;
+  background-color: #fff0f4;
   color: #333;
 }
 
@@ -258,7 +261,7 @@
 }
 
 .table tbody tr:nth-child(even) {
-  background-color: #FFEDD3;
+  background-color: #fff0f4;
 }
 
 .table tbody tr:hover {
