@@ -113,19 +113,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('print_online_invoice', [TransaksiOnlineController::class, 'cetak_invoice']);
     Route::get('print_online_nota/{orderNum}', [TransaksiOnlineController::class, 'cetak_nota'])->name('print_online_nota');
 
-/*
-POS VERSI 2 -- 27-09-24
-*/
-Route::prefix('pos_v2')->group(function () {
-    Route::get('/', [PosV2Controller::class, 'index'])->name('pos.dashboard-posv2'); // Dashboard
+    /*
+    POS VERSI 2 -- 27-09-24
+    */
+    Route::prefix('pos_v2')->group(function () {
+        Route::get('/', [PosV2Controller::class, 'index'])->name('pos.dashboard-posv2'); // Dashboard
 
-    Route::get('/satuan', [SatuanPosV2Controller::class, 'satuan'])->name('posv2.masterdata.satuan-posv2');
-    Route::get('/bahanbaku', [BahanBakuPosV2Controller::class, 'bahan'])->name('posv2.masterdata.bahanbaku-posv2');
-    Route::get('/produk', [ProdukPosV2Controller::class, 'produk'])->name('posv2.masterdata.produk-posv2');
+        Route::get('/satuan', [SatuanPosV2Controller::class, 'satuan'])->name('posv2.masterdata.satuan-posv2');
+        Route::get('/bahanbaku', [BahanBakuPosV2Controller::class, 'bahan'])->name('posv2.masterdata.bahanbaku-posv2');
+        Route::get('/produk', [ProdukPosV2Controller::class, 'produk'])->name('posv2.masterdata.produk-posv2');
 
-});
-
-//   g
+    });
 });
 
 
