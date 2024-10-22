@@ -125,15 +125,7 @@ Route::prefix('pos_v2')->group(function () {
 
 });
 
-    Route::post('getdata', [SatuanPosV2Controller::class, 'getdata'])->name('satuan.getdata');
-    Route::post('datatable', [SatuanPosV2Controller::class, 'datatable'])->name('satuan.datatable');
-    Route::post('setStatus', [SatuanPosV2Controller::class, 'setStatus'])->name('satuan.setStatus');
-    Route::post('simpan', [SatuanPosV2Controller::class, 'simpan'])->name('satuan.simpan');
-    Route::post('hapus', [SatuanPosV2Controller::class, 'hapus'])->name('satuan.hapus');
-
-    Route::get('/kategori', [KategoriPosV2Controller::class, 'kategori'])->name('posv2.masterdata.kategori-posv2'); // Halaman Produk
-    Route::get('/user/datauser', [DataUserPosV2Controller::class, 'datauser'])->name('posv2.user.datauser-posv2');
-g
+//   g
 });
 
 
