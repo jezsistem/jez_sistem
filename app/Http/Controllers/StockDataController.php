@@ -281,6 +281,7 @@ class StockDataController extends Controller
                                     $query->where('product_stocks.ps_barcode', 'like', $text_search . '%')
                                           ->orWhere('products.p_name', 'like', '%' . $text_search . '%');
                                     })
+                                    
                                 ->get()
                                 ->first();
                                 

@@ -42,7 +42,7 @@
                     <div class="col-lg-12 col-xxl-12">
                         <!--begin::Card-->
                         <div class="card card-custom gutter-b">
-                            <div class="card-header flex-wrap py-3" style="background:#efefef;">
+                            <div class="card-header flex-wrap py-3" style="background:#ffe6e6;">
                                 <div class="card-toolbar col-12 mt-4">
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
@@ -174,10 +174,11 @@
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>
 
                                     <div class="mt-3">
-                                        <button type="button" class="btn btn-secondary btn-sm" id="pickZeroBtn">Stok Semua Varian
-                                            </button>
-                                        <button type="button" class="btn btn-primary btn-sm"
-                                            id="pickAvailableBtn">Stok Tersedia</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="pickZeroBtn">Stok
+                                            Semua Varian
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-sm" id="pickAvailableBtn">Stok
+                                            Tersedia</button>
                                         <input type="hidden" value="" id="is_zero">
                                     </div>
                                 </form>
@@ -186,7 +187,7 @@
                                 <table class="table table-hover table-checkable" id="StockDatatb">
                                     <thead class="bg-light text-dark">
                                         <tr>
-                                            <th class="text-dark">Available Stock
+                                            <th class="text-dark" style="width: 80%;">Available Stock
                                             </th>
                                             <th class="hidden"></th>
                                         </tr>
