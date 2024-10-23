@@ -148,9 +148,9 @@
                                         <th>Discount (%)</th>
                                         <th>Discount (Rp)</th>
                                         <th>Nameset</th>
+{{--                                        <th>Harga Satuan</th>--}}
                                         <th>Harga</th>
                                         <th>Subtotal</th>
-
                                     </tr>
                                     </thead>
                                     <tbody>

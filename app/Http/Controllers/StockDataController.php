@@ -267,11 +267,23 @@ class StockDataController extends Controller
 
                             $text_search = $request->get('search');
 
-                            $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
-                                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                                ->where('product_stocks.ps_barcode', 'like', '' . $text_search . '%')
-                                ->get()->first();
+                            // $article_id_search = DB::table('product_stocks')->select('product_stocks.id', 'products.article_id')
+                            //     ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                            //     ->where('product_stocks.ps_barcode', 'like', '' . $text_search . '%')
+                            //     ->get()->first();
 
+                            //     $text_search = $request->get('search');
+
+                            $article_id_search = DB::table('product_stocks')
+                                ->select('product_stocks.id', 'products.article_id')
+                                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                                ->where(function ($query) use ($text_search) {
+                                    $query->where('product_stocks.ps_barcode', 'like', $text_search . '%')
+                                          ->orWhere('products.p_name', 'like', '%' . $text_search . '%');
+                                    })
+                                ->get()
+                                ->first();
+                                
                             $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
 
                             $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
@@ -504,7 +516,7 @@ class StockDataController extends Controller
                             $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
                                 ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "$search%")
                                 ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%")
-                                ->orWhereRaw('p_name LIKE ?' , "%$search%");
+                                ->orWhereRaw('ts_products.p_name LIKE ?' , "%$search%");
                         });
                     }
 

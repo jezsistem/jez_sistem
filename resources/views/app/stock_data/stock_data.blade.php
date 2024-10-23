@@ -169,7 +169,7 @@
                                     <div id="reader" class="rounded"></div>
                                     <div id="result"></div>
                                     <input type="text" class="form-control" id="stock_data_search"
-                                        placeholder="Ketik 3 huruf pertama nama artikel atau sku"
+                                        placeholder="Ketik 3 huruf pertama Nama Produk atau Nama Artikel"
                                         style="border:1px solid black; padding:20px; background:#efefef;" /><br />
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>
 
