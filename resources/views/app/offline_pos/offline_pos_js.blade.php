@@ -93,8 +93,8 @@
                 if (typeof sbttl === 'undefined' && sbttl == '') {
                     sbttl = 0;
                 }
-
-                final_price += (sbttl * item_qty);
+                // Perubahan QTY Price
+                final_price += (sbttl   );
             }
 
             var disc_item = jQuery(row).find('.discount_number').val();
