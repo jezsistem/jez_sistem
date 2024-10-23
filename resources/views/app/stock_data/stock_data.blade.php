@@ -215,3 +215,34 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 @endSection()
+
+<style>
+    #StockDatatb th {
+        width: 80%;
+        white-space: nowrap;
+        padding: 10px;
+    }
+    #StockDatatb th.hidden {
+        width: 20%;
+    }
+    @media only screen and (max-width: 1080px) {
+        .table tbody tr {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .table tbody td {
+            display: block;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 5px;
+            position: relative;
+        }
+        .table tbody td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 10px;
+            font-weight: bold;
+        }
+    }
+</style>

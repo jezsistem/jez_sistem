@@ -281,7 +281,7 @@ class StockDataController extends Controller
                                     $query->where('product_stocks.ps_barcode', 'like', $text_search . '%')
                                           ->orWhere('products.p_name', 'like', '%' . $text_search . '%');
                                     })
-                                    
+
                                 ->get()
                                 ->first();
                                 
@@ -516,8 +516,8 @@ class StockDataController extends Controller
                             $search = $request->get('search');
                             $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
                                 ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "$search%")
-                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%")
-                                ->orWhereRaw('ts_products.p_name LIKE ?' , "%$search%");
+                                ->orWhereRaw('ts_products.p_name LIKE ?' , "%$search%")
+                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
                         });
                     }
 
