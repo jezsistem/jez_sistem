@@ -172,7 +172,7 @@ class TransaksiOnlineController extends Controller
             $branch = $request->get('branch');
             $status = $request->get('status');
             $date = $request->get('date');
-            $changeplatform = $request->input('changeplatform');
+            $changeplatform = $request->get('changeplatform');
             $exp = explode('|', $date);
             $start = null;
             $end = null;
@@ -722,7 +722,6 @@ class TransaksiOnlineController extends Controller
                             'city' => $city,
                             'province' => $province,
                         ];
-
 
                         $id_trx = OnlineTransactions::select('id', 'order_number', 'time_print')
                             ->where('order_number', $order_number)

@@ -15,16 +15,16 @@ class OnlineReportExport implements FromCollection, withHeadings
     protected $status;
     protected $start;
     protected $end;
-    // protected $changeplatform; 
+    protected $changeplatform;
 
-    function __construct($branch, $start, $end, $status)
+    function __construct($branch, $start, $end, $status, $changeplatform)
     // function __construct($branch, $start, $end, $status, $changeplatform)
     {
         $this->start = $start;
         $this->end = $end;
         $this->status = $status;
         $this->branch = $branch;
-        // $this->changeplatform = $changeplatform;
+        $this->changeplatform = $changeplatform;
     }
 
     public function headings(): array
@@ -63,9 +63,20 @@ class OnlineReportExport implements FromCollection, withHeadings
                 } else {
                     $w->whereBetween('online_transactions.time_print', [$this->start . ' 00:00:01', $this->start . ' 23:59:59']);
                 }
+
+                if(!empty($this->changeplatform) || $this->changeplatform != '' || $this->changeplatform != null ){
+                    $w->where('online_transactions.platform_name', $this->changeplatform);
+                }
+
+                if(!empty($this->branch) || $this->branch != '' || $this->branch != null ){
+                    $w->where('online_transactions.st_id', '=', $this->branch);
+                }
+
+//                if ($this->status != 2 || $this->status != '' || $this->status != null) {
+//                    $w->where('online_transactions.online_print', '=', $this->status);
+//                }
+
             })
-            ->where('online_transactions.online_print', '=', 1)
-            ->where('online_transactions.st_id', '=', $this->branch) // Filter by branch
             ->get();
 
         return $data;

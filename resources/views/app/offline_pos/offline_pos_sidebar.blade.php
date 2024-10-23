@@ -9,11 +9,11 @@
                     </div>
                     <div class="media-body ml-3">
                         @if($data['shift_status'] > 0)
-                            <h3 class="title font-weight-bold">{{ $data['store']->st_name }}</h3> <h3
-                                    class="title font-weight-bold" id="shiftStatus">[Shift In-Progress]</h3>
+                            <h3 class="title font-weight-bold">{{ $data['store']->st_name }}</h3>
+                            <h3 class="title font-weight-bold" id="shiftStatus">[Shift In-Progress]</h3>
                         @else
-                            <h3 class="title font-weight-bold">{{ $data['store']->st_name }}</h3> <h3
-                                    class="title font-weight-bold" id="shiftStatus">[Shift not started]</h3>
+                            <h3 class="title font-weight-bold">{{ $data['store']->st_name }}</h3>
+                            <h3 class="title font-weight-bold" id="shiftStatus">[Shift not started]</h3>
                         @endif
                         <p class="phoonenumber">
                             {{ $data['store']->st_phone }}
