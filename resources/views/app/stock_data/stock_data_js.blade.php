@@ -104,7 +104,28 @@
         return false;
     }
 
-    function reloadGender(type, id) {
+    // function reloadGender(type, id) {
+    //     $.ajaxSetup({
+    //         headers: {
+    //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    //         }
+    //     });
+    //     $.ajax({
+    //         type: "POST",
+    //         data: {
+    //             _type: type,
+    //             _id: id
+    //         },
+    //         dataType: 'html',
+    //         url: "{{ url('stock_data_reload_size') }}",
+    //         success: function(r) {
+    //             $('#sz_id').html(r);
+    //         }
+    //     });
+    //     return false;
+    // }
+
+    function reloadName(type, id) {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -117,9 +138,9 @@
                 _id: id
             },
             dataType: 'html',
-            url: "{{ url('stock_data_reload_size') }}",
+            url: "{{ url('stock_data_reload_product') }}",
             success: function(r) {
-                $('#sz_id').html(r);
+                $('#p_name').html(r);
             }
         });
         return false;
@@ -147,7 +168,7 @@
     }
 
     $(document).ready(function() {
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').val('');
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').val('');
         // $('body').addClass('kt-primary--minimize aside-minimize');
         $.ajaxSetup({
             headers: {
@@ -177,12 +198,13 @@
                     d.psc_id = $('#psc_id').val();
                     d.pssc_id = $('#pssc_id').val();
                     d.sz_id = $('#sz_id').val();
-                    d.gender_id = $('#gender_id').val();
+                    // d.gender_id = $('#gender_id').val();
+                    d.p_name = $('#p_name').val();
                     d.main_color_id = $('#main_color_id').val();
                     d.display_status = $('#display_status').val();
                     d.st_id = $('#st_id_filter').val();
                     d.is_zero = $('#is_zero').val();
-                }
+                },
             },
             columns: [{
                     data: 'article_name',
@@ -210,7 +232,7 @@
                 [10, 25, 50, 100, "Semua"]
             ],
             language: {
-                "lengthMenu": "_MENU_",
+                "lengthMenu": "MENU",
             },
             order: [
                 [0, 'desc']
@@ -236,43 +258,25 @@
 
         $('#pickAvailableBtn').on('click', function() {
             $('#is_zero').val(0);
-
-            // Ubah kelas tombol
             $('#pickZeroBtn').removeClass('btn-primary').addClass('btn-secondary');
             $('#pickAvailableBtn').removeClass('btn-secondary').addClass('btn-primary');
 
+            // Pastikan hanya satu elemen th yang diubah
+            $('th.text-dark').text('Stok Tersedia');
             stock_data_table.draw();
         });
 
-<<<<<<< HEAD
-        //     // Handle Pick Zero Stocks button
-        // $('#pickZeroBtn').on('click', function () {
-        //     $('#is_zero').val(1);
-        //     // Optionally, perform additional actions for picking zero stocks
-        //     alert('Picking zero stocks');
-        //     // stock_data_table.draw();
-        // });
-
-        // // Handle Pick Available Stocks button
-        // $('#pickAvailableBtn').on('click', function () {
-        //     $('#is_zero').val(0);
-        //     // Optionally, perform additional actions for picking available stocks
-        //     alert('Picking available stocks');
-        //     // stock_data_table.draw();
-        // });
-=======
         $('#pickZeroBtn').on('click', function() {
             $('#is_zero').val(1);
-
-            // Ubah kelas tombol
             $('#pickZeroBtn').removeClass('btn-secondary').addClass('btn-primary');
             $('#pickAvailableBtn').removeClass('btn-primary').addClass('btn-secondary');
 
+            // Pastikan hanya satu elemen th yang diubah
+            $('th.text-dark').text('Stok Semua Varian');
             stock_data_table.draw();
         });
 
 
->>>>>>> 13224731c2f2bf487134772edeee9675176099b5
 
 
         const scanner = new Html5QrcodeScanner('reader', {
@@ -354,7 +358,7 @@
         {{--    }], --}}
         {{--    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]], --}}
         {{--    language: { --}}
-        {{--        "lengthMenu": "_MENU_", --}}
+        {{--        "lengthMenu": "MENU", --}}
         {{--    }, --}}
         {{--    order: [[0, 'desc']], --}}
         {{-- }); --}}
@@ -710,15 +714,17 @@
             $("#sz_id").trigger('change');
             $("#main_color_id").val("");
             $("#main_color_id").trigger('change');
-            $("#gender_id").val("");
-            $("#gender_id").trigger('change');
+            // $("#gender_id").val("");
+            // $("#gender_id").trigger('change');
+            $("#p_name").val("");
+            $("#p_name").trigger('change');
             $("#stock_data_search").val("");
             $('#display_status').val('');
             oSettings[0]._iDisplayLength = 10;
             // stock_data_table.draw();
         });
 
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #main_color_id').on('change', function() {
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').on('change', function() {
             stock_data_table.draw();
         });
 
@@ -792,19 +798,66 @@
             $(window).off(evt);
         });
 
-        $('#gender_id').select2({
-            multiple: true,
-            width: "100%",
-            dropdownParent: $('#gender_id_parent'),
-            closeOnSelect: true,
-            placeholder: "GENDER",
-            allowClear: true,
-        });
-        $('#gender_id').on('select2:open', function(e) {
-            const evt = "scroll.select2";
-            $(e.target).parents().off(evt);
-            $(window).off(evt);
-        });
+        // $('#p_name').select2({
+        //     multiple: true,
+        //     width: "100%",
+        //     dropdownParent: $('#p_name_parent'),
+        //     closeOnSelect: true,
+        //     placeholder: "NAMA PRODUK",
+        //     allowClear: true,
+        // });
+        // $('#p_name').on('select2:open', function(e) {
+        //     const evt = "scroll.select2";
+        //     $(e.target).parents().off(evt);
+        //     $(window).off(evt);
+        // });
+
+    //     $('#p_name').select2({
+    //     multiple: true,
+    //     width: "100%",
+    //     dropdownParent: $('#p_name_parent'),
+    //     closeOnSelect: true,
+    //     placeholder: "NAMA PRODUK",
+    //     allowClear: true,
+    //     minimumInputLength: 2, // Minimum characters before making AJAX request
+    //     ajax: {
+    //         url: '/your-api-endpoint', // Replace with your API endpoint that returns filtered product data
+    //         dataType: 'json',
+    //         delay: 250, // Delay in milliseconds to avoid too many requests
+    //         data: function (params) {
+    //             return {
+    //                 q: params.term, // Search term from the user input
+    //                 page: params.page || 1 // Pagination
+    //             };
+    //         },
+    //         processResults: function (data, params) {
+    //             params.page = params.page || 1;
+    //             return {
+    //                 results: data.items, // Assuming your API returns an array of items
+    //                 pagination: {
+    //                     more: data.more // Whether there are more results available
+    //                 }
+    //             };
+    //         },
+    //         cache: true
+    //     }
+    // });
+
+    // // Optional: Close dropdown on scroll event to improve performance.
+    // $('#p_name').on('select2:open', function(e) {
+    //     const evt = "scroll.select2";
+    //     $(e.target).parents().off(evt);
+    //     $(window).off(evt);
+    // });
+
+
+        // $(document).ready(function() {
+        // $('#p_name').select2({
+        // placeholder: "Select an option",
+        // allowClear: true
+        //     });
+        // });
+
 
         $('#main_color_id').select2({
             multiple: true,
@@ -943,6 +996,5 @@
                 stock_data_table.draw();
             }, 300); // Adjust the delay as needed
         });
-
     });
 </script>

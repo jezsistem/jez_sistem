@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Gender;
+// use App\Models\Gender;
 use App\Models\MainColor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -90,7 +90,8 @@ class StockDataController extends Controller
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
-            'gender_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
+            'p_name' => Product::where('p_delete', '!=', '1')->orderByDesc('id')->pluck('p_name', 'id'),
+            // 'gn_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
             'main_color_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'segment' => request()->segment(1),
         ];
@@ -106,7 +107,7 @@ class StockDataController extends Controller
             ->get();
 
         return response()->json(['data' => $promoData]);
-    }
+    } 
 
     public function getDatatables(Request $request)
     {
@@ -182,7 +183,7 @@ class StockDataController extends Controller
                 })
                 ->editColumn('article_stock', function ($data) use ($request, $exception, $b1g1_setup, $st_id) {
                     $sz_id = $request->get('sz_id');
-                    $gender_id = $request->get('gender_id');
+                    $p_name = $request->get('p_name');
                     $item = Product::selectRaw("ts_products.id as pid, pst_id, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, p_color, br_name, ps_qty, pls_qty, p_price_tag, ps_price_tag, p_sell_price, ps_sell_price, article_id")
                         ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                         ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
@@ -459,21 +460,29 @@ class StockDataController extends Controller
                         });
                     }
 
-                    if (!empty($request->get('gender_id'))) {
+                    if (!empty($request->get('p_name'))) {
                         $instance->where(function ($w) use ($request) {
-                            $gender_id = $request->get('gender_id');
-                            $count = (integer)count($gender_id);
+                            $p_name = $request->get('p_name');
+                            $count = (integer)count($p_name);
                             $where = array();
                             if ($count > 0) {
                                 for ($i = 0; $i < $count; $i++) {
-                                    $where[] = $gender_id[$i];
+                                    $where[] = $p_name[$i];
                                 }
-                                $w->orWhereIn('products.gn_id', $where);
+                                $w->orWhereIn('products.p_name', $where);
                             } else {
-                                $w->orWhere('products.gn_id', '=', $gender_id[0]);
+                                $w->orWhere('products.p_name', '=', $p_name[0]);
                             }
                         });
                     }
+                    // $data = $instance->get(); // Fetch your data
+
+                    // return response()->json([
+                    //     'draw' => intval($request->get('draw')),
+                    //     'recordsTotal' => $totalRecords,
+                    //     'recordsFiltered' => $filteredRecords,
+                    //     'data' => $data
+                    // ]);
                     if (!empty($request->get('main_color_id'))) {
                         $instance->where(function ($w) use ($request) {
                             $mc_id = $request->get('main_color_id');
@@ -494,9 +503,25 @@ class StockDataController extends Controller
                             $search = $request->get('search');
                             $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
                                 ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "$search%")
-                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%")
+                                ->orWhereRaw('p_name LIKE ?' , "%$search%");
                         });
                     }
+
+                    
+    // public function stockDataDatatables(Request $request) {
+    //     $searchQuery = $request->input('search');
+    
+    //     $products = Product::query();
+    
+    //     if (!empty($searchQuery)) {
+    //         // Search by article ID or product name
+    //         $products->where('article_id', 'LIKE', '%' . $searchQuery . '%')
+    //                  ->orWhere('p_name', 'LIKE', '%' . $searchQuery . '%');
+    //     }
+    
+    //     return Datatables::of($products)->make(true);
+    // }   
                     if (!empty($request->get('search_scan'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search_scan');

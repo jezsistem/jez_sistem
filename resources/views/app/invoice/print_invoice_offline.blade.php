@@ -361,6 +361,18 @@
                 </div>
                 <br/>
 
+                <div class = "note">
+                    <tr>
+                    <td colspan="3" class="note" style="font-size: 14px; padding: 5px;">
+                        <span style="float:left;">NOTE:</span>
+                    </td>
+                    <td class="note" style="font-size: 14px; padding: 5px; text-align:right;">
+                        {{ $row->pos_note ?? "No Notes Available" }}
+                    </td>
+                    </tr>
+                </div>
+            </br>                
+
                 <div class="title">
                     <strong><i>Cust Experience :</i></strong>
                     <br/>

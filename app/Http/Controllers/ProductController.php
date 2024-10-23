@@ -106,6 +106,7 @@ class ProductController extends Controller
             'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderBy('mc_name', 'asc')->pluck('mc_name', 'id'),
             'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderBy('ps_name','asc')->pluck('ps_name', 'id'),
             'gn_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
+            'p_name' => Product::where('p_delete', '!=', '1')->orderByDesc('id')->pluck('p_name', 'id'),
             'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
             'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
@@ -115,6 +116,23 @@ class ProductController extends Controller
 
         return view('app.product.product', compact('data'));
     }
+
+    // public function searchProduct(Request $request) {
+    //     $search = $request->input('search');
+        
+    //     // Fetch products based on the search term
+    //     $products = Product::where('name', 'LIKE', "%{$search}%")
+    //                         ->limit(10) // Limit the number of results to reduce load
+    //                         ->get();
+        
+    //     return response()->json($products->map(function($product) {
+    //         return [
+    //             'id' => $product->id,
+    //             'name' => $product->name
+    //         ];
+    //     }));
+    // }
+    
 
     //    public function getDatatables(Request $request)
     //    {
