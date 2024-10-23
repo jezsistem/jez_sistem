@@ -54,17 +54,47 @@
                                         </label>
                                         <input type="hidden" id="cust_id" value="" />
                                         <input type="hidden" id="sub_cust_id" value="" />
-                                        <input type="search" id="cust_id_label"
-                                            placeholder="Ketik minimal 4 huruf customer" autocomplete="off" /> <a
-                                            href="#" class="btn btn-inventory" data-id=""
-                                            id="check_customer">Check</a>
+                                        <input type="search" id="cust_id_label" placeholder="Ketik minimal 4 huruf customer" autocomplete="off" />
+                                        <a href="#" class="btn btn-inventory" data-id="" id="check_customer">Check</a>
+                                        
+                                        <script>
+                                            // Event listener untuk mengubah +62 atau 62 menjadi 08
+                                            document.getElementById('cust_id_label').addEventListener('input', function(e) {
+                                                let inputText = e.target.value;
+                                        
+                                                // Jika awalan +62, ubah menjadi 08
+                                                if (inputText.startsWith('+62')) {
+                                                    e.target.value = '08' + inputText.substring(3); // Ganti +62 di awal dengan 08
+                                                }
+                                                // Jika awalan 62, ubah menjadi 08
+                                                else if (inputText.startsWith('62')) {
+                                                    e.target.value = '08' + inputText.substring(2); // Ganti 62 di awal dengan 08
+                                                }
+                                            });
+                                        </script>
+                                        
                                         <div id="itemListCust"></div><br />
                                         <label class="text-white d-flex font-weight-bold">Sub Customer (isi jika
                                             dropshipper)</label>
-                                        <input type="search" id="sub_cust_id_label"
-                                            placeholder="Ketik minimal 4 huruf sub customer" autocomplete="off" /> <a
-                                            href="#" class="btn btn-inventory" data-id=""
-                                            id="check_sub_customer">Check</a>
+                                            <input type="search" id="cust_id_label" placeholder="Ketik minimal 4 huruf customer" autocomplete="off" />
+                                            <a href="#" class="btn btn-inventory" data-id="" id="check_customer">Check</a>
+                                            
+                                            <script>
+                                                // Event listener untuk mengubah +62 atau 62 menjadi 08
+                                                document.getElementById('cust_id_label').addEventListener('input', function(e) {
+                                                    let inputText = e.target.value;
+                                            
+                                                    // Jika awalan +62, ubah menjadi 08
+                                                    if (inputText.startsWith('+62')) {
+                                                        e.target.value = '08' + inputText.substring(3); // Ganti +62 di awal dengan 08
+                                                    }
+                                                    // Jika awalan 62, ubah menjadi 08
+                                                    else if (inputText.startsWith('62')) {
+                                                        e.target.value = '08' + inputText.substring(2); // Ganti 62 di awal dengan 08
+                                                    }
+                                                });
+                                            </script>
+                                            
                                         <div id="itemListSubCust"></div>
                                     </div>
                                     <div class="selectmain">
