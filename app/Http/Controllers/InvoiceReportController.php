@@ -20,8 +20,12 @@ class InvoiceReportController extends Controller
     public function getDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(PosTransaction::select('pos_transactions.id as pt_id', 'pos_transactions.created_at as pos_created', 'pos_invoice', 'pos_shipping', 'pos_unique_code', 'pos_admin_cost', 'pos_another_cost',
-            'dv_name', 'cross_order', 'u_name', 'pos_payment', 'pos_payment_partial', 'pos_note', 'pm_id', 'pm_id_partial', 'cp_id', 'cp_id_partial', 'cust_name', 'pos_refund', 'pos_status', 'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two')
+            return datatables()->of(PosTransaction::select(
+                'pos_transactions.id as pt_id', 'pos_transactions.created_at as pos_created', 'pos_invoice', 'pos_shipping', 'pos_unique_code',
+                'pos_admin_cost', 'pos_discount_seller','pos_another_cost', 'dv_name', 'cross_order', 'u_name', 'pos_payment', 'pos_payment_partial',
+                'pos_note', 'pm_id', 'pm_id_partial', 'cp_id', 'cp_id_partial', 'cust_name', 'pos_refund', 'pos_status',
+                'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'st_name' ,'pos_paid_dp', 'pos_paid_dp_date', 'pos_status')
+            ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
@@ -77,10 +81,16 @@ class InvoiceReportController extends Controller
                       $total += $row->pos_td_discount_price;
                     }
                   }
-                  return $total;
+                  return number_format($total);
                 } else {
                   return '-';
                 }
+            })
+            ->editColumn('pos_admin_cost' , function ($data) {
+                return number_format($data->pos_admin_cost);
+            })
+            ->editColumn('pos_another_cost', function ($data) {
+                return number_format($data->pos_another_cost);
             })
             ->editColumn('nameset', function($data){
                 $item_qty = PosTransactionDetail::select('pos_td_nameset_price')->where('pt_id', '=', $data->pt_id)->sum('pos_td_nameset_price');
@@ -131,7 +141,7 @@ class InvoiceReportController extends Controller
                   } else {
                     $total = $ptd_total;
                   }
-                  return $total;
+                  return number_format($total);
                 } else {
                   return '-';
                 }
@@ -159,13 +169,22 @@ class InvoiceReportController extends Controller
                   } else {
                     $total = $ptd_total - $data->pos_admin_cost + $data->pos_another_cost + $data->pos_shipping + $data->pos_unique_code;
                   }
-                  return $total;
+                  return number_format($total);
                 } else {
                   return '-';
                 }
             })
+            ->editColumn('pos_paid_dp_date', function($data){
+                if (empty($data->pos_paid_dp_date)) {
+                  return '';
+                }
+                return date('d/m/Y', strtotime($data->pos_paid_dp_date));
+            })
             ->rawColumns(['pos_created', 'u_name', 'pos_invoice', 'cust_name'])
             ->filter(function ($instance) use ($request) {
+                if (!empty($request->get('dp_id'))) {
+                    $instance->where('pos_transactions.pos_status', $request->get('dp_id'));
+                }
                 if (!empty($request->get('stt_id'))) {
                     $instance->where('pos_transactions.stt_id', $request->get('stt_id'));
                 }

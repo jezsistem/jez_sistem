@@ -51,7 +51,7 @@
             serverSide: true,
             responsive: false,
             bPaginate: true,
-            dom: '<"text-right"l>rt<"text-right"p>',
+            dom: 'lBrt<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
@@ -94,7 +94,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'B<"text-right"l>rt<"text-right"p>',
+            dom: 'lB<"text-right"l>rt<"text-right"p>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
@@ -144,7 +144,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: '<"text-left"l>rt<"text-right"p>',
+            dom: 'lB<"text-right"l>rt<"text-right"p>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
@@ -177,7 +177,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: '<"text-right"l>rt<"text-right"p>',
+            dom: 'lB<"text-right"l>rt<"text-right"p>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],

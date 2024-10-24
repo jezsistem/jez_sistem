@@ -11,8 +11,8 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 class MassImport implements ToCollection, WithStartRow
 {
     /**
-    * @param Collection $collection
-    */
+     * @param Collection $collection
+     */
 
     private $rows = 0;
     private $ma_id_throw = null;
@@ -22,14 +22,16 @@ class MassImport implements ToCollection, WithStartRow
     protected $br_id;
     protected $pl_id;
     protected $qty_filter;
+    protected $note;
 
-    function __construct($st_id, $psc_id, $br_id, $pl_id, $qty_filter)
+    function __construct($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note)
     {
         $this->st_id = $st_id;
         $this->psc_id = $psc_id;
         $this->br_id = $br_id;
         $this->pl_id = $pl_id;
         $this->qty_filter = $qty_filter;
+        $this->note = $note;
     }
 
     public function startRow(): int
@@ -51,8 +53,8 @@ class MassImport implements ToCollection, WithStartRow
                 return null;
             }
             $pls_id = $r[0];
-            $qty_export = (int)$r[9];
-            $qty_so = (int)$r[10];
+            $qty_export = (int)$r[10];
+            $qty_so = (int)$r[11];
             $type = null;
             $diff = null;
             if ($qty_export > $qty_so) {
@@ -74,6 +76,7 @@ class MassImport implements ToCollection, WithStartRow
                     'ma_editor' => null,
                     'ma_executor' => null,
                     'ma_status' => '0',
+                    'note_adjustment' => $this->note,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);

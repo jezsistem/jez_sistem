@@ -38,6 +38,7 @@
                                         <th class="text-dark">Divisi</th>
                                         <th class="text-dark">Artikel</th>
                                         <th class="text-dark">Tanggal</th>
+                                        <th class="text-dark">Note</th>
                                         <th class="text-dark">Tindakan</th>
                                     </tr>
                                 </thead>

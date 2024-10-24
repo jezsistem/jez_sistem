@@ -28,6 +28,20 @@
             left: 40,
             width: 522
         };
+// Mendapatkan tanggal dan waktu saat ini
+var now = new Date();
+    var day = String(now.getDate()).padStart(2, '0');
+    var month = String(now.getMonth() + 1).padStart(2, '0'); // Bulan dimulai dari 0, jadi ditambah 1
+    var year = now.getFullYear();
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    var seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Membuat format nama file dengan tanggal dan waktu
+ // Membuat format nama file dengan format tanggal/bulan/tahun-jam
+    var timestamp = `${day}-${month}-${year}_${hours}-${minutes}-${seconds}`;
+    var fileName = `Summary_Penjualan_Cabang_${day}/${month}/${year}/${hours}.${minutes}.pdf`;
+
         pdf.fromHTML(
             source, 
             margins.left, 
@@ -36,8 +50,9 @@
                 'elementHandlers': specialElementHandlers
             },
             function (dispose) {
-                pdf.save('Cabang Offline Omset.pdf');
-            }, margins
+            pdf.save(fileName); // Simpan PDF dengan nama file yang berisi timestamp
+        },
+             margins
         );
     }
     
@@ -138,7 +153,7 @@
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs', "exportOptions": { orthogonal: 'export' }  }
             ],
             ajax: {
                 url : "{{ url('invoice_report_datatables') }}",
@@ -146,27 +161,55 @@
                     d.search = $('#invoice_report_search').val();
                     d.stt_id = $('#stt_id').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.dp_id = $('#dp_id').val();
                     d.sales_date = $('#sales_date').val();
+                    console.log($('#st_id_filter').val());
                 }
             },
             columns: [
             { data: 'DT_RowIndex', name: 'pt_id', searchable: false},
             { data: 'pos_created', name: 'pos_created' },
+            {data: 'st_name', name: 'st_name'},
             { data: 'pos_invoice', name: 'pos_invoice' },
             { data: 'cust_name', name: 'cust_name' },
             { data: 'cross', name: 'cross_order' },
             { data: 'u_name', name: 'u_name' },
             { data: 'dv_name', name: 'dv_name' },
             { data: 'item_qty', name: 'item_qty', orderable: false },
-            { data: 'item_value', name: 'item_value', orderable: false },
-            { data: 'pos_shipping', name: 'pos_shipping' },
+            { data: 'item_value', name: 'item_value', orderable: false,  render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'pos_shipping', name: 'pos_shipping', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'pos_unique_code', name: 'pos_unique_code' },
-            { data: 'pos_admin_cost', name: 'pos_admin_cost' },
-            { data: 'pos_another_cost', name: 'pos_another_cost' },
+            { data: 'pos_admin_cost', name: 'pos_admin_cost' ,  render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'pos_discount_seller', name: 'pos_discount_seller', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
+            { data: 'pos_another_cost', name: 'pos_another_cost', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'nameset', name: 'nameset', orderable: false },
             { data: 'value_admin', name: 'value_admin', orderable: false },
             { data: 'total', name: 'total', orderable: false },
-            { data: 'payment_one', name: 'pm_id' },
+            { data: 'payment_one', name: 'pm_id', render: function (data, type, row) {
+                    return type === 'export' ?
+                        data.replace( /[$,]/g, '' ) :
+                        data;
+                } },
             { data: 'pos_payment', name: 'pos_payment' },
             { data: 'pos_card_number', name: 'pos_card_number' },
             { data: 'pos_ref_number', name: 'pos_ref_number' },
@@ -174,8 +217,11 @@
             { data: 'pos_payment_partial', name: 'pos_payment_partial' },
             { data: 'pos_card_number_two', name: 'pos_card_number_two' },
             { data: 'pos_ref_number_two', name: 'pos_ref_number_two' },
+            { data: 'pos_paid_dp', name: 'pos_paid_dp' },
+            { data: 'pos_paid_dp_date', name: 'pos_paid_dp_date' },
+            { data: 'pos_status', name: 'pos_status' },
             { data: 'pos_note', name: 'pos_note' },
-            ], 
+            ],
             columnDefs: [
             {
                 "targets": 0,
@@ -284,7 +330,7 @@
             order: [[2, 'desc']],
         });
 
-        $('#stt_id, #datetime, #st_id_filter').on('change', function() {
+        $('#stt_id, #datetime, #st_id_filter', '#dp_id').on('change', function() {
             //sales_report_table.draw();
             invoice_report_table.draw();
             article_report_table.draw();
@@ -344,7 +390,9 @@
             var stt_id = $('#stt_id').val();
             var st_id = $('#st_id_filter').val();
             var date = $('#sales_date').val();
-            window.location.href = "{{ url('sales_export') }}?type="+type+"&date="+date+"&stt_id="+stt_id+"&st_id="+st_id+"";
+            var dp_id = $('#dp_id').val();
+            {{--window.location.href = "{{ url('sales_export') }}?type="+type+"&date="+date+"&stt_id="+stt_id+"&st_id="+st_id+"";--}}
+            window.location.href = "{{ url('sales_export') }}?type="+type+"&date="+date+"&stt_id="+stt_id+"&st_id="+st_id+"&dp_id="+dp_id+"";
         });
         
         $(document).delegate('#cabang_cross_order_detail', 'click', function() {

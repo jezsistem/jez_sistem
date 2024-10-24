@@ -19,12 +19,19 @@ class PosTransactionDetail extends Model
         'pos_td_sell_price',
         'pos_td_total_price',
         'pos_td_discount',
+        'pos_td_discount_number',
         'pos_td_discount_price',
         'pos_td_marketplace_price',
+        'pos_td_price_item_discount',
         'pos_td_nameset_price',
         'pos_td_nameset',
         'created_at'
     ];
+
+    public function productStock()
+    {
+        return $this->belongsTo(ProductStock::class, 'pst_id', 'id');
+    }
 
     public function checkData($select, $where)
     {

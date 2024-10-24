@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomerRating;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -14,17 +16,17 @@ use App\Models\Customer;
 
 class UserRatingController extends Controller
 {
-    protected function validateAccess()
-    {
-        $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
-        if (!$validate) {
-            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
-        }
-    }
+//    protected function validateAccess()
+//    {
+//        $validate = DB::table('user_menu_accesses')
+//        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+//            'u_id' => Auth::user()->id,
+//            'ma_slug' => request()->segment(1)
+//        ])->exists();
+//        if (!$validate) {
+//            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+//        }
+//    }
 
     protected function sidebar()
     {
@@ -205,10 +207,10 @@ class UserRatingController extends Controller
     {
         $user = new User;
         $select = ['u_name', 'u_email', 'u_phone', 'g_name'];
-        $where = [
-            'users.id' => Auth::user()->id
-        ];
-        $user_data = $user->checkJoinData($select, $where)->first();
+//        $where = [
+//            'users.id' => Auth::user()->id
+//        ];
+//        $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $path = "
         <li class='breadcrumb-item'>
@@ -221,8 +223,9 @@ class UserRatingController extends Controller
             'title' => $title,
             'subtitle' => 'Rating By Customer',
             'path' => $path,
-            'user' => $user_data,
+//            'user' => $user_data,
             'segment' => request()->segment(1),
+            'store_name' => Store::select('st_name')->where('id', '1')->get()->first()->st_name
         ];
         return view('app.rating_by_customer.rating_by_customer', compact('data'));
     }
@@ -330,37 +333,40 @@ class UserRatingController extends Controller
         $cust_name = $request->_cust_name;
         $cust_phone = $request->_cust_phone;
         $cust_subdistrict = $request->_cust_subdistrict;
-        $exp = explode('.', $cust_subdistrict);
-        $province = $exp[0];
-        $city = $exp[0].'.'.$exp[1];
-        if (!empty($cust_id)) {
-          $update = Customer::where('id', '=', $cust_id)->update([
-            'cust_name' => $cust_name,
-            'cust_phone' => $cust_phone,
-            'cust_province' => $province,
-            'cust_city' => $city,
-            'cust_subdistrict' => $cust_subdistrict,
-          ]);
-        } else {
-          $cust_id = DB::table('customers')->insertGetId([
-            'ct_id' => '1',
-            'st_id' => Auth::user()->st_id,
-            'stt_id' => Auth::user()->stt_id,
-            'cust_name' => $cust_name,
-            'cust_phone' => $cust_phone,
-            'cust_province' => $province,
-            'cust_city' => $city,
-            'cust_subdistrict' => $cust_subdistrict,
-            'cust_delete' => '0',
-            'created_at' => date('Y-m-d H:i:s')
-          ]);
-        }
-        $update_rating = UserRating::where('id', '=', $ur_id)->update([
-          'cust_id' => $cust_id,
-          'ur_value' => $rating,
-          'ur_description' => $ur_description,
-          'ur_status' => 'WAITING FOR CHECKOUT'
+
+        DB::table('customer_ratings')->insertGetId([
+            'st_id'             => Auth::user()->st_id,
+            'ur_value'          => $rating,
+            'ur_description'    => $ur_description
         ]);
+//        if (!empty($cust_id)) {
+//          $update = Customer::where('id', '=', $cust_id)->update([
+//            'cust_name' => $cust_name,
+//            'cust_phone' => $cust_phone,
+//            'cust_province' => $province,
+//            'cust_city' => $city,
+//            'cust_subdistrict' => $cust_subdistrict,
+//          ]);
+//        } else {
+//          $cust_id = DB::table('customers')->insertGetId([
+//            'ct_id' => '1',
+//            'st_id' => Auth::user()->st_id,
+//            'stt_id' => Auth::user()->stt_id,
+//            'cust_name' => $cust_name,
+//            'cust_phone' => $cust_phone,
+//            'cust_province' => $province,
+//            'cust_city' => $city,
+//            'cust_subdistrict' => $cust_subdistrict,
+//            'cust_delete' => '0',
+//            'created_at' => date('Y-m-d H:i:s')
+//          ]);
+//        }
+//        $update_rating = UserRating::where('id', '=', $ur_id)->update([
+//          'cust_id' => $cust_id,
+//          'ur_value' => $rating,
+//          'ur_description' => $ur_description,
+//          'ur_status' => 'WAITING FOR CHECKOUT'
+//        ]);
         if (!empty($update_rating)) {
           $r['status'] = '200';
         } else {

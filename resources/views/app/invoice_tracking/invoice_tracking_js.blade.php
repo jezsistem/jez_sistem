@@ -106,6 +106,31 @@
             }
         });
 
+        $(document).delegate('#dp_payment_btn', 'click', function () {
+            var pt_id = $(this).attr('data-pt_id');
+            var total_payment_real_price = $(this).attr('data-pos_real_price');
+            var pos_payment = $(this).attr('data-pos_payment');
+            var difference = total_payment_real_price - pos_payment;
+            $('#_pt_id').val(pt_id);
+            $('#total_payment_real_price').text(total_payment_real_price);
+            $('#difference_payment').text(difference);
+
+            $('#DPPaymentModal').modal('show');
+        });
+
+        $('#payment_dp').on('input', function () {
+            // Get the values of payment_dp and difference_payment
+            var paymentDpValue = parseFloat($(this).val());
+            var differencePaymentValue = parseFloat($('#difference_payment').text());
+
+            // Validate the payment_dp value
+            if (paymentDpValue > differencePaymentValue || paymentDpValue < 0) {
+                // cant be more than difference_payment
+                $(this).val(differencePaymentValue);
+                swal('Error', 'Pembayaran DP tidak boleh lebih dari sisa pembayaran atau kurang dari 0', 'error');
+            }
+        });
+
         $(document).delegate('#waybill_tracking_btn', 'click', function() {
             var waybill_number = $(this).text();
             var pt_id = $(this).attr('data-id');
@@ -157,6 +182,44 @@
                         $("#ShippingNumberModal").modal('hide');
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
                         $('#f_shipping_number')[0].reset();
+                        invoice_tracking_table.draw(false);
+                    } else if (data.status == '400') {
+                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                    }
+                },
+                error: function(data){
+                    swal('Error', data, 'error');
+                }
+            });
+        });
+
+        $('#f_payment_dp').on('submit', function(e){
+            e.preventDefault();
+            $("#save_payment_dp_btn").html('Proses ..');
+            $("#save_payment_dp_btn").attr("disabled", true);
+
+            var formData = new FormData(this);
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type:'POST',
+                url: "{{ url('invoice_dp_repayment')}}",
+                data: formData,
+                dataType: 'json',
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#save_payment_dp_btn").html('Simpan');
+                    $("#save_payment_dp_btn").attr("disabled", false);
+                    if (data.status == '200') {
+                        $("#DPPaymentModal").modal('hide');
+                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        $('#f_payment_dp')[0].reset();
                         invoice_tracking_table.draw(false);
                     } else if (data.status == '400') {
                         swal('Gagal', 'Data tidak tersimpan', 'warning');

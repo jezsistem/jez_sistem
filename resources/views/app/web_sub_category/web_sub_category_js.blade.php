@@ -14,10 +14,6 @@
             }
         });
 
-        $('#bannerPreview').on('click', function() {
-            $(this).attr('src', '')
-            $("#psc_banner").val('');
-        });
 
         var wsc_table = $('#Wsctb').DataTable({
             destroy: true,
@@ -99,6 +95,8 @@
                     } else if (data.status == '400') {
                         $("#WebSubCategoryModal").modal('hide');
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
+                    } else {
+                        console.log(data)
                     }
                 },
                 error: function(data){
@@ -106,6 +104,84 @@
                 }
             });
         });
+
+        $('#bannerPreview').on('click', function() {
+            let sid = $('#_id').val();
+            let image = $('#_banner').val();
+
+            // console.log(bid);
+            // console.log(image);
+            swal({
+                title: "Hapus Gambar Banner ..?",
+                text: "Gambar Banner akan terhapus",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Hapus'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $(this).attr('src', '')
+                    $("#psc_banner").val('');
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {id:sid, image:image},
+                        dataType: 'json',
+                        url: "{{ url('delete_image_sub_kategori')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                toast("Berhasil", "Banner berhasil dihapus", "success");
+                                article_table.draw(false);
+                            } else {
+                                toast('Gagal', 'Banner gagal dihapus', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
+        });
+
+        {{--$('#f_wsc').on('submit', function(e) {--}}
+        {{--    e.preventDefault();--}}
+        {{--    $("#save_wsc_btn").html('Proses ..');--}}
+        {{--    $("#save_wsc_btn").attr("disabled", true);--}}
+        {{--    var formData = new FormData(this);--}}
+        {{--    $.ajax({--}}
+        {{--        type:'POST',--}}
+        {{--        url: "{{ url('update_data')}}",--}}
+        {{--        data: formData,--}}
+        {{--        dataType: 'json',--}}
+        {{--        cache:false,--}}
+        {{--        contentType: false,--}}
+        {{--        processData: false,--}}
+        {{--        success: function(data) {--}}
+        {{--            $("#save_wsc_btn").html('Simpan');--}}
+        {{--            $("#save_wsc_btn").attr("disabled", false);--}}
+        {{--            if (data.status == '200') {--}}
+        {{--                $('#bannerPreview').trigger('click');--}}
+        {{--                $("#WebSubCategoryModal").modal('hide');--}}
+        {{--                swal('Berhasil', 'Data berhasil disimpan', 'success');--}}
+        {{--                wsc_table.draw();--}}
+        {{--            } else if (data.status == '400') {--}}
+        {{--                $("#WebSubCategoryModal").modal('hide');--}}
+        {{--                swal('Gagal', 'Data tidak tersimpan', 'warning');--}}
+        {{--            } else {--}}
+        {{--                console.log(data)--}}
+        {{--            }--}}
+        {{--        },--}}
+        {{--        error: function(data){--}}
+        {{--            swal('Error', data, 'error');--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--    // console.log('Halo')--}}
+        {{--});--}}
 
     });
 </script>

@@ -41,22 +41,40 @@
                     <div class="card card-custom card-stretch gutter-b">
                         <!--begin::Header-->
                         <div class="card-header align-items-center border-0 mt-4">
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="data_stok_btn">Data stok</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
                             <h3 class="card-title align-items-start flex-column">
-                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="out_btn">Keluar Barang</span>
+                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="out_btn">Keluar Rak</span>
+
+                            </h3>
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_out_btn">Scan Keluar Rak</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="in_btn">Masuk Rak</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_in_btn">Scan Masuk Rak</span>
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
                             </h3>
+
+
                             <h3 class="card-title align-items-start flex-column">
-                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="in_btn">Masuk Barang</span>
+                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_keep_btn">Keep Online</span>
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
                             </h3>
-                            <h3 class="card-title align-items-start flex-column">
-                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_take_btn">Scan Ambil</span>
-                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
-                            </h3>
-                            <h3 class="card-title align-items-start flex-column">
-                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_pack_btn">Scan Packing</span>
-                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
-                            </h3>
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_take_btn">Scan Ambil</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
+{{--                            <h3 class="card-title align-items-start flex-column">--}}
+{{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="invoice_pack_btn">Scan Packing</span>--}}
+{{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->--}}
+{{--                            </h3>--}}
                             <h3 class="card-title align-items-start flex-column">
                                 <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="take_cross_order_btn">Ambil Cross Order</span>
                                 <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
@@ -98,6 +116,21 @@
                     </div>
                     <!--end: List Widget 9-->
                 </div>
+
+                <div class="col-lg-12 col-xxl-12" id="user_activity_reload">
+                    <!--begin::List Widget 9-->
+                    <div class="card card-custom card-stretch gutter-b">
+                        <!--begin::Header-->
+                        <div class="card-header align-items-center border-0 mt-4">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="scan_transfer_btn">Scan Ambil Item Transfer</span>
+                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> -->
+                            </h3>
+                        </div>
+                        <!--end::Header-->
+                    </div>
+                    <!--end: List Widget 9-->
+                </div>
                 <!-- INCOMING STOCK -->
             </div>
             <!--end::Row-->
@@ -111,4 +144,5 @@
 @include('app.dashboard.helper.dashboard_modal')
 @include('app._partials.js')
 @include('app.dashboard.helper.dashboard_js')
+{{--@include('app.stock_data.stock_data_js')--}}
 @endSection()

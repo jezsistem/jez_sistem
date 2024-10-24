@@ -11,7 +11,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'rt<"text-right"ip>',
+            dom: 'lBrt<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
@@ -39,6 +39,7 @@
                 "className": "text-center",
                 "width": "0%"
             }],
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             order: [[0, 'desc']],
         });
 
@@ -47,7 +48,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'rt<"text-right"ip>',
+            dom: 'lBrt<"text-right"ip>',
             buttons: [
                 { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
@@ -75,6 +76,7 @@
                 "className": "text-center",
                 "width": "0%"
             }],
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             order: [[0, 'desc']],
         });
 

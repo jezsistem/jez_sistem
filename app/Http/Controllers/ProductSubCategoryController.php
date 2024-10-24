@@ -76,22 +76,45 @@ class ProductSubCategoryController extends Controller
 
     public function getDatatables(Request $request)
     {
+//        if(request()->ajax()) {
+//            return datatables()->of(ProductSubCategory::select('product_sub_categories.id as id', 'pc_name', 'psc_name', 'psc_slug', 'psc_description')
+//            ->join('product_categories', 'product_categories.id', '=', 'product_sub_categories.pc_id')
+//            ->where('psc_delete', '!=', '1')
+//            ->where('pc_id', '=', $request->pc_id))
+//            ->filter(function ($instance) use ($request) {
+//                if (!empty($request->get('search'))) {
+//                    $instance->where(function($w) use($request){
+//                        $search = $request->get('search');
+//                        $w->orWhere('psc_name', 'LIKE', "%$search%")
+//                        ->orWhere('psc_description', 'LIKE', "%$search%");
+//                    });
+//                }
+//            })
+//            ->addIndexColumn()
+//            ->make(true);
+//        }
         if(request()->ajax()) {
-            return datatables()->of(ProductSubCategory::select('product_sub_categories.id as id', 'pc_name', 'psc_name', 'psc_slug', 'psc_description')
-            ->join('product_categories', 'product_categories.id', '=', 'product_sub_categories.pc_id')
-            ->where('psc_delete', '!=', '1')
-            ->where('pc_id', '=', $request->pc_id))
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('psc_name', 'LIKE', "%$search%")
+            $query = ProductSubCategory::select('product_sub_categories.id as id', 'pc_name', 'psc_name', 'psc_slug', 'psc_description')
+                ->join('product_categories', 'product_categories.id', '=', 'product_sub_categories.pc_id')
+                ->where('psc_delete', '!=', '1');
+
+            // Check if search or pc_id is provided in the request
+            if (!empty($request->get('search'))) {
+                $search = $request->get('search');
+                $query->where(function ($w) use ($search) {
+                    $w->orWhere('psc_name', 'LIKE', "%$search%")
                         ->orWhere('psc_description', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                });
+            }
+
+            if (!empty($request->get('pc_id'))) {
+                $pcId = $request->get('pc_id');
+                $query->where('pc_id', 'LIKE', "%$pcId%");
+            }
+
+            return datatables()->of($query)
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 

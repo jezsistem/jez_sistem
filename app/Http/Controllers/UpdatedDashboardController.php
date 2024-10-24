@@ -83,11 +83,11 @@ class UpdatedDashboardController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'activity' => $activity,
-            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')
-            ->where('id', '!=', '4')->orderByDesc('id')->pluck('st_name', 'id'),
+            'st_id' => DB::table('stores')->where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'pc_id' => DB::table('product_categories')->where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
         return view('app.updated_dashboard.dashboard', compact('data'));
     }
 
@@ -134,7 +134,7 @@ class UpdatedDashboardController extends Controller
             ->get()
             ->toArray();
             
-        $draft = DB::table('stock_transfer_details')
+        $draft =  DB::table('stock_transfer_details')
         ->selectRaw("stfd_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, poad_total_price, poad_qty, ps_purchase_price, p_purchase_price")
         ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
         ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'stock_transfer_details.pst_id')
@@ -219,9 +219,10 @@ class UpdatedDashboardController extends Controller
         ->where(function($w) use ($start, $end, $st_id, $label, $division) {
             if (!empty($st_id)) {
                 $w->whereIn('pos_transactions.st_id', $st_id);
-            } else {
-                $w->where('pos_transactions.st_id', '!=', '4');
             }
+//            else {
+//                $w->where('pos_transactions.st_id', '!=', '4');
+//            }
             if ($division != 'all') {
                 if ($division == 'online') {
                     $w->where('pos_transactions.stt_id', '=', '1');
@@ -243,10 +244,11 @@ class UpdatedDashboardController extends Controller
         ->where(function($w) use ($start, $end, $st_id, $label, $division) {
             if (!empty($st_id)) {
                 $w->whereIn('pos_transactions.st_id_ref', $st_id);
-            } else {
-                $w->whereNotNull('pos_transactions.st_id_ref')
-                ->where('pos_transactions.st_id_ref', '!=', '4');
             }
+//            else {
+//                $w->whereNotNull('pos_transactions.st_id_ref')
+//                ->where('pos_transactions.st_id_ref', '!=', '4');
+//            }
             if ($division != 'all') {
                 if ($division == 'online') {
                     $w->where('pos_transactions.stt_id', '=', '1');
@@ -269,9 +271,10 @@ class UpdatedDashboardController extends Controller
         ->where(function($w) use ($start, $end, $st_id, $division) {
             if (!empty($st_id)) {
                 $w->whereIn('pos_transactions.st_id', $st_id);
-            } else {
-                $w->where('pos_transactions.st_id', '!=', '4');
             }
+//            else {
+//                $w->where('pos_transactions.st_id', '!=', '4');
+//            }
             if ($division != 'all') {
                 if ($division == 'online') {
                     $w->where('pos_transactions.stt_id', '=', '1');
@@ -1222,7 +1225,7 @@ class UpdatedDashboardController extends Controller
                     $w->where('product_locations.st_id', '!=', '4');
                 }
             })
-            ->whereIn('stkt_id', ['2'])
+            ->whereIn('stkt_id', ['2']) //Stkt_id 2 adalah CONSIGNMENT
             ->where('product_location_setups.pls_qty', '>', '0')
             ->groupBy('product_location_setups.id'))
             ->editColumn('purchase', function($data) {

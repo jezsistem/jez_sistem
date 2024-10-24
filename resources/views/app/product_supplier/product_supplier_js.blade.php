@@ -25,10 +25,10 @@
             { data: 'DT_RowIndex', name: 'id', searchable: false},
             { data: 'ps_name', name: 'ps_name' },
             { data: 'ps_pkp_show', name: 'ps_pkp' },
-            { data: 'ps_due_day', name: 'ps_due_day' },
-            { data: 'ps_email', name: 'ps_email' },
-            { data: 'ps_phone', name: 'ps_phone' },
             { data: 'ps_address', name: 'ps_address' },
+            { data: 'ps_phone', name: 'ps_phone' },
+            { data: 'ps_rekening', name: 'ps_rekening'},
+            {data: 'ps_npwp', name: 'ps_npwp'},
             { data: 'ps_description', name: 'ps_description' },
             ], 
             columnDefs: [
@@ -57,6 +57,8 @@
             var ps_email = product_supplier_table.row(this).data().ps_email;
             var ps_phone = product_supplier_table.row(this).data().ps_phone;
             var ps_address = product_supplier_table.row(this).data().ps_address;
+            var ps_npwp = product_supplier_table.row(this).data().ps_npwp;
+            var ps_rekening = product_supplier_table.row(this).data().ps_rekening;
             var ps_description = product_supplier_table.row(this).data().ps_description;
             jQuery.noConflict();
             $('#ProductSupplierModal').modal('show');
@@ -67,6 +69,8 @@
             $('#ps_phone').val(ps_phone);
             $('#ps_address').val(ps_address);
             $('#ps_description').val(ps_description);
+            $('#ps_npwp').val(ps_npwp);
+            $('#ps_rekening').val(ps_rekening);
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ( $data['user']->delete_access == '1' )
@@ -82,6 +86,8 @@
             $('#f_product_supplier')[0].reset();
             $('#delete_product_supplier_btn').hide();
         });
+
+        //import.js
 
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
@@ -115,6 +121,10 @@
                 }
             });
         });
+
+
+
+
 
         $('#ps_name').on('change', function() {
             var ps_name = $(this).val();
@@ -157,7 +167,7 @@
                     if (data.status == '200') {
                         $("#ProductSupplierModal").modal('hide');
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
-                        product_supplier_table.ajax.reload();
+                        product_supplier_table.draw();
                     } else if (data.status == '400') {
                         $("#ProductSupplierModal").modal('hide');
                         swal('Gagal', 'Data tidak tersimpan', 'warning');

@@ -1,10 +1,11 @@
+
 <!--begin::Aside-->
 <div class="aside aside-left aside-fixed d-flex flex-column flex-row-auto" id="kt_aside" style="background:#000;">
     <!--begin::Brand-->
     <div class="brand flex-column-auto" id="kt_brand">
         <!--begin::Logo-->
         <a href="{{ url('/dashboard') }}" class="brand-logo">
-            <img style="width:130px;" alt="Logo" src="{{ asset('logo') }}/logo-colors.png" />
+            <img style="width:130px;" alt="Logo" src="{{ asset('logo') }}/jez_pro.png" />
         </a>
         <!--end::Logo-->
         <!--begin::Toggle-->

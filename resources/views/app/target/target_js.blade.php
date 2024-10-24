@@ -4,6 +4,8 @@
         return new Date(year, month, 0).getDate();
     }
 
+    var global_tr_id, global_st_id, global_stt_id;
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -159,6 +161,7 @@
             var dt = date.split('-');
             var total_row = daysInMonth(dt[0], dt[1]);
             var arr = [];
+
             if (st_id == '') {
                 swal('Store', 'Store kosong, silahkan diisi dulu', 'warning');
                 return false;
@@ -194,6 +197,13 @@
                     }
                 }
             });
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
             return false;
         });
 
@@ -201,16 +211,35 @@
             e.preventDefault();
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
+
+            var tr_id = $('#tr_id').val();
+            var st_id = $('#import_st_id').val();
+            var stt_id = $('#import_stt_id').val();
+
+            if (st_id == '') {
+                swal('Store', 'Store kosong, silahkan diisi dulu', 'warning');
+                return false;
+            }
+            if (stt_id == '') {
+                swal('Divisi', 'Divisi kosong, silahkan diisi dulu', 'warning');
+                return false;
+            }
+
             var formData = new FormData(this);
+            formData.append('_tr_id', tr_id);
+            formData.append('_st_id', st_id);
+            formData.append('_stt_id', stt_id);
+
             $.ajax({
                 type:'POST',
-                url: "{{ url('tr_import')}}",
+                url: "{{ url('sv_target_detail_import')}}",
                 data: formData,
 				dataType: 'json',
                 cache:false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
+                    console.log(data);
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -218,7 +247,7 @@
                         $("#ImportModal").modal('hide');
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
-                        target_table.ajax.reload();
+                        target_detail_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
                         swal('Gagal', 'Data gagal diimport', 'warning');
@@ -399,6 +428,13 @@
                 }
             });
             return false;
+        });
+
+        $(document).ready(function () {
+            // Open the second modal when the button is clicked
+            $("#ImportModalBtn").click(function () {
+                $("#ImportModal").modal("show");
+            });
         });
 
     });

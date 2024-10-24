@@ -24,7 +24,9 @@
         <!--begin::Stats-->
         <div class="card-spacer" style="padding-top: 0px;">
             <!--begin::Row-->
+            
             <div class="row m-0">
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Layers.svg-->
@@ -39,6 +41,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_product'] }} Total</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -53,6 +56,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_apparel'] }} Apparel</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -67,6 +71,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_footwear'] }} Footwear</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mr-7 mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -81,6 +86,7 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_accessories'] }} Accessories</a>
                 </div>
+
                 <div class="col bg-primary px-3 py-8 rounded-xl mb-7">
                     <span class="svg-icon svg-icon-3x svg-icon-success d-block my-2">
                         <!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Urgent-mail.svg-->
@@ -95,6 +101,8 @@
                     </span>
                     <a href="#" class="text-light font-weight-bold font-size-h6 mt-2">{{ $data['total_others'] }} Others</a>
                 </div>
+
+
             </div>
             <!--end::Row-->
         </div>
@@ -143,34 +151,53 @@
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <!-- <input type="hidden" id="_pc_id" value="" /> -->
-                                <select class="form-control" id="pc_id" name="pc_id" required>
+                                <select class="form-control" id="pc_id_filter" name="pc_id_filter" required>
                                     <option value="">- Pilih Kategori -</option>
                                     @foreach ($data['pc_id'] as $key => $value)
                                         <option value="{{ $key }}">{{ $value }}</option>
                                     @endforeach
                                     <option value="all">Tampilkan Semua</option>
                                 </select>
-                                <div id="pc_id_parent"></div>
+                                <div id="pc_id_filter_parent"></div>
                             </div>
                             <!--end: Datatable-->
                             <br/>
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <!-- <input type="hidden" id="_psc_id" value="" /> -->
-                                <select class="form-control" id="psc_id" name="psc_id" required>
+                                <select class="form-control" id="psc_id_filter" name="psc_id_filter" required>
                                     <option value="">- Pilih Sub Kategori -</option>
+                                    @foreach ($data['psc_id'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
                                 </select>
-                                <div id="psc_id_parent"></div>
+                                <div id="psc_id_filter_parent"></div>
                             </div>
                             <!--end: Datatable-->
                             <br/>
                             <!--begin: Datatable-->
                             <div class="form-group mb-1 pb-1">
                                 <!-- <input type="hidden" id="_pssc_id" value="" /> -->
-                                <select class="form-control" id="pssc_id" name="pssc_id" required>
-                                    <option value="">- Pilih Sub-Sub Kategori -</option>
+                                <select class="form-control" id="pssc_id_filter" name="pssc_id_filter" required>
+                                    <option value="">- Pilih Sub Sub Kategori -</option>
+                                    @foreach ($data['pssc_id'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
                                 </select>
-                                <div id="pssc_id_parent"></div>
+                                <div id="pssc_id_filter_parent"></div>
+                            </div>
+                            <!--end: Datatable-->
+                            <br/>
+                            <!--begin: Datatable-->
+                            <div class="form-group mb-1 pb-1">
+                                <!-- <input type="hidden" id="_pssc_id" value="" /> -->
+                                <select class="form-control" id="sz_schema_id" name="sz_schema_id" required>
+                                    <option value="">- Pilih Size Schema -</option>
+                                    @foreach ($data['sz_schema_id'] as $key => $value)
+                                        <option value="{{ $value }}">{{ $value }}</option>
+                                    @endforeach
+                                </select>
+                                <div id="sz_schema_id_parent"></div>
                             </div>
                             <!--end: Datatable-->
                         </div>
@@ -185,7 +212,7 @@
     <!--begin::Entry-->
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
-        <div class="container" id="product_display" style="display:none;">  <!--   -->
+        <div class="container" id="product_display">  <!--   -->
             <div class="row">
                 <div class="col-lg-12 col-xxl-12">
                     <!--begin::Card-->
@@ -228,11 +255,17 @@
                             <div class="form-group" style="padding-top:22px;">
                                 <select class="form-control" id="sz_id_filter" name="sz_id_filter" required>
                                     <option value="">- Size/All -</option>
-                                    @foreach ($data['sz_id'] as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
                                 </select>
                                 <div id="sz_id_filter_parent"></div>
+                            </div>
+                            <!--end: Datatable-->
+                            <!--begin: Datatable-->
+                            <div class="form-group" style="padding-top:22px;">
+                                <select class="form-control" id="p_active_filter" name="p_active_filter" required>
+                                    <option value="">- Status -</option>
+                                    <option value="1">Aktif</option>
+                                    <option value="0">Tidak Aktif</option>
+                                </select>
                             </div>
                             <!--end: Datatable-->
                             <div class="card-toolbar">
@@ -268,6 +301,12 @@
                                                     </span>
                                                     <span class="btn btn-primary btn-xs">Export All</span>
                                                 </a>
+                                                <a href="{{ url('p_export_barcode') }}" class="navi-link">
+                                                    <span class="navi-icon">
+                                                        <i class="la la-copy"></i>
+                                                    </span>
+                                                    <span class="btn btn-primary btn-xs">Export Barcode</span>
+                                                </a>
                                             </li>
                                         </ul>
                                         <!--end::Navigation-->
@@ -298,15 +337,16 @@
                                 <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-                                        <th style="white-space: nowrap;" class="text-light">Nama</th>
-                                        <th style="white-space: nowrap;" class="text-light">Warna</th>
-                                        <th style="white-space: nowrap;" class="text-light">Brand</th>
-                                        <th style="white-space: nowrap;" class="text-light">Supplier</th>
-                                        <th style="white-space: nowrap;" class="text-light">Berat(gr)</th>
-                                        <th style="white-space: nowrap;" class="text-light">Harga Banderol</th>
-                                        <th style="white-space: nowrap;" class="text-light">Harga Beli</th>
-                                        <th style="white-space: nowrap;" class="text-light">Harga Jual</th>
-                                        <th style="white-space: nowrap;" class="text-light"></th>
+                                        <th style="white-space: nowrap;" class="text-dark">Article ID</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Nama</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Warna</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Brand</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Supplier</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Harga Banderol</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Harga Beli</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Harga Jual</th>
+                                        <th style="white-space: nowrap;" class="text-dark">Status</th>
+                                        <th style="white-space: nowrap;" class="text-dark"></th>
                                     </tr>
                                 </thead>
                                 <tbody>

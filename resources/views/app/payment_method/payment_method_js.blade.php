@@ -23,6 +23,7 @@
             },
             columns: [
             { data: 'DT_RowIndex', name: 'pm_id', searchable: false},
+            { data: 'st_name', name: 'st_name' },
             { data: 'pm_name', name: 'pm_name' },
             { data: 'stt_name', name: 'stt_name' },
             { data: 'a_name', name: 'a_name' },
@@ -48,11 +49,13 @@
             var stt_id = payment_method_table.row(this).data().stt_id;
             var a_id = payment_method_table.row(this).data().a_id;
             var pm_description = payment_method_table.row(this).data().pm_description;
+            var st_id = payment_method_table.row(this).data().st_id;
             jQuery.noConflict();
             $('#PaymentMethodModal').modal('show');
             $('#pm_name').val(pm_name);
             jQuery('#stt_id').val(stt_id).trigger('change');
             jQuery('#a_id').val(a_id).trigger('change');
+            jQuery('#st_id').val(st_id).trigger('change');
             $('#pm_description').val(pm_description);
             $('#_id').val(id);
             $('#_mode').val('edit');
@@ -61,34 +64,36 @@
             @endif
         });
 
-        $('#pm_name').on('change', function() {
-            var pm_name = $(this).val();
-            var stt_id = $('#stt_id option:selected').val();
-            if (stt_id == '') {
-                swal('Divisi', 'Silahkan isi divisi terlebih dahulu', 'warning');
-                $('#pm_name').val('');
-                return false;
-            }
-            //alert(pm_name+' '+stt_id);
-            $.ajaxSetup({
-                headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            $.ajax({
-                type: "POST",
-                data: {_pm_name:pm_name, _stt_id:stt_id},
-                dataType: 'json',
-                url: "{{ url('check_exists_pm')}}",
-                success: function(r) {
-                    if (r.status == '200') {
-                        swal('Metode Pembayaran', 'metode pembayaran dengan divisi ini sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
-                        $('#pm_name').val('');
-                        return false;
-                    }
-                }
-            });
-        });
+        // Saat ini masih belum digunakan
+        {{--$('#pm_name').on('change', function() {--}}
+        {{--    var pm_name = $(this).val();--}}
+        {{--    var stt_id = $('#stt_id option:selected').val();--}}
+        {{--    if (stt_id == '') {--}}
+        {{--        swal('Divisi', 'Silahkan isi divisi terlebih dahulu', 'warning');--}}
+        {{--        $('#pm_name').val('');--}}
+        {{--        return false;--}}
+        {{--    }--}}
+
+        {{--    //alert(pm_name+' '+stt_id);--}}
+        {{--    $.ajaxSetup({--}}
+        {{--        headers: {--}}
+        {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--    $.ajax({--}}
+        {{--        type: "POST",--}}
+        {{--        data: {_pm_name:pm_name, _stt_id:stt_id},--}}
+        {{--        dataType: 'json',--}}
+        {{--        url: "{{ url('check_exists_pm')}}",--}}
+        {{--        success: function(r) {--}}
+        {{--            if (r.status == '200') {--}}
+        {{--                swal('Metode Pembayaran', 'metode pembayaran dengan divisi ini sudah ada disistem, silahkan ganti dengan yang lain', 'warning');--}}
+        {{--                $('#pm_name').val('');--}}
+        {{--                return false;--}}
+        {{--            }--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
 
         $('#add_payment_method_btn').on('click', function() {
             jQuery.noConflict();
@@ -97,6 +102,7 @@
             $('#_mode').val('add');
             jQuery('#stt_id').val('').trigger('change');
             jQuery('#a_id').val('').trigger('change');
+            jQuery('#st_id').val('').trigger('change');
             $('#f_payment_method')[0].reset();
             $('#delete_payment_method_btn').hide();
         });
@@ -169,5 +175,18 @@
             })
         });
 
+        $('#st_id').select2({
+            multiple: true,
+            width: "100%",
+            dropdownParent: $('#st_id_parent'),
+            closeOnSelect:true,
+            allowClear: true,
+        });
+
+        $('#st_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
     });
 </script>

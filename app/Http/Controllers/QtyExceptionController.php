@@ -102,6 +102,7 @@ class QtyExceptionController extends Controller
         $data = [
             'pst_id' => $request->input('_pst_id'),
             'qe_qty' => $request->input('qe_qty'),
+            'created_at' => date('Y-m-d H:i:s')
         ];
         if ($mode == 'add') {
             $save = DB::table('qty_exceptions')->insert($data);

@@ -83,7 +83,14 @@ class SalesReportController extends Controller
     public function getDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'pos_refund', 'stkt_name', 'cross_order', 'cp_id', 'cp_id_partial', 'pos_payment', 'pos_payment_partial', 'pc_name', 'pm_id', 'pm_id_partial', 'psc_name', 'pssc_name', 'product_stocks.id as pst_id', 'pos_note', 'plst_status', 'p_price_tag', 'ps_price_tag', 'p_sell_price', 'ps_sell_price', 'pos_transactions.created_at as pos_created', 'pos_td_qty', 'pos_invoice', 'pos_td_discount', 'pos_td_discount_price', 'pos_another_cost', 'pos_td_marketplace_price', 'pos_td_nameset_price', 'pos_shipping', 'pos_unique_code', 'pos_real_price', 'pos_admin_cost', 'u_name', 'stt_name', 'dv_name', 'p_name', 'br_name', 'sz_name', 'p_color')
+            return datatables()->of(PosTransactionDetail::select(
+                'pos_transaction_details.id as ptd_id', 'pos_refund', 'stkt_name', 'cross_order', 'cp_id',
+                'cp_id_partial', 'pos_payment', 'pos_payment_partial', 'pc_name', 'pm_id', 'pm_id_partial',
+                'psc_name', 'pssc_name', 'product_stocks.id as pst_id', 'pos_note', 'plst_status', 'p_price_tag',
+                'ps_price_tag', 'p_sell_price', 'ps_sell_price', 'pos_transactions.created_at as pos_created',
+                'pos_td_qty', 'pos_invoice', 'pos_td_discount', 'pos_td_discount_price', 'pos_another_cost',
+                'pos_td_marketplace_price', 'pos_td_nameset_price', 'pos_shipping', 'pos_unique_code', 'pos_real_price',
+                'pos_admin_cost', 'u_name', 'stt_name', 'dv_name', 'p_name', 'br_name', 'sz_name', 'p_color', 'pos_status')
             ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transactions.id')
@@ -159,16 +166,16 @@ class SalesReportController extends Controller
             })
             ->editColumn('price_tag', function($data){
                 if (!empty($data->ps_price_tag)) {
-                    return $data->ps_price_tag;
+                    return number_format($data->ps_price_tag);
                 } else {
-                    return $data->p_price_tag;
+                    return number_format($data->p_price_tag);
                 }
             })
             ->editColumn('sell_price', function($data){
                 if (!empty($data->ps_sell_price)) {
-                    return $data->ps_sell_price;
+                    return number_format($data->ps_sell_price);
                 } else {
-                    return $data->p_sell_price;
+                    return number_format($data->p_sell_price);
                 }
             })
             ->editColumn('hpp', function($data){
@@ -181,9 +188,9 @@ class SalesReportController extends Controller
                 ->groupBy('poads_purchase_price')
                 ->get()->first();
                 if (!empty($poads->poads_purchase_price)) {
-                    return $poads->poads_purchase_price;
+                    return number_format($poads->poads_purchase_price);
                 } else if (!empty($poads->ps_purchase_price)) {
-                    return $poads->ps_purchase_price;
+                    return number_format($poads->ps_purchase_price);
                 } else {
                     return '-';
                 }
@@ -195,7 +202,7 @@ class SalesReportController extends Controller
                 } else {
                     $discount_price = $data->pos_td_discount_price;
                 }
-                return $discount_price;
+                return number_format($discount_price);
             })
             ->editColumn('total_price', function($data){
                 $real_price = null;
@@ -204,7 +211,7 @@ class SalesReportController extends Controller
                 } else {
                   $real_price = $data->pos_real_price;
                 }
-                return $real_price;
+                return number_format($real_price);
             })
             ->editColumn('plst_status', function($data){
                 if ($data->plst_status == 'WAITING OFFLINE') {
@@ -240,6 +247,7 @@ class SalesReportController extends Controller
                 }
                 return '<span style="white-space: nowrap;" class="btn btn-sm '.$btn.'">'.$data->plst_status.'</span>';
             })
+
             ->rawColumns(['pos_created', 'u_name', 'beli', 'p_name', 'br_name', 'p_color', 'sz_name', 'purchase_price', 'nameset', 'plst_status'])
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('stt_id'))) {
@@ -523,22 +531,40 @@ class SalesReportController extends Controller
     
     public function exportData(Request $request)
     {
-        $type = $request->get('type');
-        $date = $request->get('date');
-        $exp = explode('|', $date);
-        $start = null;
-        $end = null;
-        if (!empty($exp[1])) {
-            $start = $exp[0];
-            $end = $exp[1];
-        } else {
-            $start = $request->get('date');
+        try {
+            $type = $request->get('type');
+            $date = $request->get('date');
+            $exp = explode('|', $date);
+            $start = null;
+            $end = null;
+            if (!empty($exp[1])) {
+                $start = $exp[0];
+                $end = $exp[1];
+            } else {
+                $start = $request->get('date');
+            }
+            $stt_id = $request->get('stt_id');
+            $st_id = $request->get('st_id');
+            $dp_id = $request->get('dp_id');
+
+
+        // Mendapatkan tanggal dan waktu saat ini
+        $now = new \DateTime();
+        $timestamp = $now->format('d-m-Y_H.i');
+
+        // Membuat nama file dengan format yang diinginkan
+        $fileName = 'Export_Laporan_' . $timestamp . '.xlsx';
+
+
+
+            return Excel::download(new ArticleReportExport($type, $start, $end, $stt_id, $st_id, $dp_id), $fileName);
+
+        } catch (\Exception $e) {
+            return $e->getMessage();
         }
-        $stt_id = $request->get('stt_id');
-        $st_id = $request->get('st_id');
-        return Excel::download(new ArticleReportExport($type, $start, $end, $stt_id, $st_id), 'Export Laporan.xlsx');
     }
-    
+
+
     public function hbhjDatatables(Request $request)
     {
         if(request()->ajax()) {

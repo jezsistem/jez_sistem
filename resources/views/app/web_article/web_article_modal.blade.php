@@ -61,7 +61,7 @@
             <div class="modal-body">
                 <div class="form-group">
                     <div class="col-lg-12">
-                        <input type="hidden" id="pid" value=""/>
+                        <input type="text" id="pid" value=""/>
                         <textarea class="form-control" name="p_description" id="p_description" rows="3"></textarea>
                     </div>
                 </div>

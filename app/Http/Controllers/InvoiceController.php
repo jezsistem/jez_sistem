@@ -30,8 +30,7 @@ class InvoiceController extends Controller
 
     protected function sidebar()
     {
-        $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+        $ma_id = DB::table('user_menu_accesses')->select('ma_id')->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -73,6 +72,7 @@ class InvoiceController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1),
         ];
+
         return view('app.invoice.invoice', compact('data'));
     }
 
@@ -196,13 +196,21 @@ class InvoiceController extends Controller
         $cust_city = '';
         $cust_subdistrict = '';
         if ($check) {
-            $transaction = PosTransaction::select('pos_discount', 'is_website', 'pos_unique_code', 'pos_courier', 'pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created')
+            $transaction = PosTransaction::select(
+                'pos_discount', 'is_website', 'pos_unique_code', 'pos_courier',
+                'pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city',
+                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name',
+                'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone',
+                'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping',
+                'cr_id', 'pos_transactions.created_at as pos_created',
+                'pos_total_discount')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+            ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
             ->where(['pos_invoice' => $invoice])
             ->groupBy('pos_transactions.id')->get()->first();
             if (!empty($transaction)) {
@@ -232,9 +240,13 @@ class InvoiceController extends Controller
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->where(['pt_id' => $transaction->pt_id])
-                ->where('pos_td_reject', '!=', '1')->get();
+                ->where('pos_td_reject', '!=', '1')
+                ->with('productStock')
+                ->get();
             }
         }
+
+
         $data = [
             'title' => 'Invoice '.$invoice,
             'invoice' => $invoice,
@@ -247,6 +259,7 @@ class InvoiceController extends Controller
             'transaction_detail' => $transaction_detail,
             'segment' => request()->segment(1)
         ];
+
         return view('app.invoice.print_invoice', compact('data'));
     }
 
@@ -364,7 +377,13 @@ class InvoiceController extends Controller
         $dropshipper = null;
 
         if ($check) {
-            $trx = PosTransaction::select('pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created')
+            $trx = PosTransaction::select(
+                'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
+                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
+                'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
+                'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
+                'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
+                'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name', 'pos_note')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
@@ -389,16 +408,75 @@ class InvoiceController extends Controller
                 array_push($get_invoice, $trx);
             }
         }
+        $stores = Auth::user()->st_id;
+
+        $data_stores = Store::where('id', $stores)->get()->first();
+
+        $stores_code = $data_stores->st_code;
+        $data = [
+            'title' => 'Invoice '.$invoice,
+            'invoice' => $invoice,
+            'invoice_data' => $get_invoice,
+            'store_code' => $stores_code,
+            'segment' => request()->segment(1)
+        ];
+
+//        dd($data['invoice_data']);
+        return view('app.invoice.print_invoice_offline', compact('data'));
+    }
+
+    public function eReceiptInvoice(Request $request)
+    {
+        $invoice = $request->invoice;
+        $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
+        $get_invoice = array();
+        $dropshipper = null;
+
+        if ($check) {
+            $trx = PosTransaction::select(
+                'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
+                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
+                'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
+                'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
+                'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
+                'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name')
+                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
+                ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+                ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
+                ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+                ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+                ->where(['pos_invoice' => $invoice])
+                ->first();
+
+            $check_transaction_detail = PosTransactionDetail::
+            leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(['pt_id' => $trx->pt_id])->get();
+            if (!empty($check_transaction_detail)) {
+                $trx->subitem = $check_transaction_detail;
+                if (!empty($trx->pm_id_partial)) {
+                    $trx->pm_name_partial = PaymentMethod::select('pm_name')
+                        ->where('id', $trx->pm_id_partial)->get()->first()->pm_name;
+                }
+                array_push($get_invoice, $trx);
+            }
+        }
+
         $data = [
             'title' => 'Invoice '.$invoice,
             'invoice' => $invoice,
             'invoice_data' => $get_invoice,
             'segment' => request()->segment(1)
         ];
-        return view('app.invoice.print_invoice_offline', compact('data'));
+
+        // dd($data['invoice_data']);
+        return view('app.invoice.e_receipt_invoice', compact('data'));
     }
     
-    public function searchInvoice (Request $request)
+    public function searchInvoice(Request $request)
     {
         $invoice = $request->invoice;
         $invoice_data = '';

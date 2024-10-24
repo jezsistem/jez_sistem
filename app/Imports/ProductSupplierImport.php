@@ -24,6 +24,9 @@ class ProductSupplierImport implements ToModel, WithHeadingRow
             'ps_phone' => ltrim($row['telepon']),
             'ps_address' => ltrim($row['alamat']),
             'ps_description' => ltrim($row['deskripsi']),
+            'ps_rekening' => ltrim($row['rekening']),
+            'ps_npwp' => ltrim($row['npwp']),
+            'ps_pkp' => ($row['pkp'] == 'YA') ? '1' : '0',
             'ps_delete' => '0',
         ]);
     }

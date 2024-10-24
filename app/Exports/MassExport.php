@@ -30,7 +30,7 @@ class MassExport implements FromCollection , withHeadings
 
     public function headings(): array
     {
-        return ["Identify", "BIN", "BRAND", "ARTIKEL", "WARNA", "SIZE", "SUB KATEGORI", "Harga Beli", "Harga Jual", "QTY SYSTEM", "QTY SO"];
+        return ["Identify", "BIN", "SKU", "BRAND", "ARTIKEL", "WARNA", "SIZE", "SUB KATEGORI", "Harga Beli", "Harga Jual", "QTY SYSTEM", "QTY SO"];
     }
 
     public function collection()
@@ -40,7 +40,7 @@ class MassExport implements FromCollection , withHeadings
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
             ->get()
             ->toArray();
-        $data = DB::table('product_location_setups')->selectRaw("ts_product_location_setups.id as id, pl_code, br_name, p_name, p_color, sz_name, psc_name,
+        $data = DB::table('product_location_setups')->selectRaw("ts_product_location_setups.id as id, pl_code, ps_barcode, br_name, p_name, p_color, sz_name, psc_name,
         pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -102,7 +102,7 @@ class MassExport implements FromCollection , withHeadings
                 } else {
                     $sell = $row->p_sell_price;
                 }
-                $export[] = [$row->id, $row->pl_code, $row->br_name, $row->p_name, $row->p_color, $row->sz_name, $row->psc_name, $purchase, $sell, $stock, ""];
+                $export[] = [$row->id, $row->pl_code, $row->ps_barcode, $row->br_name, $row->p_name, $row->p_color, $row->sz_name, $row->psc_name, $purchase, $sell, $stock, ""];
             }
         }
         return collect($export);

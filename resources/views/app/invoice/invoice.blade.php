@@ -3,7 +3,7 @@
     <meta charset="utf-8" />
     <title>{{ $data['title'] }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="Topsystem" />
+    <meta name="description" content="Jessystem" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <!--begin::Fonts-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
@@ -63,7 +63,7 @@
                                                 <div class="font-weight-bold font-size-h6 mb-3">METODE <span class="float-right"><strong>{{ $row->pm_name }}</strong></span></div>
                                                 @if ($row->pm_name == 'Debit')
                                                 <div class="d-flex justify-content-between font-size-lg mb-3">
-                                                    <td><span class="font-weight-bold mr-15">No. Kartu</span></td>
+                                                    <td><span class="font-weight-bold mr-15">No.Kartu</span></td>
                                                     <td><span class="text-right">{{ $row->pos_card_number }}</span></td>
                                                 </div>
                                                 @endif

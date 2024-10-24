@@ -33,6 +33,7 @@
 
     function changeQty(row, pst_id)
     {
+        console.log("init pst"+pst_id);
         var pl_id = jQuery('#orderList'+row).closest('tr').find("#pl_id option:selected").text();
         var item_qty = jQuery('#item_qty'+row).val();
         var sell_price_item = replaceComma(jQuery('#sell_price_item'+row).text());
@@ -43,6 +44,8 @@
         var str = pl_id.replace(/\[|\]/g, '');
         var pls_qty = str.split(' ');
         var discount = jQuery('#reseller_disc'+row).val();
+        var discount_number = jQuery('#reseller_disc_number'+row).val();
+
         if (parseInt(item_qty) > parseInt(pls_qty[1]) || parseInt(item_qty) < 0) {
             swal('Melebihi Stok', 'Jumlah item tidak boleh melebihi atau kurang jumlah pada BIN', 'warning');
             jQuery('#item_qty'+row).val('0');
@@ -51,10 +54,20 @@
             jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(jQuery('#total_price_side').text()))+parseInt(total_nameset_side)+parseInt(shipping_cost_side)));
             return false;
         }
+
         if (discount == '' || discount == '-') {
             discount = 0;
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount))
+
+        // Pemeriksaan apakah discount_number terisi
+        if (discount_number !== '' && discount_number !== '-') {
+            // Menghitung subtotal dengan discount_number
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - parseFloat(discount_number));
+        } else {
+            // Menghitung subtotal dengan menggunakan logika sebelumnya jika discount_number tidak terisi
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount));
+        }
+
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item'+row).text('-'+addCommas(subtotal));
         } else {
@@ -90,6 +103,8 @@
         var shipping_cost_side = replaceComma(jQuery('#shipping_cost_side').text());
         var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
         var discount = jQuery('#reseller_disc'+row).val();
+        var discount_number = jQuery('#reseller_disc_number'+row).val();
+
         if (parseInt(Math.abs(item_qty)) > parseInt(qty)) {
             swal('Melebihi Pembelian', 'Jumlah item tidak boleh melebihi jumlah pada pembelian', 'warning');
             jQuery('#item_qty'+row).val(-Math.abs(qty));
@@ -98,7 +113,15 @@
         if (discount == '' || discount == '-') {
             discount = 0;
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount))
+        // Pemeriksaan apakah discount_number terisi
+        if (discount_number !== '' && discount_number !== '-') {
+            // Menghitung subtotal dengan discount_number
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - parseFloat(discount_number));
+        } else {
+            // Menghitung subtotal dengan menggunakan logika sebelumnya jika discount_number tidak terisi
+            var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item) - (parseFloat(sell_price_item)/100 * discount));
+        }
+
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item'+row).text('-'+addCommas(subtotal));
         } else {
@@ -132,6 +155,7 @@
             return false;
         }
         var discount = jQuery('#reseller_disc'+index).val();
+        var discount_number = jQuery('#reseller_disc_number'+index).val();
         var sell_price_item = jQuery('#sell_price_item'+index).text();
         var subtotal_item = jQuery('#subtotal_item'+index).text();
         var total_price_side = jQuery('#total_price_side').text();
@@ -140,8 +164,64 @@
         var total_row = jQuery('tr[data-list-item]').length;
         if (jQuery.trim(discount) == '' || jQuery.trim(discount) == 0) {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item));
+
+            jQuery('#reseller_disc_number'+index).val('');
         } else {
             var subtotal_after_disc = parseFloat(replaceComma(sell_price_item)) - (parseFloat(replaceComma(sell_price_item))/100 * parseFloat(discount));
+
+            // calcualte how much in nominal and show
+            var nominal = parseFloat(replaceComma(sell_price_item))/100 * parseFloat(discount);
+
+            jQuery('#reseller_disc_number'+index).val(nominal);
+        }
+        jQuery('#item_qty'+index).val('1');
+        jQuery('#subtotal_item'+index).text(addCommas(subtotal_after_disc));
+        var final_price = 0;
+        var nameset = 0;
+        jQuery('#orderTable tr').each(function(index, row) {
+            if (jQuery(row).find('.subtotal_item').text() != '') {
+                var sbttl = parseFloat(replaceComma(jQuery(row).find('.subtotal_item').text()));
+                if (typeof sbttl === 'undefined' && sbttl == '') {
+                    sbttl = 0;
+                }
+                final_price += sbttl;
+            }
+            var nameset_value = jQuery(row).find('.nameset_price').val();
+            if (typeof nameset_value !== 'undefined' && nameset_value != '') {
+                nameset += parseFloat(nameset_value);
+            }
+        });
+        jQuery('#total_price_side').text(addCommas(final_price));
+        jQuery('#total_final_price_side').text(addCommas(final_price+parseFloat(replaceComma(shipping_cost_side))+nameset));
+    }
+
+    function resellerDiscNumber(index)
+    {
+        if (jQuery('#reseller_disc_number'+index).val() < 0) {
+            swal('Minus', 'diskon reseller tidak boleh minus', 'warning');
+            jQuery('#reseller_disc'+index).val('');
+            return false;
+        }
+        var discount_percentage = jQuery('#reseller_disc'+index).val();
+        var discount = jQuery('#reseller_disc_number'+index).val();
+        var sell_price_item = jQuery('#sell_price_item'+index).text();
+        var subtotal_item = jQuery('#subtotal_item'+index).text();
+        var total_price_side = jQuery('#total_price_side').text();
+        var shipping_cost_side = jQuery('#shipping_cost_side').text();
+        var total_final_price_side = jQuery('#total_final_price_side').text();
+        var total_row = jQuery('tr[data-list-item]').length;
+        if (jQuery.trim(discount) == '' || jQuery.trim(discount) == 0) {
+            var subtotal_after_disc = parseFloat(replaceComma(sell_price_item));
+
+            jQuery('#reseller_disc'+index).val('');
+        } else {
+            var subtotal_after_disc = parseFloat(replaceComma(sell_price_item)) - discount;
+
+            // calculate how much percentage and change discount_percentage value
+
+            var percentage = (discount/subtotal_after_disc)*100;
+
+            jQuery('#reseller_disc'+index).val(percentage.toFixed(2));
         }
         jQuery('#item_qty'+index).val('1');
         jQuery('#subtotal_item'+index).text(addCommas(subtotal_after_disc));
@@ -332,7 +412,7 @@
         return false;
     }
 
-    function saveItem(row, pst_id, price, plst_id)
+    function saveItem(row, pst_id, price, plst_id, price_item_discount)
     {
         //alert(row, pst_id, price, plst_id);
         var pl_id = jQuery('#orderList'+row).closest('tr').find("#pl_id option:selected").val();
@@ -343,6 +423,7 @@
         var pt_id = jQuery('#_pt_id').val();
         var pt_id_complaint = jQuery('#_pt_id_complaint').val();
         var discount = jQuery('#reseller_disc'+row).val();
+        var discount_number = jQuery('#reseller_disc_number'+row).val();
         var sell_price_item = jQuery('#sell_price_item'+row).text();
         var final_price = jQuery('#total_final_price_side').text();
         var subtotal_item = jQuery('#subtotal_item'+row).text();
@@ -365,7 +446,25 @@
         jQuery.ajax({
             type:'POST',
             url: "{{ url('save_transaction_detail')}}",
-            data: {voc_pst_id:voc_pst_id, voc_value:value_price_voc, _cross:cross, _item_qty:item_qty, _plst_id:plst_id, _pt_id_complaint:pt_id_complaint, _final_price:parseFloat(replaceComma(final_price)), _exchange:exchange, _pt_id:pt_id, _pl_id:pl_id, _pst_id:pst_id, _price:price, _discount:discount, _marketplace_price:marketplace_price,_sell_price_item:replaceComma(sell_price_item), _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
+            data: {
+                voc_pst_id:voc_pst_id,
+                voc_value:value_price_voc,
+                _cross:cross,
+                _item_qty:item_qty,
+                _plst_id:plst_id,
+                _pt_id_complaint:pt_id_complaint,
+                _final_price:parseFloat(replaceComma(final_price)),
+                _exchange:exchange,
+                _pt_id:pt_id,
+                _pl_id:pl_id,
+                _pst_id:pst_id,
+                _price:price,
+                _discount:discount,
+                _discount_number: discount_number,
+                _price_item_discount:price_item_discount,
+                _marketplace_price:marketplace_price,
+                _sell_price_item:replaceComma(sell_price_item),
+                _subtotal_item:replaceComma(subtotal_item), _nameset_price:nameset_price},
             dataType: 'json',
             success: function(r) {
                 jQuery.noConflict();
@@ -430,6 +529,7 @@
         var pls_qty = jQuery(this).attr('data-pls_qty');
         var psc_id = jQuery(this).attr('data-psc_id');
         var sell_price = jQuery(this).attr('data-sell_price');
+        var sell_price_discount = jQuery(this).attr('data-sell_price_discount');
         var total_item = jQuery('#total_item_side').text();
         var total_price = jQuery('#total_price_side').text();
         var total_final_price = jQuery('#total_final_price_side').text();
@@ -456,9 +556,32 @@
         jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price)));
         var type = jQuery('#std_id option:selected').text();
         if (type != 'DROPSHIPPER' && type != 'RESELLER' && type != 'WHATSAPP' && type != 'WEBSITE') {
-            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td> <td>"+bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+            jQuery('#orderTable tr:last').after("" +
+                " <tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'>" +
+                " <td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td>" +
+                " <td>"+bin+"</td>" +
+                " <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                " <td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDiscNumber("+(total_row+1)+")'/></td>" +
+                " <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td>" +
+                " <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td>" +
+                " <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                " <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0, "+sell_price_discount+")'>" +
+                " <i class='fa fa-eye' style='display:none;'></i></a> " +
+                " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
         } else {
-            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td> <td>"+bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0)'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+            jQuery('#orderTable tr:last').after("" +
+                "<tr data-list-item class='pos_item_list"+(pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> " +
+                "<td><span style='font-size:14px; white-space:nowrap;'>"+p_name+"</span></td>" +
+                "<td>"+bin+"</td> " +
+                "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDiscNumber("+(total_row+1)+")'/></td>" +
+                "<td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+pst_id+")'></td> " +
+                "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
+                "<td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
+                "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(sell_price)+"</span></td> " +
+                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", 0, "+sell_price_discount+")'><i class='fa fa-eye' style='display:none;'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+pst_id+", "+sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
         }
         if (jQuery('#voucher_code').val() != '') {
             var code = jQuery('#voucher_code').val();
@@ -552,6 +675,7 @@
             jQuery('#real_price').val('');
             jQuery('#marketplace_side').val('');
             jQuery('#marketplace_real_price').val('');
+            jQuery('#discount_seller_side').val('');
         });
 
         jQuery('#choosecustomer').on('hide.bs.modal', function() {
@@ -562,6 +686,38 @@
         jQuery('#add_customer_btn').on('click', function() {
             jQuery('#_mode').val('add');
             jQuery('#choosecustomer').modal('show');
+        });
+
+        jQuery('#shiftEmployeeBtn').on('click', function() {
+
+            // jQuery('#shiftEmployeeModal').modal('show');
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            jQuery.ajax({
+                url: '/check_user_shift',
+                method: 'GET',
+                success: function (response) {
+                    if (response.status === '200') {
+                        // User has started a shift
+                        jQuery('#startShiftButton').hide();
+                        jQuery('#stopShiftButton').show();
+                        jQuery('#shiftStatus').html('Shift In Progress');
+                        jQuery('#shiftEmployeeModal').modal('show');
+                    } else {
+                        // User has not started a shift, show the modal with the start button
+                        jQuery('#startShiftButton').show();
+                        jQuery('#stopShiftButton').hide();
+                        jQuery('#shiftEmployeeModal').modal('show');
+                    }
+                },
+                error: function (error) {
+                    console.error('Error checking user shift:', error);
+                }
+            });
         });
 
 		jQuery('#reload_refund_list').on('click', function() {
@@ -585,6 +741,7 @@
             jQuery('#another_cost').val('');
             jQuery('#real_price').val('');
             jQuery('#cross_order').val('');
+            jQuery('#discount_seller').val('');
         });
         
 		function addRefundExchangeList(type, plst_id, pt_id)
@@ -619,6 +776,7 @@
             var pl_id = jQuery(this).attr('data-pl_id');
             var plst_id = jQuery(this).attr('data-plst_id');
             var sell_price = jQuery(this).attr('data-sell_price');
+            var sell_price_discount = jQuery(this).attr('data-sell_price');
             var total_price_item = jQuery(this).attr('data-total_price');
             var nameset_price = jQuery(this).attr('data-nameset_price');
             var marketplace_price = jQuery(this).attr('data-marketplace_price');
@@ -636,7 +794,19 @@
                 jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
                 jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) - parseFloat(total_price_item)));
                 addRefundExchangeList('add', plst_id, pt_id);
-                jQuery('#orderTable tr:last').after("<tr data-list-item class='bg-danger text-white pos_item_list"+(pst_id)+" mb-2' id='data_plst"+plst_id+"'> <td style='white-space: nowrap;'>"+p_name+"</td> <td><select class='text-white font-weight-bold' id='pl_id"+(total_row+1)+"' style='background-color:#986923; border-radius:10px;'><option value='"+pl_id+"' selected>DEFAULT</option></select></td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' value='"+reseller_disc+"' onchange='return resellerDisc("+(total_row+1)+")' readonly/></td> <td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='-"+item_qty+"' onchange='return changeReturQty("+(total_row+1)+", "+pst_id+", "+item_qty+")'></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' value='"+nameset_price+"' onchange='return namesetPrice("+(total_row+1)+")' readonly/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' value='-"+marketplace_price+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
+                jQuery('#orderTable tr:last').after("" +
+                    "<tr data-list-item class='bg-danger text-white pos_item_list"+(pst_id)+" mb-2' id='data_plst"+plst_id+"'> " +
+                    "<td style='white-space: nowrap;'>"+p_name+"</td> " +
+                    "<td><select class='text-white font-weight-bold' id='pl_id"+(total_row+1)+"' style='background-color:#986923; border-radius:10px;'>" +
+                    "<option value='"+pl_id+"' selected>DEFAULT</option></select></td> " +
+                    "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' value='"+reseller_disc+"' onchange='return resellerDisc("+(total_row+1)+")' readonly/></td> " +
+                    "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                    "<td><input type='number' class='form-control border-dark col-10 basicInput2"+pst_id+"' id='item_qty"+(total_row+1)+"' value='-"+item_qty+"' onchange='return changeReturQty("+(total_row+1)+", "+pst_id+", "+item_qty+")'></td> " +
+                    "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' value='"+nameset_price+"' onchange='return namesetPrice("+(total_row+1)+")' readonly/></td> " +
+                    "<td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' value='-"+marketplace_price+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
+                    "<td><span id='sell_price_item"+(total_row+1)+"'>-"+addCommas(price)+"</span></td> " +
+                    "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>-"+addCommas(total_price_item)+"</span></td> " +
+                    "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+pst_id+", "+sell_price+", "+plst_id+", "+sell_price_discount+")'><i class='fa fa-eye' style='display:none;'></i></a></div></td></tr>");
             } else {
                 // jQuery('#_pt_id_complaint').val('');
                 addRefundExchangeList('remove', plst_id, pt_id);
@@ -867,6 +1037,8 @@
             var voc_pst_id = jQuery('#_voc_pst_id').val();
             var voc_value = jQuery('#_voc_value').val();
             var voc_id = jQuery('#_voc_id').val();
+            var total_discount_side = jQuery('#total_discount_value_side').text();
+            var discount_seller = jQuery('#discount_seller').val();
 
             if (std_id == '14' || std_id == '13') {
                 if (pm_id == '2' && cp_id == '') {
@@ -894,7 +1066,27 @@
             jQuery.ajax({
                 type:'POST',
                 url: "{{ url('save_transaction')}}",
-                data: {voc_id:voc_id, voc_pst_id:voc_pst_id, voc_value:value_price_voc, _cp_id:cp_id, _cross:cross, _st_id:st_id, _pt_id_complaint:pt_id_complaint, _exchange:exchange, _ref_number:ref_number, _type:type, _sub_cust_id:sub_cust_id, _real_price:replaceComma(real_price), _admin_cost:admin_cost, _another_cost:another_cost, _order_code:order_code, _pm_id:pm_id, _std_id:std_id, _cust_id:cust_id, _note:note, _unique_code:unique_code, _shipping_cost:shipping_cost, _cr_id:cr_id},
+                data: {
+                    voc_id:voc_id,
+                    voc_pst_id:voc_pst_id,
+                    voc_value:value_price_voc,
+                    _cp_id:cp_id,
+                    _cross:cross,
+                    _st_id:st_id,
+                    _pt_id_complaint:pt_id_complaint,
+                    _exchange:exchange,
+                    _ref_number:ref_number,
+                    _type:type,
+                    _sub_cust_id:sub_cust_id,
+                    _real_price:replaceComma(real_price),
+                    _admin_cost:admin_cost,
+                    _another_cost:another_cost, _order_code:order_code,
+                    _pm_id:pm_id, _std_id:std_id, _cust_id:cust_id,
+                    _note:note, _unique_code:unique_code,
+                    _shipping_cost:shipping_cost, _cr_id:cr_id,
+                    _total_discount_side:replaceComma(total_discount_side),
+                    _discount_seller:replaceComma(discount_seller),
+                },
                 dataType: 'json',
                 success: function(r) {
                     jQuery.noConflict();
@@ -933,15 +1125,19 @@
                             jQuery('#courier').val('');
                             jQuery('#_pt_id_complaint').val('');
                             jQuery('#_exchange').val('');
+                            jQuery('#discount_seller').val('');
 
                             jQuery('#_voc_pst_id').val('');
                             jQuery('#_voc_value').val('');
                             jQuery('#_voc_id').val('');
                             jQuery('#voucher_code').val("");
                             jQuery('#voucher_information').addClass("d-none");
+                            jQuery('#discount_seller').val('0');
                             sell_price_voc = 0;
                             value_price_voc = 0;
                             shoes_voucher_temp = [];
+
+                            jQuery('#total_discount_value_side').text('0');
                             @php  session()->forget('voc_item') @endphp
                             if (st_id == '4') {
                                 cross = 'false';
@@ -1006,9 +1202,30 @@
                         toast('Ditambah', 'Item berhasil ditambah', 'success');
                         var type = jQuery('#std_id option:selected').text();
                         if (type != 'DROPSHIPPER' && type != 'RESELLER' && type != 'WHATSAPP' && type != 'WEBSITE') {
-                            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td>"+r.p_name+"</td> <td>"+r.bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                            jQuery('#orderTable tr:last').after("" +
+                                "<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' " + "id='orderList"+(total_row+1)+"'>" +
+                                "<td>"+r.p_name+"</td> " +
+                                "<td>"+r.bin+"</td> " +
+                                "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                                "<td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td>" +
+                                "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td>" +
+                                "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0, "+sell_price_discount+")' style='display:none;'><i class='fa fa-eye'></i></a> " +
+                                "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                         } else {
-                            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td>"+r.p_name+"</td> <td>"+r.bin+"</td> <td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> <td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td> <td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> <td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> <td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td> <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0)' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
+                            jQuery('#orderTable tr:last').after("<tr data-list-item class='pos_item_list"+(r.pst_id)+" mb-2 bg-light-primary' id='orderList"+(total_row+1)+"'> <td>"+r.p_name+"</td>" +
+                                "<td>"+r.bin+"</td>" +
+                                "<td><input type='number' class='col-10' id='reseller_disc"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' class='col-10' id='reseller_disc_number"+(total_row+1)+"' onchange='return resellerDisc("+(total_row+1)+")'/></td>" +
+                                "<td><input type='number' class='form-control border-dark col-6 basicInput2"+r.pst_id+"' id='item_qty"+(total_row+1)+"' value='1' onchange='return changeQty("+(total_row+1)+", "+r.pst_id+")' readonly></td> " +
+                                "<td><input type='number' class='col-10 nameset_price' id='nameset_price"+(total_row+1)+"' onchange='return namesetPrice("+(total_row+1)+")'/></td> " +
+                                "<td><input type='number' disabled class='col-10 marketplace_price' id='marketplace_price"+(total_row+1)+"' onchange='return marketplacePrice("+(total_row+1)+")'/></td> " +
+                                "<td><span id='sell_price_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><span class='subtotal_item' id='subtotal_item"+(total_row+1)+"'>"+addCommas(r.sell_price)+"</span></td>" +
+                                "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem"+(total_row+1)+"' onclick='return saveItem("+(total_row+1)+", "+r.pst_id+", "+r.sell_price+", 0, "+sell_price_discount+")' style='display:none;'><i class='fa fa-eye'></i></a> <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem("+r.pst_id+", "+r.sell_price+", "+(total_row+1)+")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                         }
                         return false;
                     } else if (r.status == '419') {
@@ -1115,12 +1332,31 @@
             }
             //alert(unique+' '+total+' '+final_total);
             jQuery('#final_total_unique_code').val(addCommas(final_total));
+            jQuery('#discount_seller').val('');
             jQuery('#admin_cost').val('');
             jQuery('#real_price').val('');
         });
 
+        jQuery('#discount_seller').on('change', function(){
+            var discount = jQuery(this).val();
+            var unique = jQuery('#unique_code').val();
+            if (unique == '')  {
+                jQuery('#unique_code').val(0).trigger('change');
+            }
+            if (discount == '') {
+                discount = 0;
+            }
+
+            var final_total = jQuery('#final_total_unique_code').val();
+            var final_total_discount = parseFloat(replaceComma(final_total)) - parseFloat(discount);
+
+            jQuery('#real_price').val(addCommas(final_total_discount));
+            jQuery('#admin_cost').val('');
+        });
+
         jQuery('#admin_cost').on('change', function(){
             var cost = jQuery(this).val();
+            var discount_seller = jQuery('#discount_seller').val();
             var unique = jQuery('#unique_code').val();
             if (unique == '')  {
                 jQuery('#unique_code').val(0).trigger('change');
@@ -1129,7 +1365,7 @@
                 cost = 0;
             }
             var final_total = jQuery('#final_total_unique_code').val();
-            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(cost);
+            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(cost) - parseFloat(discount_seller);
             //alert(unique+' '+total+' '+final_total);
             jQuery('#real_price').val(addCommas(final_total_admin));
         });
@@ -1138,6 +1374,7 @@
             var admin_cost = jQuery('#admin_cost').val();
             var cost = jQuery(this).val();
             var unique = jQuery('#unique_code').val();
+            var discount_seller = jQuery('#discount_seller').val();
             if (unique == '')  {
                 jQuery('#unique_code').val(0).trigger('change');
             }
@@ -1145,7 +1382,7 @@
                 cost = 0;
             }
             var final_total = jQuery('#final_total_unique_code').val();
-            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(admin_cost) + parseFloat(cost);
+            var final_total_admin = parseFloat(replaceComma(final_total)) - parseFloat(admin_cost) + parseFloat(cost) - parseFloat(discount_seller);
             jQuery('#real_price').val(addCommas(final_total_admin));
         });
 
@@ -1211,6 +1448,71 @@
                 },
                 error: function(data){
                     swal('Error', data, 'error');
+                }
+            });
+        });
+
+        var shiftStarted = false;
+        var clockInterval;
+        jQuery('#startShiftButton').on('click', function() {
+            console.log("test");
+            shiftStarted = true;
+            jQuery('#shiftStatus').html('Shift In Progress');
+            jQuery('#startShiftButton').hide();
+            jQuery('#stopShiftButton').show();
+
+            var clockElement = jQuery('<div class="clock"></div>');
+            jQuery('.modal-body').append(clockElement);
+
+            clockInterval = setInterval(function() {
+                var now = new Date();
+                var hours = now.getHours();
+                var minutes = now.getMinutes();
+                var seconds = now.getSeconds();
+                var formattedTime = hours + ':' + minutes + ':' + seconds;
+                clockElement.html(formattedTime);
+            }, 1000);
+
+
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            jQuery.ajax({
+                url: '/user_start_shift',
+                method: 'POST',
+                success: function(response) {
+                    // handle shift already starter or not, if already starterd change button to stop shift
+                    console.log(response);
+                },
+                error: function(error) {
+                    console.error('Error starting shift:', error);
+                }
+            });
+        });
+
+        jQuery('#stopShiftButton').on('click', function() {
+            shiftStarted = false;
+            jQuery('#shiftStatus').html('Shift Stopped');
+            jQuery('#startShiftButton').show();
+            jQuery('#stopShiftButton').hide();
+
+            clearInterval(clockInterval);
+
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            jQuery.ajax({
+                url: '/user_end_shift',
+                method: 'POST',
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(error) {
+                    console.error('Error End shift:', error);
                 }
             });
         });
@@ -1479,4 +1781,185 @@
         jQuery('#total_final_price_side').text(addCommas(new_total));
         jQuery('#voucher_code').prop('disabled', false);
     });
+
+    jQuery(document).ready(function () {
+        // Event listener to add a new voucher input field
+        jQuery(document).on('click', '.add-voucher', function () {
+            let newField = `
+            <div class="input-group mb-3">
+                <input type="text" name="voucher-list[]" class="form-control" placeholder="Kode Voucher" value="">
+                <div class="input-group-append ml-3">
+                    <button class="btn btn-outline-secondary remove-voucher" type="button">-</button>
+                </div>
+            </div>
+        `;
+            jQuery("#voucher-container").append(newField);
+        });
+
+        // Event listener to remove a voucher input field
+        jQuery(document).on('click', '.remove-voucher', function () {
+            jQuery(this).closest('.input-group').remove();
+        });
+    });
+
+    jQuery(document).ready(function () {
+        // Event listener to add a new discount input field
+        jQuery(document).on('click', '.add-total-discount', function () {
+            let newField = `
+            <div class="input-group mb-3">
+                    <input type="text" name="total-discount-list[]" class="form-control" placeholder="Diskon" value="">
+                    <div class="input-group-append ml-3">
+                        <button class="btn btn-outline-secondary remove-total-discount" type="button">-</button>
+                    </div>
+                </div>
+        `;
+            jQuery("#total-discount-container").append(newField);
+        });
+
+        // Event listener to remove a discount input field
+        jQuery(document).on('click', '.remove-total-discount', function () {
+            // if remove button is cliked,subtract the total price
+            let total_price = jQuery("#total_final_price_side").text();
+            let total_discount_value_side = jQuery("#total_discount_value_side").text();
+            let discount = jQuery(this).closest('.input-group').find('input').val();
+            //remove comma from total price and discount
+            total_price = replaceComma(total_price);
+            total_discount_value_side = replaceComma(total_discount_value_side);
+
+            let new_total_price = parseFloat(total_price) + parseFloat(discount);
+            let new_total_discount_value_side = parseFloat(total_discount_value_side) - parseFloat(discount);
+
+            jQuery('#total_final_price_side').text(addCommas(new_total_price));
+            jQuery('#total_discount_value_side').text(addCommas(new_total_discount_value_side));
+            jQuery(this).closest('.input-group').remove();
+        });
+
+        jQuery(document).on('click', '#total_discount_reset', function () {
+            let total_price = jQuery("#total_final_price_side").text();
+            total_price = replaceComma(total_price);
+            // Reset each input field in total-discount-list
+            let new_total_price= parseFloat(total_price);
+
+            jQuery('input[name="total-discount-list[]"]').each(function () {
+                let discount = replaceComma(jQuery(this).val());
+                new_total_price += parseFloat(discount);
+            });
+
+            jQuery('#total_final_price_side').text(addCommas(new_total_price));
+
+            jQuery('input[name="total-discount-list[]"]').each(function () {
+                jQuery(this).val(0);
+            });
+
+            // Reset total_discount_value_side to 0
+            jQuery('#total_discount_value_side').text('0');
+        });
+    });
+
+    jQuery(document).delegate('#f_add_voucher', 'submit', function(e) {
+        e.preventDefault();
+        var cust_phone = jQuery(this).val();
+
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        var code = jQuery('#voucher_code').val();
+        var item = shoes_voucher_temp;
+        var total_final = jQuery('#total_final_price_side').text();
+        var total = replaceComma(total_final);
+
+        var formData = jQuery('#f_add_voucher').serializeArray();
+
+        jQuery.ajax({
+            type:"POST",
+            url: "{{ url('verify-vouchers')}}",
+            data:
+                {
+                    formData: formData,
+                    item: item,
+                },
+            dataType:'json',
+            success: function(r) {
+                if (r.status == '200') {
+                    // ditemukan
+                    var new_total = parseFloat(total) - parseFloat(r.sell) + parseFloat(r.value);
+                    jQuery('#_voc_id').val(r.voc_id);
+                    jQuery('#_voc_pst_id').val(r.pst_id);
+                    jQuery('#_voc_value').val(r.disc_value);
+                    jQuery('#_voc_article').text(r.article);
+                    jQuery('#_voc_bandrol').text(addCommas(r.bandrol));
+                    jQuery('#_voc_disc').text(addCommas(r.disc));
+                    jQuery('#_voc_disc_type').text(addCommas(r.disc_type));
+                    jQuery('#_voc_disc_value').text('('+addCommas(r.disc_value)+')');
+                    jQuery('#_voc_value_show').text(addCommas(r.value));
+                    jQuery('#total_final_price_side').text(addCommas(new_total));
+                    sell_price_voc = r.sell;
+                    value_price_voc = r.value;
+                    jQuery('#voucher_information').removeClass("d-none");
+                    jQuery('#voucher_code').prop('disabled', true);
+                } else if (r.status == '201') {
+                    // salah
+                    alert('beda platform');
+                } else if (r.status == '202') {
+                    // salah
+                    alert('sudah pernah dipakai');
+                } else if (r.status == '203') {
+                    // salah
+                    alert('sudah pernah dipakai namun belum 1 bulan');
+                } else if (r.status == '204') {
+                    // salah
+                    alert('tidak ada item untuk diskon');
+                } else {
+                    alert('kode salah');
+                }
+            }
+        });
+
+    });
+
+    jQuery(document).delegate('#f_add_total_discount', 'submit', function(e) {
+        e.preventDefault();
+
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        var total_final = jQuery('#total_final_price_side').text();
+        var total = replaceComma(total_final);
+
+        var formData = jQuery('#f_add_total_discount').serializeArray();
+
+        jQuery.ajax({
+            type:"POST",
+            url: "{{ url('pos-total-discount')}}",
+            data:
+                {
+                    formData: formData,
+                },
+            dataType:'json',
+            success: function(r) {
+                if (r.status == '200') {
+                    if (r.discountType == 'percentage') {
+                        // create count use percentage from total
+                        var discount = parseFloat(total) * parseFloat(r.total) / 100;
+                        var new_total = parseFloat(total) - parseFloat(discount);
+                        jQuery('#total_final_price_side').text(addCommas(new_total));
+                        jQuery('#total_discount_value_side').text(addCommas(discount));
+                    }
+
+                    if (r.discountType == 'nominal') {
+                        var new_total = parseFloat(total) - parseFloat(r.total);
+                        jQuery('#total_final_price_side').text(addCommas(new_total));
+                        jQuery('#total_discount_value_side').text(addCommas(r.total));
+                    }
+                } else {
+                    alert('kode salah');
+                }
+            }
+        });
+    })
 </script>

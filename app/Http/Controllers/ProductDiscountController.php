@@ -175,7 +175,9 @@ class ProductDiscountController extends Controller
     public function getDetailDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(ProductDiscountDetail::select('product_discount_details.id as pdd_id', 'product_stocks.id as pst_id', 'pd_type', 'pd_value', 'p_price_tag', 'ps_price_tag', 'p_sell_price', 'ps_sell_price', 'p_name', 'p_color', 'br_name', 'sz_name')
+            return datatables()->of(ProductDiscountDetail::select('product_discount_details.id as pdd_id',
+                'product_stocks.id as pst_id', 'pd_type', 'pd_value', 'p_price_tag', 'ps_price_tag', 'p_sell_price',
+                'ps_sell_price', 'p_name', 'p_color', 'br_name', 'sz_name', 'article_id')
             ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_discount_details.pst_id')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -222,6 +224,7 @@ class ProductDiscountController extends Controller
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhere('pd_name', 'LIKE', "%$search%")
+                            ->orWhere('article_id', 'LIKE', "%$search%")
                         ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
                     });
                 }

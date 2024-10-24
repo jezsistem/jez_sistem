@@ -15,7 +15,7 @@
                     <div class="form-group">
                         <label>Download Template
                         <span class="text-danger">*</span></label>
-                        <a href="{{ asset('upload/template/supplier_template.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
+                        <a href="{{ asset('upload/template/data_supplier_template.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
                     </div>
                     <div class="form-group">
                         <label>Pilih template yang sudah di download dan diisi
@@ -51,7 +51,7 @@
                 <div class="card-body">
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Nama Supplier <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="ps_name" name="ps_name" required />
+                        <input type="text" class="form-control" id="ps_name" name="ps_name" autocomplete="off" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">PKP</label>
@@ -62,23 +62,31 @@
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Tempo</label>
-                        <input type="number" class="form-control" id="ps_due_day" name="ps_due_day"/>
+                        <input type="number" class="form-control" id="ps_due_day" autocomplete="off" name="ps_due_day"/>
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Email</label>
-                        <input type="email" class="form-control" id="ps_email" name="ps_email" />
+                        <input type="email" class="form-control" id="ps_email" autocomplete="off" name="ps_email" />
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">No Telp <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="ps_phone" name="ps_phone" required />
+                        <label for="exampleTextarea">No Telp</label>
+                        <input type="text" class="form-control" id="ps_phone" autocomplete="off" name="ps_phone"/>
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Alamat <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="ps_address" name="ps_address" required />
+                        <input type="text" class="form-control" id="ps_address" autocomplete="off" name="ps_address" required />
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Rekening</label>
+                        <input type="text" class="form-control" id="ps_rekening" autocomplete="off" name="ps_rekening"/>
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">NPWP</label>
+                        <input type="text" class="form-control" id="ps_npwp" autocomplete="off" name="ps_npwp"/>
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Deskripsi</label>
-                        <input type="text" class="form-control" id="ps_description" name="ps_description"/>
+                        <input type="text" class="form-control" id="ps_description" autocomplete="off" name="ps_description"/>
                     </div>
                 </div>
             </div>
