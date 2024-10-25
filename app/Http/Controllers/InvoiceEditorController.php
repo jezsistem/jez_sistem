@@ -259,9 +259,9 @@ class InvoiceEditorController extends Controller
                     return "<input type='text' value='" . $d->created_at . "' data-pt_id='" . $d->id . "' id='date'/>";
                 })
                 ->editColumn('action', function ($d) {
-                    return "<a class='btn btn-sm btn-danger' data-pt_id='" . $d->id . "' id='cancel_btn'>Batalkan</a>";
+                    return "<a class='btn btn-sm btn-danger' data-pt_id='" . $d->id . "' id='cancel_btn'>Hapus Trx</a>";
                 })
-                ->rawColumns(['cashier', 'division', 'subdivision', 'method', 'pos_payment', 'method_two', 'pos_payment_partial', 'pos_status','admin', 'created_at', 'action'])
+                ->rawColumns(['cashier', 'division', 'subdivision', 'method', 'pos_payment', 'method_two', 'pos_payment_partial', 'pos_status', 'admin', 'created_at', 'action'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -680,11 +680,34 @@ class InvoiceEditorController extends Controller
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
         } else if ($type == 'pos_status_change') {
-            $update = DB::table('pos_transactions')->where('id', '=', $id)
-                ->update([
-                    'pos_status' => $value,
-                    'updated_at' => date('Y-m-d H:i:s')
-                ]);
+            // Refund Baru
+            if ($value == 'REFUND' || $value == 'CANCEL') {
+                $pos_details = DB::table('pos_transaction_details')->where('pt_id', '=', $id)->get();
+
+                foreach ($pos_details as $detail) {
+
+                    $plst = DB::table('product_location_setup_transactions')->where('id', '=', $detail->plst_id)->get();
+
+                    if ($plst) {
+                        foreach ($plst as $plr) {
+                            DB::table('product_location_setup_transactions')->where('id', '=', $plr->id)->update([
+                                'plst_status' => 'INSTOCK',
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+
+                            DB::table('product_location_setups')
+                                ->where('id', '=', $plr->pls_id)
+                                ->increment('pls_qty', $plr->plst_qty);
+                        }
+                    }
+                }
+            }
+            // Update the status in pos_transactions for other status updates
+            DB::table('pos_transactions')->where('id', '=', $id)->update([
+                'pos_status' => $value,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
         } else if ($type == 'method') {
             $update = DB::table('pos_transactions')->where('id', '=', $id)
                 ->update([

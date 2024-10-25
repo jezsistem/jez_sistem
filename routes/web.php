@@ -133,9 +133,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
 
-    //POS NEWPAGE 27-09-24
-    
-
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
@@ -319,7 +316,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pssc_save', [ProductSubSubCategoryTestController::class, 'storeData']);
     Route::post('pssc_delete', [ProductSubSubCategoryTestController::class, 'deleteData']);
     Route::post('pssc_import', [ProductSubSubCategoryTestController::class, 'importData']);
-
     // Product Main Color
     Route::get('warna_produk', [MainColorController::class, 'index'])->name('main_color');
     Route::get('main_color_datatables', [MainColorController::class, 'getDatatables']);
@@ -344,7 +340,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('sz_import', [SizeController::class, 'importData']);
     Route::post('check_exists_size', [SizeController::class, 'checkExistsSize']);
     Route::post('check_schema_size_product_stock', [SizeController::class, 'checkSchemaSizeProductStock']);
-
     // Product
     Route::get('data_produk', [ProductController::class, 'index'])->name('product');
     Route::get('product_datatables', [ProductController::class, 'getDatatables']);
@@ -456,7 +451,6 @@ Route::group(['middleware' => 'auth'], function () {
 
     // total discount point of sale
     Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);
-
     // Shopee
     /**
      * NOTE: Open when needed
