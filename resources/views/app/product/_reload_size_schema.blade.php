@@ -13,7 +13,7 @@
 {{--    </div>--}}
 {{--@endforeach--}}
 
-<table class="table table-bordered">
+<table id="sizeTable" class="table table-bordered">
     <thead>
     <tr>
         <th>Size</th>
