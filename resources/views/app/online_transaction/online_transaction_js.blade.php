@@ -518,6 +518,8 @@
             let status_trx = $('#status_trx').val();
             let changeplatform = $('#changeplatform').val();
 
+            console.log(status_trx);
+
 
             window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + "&date=" +
                 date + "&status=" + status_trx + "&changeplatform=" + changeplatform;

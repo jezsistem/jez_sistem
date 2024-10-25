@@ -270,6 +270,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pu_delete', [ProductUnitController::class, 'deleteData']);
     Route::post('pu_import', [ProductUnitController::class, 'importData']);
     Route::post('check_exists_product_unit', [ProductUnitController::class, 'checkExistsProductUnit']);
+    //Product
+    // Route::post('stock_data_search_product', [ProductController::class, 'searchProduct']);
     // Gender
     Route::get('gender', [GenderController::class, 'index'])->name('gender');
     Route::get('gender_datatables', [GenderController::class, 'getDatatables']);

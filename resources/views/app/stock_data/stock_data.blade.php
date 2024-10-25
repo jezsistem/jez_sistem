@@ -1,3 +1,4 @@
+
 @extends('app.structure')
 @section('content')
     <!--begin::Content-->
@@ -94,14 +95,14 @@
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
-                                    <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
-                                        <select class="form-control col-md-12" id="gender_id">
-                                            @foreach ($data['gender_id'] as $key => $value)
+                                    {{-- <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                        <select class="form-control col-md-12" id="p_name">
+                                            @foreach ($data['p_name'] as $key => $value)
                                                 <option value="{{ $key }}">{{ $value }}</option>
                                             @endforeach
                                         </select>
-                                        <div id="gender_id_parent"></div>
-                                    </div>
+                                        <div id="p_name_parent"></div>
+                                    </div> --}}
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
@@ -168,7 +169,7 @@
                                     <div id="reader" class="rounded"></div>
                                     <div id="result"></div>
                                     <input type="text" class="form-control" id="stock_data_search"
-                                        placeholder="Ketik 3 huruf pertama nama artikel atau sku"
+                                        placeholder="Ketik 3 huruf pertama Nama Produk atau Nama Artikel"
                                         style="border:1px solid black; padding:20px; background:#efefef;" /><br />
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>
 
@@ -210,8 +211,10 @@
     @include('app.stock_data.stock_data_modal')
     @include('app._partials.js')
     @include('app.stock_data.stock_data_js')
-@endSection()
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+@endSection()
 
 <style>
     #StockDatatb th {
@@ -219,18 +222,15 @@
         white-space: nowrap;
         padding: 10px;
     }
-
     #StockDatatb th.hidden {
         width: 20%;
     }
-
     @media only screen and (max-width: 1080px) {
         .table tbody tr {
             display: block;
             width: 100%;
             margin-bottom: 15px;
         }
-
         .table tbody td {
             display: block;
             text-align: left;
@@ -238,7 +238,6 @@
             padding: 10px 5px;
             position: relative;
         }
-
         .table tbody td:before {
             content: attr(data-label);
             position: absolute;

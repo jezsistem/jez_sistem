@@ -27,5 +27,5 @@
 </IfModule>
 
 RewriteCond %{SERVER_PORT} 80
-RewriteRule ^(.*)$ https://jezpro.id/$1 [R,L]
+RewriteRule ^(.*)$ https://dev.jezit.id/$1 [R,L]
 Header always set Content-Security-Policy "upgrade-insecure-requests;"
