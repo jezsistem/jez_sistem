@@ -1,3 +1,4 @@
+
 @extends('app.structure')
 @section('content')
     <!--begin::Content-->
@@ -41,7 +42,7 @@
                     <div class="col-lg-12 col-xxl-12">
                         <!--begin::Card-->
                         <div class="card card-custom gutter-b">
-                            <div class="card-header flex-wrap py-3" style="background:#efefef;">
+                            <div class="card-header flex-wrap py-3" style="background:#ffe6e6;">
                                 <div class="card-toolbar col-12 mt-4">
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
@@ -94,14 +95,14 @@
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
-                                    <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
-                                        <select class="form-control col-md-12" id="gender_id">
-                                            @foreach ($data['gender_id'] as $key => $value)
+                                    {{-- <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                        <select class="form-control col-md-12" id="p_name">
+                                            @foreach ($data['p_name'] as $key => $value)
                                                 <option value="{{ $key }}">{{ $value }}</option>
                                             @endforeach
                                         </select>
-                                        <div id="gender_id_parent"></div>
-                                    </div>
+                                        <div id="p_name_parent"></div>
+                                    </div> --}}
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
@@ -168,15 +169,16 @@
                                     <div id="reader" class="rounded"></div>
                                     <div id="result"></div>
                                     <input type="text" class="form-control" id="stock_data_search"
-                                        placeholder="Ketik 3 huruf pertama nama artikel atau sku"
+                                        placeholder="Ketik 3 huruf pertama Nama Produk atau Nama Artikel"
                                         style="border:1px solid black; padding:20px; background:#efefef;" /><br />
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>
 
                                     <div class="mt-3">
-                                        <button type="button" class="btn btn-secondary btn-sm" id="pickZeroBtn">Stok Semua Varian
-                                            </button>
-                                        <button type="button" class="btn btn-primary btn-sm"
-                                            id="pickAvailableBtn">Stok Tersedia</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="pickZeroBtn">Stok
+                                            Semua Varian
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-sm" id="pickAvailableBtn">Stok
+                                            Tersedia</button>
                                         <input type="hidden" value="" id="is_zero">
                                     </div>
                                 </form>
@@ -185,7 +187,7 @@
                                 <table class="table table-hover table-checkable" id="StockDatatb">
                                     <thead class="bg-light text-dark">
                                         <tr>
-                                            <th class="text-dark">Available Stock
+                                            <th class="text-dark" style="width: 80%;">Available Stock
                                             </th>
                                             <th class="hidden"></th>
                                         </tr>
@@ -209,4 +211,7 @@
     @include('app.stock_data.stock_data_modal')
     @include('app._partials.js')
     @include('app.stock_data.stock_data_js')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 @endSection()
