@@ -488,14 +488,7 @@ class StockDataController extends Controller
                             }
                         });
                     }
-                    // $data = $instance->get(); // Fetch your data
 
-                    // return response()->json([
-                    //     'draw' => intval($request->get('draw')),
-                    //     'recordsTotal' => $totalRecords,
-                    //     'recordsFiltered' => $filteredRecords,
-                    //     'data' => $data
-                    // ]);
                     if (!empty($request->get('main_color_id'))) {
                         $instance->where(function ($w) use ($request) {
                             $mc_id = $request->get('main_color_id');
@@ -520,7 +513,6 @@ class StockDataController extends Controller
                         });
                     }
 
-                    
     // public function stockDataDatatables(Request $request) {
     //     $searchQuery = $request->input('search');
     
