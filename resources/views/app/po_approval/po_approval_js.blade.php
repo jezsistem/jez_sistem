@@ -1,7 +1,7 @@
 <script>
     var approval = '';
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -21,19 +21,19 @@
             }],
             ajax: {
                 url: "{{ url('ap_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#po_approval_search').val();
                     d.filter_status = $('#filter_status').val();
                     d.filter_cabang = $('#filter_cabang').val();
                     d.date = $('#po_date').val();
-                    
+
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'id',
+                searchable: false
+            },
                 {
                     data: 'st_name',
                     name: 'st_name'
@@ -86,11 +86,11 @@
             ],
         });
 
-        $('#filter_status').on('change', function() {
+        $('#filter_status').on('change', function () {
             po_approval_table.draw();
         });
 
-        $('#filter_cabang').on('change', function() {
+        $('#filter_cabang').on('change', function () {
             console.log($('#filter_cabang').val())
             po_approval_table.draw();
         });
@@ -106,7 +106,7 @@
             dom: 'rt<"text-right"ip>',
             ajax: {
                 url: "{{ url('po_invoice_image_datatable') }}",
-                data: function(d) {
+                data: function (d) {
                     d._po_id = $('#_po_id').val();
                 },
             },
@@ -147,7 +147,7 @@
             }],
             ajax: {
                 url: "{{ url('apd_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.poads_invoice = $('#invoice_label').text();
                     // jQuery('#st_id').val(r.st_id).trigger('change');
                     // jQuery('#ps_id').val(r.ps_id).trigger('change');
@@ -156,10 +156,10 @@
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'po_id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'po_id',
+                searchable: false
+            },
                 {
                     data: 'created_at_show',
                     name: 'created_at'
@@ -203,7 +203,7 @@
                 {
                     data: 'poad_purchase_price',
                     name: 'poad_purchase_price',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         // Ensure the value is treated as a number
                         var price = parseFloat(data);
                         // Format the price as Rupiah
@@ -219,7 +219,7 @@
                 {
                     data: 'poad_total_price',
                     name: 'poad_total_price',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         // Ensure the value is treated as a number
                         var price = parseFloat(data);
                         // Format the price as Rupiah
@@ -255,11 +255,11 @@
         });
 
         po_approval_table.buttons().container().appendTo($('#po_approval_excel_btn'));
-        $('#po_approval_search').on('keyup', function() {
+        $('#po_approval_search').on('keyup', function () {
             po_approval_table.draw(false);
         });
 
-        $('#APtb tbody').on('click', 'tr', function() {
+        $('#APtb tbody').on('click', 'tr', function () {
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
             var st_name = po_approval_table.row(this).data().st_name;
@@ -274,7 +274,7 @@
             jQuery.noConflict();
 
             console.log('STORES : ', tgl_terima);
-            console.log('POADS ID :',poads_invoice);
+            console.log('POADS ID :', poads_invoice);
 
 
             // call ajax apd_total_price 
@@ -285,7 +285,7 @@
                 },
                 dataType: 'json',
                 url: "{{ url('apd_total_price') }}",
-                success: function(r) {
+                success: function (r) {
                     console.log(r);
                     console.log(st_name);
 
@@ -308,18 +308,15 @@
 
         });
 
-        $(document).ready(function() {
-            $("#InvoiceImagesBtn").click(function() {
+        $(document).ready(function () {
+            $("#InvoiceImagesBtn").click(function () {
                 $("#InvoiceImagesModal").modal("show");
                 console.log($('#po_id').val());
             });
         });
 
 
-
-
-
-        $(document).delegate('#delete_poads', 'click', function(e) {
+        $(document).delegate('#delete_poads', 'click', function (e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
             // console.log(id);
@@ -332,7 +329,7 @@
                     'Hapus'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -346,7 +343,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('dl_poads_revision') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 apd_table.draw(false);
                                 swal("Berhasil", "Data berhasil dihapus",
@@ -361,7 +358,52 @@
             })
         });
 
-        $('#approve_btn').on('click', function() {
+        {{--$('#approve_btn').on('click', function() {--}}
+        {{--    console.log(approval);--}}
+        {{--    if (approval != '<span class="badge badge-warning">Menunggu Approval</span>') {--}}
+        {{--        swal('Sudah Approve', 'Invoice ini sudah diapprove', 'warning');--}}
+        {{--        return false;--}}
+        {{--    }--}}
+        {{--    swal({--}}
+        {{--        title: "Approve..?",--}}
+        {{--        text: "Yakin approve ?",--}}
+        {{--        icon: "warning",--}}
+        {{--        buttons: [--}}
+        {{--            'Batalkan',--}}
+        {{--            'Approve'--}}
+        {{--        ],--}}
+        {{--        dangerMode: false,--}}
+        {{--    }).then(function(isConfirm) {--}}
+        {{--        if (isConfirm) {--}}
+        {{--            $.ajaxSetup({--}}
+        {{--                headers: {--}}
+        {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+        {{--                }--}}
+        {{--            });--}}
+        {{--            $.ajax({--}}
+        {{--                type: "POST",--}}
+        {{--                data: {--}}
+        {{--                    invoice: $('#invoice_label').text()--}}
+        {{--                },--}}
+        {{--                dataType: 'json',--}}
+        {{--                url: "{{ url('apd_approve') }}",--}}
+        {{--                success: function(r) {--}}
+        {{--                    if (r.status == '200') {--}}
+        {{--                        $('#ApproveModal').modal('hide');--}}
+        {{--                        po_approval_table.draw(false);--}}
+        {{--                        swal("Berhasil", "Data berhasil diapprove",--}}
+        {{--                            "success");--}}
+        {{--                    } else {--}}
+        {{--                        swal('Gagal', 'Gagal approve data', 'error');--}}
+        {{--                    }--}}
+        {{--                }--}}
+        {{--            });--}}
+        {{--            return false;--}}
+        {{--        }--}}
+        {{--    })--}}
+        {{--});--}}
+
+        $('#approve_btn').on('click', function () {
             console.log(approval);
             if (approval != '<span class="badge badge-warning">Menunggu Approval</span>') {
                 swal('Sudah Approve', 'Invoice ini sudah diapprove', 'warning');
@@ -376,8 +418,11 @@
                     'Approve'
                 ],
                 dangerMode: false,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
+                    // Show loader
+                    $('#loader').show();
+
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -390,15 +435,20 @@
                         },
                         dataType: 'json',
                         url: "{{ url('apd_approve') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 $('#ApproveModal').modal('hide');
                                 po_approval_table.draw(false);
-                                swal("Berhasil", "Data berhasil diapprove",
-                                    "success");
+                                swal("Berhasil", "Data berhasil diapprove", "success");
                             } else {
                                 swal('Gagal', 'Gagal approve data', 'error');
                             }
+                        },
+                        error: function () {
+                            swal('Gagal', 'Terjadi kesalahan pada server', 'error');
+                        },
+                        complete: function () {
+                            $('#loader').hide();
                         }
                     });
                     return false;
@@ -427,12 +477,10 @@
                 title = 'Yesterday:';
                 range = start.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD');
-            } 
-            else if(label == 'All Days') {
+            } else if (label == 'All Days') {
                 title = 'All Days';
                 hidden_range = '';
-            }
-            else {
+            } else {
                 range = start.format('MMM D') + ' - ' + end.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
@@ -440,7 +488,7 @@
             $('#po_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
-            
+
             po_approval_table.draw();
         }
 
