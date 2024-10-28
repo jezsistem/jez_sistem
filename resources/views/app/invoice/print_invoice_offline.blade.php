@@ -85,3 +85,17 @@
                         <td colspan="2">SUBTOTAL</td>
                         <td class="final-price">{{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}</td>
                     </tr>
+                    <tr>
+                        <td colspan="2">TOTAL</td>
+                        <td class="final-price">{{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_payment) }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="thanks">Terima Kasih!</div>
+            <div class="azost">Apabila ada kesalahan, silakan hubungi customer service kami.</div>
+            <div class="page-end"></div>
+        </center>
+    @endforeach
+@endif
+</body>
+</html>
