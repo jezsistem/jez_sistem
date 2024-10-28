@@ -427,6 +427,7 @@ class InvoiceController extends Controller
 ////        return view('app.invoice.print_invoice_offline', compact('data'));
 //    }
 
+//    update nota terbaru
     public function printOfflineInvoice(Request $request)
     {
         $invoice = $request->invoice;

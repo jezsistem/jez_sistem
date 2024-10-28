@@ -192,6 +192,7 @@
                         @endphp
 
 
+{{--                        item detail --}}
                         @foreach ($row->subitem as $srow)
                             @php
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
