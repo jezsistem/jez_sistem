@@ -195,7 +195,6 @@
     </div>
 </div>
 
-<<<<<<< HEAD
 <div class="modal fade text-left" id="payment-online-popup" role="dialog" aria-labelledby="myModalLabel11" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-scrollable  modal-dialog-centered modal-md" role="document">
 		<div class="modal-content">
