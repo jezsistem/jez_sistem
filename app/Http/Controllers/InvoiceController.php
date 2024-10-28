@@ -372,18 +372,20 @@ class InvoiceController extends Controller
     public function printOfflineInvoice(Request $request)
     {
         $invoice = $request->invoice;
-        $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
+//        $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
         $get_invoice = array();
         $dropshipper = null;
 
-        if ($check) {
-            $trx = PosTransaction::select(
-                'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
-                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
-                'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
-                'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
-                'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
-                'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name', 'pos_note')
+//        if ($check) {
+//
+//        }
+        $trx = PosTransaction::select(
+            'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
+            'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
+            'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
+            'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
+            'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
+            'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name', 'pos_note')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
@@ -393,20 +395,19 @@ class InvoiceController extends Controller
             ->where(['pos_invoice' => $invoice])
             ->first();
 
-            $check_transaction_detail = PosTransactionDetail::
-            leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+        $check_transaction_detail = PosTransactionDetail::
+        leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->where(['pt_id' => $trx->pt_id])->get();
-            if (!empty($check_transaction_detail)) {
-                $trx->subitem = $check_transaction_detail;
-                if (!empty($trx->pm_id_partial)) {
-                    $trx->pm_name_partial = PaymentMethod::select('pm_name')
+        if (!empty($check_transaction_detail)) {
+            $trx->subitem = $check_transaction_detail;
+            if (!empty($trx->pm_id_partial)) {
+                $trx->pm_name_partial = PaymentMethod::select('pm_name')
                     ->where('id', $trx->pm_id_partial)->get()->first()->pm_name;
-                }
-                array_push($get_invoice, $trx);
             }
+            array_push($get_invoice, $trx);
         }
         $stores = Auth::user()->st_id;
 
@@ -421,7 +422,6 @@ class InvoiceController extends Controller
             'segment' => request()->segment(1)
         ];
 
-//        dd($data['invoice_data']);
         return view('app.invoice.print_invoice_offline', compact('data'));
     }
 
@@ -449,14 +449,14 @@ class InvoiceController extends Controller
                 ->where(['pos_invoice' => $invoice])
                 ->first();
 
-            $check_transaction_detail = PosTransactionDetail::
+            $check_transaction_online_detail = PosTransactionDetail::
             leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->where(['pt_id' => $trx->pt_id])->get();
-            if (!empty($check_transaction_detail)) {
-                $trx->subitem = $check_transaction_detail;
+            if (!empty($check_transaction_online_detail)) {
+                $trx->subitem = $check_transaction_online_detail;
                 if (!empty($trx->pm_id_partial)) {
                     $trx->pm_name_partial = PaymentMethod::select('pm_name')
                         ->where('id', $trx->pm_id_partial)->get()->first()->pm_name;
