@@ -192,6 +192,7 @@
                         @endphp
 
 
+{{--                        item detail --}}
                         @foreach ($row->subitem as $srow)
                             @php
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
@@ -361,6 +362,18 @@
                 </div>
                 <br/>
 
+                <div class = "note">
+                    <tr>
+                    <td colspan="3" class="note" style="font-size: 14px; padding: 5px;">
+                        <span style="float:left;">NOTE:</span>
+                    </td>
+                    <td class="note" style="font-size: 14px; padding: 5px; text-align:right;">
+                        {{ $row->pos_note ?? "No Notes Available" }}
+                    </td>
+                    </tr>
+                </div>
+            </br>
+
                 <div class="title">
                     <strong><i>Cust Experience :</i></strong>
                     <br/>
@@ -390,9 +403,19 @@
 @endif
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
+    // $(document).ready(function () {
+    //     window.print();
+    // });
+
+    let hasPrinted = false;
+
     $(document).ready(function () {
-        window.print();
+        if (!hasPrinted) {
+            hasPrinted = true;
+            window.print();
+        }
     });
+
 
     $(document).delegate('.reload', 'click', function (e) {
         e.preventDefault();

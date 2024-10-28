@@ -6,7 +6,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>POS By sikoding</title>
+<title>POS App V2 | Jezpro </title>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <link href="{{ asset('assetsnew/assets/img/logo.svg')}}" type="image/x-icon" rel="shortcut icon"/>
@@ -102,7 +102,8 @@
             <div class="sidebar-header position-relative">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="logo">
-                        <a href="/dashboard"><img src="{{ asset('assetsnew/assets/img/logo.svg') }}" alt="Logo" style="height: 40px;" /></a>
+                        <a href="/dashboard"><img src="{{ asset('pos') }}/jez.gif" alt="Logo" style="height: 60px;" /></a>
+                        
                     </div>
                     <div class="theme-toggle d-flex gap-2 align-items-center mt-2">
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--system-uicons" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 21 21">
@@ -153,7 +154,7 @@
                                         <a href="{{ route('posv2.masterdata.bahanbaku-posv2') }}">Bahan Baku</a>
                                     </li>
                                     <li class="submenu-item {{ request()->routeIs('posv2.masterdata.produk-posv2') ? 'active' : '' }}">
-                                        <a href="{{ route('posv2.masterdata.produk-posv2') }}">Product</a>
+                                        <a href="{{ route('posv2.masterdata.produk-posv2') }}">Produk</a>
                                     </li>
                                 </ul>
                             </li>
@@ -307,7 +308,6 @@
         </header>
         <div id="main-content">
             @yield('content')
-
         </div>
     </div>
 </div>

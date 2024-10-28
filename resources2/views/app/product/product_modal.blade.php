@@ -194,6 +194,8 @@
                             <div id="reload_size"> </div>
                         </div>
                     </div>
+
+                    
                     <div class="form-group row">
                         <div class="col-lg-12 pt-1">
                         <label for="exampleTextarea">Deskripsi Artikel</label>

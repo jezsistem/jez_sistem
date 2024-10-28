@@ -19,7 +19,7 @@
         <div class="topbar">
             <div class="header-mobile header-mobile-fixed col-2">
                 <div class="topbar-item btn-sm bg-dark" id="kt_aside_mobile_toggle">
-                    <img alt="Logo" src="{{ asset('logo') }}/logo-colors.png" width="100px"/>
+                    <img alt="Logo" src="{{ asset('logo') }}/jez_pro.png" width="100px"/>
                 </div>
             </div>
             <div class="topbar-item">

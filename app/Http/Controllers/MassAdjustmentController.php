@@ -93,7 +93,7 @@ class MassAdjustmentController extends Controller
     {
         $exception = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setups')->selectRaw("ts_product_location_setups.id as id, pl_code, br_name, p_name, p_color, sz_name, psc_name,
             pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -104,7 +104,7 @@ class MassAdjustmentController extends Controller
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->where(function($w) use ($exception, $request) {
+                ->where(function ($w) use ($exception, $request) {
                     $st_id = $request->get('st_id');
                     $psc_id = $request->get('psc_id');
                     $br_id = $request->get('br_id');
@@ -128,7 +128,7 @@ class MassAdjustmentController extends Controller
                     }
                 })
                 ->groupBy('product_location_setups.id'))
-                ->editColumn('purchase', function($data) {
+                ->editColumn('purchase', function ($data) {
                     if (!empty($data->purchase_1)) {
                         return number_format($data->purchase_1);
                     } else if (!empty($data->purchase_2)) {
@@ -139,7 +139,7 @@ class MassAdjustmentController extends Controller
                         return number_format($data->p_purchase_price);
                     }
                 })
-                ->editColumn('sell', function($data) {
+                ->editColumn('sell', function ($data) {
                     if (!empty($data->ps_sell_price)) {
                         return number_format($data->ps_sell_price);
                     } else {
@@ -148,7 +148,7 @@ class MassAdjustmentController extends Controller
                 })
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
-                        $instance->where(function($w) use($request){
+                        $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('pl_code', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
@@ -162,12 +162,12 @@ class MassAdjustmentController extends Controller
 
     public function adjustmentDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
                 ->editColumn('ma_code_show', function ($d) {
-                    return "<a class='btn btn-primary' id='madj_btn' data-id='".$d->id."'>".$d->ma_code."</a>";
+                    return "<a class='btn btn-primary' id='madj_btn' data-id='" . $d->id . "'>" . $d->ma_code . "</a>";
                 })
                 ->editColumn('approve', function ($d) {
                     if (!empty($d->ma_approve)) {
@@ -206,7 +206,7 @@ class MassAdjustmentController extends Controller
                 ->rawColumns(['ma_code_show'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
-                        $instance->where(function($w) use($request){
+                        $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('ma_code', 'LIKE', "%$search%");
                         });
@@ -219,7 +219,7 @@ class MassAdjustmentController extends Controller
 
     public function adjustmentDetailDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             // Step 1: Update `qty_export` to match `pls_qty` where needed
 //            DB::table('mass_adjustment_details')
 //                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
@@ -317,7 +317,7 @@ class MassAdjustmentController extends Controller
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
             ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
             ->whereNotIn('pl_code', $exception)
-            ->where(function($w) use ($st_id, $psc_id, $br_id, $pl_id, $qty_filter) {
+            ->where(function ($w) use ($st_id, $psc_id, $br_id, $pl_id, $qty_filter) {
                 if ($st_id != 'all') {
                     $w->where('product_locations.st_id', '=', $st_id);
                 }
@@ -365,7 +365,7 @@ class MassAdjustmentController extends Controller
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
             ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
             ->whereNotIn('pl_code', $exception)
-            ->where(function($w) use ($st_id, $psc_id, $br_id, $pl_id, $qty_filter) {
+            ->where(function ($w) use ($st_id, $psc_id, $br_id, $pl_id, $qty_filter) {
                 if ($st_id != 'all') {
                     $w->where('product_locations.st_id', '=', $st_id);
                 }
@@ -418,7 +418,7 @@ class MassAdjustmentController extends Controller
         $data = [
             'pl_id' => DB::table('product_locations')->where('st_id', '=', $st_id)
                 ->where('pl_delete', '!=', '1')
-                ->where(function($w) use ($pl_id) {
+                ->where(function ($w) use ($pl_id) {
                     if (!empty($pl_id)) {
                         $w->whereNotIn('id', $pl_id);
                     }
@@ -510,7 +510,12 @@ class MassAdjustmentController extends Controller
             $r['status'] = '400';
             return json_encode($r);
         }
-        $get = DB::table('mass_adjustment_details')->select('pls_id', 'qty_so')->where('ma_id', '=', $ma_id)->get();
+        $get = DB::table('mass_adjustment_details')
+            ->select('pls_id', 'qty_so')
+            ->where('ma_id', '=', $ma_id)
+            ->where('mad_type', '!=', '=')
+            ->get();
+
         if (!empty($get->first())) {
             $update = DB::table('mass_adjustments')->where('id', '=', $ma_id)->update([
                 'ma_executor' => Auth::user()->id,

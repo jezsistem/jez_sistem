@@ -2,6 +2,44 @@
     referrerpolicy="origin"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 <script>
+  // Function to show all sizes (All Schema)
+function showAllSchema() {
+    const rows = document.querySelectorAll("#sizeTable tbody tr");
+    rows.forEach(row => {
+        row.style.display = ""; // Menampilkan semua baris
+    });
+    
+    // Update button styles
+    document.getElementById("allSchemaBtn").classList.add("btn-primary");
+    document.getElementById("allSchemaBtn").classList.remove("btn-secondary");
+
+    document.getElementById("stockedSchemaBtn").classList.add("btn-secondary");
+    document.getElementById("stockedSchemaBtn").classList.remove("btn-primary");
+}
+
+// Function to show only checked sizes (Stocked Schema)
+function showStockedSchema() {
+    const rows = document.querySelectorAll("#sizeTable tbody tr");
+    rows.forEach(row => {
+        const checkbox = row.querySelector("input[type='checkbox']");
+        if (checkbox && checkbox.checked) {
+            row.style.display = ""; // Menampilkan baris yang dicentang
+        } else {
+            row.style.display = "none"; // Menyembunyikan baris yang tidak dicentang
+        }
+    });
+
+    // Update button styles
+    document.getElementById("stockedSchemaBtn").classList.add("btn-primary");
+    document.getElementById("stockedSchemaBtn").classList.remove("btn-secondary");
+
+    document.getElementById("allSchemaBtn").classList.add("btn-secondary");
+    document.getElementById("allSchemaBtn").classList.remove("btn-primary");
+}
+
+
+
+
     function generateQR(value) {
         jQuery.noConflict();
         jQuery('#product_qr').empty();
@@ -52,18 +90,20 @@
         var purchase_price = $('#product_size_purchase_price' + id).val();
         var current_sz_purchase_price = $('#_sz_purchase_price').val();
         var mode = $('#_mode').val();
+
+        // Jika checkbox dicentang
         if ($('#product_size' + id).is(':checked')) {
             if ($('#_sz_id').val() != '') {
-                var current_sz_id = $('#_sz_id').val() + sz_id + '|';
+                current_sz_id = $('#_sz_id').val() + sz_id + '|';
             } else {
-                var current_sz_id = sz_id + '|';
+                current_sz_id = sz_id + '|';
             }
             $('#_sz_id').val(current_sz_id);
 
+            // Mode edit
             if (mode == 'edit') {
                 $('#product_size_barcode' + id).show();
                 $('#product_size_running_code' + id).show();
-                //$('#product_size_barcode'+id).prop('required', true);
                 if ($('#product_size_running_code' + id).val() != '') {
                     $('#product_size_barcode' + id).prop('disabled', false);
                 } else {
@@ -87,14 +127,27 @@
                 $('#product_size_running_code' + id).prop('disabled', true);
             } else {
                 $('#product_size_barcode' + id).show();
-                //$('#product_size_barcode'+id).prop('required', true);
                 $('#product_size_barcode' + id).prop('disabled', true);
                 $('#product_size_barcode' + id).val('');
             }
+
+            // Jika checkbox tidak dicentang
         } else {
-            $('#product_size_purchase_price' + id).hide();
-            $('#product_size_sell_price' + id).hide();
+            // Sembunyikan kolom barcode dan input lainnya
+            $('#product_size_barcode' + id).hide();
+            $('#product_size_running_code' + id).hide();
             $('#product_size_price_tag' + id).hide();
+            $('#product_size_sell_price' + id).hide();
+            $('#product_size_purchase_price' + id).hide();
+
+            // Kosongkan nilai inputnya
+            $('#product_size_barcode' + id).val('');
+            $('#product_size_running_code' + id).val('');
+            $('#product_size_price_tag' + id).val('');
+            $('#product_size_sell_price' + id).val('');
+            $('#product_size_purchase_price' + id).val('');
+
+            // Lanjutkan dengan logika untuk menghapus data dari input hidden (sz_id, barcode, dsb.)
             if (current_sz_id.indexOf(sz_id) > -1) {
                 var new_current_sz_id = current_sz_id.replace(sz_id + '|', '');
                 var new_sz_id = new_current_sz_id.replace('||', '|');
@@ -127,6 +180,8 @@
                     $('#_sz_purchase_price').val('');
                 }
             }
+
+            // Mode edit
             if (mode == 'edit') {
                 $('#product_size_barcode' + id).hide();
                 $('#product_size_running_code' + id).hide();
@@ -137,8 +192,8 @@
                 $('#product_size_barcode' + id).hide();
             }
         }
-        //alert($('#_sz_id').val());
     }
+
 
     function getProductSizeBarcode(id) {
         var barcode = $('#product_size_barcode' + id).val();
@@ -1077,9 +1132,13 @@
                                 $.each($(r.data), function(key, value) {
                                     $('#ProductStockDetailtb tr:last')
                                         .after(
-                                            "<tr id='ProductStockDetailAppend'><td>" + value.sz_name +
+                                            "<tr id='ProductStockDetailAppend'><td>" +
+                                            value.sz_name +
                                             "</td><td>" + value.qty +
-                                            "</td><td>" + value.ps_barcode + "</td><td>" + formatToRupiah(value.ps_price_tag) +
+                                            "</td><td>" + value
+                                            .ps_barcode + "</td><td>" +
+                                            formatToRupiah(value
+                                                .ps_price_tag) +
                                             "</td></tr>");
                                 });
                             } else {
@@ -1371,6 +1430,8 @@
             });
             return false;
         });
+
+
 
     });
 </script>

@@ -23,6 +23,7 @@ class OnlineTransactionDetails extends Model
         'total_discount',
         'discount_seller',
         'discount_platform',
-        'ns_before_admin'
+        'ns_before_admin',
+        'platform_name'
     ];
 }

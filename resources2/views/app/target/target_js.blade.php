@@ -141,6 +141,7 @@
                 'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu',
                 'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'
             ];
+            
             for (let i = 0; i < total_row; i++) {
                 $('#target_amount').append('<input class="form-control pb-1" type="number" data-date="'+dt[1]+'-'+dt[0]+'-'+(i+1)+'" id="target_amount'+(i+1)+'" placeholder="['+day[i+1]+'] Tanggal '+(i+1)+'"/>');
             }

@@ -1,4 +1,5 @@
 <!-- Modal-->
+
 <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -197,17 +198,36 @@
                                 </select>
                                 <div id="sz_schema_modal_id_parent"></div>
                             </div>
+
+                            <div class="col-lg-4 pt-1">
+                                <label for="flag_request">Flag Request</label>
+                                <select class="form-control" id="flag_request" name="flag_request">
+                                    <option value="" selected disabled>Choose me</option>
+                                    <option value="mp_best_seller">
+                                        MP Best Seller{{-- {{ $article->mp_best_seller ? 'Yes' : 'No' }} --}}
+                                    </option>
+                                    <option value="mp_stock_masking">
+                                        MP Stock Masking {{-- {{ $article->mp_stock_masking ? 'Yes' : 'No' }} --}}
+                                    </option>
+                                    <option value="complement">
+                                        Complement {{-- {{ $article->complement ? 'Yes' : 'No' }} --}}
+                                    </option>
+                                    <option value="consignment">
+                                        Consignment {{-- {{ $article->consignment ? 'Yes' : 'No' }} --}}
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-6 pt-1">
                                 <label>Sub Category 1 <span class="text-danger"></span></label>
                                 <textarea class="form-control" id="subcatone" name="subcatone"></textarea>
-{{--                                <input type="text" name="subcatone" id="subcatone" class="form-control" placeholder="Sub Category 1" />--}}
+                                {{--                                <input type="text" name="subcatone" id="subcatone" class="form-control" placeholder="Sub Category 1" /> --}}
                             </div>
                             <div class="col-lg-6 pt-1">
                                 <label>Sub Category 2 <span class="text-danger"></span></label>
                                 <textarea class="form-control" id="subcattwo" name="subcattwo"></textarea>
-{{--                                <input type="text" name="subcattwo" id="subcattwo" class="form-control" placeholder="Sub Category 2" />--}}
+                                {{--                                <input type="text" name="subcattwo" id="subcattwo" class="form-control" placeholder="Sub Category 2" /> --}}
                             </div>
                         </div>
                         <div class="form-group row">
@@ -229,12 +249,23 @@
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-12 pt-1">
-                                <label>Size Artikel: <span id="barcode_running_label" style="display:none;"></span> <a
-                                        class="btn btn-sm btn-primary"
-                                        onclick="return activateColumn()">undisabled</a></label>
+                                <label class="label-space">Size Artikel: <span id="barcode_running_label"
+                                        style="display:none;"></span>
+                                    <a class="btn btn-sm btn-primary" onclick="return activateColumn()">undisabled</a>
+                                </label>
+
+                                <label> Schema Display
+                                    <button type="button" class="btn btn-primary" onclick="showAllSchema()">All
+                                        Schema</button>
+                                    <button type="button" class="btn btn-secondary"
+                                        onclick="showStockedSchema()">Stocked Schema</button>
+                                </label>
+
                                 <div id="reload_size"> </div>
                             </div>
                         </div>
+
+
                         <div class="form-group row">
                             <div class="col-lg-12 pt-1">
                                 <label for="exampleTextarea">Deskripsi Artikel</label>
@@ -320,3 +351,12 @@
     </div>
 </div>
 <!-- /Modal -->
+
+
+<style>
+    .label-space {
+        margin-right: 10cm;
+        /* atau 60px, tergantung preferensi */
+
+    }
+</style>
