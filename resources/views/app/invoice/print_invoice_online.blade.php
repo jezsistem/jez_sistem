@@ -119,129 +119,132 @@
 <body>
 @if (!empty($data['invoice_data']))
     @foreach ($data['invoice_data'] as $row)
-<center class="content">
-    <center>
-        <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"
-             src="{{ asset('logo/logo_jez_sport.png') }}"
-             style="width:43%; padding:10px; background-color:#000;"/>
-        <div class="title" style="margin-top: 20px;">
-            <strong>Sneakerzone.id</strong><br/>
-            Malang<br/>
-            <br/><br/>
-            www.jez.co.id
-        </div>
-        <div class="separate"></div>
+        <center class="content">
+            <center>
+                <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"
+                     src="{{ asset('logo/logo_jez_sport.png') }}"
+                     style="width:43%; padding:10px; background-color:#000;"/>
+                <div class="title" style="margin-top: 20px;">
+                    <strong>Sneakerzone.id</strong><br/>
+                    Malang<br/>
+                    <br/><br/>
+                    www.jez.co.id
+                </div>
+                <div class="separate"></div>
 
-        <div class="nota" style="margin-top: 10px; margin-bottom: 10px;">
-            {{ $data['invoice'] }}
-        </div>
-        <div class="head-desc">
-            <div class="date">
-                {{ now()->format('d F Y') }}<br/>
-                Kasir<br/>
-                Customer<br/>
-                Pembayaran
-            </div>
-            <div class="user">
-                {{ now()->format('H:i') }}<br/>
-                @php
-                    $kasir = \Illuminate\Support\Facades\Auth::user()->u_name;
-                    $kasirLimited = substr($kasir, 0, 15);
+                <div class="nota" style="margin-top: 10px; margin-bottom: 10px;">
+                    {{ $data['invoice'] }}
+                </div>
+                <div class="head-desc">
+                    <div class="date">
+                        {{ now()->format('d F Y') }}<br/>
+                        Kasir<br/>
+                        Customer<br/>
+                        Pembayaran
+                    </div>
+                    <div class="user">
+                        {{ now()->format('H:i') }}<br/>
+                        @php
+                            $kasir = \Illuminate\Support\Facades\Auth::user()->u_name;
+                            $kasirLimited = substr($kasir, 0, 15);
 
-                    echo $kasirLimited;
-                @endphp<br>
-                Jez Customer<br>
-                {{ $row->payment_method }}
-            </div>
-        </div>
-        <div class="separate"></div>
-        <div class="transaction">
-            <table class="transaction-table" cellspacing="0" cellpadding="0">
-                @php
-                    $groups = array();
-                    $total_item = 0;
-                    $total_price = 0;
-                    $nameset = 0;
-                    $total_potongan = $data['invoice_data'][0]['$total_discount'];
-                    $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
-                    foreach ($row->subitem as $srow) {
-                        $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
-                        if (!array_key_exists($key, $groups)) {
-                            $groups[$key] = array(
-                                'article' => '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name,
-                                'total_item' => $srow->pos_td_qty,
-                                'sell_price' => $srow->pos_td_sell_price,
-                                'total_sell_price' => $srow->pos_td_discount_price,
-                                'nameset' => $srow->pos_td_nameset_price,
-                            );
-                        } else {
-                            $groups[$key]['total_item'] = $groups[$key]['total_item'] + $srow->pos_td_qty;
-                            $groups[$key]['sell_price'] = $groups[$key]['sell_price'];
-                            $groups[$key]['total_sell_price'] = $groups[$key]['total_sell_price'];
-                            $groups[$key]['nameset'] = $groups[$key]['nameset'] + $srow->pos_td_nameset_price;
-                        }
-                    }
-                @endphp
+                            echo $kasirLimited;
+                        @endphp<br>
+                        Jez Customer<br>
+                        {{ $row->payment_method }}
+                    </div>
+                </div>
+                <div class="separate"></div>
+                <div class="transaction">
+                    <table class="transaction-table" cellspacing="0" cellpadding="0">
+                        @php
+                            $groups = array();
+                            $total_item = 0;
+                            $total_price = 0;
+                            $nameset = 0;
+                            $total_potongan = $data['invoice_data'][0]['$total_discount'];
+                            $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
+                            foreach ($row->subitem as $srow) {
+                                $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
+                                if (!array_key_exists($key, $groups)) {
+                                    $groups[$key] = array(
+                                        'article' => '['.$srow->br_name.'] '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name,
+                                        'total_item' => $srow->pos_td_qty,
+                                        'sell_price' => $srow->pos_td_sell_price,
+                                        'total_sell_price' => $srow->pos_td_discount_price,
+                                        'nameset' => $srow->pos_td_nameset_price,
+                                    );
+                                } else {
+                                    $groups[$key]['total_item'] = $groups[$key]['total_item'] + $srow->pos_td_qty;
+                                    $groups[$key]['sell_price'] = $groups[$key]['sell_price'];
+                                    $groups[$key]['total_sell_price'] = $groups[$key]['total_sell_price'];
+                                    $groups[$key]['nameset'] = $groups[$key]['nameset'] + $srow->pos_td_nameset_price;
+                                }
+                            }
+                        @endphp
 
-                @foreach ($row->subitem as $srow)
-                    @php
-                        $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
-                        $total_item += $srow->qty;
-                        $total_price += $srow->original_price - $srow->discount_seller;
-                        $nameset += $srow->pos_td_nameset_price;
-                        $total_potongan += $srow->total_discount;
-                    @endphp
+                        @foreach ($row->subitem as $srow)
+                            @php
+//                                $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
+//                                $total_item += $srow->qty;
+//                                $total_price += $srow->original_price - $srow->discount_seller;
+//                                $nameset += $srow->pos_td_nameset_price;
+//                                $total_potongan += $srow->total_discount;
 
-                    <tr style="margin-bottom:15px;">
-                        <td class="name">{{ $key }}<br></td>
-                        @if (!empty($srow->pos_td_description) AND $srow->qty > 1)
-                            <td class="qty" style="width: 1px;">{{ $srow->qty }}</td>
-                        @else
-                            <td class="qty">{{ $srow->qty }}x</td>
+                                $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
+                                $total_item += $srow->qty;
+                                $calculated_price = $srow->original_price - $srow->discount_seller; // Calculate the effective price
+                                $total_price += $calculated_price; // Accumulate total price
+                                $nameset += $srow->pos_td_nameset_price;
+                                $total_potongan += $srow->total_discount;
+                            @endphp
 
-                            <td class="sell-price">
-                                @if(!empty($srow->total_discount) || $srow->discount_seller != 0)
-                                    <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->ps_price_tag) }}</s>
-                                    <br>
+                            <tr style="margin-bottom:15px;">
+                                <td class="name">{{ $key }}<br></td>
+                                @if (!empty($srow->pos_td_description) AND $srow->qty > 1)
+                                    <td class="qty" style="width: 1px;">{{ $srow->qty }}</td>
+                                @else
+                                    <td class="qty">{{ $srow->qty }}x</td>
+
+                                    <td class="sell-price">
+                                        @if(!empty($srow->total_discount) || $srow->discount_seller != 0)
+                                            <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->ps_price_tag) }}</s>
+                                            <br>
+                                        @endif
+
+                                        @if(!empty($srow->total_discount))
+                                            <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->total_discount) }})</span>
+                                        @endif
+                                    </td>
+
                                 @endif
+                                <td class="final-price">
+                                    {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->price_after_discount) }}
+                                </td>
 
-                                @if(!empty($srow->total_discount))
-                                    <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->total_discount) }})</span>
-                                @endif
 
-{{--                                @if (!empty($srow->total_discount))--}}
-{{--                                    <br/>{{ $srow->total_discount }}--}}
-{{--                                @endif--}}
+                            </tr>
+                        @endforeach
+                        <!-- Repeat rows as needed -->
+                        <!-- Discount -->
+                        <tr class="discount-tr">
+                            <td colspan="4">
+                                <div class="separate-line"></div>
                             </td>
-
-                        @endif
-                        <td class="final-price">
-                            {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->price_after_discount) }}
-                        </td>
-
-
-                    </tr>
-                @endforeach
-                <!-- Repeat rows as needed -->
-                <!-- Discount -->
-                <tr class="discount-tr">
-                    <td colspan="4">
-                        <div class="separate-line"></div>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="3" class="final-price">
-                        <span style="float:left;">TOTAL ITEM</span>
-                    </td>
-                    <td class="final-price">
-                        <span style="float:right;">{{ $total_item }}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="3" class="final-price">
-                        <span style="float:left;">DISKON</span>
-                    </td>
-                    <td class="final-price">
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left;">TOTAL ITEM</span>
+                            </td>
+                            <td class="final-price">
+                                <span style="float:right;">{{ $total_item }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left;">DISKON</span>
+                            </td>
+                            <td class="final-price">
                         <span style="float:right;">
                              @if (!empty($total_potongan))
                                 {{ number_format($total_potongan) }}
@@ -249,53 +252,58 @@
                                 0
                             @endif
                         </span>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="3" class="final-price">
-                        <span style="float:left; font-weight:bold;">TOTAL AKHIR</span>
-                    </td>
-                    <td class="final-price">
-                        <span style="float:right;">{{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}</span>
-                    </td>
-                </tr>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left; font-weight:bold;">TOTAL AKHIR</span>
+                            </td>
+                            <td class="final-price">
+                                <span style="float:right;">{{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}</span>
+                            </td>
+                        </tr>
 
-                <tr>
-                    <td colspan="4" class="final-price">
-                        <span style="float:left; margin-top:10px;"><i>* Barang Kena Pajak (BKP) : Harga sudah termasuk PPN</i></span>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div class="thanks">
-            ~~~ Terimakasih ~~~
-        </div>
-        <div class="azost">
-            www.jez.co.id
-        </div>
-        <br/>
+                        <tr>
+                            <td colspan="4" class="final-price">
+                                <span style="float:left; margin-top:10px;"><i>* Barang Kena Pajak (BKP) : Harga sudah termasuk PPN</i></span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="thanks">
+                    ~~~ Terimakasih ~~~
+                </div>
+                <div class="azost">
+                    www.jez.co.id
+                </div>
+                <br/>
 
-        <div class="title">
-            <strong><i>Cust Experience :</i></strong>
-            <br/>
-            <img class="" data-pt_id="{{ $row->pt_id }}"
-                 src="{{ asset('logo/qr-prd.png') }}"
-                 style="width:43%; background-color:#000;"/>
-        </div>
-        <br>
-        <div class="title">
-            <strong><i>Ketentuan penukaran barang :</i></strong>
-            <br/>
-            <p style="text-align:left; font-size:11px;">
-                1. Batas waktu penukaran barang maksimal 1x24 jam dari barang diterima dan penukaran wajib datang ke Offline Store (Barang yang dapat ditukar hanya produk sepatu)<br/>
-                2. Penukaran barang tidak berlaku untuk produk jersey, t-shirt, assesoris maupun equipment<br/>
-                3. Produk sepatu yang dapat ditukar yaitu belum pernah digunakan untuk beraktifitas dan wajib memiliki dus yang sesuai dengan barang dan tag wajib masih terpasang, jika tidak maka penukaran tidak akan dilayani<br/>
-                4. Barang hanya boleh ditukar dengan jenis, warna, dan tipe yang sama dengan ketentuan pengembalian harus datang ke store dengan membawa barang lengkap<br/>
-                5. Wajib menyertakan struk pembelanjaan saat proses penukaran barang baik pembelian offline & online <br/>
-            </p>
-        </div>
-    </center>
-</center>
+                <div class="title">
+                    <strong><i>Cust Experience :</i></strong>
+                    <br/>
+                    <img class="" data-pt_id="{{ $row->pt_id }}"
+                         src="{{ asset('logo/qr-prd.png') }}"
+                         style="width:43%; background-color:#000;"/>
+                </div>
+                <br>
+                <div class="title">
+                    <strong><i>Ketentuan penukaran barang :</i></strong>
+                    <br/>
+                    <p style="text-align:left; font-size:11px;">
+                        1. Batas waktu penukaran barang maksimal 1x24 jam dari barang diterima dan penukaran wajib
+                        datang ke Offline Store (Barang yang dapat ditukar hanya produk sepatu)<br/>
+                        2. Penukaran barang tidak berlaku untuk produk jersey, t-shirt, assesoris maupun equipment<br/>
+                        3. Produk sepatu yang dapat ditukar yaitu belum pernah digunakan untuk beraktifitas dan wajib
+                        memiliki dus yang sesuai dengan barang dan tag wajib masih terpasang, jika tidak maka penukaran
+                        tidak akan dilayani<br/>
+                        4. Barang hanya boleh ditukar dengan jenis, warna, dan tipe yang sama dengan ketentuan
+                        pengembalian harus datang ke store dengan membawa barang lengkap<br/>
+                        5. Wajib menyertakan struk pembelanjaan saat proses penukaran barang baik pembelian offline &
+                        online <br/>
+                    </p>
+                </div>
+            </center>
+        </center>
     @endforeach
 @endif
 
