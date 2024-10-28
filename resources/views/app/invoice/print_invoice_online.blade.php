@@ -193,7 +193,7 @@
 
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                                 $total_item += $srow->qty;
-                                $calculated_price = $srow->original_price - $srow->discount_seller; // Calculate the effective price
+                                $calculated_price = ($srow->original_price * $srow->qty)- $srow->discount_seller; // Calculate the effective price
                                 $total_price += $calculated_price; // Accumulate total price
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_potongan += $srow->total_discount;
