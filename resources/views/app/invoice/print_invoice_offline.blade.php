@@ -403,9 +403,19 @@
 @endif
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
+    // $(document).ready(function () {
+    //     window.print();
+    // });
+
+    let hasPrinted = false;
+
     $(document).ready(function () {
-        window.print();
+        if (!hasPrinted) {
+            hasPrinted = true;
+            window.print();
+        }
     });
+
 
     $(document).delegate('.reload', 'click', function (e) {
         e.preventDefault();
