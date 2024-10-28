@@ -538,7 +538,6 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::get('rbl_datatables', [ResellerBrandLevelController::class, 'getDatatables']);
     // Route::post('rbl_update', [ResellerBrandLevelController::class, 'updateData']);
 
-    // ResellerTransactionController
     /**
      * NOTE: Open when needed
      */
