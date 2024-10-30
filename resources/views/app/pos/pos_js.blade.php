@@ -1613,7 +1613,18 @@
         jQuery('#itemListCust').fadeOut();
     });
 
-    jQuery('#sub_cust_id_label').on('keyup', function(){
+    jQuery(document).delegate('#add_new_customer', 'click', function () {
+            console.log(jQuery('#cust_id_label').val());
+            jQuery('#_mode').val('add');
+            var custIdLabelValue = jQuery('#cust_id_label').val();
+            jQuery('#choosecustomer').modal('show');
+            jQuery('#cust_phone').val(custIdLabelValue);
+        })
+
+    
+    
+    
+        jQuery('#sub_cust_id_label').on('keyup', function(){
         var query = jQuery(this).val();
         var type = 'sub_cust';
         if(jQuery.trim(query) != '' || jQuery.trim(query) != null) {
@@ -1639,6 +1650,52 @@
             jQuery('#itemListSubCust').fadeOut();
         }
     });
+
+    jQuery(document).delegate('#check_customer', 'click', function () {
+            jQuery('#_mode').val('edit');
+            var cust_id = jQuery(this).attr('data-id');
+            jQuery('#_id').val(cust_id);
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            jQuery.ajax({
+                type: 'POST',
+                url: "{{ url('check_customer') }}",
+                data: {
+                    _cust_id: cust_id
+                },
+                dataType: 'json',
+                success: function (r) {
+                    if (r.status == '200') {
+                        jQuery('#choosecustomer').modal('show');
+                        jQuery('#ct_id').val(r.ct_id);
+                        //jQuery("#ct_id option[value='" + r.ct_id + "']").prop("selected", true);
+                        jQuery('#cust_name').val(r.cust_name);
+                        jQuery('#cust_store').val(r.cust_store);
+                        jQuery('#cust_phone').val(r.cust_phone);
+                        jQuery('#cust_email').val(r.cust_email);
+                        jQuery('#cust_province').val(r.cust_province);
+                        jQuery('#cust_token_active').val(r.cust_token_active);
+                        reloadCity(r.cust_province);
+                        setTimeout(() => {
+                            jQuery('#cust_city').val(r.cust_city);
+                        }, 500);
+                        reloadSubdistrict(r.cust_city);
+                        setTimeout(() => {
+                            jQuery('#cust_subdistrict').val(r.cust_subdistrict);
+                        }, 1000);
+                        jQuery('#cust_address').val(r.cust_address);
+                    } else if (r.status == '400') {
+                        swal('Gagal', 'Gagal menampilkan detail', 'warning');
+                    }
+                },
+                error: function (data) {
+                    swal('Error', data, 'error');
+                }
+            });
+        });
 
     jQuery(document).delegate('#add_to_item_list_sub_cust', 'click', function() {
         var cust_id = jQuery(this).attr('data-id');
