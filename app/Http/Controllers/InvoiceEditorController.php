@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PosTransaction;
+use App\Models\PosTransactionDetail;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -250,7 +251,8 @@ class InvoiceEditorController extends Controller
                     return "<input type'number' data-pt_id='" . $d->id . "' id='admin' value='" . $d->pos_admin_cost . "'/>";
                 })
                 ->editColumn('pos_status', function ($d) {
-                    return "<select name='pos_status_change' id='pos_status_change' class='form-control-sm' data-pt_id='" . $d->id . "'>
+                    $disabled = ($d->pos_status == 'REFUND' || $d->pos_status == 'CANCEL') ? 'disabled' : '';
+                    return "<select name='pos_status_change' id='pos_status_change' class='form-control-sm' data-pt_id='" . $d->id . "' $disabled>
                                 <option value='DP' " . ($d->pos_status == 'DP' ? 'selected' : '') . ">DP</option>
                                 <option value='DONE' " . ($d->pos_status == 'DONE' ? 'selected' : '') . ">DONE</option>
                                 <option value='CANCEL' " . ($d->pos_status == 'CANCEL' ? 'selected' : '') . ">CANCEL</option>
@@ -686,9 +688,61 @@ class InvoiceEditorController extends Controller
             if ($value == 'REFUND' || $value == 'CANCEL') {
                 $pos_details = DB::table('pos_transaction_details')->where('pt_id', '=', $id)->get();
 
+                $pos_trx_selected = PosTransaction::where('id', '=', $id)->first();
+
+                $update = DB::table('pos_transactions')->insertGetId([
+                    'u_id' => $pos_trx_selected->u_id,
+                    'kasir_id' => Auth::user()->id,
+                    'st_id' => $pos_trx_selected->st_id,
+                    'stt_id' => $pos_trx_selected->stt_id,
+                    'pm_id' => $pos_trx_selected->pm_id,
+                    'cp_id' => $pos_trx_selected->cp_id,
+                    'std_id' => $pos_trx_selected->std_id,
+                    'cust_id' => $pos_trx_selected->cust_id,
+                    'pt_id_ref' => $pos_trx_selected->pt_id_ref,
+                    'sub_cust_id' => $pos_trx_selected->sub_cust_id,
+                    'pos_admin_cost' => 0,
+                    'pos_another_cost' => 0,
+                    'pos_real_price' => -abs($pos_trx_selected->pos_real_price),
+                    'pos_order_number' => $pos_trx_selected->pos_order_number,
+                    'pos_invoice' => $pos_trx_selected->pos_invoice,
+                    'pos_unique_code' => $pos_trx_selected->pos_unique_code,
+                    'pos_shipping' => $pos_trx_selected->pos_shipping,
+                    'pos_ref_number' => $pos_trx_selected->pos_ref_number,
+                    'pos_total_discount' => 0,
+                    'pos_discount_seller' => 0,
+                    'cr_id' => $pos_trx_selected->cr_id,
+                    'pos_note' => $pos_trx_selected->pos_note,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'pos_refund' => '1',
+                    'st_id_ref' => $pos_trx_selected->st_id_ref,
+                    'cross_order' => $pos_trx_selected->cross_order,
+                    'pos_status'   => $value,
+                    'pos_payment'   => -abs($pos_trx_selected->pos_payment)
+                ]);
+
                 foreach ($pos_details as $detail) {
 
-                    $plst = DB::table('product_location_setup_transactions')->where('id', '=', $detail->plst_id)->get();
+
+                    $plst = DB::table('product_location_setup_transactions')->where('pt_id', '=', $detail->pt_id)->get();
+
+                    $create = PosTransactionDetail::create([
+                        'pt_id' => $update,
+                        'pst_id' => $detail->pst_id,
+                        'pl_id' => $detail->pl_id,
+                        'pos_td_qty' => -abs($detail->pos_td_qty),
+                        'pos_td_sell_price' => -abs($detail->pos_td_sell_price),
+                        'pos_td_discount' => 0,
+                        'pos_td_discount_number' => 0,
+                        'pos_td_discount_price' => -abs($detail->pos_td_discount_price),
+                        'pos_td_marketplace_price' => 0,
+                        'pos_td_nameset_price' => 0,
+                        'pos_td_nameset' => 0,
+                        'pos_td_description' => $detail->pos_td_description,
+                        'pos_td_price_item_discount' => 0,
+                        'pos_td_total_price' => -abs($detail->pos_td_discount_price),
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
 
                     if ($plst) {
                         foreach ($plst as $plr) {
@@ -704,12 +758,13 @@ class InvoiceEditorController extends Controller
                     }
                 }
             }
-            // Update the status in pos_transactions for other status updates
-            DB::table('pos_transactions')->where('id', '=', $id)->update([
-                'pos_status' => $value,
-                'updated_at' => date('Y-m-d H:i:s')
-            ]);
-
+            else {
+                // Update the status in pos_transactions for other status updates
+                $update = DB::table('pos_transactions')->where('id', '=', $id)->update([
+                    'pos_status' => $value,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+            }
         } else if ($type == 'method') {
             $update = DB::table('pos_transactions')->where('id', '=', $id)
                 ->update([
@@ -855,7 +910,7 @@ class InvoiceEditorController extends Controller
                 if ($user_data->g_name != 'administrator') {
                     $w->whereRaw('ts_pos_transactions.created_at  >= now() - INTERVAL 30 DAY');
                 }
-            })->first();
+            })->orderBy('id', 'desc')->first();
         if (!empty($check)) {
             $is_edited = DB::table('invoice_editors')->where([
                 'u_id' => Auth::user()->id,
