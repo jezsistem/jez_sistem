@@ -250,7 +250,8 @@ class InvoiceEditorController extends Controller
                     return "<input type'number' data-pt_id='" . $d->id . "' id='admin' value='" . $d->pos_admin_cost . "'/>";
                 })
                 ->editColumn('pos_status', function ($d) {
-                    return "<select name='pos_status_change' id='pos_status_change' class='form-control-sm' data-pt_id='" . $d->id . "'>
+                    $disabled = ($d->pos_status == 'REFUND' || $d->pos_status == 'CANCEL') ? 'disabled' : '';
+                    return "<select name='pos_status_change' id='pos_status_change' class='form-control-sm' data-pt_id='" . $d->id . "' $disabled>
                                 <option value='DP' " . ($d->pos_status == 'DP' ? 'selected' : '') . ">DP</option>
                                 <option value='DONE' " . ($d->pos_status == 'DONE' ? 'selected' : '') . ">DONE</option>
                                 <option value='CANCEL' " . ($d->pos_status == 'CANCEL' ? 'selected' : '') . ">CANCEL</option>
@@ -688,7 +689,7 @@ class InvoiceEditorController extends Controller
 
                 foreach ($pos_details as $detail) {
 
-                    $plst = DB::table('product_location_setup_transactions')->where('id', '=', $detail->plst_id)->get();
+                    $plst = DB::table('product_location_setup_transactions')->where('pt_id', '=', $detail->pt_id)->get();
 
                     if ($plst) {
                         foreach ($plst as $plr) {
@@ -705,7 +706,7 @@ class InvoiceEditorController extends Controller
                 }
             }
             // Update the status in pos_transactions for other status updates
-            DB::table('pos_transactions')->where('id', '=', $id)->update([
+            $update = DB::table('pos_transactions')->where('id', '=', $id)->update([
                 'pos_status' => $value,
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
