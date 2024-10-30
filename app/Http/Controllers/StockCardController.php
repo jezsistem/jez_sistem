@@ -85,22 +85,22 @@ class StockCardController extends Controller
     private function getBeginningStock($start, $end, $pst_id, $st_id, $current_stock, $exception, $except) {
         $beginning = 0;
         $mode = 'beginning';
-        $end = date( "Y-m-d", strtotime($start." -1 day"));
-//        $start = $start;
-        $purchase = $this->getPurchase($start, $end, $pst_id, $st_id, $mode);
-        $trans_in = 0;
-        $trans_out = 0;
-        $cross_setup_in = 0;
-        $cross_setup_out = 0;
-        $sales = $this->getSales($start, $end, $pst_id, $st_id, $mode);
+        $end_beg = date( "Y-m-d", strtotime($start." -1 day"));
+        $start_beg = '2023-01-01';
+        $purchase = $this->getPurchase($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $trans_in = $this->getTransIn($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $trans_out = $this->getTransOut($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $cross_setup_in = $this->getPurchase($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $cross_setup_out = $this->getPurchase($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $sales = $this->getSales($start_beg, $end_beg, $pst_id, $st_id, $mode);
         $waiting = 0;
         $refund = 0;
-        $adj_plus = $this->getAdjustment('adj', '+', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $adj_min = $this->getAdjustment('adj', '-', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $madj_plus = $this->getAdjustment('madj', '+', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $madj_min = $this->getAdjustment('madj', '-', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $sadj_plus = $this->getAdjustment('sadj', '+', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $sadj_min = $this->getAdjustment('sadj', '-', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
+        $adj_plus = $this->getAdjustment('adj', '+', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $adj_min = $this->getAdjustment('adj', '-', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $madj_plus = $this->getAdjustment('madj', '+', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $madj_min = $this->getAdjustment('madj', '-', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $sadj_plus = $this->getAdjustment('sadj', '+', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $sadj_min = $this->getAdjustment('sadj', '-', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
         $beginning = $purchase + $trans_in - $trans_out + $cross_setup_in - $cross_setup_out - $sales - $waiting + $refund + $adj_plus - $adj_min + $madj_plus - $madj_min + $sadj_plus - $sadj_min;
 
         return $beginning;
@@ -789,7 +789,7 @@ class StockCardController extends Controller
         $stock = DB::table('stock_exports')->where('u_id', '=', Auth::user()->id)->get();
 
         if (!empty($stock->first())) {
-            $datas = array();
+            $datas = [];
             $total_data = count($stock);
             foreach ($stock as $row) {
                 $start = $row->start_date;
@@ -831,13 +831,15 @@ class StockCardController extends Controller
                     'hb' => $purchase_price,
                 ];
                 $total_temp = count($datas);
-                if ($total_data >= 2000 AND $total_temp >= 2000) {
-                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
-                    if (!empty($insert)) {
-                        $total_data = $total_data - $total_temp;
-                        $datas = array();
-                    }
-                }
+
+                DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+//                if ($total_data >= 2000 AND $total_temp >= 2000) {
+//                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+//                    if (!empty($insert)) {
+//                        $total_data = $total_data - $total_temp;
+//                        $datas = array();
+//                    }
+//                }
             }
             if ($total_data < 2000) {
                 $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
