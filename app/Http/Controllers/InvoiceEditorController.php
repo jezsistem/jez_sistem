@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PosTransaction;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -814,9 +816,15 @@ class InvoiceEditorController extends Controller
         $pt_id = $request->post('pt_id');
         $note = $request->post('note');
 
+        $st_id = PosTransaction::where('id', '=', $pt_id)->get()->first();
+
+        $store_name = Store::where('id', '=', $st_id->st_id)->get()->first()->st_name;
+
+        $newNote = $store_name . ' - ' . $note;
+
         $update = DB::table('invoice_editors')->where('pt_id', '=', $pt_id)
             ->update([
-                'note' => $note,
+                'note' => $newNote,
                 'status' => '1',
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
