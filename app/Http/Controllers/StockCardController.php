@@ -904,13 +904,15 @@ class StockCardController extends Controller
                     'ending_stock' => $ending_stock,
                 ];
                 $total_temp = count($datas);
-                if ($total_data >= 2000 AND $total_temp >= 2000) {
-                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
-                    if (!empty($insert)) {
-                        $total_data = $total_data - $total_temp;
-                        $datas = array();
-                    }
-                }
+                DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+
+//                if ($total_data >= 2000 AND $total_temp >= 2000) {
+//                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+//                    if (!empty($insert)) {
+//                        $total_data = $total_data - $total_temp;
+//                        $datas = array();
+//                    }
+//                }
             }
             if ($total_data < 2000) {
                 $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
