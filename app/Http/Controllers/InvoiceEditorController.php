@@ -750,10 +750,6 @@ class InvoiceEditorController extends Controller
                                 'plst_status' => 'WAITING OFFLINE',
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
-
-                            DB::table('product_location_setups')
-                                ->where('id', '=', $plr->pls_id)
-                                ->increment('pls_qty', $plr->plst_qty);
                         }
                     }
                 }
