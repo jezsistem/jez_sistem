@@ -2,40 +2,40 @@
     referrerpolicy="origin"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 <script>
-  // Function to show all sizes (All Schema)
-function showAllSchema() {
-    const rows = document.querySelectorAll("#sizeTable tbody tr");
-    rows.forEach(row => {
-        row.style.display = ""; // Menampilkan semua baris
-    });
-    
-    // Update button styles
-    document.getElementById("allSchemaBtn").classList.add("btn-primary");
-    document.getElementById("allSchemaBtn").classList.remove("btn-secondary");
+    // Function to show all sizes (All Schema)
+    function showAllSchema() {
+        const rows = document.querySelectorAll("#sizeTable tbody tr");
+        rows.forEach(row => {
+            row.style.display = ""; // Menampilkan semua baris
+        });
 
-    document.getElementById("stockedSchemaBtn").classList.add("btn-secondary");
-    document.getElementById("stockedSchemaBtn").classList.remove("btn-primary");
-}
+        // Update button styles
+        document.getElementById("allSchemaBtn").classList.add("btn-primary");
+        document.getElementById("allSchemaBtn").classList.remove("btn-secondary");
 
-// Function to show only checked sizes (Stocked Schema)
-function showStockedSchema() {
-    const rows = document.querySelectorAll("#sizeTable tbody tr");
-    rows.forEach(row => {
-        const checkbox = row.querySelector("input[type='checkbox']");
-        if (checkbox && checkbox.checked) {
-            row.style.display = ""; // Menampilkan baris yang dicentang
-        } else {
-            row.style.display = "none"; // Menyembunyikan baris yang tidak dicentang
-        }
-    });
+        document.getElementById("stockedSchemaBtn").classList.add("btn-secondary");
+        document.getElementById("stockedSchemaBtn").classList.remove("btn-primary");
+    }
 
-    // Update button styles
-    document.getElementById("stockedSchemaBtn").classList.add("btn-primary");
-    document.getElementById("stockedSchemaBtn").classList.remove("btn-secondary");
+    // Function to show only checked sizes (Stocked Schema)
+    function showStockedSchema() {
+        const rows = document.querySelectorAll("#sizeTable tbody tr");
+        rows.forEach(row => {
+            const checkbox = row.querySelector("input[type='checkbox']");
+            if (checkbox && checkbox.checked) {
+                row.style.display = ""; // Menampilkan baris yang dicentang
+            } else {
+                row.style.display = "none"; // Menyembunyikan baris yang tidak dicentang
+            }
+        });
 
-    document.getElementById("allSchemaBtn").classList.add("btn-secondary");
-    document.getElementById("allSchemaBtn").classList.remove("btn-primary");
-}
+        // Update button styles
+        document.getElementById("stockedSchemaBtn").classList.add("btn-primary");
+        document.getElementById("stockedSchemaBtn").classList.remove("btn-secondary");
+
+        document.getElementById("allSchemaBtn").classList.add("btn-secondary");
+        document.getElementById("allSchemaBtn").classList.remove("btn-primary");
+    }
 
 
 
