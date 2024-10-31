@@ -700,6 +700,9 @@
                     jQuery('#pm_id_offline_two').val('');
                     jQuery('#_pt_id_complaint').val('');
                     jQuery('#_exchange').val('');
+                    jQuery('#discount_total_temporary').val(0);
+
+
 
                     jQuery('#card_provider_content').addClass('d-none');
                     jQuery('#card_provider_content').removeClass('d-flex');

@@ -192,6 +192,7 @@
                         @endphp
 
 
+                        {{--                        item detail --}}
                         @foreach ($row->subitem as $srow)
                             @php
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
@@ -247,16 +248,19 @@
                                         </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="3" class="final-price">
-                                <span style="float:left;">Voucher</span>
-                            </td>
-                            <td class="final-price">
+                        @if($total_voucher != 0)
+                            <tr>
+                                <td colspan="3" class="final-price">
+                                    <span style="float:left;">Voucher</span>
+                                </td>
+                                <td class="final-price">
                                         <span style="float:right;">
                                         {{ $total_voucher }}
                                         </span>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        @endif
+
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left;">DISKON</span>
@@ -283,25 +287,30 @@
                                         </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="3" class="final-price">
-                                <span style="float:left;">NAMESET</span>
-                            </td>
-                            <td class="final-price">
+                        @if($nameset != 0)
+                            <tr>
+                                <td colspan="3" class="final-price">
+                                    <span style="float:left;">NAMESET</span>
+                                </td>
+                                <td class="final-price">
                                         <span style="float:right;">
                                             {{ \App\Libraries\CurrencyFormatter::formatToIDR($nameset) }}
                                         </span>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        @endif
 
-                        <tr>
-                            <td colspan="3" class="final-price">
-                                <span style="float:left;">BIAYA LAIN</span>
-                            </td>
-                            <td class="final-price">
-                                <span style="float:right;">{{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_another_cost) }}</span>
-                            </td>
-                        </tr>
+
+                        @if($row->pos_another_cost != 0)
+                            <tr>
+                                <td colspan="3" class="final-price">
+                                    <span style="float:left;">BIAYA LAIN</span>
+                                </td>
+                                <td class="final-price">
+                                    <span style="float:right;">{{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_another_cost) }}</span>
+                                </td>
+                            </tr>
+                        @endif
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left; font-weight:bold;">TOTAL AKHIR</span>
@@ -361,17 +370,17 @@
                 </div>
                 <br/>
 
-                <div class = "note">
+                <div class="note">
                     <tr>
-                    <td colspan="3" class="note" style="font-size: 14px; padding: 5px;">
-                        <span style="float:left;">NOTE:</span>
-                    </td>
-                    <td class="note" style="font-size: 14px; padding: 5px; text-align:right;">
-                        {{ $row->pos_note ?? "No Notes Available" }}
-                    </td>
+                        <td colspan="3" class="note" style="font-size: 14px; padding: 5px;">
+                            <span style="float:left;">NOTE:</span>
+                        </td>
+                        <td class="note" style="font-size: 14px; padding: 5px; text-align:right;">
+                            {{ $row->pos_note ?? "No Notes Available" }}
+                        </td>
                     </tr>
                 </div>
-            </br>                
+                </br>
 
                 <div class="title">
                     <strong><i>Cust Experience :</i></strong>
@@ -402,9 +411,19 @@
 @endif
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
+    // $(document).ready(function () {
+    //     window.print();
+    // });
+
+    let hasPrinted = false;
+
     $(document).ready(function () {
-        window.print();
+        if (!hasPrinted) {
+            hasPrinted = true;
+            window.print();
+        }
     });
+
 
     $(document).delegate('.reload', 'click', function (e) {
         e.preventDefault();

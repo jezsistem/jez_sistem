@@ -342,7 +342,10 @@
                 dangerMode: true,
             }).then(function(isConfirm) {
                 if (isConfirm) {
-                    var note = $('#note').val();
+                    var a = $('#reason').val();
+                    var b = $('#note').val().toUpperCase();
+
+                    var note = b ? a + " - " + b : a;
                     $.ajaxSetup({
                         headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

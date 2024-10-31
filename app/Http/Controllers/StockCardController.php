@@ -85,26 +85,24 @@ class StockCardController extends Controller
     private function getBeginningStock($start, $end, $pst_id, $st_id, $current_stock, $exception, $except) {
         $beginning = 0;
         $mode = 'beginning';
-        $end = date( "Y-m-d", strtotime($start." -1 day"));
-        $start = '2021-01-01';
-        $purchase = $this->getPurchase($start, $end, $pst_id, $st_id, $mode);
-        $trans_in = $this->getTransIn($start, $end, $pst_id, $st_id, $mode);
-        $trans_out = $this->getTransOut($start, $end, $pst_id, $st_id, $mode);
-        $cross_setup_in = $this->getCrossSetupIn($start, $end, $pst_id, $st_id, $mode);
-        $cross_setup_out = $this->getCrossSetupOut($start, $end, $pst_id, $st_id, $mode);
-        $sales = $this->getSales($start, $end, $pst_id, $st_id, $mode);
-        $waiting = $this->getWaiting($start, $end, $pst_id, $st_id, $mode);
-        $refund = $this->getRefund($start, $end, $pst_id, $st_id, $mode);
-        $adj_plus = $this->getAdjustment('adj', '+', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $adj_min = $this->getAdjustment('adj', '-', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $madj_plus = $this->getAdjustment('madj', '+', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $madj_min = $this->getAdjustment('madj', '-', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $sadj_plus = $this->getAdjustment('sadj', '+', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
-        $sadj_min = $this->getAdjustment('sadj', '-', $start, $end, $pst_id, $st_id, $exception, $except, $mode);
+        $end_beg = date( "Y-m-d", strtotime($start." -1 day"));
+        $start_beg = '2023-01-01';
+        $purchase = $this->getPurchase($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $trans_in = $this->getTransIn($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $trans_out = $this->getTransOut($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $cross_setup_in = $this->getPurchase($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $cross_setup_out = $this->getPurchase($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $sales = $this->getSales($start_beg, $end_beg, $pst_id, $st_id, $mode);
+        $waiting = 0;
+        $refund = 0;
+        $adj_plus = $this->getAdjustment('adj', '+', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $adj_min = $this->getAdjustment('adj', '-', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $madj_plus = $this->getAdjustment('madj', '+', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $madj_min = $this->getAdjustment('madj', '-', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $sadj_plus = $this->getAdjustment('sadj', '+', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
+        $sadj_min = $this->getAdjustment('sadj', '-', $start_beg, $end_beg, $pst_id, $st_id, $exception, $except, $mode);
         $beginning = $purchase + $trans_in - $trans_out + $cross_setup_in - $cross_setup_out - $sales - $waiting + $refund + $adj_plus - $adj_min + $madj_plus - $madj_min + $sadj_plus - $sadj_min;
-        if ($beginning < 0) {
-            $beginning = 0;
-        }
+
         return $beginning;
     }
 
@@ -433,7 +431,6 @@ class StockCardController extends Controller
         if (empty($end)) {
             $end = $start;
         }
-        $start = '2021-01-01';
         $purchase = $this->getPurchase($start, $end, $pst_id, $st_id, $mode);
         $trans_in = $this->getTransIn($start, $end, $pst_id, $st_id, $mode);
         $trans_out = $this->getTransOut($start, $end, $pst_id, $st_id, $mode);
@@ -456,195 +453,195 @@ class StockCardController extends Controller
         return $ending;
     }
 
-    // public function getADatatables(Request $request)
-    // {
-    //     if(request()->ajax()) {
-    //         $date = $request->get('date');
-    //         $start = null;
-    //         $end = null;
-    //         $exp = explode('|', $date);
-    //         if (count($exp) > 1) {
-    //             if ($exp[0] != $exp[1]) {
-    //                 $start = $exp[0];
-    //                 $end = $exp[1];
-    //             } else {
-    //                 $start = $exp[0];
-    //             }
-    //         } else {
-    //             $start = $date;
-    //         }
-    //         $mode = 'table';
-    //         $st_id = $request->get('st_id');
-    //         $br_id = $request->get('br_id');
-    //         $data = $request->get('data');
-    //         $exception = $request->get('exception');
-    //         $except = ExceptionLocation::select('pl_code')
-    //         ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
-    //         if ($data != 'article') {
-    //             $st_id = "!@#$%^&*()";
-    //         }
-    //         return datatables()->of(DB::table('product_stocks')
-    //         ->select("product_stocks.id as id", "br_name", "p_name", "p_color", "sz_name",
-    //         "ps_sell_price", "p_sell_price", "ps_purchase_price", "p_purchase_price", DB::raw("sum(ts_product_location_setups.pls_qty) as stock"))
-    //         ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-    //         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-    //         ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-    //         ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-    //         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-    //         ->where('product_locations.st_id', '=', $st_id)
-    //         ->where('products.p_delete', '!=', '1')
-    //         ->where(function($w) use ($exception, $except, $br_id) {
-    //             if ($exception == 'noexcept') {
-    //                 $w->whereNotIn('product_locations.pl_code', $except);
-    //             }
-    //             if (!empty($br_id)) {
-    //                 $w->where('products.br_id', '=', $br_id);
-    //             }
-    //         })
-    //         ->groupBy('product_stocks.id'))
-    //         ->editColumn('beginning_stock', function($d) use ($st_id, $start, $end, $exception, $except) {
-    //             return $this->getBeginningStock($start, $end, $d->id, $st_id, $d->stock, $exception, $except);
-    //         })
-    //         ->editColumn('purchase', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getPurchase($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('trans_in', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getTransIn($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('trans_out', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getTransOut($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('cross_setup_in', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getCrossSetupIn($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('cross_setup_out', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getCrossSetupOut($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('waiting', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getWaiting($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('sales', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getSales($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('refund', function($d) use ($st_id, $start, $end, $mode) {
-    //             return $this->getRefund($start, $end, $d->id, $st_id, $mode);
-    //         })
-    //         ->editColumn('adj_plus', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
-    //             return $this->getAdjustment('adj', '+', $start, $end, $d->id, $st_id, $exception, $except, $mode);
-    //         })
-    //         ->editColumn('adj_min', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
-    //             return $this->getAdjustment('adj', '-', $start, $end, $d->id, $st_id, $exception, $except, $mode);
-    //         })
-    //         ->editColumn('madj_plus', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
-    //             return $this->getAdjustment('madj', '+', $start, $end, $d->id, $st_id, $exception, $except, $mode);
-    //         })
-    //         ->editColumn('madj_min', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
-    //             return $this->getAdjustment('madj', '-', $start, $end, $d->id, $st_id, $exception, $except, $mode);
-    //         })
-    //         ->editColumn('sadj_plus', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
-    //             return $this->getAdjustment('sadj', '+', $start, $end, $d->id, $st_id, $exception, $except, $mode);
-    //         })
-    //         ->editColumn('sadj_min', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
-    //             return $this->getAdjustment('sadj', '-', $start, $end, $d->id, $st_id, $exception, $except, $mode);
-    //         })
-    //         ->editColumn('ending_stock', function($d) use ($st_id, $start, $end, $exception, $except) {
-    //             return $this->endingStock($start, $end, $d->id, $st_id, $d->stock, $exception, $except);
-    //         })
-    //         ->editColumn('exception', function($d) use ($st_id, $start, $end, $mode, $except) {
-    //             $exception = DB::table('product_location_setups')
-    //             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-    //             ->where('product_locations.st_id', '=', $st_id)
-    //             ->whereIn('product_locations.pl_code', $except)
-    //             ->where('product_location_setups.pst_id', $d->id)
-    //             ->groupBy('product_location_setups.pst_id')->sum('pls_qty');
-    //             return $exception;
-    //         })
-    //         ->editColumn('purchase_price', function($d) use ($st_id) {
-    //             $purchase = 0;
-    //             $poads = DB::table('purchase_order_article_detail_statuses')
-    //             ->selectRaw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2")
-    //             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-    //             ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-    //             ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-    //             ->where('purchase_order_article_details.pst_id', '=', $d->id)
-    //             ->where('purchase_orders.st_id', '=', $st_id)
-    //             ->first();
-    //             if (!empty($poads)) {
-    //                 if (!empty($poads->purchase_1)) {
-    //                     $purchase = $poads->purchase_1;
-    //                 } else {
-    //                     $purchase = $poads->purchase_2;
-    //                 }
-    //             } else {
-    //                 if (!empty($d->ps_purchase_price)) {
-    //                     $purchase = $d->ps_purchase_price;
-    //                 } else {
-    //                     $purchase = $d->p_purchase_price;
-    //                 }
-    //             }
-    //             return number_format($purchase);
-    //         })
-    //         ->editColumn('sell_price', function($d){
-    //             if (!empty($d->ps_sell_price)) {
-    //                 return number_format($d->ps_sell_price);
-    //             } else {
-    //                 return number_format($d->p_sell_price);
-    //             }
-    //         })
-    //         ->filter(function ($instance) use ($request) {
-    //             if (!empty($request->get('search'))) {
-    //                 $instance->where(function($w) use($request){
-    //                     $search = $request->get('search');
-    //                     $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
-    //                 });
-    //             }
-    //         })
-    //         ->addIndexColumn()
-    //         ->make(true);
-    //     }
-    // }
+     public function getADatatables(Request $request)
+     {
+         if(request()->ajax()) {
+             $date = $request->get('date');
+             $start = null;
+             $end = null;
+             $exp = explode('|', $date);
+             if (count($exp) > 1) {
+                 if ($exp[0] != $exp[1]) {
+                     $start = $exp[0];
+                     $end = $exp[1];
+                 } else {
+                     $start = $exp[0];
+                 }
+             } else {
+                 $start = $date;
+             }
+             $mode = 'table';
+             $st_id = $request->get('st_id');
+             $br_id = $request->get('br_id');
+             $data = $request->get('data');
+             $exception = $request->get('exception');
+             $except = ExceptionLocation::select('pl_code')
+             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
+             if ($data != 'article') {
+                 $st_id = "!@#$%^&*()";
+             }
+             return datatables()->of(DB::table('product_stocks')
+             ->select("product_stocks.id as id", "br_name", "p_name", "p_color", "sz_name",
+             "ps_sell_price", "p_sell_price", "ps_purchase_price", "p_purchase_price", DB::raw("sum(ts_product_location_setups.pls_qty) as stock"))
+             ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+             ->where('product_locations.st_id', '=', $st_id)
+             ->where('products.p_delete', '!=', '1')
+             ->where(function($w) use ($exception, $except, $br_id) {
+                 if ($exception == 'noexcept') {
+                     $w->whereNotIn('product_locations.pl_code', $except);
+                 }
+                 if (!empty($br_id)) {
+                     $w->where('products.br_id', '=', $br_id);
+                 }
+             })
+             ->groupBy('product_stocks.id'))
+             ->editColumn('beginning_stock', function($d) use ($st_id, $start, $end, $exception, $except) {
+                 return $this->getBeginningStock($start, $end, $d->id, $st_id, $d->stock, $exception, $except);
+             })
+             ->editColumn('purchase', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getPurchase($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('trans_in', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getTransIn($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('trans_out', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getTransOut($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('cross_setup_in', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getCrossSetupIn($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('cross_setup_out', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getCrossSetupOut($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('waiting', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getWaiting($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('sales', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getSales($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('refund', function($d) use ($st_id, $start, $end, $mode) {
+                 return $this->getRefund($start, $end, $d->id, $st_id, $mode);
+             })
+             ->editColumn('adj_plus', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
+                 return $this->getAdjustment('adj', '+', $start, $end, $d->id, $st_id, $exception, $except, $mode);
+             })
+             ->editColumn('adj_min', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
+                 return $this->getAdjustment('adj', '-', $start, $end, $d->id, $st_id, $exception, $except, $mode);
+             })
+             ->editColumn('madj_plus', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
+                 return $this->getAdjustment('madj', '+', $start, $end, $d->id, $st_id, $exception, $except, $mode);
+             })
+             ->editColumn('madj_min', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
+                 return $this->getAdjustment('madj', '-', $start, $end, $d->id, $st_id, $exception, $except, $mode);
+             })
+             ->editColumn('sadj_plus', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
+                 return $this->getAdjustment('sadj', '+', $start, $end, $d->id, $st_id, $exception, $except, $mode);
+             })
+             ->editColumn('sadj_min', function($d) use ($st_id, $start, $end, $exception, $except, $mode) {
+                 return $this->getAdjustment('sadj', '-', $start, $end, $d->id, $st_id, $exception, $except, $mode);
+             })
+             ->editColumn('ending_stock', function($d) use ($st_id, $start, $end, $exception, $except) {
+                 return $this->endingStock($start, $end, $d->id, $st_id, $d->stock, $exception, $except);
+             })
+             ->editColumn('exception', function($d) use ($st_id, $start, $end, $mode, $except) {
+                 $exception = DB::table('product_location_setups')
+                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                 ->where('product_locations.st_id', '=', $st_id)
+                 ->whereIn('product_locations.pl_code', $except)
+                 ->where('product_location_setups.pst_id', $d->id)
+                 ->groupBy('product_location_setups.pst_id')->sum('pls_qty');
+                 return $exception;
+             })
+             ->editColumn('purchase_price', function($d) use ($st_id) {
+                 $purchase = 0;
+                 $poads = DB::table('purchase_order_article_detail_statuses')
+                 ->selectRaw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2")
+                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                 ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                 ->where('purchase_order_article_details.pst_id', '=', $d->id)
+                 ->where('purchase_orders.st_id', '=', $st_id)
+                 ->first();
+                 if (!empty($poads)) {
+                     if (!empty($poads->purchase_1)) {
+                         $purchase = $poads->purchase_1;
+                     } else {
+                         $purchase = $poads->purchase_2;
+                     }
+                 } else {
+                     if (!empty($d->ps_purchase_price)) {
+                         $purchase = $d->ps_purchase_price;
+                     } else {
+                         $purchase = $d->p_purchase_price;
+                     }
+                 }
+                 return number_format($purchase);
+             })
+             ->editColumn('sell_price', function($d){
+                 if (!empty($d->ps_sell_price)) {
+                     return number_format($d->ps_sell_price);
+                 } else {
+                     return number_format($d->p_sell_price);
+                 }
+             })
+             ->filter(function ($instance) use ($request) {
+                 if (!empty($request->get('search'))) {
+                     $instance->where(function($w) use($request){
+                         $search = $request->get('search');
+                         $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
+                     });
+                 }
+             })
+             ->addIndexColumn()
+             ->make(true);
+         }
+     }
 
-    public function getADatatables(Request $request)
-    {
-        if(request()->ajax()) {
-            $date = $request->get('date');
-            $start = null;
-            $end = null;
-            $exp = explode('|', $date);
-            if (count($exp) > 1) {
-                if ($exp[0] != $exp[1]) {
-                    $start = $exp[0];
-                    $end = $exp[1];
-                } else {
-                    $start = $exp[0];
-                }
-            } else {
-                $start = $date;
-            }
-            $st_id = $request->get('st_id');
-            $br_id = $request->get('br_id');
-
-            return datatables()->of(DB::table('stock_exports')
-            ->where(function($w) use ($st_id, $br_id) {
-                if (!empty($st_id)) {
-                    $w->where('st_id', '=', $st_id);
-                } 
-                if (!empty($br_id)) {
-                    $w->where('br_id', '=', $br_id);
-                }
-            }))
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(brand," ",article," ",color," ",size) LIKE ?', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
-        }
-    }
+//    public function getADatatables(Request $request)
+//    {
+//        if(request()->ajax()) {
+//            $date = $request->get('date');
+//            $start = null;
+//            $end = null;
+//            $exp = explode('|', $date);
+//            if (count($exp) > 1) {
+//                if ($exp[0] != $exp[1]) {
+//                    $start = $exp[0];
+//                    $end = $exp[1];
+//                } else {
+//                    $start = $exp[0];
+//                }
+//            } else {
+//                $start = $date;
+//            }
+//            $st_id = $request->get('st_id');
+//            $br_id = $request->get('br_id');
+//
+//            return datatables()->of(DB::table('stock_exports')
+//            ->where(function($w) use ($st_id, $br_id) {
+//                if (!empty($st_id)) {
+//                    $w->where('st_id', '=', $st_id);
+//                }
+//                if (!empty($br_id)) {
+//                    $w->where('br_id', '=', $br_id);
+//                }
+//            }))
+//            ->filter(function ($instance) use ($request) {
+//                if (!empty($request->get('search'))) {
+//                    $instance->where(function($w) use($request){
+//                        $search = $request->get('search');
+//                        $w->orWhereRaw('CONCAT(brand," ",article," ",color," ",size) LIKE ?', "%$search%");
+//                    });
+//                }
+//            })
+//            ->addIndexColumn()
+//            ->make(true);
+//        }
+//    }
 
     public function getBDatatables(Request $request)
     {
@@ -687,54 +684,61 @@ class StockCardController extends Controller
     {
         $except = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')
-            ->get()
+            ->pluck('pl_code')
             ->toArray();
 
         $stock = DB::table('product_stocks')
-        ->select("product_stocks.id as id", "br_name", "p_name", "p_color", "sz_name", "st_name", "ps_barcode",
-        "ps_sell_price", "p_sell_price", "ps_purchase_price", "p_purchase_price", DB::raw("sum(ts_product_location_setups.pls_qty) as stock"))
-        ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-        ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-        ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-        ->where('products.p_delete', '!=', '1')
-        ->where('product_locations.st_id', '=', $st_id)
-        ->where(function($w) use ($exception, $except, $br_id) {
-            if ($exception == 'noexcept') {
-                $w->whereNotIn('product_locations.pl_code', $except);
-            }
-            if (!empty($br_id)) {
-                $w->where('products.br_id', '=', $br_id);
-            }
-        })
-        ->groupBy('product_stocks.id')->get();
-        if (!empty($stock->first())) {
+            ->select(
+                'product_stocks.id as id',
+                'br_name',
+                'p_name',
+                'p_color',
+                'sz_name',
+                'st_name',
+                'ps_barcode',
+                'ps_sell_price',
+                'p_sell_price',
+                'ps_purchase_price',
+                'p_purchase_price',
+                DB::raw('SUM(ts_product_location_setups.pls_qty) as stock')
+            )
+            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+            ->where('products.p_delete', '!=', '1')
+            ->where('product_locations.st_id', '=', $st_id)
+//            ->when($exception == 'noexcept', function ($query) use ($except) {
+//                return $query->whereNotIn('product_locations.pl_code', $except);
+//            })
+            ->when(!empty($br_id), function ($query) use ($br_id) {
+                return $query->where('products.br_id', '=', $br_id);
+            })
+            ->groupBy('product_stocks.id')
+            ->get();
+
+        if ($stock->isNotEmpty()) {
             DB::table('stock_exports')->where('u_id', '=', Auth::user()->id)->truncate();
-            $datas = array();
-            $total_data = count($stock);
-            foreach ($stock as $row) {
-                $barcode = $row->ps_barcode;
-                if (empty($barcode)) {
-                    $barcode = '--';
-                }
-                
-                $exception_qty = DB::table('product_location_setups')
+            $datas = [];
+            $total_data = $stock->count();
+
+            // Get exception quantities in a single query
+            $exception_quantities = DB::table('product_location_setups')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', $st_id)
                 ->whereIn('product_locations.pl_code', $except)
-                ->where('product_location_setups.pst_id', $row->id)
-                ->groupBy('product_location_setups.pst_id')->sum('pls_qty');
+                ->groupBy('product_location_setups.pst_id')
+                ->select('product_location_setups.pst_id', DB::raw('SUM(pls_qty) as exception_qty'))
+                ->pluck('exception_qty', 'pst_id');
 
-                if (!empty($row->ps_sell_price)) {
-                    $sell_price = $row->ps_sell_price;
-                } else {
-                    $sell_price = $row->p_sell_price;
-                }
-                if (empty($end)) {
-                    $end = $start;
-                }
+            foreach ($stock as $row) {
+                $barcode = $row->ps_barcode ?: '--';
+
+                $exception_qty = $exception_quantities->get($row->id, 0);
+
+                $sell_price = $row->ps_sell_price ?: $row->p_sell_price;
 
                 $beginning = $this->getBeginningStock($start, $end, $row->id, $st_id, $row->stock, $exception, $except);
 
@@ -742,9 +746,9 @@ class StockCardController extends Controller
                     'pst_id' => $row->id,
                     'u_id' => Auth::user()->id,
                     'start_date' => $start,
-                    'end_date' => $end, 
-                    'store' => $row->st_name, 
-                    'barcode' => $barcode, 
+                    'end_date' => $end,
+                    'store' => $row->st_name,
+                    'barcode' => $barcode,
                     'brand' => $row->br_name,
                     'article' => $row->p_name,
                     'color' => $row->p_color,
@@ -754,20 +758,17 @@ class StockCardController extends Controller
                     'today_stock' => $row->stock,
                     'hj' => $sell_price,
                 ];
-                $total_temp = count($datas);
-                if ($total_data >= 2000 AND $total_temp >= 2000) {
-                    $insert = DB::table('stock_exports')->insert($datas);
-                    if (!empty($insert)) {
-                        $total_data = $total_data - $total_temp;
-                        $datas = array();
-                    }
+
+                // Batch insert when reaching the limit
+                if (count($datas) >= 2000) {
+                    DB::table('stock_exports')->insert($datas);
+                    $datas = [];
                 }
             }
-            if ($total_data < 2000) {
-                $insert = DB::table('stock_exports')->insert($datas);
-                if (!empty($insert)) {
-                    $datas = array();
-                }
+
+            // Insert remaining data
+            if (!empty($datas)) {
+                DB::table('stock_exports')->insert($datas);
             }
         }
     }
@@ -788,7 +789,7 @@ class StockCardController extends Controller
         $stock = DB::table('stock_exports')->where('u_id', '=', Auth::user()->id)->get();
 
         if (!empty($stock->first())) {
-            $datas = array();
+            $datas = [];
             $total_data = count($stock);
             foreach ($stock as $row) {
                 $start = $row->start_date;
@@ -819,7 +820,7 @@ class StockCardController extends Controller
                 $adj_min = $this->getAdjustment('adj', '-', $start, $end, $row->pst_id, $st_id, $exception, $except, $mode);
                 $adj_plus = $this->getAdjustment('adj', '+', $start, $end, $row->pst_id, $st_id, $exception, $except, $mode);
                
-                $datas[] = [
+                $datas = [
                     'purchase' => $purchase,
                     'trans_out' => $trans_out,
                     'trans_in' => $trans_in,
@@ -830,13 +831,15 @@ class StockCardController extends Controller
                     'hb' => $purchase_price,
                 ];
                 $total_temp = count($datas);
-                if ($total_data >= 2000 AND $total_temp >= 2000) {
-                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
-                    if (!empty($insert)) {
-                        $total_data = $total_data - $total_temp;
-                        $datas = array();
-                    }
-                }
+
+                DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+//                if ($total_data >= 2000 AND $total_temp >= 2000) {
+//                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+//                    if (!empty($insert)) {
+//                        $total_data = $total_data - $total_temp;
+//                        $datas = array();
+//                    }
+//                }
             }
             if ($total_data < 2000) {
                 $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
@@ -890,7 +893,7 @@ class StockCardController extends Controller
 
                 $ending_stock = $beginning + $purchase - $trans_out + $trans_in - $sales + $refund - $adj_min + $adj_plus - $madj_min + $madj_plus - $sadj_min + $sadj_plus - $waiting - $cross_setup_out + $cross_setup_in;
 
-                $datas[] = [
+                $datas= [
                     'madj_min' => $madj_min,
                     'madj_plus' => $madj_plus,
                     'sadj_min' => $sadj_min,
@@ -901,13 +904,15 @@ class StockCardController extends Controller
                     'ending_stock' => $ending_stock,
                 ];
                 $total_temp = count($datas);
-                if ($total_data >= 2000 AND $total_temp >= 2000) {
-                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
-                    if (!empty($insert)) {
-                        $total_data = $total_data - $total_temp;
-                        $datas = array();
-                    }
-                }
+                DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+
+//                if ($total_data >= 2000 AND $total_temp >= 2000) {
+//                    $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
+//                    if (!empty($insert)) {
+//                        $total_data = $total_data - $total_temp;
+//                        $datas = array();
+//                    }
+//                }
             }
             if ($total_data < 2000) {
                 $insert = DB::table('stock_exports')->where('id', '=', $row->id)->update($datas);
