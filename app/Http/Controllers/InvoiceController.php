@@ -421,7 +421,6 @@ class InvoiceController extends Controller
             'segment' => request()->segment(1)
         ];
 
-//        dd($data['invoice_data']);
         return view('app.invoice.print_invoice_offline', compact('data'));
     }
 

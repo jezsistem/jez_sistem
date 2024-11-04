@@ -82,8 +82,24 @@
                                         <a class="btn btn-primary col-12" id="exec_btn">Tampilkan</a>
                                     </div>
                                     <div class="col-xxl-8 col-xl-8 mt-4">
-                                        <input type="text" placeholder="Catatan Tambahan" id="note"
-                                               class="bg-light-success form-control d-none editor_panel"/>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <select name="reason" id="reason" class="bg-light-success form-control d-none editor_panel">
+                                                    <option value="" disabled selected>Select an option</option>
+                                                    <option value="RETUR">RETUR</option>
+                                                    <option value="CANCEL">CANCEL</option>
+                                                    <option value="TUKAR">TUKAR</option>
+                                                    <option value="SALAH TRX">SALAH TRX</option>
+                                                    <option value="SALAH KIRIM">SALAH KIRIM</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <input type="text" placeholder="Catatan Tambahan (Optional)" id="note"
+                                                       class="bg-light-success form-control d-none editor_panel"/>
+                                            </div>
+                                        </div>
+
                                     </div>
                                     <div class="col-xxl-4 col-xl-4 mt-4">
                                         <a class="btn btn-primary col-12 d-none editor_panel" id="done_btn">Selesai</a>

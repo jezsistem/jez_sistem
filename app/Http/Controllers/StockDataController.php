@@ -488,14 +488,7 @@ class StockDataController extends Controller
                             }
                         });
                     }
-                    // $data = $instance->get(); // Fetch your data
 
-                    // return response()->json([
-                    //     'draw' => intval($request->get('draw')),
-                    //     'recordsTotal' => $totalRecords,
-                    //     'recordsFiltered' => $filteredRecords,
-                    //     'data' => $data
-                    // ]);
                     if (!empty($request->get('main_color_id'))) {
                         $instance->where(function ($w) use ($request) {
                             $mc_id = $request->get('main_color_id');
@@ -514,14 +507,12 @@ class StockDataController extends Controller
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                                ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "$search%")
-                                ->orWhereRaw('ts_products.p_name LIKE ?' , "%$search%")
-                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%");
+                            $w->WhereRaw('ts_product_stocks.ps_barcode LIKE ?', "$search%")
+                                ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%")
+                                ->orWhereRaw('ts_products.p_name LIKE ?' , "%$search%");
                         });
                     }
 
-                    
     // public function stockDataDatatables(Request $request) {
     //     $searchQuery = $request->input('search');
     
