@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,44 +12,74 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('product_supplier_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_supplier_datatables') }}",
+                data: function(d) {
                     d.search = $('#product_supplier_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'ps_name', name: 'ps_name' },
-            { data: 'ps_pkp_show', name: 'ps_pkp' },
-            { data: 'ps_address', name: 'ps_address' },
-            { data: 'ps_phone', name: 'ps_phone' },
-            { data: 'ps_rekening', name: 'ps_rekening'},
-            {data: 'ps_npwp', name: 'ps_npwp'},
-            { data: 'ps_description', name: 'ps_description' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'ps_name',
+                    name: 'ps_name'
+                },
+                {
+                    data: 'ps_pkp_show',
+                    name: 'ps_pkp'
+                },
+                {
+                    data: 'ps_address',
+                    name: 'ps_address'
+                },
+                {
+                    data: 'ps_phone',
+                    name: 'ps_phone'
+                },
+                {
+                    data: 'ps_rekening',
+                    name: 'ps_rekening'
+                },
+                {
+                    data: 'ps_npwp',
+                    name: 'ps_npwp'
+                },
+                {
+                    data: 'ps_description',
+                    name: 'ps_description'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        product_supplier_table.buttons().container().appendTo($('#product_supplier_excel_btn' ));
+        product_supplier_table.buttons().container().appendTo($('#product_supplier_excel_btn'));
         $('#product_supplier_search').on('keyup', function() {
             product_supplier_table.draw();
         });
 
-        $('#ProductSuppliertb tbody').on('click', 'tr', function () {
+        $('#ProductSuppliertb tbody').on('click', 'tr', function() {
             var id = product_supplier_table.row(this).data().id;
             var ps_name = product_supplier_table.row(this).data().ps_name;
             var ps_pkp = product_supplier_table.row(this).data().ps_pkp;
@@ -73,8 +103,8 @@
             $('#ps_rekening').val(ps_rekening);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_product_supplier_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_product_supplier_btn').show();
             @endif
         });
 
@@ -94,12 +124,13 @@
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
+
             $.ajax({
-                type:'POST',
-                url: "{{ url('ps_import')}}",
+                type: 'POST',
+                url: "{{ url('ps_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -108,19 +139,23 @@
                     jQuery.noConflict();
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success(
+                            'Data berhasil diimport');
                         $('#f_import')[0].reset();
                         product_supplier_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Data gagal diimport', 'warning');
+                        toastr.warning(
+                            'Data gagal diimport');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error(
+                        'Terjadi kesalahan. Silakan coba lagi.');
                 }
             });
         });
+
 
 
 
@@ -130,17 +165,21 @@
             var ps_name = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_ps_name:ps_name},
+                data: {
+                    _ps_name: ps_name
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_supplier')}}",
+                url: "{{ url('check_exists_supplier') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Nama', 'Nama supplier sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Nama',
+                            'Nama supplier sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#ps_name').val('');
                         return false;
                     }
@@ -153,12 +192,13 @@
             $("#save_product_supplier_btn").html('Proses ..');
             $("#save_product_supplier_btn").attr("disabled", true);
             var formData = new FormData(this);
+
             $.ajax({
-                type:'POST',
-                url: "{{ url('ps_save')}}",
+                type: 'POST',
+                url: "{{ url('ps_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -166,23 +206,24 @@
                     $("#save_product_supplier_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#ProductSupplierModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan');
                         product_supplier_table.draw();
                     } else if (data.status == '400') {
                         $("#ProductSupplierModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat menyimpan data.');
                 }
             });
         });
 
-        $('#delete_product_supplier_btn').on('click', function(){
+
+        $('#delete_product_supplier_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -193,28 +234,33 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('ps_delete')}}",
+                        url: "{{ url('ps_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success(
+                                "Data berhasil dihapus"); // Mengganti swal dengan toastr
                                 $('#ProductSupplierModal').modal('hide');
                                 product_supplier_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error(
+                                "Gagal hapus data"); // Mengganti swal dengan toastr
                             }
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>

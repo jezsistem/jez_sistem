@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,36 +12,53 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('season_datatables') }}",
-                data : function (d) {
+                url: "{{ url('season_datatables') }}",
+                data: function(d) {
                     d.search = $('#season_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'ss_name', name: 'ss_name' },
-            { data: 'ss_description', name: 'ss_description', searchable: false, sortable: false},
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'ss_name',
+                    name: 'ss_name'
+                },
+                {
+                    data: 'ss_description',
+                    name: 'ss_description',
+                    searchable: false,
+                    sortable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            order: [[0, 'desc']],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        season_table.buttons().container().appendTo($('#season_excel_btn' ));
+        season_table.buttons().container().appendTo($('#season_excel_btn'));
         $('#season_search').on('keyup', function() {
             season_table.draw();
         });
 
-        $('#Seasontb tbody').on('click', 'tr', function () {
+        $('#Seasontb tbody').on('click', 'tr', function() {
             var id = season_table.row(this).data().id;
             var ss_name = season_table.row(this).data().ss_name;
             var ss_start = season_table.row(this).data().ss_start;
@@ -53,8 +70,8 @@
             $('#ss_end').val(ss_end).trigger('change');
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_season_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_season_btn').show();
             @endif
         });
 
@@ -62,17 +79,21 @@
             var ss_name = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_ss_name:ss_name},
+                data: {
+                    _ss_name: ss_name
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_season')}}",
+                url: "{{ url('check_exists_season') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Season', 'Season sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Season',
+                            'Season sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#ss_name').val('');
                         return false;
                     }
@@ -95,11 +116,11 @@
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('ss_import')}}",
+                type: 'POST',
+                url: "{{ url('ss_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -108,19 +129,24 @@
                     jQuery.noConflict();
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success(
+                            'Data berhasil diimpor'); // Change to Toastr success message
                         $('#f_import')[0].reset();
                         season_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Data gagal diimport', 'warning');
+                        toastr.warning(
+                            'Data gagal diimpor'); // Change to Toastr warning message
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error(
+                        'Terjadi kesalahan saat mengimpor data'
+                    ); // Toastr error for AJAX error
                 }
             });
         });
+
 
         $('#f_season').on('submit', function(e) {
             e.preventDefault();
@@ -128,11 +154,11 @@
             $("#save_season_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('ss_save')}}",
+                type: 'POST',
+                url: "{{ url('ss_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -140,23 +166,26 @@
                     $("#save_season_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#SeasonModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan'); // Toastr success message
                         season_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#SeasonModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan'); // Toastr warning message
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error(
+                        'Terjadi kesalahan saat menyimpan data'
+                        ); // Toastr error for AJAX error
                 }
             });
         });
 
-        $('#delete_season_btn').on('click', function(){
+
+        $('#delete_season_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -167,28 +196,37 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('ss_delete')}}",
+                        url: "{{ url('ss_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success(
+                                "Data berhasil dihapus"); // Toastr success message
                                 $('#SeasonModal').modal('hide');
                                 season_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error(
+                                'Gagal hapus data'); // Toastr error message
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                            'Terjadi kesalahan saat menghapus data'); // Toastr error for AJAX error
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>
