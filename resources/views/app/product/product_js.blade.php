@@ -1036,16 +1036,6 @@
             console.log(subcategory1)
             if (check_pc_id == 'all') {
                 $('#category_arrow_label').hide();
-                {{-- $.ajax({ --}}
-                {{--    type: "GET", --}}
-                {{--    data: {_psc_id:psc_id}, --}}
-                {{--    dataType: 'html', --}}
-                {{--    url: "{{ url('reload_size_schema_modal')}}", --}}
-                {{--    success: function(r) { --}}
-                {{--        $('#reload_size').html(r); --}}
-                {{--        checkSize(id); --}}
-                {{--    } --}}
-                {{-- }); --}}
             } else {
                 $('#category_arrow_label').show();
                 // console.log('id : '+id);
@@ -1122,6 +1112,8 @@
             $('#_current_pssc_id').val(pssc_id);
             $('#subcatone').text(subcategory1);
             $('#subcattwo').text(subcategory2);
+            $('#consignment').val(consignment);
+            $('#complement').val(complement);
             jQuery('#br_id').val(br_id).trigger('change');
             jQuery('#ps_id').val(ps_id).trigger('change');
             jQuery('#pu_id').val(pu_id).trigger('change');
@@ -1273,6 +1265,7 @@
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
+
             $.ajax({
                 type: 'POST',
                 url: "{{ url('p_import') }}",
@@ -1285,9 +1278,10 @@
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
+
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success('Data berhasil diimpor', 'Berhasil');
                         $('#f_import')[0].reset();
                         product_table.ajax.reload();
                     } else if (data.status == '400') {
@@ -1296,54 +1290,48 @@
                         if (data.error_messages && data.error_messages.length > 0) {
                             var errorMessageHtml = '';
                             data.error_messages.forEach(function(message) {
-                                errorMessageHtml += '' + message + '';
+                                errorMessageHtml += message + '<br>';
                             });
-                            errorMessageHtml += '';
 
-                            swal('File',
-                                'File yang anda import kosong atau format tidak tepat:' +
-                                errorMessageHtml, 'warning')
+                            toastr.warning(
+                                'File yang Anda impor kosong atau format tidak tepat:<br>' +
+                                errorMessageHtml, 'Peringatan');
                         } else {
-                            swal('File',
-                                'File yang anda import kosong atau format tidak tepat',
-                                'warning');
+                            toastr.warning(
+                                'File yang Anda impor kosong atau format tidak tepat',
+                                'Peringatan');
                         }
 
                     } else {
                         if (data.same_article_id.length > 0) {
-                            var same_article_id = [];
-                            for (var i = 0; i < data.same_article_id.length; i++) {
-                                same_article_id.push(data.same_article_id[i]);
-                                var same_article_id_string = same_article_id.join(', ');
-                            }
-                            swal('Gagal', 'Article ID ' + same_article_id_string +
-                                ' sudah ada disistem, silahkan ganti dengan yang lain',
-                                'warning');
+                            var same_article_id = data.same_article_id.join(', ');
+                            toastr.warning('Article ID ' + same_article_id +
+                                ' sudah ada di sistem, silahkan ganti dengan yang lain',
+                                'Peringatan');
                             return false;
                         }
 
                         $("#ImportModal").modal('hide');
-                        swal('Gagal',
-                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
+                        toastr.warning(
+                            'Silahkan periksa format input pada template Anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'Peringatan');
                     }
                 },
                 error: function(data) {
                     console.log(data);
-                    swal('Error', data, 'error');
+                    toastr.error('Terjadi kesalahan saat mengimpor data', 'Error');
                 }
             });
         });
 
+
         $('#f_product').on('submit', function(e) {
             e.preventDefault();
-            // alert($('#_sz_barcode').val());
-            // alert($('#_sz_sell_price').val());
-            // return false;
             $("#save_product_btn").html('Proses ..');
             $("#save_product_btn").attr("disabled", true);
             var formData = new FormData(this);
             var check_pc_id = $('#pc_id').val();
+
             if (check_pc_id == 'all') {
                 if ($('#_pc_id').val() == '') {
                     swal('Kategori', 'Silahkan tentukan kategori terlebih dahulu', 'warning');
@@ -1356,19 +1344,12 @@
                         'warning');
                     return false;
                 }
-                // formData.append('pc_id', $('#_pc_id').val());
-                // formData.append('psc_id', $('#_psc_id').val());
-                // formData.append('pssc_id', $('#_pssc_id').val());
             } else {
-                // formData.append('pc_id', $('#pc_id').val());
-                // formData.append('psc_id', $('#psc_id').val());
-                // formData.append('pssc_id', $('#pssc_id').val());
-
                 formData.append('pc_id', $('#_pc_id').val());
                 formData.append('psc_id', $('#_psc_id').val());
                 formData.append('pssc_id', $('#_pssc_id').val());
-
             }
+
             $.ajax({
                 type: 'POST',
                 url: "{{ url('p_save') }}",
@@ -1378,33 +1359,37 @@
                 contentType: false,
                 processData: false,
                 success: function(data) {
-                    //swal('Result',data.result,'success');
                     $("#save_product_btn").html('Simpan');
                     $("#save_product_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#ProductModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
+                        console.log(data.consignment);
+                        console.log(data.complement);
                         product_table.draw(false);
                     } else if (data.status == '400') {
                         $("#ProductModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     } else {
                         $("#ProductModal").modal('hide');
-                        swal('Relationship',
+                        toastr.warning(
                             'Data gagal disimpan karena ada perubahan data yang terikat ke suatu pencatatan transaksi',
-                            'warning');
+                            'Relationship');
                     }
                 },
                 error: function(data) {
-                    swal('Error', data, 'error');
+                    $("#save_product_btn").html('Simpan');
+                    $("#save_product_btn").attr("disabled", false);
+                    toastr.error('Terjadi kesalahan saat menyimpan data', 'Error');
                 }
             });
         });
 
+
         $('#delete_product_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -1427,20 +1412,22 @@
                         url: "{{ url('p_delete') }}",
                         success: function(r) {
                             if (r.status == '200') {
-                                swal("Berhasil", "Data berhasil dihapus",
-                                    "success");
+                                toastr.success("Data berhasil dihapus", "Berhasil");
                                 $('#ProductModal').modal('hide');
                                 product_table.ajax.reload();
                             } else {
-
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan saat menghapus data',
+                                'Error');
                         }
                     });
-                    return false;
                 }
-            })
+            });
         });
+
 
         var product = $('#Ptb').DataTable({
             destroy: true,
@@ -1525,15 +1512,19 @@
                 url: "{{ url('scan_adjustment_barcode_update') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal("Berhasil", "Data berhasil diupdate", "success");
+                        toastr.success("Data berhasil diupdate", "Berhasil");
                         product.draw(false);
                     } else {
-                        swal('Gagal', 'Gagal update data', 'error');
+                        toastr.error('Gagal update data', 'Gagal');
                     }
+                },
+                error: function() {
+                    toastr.error('Terjadi kesalahan saat memperbarui data', 'Error');
                 }
             });
             return false;
         });
+
 
 
 

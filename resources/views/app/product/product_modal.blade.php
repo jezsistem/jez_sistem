@@ -1,6 +1,8 @@
 <!-- Modal-->
 
 <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -28,7 +30,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
-                        data-dismiss="modal">Tutup</button>
+                        data-dismiss="modal">Tutup
+                    </button>
                     <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Import</button>
                 </div>
             </form>
@@ -199,59 +202,71 @@
                                 <div id="sz_schema_modal_id_parent"></div>
                             </div>
 
-                            
                             <div class="col-lg-4 pt-1">
-                                <label>Size Schema </label>
-                                <select class="form-control" id="mp_best_seller" name="mp_best_seller">
-                                    <option value="">- MP_best_seller -</option>
-                                    <option value="1">- Yes -</option>
-                                    <option value="0">- No -</option>
-
-                                </select>
-                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
-                            </div>
-
-                            <div class="col-lg-4 pt-1">
-                                <label>Size Schema </label>
-                                <select class="form-control" id="mp_stock_masking" name="mp_stock_masking">
-                                    <option value="">- MP_stock_masking -</option>
-                                    <option value="1">- Yes -</option>
-                                    <option value="0">- No -</option>
-
-                                </select>
-                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
-                            </div>
-
-
-                            <div class="col-lg-4 pt-1">
-                                <label>Size Schema </label>
+                                <label>Consigment</label> <span class="text-danger">*</span></label>
                                 <select class="form-control" id="consignment" name="consignment">
-                                    <option value="">- Consignment -</option>
-                                    <option value="1">- Yes -</option>
-                                    <option value="0">- No -</option>
+                                    <option value="">- Is Consignment -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
 
                                 </select>
-                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
+                                {{--                                <div id="sz_schema_modal_id_parent"></div> --}}
                             </div>
-
+                        </div>
+                        <div class="form-group row">
                             <div class="col-lg-4 pt-1">
-                                <label>Size Schema </label>
+                                <label>Complement</label> <span class="text-danger">*</span></label>
                                 <select class="form-control" id="complement" name="complement">
-                                    <option value="">- Complement -</option>
-                                    <option value="1">- Yes -</option>
-                                    <option value="0">- No -</option>
+                                    <option value="">- Is Complement -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
 
                                 </select>
-                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
+                                {{--                                <div id="sz_schema_modal_id_parent"></div> --}}
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>MP Best Seller</label>
+                                <select class="form-control" id="mp_best_seller" name="mp_best_seller">
+                                    <option value="">- Is MP Best Seller -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+
+                                </select>
+                                {{--                                <div id="sz_schema_modal_id_parent"></div> --}}
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>MP Stock Masking</label>
+                                <select class="form-control" id="mp_stock_masking" name="mp_stock_masking">
+                                    <option value="">- MP Stock Masking -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+
+                                </select>
+                                {{--                                <div id="sz_schema_modal_id_parent"></div> --}}
                             </div>
 
+                            <script>
+                                function updateDropdownColor(dropdown) {
+                                    const selectedValue = dropdown.value;
 
+                                    // Reset classes
+                                    dropdown.classList.remove('option-yes', 'option-no');
 
-                            
+                                    // Add class based on value
+                                    if (selectedValue === '1') {
+                                        dropdown.classList.add('option-yes');
+                                    } else if (selectedValue === '0') {
+                                        dropdown.classList.add('option-no');
+                                    }
+                                }
 
-
-
-
+                                // Select all dropdowns to apply the color change
+                                document.querySelectorAll('.form-control').forEach(dropdown => {
+                                    dropdown.addEventListener('change', function() {
+                                        updateDropdownColor(dropdown);
+                                    });
+                                });
+                            </script>
 
 
 
@@ -294,12 +309,14 @@
 
                                 <label> Schema Display
                                     <button type="button" class="btn btn-primary" onclick="showAllSchema()">All
-                                        Schema</button>
+                                        Schema
+                                    </button>
                                     <button type="button" class="btn btn-secondary"
-                                        onclick="showStockedSchema()">Stocked Schema</button>
+                                        onclick="showStockedSchema()">Stocked Schema
+                                    </button>
                                 </label>
 
-                                <div id="reload_size"> </div>
+                                <div id="reload_size"></div>
                             </div>
                         </div>
 
@@ -313,12 +330,13 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light-primary font-weight-bold"
-                        data-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
+                    </button>
                     <button type="button" class="btn btn-danger font-weight-bold" id="delete_product_btn"
-                        style="display:none;">Hapus</button>
-                    <button type="submit" class="btn btn-dark font-weight-bold"
-                        id="save_product_btn">Simpan</button>
+                        style="display:none;">Hapus
+                    </button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="save_product_btn">Simpan
+                    </button>
                 </div>
             </form>
         </div>
@@ -342,8 +360,8 @@
                 <div id="productDetailContent"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold"
-                    data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
+                </button>
             </div>
         </div>
     </div>
@@ -381,8 +399,8 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold"
-                    data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
+                </button>
             </div>
             </form>
         </div>
@@ -399,7 +417,15 @@
     }
 
     .bg-pink {
-    background-color: pink !important; /* Ubah warna sesuai keinginan */
-}
+        background-color: pink !important;
+        /* Ubah warna sesuai keinginan */
+    }
 
+    .option-yes {
+        color: green;
+    }
+
+    .option-no {
+        color: red;
+    }
 </style>
