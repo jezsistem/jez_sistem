@@ -199,55 +199,54 @@
                                 <div id="sz_schema_modal_id_parent"></div>
                             </div>
 
-                            <!-- resources/views/product_modal.blade.php -->
-                            {{-- <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button"
-                                    id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">
-                                    Select Product Flags
-                                </button>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    @foreach (['MP_best_seller', 'MP_stock_masking', 'Complement', 'Cosignment'] as $flag)
-                                        <a class="dropdown-item" href="#"
-                                            onclick="toggleFlag('{{ $flag }}', {{ $product->id }})">
-                                            {{ ucwords(str_replace('_', ' ', $flag)) }}
-                                            <span
-                                                id="{{ $flag }}_status">{{ $product->$flag ? '✓' : '✗' }}</span>
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div> --}}
+                            
+                            <div class="col-lg-4 pt-1">
+                                <label>Size Schema </label>
+                                <select class="form-control" id="mp_best_seller" name="mp_best_seller">
+                                    <option value="">- MP_best_seller -</option>
+                                    <option value="1">- Yes -</option>
+                                    <option value="0">- No -</option>
 
-                            <!-- Dropdown untuk mengelola flag produk -->
-                            <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button"
-                                    id="productFlagsDropdown" data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">
-                                    Pilih Flag Produk
-                                </button>
-                                <div class="dropdown-menu" aria-labelledby="productFlagsDropdown">
-                                    @foreach ($data['products'] as $product)
-                                        <h5>{{ $product->name ?? 'Produk' }} ID: {{ $product->p_name }}</h5>
-                                        <a class="dropdown-item {{ $product->MP_best_seller ? 'bg-pink' : '' }}" href="#"
-                                            onclick="toggleFlag({{ $product->p_name }}, 'MP_best_seller')">
-                                            MP Best Seller
-                                        </a>
-                                        <a class="dropdown-item {{ $product->MP_stock_masking ? 'bg-pink' : '' }}" href="#"
-                                            onclick="toggleFlag({{ $product->p_name }}, 'MP_stock_masking')">
-                                            MP Stock Masking
-                                        </a>
-                                        <a class="dropdown-item {{ $product->Complement ? 'bg-pink' : '' }}" href="#"
-                                            onclick="toggleFlag({{ $product->p_name }}, 'Complement')">
-                                            Complement
-                                        </a>
-                                        <a class="dropdown-item {{ $product->Consignment ? 'bg-pink' : '' }}" href="#"
-                                            onclick="toggleFlag({{ $product->p_name }}, 'Consignment')">
-                                            Consignment
-                                        </a>
-                                        <hr>
-                                    @endforeach
-                                </div>
+                                </select>
+                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
                             </div>
+
+                            <div class="col-lg-4 pt-1">
+                                <label>Size Schema </label>
+                                <select class="form-control" id="mp_stock_masking" name="mp_stock_masking">
+                                    <option value="">- MP_stock_masking -</option>
+                                    <option value="1">- Yes -</option>
+                                    <option value="0">- No -</option>
+
+                                </select>
+                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
+                            </div>
+
+
+                            <div class="col-lg-4 pt-1">
+                                <label>Size Schema </label>
+                                <select class="form-control" id="consignment" name="consignment">
+                                    <option value="">- Consignment -</option>
+                                    <option value="1">- Yes -</option>
+                                    <option value="0">- No -</option>
+
+                                </select>
+                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
+                            </div>
+
+                            <div class="col-lg-4 pt-1">
+                                <label>Size Schema </label>
+                                <select class="form-control" id="complement" name="complement">
+                                    <option value="">- Complement -</option>
+                                    <option value="1">- Yes -</option>
+                                    <option value="0">- No -</option>
+
+                                </select>
+                                {{-- <div id="sz_schema_modal_id_parent"></div> --}}
+                            </div>
+
+
+
                             
 
 
