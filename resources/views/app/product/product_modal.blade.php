@@ -190,7 +190,7 @@
 
                             <div class="col-lg-4 pt-1">
                                 <label>Size Schema </label>
-                                <select class="form-control" id="flag_request" name="flag_request">
+                                <select class="form-control" id="sz_schema_modal_id" name="sz_schema_modal_id">
                                     <option value="">- Pilih Size Schema -</option>
                                     @foreach ($data['sz_schema_id'] as $key => $value)
                                         <option value="{{ $value }}">{{ $value }}</option>
