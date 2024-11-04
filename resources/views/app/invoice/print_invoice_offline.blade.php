@@ -371,15 +371,13 @@
                 <br/>
 
                 <div class="note">
-                    <tr>
-                        <td colspan="3" class="note" style="font-size: 14px; padding: 5px;">
-                            <span style="float:left;">NOTE:</span>
-                        </td>
-                        <td class="note" style="font-size: 14px; padding: 5px; text-align:right;">
-                            {{ $row->pos_note ?? "No Notes Available" }}
-                        </td>
-                    </tr>
-                </div>
+                    <span style="font-size: 12px; color: #2b272799;">NOTE:</span>
+                    <span style="font-size: 12px; color: #2b272799; text-align: right;">
+                        {{ $row->pos_note ?? "No Notes Available" }}
+                    </span>
+                </div>                
+                
+                        
                 </br>
 
                 <div class="title">

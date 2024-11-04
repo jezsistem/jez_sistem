@@ -73,7 +73,7 @@
                     </div>
                     <!--end: List Widget 9-->
                 </div>
-                <div class="col-lg-12 col-xxl-12 d-none" style="min-height: 315px;" id="graph_panel">
+                <div class="col-lg-12 col-xxl-12" style="min-height: 315px;" id="graph_panel">
                     <!--begin::Stats Widget 12-->
                     <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">
                         <!--begin::Body-->

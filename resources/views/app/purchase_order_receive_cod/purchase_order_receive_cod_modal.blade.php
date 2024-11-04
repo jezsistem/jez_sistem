@@ -229,7 +229,6 @@
 <!-- /Modal-->
 
 
-
 <!-- Modal-->
 <form id="f_upload_pembayaran_image" enctype="multipart/form-data">
     @csrf
@@ -245,7 +244,7 @@
                 <div class="modal-body">
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Pilih Gambar Pembayaran</label>
+                            <label>Pilih Gambar Invoice</label>
                             <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="imageInvoices[]" id="imageInvoices" multiple required/>
                         </div>

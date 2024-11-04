@@ -2,6 +2,7 @@
 
 
 use App\Http\Controllers\ProductSubSubCategoryTestController;
+use App\Http\Controllers\ProductSubSubCategoryController;
 
 use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
@@ -132,6 +133,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('scan_product_online_datatables', [TrackingController::class, 'scanOnlineDatatables']);
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
+
+    //POS NEWPAGE 27-09-24
+
 
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
@@ -299,7 +303,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('psc_import', [ProductSubCategoryController::class, 'importData']);
     Route::post('check_exists_product_sub_category', [ProductSubCategoryController::class, 'checkExistsProductSubCategory']);
     // Product Sub Sub Category
-    /**
+    
     Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryController::class, 'index'])->name('product_sub_sub_category');
     Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryController::class, 'getDatatables']);
     Route::get('reload_product_sub_category', [ProductSubCategoryController::class, 'reloadProductSubCategory']);
@@ -308,7 +312,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pssc_save', [ProductSubSubCategoryController::class, 'storeData']);
     Route::post('pssc_delete', [ProductSubSubCategoryController::class, 'deleteData']);
     Route::post('pssc_import', [ProductSubSubCategoryController::class, 'importData']);
-     */
+
+
     Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryTestController::class, 'index'])->name('product_sub_sub_category');
     Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryTestController::class, 'getDatatables']);
     Route::get('reload_product_sub_category', [ProductSubCategoryController::class, 'reloadProductSubCategory']);
@@ -318,6 +323,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pssc_save', [ProductSubSubCategoryTestController::class, 'storeData']);
     Route::post('pssc_delete', [ProductSubSubCategoryTestController::class, 'deleteData']);
     Route::post('pssc_import', [ProductSubSubCategoryTestController::class, 'importData']);
+
     // Product Main Color
     Route::get('warna_produk', [MainColorController::class, 'index'])->name('main_color');
     Route::get('main_color_datatables', [MainColorController::class, 'getDatatables']);
@@ -342,8 +348,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('sz_import', [SizeController::class, 'importData']);
     Route::post('check_exists_size', [SizeController::class, 'checkExistsSize']);
     Route::post('check_schema_size_product_stock', [SizeController::class, 'checkSchemaSizeProductStock']);
+
     // Product
     Route::get('data_produk', [ProductController::class, 'index'])->name('product');
+    // Route::post('data_produk/update-flag/{id}', [ProductController::class, 'updateFlag'])->name('product.updateFlag'); //new
+    Route::get('/product/{p_name}/flags', [ProductController::class, 'showFlags'])->name('product.flags');
+
     Route::get('product_datatables', [ProductController::class, 'getDatatables']);
     Route::get('p_export', [ProductController::class, 'exportData']);
     Route::get('p_export_barcode', [ProductController::class, 'exportDataBarcode']);
@@ -453,6 +463,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // total discount point of sale
     Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);
+
     // Shopee
     /**
      * NOTE: Open when needed
@@ -538,6 +549,7 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::get('rbl_datatables', [ResellerBrandLevelController::class, 'getDatatables']);
     // Route::post('rbl_update', [ResellerBrandLevelController::class, 'updateData']);
 
+    // ResellerTransactionController
     /**
      * NOTE: Open when needed
      */

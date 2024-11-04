@@ -85,6 +85,53 @@
             po_approval_table.draw();
         });
 
+        $('#SuratJalanImageBtn').on('click', function() {
+            console.log('kontol');
+        });
+
+        {{--$('#f_upload_pembayaran_image').on('submit', function(e) {--}}
+        {{--    e.preventDefault();--}}
+        {{--    $('#upload_image_invoice_btn').html('Proses...');--}}
+        {{--    $('#upload_image_invoice_btn').attr('disabled', true);--}}
+        {{--    var formData = new FormData(this);--}}
+        {{--    var po_id = $('#_po_id').val();--}}
+
+        {{--    formData.append('_po_id', po_id)--}}
+        {{--    $.ajax({--}}
+        {{--        type: 'POST',--}}
+        {{--        url: "{{ url('po_pembayaran_image') }}",--}}
+        {{--        data: formData,--}}
+        {{--        dataType: 'json',--}}
+        {{--        cache: false,--}}
+        {{--        contentType: false,--}}
+        {{--        processData: false,--}}
+        {{--        success: function(data) {--}}
+        {{--            $("#upload_image_invoice_btn").html('Upload');--}}
+        {{--            $("#upload_image_invoice_btn").attr("disabled", false);--}}
+        {{--            jQuery.noConflict();--}}
+        {{--            if (data.status == '200') {--}}
+        {{--                $("#ImportModal").modal('hide');--}}
+        {{--                swal('Berhasil', 'Data berhasil diimport', 'success');--}}
+        {{--                $('#f_upload_invoice_image')[0].reset();--}}
+        {{--                reloadArticleDetail(po_id)--}}
+        {{--            } else if (data.status == '400') {--}}
+        {{--                $("#UploadImageInvoiceModal").modal('hide');--}}
+        {{--                swal('File', 'File yang anda import kosong atau format tidak tepat',--}}
+        {{--                    'warning');--}}
+        {{--            } else {--}}
+        {{--                $("#UploadImageInvoiceModal").modal('hide');--}}
+        {{--                swal('Gagal',--}}
+        {{--                    'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',--}}
+        {{--                    'warning');--}}
+        {{--            }--}}
+        {{--        },--}}
+        {{--        error: function(data) {--}}
+        {{--            swal('Error', data, 'error');--}}
+
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
+
         var purchaseOrderInvoiceTable = $('#InvoiceImagesTb').DataTable({
             destroy: true,
             processing: true,
@@ -182,11 +229,12 @@
                 {
                     data: 'ps_qty',
                     name: 'ps_qty'
-                },
-                {
-                    data: 'poads_purchase_price',
-                    name: 'poads_purchase_price'
-                },
+                }
+                ,
+                // {
+                //     data: 'poads_purchase_price',
+                //     name: 'poads_purchase_price'
+                // },
                 {
                     data: 'poads_total_price',
                     name: 'poads_total_price'
@@ -275,47 +323,49 @@
             });
         });
 
-        $('#f_upload_invoice_image').on('submit', function(e) {
-            e.preventDefault();
-            $('#upload_image_invoice_btn').html('Proses...');
-            $('#upload_image_invoice_btn').attr('disabled', true);
-            var formData = new FormData(this);
-            var po_id = $('#_po_id').val();
+        $('#f_upload_pembayaran_image').on('submit', function(e) {
+            console.log('tempek');
+            {{--e.preventDefault();--}}
+            {{--$('#upload_image_invoice_btn').html('Proses...');--}}
+            {{--$('#upload_image_invoice_btn').attr('disabled', true);--}}
+            {{--var formData = new FormData(this);--}}
+            {{--var po_id = $('#_po_id').val();--}}
 
-            formData.append('_po_id', po_id)
-            $.ajax({
-                type: 'POST',
-                url: "{{ url('po_invoice_image') }}",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(data) {
-                    $("#upload_image_invoice_btn").html('Upload');
-                    $("#upload_image_invoice_btn").attr("disabled", false);
-                    jQuery.noConflict();
-                    if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_upload_invoice_image')[0].reset();
-                        reloadArticleDetail(po_id)
-                    } else if (data.status == '400') {
-                        $("#UploadImageInvoiceModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
-                    } else {
-                        $("#UploadImageInvoiceModal").modal('hide');
-                        swal('Gagal',
-                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
-                    }
-                },
-                error: function(data) {
-                    swal('Error', data, 'error');
+            {{--formData.append('_po_id', po_id)--}}
+            {{--formData.append('_mode', 'COD')--}}
+            {{--$.ajax({--}}
+            {{--    type: 'POST',--}}
+            {{--    url: "{{ url('po_invoice_image') }}",--}}
+            {{--    data: formData,--}}
+            {{--    dataType: 'json',--}}
+            {{--    cache: false,--}}
+            {{--    contentType: false,--}}
+            {{--    processData: false,--}}
+            {{--    success: function(data) {--}}
+            {{--        $("#upload_image_invoice_btn").html('Upload');--}}
+            {{--        $("#upload_image_invoice_btn").attr("disabled", false);--}}
+            {{--        jQuery.noConflict();--}}
+            {{--        if (data.status == '200') {--}}
+            {{--            $("#ImportModal").modal('hide');--}}
+            {{--            swal('Berhasil', 'Data berhasil diimport', 'success');--}}
+            {{--            $('#f_upload_invoice_image')[0].reset();--}}
+            {{--            reloadArticleDetail(po_id)--}}
+            {{--        } else if (data.status == '400') {--}}
+            {{--            $("#UploadImageInvoiceModal").modal('hide');--}}
+            {{--            swal('File', 'File yang anda import kosong atau format tidak tepat',--}}
+            {{--                'warning');--}}
+            {{--        } else {--}}
+            {{--            $("#UploadImageInvoiceModal").modal('hide');--}}
+            {{--            swal('Gagal',--}}
+            {{--                'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',--}}
+            {{--                'warning');--}}
+            {{--        }--}}
+            {{--    },--}}
+            {{--    error: function(data) {--}}
+            {{--        swal('Error', data, 'error');--}}
 
-                }
-            });
+            {{--    }--}}
+            {{--});--}}
         });
 
 

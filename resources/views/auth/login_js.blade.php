@@ -1,45 +1,62 @@
 <script>
+    // Konfigurasi Toastr
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+
+    // Kode login
     $('#f_login').on('submit', function(e) {
-        e.preventDefault();
-		var data = $(this).serialize();
+        e.preventDefault(); // Mencegah submit default
+        var data = $(this).serialize();
         var email = $('#u_email').val();
         var password = $('#password').val();
         var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
 
-        if ($.trim(email)=='') {
-            swal("Email","Silahkan input email", "warning");
+        // Validasi input
+        if ($.trim(email) == '') {
+            toastr.warning("Silahkan input email", "Email");
             return false;
         } else if (!emailReg.test(email)) {
-            swal("Email","Silahkan input email sesuai format", "warning");
+            toastr.warning("Silahkan input email sesuai format", "Email");
             return false;
-        } else if ($.trim(password)=='') {
-            swal("Password","Silahkan input password", "warning");
+        } else if ($.trim(password) == '') {
+            toastr.warning("Silahkan input password", "Password");
             return false;
-		} else {
-		    $.ajaxSetup({
+        } else {
+            $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-			$.ajax({
-				type: "POST",
-				data: data,
-				dataType: 'json',
-				url: "{{ url('user_login') }}",
-				success: function(r) {
-					if (r.status=='200') {
-						swal('Berhasil','Login berhasil','success');
-						setTimeout(() => {
-							window.location.href = "redirect";
-						}, 600);
-					} else if (r.status=='400') {
-						swal('Gagal','Email atau password salah','error');
-					} else {
-						swal('Nonaktif','Status akun anda tidak aktif / dihapus','error');
-					}
-				}
-			});
-			return false;
-		}
+            $.ajax({
+                type: "POST",
+                data: data,
+                dataType: 'json',
+                url: "{{ url('user_login') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+                        toastr.success('Login berhasil', 'Berhasil');
+                        setTimeout(() => {
+                            window.location.href = "redirect"; 
+                        }, 600);
+                    } else if (r.status == '400') {
+                        toastr.error('Email atau password salah', 'Gagal');
+                    } else {
+                        toastr.error('Status akun anda tidak aktif / dihapus', 'Nonaktif');
+                    }
+                }
+            });
+            return false;
+        }
     });
 </script>

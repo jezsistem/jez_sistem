@@ -135,4 +135,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('penerimaan_cod', [PurchaseOrderReceiveCODController::class, 'index']);
     Route::get('poc_datatables', [PurchaseOrderReceiveCODController::class, 'getDatatables']);
     Route::post('poc_update_is_paid', [PurchaseOrderReceiveCODController::class, 'updateIsPaid']);
+    Route::get('pocdetail_datatables', [PurchaseOrderReceiveCODController::class, 'getDetailDatatables']);
+    Route::get('po_pembayaran_image', [PurchaseOrderReceiveCODController::class, 'uploadImageInvoice']);
+
 });
