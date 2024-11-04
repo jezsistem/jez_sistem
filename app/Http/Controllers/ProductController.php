@@ -100,10 +100,6 @@ class ProductController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
 
-        // Ambil data produk untuk dropdown
-        $products = Product::select('p_name', 'mp_best_seller', 'mp_stock_masking', 'Complement', 'Consignment')
-            ->where('p_delete', '!=', '1')
-            ->get();
 
         $data = [
             'title' => $title,
@@ -127,8 +123,7 @@ class ProductController extends Controller
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
             'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
-            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
-            'products' => $products,
+            'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id')
         ];
         return view('app.product.product', compact('data'));
     }
@@ -379,7 +374,11 @@ class ProductController extends Controller
                     'p_delete',
                     'schema_size',
                     'subcategory1',
-                    'subcategory2'
+                    'subcategory2',
+                    'complement',
+                    'consignment',
+                    'mp_best_seller',
+                    'mp_stock_masking'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
@@ -750,7 +749,7 @@ class ProductController extends Controller
 
     public function storeData(Request $request)
     {
-        //        return json_encode($request->all());
+//     return json_encode($request->all());
 
         try {
             $product = new Product;
@@ -783,7 +782,11 @@ class ProductController extends Controller
                 'schema_size' => $request->input('sz_schema_modal_id'),
                 'p_delete' => '0',
                 'subcategory1'  => $request->input('subcatone'),
-                'subcategory2'  => $request->input('subcattwo')
+                'subcategory2'  => $request->input('subcattwo'),
+                'consignment'    => $request->input('consignment'),
+                'complement'    => $request->input('complement'),
+                'mp_best_seller'    => $request->input('mp_best_seller'),
+                'mp_stock_masking'    => $request->input('mp_stock_masking'),
             ];
             $save = $product->storeData($mode, $id, $data);
 
@@ -861,6 +864,8 @@ class ProductController extends Controller
                     }
                 }
 
+                $r['consignment'] = $data;
+                $r['complement'] = $request->input('complement');
                 $r['status'] = '200';
             }
             return json_encode($r);

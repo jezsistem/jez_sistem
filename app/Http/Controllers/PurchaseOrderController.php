@@ -29,7 +29,7 @@ use App\Models\Size;
 use App\Models\StockType;
 use App\Models\Tax;
 use App\Models\UserActivity;
-    use Intervention\Image\Facades\Image;
+use Intervention\Image\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderController extends Controller
@@ -564,7 +564,7 @@ class PurchaseOrderController extends Controller
             $get_product = null;
         }
         $data = [
-            'product'   => $get_product
+            'product' => $get_product
         ];
         return view('app.purchase_order._purchase_order_article_detail', compact('data'));
     }
@@ -633,12 +633,19 @@ class PurchaseOrderController extends Controller
     {
 
         $po_id = $request->_po_id;
+        $mode = $request->_mode;
         $check = PurchaseOrder::where(['id' => $po_id])->exists();
         if ($check) {
             if ($request->hasFile('imageInvoices')) {
                 foreach ($request->file('imageInvoices') as $file) {
                     $image = $file;
-                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+
+                    if ($mode == 'COD') {
+                        $name = 'COD_' . pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    } else {
+                        $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    }
+
                     $destinationPath = public_path('/upload/purchase_order_invoice');
 
                     // save destination path
@@ -730,8 +737,8 @@ class PurchaseOrderController extends Controller
 
         $export = new PurchaseOrderArticleExport($po_id, $st_id);
 
-         // Get current date and time (format: YYYYMMDD_HHmm)
-        
+        // Get current date and time (format: YYYYMMDD_HHmm)
+
         $fileName = 'purchase_order_article_' . $timestamp . '.xlsx';
         return Excel::download($export, $fileName);
     }

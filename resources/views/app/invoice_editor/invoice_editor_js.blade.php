@@ -363,7 +363,7 @@
                                 $('#note').val('');
                                 $('#pos_invoice').prop('readonly', false);
                                 pt_id = '';
-                                invoice_table.drawx();
+                                invoice_table.draw();
                                 detail_table.draw();
                                 tracking_table.draw();
                                 history_table.draw();
