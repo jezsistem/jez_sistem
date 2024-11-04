@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,37 +12,55 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('gender_datatables') }}",
-                data : function (d) {
+                url: "{{ url('gender_datatables') }}",
+                data: function(d) {
                     d.search = $('#gender_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'gn_name', name: 'gn_name' },
-            { data: 'created_at', name: 'created_at' },
-            { data: 'updated_at', name: 'updated_at' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'gn_name',
+                    name: 'gn_name'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'updated_at',
+                    name: 'updated_at'
+                },
             ],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            columnDefs: [
-            {
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        gender_table.buttons().container().appendTo($('#gender_excel_btn' ));
+        gender_table.buttons().container().appendTo($('#gender_excel_btn'));
         $('#gender_search').on('keyup', function() {
             gender_table.draw();
         });
 
-        $('#Gendertb tbody').on('click', 'tr', function () {
+        $('#Gendertb tbody').on('click', 'tr', function() {
             var id = gender_table.row(this).data().id;
             var gn_name = gender_table.row(this).data().gn_name;
             jQuery.noConflict();
@@ -51,8 +69,8 @@
             $('#_id').val(id);
             $('#_mode').val('edit');
             $('#_old_item').val(gn_name);
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_gender_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_gender_btn').show();
             @endif
         });
 
@@ -60,17 +78,21 @@
             var gn_name = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_gn_name:gn_name},
+                data: {
+                    _gn_name: gn_name
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_gender')}}",
+                url: "{{ url('check_exists_gender') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Gender', 'Nama gender sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Gender',
+                            'Nama gender sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#gn_name').val('');
                         return false;
                     }
@@ -93,11 +115,11 @@
             $("#save_gender_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('gn_save')}}",
+                type: 'POST',
+                url: "{{ url('gn_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -105,23 +127,27 @@
                     $("#save_gender_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#GenderModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success(
+                            'Data berhasil disimpan'); // Change to Toastr success message
                         gender_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#GenderModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning(
+                            'Data tidak tersimpan'); // Change to Toastr warning message
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Error: ' + data
+                        .statusText); // Change to Toastr error message
                 }
             });
         });
 
-        $('#delete_gender_btn').on('click', function(){
+
+        $('#delete_gender_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -132,28 +158,38 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val(),_item:$('#gn_name').val()},
+                        data: {
+                            _id: $('#_id').val(),
+                            _item: $('#gn_name').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('gn_delete')}}",
+                        url: "{{ url('gn_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
                                 $('#GenderModal').modal('hide');
+                                toastr.success(
+                                'Data berhasil dihapus'); // Change to Toastr success message
                                 gender_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error(
+                                'Gagal hapus data'); // Change to Toastr error message
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                            'Terjadi kesalahan saat menghapus data'); // Toastr error for AJAX error
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>

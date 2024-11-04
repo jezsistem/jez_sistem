@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,33 +12,51 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('product_sub_sub_category_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_sub_sub_category_datatables') }}",
+                data: function(d) {
                     d.search = $('#product_sub_sub_category_search').val();
                     d.psc_id = $('#psc_id').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'psc_name', name: 'psc_name' },
-            { data: 'pssc_name', name: 'pssc_name' },
-            { data: 'pssc_weight', name: 'pssc_weight' },
-            { data: 'pssc_description', name: 'pssc_description' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'psc_name',
+                    name: 'psc_name'
+                },
+                {
+                    data: 'pssc_name',
+                    name: 'pssc_name'
+                },
+                {
+                    data: 'pssc_weight',
+                    name: 'pssc_weight'
+                },
+                {
+                    data: 'pssc_description',
+                    name: 'pssc_description'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        product_sub_sub_category_table.buttons().container().appendTo($('#product_sub_sub_category_excel_btn' ));
+        product_sub_sub_category_table.buttons().container().appendTo($('#product_sub_sub_category_excel_btn'));
         $('#product_sub_sub_category_search').on('keyup', function() {
             product_sub_sub_category_table.draw();
         });
@@ -50,16 +68,20 @@
                 $('#product_category_selected_label').text(label);
                 $.ajax({
                     type: "GET",
-                    data: {_pc_id:pc_id},
+                    data: {
+                        _pc_id: pc_id
+                    },
                     dataType: 'html',
-                    url: "{{ url('reload_product_sub_category')}}",
+                    url: "{{ url('reload_product_sub_category') }}",
                     success: function(r) {
                         $('#psc_id').html(r);
                     }
                 });
             } else {
                 $('#product_category_selected_label').text('');
-                $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih -</option></select>");
+                $('#psc_id').html(
+                    "<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih -</option></select>"
+                );
             }
             $('#product_sub_category_selected_label').text('');
             $('#product_sub_sub_category_display').fadeOut();
@@ -88,7 +110,7 @@
             }
         });
 
-        $('#ProductSubSubCategorytb tbody').on('click', 'tr', function () {
+        $('#ProductSubSubCategorytb tbody').on('click', 'tr', function() {
             var id = product_sub_sub_category_table.row(this).data().id;
             var pssc_name = product_sub_sub_category_table.row(this).data().pssc_name;
             var pssc_weight = product_sub_sub_category_table.row(this).data().pssc_weight;
@@ -100,8 +122,8 @@
             $('#pssc_description').val(pssc_description);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_product_sub_sub_category_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_product_sub_sub_category_btn').show();
             @endif
         });
 
@@ -120,11 +142,11 @@
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('psc_import')}}",
+                type: 'POST',
+                url: "{{ url('psc_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -133,19 +155,21 @@
                     jQuery.noConflict();
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success('Data berhasil diimport'); // Toastr success message
                         $('#f_import')[0].reset();
                         product_sub_sub_category_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Data gagal diimport', 'warning');
+                        toastr.warning('Data gagal diimport'); // Toastr warning message
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error(
+                        'Terjadi kesalahan saat mengimport data'); // Toastr error message
                 }
             });
         });
+
 
         $('#f_product_sub_sub_category').on('submit', function(e) {
             e.preventDefault();
@@ -154,11 +178,11 @@
             var formData = new FormData(this);
             formData.append('psc_id', $('#psc_id').val());
             $.ajax({
-                type:'POST',
-                url: "{{ url('pssc_save')}}",
+                type: 'POST',
+                url: "{{ url('pssc_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -166,23 +190,25 @@
                     $("#save_product_sub_sub_category_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#ProductSubSubCategoryModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan'); // Toastr success message
                         product_sub_sub_category_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ProductSubSubCategoryModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan'); // Toastr warning message
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error(
+                        'Terjadi kesalahan saat menyimpan data'); // Toastr error message
                 }
             });
         });
 
-        $('#delete_product_sub_sub_category_btn').on('click', function(){
+
+        $('#delete_product_sub_sub_category_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -193,27 +219,35 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('pssc_delete')}}",
+                        url: "{{ url('pssc_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success(
+                                'Data berhasil dihapus'); // Toastr success message
                                 $('#ProductSubSubCategoryModal').modal('hide');
                                 product_sub_sub_category_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error(
+                                'Gagal hapus data'); // Toastr error message
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                            'Terjadi kesalahan saat menghapus data'); // Toastr error message for AJAX failure
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
 
     });
