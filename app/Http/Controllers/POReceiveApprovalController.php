@@ -187,41 +187,37 @@ class POReceiveApprovalController extends Controller
     }
 
     public function getDetailDatatables(Request $request)
-{
-    if ($request->ajax()) {
-        return datatables()->of(DB::table('purchase_order_article_detail_statuses')
-            ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice,
-                u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, 
-                poad_purchase_price AS poads_purchase_price, 
-                poad_total_price AS poads_total_price, 
-                ts_product_stocks.ps_barcode, ts_product_stocks.ps_qty,
-                ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.id as po_id, 
-                ts_product_suppliers.ps_name as ps_name")
-            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-            ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-            ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_order_article_detail_statuses.stkt_id')
-            ->where('poads_invoice', '=', $request->get('poads_invoice')))
-            ->editColumn('delete', function ($d) {
-                if (empty($d->u_id_approve)) {
-                    return "<a class='btn btn-danger' data-id='" . $d->id . "' id='delete_poads'>X</a>";
-                } else {
-                    return '';
-                }
-            })
-            ->editColumn('created_at_show', function ($d) {
-                return date('d/m/Y H:i:s', strtotime($d->created_at));
-            })
-            ->rawColumns(['delete'])
-            ->addIndexColumn()
-            ->make(true);
+    {
+        if (request()->ajax()) {
+            return datatables()->of(DB::table('purchase_order_article_detail_statuses')
+                ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
+            u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, poad_purchase_price, 
+            ts_product_stocks.ps_barcode,ts_product_stocks.ps_qty,poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name")
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->Join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->Join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_order_article_detail_statuses.stkt_id')
+                ->where('poads_invoice', '=', $request->get('poads_invoice')))
+                ->editColumn('delete', function ($d) {
+                    if (empty($d->u_id_approve)) {
+                        return "<a class='btn btn-danger' data-id='" . $d->id . "' id='delete_poads'>X</a>";
+                    } else {
+                        return '';
+                    }
+                })
+                ->editColumn('created_at_show', function ($d) {
+                    return date('d/m/Y H:i:s', strtotime($d->created_at));
+                })
+                ->rawColumns(['delete'])
+                ->addIndexColumn()
+                ->make(true);
+        }
     }
-}
 
 
     public function approveData(Request $request)

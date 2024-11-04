@@ -264,8 +264,10 @@
             var po_id = po_approval_table.row(this).data().po_id;
             var st_name = po_approval_table.row(this).data().st_name;
             var ps_name = po_approval_table.row(this).data().ps_name;
-            var full_date = po_approval_table.row(this).data().created_at;
-            var tgl_terima = full_date.split(' ')[0];
+            // var full_date = po_approval_table.row(this).data().created_at;
+            // var tgl_terima = full_date.split(' ')[0];
+            var today = new Date();
+            var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
@@ -292,7 +294,7 @@
                     $('#st_id').val(st_name);
                     $('#ps_name').val(ps_name);
                     $('#po_description').val(po_description);
-                    $('#receive_date').val(tgl_terima);
+                    $('#receive_date').val(tgl_terima).prop('readonly', true);
                     $('#shipping_cost').val(shipping_cost);
                     $('#_po_id').val(po_id);
                     $('#total_approval_price').text("Rp. " + r);

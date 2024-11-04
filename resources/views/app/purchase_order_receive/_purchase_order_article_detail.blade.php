@@ -7,8 +7,8 @@
             <th style="white-space: nowrap;" class="text-light">Artikel</th>
             <th class="text-dark">Diskon</th>
             <th class="text-dark">Detail</th>
-            <th style="white-space: nowrap;" class="text-light">Value PO</th>
-            <th style="white-space: nowrap;" class="text-light">Value Terima</th>
+            <th style="white-space: nowrap;" class="text-dark">Value PO</th>
+            <th style="white-space: nowrap;" class="text-dark">Value Terima</th>
         </tr>
     </thead>
     <tbody>
