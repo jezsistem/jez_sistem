@@ -1036,16 +1036,6 @@
             console.log(subcategory1)
             if (check_pc_id == 'all') {
                 $('#category_arrow_label').hide();
-                {{-- $.ajax({ --}}
-                {{--    type: "GET", --}}
-                {{--    data: {_psc_id:psc_id}, --}}
-                {{--    dataType: 'html', --}}
-                {{--    url: "{{ url('reload_size_schema_modal')}}", --}}
-                {{--    success: function(r) { --}}
-                {{--        $('#reload_size').html(r); --}}
-                {{--        checkSize(id); --}}
-                {{--    } --}}
-                {{-- }); --}}
             } else {
                 $('#category_arrow_label').show();
                 // console.log('id : '+id);
@@ -1122,6 +1112,8 @@
             $('#_current_pssc_id').val(pssc_id);
             $('#subcatone').text(subcategory1);
             $('#subcattwo').text(subcategory2);
+            $('#consignment').val(consignment);
+            $('#complement').val(complement);
             jQuery('#br_id').val(br_id).trigger('change');
             jQuery('#ps_id').val(ps_id).trigger('change');
             jQuery('#pu_id').val(pu_id).trigger('change');
@@ -1367,7 +1359,6 @@
                 formData.append('pc_id', $('#_pc_id').val());
                 formData.append('psc_id', $('#_psc_id').val());
                 formData.append('pssc_id', $('#_pssc_id').val());
-
             }
             $.ajax({
                 type: 'POST',
@@ -1384,6 +1375,8 @@
                     if (data.status == '200') {
                         $("#ProductModal").modal('hide');
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        console.log(data.consignment);
+                        console.log(data.complement);
                         product_table.draw(false);
                     } else if (data.status == '400') {
                         $("#ProductModal").modal('hide');

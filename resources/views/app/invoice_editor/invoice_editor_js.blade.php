@@ -388,8 +388,8 @@
                 url: "{{ url('ie_permission_do_edit')}}",
                 success: function(r) {
                     if (r.status == '200'){
-                        invoice_table.draw();
-                        detail_table.draw();
+                        invoice_table.reload();
+                        detail_table.reload();
                         tracking_table.draw();
                         history_table.draw();
                         toast('Berhasil', 'Data berhasil diubah', 'success');
