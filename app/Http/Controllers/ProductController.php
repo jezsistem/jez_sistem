@@ -30,6 +30,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
+
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
@@ -79,6 +80,15 @@ class ProductController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        // Daftar kolom yang ingin ditampilkan
+        $columns = ['ms_best_seller', 'consignment', 'complement', 'mp_stock_masking'];
+
+        // Kirim data ke view
+        return view('app.product.product_modal', compact('columns'));
+    }
+
     public function index()
     {
         $this->validateAccess();
@@ -89,6 +99,12 @@ class ProductController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+        // Ambil data produk untuk dropdown
+        $products = Product::select('p_name', 'mp_best_seller', 'mp_stock_masking', 'Complement', 'Consignment')
+            ->where('p_delete', '!=', '1')
+            ->get();
+
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
@@ -104,7 +120,7 @@ class ProductController extends Controller
             'br_id' => Brand::where('br_delete', '!=', '1')->orderBy('br_name', 'asc')->pluck('br_name', 'id'),
             'pu_id' => ProductUnit::where('pu_delete', '!=', '1')->orderByDesc('id')->pluck('pu_name', 'id'),
             'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderBy('mc_name', 'asc')->pluck('mc_name', 'id'),
-            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderBy('ps_name','asc')->pluck('ps_name', 'id'),
+            'ps_id' => ProductSupplier::where('ps_delete', '!=', '1')->orderBy('ps_name', 'asc')->pluck('ps_name', 'id'),
             'gn_id' => Gender::where('gn_delete', '!=', '1')->orderByDesc('id')->pluck('gn_name', 'id'),
             'p_name' => Product::where('p_delete', '!=', '1')->orderByDesc('id')->pluck('p_name', 'id'),
             'ss_id' => Season::where('ss_delete', '!=', '1')->orderByDesc('id')->pluck('ss_name', 'id'),
@@ -112,19 +128,47 @@ class ProductController extends Controller
             'sz_schema_id' => Size::where('sz_delete', '!=', '1')->whereNotNull('sz_schema')->orderByDesc('id')->distinct()->pluck('sz_schema'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'pssc_id' => ProductSubSubCategory::where('pssc_delete', '!=', '1')->orderByDesc('id')->pluck('pssc_name', 'id'),
+            'products' => $products,
         ];
-
         return view('app.product.product', compact('data'));
     }
 
+    public function updateFlag(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+        $column = $request->column;
+
+        if (in_array($column, ['MP_best_seller', 'MP_stock_masking', 'Complement', 'Consignment'])) {
+            $product->$column = !$product->$column; // Toggle antara 0 dan 1
+            $product->save();
+        }
+
+        return response()->json(['success' => true, 'newValue' => $product->$column]);
+    }
+
+    public function showFlags($id)
+    {
+        $product = Product::select('id', 'MP_best_seller', 'MP_stock_masking', 'Complement', 'Consignment')
+            ->where('id', $id)
+            ->where('p_delete', '!=', 1)
+            ->first();
+
+        if (!$product) {
+            return redirect()->back()->with('error', 'Product not found');
+        }
+
+        return view('app.product.product_modal', compact('product'));
+    }
+
+
     // public function searchProduct(Request $request) {
     //     $search = $request->input('search');
-        
+
     //     // Fetch products based on the search term
     //     $products = Product::where('name', 'LIKE', "%{$search}%")
     //                         ->limit(10) // Limit the number of results to reduce load
     //                         ->get();
-        
+
     //     return response()->json($products->map(function($product) {
     //         return [
     //             'id' => $product->id,
@@ -132,7 +176,7 @@ class ProductController extends Controller
     //         ];
     //     }));
     // }
-    
+
 
     //    public function getDatatables(Request $request)
     //    {
@@ -495,8 +539,7 @@ class ProductController extends Controller
                 ->editColumn('ps_name_show', function ($data) {
                     return '<span style="white-space: nowrap;">' . $data->ps_name . '</span>';
                 })
-                ->editColumn('p_size', function ($data) {
-                })
+                ->editColumn('p_size', function ($data) {})
                 ->editColumn('p_action', function ($data) {
                     $product_stock = new ProductStock;
                     $select = ['product_stocks.id as psid', 'p_id', 'sz_id', 'sz_name', 'ps_qty', 'ps_barcode', 'ps_running_code'];
@@ -673,7 +716,7 @@ class ProductController extends Controller
         }
 
         if ($this->runningCodeExists($new_running_code)) {
-            return $this-> generateRunningCode();
+            return $this->generateRunningCode();
         }
         return $new_running_code;
     }
@@ -802,7 +845,7 @@ class ProductController extends Controller
                             'p_id' => $id,
                             'sz_id' => $exp[$i],
                             'ps_qty' => '0',
-//                            'ps_running_code' => $this->generateRunningCode()
+                            //                            'ps_running_code' => $this->generateRunningCode()
                         ]);
                     } else {
                         $check_current_size = ProductStock::where(['p_id' => $id, 'sz_id' => $exp[$i]])->exists();
@@ -833,7 +876,7 @@ class ProductController extends Controller
         $id_barcode = $request->_id;
         $ps = ProductStock::where(['id' => $running])->update(['ps_barcode' => $barcode]);
         if (!empty($ps)) {
-            $this->UserActivity('mengubah barcode produk ' . $barcode . ' Berhasil ' );
+            $this->UserActivity('mengubah barcode produk ' . $barcode . ' Berhasil ');
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -932,9 +975,7 @@ class ProductController extends Controller
 
     public function exportDataBarcode()
     {
-//        set_time_limit(4096);
+        //        set_time_limit(4096);
         return Excel::download(new ProductExport, 'product_data_barcode.xlsx');
     }
-
-
 }

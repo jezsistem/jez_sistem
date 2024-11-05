@@ -3,7 +3,7 @@
         var output = document.getElementById('imagePreview');
         output.src = URL.createObjectURL(event.target.files[0]);
         output.onload = function() {
-        URL.revokeObjectURL(output.src) // free memory
+            URL.revokeObjectURL(output.src) // free memory
         }
     };
 
@@ -11,14 +11,14 @@
         var output = document.getElementById('bannerPreview');
         output.src = URL.createObjectURL(event.target.files[0]);
         output.onload = function() {
-        URL.revokeObjectURL(output.src) // free memory
+            URL.revokeObjectURL(output.src) // free memory
         }
     };
 
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -49,12 +49,16 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {id:pid, image:image},
+                        data: {
+                            id: pid,
+                            image: image
+                        },
                         dataType: 'json',
-                        url: "{{ url('delete_logo_brand')}}",
+                        url: "{{ url('delete_logo_brand') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                toast("Berhasil", "Logo berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toast("Berhasil", "Logo berhasil dihapus",
+                                    "success");
                                 $(".p_main_image_item").attr('src', '')
                                 $("#p_main_image").val('');
                                 $('#br_image').val('');
@@ -93,12 +97,16 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {id:bid, image:image},
+                        data: {
+                            id: bid,
+                            image: image
+                        },
                         dataType: 'json',
-                        url: "{{ url('delete_banner_brand')}}",
+                        url: "{{ url('delete_banner_brand') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                toast("Berhasil", "Banner berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toast("Berhasil", "Banner berhasil dihapus",
+                                    "success");
                                 $('#br_banner').val('');
                                 article_table.draw(false);
                             } else {
@@ -117,43 +125,70 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('brand_datatables') }}",
-                data : function (d) {
+                url: "{{ url('brand_datatables') }}",
+                data: function(d) {
                     d.search = $('#brand_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'br_image_show', name: 'br_image' },
-            { data: 'br_banner_show', name: 'br_banner' },
-            { data: 'br_name', name: 'br_name' },
-            { data: 'br_slug', name: 'br_slug' },
-            { data: 'br_description', name: 'br_description' },
-            { data: 'is_local_show', name: 'is_local' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'br_image_show',
+                    name: 'br_image'
+                },
+                {
+                    data: 'br_banner_show',
+                    name: 'br_banner'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'br_slug',
+                    name: 'br_slug'
+                },
+                {
+                    data: 'br_description',
+                    name: 'br_description'
+                },
+                {
+                    data: 'is_local_show',
+                    name: 'is_local'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        brand_table.buttons().container().appendTo($('#brand_excel_btn' ));
+        brand_table.buttons().container().appendTo($('#brand_excel_btn'));
         $('#brand_search').on('keyup', function() {
             brand_table.draw();
         });
 
-        $('#Brandtb tbody').on('click', 'tr td:not(:nth-child(2), :nth-child(3))', function () {
+        $('#Brandtb tbody').on('click', 'tr td:not(:nth-child(2), :nth-child(3))', function() {
             $('#imagePreview').attr('src', '');
             $('#bannerPreview').attr('src', '');
             var id = brand_table.row(this).data().id;
@@ -170,17 +205,17 @@
             $('#br_description').val(br_description);
             $('#is_local').val(is_local);
             if (br_image != null) {
-                $('#imagePreview').attr('src', "{{ asset('api/brand/') }}/"+br_image);
+                $('#imagePreview').attr('src', "{{ asset('api/brand/') }}/" + br_image);
             }
             if (br_banner != null) {
-                $('#bannerPreview').attr('src', "{{ asset('api/brand/banner/') }}/"+br_banner);
+                $('#bannerPreview').attr('src', "{{ asset('api/brand/banner/') }}/" + br_banner);
             }
             $('#_id').val(id);
             $('#_mode').val('edit');
             $('#_image').val(br_image);
             $('#_banner').val(br_banner);
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_brand_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_brand_btn').show();
             @endif
         });
 
@@ -198,17 +233,21 @@
             var br_name = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_br_name:br_name},
+                data: {
+                    _br_name: br_name
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_brand')}}",
+                url: "{{ url('check_exists_brand') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Brand', 'Nama brand sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Brand',
+                            'Nama brand sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#br_name').val('');
                         return false;
                     }
@@ -222,11 +261,11 @@
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('br_import')}}",
+                type: 'POST',
+                url: "{{ url('br_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -243,7 +282,7 @@
                         swal('Gagal', 'Data gagal diimport', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -255,11 +294,11 @@
             $("#save_brand_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('br_save')}}",
+                type: 'POST',
+                url: "{{ url('br_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -276,16 +315,16 @@
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
         });
 
-        $('#delete_brand_btn').on('click', function(){
+        $('#delete_brand_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -296,21 +335,25 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('br_delete')}}",
+                        url: "{{ url('br_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success(
+                                "Data berhasil dihapus"); // Mengganti swal dengan toastr
                                 $('#BrandModal').modal('hide');
                                 brand_table.draw();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error(
+                                "Gagal hapus data"); // Mengganti swal dengan toastr
                             }
                         }
                     });
@@ -318,6 +361,7 @@
                 }
             })
         });
+
 
     });
 </script>

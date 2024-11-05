@@ -1,7 +1,33 @@
 <script src="https://cdn.tiny.cloud/1/323apjbgqf1hr5qmcz0u8uwvl3oymnrypmtg98wfpvhw0khd/tinymce/5/tinymce.min.js"
     referrerpolicy="origin"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+
+
+
 <script>
+    function toggleFlag(column, productId) {
+        fetch(`/data_produk/update-flag/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    column: column
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update status on the page
+                    const statusSpan = document.getElementById(column + '_status');
+                    statusSpan.textContent = data.newValue ? '✓' : '✗';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+
     // Function to show all sizes (All Schema)
     function showAllSchema() {
         const rows = document.querySelectorAll("#sizeTable tbody tr");
@@ -194,26 +220,32 @@
         }
     }
 
-
     function getProductSizeBarcode(id) {
         var barcode = $('#product_size_barcode' + id).val();
         var running = $('#product_size_running_code' + id).val();
         var sz_id = $('#product_size_barcode' + id).attr('data-id');
         var sz_barcode = sz_id + '-' + barcode;
-        if ($('#_sz_barcode').val() != '') {
-            var current_sz_barcode = $('#_sz_barcode').val() + sz_barcode + '|';
-        } else {
-            var current_sz_barcode = sz_barcode + '|';
-        }
 
+        // Menyimpan barcode baru
+        var current_sz_barcode = $('#_sz_barcode').val();
+        if (current_sz_barcode != '') {
+            current_sz_barcode += sz_barcode + '|';
+        } else {
+            current_sz_barcode = sz_barcode + '|';
+        }
         $('#_sz_barcode').val(current_sz_barcode);
+
+        // Menonaktifkan input barcode
         $('#product_size_barcode' + id).prop('disabled', true);
-        //alert(sz_barcode+' ==== '+current_sz_barcode);
+
+        // Setup AJAX untuk CSRF Token
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        // Memeriksa apakah barcode sudah ada
         $.ajax({
             type: "POST",
             data: {
@@ -221,54 +253,120 @@
             },
             dataType: 'json',
             url: "{{ url('check_exists_barcode') }}",
-            success: function(r) {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-                $.ajax({
-                    type: "POST",
-                    data: {
-                        _running: running,
-                        _barcode: barcode,
-                        _id: id
-                    },
-                    dataType: 'json',
-                    url: "{{ url('update_barcode') }}",
-                    success: function(r) {
-                        if (r.status == '200') {
-                            toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
+            success: function(response) {
+                if (response.status == '200') {
+                    // Jika barcode sudah ada
+                    swal('Barcode', 'Barcode sudah ada dalam sistem, silahkan ganti dengan yang lain',
+                        'warning');
+                    $('#product_size_barcode' + id).val('');
+                    $('#product_size_barcode' + id).prop('disabled', false);
+                } else {
+                    // Jika barcode belum ada, lanjutkan untuk menyimpan
+                    $.ajax({
+                        type: "POST",
+                        data: {
+                            _running: running,
+                            _barcode: barcode,
+                            _id: id
+                        },
+                        dataType: 'json',
+                        url: "{{ url('update_barcode') }}",
+                        success: function(r) {
+                            if (r.status == '200') {
+                                toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
+                            } else {
+                                toast('Gagal', 'Terjadi kesalahan saat menyimpan barcode',
+                                    'error');
+                            }
+                        },
+                        error: function() {
+                            toast('Gagal', 'Terjadi kesalahan saat menyimpan barcode', 'error');
                         }
-                    }
-                });
-                // if (r.status == '200') {
-                //     swal('Barcode', 'Barcode sudah ada dalam sistem, silahkan ganti dengan yang lain', 'warning');
-                //     $('#product_size_barcode'+id).val('');
-                //     $('#product_size_barcode'+id).prop('disabled', false);
-                //     //alert(r.hasil);
-                //     return false;
-                // } else {
-                //     $.ajaxSetup({
-                //         headers: {
-                //         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                //         }
-                //     });
-                //     $.ajax({
-                //         type: "POST",
-                //         data: {_running:running, _barcode:barcode},
-                //         dataType: 'json',
-                //         url: "{{ url('update_barcode') }}",
-                //         success: function(r) {
-                //             if (r.status == '200') {
-                //                 toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
-                //             }
-                //         }
-                //     });
-                // }
+                    });
+                }
+            },
+            error: function() {
+                toast('Gagal', 'Terjadi kesalahan saat memeriksa barcode', 'error');
             }
         });
     }
+
+
+
+    // function getProductSizeBarcode(id) {
+    //     var barcode = $('#product_size_barcode' + id).val();
+    //     var running = $('#product_size_running_code' + id).val();
+    //     var sz_id = $('#product_size_barcode' + id).attr('data-id');
+    //     var sz_barcode = sz_id + '-' + barcode;
+    //     if ($('#_sz_barcode').val() != '') {
+    //         var current_sz_barcode = $('#_sz_barcode').val() + sz_barcode + '|';
+    //     } else {
+    //         var current_sz_barcode = sz_barcode + '|';
+    //     }
+
+    //     $('#_sz_barcode').val(current_sz_barcode);
+    //     $('#product_size_barcode' + id).prop('disabled', true);
+    //     //alert(sz_barcode+' ==== '+current_sz_barcode);
+    //     $.ajaxSetup({
+    //         headers: {
+    //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    //         }
+    //     });
+    //     $.ajax({
+    //         type: "POST",
+    //         data: {
+    //             _barcode: barcode
+    //         },
+    //         dataType: 'json',
+    //         url: "{{ url('check_exists_barcode') }}",
+    //         success: function(r) {
+    //             $.ajaxSetup({
+    //                 headers: {
+    //                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    //                 }
+    //             });
+    //             $.ajax({
+    //                 type: "POST",
+    //                 data: {
+    //                     _running: running,
+    //                     _barcode: barcode,
+    //                     _id: id
+    //                 },
+    //                 dataType: 'json',
+    //                 url: "{{ url('update_barcode') }}",
+    //                 success: function(r) {
+    //                     if (r.status == '200') {
+    //                         toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
+    //                     }
+    //                 }
+    //             });
+    //             // if (r.status == '200') {
+    //             //     swal('Barcode', 'Barcode sudah ada dalam sistem, silahkan ganti dengan yang lain', 'warning');
+    //             //     $('#product_size_barcode'+id).val('');
+    //             //     $('#product_size_barcode'+id).prop('disabled', false);
+    //             //     //alert(r.hasil);
+    //             //     return false;
+    //             // } else {
+    //             //     $.ajaxSetup({
+    //             //         headers: {
+    //             //         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    //             //         }
+    //             //     });
+    //             //     $.ajax({
+    //             //         type: "POST",
+    //             //         data: {_running:running, _barcode:barcode},
+    //             //         dataType: 'json',
+    //             //         url: "{{ url('update_barcode') }}",
+    //             //         success: function(r) {
+    //             //             if (r.status == '200') {
+    //             //                 toast('Tersimpan', 'Barcode berhasil tersimpan', 'success');
+    //             //             }
+    //             //         }
+    //             //     });
+    //             // }
+    //         }
+    //     });
+    // }
 
     function getProductPriceTag(id) {
         var price_tag = $('#product_size_price_tag' + id).val();
@@ -894,6 +992,8 @@
             });
         }
 
+
+        //producttb 
         $('#Producttb tbody').on('click', 'tr td:not(:nth-child(11))', function() {
             jQuery('#product_qr').empty();
             $('#f_product')[0].reset();
@@ -926,6 +1026,10 @@
             var schema_size = product_table.row(this).data().schema_size;
             var subcategory1 = product_table.row(this).data().subcategory1;
             var subcategory2 = product_table.row(this).data().subcategory2;
+            var mp_best_seller = product_table.row(this).data().mp_best_seller;
+            var mp_stock_masking = product_table.row(this).data().mp_stock_masking;
+            var complement = product_table.row(this).data().complement;
+            var consignment = product_table.row(this).data().consignment;
             var check_pc_id = $('#pc_id').val();
 
             console.log(product_table.row(this).data())

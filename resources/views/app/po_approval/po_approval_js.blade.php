@@ -266,6 +266,8 @@
             var ps_name = po_approval_table.row(this).data().ps_name;
             // var full_date = po_approval_table.row(this).data().created_at;
             // var tgl_terima = full_date.split(' ')[0];
+            var stkt_id = po_approval_table.row(this).data().stkt_id;
+            var tax_id = po_approval_table.row(this).data().tax_id;
             var today = new Date();
             var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
             var po_description = po_approval_table.row(this).data().po_description;
@@ -298,6 +300,8 @@
                     $('#shipping_cost').val(shipping_cost);
                     $('#_po_id').val(po_id);
                     $('#total_approval_price').text("Rp. " + r);
+                    $('#stkt_id').val(stkt_id);
+                    $('#tax_id').val(tax_id);
 
                     purchaseOrderInvoiceTable.draw();
                 }

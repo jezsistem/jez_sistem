@@ -185,18 +185,41 @@ class POReceiveApprovalController extends Controller
                 ->make(true);
         }
     }
+    // public function poReceiveDetail(Request $request)
+    // {
+    //     $po_id = $request->_po_id;
+    //     $check = PurchaseOrder::where(['id' => $po_id])->exists();
+    //     if ($check) {
+    //         $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
+    //         $r['status'] = '200';
+    //         $r['po_id'] = $draft->id;
+    //         $r['st_id'] = $draft->st_id;
+    //         $r['ps_id'] = $draft->ps_id;
+    //         $r['stkt_id'] = $draft->stkt_id;
+    //         $r['tax_id'] = $draft->tax_id;
+    //         $r['po_description'] = $draft->po_description;
+    //         $r['po_shipping_cost'] = $draft->po_shipping_cost;
+    //         $r['po_invoice'] = $draft->po_invoice;
+    //     } else {
+    //         $r['status'] = '400';
+    //     }
+    //     return json_encode($r);
+    // }
 
     public function getDetailDatatables(Request $request)
     {
         if (request()->ajax()) {
             return datatables()->of(DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
-            u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, poad_purchase_price, 
-            ts_product_stocks.ps_barcode,ts_product_stocks.ps_qty,poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name")
+                    u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, 
+                    poad_purchase_price, ts_product_stocks.ps_barcode, ts_product_stocks.ps_qty,
+                    poad_total_price, ts_purchase_order_article_detail_statuses.created_at, 
+                    ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, 
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-                ->Join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-                ->Join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
@@ -218,6 +241,7 @@ class POReceiveApprovalController extends Controller
                 ->make(true);
         }
     }
+
 
 
     public function approveData(Request $request)
@@ -277,7 +301,7 @@ class POReceiveApprovalController extends Controller
 
     // create total poads_total_price by poads_invoice
     public function createTotalPrice(Request $request)
-    {
+    {   
         $total_price = DB::table('purchase_order_article_detail_statuses')->selectRaw('sum(poads_total_price) as total_price')
             ->where('poads_invoice', '=', $request->invoice)->get()->first()->total_price;
         return $total_price;
