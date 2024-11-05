@@ -19,8 +19,8 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('cek_dana_online_datatables') }}",
-                data: function(d) {
+                url: "{{ route('cek_dana_online_datatables') }}",
+                    data: function(d) {
                     d.search = $('#cek_dana_online_search').val();
                     d.st_id = $('#st_id_filter').val();
                     d.status = $('#filter_status').val();

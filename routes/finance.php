@@ -9,6 +9,7 @@ use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\DebtListController;
 use App\Http\Controllers\CekDanaOnlineController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -93,5 +94,5 @@ Route::middleware(['auth'])->group(function () {
 
     //Cek Dana Online Finance
     Route::get('cek_dana_online', [CekDanaOnlineController::class, 'index'])->name('cek_dana_online');
-    Route::get('cek_dana_online_datatables', [CekDanaOnlineController::class, 'getDatatables']);
+    Route::get('cek_dana_online_datatables', [CekDanaOnlineController::class, 'getDatatables'])->name('cek_dana_online_datatables');
 });
