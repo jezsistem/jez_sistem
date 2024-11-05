@@ -1,5 +1,7 @@
 @if (!empty($data['product']))
 <div class="table-responsive">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <table class="table table-hover table-checkable" id="PurchaseOrdertb">
     <thead class="bg-light text-dark">
         <tr>

@@ -105,7 +105,7 @@
     function deletePoad(id) {
         swal({
             title: "Hapus..?",
-            text: "Yakin hapus data ini ?",
+            text: "Yakin hapus data ini?",
             icon: "warning",
             buttons: [
                 'Batalkan',
@@ -129,22 +129,26 @@
                     url: "{{ url('poad_delete') }}",
                     success: function(r) {
                         if (r.status == '200') {
-                            swal("Berhasil", "Data berhasil dihapus", "success");
+                            toastr.success("Data berhasil dihapus", "Berhasil");
                             reloadArticleDetail(po_id);
                         } else {
-                            swal('Gagal', 'Gagal hapus data', 'error');
+                            toastr.error('Gagal hapus data', 'Gagal');
                         }
+                    },
+                    error: function() {
+                        toastr.error('Terjadi kesalahan saat menghapus data', 'Error');
                     }
                 });
                 return false;
             }
-        })
+        });
     }
+
 
     function deletePoa(id, po_id) {
         swal({
             title: "Hapus..?",
-            text: "Yakin hapus data ini ?",
+            text: "Yakin hapus data ini?",
             icon: "warning",
             buttons: [
                 'Batalkan',
@@ -167,17 +171,21 @@
                     url: "{{ url('poa_delete') }}",
                     success: function(r) {
                         if (r.status == '200') {
-                            swal("Berhasil", "Data berhasil dihapus", "success");
+                            toastr.success("Data berhasil dihapus", "Berhasil");
                             reloadArticleDetail(po_id);
                         } else {
-                            swal('Gagal', 'Gagal hapus data', 'error');
+                            toastr.error('Gagal hapus data', 'Gagal');
                         }
+                    },
+                    error: function() {
+                        toastr.error('Terjadi kesalahan saat menghapus data', 'Error');
                     }
                 });
                 return false;
             }
-        })
+        });
     }
+
 
     // CALCULATION 
     function poadPurchasePrice(id, index, purchase_price) {
@@ -425,7 +433,7 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        
+
         $.ajax({
             type: "POST",
             data: {
@@ -433,7 +441,7 @@
                 _qty: qty,
                 _total: total,
                 _purchase_price: replaceComma(purchase_price)
-                
+
             },
             dataType: 'json',
             url: "{{ url('poad_save_qty_total') }}",
@@ -1201,7 +1209,7 @@
             var pro_id = $(this).val();
             var po_id = $('#_po_id').val();
 
-            if (pro_id == '') {                
+            if (pro_id == '') {
                 return
             }
             $.ajaxSetup({
@@ -1209,7 +1217,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            
+
             console.log([
                 'po_id: ' + po_id,
                 'pro_id: ' + pro_id
@@ -1320,7 +1328,8 @@
             var formData = new FormData(this);
             var po_invoice_label = $('#po_invoice_label').text();
 
-            formData.append('_po_invoice_label', po_invoice_label)
+            formData.append('_po_invoice_label', po_invoice_label);
+
             $.ajax({
                 type: 'POST',
                 url: "{{ url('po_import') }}",
@@ -1330,31 +1339,31 @@
                 contentType: false,
                 processData: false,
                 success: function(data) {
-
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
+                    $("#ImportModal").modal('hide');
+
                     if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_import')[0].reset();
-                        reloadArticleDetail(data.po_id)
+                        reloadArticleDetail(data.po_id);
                     } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
+                        toastr.warning(
+                            'File yang anda import kosong atau format tidak tepat',
+                            'File');
                     } else {
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal',
+                        toastr.warning(
                             'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
+                            'Gagal');
                     }
                 },
                 error: function(data) {
-                    swal('Error', data, 'error');
+                    toastr.error('Terjadi kesalahan saat mengimport data', 'Error');
                 }
             });
         });
+
 
         $('#f_upload_invoice_image').on('submit', function(e) {
             e.preventDefault();
@@ -1363,7 +1372,7 @@
             var formData = new FormData(this);
             var po_id = $('#_po_id').val();
 
-            formData.append('_po_id', po_id)
+            formData.append('_po_id', po_id);
             $.ajax({
                 type: 'POST',
                 url: "{{ url('po_invoice_image') }}",
@@ -1376,36 +1385,36 @@
                     $("#upload_image_invoice_btn").html('Upload');
                     $("#upload_image_invoice_btn").attr("disabled", false);
                     jQuery.noConflict();
+                    $("#UploadImageInvoiceModal").modal('hide');
+
                     if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_upload_invoice_image')[0].reset();
-                        reloadArticleDetail(po_id)
+                        reloadArticleDetail(po_id);
                     } else if (data.status == '400') {
-                        $("#UploadImageInvoiceModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
+                        toastr.warning(
+                            'File yang anda import kosong atau format tidak tepat',
+                            'File');
                     } else {
-                        $("#UploadImageInvoiceModal").modal('hide');
-                        swal('Gagal',
+                        toastr.warning(
                             'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
+                            'Gagal');
                     }
                 },
                 error: function(data) {
-                    swal('Error', data, 'error');
-
+                    toastr.error('Terjadi kesalahan saat mengupload data', 'Error');
                 }
             });
         });
 
-         $('#f_upload_transfer_image').on('submit', function(e) {
+        $('#f_upload_transfer_image').on('submit', function(e) {
             e.preventDefault();
             $('#upload_image_transfer_btn').html('Proses...');
             $('#upload_image_transfer_btn').attr('disabled', true);
             var formData = new FormData(this);
-            var po_id = $('#_po_id').val();            
-            formData.append('_po_id', po_id)
+            var po_id = $('#_po_id').val();
+            formData.append('_po_id', po_id);
+
             $.ajax({
                 type: 'POST',
                 url: "{{ url('po_transfer_image') }}",
@@ -1418,28 +1427,28 @@
                     $("#upload_image_transfer_btn").html('Upload');
                     $("#upload_image_transfer_btn").attr("disabled", false);
                     jQuery.noConflict();
+                    $("#UploadImageTransferModal").modal('hide');
+
                     if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_upload_transfer_image')[0].reset();
-                        reloadArticleDetail(po_id)
+                        reloadArticleDetail(po_id);
                     } else if (data.status == '400') {
-                        $("#UploadImageTransferModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
+                        toastr.warning(
+                            'File yang anda import kosong atau format tidak tepat',
+                            'File');
                     } else {
-                        $("#UploadImageTransferModal").modal('hide');
-                        swal('Gagal',
+                        toastr.warning(
                             'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
+                            'Gagal');
                     }
                 },
                 error: function(data) {
-                    swal('Error', data, 'error');
-
+                    toastr.error('Terjadi kesalahan saat mengupload data', 'Error');
                 }
             });
         });
+
 
         $(document).delegate('#ExportArticleData', 'click', function(e) {
             e.preventDefault();

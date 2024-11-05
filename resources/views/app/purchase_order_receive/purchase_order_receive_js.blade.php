@@ -69,7 +69,7 @@
     }
 
 
-//cek barcode yang awal
+    //cek barcode yang awal
     // function checkBarcodeImport(id, excelData)
     // {
     //     $.ajaxSetup({
@@ -240,7 +240,7 @@
                 var poads_discount = $('#poa_discount' + poa_id).val();
                 var poads_extra_discount = $('#poa_extra_discount' + poa_id).val();
                 var poads_purchase_price = replaceComma($('#poad_purchase_price_' + poa_id + '_' + index)
-            .val());
+                    .val());
                 var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
                 var poads_cogs = replaceComma($('#cogs_' + poa_id + '_' + index).val());
                 var shipping_cost = $('#shipping_cost').val();
@@ -289,12 +289,16 @@
                             $('#packetImage').val('');
                             $('#shipping_cost').val('');
                             reloadArticleDetail(po_id);
-                            swal("Berhasil", "Data berhasil disimpan", "success");
+                            toastr.success("Data berhasil disimpan", "Berhasil");
                         } else {
-                            swal('Gagal', 'Gagal simpan data', 'error');
+                            toastr.error("Gagal simpan data", "Gagal");
                         }
+                    },
+                    error: function() {
+                        toastr.error("Terjadi kesalahan saat menyimpan data", "Error");
                     }
                 });
+
                 return false;
             }
         })
@@ -351,12 +355,16 @@
             processData: false,
             success: function(r) {
                 if (r.status == '200') {
-                    toast("Berhasil", "Data berhasil disimpan", "success");
+                    toastr.success("Data berhasil disimpan", "Berhasil");
                 } else {
-                    swal('Gagal', 'Gagal simpan data', 'error');
+                    toastr.error("Gagal simpan data", "Gagal");
                 }
             },
+            error: function() {
+                toastr.error("Terjadi kesalahan saat menyimpan data", "Error");
+            }
         });
+
         return false;
     }
 
@@ -420,15 +428,16 @@
                     success: function(r) {
                         console.log(r);
                         if (r.status == '200') {
-                            toast("Berhasil", "Berhasil Mengirim Whatsapp Notifikasi", "success");
+                            toastr.success("Berhasil Mengirim Whatsapp Notifikasi", "Berhasil");
                         } else {
-                            toast('Gagal', 'Gagal mengirim pesan', 'error');
+                            toastr.error("Gagal mengirim pesan", "Gagal");
                         }
                     },
                     error: function(xhr, status, error) {
-                        toast('Error', 'Terjadi kesalahan saat mengirim notifikasi', 'error');
+                        toastr.error("Terjadi kesalahan saat mengirim notifikasi", "Error");
                     }
                 });
+
                 reloadArticleDetail(po_id);
             }
         });
@@ -437,7 +446,7 @@
     function deletePoad(id) {
         swal({
             title: "Hapus..?",
-            text: "Yakin hapus data ini ?",
+            text: "Yakin hapus data ini?",
             icon: "warning",
             buttons: [
                 'Batalkan',
@@ -461,22 +470,26 @@
                     url: "{{ url('poad_delete') }}",
                     success: function(r) {
                         if (r.status == '200') {
-                            swal("Berhasil", "Data berhasil dihapus", "success");
+                            toastr.success("Data berhasil dihapus", "Berhasil");
                             reloadArticleDetail(po_id);
                         } else {
-                            swal('Gagal', 'Gagal hapus data', 'error');
+                            toastr.error("Gagal hapus data", "Gagal");
                         }
+                    },
+                    error: function() {
+                        toastr.error("Terjadi kesalahan saat menghapus data", "Error");
                     }
                 });
                 return false;
             }
-        })
+        });
     }
+
 
     function deletePoa(id, po_id) {
         swal({
             title: "Hapus..?",
-            text: "Yakin hapus data ini ?",
+            text: "Yakin hapus data ini?",
             icon: "warning",
             buttons: [
                 'Batalkan',
@@ -499,17 +512,21 @@
                     url: "{{ url('poa_delete') }}",
                     success: function(r) {
                         if (r.status == '200') {
-                            swal("Berhasil", "Data berhasil dihapus", "success");
+                            toastr.success("Data berhasil dihapus", "Berhasil");
                             reloadArticleDetail(po_id);
                         } else {
-                            swal('Gagal', 'Gagal hapus data', 'error');
+                            toastr.error("Gagal hapus data", "Gagal");
                         }
+                    },
+                    error: function() {
+                        toastr.error("Terjadi kesalahan saat menghapus data", "Error");
                     }
                 });
                 return false;
             }
-        })
+        });
     }
+
 
     // CALCULATION
     function poadPurchasePrice(id, index, purchase_price) {
@@ -695,7 +712,7 @@
         $('#total_purchase_price_receive' + id + '_' + index).val(addCommas(total));
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive' + id + '_' + i)
-            .val()));
+                .val()));
         }
 
         // Loop through all input fields with the specified ID format
@@ -755,7 +772,7 @@
         $('#total_purchase_price_receive' + id + '_' + index).val(addCommas(total));
         for (let i = 0; i < total_row; ++i) {
             total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_receive' + id + '_' + i)
-            .val()));
+                .val()));
         }
 
         var shipping_cost_pcs = shipping_cost / order_qty;
@@ -829,16 +846,20 @@
                         url: "{{ url('po_invoice_image_delete') }}",
                         success: function(r) {
                             if (r.status == '200') {
-                                toast('Dihapus', 'Gambar berhasil dihapus', 'success');
+                                toastr.success('Gambar berhasil dihapus', 'Dihapus');
                                 $('#invoice_image_' + id).remove();
                             } else {
-                                toast('Gagal', 'Gambar gagal dihapus', 'warning');
+                                toastr.warning('Gambar gagal dihapus', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan saat menghapus gambar', 'Error');
                         }
                     });
                 }
             });
     }
+
     // CALCULATION
 
     $(document).delegate('#po_check_item', 'click', function() {
@@ -1329,14 +1350,15 @@
                 },
                 success: function() {
                     // Reload the DataTable after successful deletion
-                    swal('Sukses', 'Gambar berhasil dihapus', 'success');
+                    toastr.success('Gambar berhasil dihapus', 'Sukses');
                     purchaseOrderInvoiceTable.ajax.reload();
                 },
                 error: function() {
-                    swal('Error', 'Gagal menghapus gambar', 'error');
+                    toastr.error('Gagal menghapus gambar', 'Error');
                 }
             });
         });
+
 
         $('#purchaseOrderDeliveryOrderImagesTb tbody').on('click', '#delete-image-po-surat-jalan', function() {
             var imageId = purchaseOrderDeliveryOrderImageTable.row($(this).parents('tr')).data().id;
@@ -1349,11 +1371,11 @@
                 },
                 success: function(data) {
                     // Reload the DataTable after successful deletion
-                    swal('Sukses', 'Gambar berhasil dihapus', 'success');
+                    toastr.success('Gambar berhasil dihapus', 'Sukses');
                     purchaseOrderDeliveryOrderImageTable.ajax.reload();
                 },
                 error: function() {
-                    swal('Error', 'Gagal menghapus gambar', 'error');
+                    toastr.error('Gagal menghapus gambar', 'Error');
                 }
             });
         });
@@ -1435,7 +1457,7 @@
             var formData = new FormData(this);
             swal({
                 title: "Simpan..?",
-                text: "Yakin simpan penerimaan ?",
+                text: "Yakin simpan penerimaan?",
                 icon: "warning",
                 buttons: [
                     'Jangan Simpan',
@@ -1462,21 +1484,29 @@
                                 $('#EditPoadsModal').modal('hide');
                                 poads_table.draw(false);
                                 reloadArticleDetail($('#_po_id').val());
+                                toastr.success('Data berhasil disimpan',
+                                    'Sukses'); // Use toastr for success
                             } else {
-                                swal('Gagal', 'Gagal simpan revisi', 'error');
+                                toastr.error('Gagal simpan revisi',
+                                    'Error'); // Use toastr for error
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan dalam menyimpan data',
+                                'Error'); // Handle AJAX errors
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $('#delete_poads_btn').on('click', function(e) {
             e.preventDefault();
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data penerimaan ini ?",
+                text: "Yakin hapus data penerimaan ini?",
                 icon: "warning",
                 buttons: [
                     'Jangan Hapus',
@@ -1502,21 +1532,29 @@
                                 $('#EditPoadsModal').modal('hide');
                                 poads_table.draw(false);
                                 reloadArticleDetail($('#_po_id').val());
+                                toastr.success('Data penerimaan berhasil dihapus',
+                                    'Sukses'); // Use toastr for success
                             } else {
-                                swal('Gagal', 'Gagal hapus penerimaan', 'error');
+                                toastr.error('Gagal hapus penerimaan',
+                                    'Error'); // Use toastr for error
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                                'Terjadi kesalahan saat menghapus penerimaan',
+                                'Error'); // Handle AJAX errors
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
 
         $('#delete_po_invoice_btn').on('click', function(e) {
             e.preventDefault();
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data gambar ini ?",
+                text: "Yakin hapus data gambar ini?",
                 icon: "warning",
                 buttons: [
                     'Jangan Hapus',
@@ -1542,15 +1580,23 @@
                                 $('#EditPoadsModal').modal('hide');
                                 poads_table.draw(false);
                                 reloadArticleDetail($('#_po_id').val());
+                                toastr.success('Data gambar berhasil dihapus',
+                                    'Sukses'); // Use toastr for success
                             } else {
-                                swal('Gagal', 'Gagal hapus penerimaan', 'error');
+                                toastr.error('Gagal hapus gambar',
+                                    'Error'); // Use toastr for error
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan saat menghapus gambar',
+                                'Error'); // Handle AJAX errors
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).ready(function() {
             // Open the second modal when the button is clicked
@@ -1657,7 +1703,7 @@
         $('#cancel_purchase_order_btn').on('click', function() {
             swal({
                 title: "Batal..?",
-                text: "Yakin hapus PO ?",
+                text: "Yakin hapus PO?",
                 icon: "warning",
                 buttons: [
                     'Jangan Hapus',
@@ -1682,15 +1728,23 @@
                             if (r.status == '200') {
                                 $('#PurchaseOrderModal').modal('hide');
                                 purchase_order_table.draw(false);
+                                toastr.success('PO berhasil dibatalkan',
+                                'Sukses'); // Use toastr for success
                             } else {
-                                swal('Gagal', 'Gagal batalkan PO', 'error');
+                                toastr.error('Gagal batalkan PO',
+                                'Error'); // Use toastr for error
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan saat membatalkan PO',
+                                'Error'); // Handle AJAX errors
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).ready(function() {
             $("#InvoiceImagesBtn").click(function() {
@@ -1755,7 +1809,8 @@
                                             parseInt(1)) + "</td><td>" +
                                         row['po_created'] +
                                         "</td><td>" + row[
-                                        'po_invoice'] + "</td><td>" +
+                                            'po_invoice'] +
+                                        "</td><td>" +
                                         row['store'] + "</td><td>" +
                                         row['brand'] + "</td><td>" +
                                         row['article'] + "</td><td>" +

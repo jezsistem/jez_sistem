@@ -1,5 +1,7 @@
 <!-- Modal-->
 <div class="modal fade" id="PurchaseOrderModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="overflow-y: auto;">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="modal-dialog modal-xl" role="document" style="width:100%; max-width:1300px;">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -135,7 +137,7 @@
                         </div>
                     </div>
                     <div class="col-2 mt-2">
-                        <label>Gambar Transafer</label>
+                        <label>Gambar Transfer</label>
                         <div class="mr-2">
                             <div class="dropdown dropdown-inline mr-2">
                                 <a type="button" class="btn btn-light-primary font-weight-bolder" id="UploadImageTransferBtn" aria-haspopup="true" aria-expanded="false">
@@ -394,7 +396,7 @@
                 <div class="modal-body">
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Pilih Gambar Transafer</label>
+                            <label>Pilih Gambar Transfer</label>
                             <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="imageTransfers[]" id="imageTransfers" multiple required/>
                         </div>
