@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\User;
 use App\Models\WebConfig;
 use Illuminate\Http\Request;
@@ -109,10 +111,40 @@ class PurchaseOrderReceiveCODController extends Controller
                     }
                 })
                 ->rawColumns(['poads_invoice_show', 'u_receive'])
-
                 ->addIndexColumn()
                 ->make(true);
         }
+    }
+
+    public function uploadImageInvoice(Request $request)
+    {
+
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            if ($request->hasFile('imageInvoices')) {
+                foreach ($request->file('imageInvoices') as $file) {
+                    $image = $file;
+                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    $destinationPath = public_path('/upload/purchase_order_invoice');
+
+                    // save destination path
+                    $image->move($destinationPath, $name);
+
+                    PurchaseOrderInvoiceImage::create([
+                        'purchase_order_id' => $po_id,
+                        'invoice_image' => $name,
+                    ]);
+                }
+            }
+        }
+
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
     }
 
     // update Purchase Order Article Detail Status is_paid to true
@@ -121,13 +153,13 @@ class PurchaseOrderReceiveCODController extends Controller
         $affected = DB::table('purchase_order_article_detail_statuses')
             ->where('poads_invoice', $request->invoice)
             ->update(['is_paid' => 1]);
-        
-            
-            if ($affected) {
-                $r['status'] = '200';
-            } else {
-                $r['status'] = '400';
-            }
+
+
+        if ($affected) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
     }
 
 }

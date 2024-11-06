@@ -33,10 +33,10 @@ class Product extends Model
         'schema_size',
         'subcategory1',
         'subcategory2',
-        'MP_best_seller',
-        'MP_stock_masking',
-        'Complement',
-        'Cosignment'
+        'mp_best_seller',
+        'mp_stock_masking',
+        'complement',
+        'consignment'
     ];
 
 
@@ -77,7 +77,7 @@ class Product extends Model
         ];
         if ($mode == 'add') {
             $store = DB::table($this->table)->insertGetId(array_merge($data, $created));
-            return $store;
+            return  $store;
         } else if ($mode == 'edit') {
             try {
                 $store = DB::table($this->table)->where('id', $id)->update(array_merge($data, $updated));

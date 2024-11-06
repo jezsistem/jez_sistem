@@ -1,8 +1,13 @@
 <!-- Modal-->
 
+<<<<<<< HEAD
+<div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+=======
 <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+>>>>>>> origin/temporary
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -19,18 +24,22 @@
                             <label>Download Template
                                 <span class="text-danger">*</span></label>
                             <a href="{{ asset('upload/template/artikel_template_import.xlsx') }}"
-                                class="btn btn-xs btn-primary">Download</a>
+                               class="btn btn-xs btn-primary">Download</a>
                         </div>
                         <div class="form-group">
                             <label>Pilih template yang sudah di download dan diisi
                                 <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="p_template" id="p_template" required />
+                            <input type="file" class="form-control" name="p_template" id="p_template" required/>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
+<<<<<<< HEAD
+                            data-dismiss="modal">Tutup
+=======
                         data-dismiss="modal">Tutup
+>>>>>>> origin/temporary
                     </button>
                     <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Import</button>
                 </div>
@@ -45,14 +54,14 @@
         <div class="modal-content">
             <form id="f_product">
                 @csrf
-                <input type="hidden" name="_id" id="_id" value="" />
-                <input type="hidden" name="_mode" id="_mode" value="" />
-                <input type="hidden" name="_sz_barcode" id="_sz_barcode" value="" />
-                <input type="hidden" name="_sz_id" id="_sz_id" value="" />
-                <input type="hidden" name="_sz_sell_price" id="_sz_sell_price" value="" />
-                <input type="hidden" name="_current_pc_id" id="_current_pc_id" value="" />
-                <input type="hidden" name="_current_psc_id" id="_current_psc_id" value="" />
-                <input type="hidden" name="_current_pssc_id" id="_current_pssc_id" value="" />
+                <input type="hidden" name="_id" id="_id" value=""/>
+                <input type="hidden" name="_mode" id="_mode" value=""/>
+                <input type="hidden" name="_sz_barcode" id="_sz_barcode" value=""/>
+                <input type="hidden" name="_sz_id" id="_sz_id" value=""/>
+                <input type="hidden" name="_sz_sell_price" id="_sz_sell_price" value=""/>
+                <input type="hidden" name="_current_pc_id" id="_current_pc_id" value=""/>
+                <input type="hidden" name="_current_psc_id" id="_current_psc_id" value=""/>
+                <input type="hidden" name="_current_pssc_id" id="_current_pssc_id" value=""/>
                 <div class="modal-header bg-light">
                     <h5 class="modal-title text-dark" id="exampleModalLabel">Artikel </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -65,7 +74,7 @@
                             <div class="col-lg-4 pt-1">
                                 <label>Kode Artikel</label>
                                 <input type="text" name="article_id" id="article_id" class="form-control"
-                                    placeholder="Kode Artikel" />
+                                       placeholder="Kode Artikel"/>
                             </div>
                             <div class="col-lg-4 pt-1 float-right ml-auto">
                                 <div id="product_qr"></div>
@@ -107,7 +116,7 @@
                             <div class="col-lg-4 pt-1">
                                 <label>Nama Artikel <span class="text-danger">*</span></label>
                                 <input type="text" name="p_name" id="p_name" class="form-control"
-                                    placeholder="Nama artikel" required />
+                                       placeholder="Nama artikel" required/>
                             </div>
                             <div class="col-lg-4 pt-1">
                                 <label>Brand <span class="text-danger">*</span></label>
@@ -176,19 +185,19 @@
                             <div class="col-lg-4 pt-1">
                                 <label>Warna Artikel <span class="text-danger">*</span></label>
                                 <input type="text" name="p_color" id="p_color" class="form-control"
-                                    placeholder="Warna artikel" required />
+                                       placeholder="Warna artikel" required/>
                             </div>
                             <div class="col-lg-4 pt-1">
                                 <label>Aging</label>
                                 <input type="month" name="p_aging" id="p_aging" class="form-control"
-                                    placeholder="Aging / Usia Artikel" />
+                                       placeholder="Aging / Usia Artikel"/>
                             </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-4 pt-1">
                                 <label>Berat Items </label>
                                 <input type="number" name="p_weight" id="p_weight" class="form-control"
-                                    placeholder="gram" />
+                                       placeholder="gram"/>
                             </div>
 
                             <div class="col-lg-4 pt-1">
@@ -208,6 +217,96 @@
                                     <option value="">- Is Consignment -</option>
                                     <option value="1">Yes</option>
                                     <option value="0">No</option>
+<<<<<<< HEAD
+
+                                </select>
+                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-lg-4 pt-1">
+                                <label>Complement</label> <span class="text-danger">*</span></label>
+                                <select class="form-control" id="complement" name="complement">
+                                    <option value="">- Is Complement -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+
+                                </select>
+                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>MP Best Seller</label>
+                                <select class="form-control" id="mp_best_seller"
+                                        name="mp_best_seller">
+                                    <option value="">- Is MP Best Seller -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+
+                                </select>
+                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>MP Stock Masking</label>
+                                <select class="form-control" id="mp_stock_masking"
+                                        name="mp_stock_masking">
+                                    <option value="">- MP Stock Masking -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+
+                                </select>
+                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            </div>
+
+                            <!-- resources/views/product_modal.blade.php -->
+                            {{-- <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button"
+                                    id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
+                                    Select Product Flags
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    @foreach (['MP_best_seller', 'MP_stock_masking', 'Complement', 'Cosignment'] as $flag)
+                                        <a class="dropdown-item" href="#"
+                                            onclick="toggleFlag('{{ $flag }}', {{ $product->id }})">
+                                            {{ ucwords(str_replace('_', ' ', $flag)) }}
+                                            <span
+                                                id="{{ $flag }}_status">{{ $product->$flag ? '✓' : '✗' }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div> --}}
+
+                            <!-- Dropdown untuk mengelola flag produk -->
+                            {{--                            <div class="dropdown">--}}
+                            {{--                                <button class="btn btn-secondary dropdown-toggle" type="button"--}}
+                            {{--                                    id="productFlagsDropdown" data-toggle="dropdown" aria-haspopup="true"--}}
+                            {{--                                    aria-expanded="false">--}}
+                            {{--                                    Pilih Flag Produk--}}
+                            {{--                                </button>--}}
+                            {{--                                <div class="dropdown-menu" aria-labelledby="productFlagsDropdown">--}}
+                            {{--                                    @foreach ($data['products'] as $product)--}}
+                            {{--                                        <h5>{{ $product->name ?? 'Produk' }} ID: {{ $product->p_name }}</h5>--}}
+                            {{--                                        <a class="dropdown-item {{ $product->MP_best_seller ? 'bg-pink' : '' }}" href="#"--}}
+                            {{--                                            onclick="toggleFlag({{ $product->p_name }}, 'MP_best_seller')">--}}
+                            {{--                                            MP Best Seller--}}
+                            {{--                                        </a>--}}
+                            {{--                                        <a class="dropdown-item {{ $product->MP_stock_masking ? 'bg-pink' : '' }}" href="#"--}}
+                            {{--                                            onclick="toggleFlag({{ $product->p_name }}, 'MP_stock_masking')">--}}
+                            {{--                                            MP Stock Masking--}}
+                            {{--                                        </a>--}}
+                            {{--                                        <a class="dropdown-item {{ $product->Complement ? 'bg-pink' : '' }}" href="#"--}}
+                            {{--                                            onclick="toggleFlag({{ $product->p_name }}, 'Complement')">--}}
+                            {{--                                            Complement--}}
+                            {{--                                        </a>--}}
+                            {{--                                        <a class="dropdown-item {{ $product->Consignment ? 'bg-pink' : '' }}" href="#"--}}
+                            {{--                                            onclick="toggleFlag({{ $product->p_name }}, 'Consignment')">--}}
+                            {{--                                            Consignment--}}
+                            {{--                                        </a>--}}
+                            {{--                                        <hr>--}}
+                            {{--                                    @endforeach--}}
+                            {{--                                </div>--}}
+                            {{--                            </div>--}}
+=======
 
                                 </select>
                                 {{--                                <div id="sz_schema_modal_id_parent"></div> --}}
@@ -268,6 +367,7 @@
                                 });
                             </script>
 
+>>>>>>> origin/temporary
 
 
                         </div>
@@ -287,23 +387,23 @@
                             <div class="col-lg-4 pt-1">
                                 <label>Harga Banderol <span class="text-danger">*</span></label>
                                 <input type="text" name="p_price_tag" id="p_price_tag"
-                                    class="form-control decimal" placeholder="Rp." required />
+                                       class="form-control decimal" placeholder="Rp." required/>
                             </div>
                             <div class="col-lg-4 pt-1">
                                 <label>Harga Beli <span class="text-danger">*</span></label>
                                 <input type="text" name="p_purchase_price" id="p_purchase_price"
-                                    class="form-control decimal" placeholder="Rp." required />
+                                       class="form-control decimal" placeholder="Rp." required/>
                             </div>
                             <div class="col-lg-4 pt-1">
                                 <label>Harga Jual <span class="text-danger">*</span></label>
                                 <input type="text" name="p_sell_price" id="p_sell_price"
-                                    class="form-control decimal" placeholder="Rp." required />
+                                       class="form-control decimal" placeholder="Rp." required/>
                             </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-12 pt-1">
                                 <label class="label-space">Size Artikel: <span id="barcode_running_label"
-                                        style="display:none;"></span>
+                                                                               style="display:none;"></span>
                                     <a class="btn btn-sm btn-primary" onclick="return activateColumn()">undisabled</a>
                                 </label>
 
@@ -312,7 +412,11 @@
                                         Schema
                                     </button>
                                     <button type="button" class="btn btn-secondary"
+<<<<<<< HEAD
+                                            onclick="showStockedSchema()">Stocked Schema
+=======
                                         onclick="showStockedSchema()">Stocked Schema
+>>>>>>> origin/temporary
                                     </button>
                                 </label>
 
@@ -324,18 +428,30 @@
                         <div class="form-group row">
                             <div class="col-lg-12 pt-1">
                                 <label for="exampleTextarea">Deskripsi Artikel</label>
-                                <textarea class="form-control" name="p_description" id="p_description" rows="3"></textarea>
+                                <textarea class="form-control" name="p_description" id="p_description"
+                                          rows="3"></textarea>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
+<<<<<<< HEAD
+                    <button type="button" class="btn btn-light-primary font-weight-bold"
+                            data-dismiss="modal">Tutup
+                    </button>
+                    <button type="button" class="btn btn-danger font-weight-bold" id="delete_product_btn"
+                            style="display:none;">Hapus
+                    </button>
+                    <button type="submit" class="btn btn-dark font-weight-bold"
+                            id="save_product_btn">Simpan
+=======
                     <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
                     </button>
                     <button type="button" class="btn btn-danger font-weight-bold" id="delete_product_btn"
                         style="display:none;">Hapus
                     </button>
                     <button type="submit" class="btn btn-dark font-weight-bold" id="save_product_btn">Simpan
+>>>>>>> origin/temporary
                     </button>
                 </div>
             </form>
@@ -346,12 +462,12 @@
 
 <!-- Modal-->
 <div class="modal fade" id="ProductDetailModal" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Artikel <span
-                        id="product_name_label"></span></h5>
+                            id="product_name_label"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -360,7 +476,12 @@
                 <div id="productDetailContent"></div>
             </div>
             <div class="modal-footer">
+<<<<<<< HEAD
+                <button type="button" class="btn btn-light-primary font-weight-bold"
+                        data-dismiss="modal">Tutup
+=======
                 <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
+>>>>>>> origin/temporary
                 </button>
             </div>
         </div>
@@ -371,7 +492,7 @@
 
 <!-- Modal-->
 <div class="modal fade" id="ProductBarcodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -381,17 +502,17 @@
                 </button>
             </div>
             <div class="modal-body table-responsive">
-                <input type="search" class="form-control  col-6" id="p_search" placeholder="Cari artikel" /><br />
+                <input type="search" class="form-control  col-6" id="p_search" placeholder="Cari artikel"/><br/>
                 <table class="table table-hover table-checkable" id="Ptb">
                     <thead class="bg-light text-dark">
-                        <tr>
-                            <th class="text-dark">No</th>
-                            <th class="text-dark">Brand</th>
-                            <th class="text-dark">Artikel</th>
-                            <th class="text-dark">Warna</th>
-                            <th class="text-dark">Size</th>
-                            <th class="text-dark">Barcode</th>
-                        </tr>
+                    <tr>
+                        <th class="text-dark">No</th>
+                        <th class="text-dark">Brand</th>
+                        <th class="text-dark">Artikel</th>
+                        <th class="text-dark">Warna</th>
+                        <th class="text-dark">Size</th>
+                        <th class="text-dark">Barcode</th>
+                    </tr>
                     </thead>
                     <tbody>
 
@@ -399,7 +520,12 @@
                 </table>
             </div>
             <div class="modal-footer">
+<<<<<<< HEAD
+                <button type="button" class="btn btn-light-primary font-weight-bold"
+                        data-dismiss="modal">Tutup
+=======
                 <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
+>>>>>>> origin/temporary
                 </button>
             </div>
             </form>
@@ -417,8 +543,12 @@
     }
 
     .bg-pink {
+<<<<<<< HEAD
+        background-color: pink !important; /* Ubah warna sesuai keinginan */
+=======
         background-color: pink !important;
         /* Ubah warna sesuai keinginan */
+>>>>>>> origin/temporary
     }
 
     .option-yes {
