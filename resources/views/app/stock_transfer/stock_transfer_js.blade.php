@@ -1,10 +1,9 @@
 <script>
-    function reloadPendingTransfer()
-    {
+    function reloadPendingTransfer() {
         $.ajax({
             type: "GET",
             dataType: 'json',
-            url: "{{ url('get_pending_stf_code')}}",
+            url: "{{ url('get_pending_stf_code') }}",
             success: function(r) {
                 if (r.stf_code != '') {
                     $('#stf_code').text(r.stf_code);
@@ -34,35 +33,60 @@
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"p>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('transfer_bin_datatables') }}",
-                data : function (d) {
+                url: "{{ url('transfer_bin_datatables') }}",
+                data: function(d) {
                     d.pl_id = $('#pl_id').val();
                     d.search = $('#article_search').val();
                     d.excelImport = excelImportData;
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'pls_id', searchable: false},
-                { data: 'br_name', name: 'br_name', orderable: false },
-                { data: 'article', name: 'article', orderable: false },
-                { data: 'qty', name: 'qty', orderable: false },
-                { data: 'transfer', name: 'transfer', orderable: false },
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pls_id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                    data: 'br_name',
+                    name: 'br_name',
+                    orderable: false
+                },
+                {
+                    data: 'article',
+                    name: 'article',
+                    orderable: false
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    orderable: false
+                },
+                {
+                    data: 'transfer',
+                    name: 'transfer',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#article_search').on('keyup', function() {
@@ -76,29 +100,59 @@
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"p>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('in_transfer_bin_datatables') }}",
-                data : function (d) {
+                url: "{{ url('in_transfer_bin_datatables') }}",
+                data: function(d) {
                     d.stf_code = $('#stf_code').text();
                     d.search = $('#in_transfer_search').val();
                 }
             },
-            columns: [
-                { data: 'article', name: 'article', orderable: false },
-                { data: 'pl_code', name: 'pl_code', orderable: false },
-                { data: 'stfd_qty', name: 'stfd_qty', orderable: false },
-                { data: 'st_start', name: 'st_start', orderable: false },
-                { data: 'st_end', name: 'st_end', orderable: false },
-                { data: 'status', name: 'status', orderable: false },
+            columns: [{
+                    data: 'article',
+                    name: 'article',
+                    orderable: false
+                },
+                {
+                    data: 'pl_code',
+                    name: 'pl_code',
+                    orderable: false
+                },
+                {
+                    data: 'stfd_qty',
+                    name: 'stfd_qty',
+                    orderable: false
+                },
+                {
+                    data: 'st_start',
+                    name: 'st_start',
+                    orderable: false
+                },
+                {
+                    data: 'st_end',
+                    name: 'st_end',
+                    orderable: false
+                },
+                {
+                    data: 'status',
+                    name: 'status',
+                    orderable: false
+                },
             ],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         setTimeout(() => {
@@ -121,38 +175,76 @@
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"p>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('transfer_history_datatables') }}",
-                data : function (d) {
+                url: "{{ url('transfer_history_datatables') }}",
+                data: function(d) {
                     d.search = $('#history_search').val();
                     d.status = $('#status_filter').val();
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'stf_id', searchable: false},
-                { data: 'stf_code', name: 'stf_code' },
-                { data: 'u_name', name: 'u_name', orderable: false },
-                { data: 'qty', name: 'qty', orderable: false },
-                { data: 'start_store', name: 'start_store', orderable: false },
-                { data: 'end_store', name: 'end_store', orderable: false },
-                { data: 'u_name_receive', name: 'u_name_receive', orderable: false },
-                { data: 'stf_created', name: 'stf_created' },
-                { data: 'stf_status', name: 'stf_status' },
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'stf_id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                    data: 'stf_code',
+                    name: 'stf_code'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name',
+                    orderable: false
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    orderable: false
+                },
+                {
+                    data: 'start_store',
+                    name: 'start_store',
+                    orderable: false
+                },
+                {
+                    data: 'end_store',
+                    name: 'end_store',
+                    orderable: false
+                },
+                {
+                    data: 'u_name_receive',
+                    name: 'u_name_receive',
+                    orderable: false
+                },
+                {
+                    data: 'stf_created',
+                    name: 'stf_created'
+                },
+                {
+                    data: 'stf_status',
+                    name: 'stf_status'
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#status_filter').on('change', function() {
@@ -167,7 +259,7 @@
             width: "100%",
             dropdownParent: $('#pl_id_parent')
         });
-        $('#pl_id').on('select2:open', function (e) {
+        $('#pl_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -181,7 +273,7 @@
             width: "100%",
             dropdownParent: $('#st_id_start_parent')
         });
-        $('#st_id_start').on('select2:open', function (e) {
+        $('#st_id_start').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -191,7 +283,7 @@
             width: "100%",
             dropdownParent: $('#st_id_end_parent')
         });
-        $('#st_id_end').on('select2:open', function (e) {
+        $('#st_id_end').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -201,9 +293,11 @@
             var st_id = $('#st_id_start').val();
             $.ajax({
                 type: "GET",
-                data: {_st_id:st_id},
+                data: {
+                    _st_id: st_id
+                },
                 dataType: 'html',
-                url: "{{ url('reload_transfer_bin')}}",
+                url: "{{ url('reload_transfer_bin') }}",
                 success: function(r) {
                     $('#pl_id').html(r);
                 }
@@ -222,17 +316,20 @@
 
         $(document).delegate('#cancel_transfer_item', 'click', function() {
             if ($('#transfer_done_btn').hasClass('d-none')) {
-                swal('Dilarang', 'Anda tidak boleh melakukan tindakan ini, karena status sudah done / in progress', 'warning');
+                swal('Dilarang',
+                    'Anda tidak boleh melakukan tindakan ini, karena status sudah done / in progress',
+                    'warning');
                 return false;
             }
+
             var stfd_id = $(this).attr('data-stfd_id');
             var pst_id = $(this).attr('data-pst_id');
             var pl_id = $(this).attr('data-pl_id');
             var stfd_qty = $(this).attr('data-stfd_qty');
-            //alert(stfd_id+' '+pst_id+' '+pl_id+' '+stfd_qty);
+
             swal({
                 title: "Batal..?",
-                text: "Batalkan item ini ?",
+                text: "Batalkan item ini?",
                 icon: "info",
                 buttons: [
                     'Tidak',
@@ -248,32 +345,44 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_stfd_id:stfd_id, _pst_id:pst_id, _pl_id:pl_id, _stfd_qty:stfd_qty},
+                        data: {
+                            _stfd_id: stfd_id,
+                            _pst_id: pst_id,
+                            _pl_id: pl_id,
+                            _stfd_qty: stfd_qty
+                        },
                         dataType: 'json',
-                        url: "{{ url('cancel_transfer_item')}}",
+                        url: "{{ url('cancel_transfer_item') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            if (r.status == '200') {
                                 transfer_bin_table.draw();
                                 transfer_history_table.draw();
                                 in_transfer_bin_table.draw();
-                                swal("Berhasil", "Data berhasil ditransfer dan menunggu diterima ", "success");
-                                //console.log(r.data);
+                                toastr.success(
+                                    "Data berhasil ditransfer dan menunggu diterima",
+                                    "Berhasil");
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error("Gagal hapus data", "Gagal");
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                                "Terjadi kesalahan saat memproses permintaan.",
+                                "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
 
         $('#transfer_done_btn').on('click', function() {
             var stf_code = $('#stf_code').text();
             swal({
                 title: "Selesai..?",
-                text: "Yakin item sudah fix dan siap ditransfer ?",
+                text: "Yakin item sudah fix dan siap ditransfer?",
                 icon: "info",
                 buttons: [
                     'Batal',
@@ -289,24 +398,36 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_stf_code:stf_code},
+                        data: {
+                            _stf_code: stf_code
+                        },
                         dataType: 'json',
-                        url: "{{ url('stock_transfer_done')}}",
+                        url: "{{ url('stock_transfer_done') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            if (r.status == '200') {
                                 $('#stf_code').text('');
                                 transfer_history_table.draw();
                                 in_transfer_bin_table.draw();
-                                swal("Berhasil", "Invoice transfer berhasil diterbitkan dan siap diterima", "success");
+                                toastr.success(
+                                    "Invoice transfer berhasil diterbitkan dan siap diterima",
+                                    "Berhasil");
                             } else {
-                                swal('Gagal', 'Masih ada item yang belum diambil oleh helper', 'error');
+                                toastr.error(
+                                    'Masih ada item yang belum diambil oleh helper',
+                                    'Gagal');
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                                "Terjadi kesalahan saat memproses permintaan.",
+                                "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).delegate('#transfer_qty', 'change', function(e) {
             var pls_qty = $(this).attr('data-qty');
@@ -326,6 +447,7 @@
             var st_start = $('#st_id_start option:selected').text();
             var st_end = $('#st_id_end option:selected').text();
             var bin = $('#pl_id option:selected').val();
+
             if (st_start == '- Store Awal -' || st_end == '- Store Tujuan -') {
                 swal('Periksa Store', 'Silahkan periksa Store Awal dan Store Tujuan', 'warning');
                 return false;
@@ -338,16 +460,18 @@
                 swal('Pilih BIN', 'Silahkan pilih BIN untuk ditransfer', 'warning');
                 return false;
             }
+
             swal({
                 title: "Transfer..?",
-                text: "Yakin transfer data dari store "+st_start+" menuju store "+st_end+" ?",
+                text: "Yakin transfer data dari store " + st_start + " menuju store " + st_end +
+                    " ?",
                 icon: "info",
                 buttons: [
                     'Batal',
                     'Yakin'
                 ],
                 dangerMode: false,
-            }).then(function(isConfirm) {
+            }).then((isConfirm) => {
                 if (isConfirm) {
                     $(this).addClass('disabled');
                     var arr = [];
@@ -355,28 +479,37 @@
                     var st_start = $('#st_id_start').val();
                     var st_end = $('#st_id_end').val();
                     var bin = $('#pl_id option:selected').val();
+
                     $('.transfer_qty').each(function() {
                         var pls_id = $(this).attr('data-pls_id');
                         var pst_id = $(this).attr('data-pst_id');
                         var pls_qty = $(this).attr('data-pls_qty');
                         var stf_qty = $(this).val();
                         if (stf_qty == '') {
-                            return true;
+                            return true; // Continue to next iteration
                         }
                         arr[i++] = [pls_id, pst_id, pls_qty, stf_qty];
                     });
+
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
+
+                    // The AJAX call remains the same as in your provided code
                     $.ajax({
                         type: "POST",
-                        data: {_st_start:st_start, _st_end:st_end, _bin:bin, _arr:arr},
+                        data: {
+                            _st_start: st_start,
+                            _st_end: st_end,
+                            _bin: bin,
+                            _arr: arr
+                        },
                         dataType: 'json',
-                        url: "{{ url('stock_transfer_exec')}}",
+                        url: "{{ url('stock_transfer_exec') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            if (r.status == '200') {
                                 if ($('#stf_code').text() == '') {
                                     $('#stf_code').text(r.code);
                                 }
@@ -384,17 +517,26 @@
                                 transfer_history_table.draw();
                                 in_transfer_bin_table.draw();
                                 $(this).removeClass('disabled');
-                                swal("Berhasil", "Data berhasil ditransfer dan menunggu diterima ", "success");
+                                toastr.success(
+                                    "Data berhasil ditransfer dan menunggu diterima",
+                                    "Berhasil");
                             } else {
                                 $(this).removeClass('disabled');
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            $(this).removeClass('disabled');
+                            toastr.error(
+                                "Terjadi kesalahan saat memproses permintaan.",
+                                "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).delegate('#transfer_draft_btn', 'click', function() {
             var inv = $('#stf_code').text();
@@ -402,16 +544,17 @@
                 swal('No Trf', 'Tidak ada nomor transfer yang aktif', 'warning');
                 return false;
             }
+
             swal({
                 title: "Draft..?",
-                text: "Yakin simpan draft invoice "+inv+" ?",
+                text: "Yakin simpan draft invoice " + inv + " ?",
                 icon: "info",
                 buttons: [
                     'Batal',
                     'Yakin'
                 ],
                 dangerMode: false,
-            }).then(function(isConfirm) {
+            }).then((isConfirm) => {
                 if (isConfirm) {
                     $(this).addClass('disabled');
                     $.ajaxSetup({
@@ -419,28 +562,42 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
+
                     $.ajax({
                         type: "POST",
-                        data: {inv:inv},
+                        data: {
+                            inv: inv
+                        },
                         dataType: 'json',
-                        url: "{{ url('stock_transfer_draft')}}",
+                        url: "{{ url('stock_transfer_draft') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            $(this).removeClass(
+                                'disabled'
+                                ); // Moved here to ensure it runs regardless of the response
+                            if (r.status == '200') {
                                 $('#stf_code').text('');
                                 in_transfer_bin_table.draw();
                                 transfer_history_table.draw();
-                                $(this).removeClass('disabled');
-                                swal("Berhasil", "Data berhasil disimpan", "success");
+                                toastr.success("Data berhasil disimpan",
+                                    "Berhasil");
                             } else {
-                                $(this).removeClass('disabled');
-                                swal('Gagal', 'Gagal simpan data', 'error');
+                                toastr.error('Gagal simpan data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            $(this).removeClass(
+                                'disabled'
+                                ); // Also ensure to enable the button in case of an error
+                            toastr.error(
+                                "Terjadi kesalahan saat memproses permintaan.",
+                                "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).delegate('#transfer_cancel_btn', 'click', function() {
             var inv = $('#stf_code').text();
@@ -448,16 +605,17 @@
                 swal('No Trf', 'Tidak ada nomor transfer yang aktif', 'warning');
                 return false;
             }
+
             swal({
                 title: "Delete..?",
-                text: "Yakin delete invoice "+inv+" ?",
+                text: "Yakin delete invoice " + inv + " ?",
                 icon: "warning",
                 buttons: [
                     'Batal',
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then((isConfirm) => {
                 if (isConfirm) {
                     $(this).addClass('disabled');
                     $.ajaxSetup({
@@ -465,29 +623,41 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
+
                     $.ajax({
                         type: "POST",
-                        data: {inv:inv},
+                        data: {
+                            inv: inv
+                        },
                         dataType: 'json',
-                        url: "{{ url('stock_transfer_cancel')}}",
+                        url: "{{ url('stock_transfer_cancel') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            $(this).removeClass(
+                            'disabled'); // Ensure button is re-enabled regardless of response
+                            if (r.status == '200') {
                                 $('#stf_code').text('');
                                 transfer_bin_table.draw();
                                 in_transfer_bin_table.draw();
                                 transfer_history_table.draw();
-                                $(this).removeClass('disabled');
-                                swal("Berhasil", "Data berhasil dibatalkan", "success");
+                                toastr.success("Data berhasil dibatalkan",
+                                    "Berhasil");
                             } else {
-                                $(this).removeClass('disabled');
-                                swal('Gagal', 'Gagal batalkan data', 'error');
+                                toastr.error('Gagal batalkan data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            $(this).removeClass(
+                            'disabled'); // Re-enable the button in case of an error
+                            toastr.error(
+                                "Terjadi kesalahan saat memproses permintaan.",
+                                "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).delegate('#draft_btn', 'click', function() {
             var inv = $(this).attr('data-code');
@@ -504,7 +674,7 @@
             $('#transfer_done_btn').addClass('d-none');
         });
 
-        $('#f_import').on('submit' , function (e) {
+        $('#f_import').on('submit', function(e) {
             e.preventDefault();
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
@@ -512,10 +682,10 @@
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('stock_transfer_import')}}",
+                url: "{{ url('stock_transfer_import') }}",
                 data: formData,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -536,13 +706,16 @@
                         checkMissingBarcode(data.data['missingBarcode']);
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat',
+                            'warning');
                     } else {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                        swal('Gagal',
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -606,11 +779,10 @@
                 missingBarcode.push(missingBarcodeData[i]);
             }
 
-            if(missingBarcode.length > 0) {
-                swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '), 'warning');
+            if (missingBarcode.length > 0) {
+                swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '),
+                    'warning');
             }
         }
     });
-
-
 </script>

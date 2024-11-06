@@ -1,9 +1,8 @@
 <script>
-
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -13,32 +12,50 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('whatsapp_datatables') }}",
-                data : function (d) {
+                url: "{{ url('whatsapp_datatables') }}",
+                data: function(d) {
                     d.search = $('#whatsapp_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'wa_receiver', name: 'wa_receiver' },
-            { data: 'wa_phone', name: 'wa_phone' },
-            { data: 'wa_status', name: 'wa_status' },
-            { data: 'created_at_show', name: 'created_at' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'wa_receiver',
+                    name: 'wa_receiver'
+                },
+                {
+                    data: 'wa_phone',
+                    name: 'wa_phone'
+                },
+                {
+                    data: 'wa_status',
+                    name: 'wa_status'
+                },
+                {
+                    data: 'created_at_show',
+                    name: 'created_at'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        whatsapp_table.buttons().container().appendTo($('#whatsapp_excel_btn' ));
+        whatsapp_table.buttons().container().appendTo($('#whatsapp_excel_btn'));
         $('#whatsapp_search').on('keyup', function() {
             whatsapp_table.draw();
         });
@@ -57,11 +74,11 @@
             $("#save_whatsapp_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('send_wa')}}",
+                type: 'POST',
+                url: "{{ url('send_wa') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -69,17 +86,18 @@
                     $("#save_whatsapp_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#WaModal").modal('hide');
-                        swal('Berhasil', 'Pesan berhasil dikirim', 'success');
+                        toastr.success("Pesan berhasil dikirim", "Berhasil");
                         whatsapp_table.draw();
                     } else if (data.status == '400') {
                         $("#WaModal").modal('hide');
-                        swal('Gagal', 'Pesan gagal dikirim', 'warning');
+                        toastr.warning("Pesan gagal dikirim", "Gagal");
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error("Terjadi kesalahan saat mengirim pesan", "Error");
                 }
             });
         });
+
     });
 </script>

@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,33 +12,54 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('exception_location_datatables') }}",
-                data : function (d) {
+                url: "{{ url('exception_location_datatables') }}",
+                data: function(d) {
                     d.search = $('#exception_location_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'el_id', searchable: false},
-            { data: 'st_name', name: 'st_name' },
-            { data: 'pl_code', name: 'pl_code' },
-            { data: 'qty', name: 'qty' },
-            { data: 'el_description', name: 'el_description' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'el_id',
+                    searchable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'pl_code',
+                    name: 'pl_code'
+                },
+                {
+                    data: 'qty',
+                    name: 'qty'
+                },
+                {
+                    data: 'el_description',
+                    name: 'el_description'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            order: [[0, 'desc']],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        exception_location_table.buttons().container().appendTo($('#exception_location_excel_btn' ));
+        exception_location_table.buttons().container().appendTo($('#exception_location_excel_btn'));
         $('#exception_location_search').on('keyup', function() {
             exception_location_table.draw();
         });
@@ -47,13 +68,13 @@
             width: "100%",
             dropdownParent: $('#pl_id_parent')
         });
-        $('#pl_id').on('select2:open', function (e) {
+        $('#pl_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#ExceptionLocationtb tbody').on('click', 'tr', function () {
+        $('#ExceptionLocationtb tbody').on('click', 'tr', function() {
             var id = exception_location_table.row(this).data().el_id;
             var pl_id = exception_location_table.row(this).data().pl_id;
             var el_description = exception_location_table.row(this).data().el_description;
@@ -77,7 +98,7 @@
         //         type: "POST",
         //         data: {_el_name:el_name},
         //         dataType: 'json',
-        //         url: "{{ url('check_exists_exception_location')}}",
+        //         url: "{{ url('check_exists_exception_location') }}",
         //         success: function(r) {
         //             if (r.status == '200') {
         //                 swal('Kategori', 'Kategori sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
@@ -104,11 +125,11 @@
             $("#save_exception_location_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('el_save')}}",
+                type: 'POST',
+                url: "{{ url('el_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -116,23 +137,27 @@
                     $("#save_exception_location_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#ExceptionLocationModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan',
+                            'Berhasil'); // Use toastr for success
                         exception_location_table.draw();
                     } else if (data.status == '400') {
                         $("#ExceptionLocationModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan',
+                            'Gagal'); // Use toastr for warning
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan dalam permintaan',
+                        'Error'); // Use toastr for error
                 }
             });
         });
 
-        $('#delete_exception_location_btn').on('click', function(){
+
+        $('#delete_exception_location_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -143,28 +168,33 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('el_delete')}}",
+                        url: "{{ url('el_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus",
+                                "Berhasil"); // Use toastr for success
                                 $('#ExceptionLocationModal').modal('hide');
                                 exception_location_table.draw();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error("Gagal hapus data",
+                                "Gagal"); // Use toastr for error
                             }
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>

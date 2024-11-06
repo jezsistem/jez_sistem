@@ -1,6 +1,8 @@
 @extends('app.structure')
 @section('content')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <!--begin::Content-->
     <header class="bg-primary text-white ">
         <div class="container text-center m-5">
@@ -28,28 +30,28 @@
                 <h3 class="mt-5">Hari {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, DD MMMM YYYY') }}</h3>
                 <table class="table table-striped">
                     <thead>
-                    <tr>
-                        <th>Jenis Kelamin</th>
-                        <th>Jumlah</th>
-                    </tr>
+                        <tr>
+                            <th>Jenis Kelamin</th>
+                            <th>Jumlah</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>Pria</td>
-                        <td id="countmale">{{ $male }}</td>
-                    </tr>
-                    <tr>
-                        <td>Wanita</td>
-                        <td id="countfemale">{{ $female }}</td>
-                    </tr>
-                    <tr>
-                        <td>Anak-anak</td>
-                        <td id="countchild">{{ $child }}</td>
-                    </tr>
-                    <tr>
-                        <td>Total</td>
-                        <td id="totalCount">{{ $countsTotal }}</td>
-                    </tr>
+                        <tr>
+                            <td>Pria</td>
+                            <td id="countmale">{{ $male }}</td>
+                        </tr>
+                        <tr>
+                            <td>Wanita</td>
+                            <td id="countfemale">{{ $female }}</td>
+                        </tr>
+                        <tr>
+                            <td>Anak-anak</td>
+                            <td id="countchild">{{ $child }}</td>
+                        </tr>
+                        <tr>
+                            <td>Total</td>
+                            <td id="totalCount">{{ $countsTotal }}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
