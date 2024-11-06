@@ -408,6 +408,10 @@
                         return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
                     }
                 },
+                {
+                    data: 'status_pick',
+                    name: 'status_pick'
+                },
             ],
             columnDefs: [{
                 "targets": 0,
@@ -447,6 +451,7 @@
                         },
                         success: function(response) {
                             console.log(response.status);
+                            console.log(response.data);
                             if (response.status == 200) {
                                 var printUrl = '{{ url('print_online_nota') }}/' +
                                     numOrder;
