@@ -1,21 +1,17 @@
 <script>
-
-    function checkItem(pls_id)
-    {
-        if ($('#check_item_'+pls_id).is(':checked')) {
-            $('#article_controller_'+pls_id).show();
+    function checkItem(pls_id) {
+        if ($('#check_item_' + pls_id).is(':checked')) {
+            $('#article_controller_' + pls_id).show();
         } else {
-            $('#article_controller_'+pls_id).hide();
+            $('#article_controller_' + pls_id).hide();
         }
     }
 
-    function mutation(pst_id, pl_id, p_name, p_color, sz_name, pls_qty)
-    {
+    function mutation(pst_id, pl_id, p_name, p_color, sz_name, pls_qty) {
         swal('Fitur Nonaktif', 'Silahkan gunakan setup lokasi stok versi 2', 'warning');
     }
 
-    function addProduct(pst_id, p_name, sz_name, sz_unset)
-    {
+    function addProduct(pst_id, p_name, sz_name, sz_unset) {
         //alert(pst_id+' '+p_name+' '+sz_name);
         //alert(sz_unset);
         jQuery('#pl_id_destination_add').prop('disabled', false);
@@ -40,7 +36,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -50,33 +46,52 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('product_in_location_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_in_location_datatables') }}",
+                data: function(d) {
                     d.search = $('#product_in_location_search').val();
                     d._pl_id = $('#_pl_id').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pls_id', searchable: false},
-            { data: 'p_name', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'p_size', name: 'p_size', orderable: false },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pls_id',
+                    searchable: false
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'p_size',
+                    name: 'p_size',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var product_location_setup_table = $('#ProductLocationSetuptb').DataTable({
@@ -85,33 +100,53 @@
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('product_location_setup_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_location_setup_datatables') }}",
+                data: function(d) {
                     d.search = $('#product_location_setup_search').val();
                     d.st_id = $('#st_id_filter').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pl_id', searchable: false},
-            { data: 'st_name', name: 'st_name' },   
-            { data: 'pl_location', name: 'pl_location', orderable: false },
-            { data: 'pl_product', name: 'pl_product', orderable: false },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pl_id',
+                    searchable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'pl_location',
+                    name: 'pl_location',
+                    orderable: false
+                },
+                {
+                    data: 'pl_product',
+                    name: 'pl_product',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var product_table = $('#Producttb').DataTable({
@@ -120,38 +155,51 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('product_item_location_datatables') }}",
-                data : function (d) {
+                url: "{{ url('product_item_location_datatables') }}",
+                data: function(d) {
                     d.search = $('#product_search').val();
                     d.br_id_filter = $('#br_id_filter_item').val();
                     d.mc_id_filter = $('#mc_id_filter_item').val();
                     d.sz_id_filter = $('#sz_id_filter_item').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pid', searchable: false},
-            { data: 'p_article', name: 'p_name' },
-            { data: 'p_action', name: 'p_action', sortable: false },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pid',
+                    searchable: false
+                },
+                {
+                    data: 'p_article',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_action',
+                    name: 'p_action',
+                    sortable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        product_in_location_table.buttons().container().appendTo($('#product_in_location_excel_btn' ));
+        product_in_location_table.buttons().container().appendTo($('#product_in_location_excel_btn'));
         $('#product_in_location_search').on('keyup', function() {
             product_in_location_table.draw();
         });
 
-        product_location_setup_table.buttons().container().appendTo($('#product_location_setup_excel_btn' ));
+        product_location_setup_table.buttons().container().appendTo($('#product_location_setup_excel_btn'));
         $('#product_location_setup_search').on('keyup', function() {
             product_location_setup_table.draw();
         });
@@ -160,7 +208,7 @@
             width: "180px",
             dropdownParent: $('#st_id_filter_parent')
         });
-        $('#st_id_filter').on('select2:open', function (e) {
+        $('#st_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -170,7 +218,7 @@
             width: "100%",
             dropdownParent: $('#pl_id_destination_parent')
         });
-        $('#pl_id_destination').on('select2:open', function (e) {
+        $('#pl_id_destination').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -218,7 +266,7 @@
             product_table.draw();
         });
 
-        $('#ProductLocationSetuptb tbody').on('click', 'tr', function () {
+        $('#ProductLocationSetuptb tbody').on('click', 'tr', function() {
             var id = product_location_setup_table.row(this).data().pl_id;
             var pl_location = product_location_setup_table.row(this).data().pl_location_plain;
             jQuery.noConflict();
@@ -229,14 +277,16 @@
             $('#stock_location_label').html(pl_location);
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_pl_id:id},
+                data: {
+                    _pl_id: id
+                },
                 dataType: 'html',
-                url: "{{ url('check_product_in_location')}}",
+                url: "{{ url('check_product_in_location') }}",
                 success: function(r) {
                     $('#product_location_detail').html(r);
                 }
@@ -260,16 +310,19 @@
             var st_id = $('#st_id').val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_pl_code:pl_code, _st_id:st_id},
+                data: {
+                    _pl_code: pl_code,
+                    _st_id: st_id
+                },
                 dataType: 'json',
-                url: "{{ url('pl_code_check_data')}}",
+                url: "{{ url('pl_code_check_data') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         swal("Sudah ada", "Kode sudah ada", "warning");
                         $('#pl_code').val('');
                     }
@@ -284,12 +337,13 @@
             $("#save_product_location_btn").attr("disabled", true);
             var formData = new FormData(this);
             formData.append('st_id', $('#st_id').val());
+
             $.ajax({
-                type:'POST',
-                url: "{{ url('pl_save')}}",
+                type: 'POST',
+                url: "{{ url('pl_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -297,32 +351,39 @@
                     $("#save_product_location_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#ProductLocationSetupModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                         product_location_setup_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ProductLocationSetupModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    $("#save_product_location_btn").html('Simpan');
+                    $("#save_product_location_btn").attr("disabled", false);
+                    toastr.error('Terjadi kesalahan saat menyimpan data', 'Error');
                 }
             });
         });
 
-        $('#f_product_mutation').on('submit', function(e){
+
+        $('#f_product_mutation').on('submit', function(e) {
             e.preventDefault();
             var avail_qty = $('#pls_qty_mutation').text();
             var mt_qty = $('#mt_qty').val();
             var formData = new FormData(this);
+
+            // Check if the mutation quantity exceeds the available quantity
             if (parseInt(mt_qty) > parseInt(avail_qty)) {
-                swal('Jumlah Mutasi', 'Jumlah tidak boleh lebih dari yang tersedia saat ini', 'warning');
+                toastr.warning('Jumlah tidak boleh lebih dari yang tersedia saat ini', 'Jumlah Mutasi');
                 $('#mt_qty').val('');
                 return false;
             }
+
+            // Confirmation dialog
             swal({
                 title: "Mutasi..?",
-                text: "Yakin data sudah benar ?",
+                text: "Yakin data sudah benar?",
                 icon: "info",
                 buttons: [
                     'Batalkan',
@@ -332,54 +393,63 @@
             }).then(function(isConfirm) {
                 if (isConfirm) {
                     $('#ProductMutationModal').modal('hide');
+
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
+
                     $.ajax({
                         type: "POST",
                         data: formData,
                         dataType: 'json',
                         url: "{{ url('sv_mutation') }}",
-                        cache:false,
+                        cache: false,
                         contentType: false,
                         processData: false,
                         success: function(r) {
-                            if (r.status == '200'){
+                            if (r.status == '200') {
                                 product_in_location_table.ajax.reload();
                                 setTimeout(() => {
-                                    product_location_setup_table.ajax.reload();
+                                    product_location_setup_table.ajax
+                                        .reload();
                                 }, 200);
-                                swal("Berhasil", "Data berhasil dimutasi", "success");
+                                toastr.success('Data berhasil dimutasi',
+                                    'Berhasil');
                             } else {
-                                swal('Gagal', 'Gagal mutasi data', 'error');
+                                toastr.error('Gagal mutasi data', 'Gagal');
                             }
                         }
                     });
+
                     setTimeout(() => {
                         product_in_location_table.ajax.reload();
                     }, 200);
                     return false;
                 }
-            })
+            });
         });
 
-        $('#f_product_add').on('submit', function(e){
+
+        $('#f_product_add').on('submit', function(e) {
             e.preventDefault();
             var avail_qty = $('#_unset').val();
             var mt_qty = $('#mt_qty_add').val();
-            //alert(mt_qty+' '+avail_qty);
             var formData = new FormData(this);
             formData.append('pl_id_destination_add', $('#_pl_id').val());
+
+            // Check if the mutation quantity exceeds the available quantity
             if (parseInt(mt_qty) > parseInt(avail_qty)) {
-                swal('Jumlah Setup', 'Jumlah tidak boleh lebih dari yang tersedia saat ini', 'warning');
+                toastr.warning('Jumlah tidak boleh lebih dari yang tersedia saat ini', 'Jumlah Setup');
                 $('#mt_qty_add').val('');
                 return false;
             }
+
+            // Confirmation dialog
             swal({
                 title: "Setup..?",
-                text: "Yakin setup produk pada BIN ini ?",
+                text: "Yakin setup produk pada BIN ini?",
                 icon: "info",
                 buttons: [
                     'Batalkan',
@@ -390,34 +460,41 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
+
                     $.ajax({
                         type: "POST",
                         data: formData,
                         dataType: 'json',
                         url: "{{ url('sv_setup') }}",
-                        cache:false,
+                        cache: false,
                         contentType: false,
                         processData: false,
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil disetup", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil disetup', 'Berhasil');
                                 $('#AddProductInLocationModal').modal('hide');
                                 product_table.ajax.reload();
                                 product_in_location_table.ajax.reload();
                                 product_location_setup_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal setup data', 'error');
+                                toastr.error('Gagal setup data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                                'Terjadi kesalahan saat menghubungi server',
+                                'Error');
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
-        
+
+
         $(document).delegate('#pl_export', 'click', function(e) {
             e.preventDefault();
             var st_id = $('#st_id_filter').val();
@@ -425,7 +502,7 @@
                 alert('Silahkan pilih store terlebih dahulu');
                 return false;
             }
-            window.location.href="{{ url('pl_export') }}?st_id="+st_id;
+            window.location.href = "{{ url('pl_export') }}?st_id=" + st_id;
         });
 
     });

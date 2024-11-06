@@ -2,11 +2,12 @@
     var history_date = '';
     var start_bin_table = '';
     var end_bin_table = '';
+
     function loadStartEnd() {
         $.ajax({
             type: "GET",
             dataType: 'html',
-            url: "{{ url('reload_start_bin')}}",
+            url: "{{ url('reload_start_bin') }}",
             success: function(r) {
                 $("#start").html(r);
             }
@@ -14,7 +15,7 @@
         $.ajax({
             type: "GET",
             dataType: 'html',
-            url: "{{ url('reload_end_bin')}}",
+            url: "{{ url('reload_end_bin') }}",
             success: function(r) {
                 $("#end").html(r);
             }
@@ -22,31 +23,35 @@
         return false;
     }
 
-    function mappingQty(pls_id, index, pst_id, pls_qty)
-    {
+    function mappingQty(pls_id, index, pst_id, pls_qty) {
 
     }
-    
-    function saveMutation(pls_id, index, pst_id, pls_qty)
-    {
+
+    function saveMutation(pls_id, index, pst_id, pls_qty) {
         var pl_id_end = $('#pl_id_end').val();
-        var pmt_qty = $('.mutation_qty'+index).val();
-        if  (pmt_qty == 0 || pmt_qty == '') {
+        var pmt_qty = $('.mutation_qty' + index).val();
+        if (pmt_qty == 0 || pmt_qty == '') {
             return true;
         }
         //alert(pls_id+' | '+pl_id_end+' | '+pmt_qty);
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {_pls_id:pls_id, _pl_id_end:pl_id_end, _pmt_qty:pmt_qty, _pmt_old_qty:pls_qty, _pst_id:pst_id},
+            data: {
+                _pls_id: pls_id,
+                _pl_id_end: pl_id_end,
+                _pmt_qty: pmt_qty,
+                _pmt_old_qty: pls_qty,
+                _pst_id: pst_id
+            },
             dataType: 'json',
-            url: "{{ url('sv_mutation_v2')}}",
+            url: "{{ url('sv_mutation_v2') }}",
             success: function(r) {
-                if (r.status == '200'){
+                if (r.status == '200') {
 
                 } else {
                     toast('Error', 'Ada error, info ke programmer', 'error');
@@ -55,35 +60,34 @@
         });
         return false;
     }
-
     $('#CancelBtn').on('click', function() {
         jQuery.noConflict();
 
         if (confirm('Apakah anda yakin untuk menghapus data import?')) {
             fetch('{{ url('cancel_import') }}', {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                }
-            })
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
                 .then(response => {
                     if (response.ok) {
-                        swal('Berhasil', 'Cancel berhasil', 'success');
+                        toastr.success('Cancel berhasil', 'Berhasil');
                         start_bin_table.draw();
                     } else {
-                        swal('Gagal', 'Terjadi kesalahan saat melakukan cancel', 'warning');
+                        toastr.warning('Terjadi kesalahan saat melakukan cancel', 'Gagal');
                     }
                 })
                 .catch(error => {
                     console.error(error);
-                    alert('An error occurred');
+                    toastr.error('An error occurred while processing your request', 'Error');
                 });
         }
-
     });
 
-    $('#f_import').on('submit' , function (e) {
+
+    $('#f_import').on('submit', function(e) {
         e.preventDefault();
         $('#import_data_btn').html('Proses...');
         $('#import_data_btn').attr('disabled', true);
@@ -91,42 +95,41 @@
 
         $.ajax({
             type: 'POST',
-            url: "{{ url('stock_location_import')}}",
+            url: "{{ url('stock_location_import') }}",
             data: formData,
             dataType: 'json',
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
             success: function(data) {
-                // console.log(data.data['missingBarcode']);
                 $("#import_data_btn").html('Import');
                 $("#import_data_btn").attr("disabled", false);
                 jQuery.noConflict();
+
                 if (data.status == '200') {
                     $("#ImportModal").modal('hide');
-
-                    swal('Berhasil', 'Data berhasil diimport', 'success');
+                    toastr.success('Data berhasil diimport', 'Berhasil');
                     $('#f_import')[0].reset();
-                    // TODO : buat function buat return alert apabila barcode missing swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
-                    excelImportData = data.data['processedData'];
 
+                    excelImportData = data.data['processedData'];
                     start_bin_table.draw();
 
                     checkMissingBarcode(data.data['missingBarcode']);
 
                 } else if (data.status == '400') {
                     $("#ImportModal").modal('hide');
-                    swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                    toastr.warning('File yang anda import kosong atau format tidak tepat', 'File');
                 } else {
                     $("#ImportModal").modal('hide');
-
+                    toastr.error('Terjadi kesalahan saat memproses file', 'Error');
                 }
             },
-            error: function(data){
-                swal('Error', data, 'error');
+            error: function(data) {
+                toastr.error('An error occurred while processing your request', 'Error');
             }
         });
     });
+
 
     function checkMissingBarcode(missingBarcodeData) {
         // each from missingBarcodeData array
@@ -135,7 +138,7 @@
             missingBarcode.push(missingBarcodeData[i]);
         }
 
-        if(missingBarcode.length > 0) {
+        if (missingBarcode.length > 0) {
             swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '), 'warning');
         }
     }
@@ -150,7 +153,7 @@
         loadStartEnd();
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -161,34 +164,55 @@
             responsive: false,
             //bPaginate: false,
             dom: '<"text-right"l>rt<"text-right"p>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('start_bin_datatables') }}",
-                data : function (d) {
+                url: "{{ url('start_bin_datatables') }}",
+                data: function(d) {
                     d.pl_id = $('#pl_id_start').val();
                     d.search = $('#article_search').val();
                     d.st_id = $('#st_id_filter').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pls_id', searchable: false},
-            { data: 'article', name: 'article', orderable: false },
-            { data: 'qty', name: 'qty', orderable: false },
-            { data: 'action', name: 'action', orderable: false },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pls_id',
+                    searchable: false
+                },
+                {
+                    data: 'article',
+                    name: 'article',
+                    orderable: false
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    orderable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#article_search').on('keyup', function() {
@@ -202,33 +226,50 @@
             responsive: false,
             //bPaginate: false,
             dom: '<"text-right"l>rt<"text-right"p>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('end_bin_datatables') }}",
-                data : function (d) {
+                url: "{{ url('end_bin_datatables') }}",
+                data: function(d) {
                     d.pl_id = $('#pl_id_end').val();
                     d.search = $('#article_end_search').val();
                     d.st_id = $('#st_id_filter').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pls_id', searchable: false},
-            { data: 'article', name: 'article', orderable: false },
-            { data: 'qty', name: 'qty', orderable: false },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pls_id',
+                    searchable: false
+                },
+                {
+                    data: 'article',
+                    name: 'article',
+                    orderable: false
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#article_end_search').on('keyup', function() {
@@ -241,40 +282,83 @@
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"p>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('bin_history_datatables') }}",
-                data : function (d) {
+                url: "{{ url('bin_history_datatables') }}",
+                data: function(d) {
                     d.search = $('#history_search').val();
                     d.st_id = $('#st_id_filter').val();
                     d.date = history_date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pmt_id', searchable: false},
-            { data: 'u_name', name: 'u_name' },
-            { data: 'article', name: 'article', orderable: false },
-            { data: 'st_name', name: 'st_name' },
-            { data: 'start_bin', name: 'start_bin', orderable: false },
-            { data: 'pmt_old_qty', name: 'pmt_old_qty', orderable: false },
-            { data: 'pmt_qty', name: 'pmt_qty', orderable: false },
-            { data: 'pmt_old_qty_new', name: 'pmt_old_qty_new', orderable: false },
-            { data: 'end_bin', name: 'end_bin', orderable: false },
-            { data: 'pm_created_at', name: 'pm_created_at', orderable: false },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pmt_id',
+                    searchable: false
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'article',
+                    name: 'article',
+                    orderable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'start_bin',
+                    name: 'start_bin',
+                    orderable: false
+                },
+                {
+                    data: 'pmt_old_qty',
+                    name: 'pmt_old_qty',
+                    orderable: false
+                },
+                {
+                    data: 'pmt_qty',
+                    name: 'pmt_qty',
+                    orderable: false
+                },
+                {
+                    data: 'pmt_old_qty_new',
+                    name: 'pmt_old_qty_new',
+                    orderable: false
+                },
+                {
+                    data: 'end_bin',
+                    name: 'end_bin',
+                    orderable: false
+                },
+                {
+                    data: 'pm_created_at',
+                    name: 'pm_created_at',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#history_search').on('keyup', function() {
@@ -324,12 +408,14 @@
                         return false;
                     }
                     if (start_bin == end_bin) {
-                        swal("BIN Sama", "BIN awal dan BIN tujuan tidak boleh sama, silahkan ganti BIN tujuan", "warning");
+                        swal("BIN Sama",
+                            "BIN awal dan BIN tujuan tidak boleh sama, silahkan ganti BIN tujuan",
+                            "warning");
                         $(this).removeClass('disabled');
                         return false;
                     }
                     for (let i = 1; i <= total_row; ++i) {
-                        $('#saveMutation'+i).trigger('click');
+                        $('#saveMutation' + i).trigger('click');
                         if (i == total_row) {
                             finish = 'true';
                         }
@@ -351,8 +437,9 @@
             $('#export_btn').addClass('disabled');
             var date = history_date;
             var st_id = $('#st_id_filter').val();
-            window.location.href = "{{ url('history_setup_export') }}?&st_id="+st_id+"&date="+date+"";
-            
+            window.location.href = "{{ url('history_setup_export') }}?&st_id=" + st_id + "&date=" +
+                date + "";
+
             $('#export_btn').text('Export Data');
             $('#export_btn').removeClass('disabled');
         });
@@ -403,7 +490,8 @@
                 '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
                 '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
                 'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
-                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
             }
         }, cb);
         cb(start, end, '');

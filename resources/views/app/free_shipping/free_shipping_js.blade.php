@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,34 +12,43 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('free_shipping_datatables') }}",
-                data : function (d) {
+                url: "{{ url('free_shipping_datatables') }}",
+                data: function(d) {
                     d.search = $('#free_shipping_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'city_name', name: 'city_name' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'city_name',
+                    name: 'city_name'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        free_shipping_table.buttons().container().appendTo($('#free_shipping_excel_btn' ));
+        free_shipping_table.buttons().container().appendTo($('#free_shipping_excel_btn'));
         $('#free_shipping_search').on('keyup', function() {
             free_shipping_table.draw();
         });
 
-        $('#Fstb tbody').on('click', 'tr', function () {
+        $('#Fstb tbody').on('click', 'tr', function() {
             var id = free_shipping_table.row(this).data().id;
             var city_name = free_shipping_table.row(this).data().city_name;
             var city_id = free_shipping_table.row(this).data().city_id;
@@ -49,8 +58,8 @@
             $('#city_name').val(city_name);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_free_shipping_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_free_shipping_btn').show();
             @endif
         });
 
@@ -69,11 +78,11 @@
             $("#save_free_shipping_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('fs_save')}}",
+                type: 'POST',
+                url: "{{ url('fs_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -81,22 +90,23 @@
                     $("#save_free_shipping_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#FsModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                         free_shipping_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#FsModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     } else {
-                        swal('Sudah Ada', 'Data sudah ada', 'warning');
+                        toastr.warning('Data sudah ada', 'Sudah Ada');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan', 'Error');
                 }
             });
         });
 
-        $('#delete_free_shipping_btn').on('click', function(){
+
+        $('#delete_free_shipping_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -110,50 +120,58 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('fs_delete')}}",
+                        url: "{{ url('fs_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                                 $('#FsModal').modal('hide');
                                 free_shipping_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Error');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan', 'Error');
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
 
-        $('#city_name').on('keyup', function(){ 
+
+        $('#city_name').on('keyup', function() {
             var query = $(this).val();
             var key = event.keyCode || event.charCode;
-            if( key == 8 || key == 46 ) {
+            if (key == 8 || key == 46) {
                 if (query.length > 5) {
                     $(this).val('');
                     $('#city_id').val('');
                 }
             }
-            if($.trim(query) != '' || $.trim(query) != null) {
+            if ($.trim(query) != '' || $.trim(query) != null) {
                 if ($.trim(query).length > 2) {
                     jQuery.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     jQuery.ajax({
-                        url:"{{  url('autocomplete_city') }}",
-                        method:"POST",
-                        data:{query:query},
-                        success:function(data){
+                        url: "{{ url('autocomplete_city') }}",
+                        method: "POST",
+                        data: {
+                            query: query
+                        },
+                        success: function(data) {
                             $('#cityList').fadeIn();
                             $('#cityList').html(data);
                         }

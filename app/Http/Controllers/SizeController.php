@@ -155,21 +155,40 @@ class SizeController extends Controller
 		];
         return view('app.product._reload_size', compact('data'));
     }
+//ini yang lama, kalau error kembalikan keisni ya cantik ^-^
+    // public function reloadSizeSchemaModal(Request $request)
+    // {
+    //     $size = new Size;
+    //     $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
+    //     $where = [
+    //         'sz_schema' => $request->_sz_schema
+    //     ];
+    //     $size_data = $size->getAllData($select, $where);
+    //     $data = [
+    //         'size' => $size_data
+    //     ];
 
+    //     return view('app.product._reload_size_schema', compact('data'));
+    // }
+
+//new 5-11-24
     public function reloadSizeSchemaModal(Request $request)
     {
         $size = new Size;
-        $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
-        $where = [
-            'sz_schema' => $request->_sz_schema
-        ];
-        $size_data = $size->getAllData($select, $where);
+        $select = ['T1.article_id', 'T1.p_name', 'T1.schema_size', 'T3.sz_name', 'T2.id', 'T3.pcs_id']; 
+        $articleId = $request->input('article_id'); 
+        
+
+        $size_data = $size->getAllData($select, $articleId);
+
         $data = [
             'size' => $size_data
         ];
 
         return view('app.product._reload_size_schema', compact('data'));
     }
+
+
 
     public function reloadSizeSchema(Request $request)
     {
