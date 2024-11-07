@@ -553,7 +553,7 @@
 
                             // Now show the swal with the promo data
                             swal({
-                                title: "Pickup..?",
+                                title: bin,
                                 text: "Yakin pickup item " + p_name + " dari bin " +
                                     bin + " ?\n\nPromotions:\n" + promoInfo + "\n" +
                                     promoPrice,

@@ -60,7 +60,7 @@
                             <option value="DP">DP</option>
                         </select>
                         <div class="col-sm-6 col-lg-4">
-                            <a class="btn btn-sm btn-light font-weight-bold bg-inventory" id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Select dashboard daterange" data-placement="left" style="cursor:pointer;">
+                            <a class="btn btn-sm btn-light font-weight-bold bg-inventory" id="kt_d ashboard_daterangepicker" data-toggle="tooltip" title="Select dashboard daterange" data-placement="left" style="cursor:pointer;">
                                 <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
                                 <span class="font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
                             </a>

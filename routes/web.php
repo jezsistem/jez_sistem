@@ -291,7 +291,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('kategori_produk', [ProductCategoryController::class, 'index'])->name('product_category');
     Route::get('product_category_datatables', [ProductCategoryController::class, 'getDatatables']);
     Route::post('pc_save', [ProductCategoryController::class, 'storeData']);
-    Route::post('pc_delete', [ProductCategoryController::class, 'deleteData']);
+    Route::post('pc_dele te', [ProductCategoryController::class, 'deleteData']);
     Route::post('pc_import', [ProductCategoryController::class, 'importData']);
     Route::post('check_exists_product_category', [ProductCategoryController::class, 'checkExistsProductCategory']);
     // Product Sub Category
