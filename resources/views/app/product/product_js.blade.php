@@ -35,6 +35,8 @@
             row.style.display = ""; // Menampilkan semua baris
         });
 
+        console.log(allSchemaBtn, stockedSchemaBtn); 
+
         // Update button styles
         document.getElementById("allSchemaBtn").classList.add("btn-primary");
         document.getElementById("allSchemaBtn").classList.remove("btn-secondary");

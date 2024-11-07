@@ -351,9 +351,6 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Product
     Route::get('data_produk', [ProductController::class, 'index'])->name('product');
-    // Route::post('data_produk/update-flag/{id}', [ProductController::class, 'updateFlag'])->name('product.updateFlag'); //new
-    Route::get('/product/{p_name}/flags', [ProductController::class, 'showFlags'])->name('product.flags');
-
     Route::get('product_datatables', [ProductController::class, 'getDatatables']);
     Route::get('p_export', [ProductController::class, 'exportData']);
     Route::get('p_export_barcode', [ProductController::class, 'exportDataBarcode']);

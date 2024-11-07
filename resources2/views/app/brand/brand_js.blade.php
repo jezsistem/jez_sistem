@@ -3,7 +3,7 @@
         var output = document.getElementById('imagePreview');
         output.src = URL.createObjectURL(event.target.files[0]);
         output.onload = function() {
-        URL.revokeObjectURL(output.src) // free memory
+            URL.revokeObjectURL(output.src) // free memory
         }
     };
 
@@ -11,14 +11,14 @@
         var output = document.getElementById('bannerPreview');
         output.src = URL.createObjectURL(event.target.files[0]);
         output.onload = function() {
-        URL.revokeObjectURL(output.src) // free memory
+            URL.revokeObjectURL(output.src) // free memory
         }
     };
 
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -38,39 +38,63 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('brand_datatables') }}",
-                data : function (d) {
+                url: "{{ url('brand_datatables') }}",
+                data: function(d) {
                     d.search = $('#brand_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'br_image_show', name: 'br_image' },
-            { data: 'br_banner_show', name: 'br_banner' },
-            { data: 'br_name', name: 'br_name' },
-            { data: 'br_slug', name: 'br_slug' },
-            { data: 'br_description', name: 'br_description' },
-            { data: 'is_local_show', name: 'is_local' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'br_image_show',
+                    name: 'br_image'
+                },
+                {
+                    data: 'br_banner_show',
+                    name: 'br_banner'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'br_slug',
+                    name: 'br_slug'
+                },
+                {
+                    data: 'br_description',
+                    name: 'br_description'
+                },
+                {
+                    data: 'is_local_show',
+                    name: 'is_local'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        brand_table.buttons().container().appendTo($('#brand_excel_btn' ));
+        brand_table.buttons().container().appendTo($('#brand_excel_btn'));
         $('#brand_search').on('keyup', function() {
             brand_table.draw();
         });
 
-        $('#Brandtb tbody').on('click', 'tr td:not(:nth-child(2), :nth-child(3))', function () {
+        $('#Brandtb tbody').on('click', 'tr td:not(:nth-child(2), :nth-child(3))', function() {
             $('#imagePreview').attr('src', '');
             $('#bannerPreview').attr('src', '');
             var id = brand_table.row(this).data().id;
@@ -87,17 +111,17 @@
             $('#br_description').val(br_description);
             $('#is_local').val(is_local);
             if (br_image != null) {
-                $('#imagePreview').attr('src', "{{ asset('api/brand/') }}/"+br_image);
+                $('#imagePreview').attr('src', "{{ asset('api/brand/') }}/" + br_image);
             }
             if (br_banner != null) {
-                $('#bannerPreview').attr('src', "{{ asset('api/brand/banner/') }}/"+br_banner);
+                $('#bannerPreview').attr('src', "{{ asset('api/brand/banner/') }}/" + br_banner);
             }
             $('#_id').val(id);
             $('#_mode').val('edit');
             $('#_image').val(br_image);
             $('#_banner').val(br_banner);
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_brand_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_brand_btn').show();
             @endif
         });
 
@@ -115,17 +139,21 @@
             var br_name = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_br_name:br_name},
+                data: {
+                    _br_name: br_name
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_brand')}}",
+                url: "{{ url('check_exists_brand') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Brand', 'Nama brand sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Brand',
+                            'Nama brand sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#br_name').val('');
                         return false;
                     }
@@ -139,11 +167,11 @@
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('br_import')}}",
+                type: 'POST',
+                url: "{{ url('br_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -152,19 +180,20 @@
                     jQuery.noConflict();
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_import')[0].reset();
                         brand_table.draw();
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Data gagal diimport', 'warning');
+                        toastr.warning('Data gagal diimport', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat impor data', 'Error');
                 }
             });
         });
+
 
         $('#f_brand').on('submit', function(e) {
             e.preventDefault();
@@ -172,11 +201,11 @@
             $("#save_brand_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('br_save')}}",
+                type: 'POST',
+                url: "{{ url('br_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -186,20 +215,21 @@
                         $('#imagePreview').trigger('click');
                         $('#bannerPreview').trigger('click');
                         $("#BrandModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                         brand_table.draw(false);
                     } else if (data.status == '400') {
                         $("#BrandModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat menyimpan data', 'Error');
                 }
             });
         });
 
-        $('#delete_brand_btn').on('click', function(){
+
+        $('#delete_brand_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -213,17 +243,20 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('br_delete')}}",
+                        url: "{{ url('br_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                swal("Berhasil", "Data berhasil dihapus",
+                                    "success");
                                 $('#BrandModal').modal('hide');
                                 brand_table.draw();
                             } else {

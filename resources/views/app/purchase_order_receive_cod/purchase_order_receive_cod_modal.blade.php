@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-xl" role="document" style="width: 100%; max-width: 1300px;">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">#<span id="invoice_label"></span></h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">#<span id="no_po">Ini nomor PO</span> - <span id="invoice_label"></span> </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -152,7 +152,7 @@
 
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-hover table-responsive" id="APDtb">
+                        <table class="table table-hover table-responsive" id="CODtb">
                             <thead class="bg-primary">
                             <tr>
                                 <th class="text-white">No</th>
