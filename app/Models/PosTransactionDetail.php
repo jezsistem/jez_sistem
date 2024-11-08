@@ -25,6 +25,7 @@ class PosTransactionDetail extends Model
         'pos_td_price_item_discount',
         'pos_td_nameset_price',
         'pos_td_nameset',
+        'pos_td_description',
         'created_at'
     ];
 
