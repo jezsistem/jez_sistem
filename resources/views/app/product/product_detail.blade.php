@@ -1,5 +1,7 @@
 <!--begin::Row-->
 <div class="row">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="col-lg-7">
         <!--begin::Card-->
         <div class="card card-custom">
@@ -30,49 +32,54 @@
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Harga Banderol</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="Rp. {{ number_format($data['product']->p_price_tag) }}" readonly/>
+                        <input class="form-control" type="text"
+                            value="Rp. {{ number_format($data['product']->p_price_tag) }}" readonly />
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Harga Beli</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="Rp. {{ number_format($data['product']->p_purchase_price) }}" readonly/>
+                        <input class="form-control" type="text"
+                            value="Rp. {{ number_format($data['product']->p_purchase_price) }}" readonly />
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Harga Jual</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="Rp. {{ number_format($data['product']->p_sell_price) }}" readonly/>
+                        <input class="form-control" type="text"
+                            value="Rp. {{ number_format($data['product']->p_sell_price) }}" readonly />
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Warna Utama</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="{{ $data['product']->mc_name }}" readonly/>
+                        <input class="form-control" type="text" value="{{ $data['product']->mc_name }}" readonly />
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Warna Artikel</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="{{ $data['product']->p_color }}" readonly/>
+                        <input class="form-control" type="text" value="{{ $data['product']->p_color }}" readonly />
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Brand</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="{{ $data['product']->br_name }}" readonly/>
+                        <input class="form-control" type="text" value="{{ $data['product']->br_name }}" readonly />
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Supplier</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="{{ $data['product']->ps_name }}" readonly/>
+                        <input class="form-control" type="text" value="{{ $data['product']->ps_name }}" readonly />
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-4 col-form-label">Kategori</label>
                     <div class="col-8">
-                    <input class="form-control" type="text" value="{{ $data['product']->pc_name }} / {{ $data['product']->psc_name }} / {{ $data['product']->pssc_name }}" readonly/>
+                        <input class="form-control" type="text"
+                            value="{{ $data['product']->pc_name }} / {{ $data['product']->psc_name }} / {{ $data['product']->pssc_name }}"
+                            readonly />
                     </div>
                 </div>
             </div>

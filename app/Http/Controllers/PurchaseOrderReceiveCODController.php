@@ -80,13 +80,16 @@ class PurchaseOrderReceiveCODController extends Controller
 //                ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
 //            sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid")
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
-                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost")
+                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost,
+                       ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_stock_types.stkt_name, ts_taxes.tx_name")
                 ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
                 ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
                 ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id') // Join for stkt_id
+                ->leftJoin('taxes', 'taxes.id', '=', 'purchase_orders.tax_id') // Join for tax_id
                 ->whereNotNull('poads_invoice')
                 ->where('acc_id', 93)
                 ->where('is_paid', 0)
@@ -115,6 +118,43 @@ class PurchaseOrderReceiveCODController extends Controller
                 ->make(true);
         }
     }
+
+    public function getDetailDatatables(Request $request)
+    {
+        if (request()->ajax()) {
+            return datatables()->of(DB::table('purchase_order_article_detail_statuses')
+                ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
+                    u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, 
+                    poad_purchase_price, ts_product_stocks.ps_barcode, ts_product_stocks.ps_qty,
+                    poad_total_price, ts_purchase_order_article_detail_statuses.created_at, 
+                    ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, poads_purchase_price, poads_total_price, 
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id") // Ensure all fields are included
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+                ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_order_article_detail_statuses.stkt_id')
+                ->where('poads_invoice', '=', $request->get('poads_invoice')))
+                ->editColumn('delete', function ($d) {
+                    if (empty($d->u_id_approve)) {
+                        return "<a class='btn btn-danger' data-id='" . $d->id . "' id='delete_poads'>X</a>";
+                    } else {
+                        return '';
+                    }
+                })
+                ->editColumn('created_at_show', function ($d) {
+                    return date('d/m/Y H:i:s', strtotime($d->created_at));
+                })
+                ->rawColumns(['delete'])
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
 
     public function uploadImageInvoice(Request $request)
     {

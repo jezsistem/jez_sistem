@@ -1,4 +1,3 @@
-
 <div id="chart"></div>
 <script>
     var date = '';
@@ -20,10 +19,10 @@
             enabled: false
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-            horizontal: true,
-        }
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+            }
         },
         grid: {
             row: {
@@ -33,7 +32,7 @@
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
+                formatter: function(val) {
                     return addCommas(val)
                 },
                 show: false
@@ -57,10 +56,10 @@
             enabled: false
         },
         plotOptions: {
-        bar: {
-            borderRadius: 4,
-            horizontal: true,
-        }
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+            }
         },
         grid: {
             row: {
@@ -70,7 +69,7 @@
         },
         yaxis: {
             labels: {
-                formatter: function (val) {
+                formatter: function(val) {
                     return addCommas(val)
                 },
                 show: false
@@ -81,18 +80,21 @@
     var dateChart_render = new ApexCharts(document.querySelector(dateChart), dateChart_options);
     dateChart_render.render();
 
-    function loadGraph(stt_label, ct_id, date)
-    {
+    function loadGraph(stt_label, ct_id, date) {
         $('#GraphModal').modal('show');
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('get_customer_graph') }}",
-            data: {stt_label:stt_label, ct_id:ct_id, date:date},
+            data: {
+                stt_label: stt_label,
+                ct_id: ct_id,
+                date: date
+            },
             dataType: 'html',
             success: function(r) {
                 $('#chart').html(r);
@@ -101,8 +103,7 @@
         });
     }
 
-    function addCommas(nStr)
-    {
+    function addCommas(nStr) {
         nStr += '';
         x = nStr.split('.');
         x1 = x[0];
@@ -114,38 +115,39 @@
         return x1 + x2;
     }
 
-    function reloadCustomerType()
-    {
+    function reloadCustomerType() {
         $.ajax({
             type: "GET",
             dataType: 'html',
-            url: "{{ url('reload_customer_type')}}",
+            url: "{{ url('reload_customer_type') }}",
             success: function(r) {
                 $('#ct_id').html(r);
             }
         });
     }
 
-    function reloadCity(province)
-    {
+    function reloadCity(province) {
         $.ajax({
             type: "GET",
-            data: {_province:province},
+            data: {
+                _province: province
+            },
             dataType: 'html',
-            url: "{{ url('reload_city')}}",
+            url: "{{ url('reload_city') }}",
             success: function(r) {
                 $('#cust_city').html(r);
             }
         });
     }
 
-    function reloadSubdistrict(city)
-    {
+    function reloadSubdistrict(city) {
         $.ajax({
             type: "GET",
-            data: {_city:city},
+            data: {
+                _city: city
+            },
             dataType: 'html',
-            url: "{{ url('reload_subdistrict')}}",
+            url: "{{ url('reload_subdistrict') }}",
             success: function(r) {
                 $('#cust_subdistrict').html(r);
             }
@@ -155,7 +157,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -165,12 +167,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('province_datatables') }}",
-                data : function (d) {
+                url: "{{ url('province_datatables') }}",
+                data: function(d) {
                     //d.search = $('#customer_type_search').val();
                     d.stt_filter = $('#stt_filter').val();
                     d.cust_type_filter = $('#cust_type_filter').val();
@@ -178,18 +182,28 @@
                     d.date = date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'kode', searchable: false},
-            { data: 'nama_show', name: 'nama' },
-            { data: 'customer_show', name: 'customer' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'kode',
+                    searchable: false
+                },
+                {
+                    data: 'nama_show',
+                    name: 'nama'
+                },
+                {
+                    data: 'customer_show',
+                    name: 'customer'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[2, 'desc']],
+            order: [
+                [2, 'desc']
+            ],
         });
 
         var city_table = $('#Citytb').DataTable({
@@ -198,12 +212,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('city_datatables') }}",
-                data : function (d) {
+                url: "{{ url('city_datatables') }}",
+                data: function(d) {
                     d.province_code = $('#_province_code').val();
                     d.stt_filter = $('#stt_filter').val();
                     d.cust_type_filter = $('#cust_type_filter').val();
@@ -211,18 +227,28 @@
                     d.date = date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'kode', searchable: false},
-            { data: 'nama_show', name: 'nama' },
-            { data: 'customer_show', name: 'customer' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'kode',
+                    searchable: false
+                },
+                {
+                    data: 'nama_show',
+                    name: 'nama'
+                },
+                {
+                    data: 'customer_show',
+                    name: 'customer'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[2, 'desc']],
+            order: [
+                [2, 'desc']
+            ],
         });
 
         var city_rank_table = $('#CityRanktb').DataTable({
@@ -231,12 +257,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('city_rank_datatables') }}",
-                data : function (d) {
+                url: "{{ url('city_rank_datatables') }}",
+                data: function(d) {
                     //d.province_code = $('#_province_code').val();
                     d.stt_filter = $('#stt_filter').val();
                     d.cust_type_filter = $('#cust_type_filter').val();
@@ -244,18 +272,28 @@
                     d.date = date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'kode', searchable: false},
-            { data: 'nama_show', name: 'nama' },
-            { data: 'customer_show', name: 'customer' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'kode',
+                    searchable: false
+                },
+                {
+                    data: 'nama_show',
+                    name: 'nama'
+                },
+                {
+                    data: 'customer_show',
+                    name: 'customer'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[2, 'desc']],
+            order: [
+                [2, 'desc']
+            ],
         });
 
         var subdistrict_table = $('#Subdistricttb').DataTable({
@@ -264,12 +302,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('subdistrict_datatables') }}",
-                data : function (d) {
+                url: "{{ url('subdistrict_datatables') }}",
+                data: function(d) {
                     d.city_code = $('#_city_code').val();
                     d.stt_filter = $('#stt_filter').val();
                     d.cust_type_filter = $('#cust_type_filter').val();
@@ -277,18 +317,28 @@
                     d.date = date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'kode', searchable: false},
-            { data: 'nama_show', name: 'nama' },
-            { data: 'customer_show', name: 'customer' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'kode',
+                    searchable: false
+                },
+                {
+                    data: 'nama_show',
+                    name: 'nama'
+                },
+                {
+                    data: 'customer_show',
+                    name: 'customer'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[2, 'desc']],
+            order: [
+                [2, 'desc']
+            ],
         });
 
         var customer_type_table = $('#CustomerTypetb').DataTable({
@@ -297,30 +347,42 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('customer_type_datatables') }}",
-                data : function (d) {
+                url: "{{ url('customer_type_datatables') }}",
+                data: function(d) {
                     d.search = $('#customer_type_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'ct_name', name: 'ct_name' },
-            { data: 'ct_description', name: 'ct_description' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'ct_name',
+                    name: 'ct_name'
+                },
+                {
+                    data: 'ct_description',
+                    name: 'ct_description'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        customer_type_table.buttons().container().appendTo($('#customer_type_excel_btn' ));
+        customer_type_table.buttons().container().appendTo($('#customer_type_excel_btn'));
 
         var customer_table = $('#Customertb').DataTable({
             destroy: true,
@@ -328,12 +390,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"lip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('customer_datatables') }}",
-                data : function (d) {
+                url: "{{ url('customer_datatables') }}",
+                data: function(d) {
                     d.search = $('#customer_search').val();
                     d.stt_filter = $('#stt_filter').val();
                     d.cust_type_filter = $('#cust_type_filter').val();
@@ -341,29 +405,63 @@
                     d.date = date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'cid', searchable: false},
-            { data: 'cust_name', name: 'cust_name' },
-            { data: 'ct_name', name: 'ct_name' },
-            { data: 'cust_store', name: 'cust_store' },
-            { data: 'cust_phone', name: 'cust_phone' },
-            { data: 'cust_email', name: 'cust_email' },
-            { data: 'cust_address_show', name: 'cust_address' },
-            { data: 'cust_shopping_show', name: 'cust_shopping' },
-            { data: 'cust_created', name: 'cust_created' },
-            { data: 'total_pembelian', name: 'total_pembelian' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'cid',
+                    searchable: false
+                },
+                {
+                    data: 'cust_name',
+                    name: 'cust_name'
+                },
+                {
+                    data: 'ct_name',
+                    name: 'ct_name'
+                },
+                {
+                    data: 'cust_store',
+                    name: 'cust_store'
+                },
+                {
+                    data: 'cust_phone',
+                    name: 'cust_phone'
+                },
+                {
+                    data: 'cust_email',
+                    name: 'cust_email'
+                },
+                {
+                    data: 'cust_address_show',
+                    name: 'cust_address'
+                },
+                {
+                    data: 'cust_shopping_show',
+                    name: 'cust_shopping'
+                },
+                {
+                    data: 'cust_created',
+                    name: 'cust_created'
+                },
+                {
+                    data: 'total_pembelian',
+                    name: 'total_pembelian'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25], [10, 25]],
+            lengthMenu: [
+                [10, 25],
+                [10, 25]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[7, 'desc']],
+            order: [
+                [7, 'desc']
+            ],
         });
 
         var customer_detail_table = $('#CustomerDetailtb').DataTable({
@@ -372,12 +470,14 @@
             serverSide: true,
             responsive: false,
             dom: 'Blrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('customer_detail_datatables') }}",
-                data : function (d) {
+                url: "{{ url('customer_detail_datatables') }}",
+                data: function(d) {
                     d.code = $('#_code').val();
                     d.code_type = $('#_code_type').val();
                     d.stt_filter = $('#stt_filter').val();
@@ -386,28 +486,59 @@
                     d.date = date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'cid', searchable: false},
-            { data: 'cust_name', name: 'cust_name' },
-            { data: 'ct_name', name: 'ct_name' },
-            { data: 'cust_store', name: 'cust_store' },
-            { data: 'cust_phone', name: 'cust_phone' },
-            { data: 'cust_email', name: 'cust_email' },
-            { data: 'cust_address_show', name: 'cust_address' },
-            { data: 'cust_shopping_show', name: 'cust_shopping' },
-            { data: 'cust_created', name: 'cust_created' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'cid',
+                    searchable: false
+                },
+                {
+                    data: 'cust_name',
+                    name: 'cust_name'
+                },
+                {
+                    data: 'ct_name',
+                    name: 'ct_name'
+                },
+                {
+                    data: 'cust_store',
+                    name: 'cust_store'
+                },
+                {
+                    data: 'cust_phone',
+                    name: 'cust_phone'
+                },
+                {
+                    data: 'cust_email',
+                    name: 'cust_email'
+                },
+                {
+                    data: 'cust_address_show',
+                    name: 'cust_address'
+                },
+                {
+                    data: 'cust_shopping_show',
+                    name: 'cust_shopping'
+                },
+                {
+                    data: 'cust_created',
+                    name: 'cust_created'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[7, 'desc']],
+            order: [
+                [7, 'desc']
+            ],
         });
 
         var customer_transaction_table = $('#CustomerTransactiontb').DataTable({
@@ -416,82 +547,126 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"lip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('customer_transaction_datatables') }}",
-                data : function (d) {
+                url: "{{ url('customer_transaction_datatables') }}",
+                data: function(d) {
                     d.cust_id = $('#_cust_id').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pt_id', searchable: false},
-            { data: 'pos_created', name: 'pos_created' },
-            { data: 'pos_invoice', name: 'pos_invoice' },
-            { data: 'qty', name: 'qty', orderable: false },
-            { data: 'total', name: 'total', orderable: false },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pt_id',
+                    searchable: false
+                },
+                {
+                    data: 'pos_created',
+                    name: 'pos_created'
+                },
+                {
+                    data: 'pos_invoice',
+                    name: 'pos_invoice'
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    orderable: false
+                },
+                {
+                    data: 'total',
+                    name: 'total',
+                    orderable: false
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var sales_item_detail_table = $('#SalesItemDetailtb').DataTable({
-			destroy: true,
-			processing: true,
-			serverSide: true,
-			responsive: false,
-			deferRender: false,
-			dom: 'rt<"text-right"ip>',
-			buttons: [
-				{ "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-			],
-			ajax: {
-				url : "{{ url('sales_item_detail_datatables') }}",
-				data : function (d) {
-					d.pt_id = $('#pt_id').val();
-				}
-			},
-			columns: [
-			{ data: 'DT_RowIndex', name: 'ptd_id', searchable: false},
-			{ data: 'article', name: 'article'},
-			{ data: 'pos_td_qty', name: 'pos_td_qty', orderable: false },
-			{ data: 'pos_td_total_price', name: 'pos_td_total_price', orderable: false },
-			{ data: 'created_at', name: 'created_at', orderable: false },
-			],
-			columnDefs: [
-			{
-				"targets": 0,
-				"className": "text-center",
-				"width": "0%"
-			}],
-			order: [[0, 'desc']],
-		});
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            deferRender: false,
+            dom: 'rt<"text-right"ip>',
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
+            ajax: {
+                url: "{{ url('sales_item_detail_datatables') }}",
+                data: function(d) {
+                    d.pt_id = $('#pt_id').val();
+                }
+            },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'ptd_id',
+                    searchable: false
+                },
+                {
+                    data: 'article',
+                    name: 'article'
+                },
+                {
+                    data: 'pos_td_qty',
+                    name: 'pos_td_qty',
+                    orderable: false
+                },
+                {
+                    data: 'pos_td_total_price',
+                    name: 'pos_td_total_price',
+                    orderable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
 
-        customer_table.buttons().container().appendTo($('#customer_excel_btn' ));
+        customer_table.buttons().container().appendTo($('#customer_excel_btn'));
         $('#customer_search').on('keyup', function() {
             customer_table.draw(false);
         });
 
         $(document).delegate('#sales_item_detail_btn', 'click', function() {
-			var pt_id = $(this).attr('data-pt_id');
-			var invoice = $(this).text();
+            var pt_id = $(this).attr('data-pt_id');
+            var invoice = $(this).text();
             jQuery.noConflict();
-			$('#pt_id').val(pt_id);
-			$('#sales_item_detail_label').text(invoice);
-			$('#SalesItemDetailModal').on('show.bs.modal', function() {
-				sales_item_detail_table.draw(false);
-			}).modal('show');
-		});
+            $('#pt_id').val(pt_id);
+            $('#sales_item_detail_label').text(invoice);
+            $('#SalesItemDetailModal').on('show.bs.modal', function() {
+                sales_item_detail_table.draw(false);
+            }).modal('show');
+        });
 
         $(document).delegate('#import_btn', 'click', function() {
             $('#ImportModal').modal('show');
@@ -506,7 +681,7 @@
             customer_detail_table.draw(false);
         });
 
-        $('#Customertb tbody').on('click', 'tr td:not(:nth-child(8))', function () {
+        $('#Customertb tbody').on('click', 'tr td:not(:nth-child(8))', function() {
             $('#imagePreview').attr('src', '');
             var id = customer_table.row(this).data().cid;
             var ct_id = customer_table.row(this).data().ct_id;
@@ -539,12 +714,12 @@
             $('#cust_address').val(cust_address);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_customer_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_customer_btn').show();
             @endif
         });
 
-        $('#CustomerTypetb tbody').on('click', 'tr', function () {
+        $('#CustomerTypetb tbody').on('click', 'tr', function() {
             $('#imagePreview').attr('src', '');
             var id = customer_type_table.row(this).data().id;
             var ct_name = customer_type_table.row(this).data().ct_name;
@@ -555,8 +730,8 @@
             $('#ct_description').val(ct_description);
             $('#_id_ct').val(id);
             $('#_mode_ct').val('edit');
-            @if ( $data['user']->g_name == 'administrator' )
-            $('#delete_customer_type_btn').show();
+            @if ($data['user']->g_name == 'administrator')
+                $('#delete_customer_type_btn').show();
             @endif
         });
 
@@ -583,17 +758,21 @@
             var cust_phone = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_cust_phone:cust_phone},
+                data: {
+                    _cust_phone: cust_phone
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_customer')}}",
+                url: "{{ url('check_exists_customer') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('No Telepon', 'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('No Telepon',
+                            'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#cust_phone').val('');
                         return false;
                     }
@@ -650,30 +829,32 @@
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
+
             $.ajax({
-                type:'POST',
-                url: "{{ url('cust_import')}}",
+                type: 'POST',
+                url: "{{ url('cust_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
+
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
+                        toastr.success("Data berhasil diimport", "Berhasil");
                         $('#f_import')[0].reset();
                         customer_table.draw(false);
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Data gagal diimport', 'warning');
+                        toastr.warning("Data gagal diimport", "Gagal");
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.errorr("Terjadi kesalahan saat memproses permintaan", "Error");
                 }
             });
         });
@@ -684,11 +865,11 @@
             $("#save_customer_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('cust_save')}}",
+                type: 'POST',
+                url: "{{ url('cust_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -697,20 +878,22 @@
                     if (data.status == '200') {
                         $("#CustomerModal").modal('hide');
                         $('#f_customer')[0].reset();
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success("Data berhasil disimpan", "Berhasil");
                         customer_table.draw(false);
                     } else if (data.status == '400') {
                         $("#CustomerModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning("Data tidak tersimpan", "Gagal");
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    const errorMessage = data.responseText ||
+                        "Terjadi kesalahan saat memproses permintaan";
+                    toastr.error(errorMessage, "Error");
                 }
             });
         });
 
-        $('#delete_customer_btn').on('click', function(){
+        $('#delete_customer_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -724,27 +907,33 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('cust_delete')}}",
+                        url: "{{ url('cust_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
                                 $('#CustomerModal').modal('hide');
                                 customer_table.draw(false);
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error("Gagal menghapus data", "Gagal");
                             }
+                        },
+                        error: function() {
+                            toastr.error("Terjadi kesalahan saat menghapus data",
+                                "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
 
         $('#f_customer_type').on('submit', function(e) {
@@ -753,11 +942,11 @@
             $("#save_customer_type_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('ct_save')}}",
+                type: 'POST',
+                url: "{{ url('ct_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -765,21 +954,22 @@
                     $("#save_customer_type_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#CustomerTypeModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                         customer_type_table.draw(false);
                         reloadCustomerType();
                     } else if (data.status == '400') {
                         $("#CustomerTypeModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat memproses permintaan', 'Error');
                 }
             });
         });
 
-        $('#delete_customer_type_btn').on('click', function(){
+
+        $('#delete_customer_type_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -793,34 +983,44 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id_ct').val()},
+                        data: {
+                            _id: $('#_id_ct').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('ct_delete')}}",
+                        url: "{{ url('ct_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
                                 $('#CustomerTypeModal').modal('hide');
                                 customer_type_table.draw(false);
                                 reloadCustomerType();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error("Gagal hapus data", "Error");
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                                "Terjadi kesalahan saat memproses permintaan",
+                                "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).delegate('#graph_btn', 'click', function(e) {
             e.preventDefault();
             if ($('#date_filter').val() == '0') {
-                swal('Filter Tanggal', 'Silahkan aktifkan terlebih dahulu filter tanggal untuk menggunakan fitur ini', 'info');
+                swal('Filter Tanggal',
+                    'Silahkan aktifkan terlebih dahulu filter tanggal untuk menggunakan fitur ini',
+                    'info');
                 return false;
             }
             loadGraph($('#stt_filter').val(), $('#cust_type_filter').val(), date);
@@ -873,7 +1073,8 @@
                 '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
                 '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
                 'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
-                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
             }
         }, cb);
         cb(start, end, '');

@@ -6,27 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 class AddFlagsToTsProductTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->boolean('mp_best_seller')->default(false); // false untuk default
-            $table->boolean('mp_stock_masking')->default(false);
-            $table->boolean('complement')->default(false);
-            $table->boolean('consignment')->default(false);
+            $table->dropColumn(['mp_best_seller', 'mp_stock_masking', 'complement', 'consignment']);
         });
     }
-    
-
 
     /**
      * Reverse the migrations.
      *
      * @return void
      */
-   
+    // public function down()
+    // {
+    //     Schema::table('products', function (Blueprint $table) {
+    //         $table->tinyInteger('mp_best_seller')->default(0);
+    //         $table->tinyInteger('mp_stock_masking')->default(0);
+    //         $table->tinyInteger('complement')->default(0);
+    //         $table->tinyInteger('consignment')->default(0);
+    //     });
+    // }
 }

@@ -1,4 +1,5 @@
-<script src="https://cdn.tiny.cloud/1/323apjbgqf1hr5qmcz0u8uwvl3oymnrypmtg98wfpvhw0khd/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/323apjbgqf1hr5qmcz0u8uwvl3oymnrypmtg98wfpvhw0khd/tinymce/5/tinymce.min.js"
+    referrerpolicy="origin"></script>
 <script>
     $(document).ready(function() {
         tinymce.init({
@@ -19,7 +20,8 @@
                 for (i = 0; i < filesAmount; i++) {
                     var reader = new FileReader();
                     reader.onload = function(event) {
-                        $($.parseHTML('<img style="width:300px;" class="bcc_image_item">')).attr('src', event.target.result).appendTo(placeToInsertImagePreview);
+                        $($.parseHTML('<img style="width:300px;" class="bcc_image_item">')).attr('src',
+                            event.target.result).appendTo(placeToInsertImagePreview);
                     }
                     reader.readAsDataURL(input.files[i]);
                 }
@@ -36,11 +38,11 @@
             $(".bcc_image_item").attr('src', '')
             $("#bcc_image").val('');
             $('#_bcc_image').val('');
-        }); 
+        });
 
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -50,33 +52,51 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('bcc_datatables') }}",
-                data : function (d) {
+                url: "{{ url('bcc_datatables') }}",
+                data: function(d) {
                     d.bc_id = $('#bc_id_filter').val();
                     d.search = $('#bcc_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'bct_title', name: 'bct_title' },
-            { data: 'bct_image_show', name: 'bct_image' },
-            { data: 'bct_views', name: 'bct_views' },
-            { data: 'action', name: 'action' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'bct_title',
+                    name: 'bct_title'
+                },
+                {
+                    data: 'bct_image_show',
+                    name: 'bct_image'
+                },
+                {
+                    data: 'bct_views',
+                    name: 'bct_views'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        bcc_table.buttons().container().appendTo($('#bcc_excel_btn' ));
+        bcc_table.buttons().container().appendTo($('#bcc_excel_btn'));
         $('#bcc_search').on('keyup', function() {
             bcc_table.draw();
         });
@@ -85,7 +105,7 @@
             bcc_table.draw();
         });
 
-        $('#Bcctb tbody').on('click', 'tr td:not(:nth-child(5))', function () {
+        $('#Bcctb tbody').on('click', 'tr td:not(:nth-child(5))', function() {
             var id = bcc_table.row(this).data().id;
             var bc_id = bcc_table.row(this).data().bc_id;
             var bcc_title = bcc_table.row(this).data().bct_title;
@@ -97,7 +117,8 @@
             $('#bcc_title').val(bcc_title);
             $('#bc_id').val(bc_id);
             if (bcc_image != '') {
-                $('#bcc_image_preview').html('<img src="{{ url('/') }}/api/blog/300/'+bcc_image+'" style="width:300px;" class="bcc_image_item"/>');
+                $('#bcc_image_preview').html('<img src="{{ url('/') }}/api/blog/300/' + bcc_image +
+                    '" style="width:300px;" class="bcc_image_item"/>');
                 $('#_bcc_image').val(bcc_image);
             }
             tinyMCE.get('bcc_content').setContent(bcc_content);
@@ -111,17 +132,21 @@
             var bcc_title = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_bcc_title:bcc_title},
+                data: {
+                    _bcc_title: bcc_title
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_mtd')}}",
+                url: "{{ url('check_exists_mtd') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Kategori', 'Kategori sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Kategori',
+                            'Kategori sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#bcc_title').val('');
                         return false;
                     }
@@ -145,14 +170,16 @@
             var id = $('#bc_id').val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_id:id},
+                data: {
+                    _id: id
+                },
                 dataType: 'json',
-                url: "{{ url('get_bc')}}",
+                url: "{{ url('get_bc') }}",
                 success: function(r) {
                     if (r.status == '200') {
                         $('#_bc_id').val(id);
@@ -182,11 +209,11 @@
             $("#save_bc_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('bc_save')}}",
+                type: 'POST',
+                url: "{{ url('bc_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -196,18 +223,18 @@
                         $("#BcModal").modal('hide');
                         $('#bc_id_panel').load(' #bc_id_panel');
                         bcc_table.draw();
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
-                        
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                     } else if (data.status == '400') {
                         $("#BcModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan', 'Error');
                 }
             });
         });
+
 
         $('#f_bcc').on('submit', function(e) {
             e.preventDefault();
@@ -218,17 +245,17 @@
             if ($('#bc_id').val() == '') {
                 $("#save_bcc_btn").html('Simpan');
                 $("#save_bcc_btn").attr("disabled", false);
-                swal('Blog', 'Silahkan pilin kategori blog terlebih dahulu', 'warning');
+                toastr.warning('Silahkan pilih kategori blog terlebih dahulu', 'Blog');
                 return false;
             }
             formData.append('bc_id', $('#bc_id').val());
             formData.append('bcc_content', content);
             $.ajax({
-                type:'POST',
-                url: "{{ url('bcc_save')}}",
+                type: 'POST',
+                url: "{{ url('bcc_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -237,22 +264,23 @@
                     if (data.status == '200') {
                         $("#BccModal").modal('hide');
                         bcc_table.draw();
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                     } else if (data.status == '400') {
                         $("#BccModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan', 'Error');
                 }
             });
         });
 
-        $('#delete_bc_btn').on('click', function(){
+
+        $('#delete_bc_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -263,33 +291,39 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#bc_id').val()},
+                        data: {
+                            _id: $('#bc_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('bc_delete')}}",
+                        url: "{{ url('bc_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                                 $('#bc_id_panel').load(' #bc_id_panel');
                                 bcc_table.draw();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Error');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan saat menghapus data',
+                                'Error');
                         }
                     });
-                    return false;
                 }
-            })
+            });
         });
 
-        $('#delete_bcc_btn').on('click', function(){
+
+        $('#delete_bcc_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -300,28 +334,34 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_bcc_id').val()},
+                        data: {
+                            _id: $('#_bcc_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('bcc_delete')}}",
+                        url: "{{ url('bcc_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                                 $('#BccModal').modal('hide');
                                 bcc_table.draw();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Error');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan saat menghapus data',
+                                'Error');
                         }
                     });
-                    return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>

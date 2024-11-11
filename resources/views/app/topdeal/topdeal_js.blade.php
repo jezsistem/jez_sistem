@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,29 +12,47 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('topdeals_datatables') }}",
-                data : function (d) {
+                url: "{{ url('topdeals_datatables') }}",
+                data: function(d) {
                     d.search = $('#topdeals_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'td_name', name: 'td_name' },
-            { data: 'article_show', name: 'article' },
-            { data: 'td_due_date_show', name: 'td_due_date' },
-            { data: 'td_status_show', name: 'td_status' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'td_name',
+                    name: 'td_name'
+                },
+                {
+                    data: 'article_show',
+                    name: 'article'
+                },
+                {
+                    data: 'td_due_date_show',
+                    name: 'td_due_date'
+                },
+                {
+                    data: 'td_status_show',
+                    name: 'td_status'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var topdeals_article_table = $('#TopdealsArticletb').DataTable({
@@ -43,29 +61,48 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('topdeals_article_datatables') }}",
-                data : function (d) {
+                url: "{{ url('topdeals_article_datatables') }}",
+                data: function(d) {
                     d.td_id = $('#_td_id').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'br_name', name: 'br_name' },
-            { data: 'p_name', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'action', name: 'action', orderable: false },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var article_table = $('#ArticleListtb').DataTable({
@@ -74,32 +111,51 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('article_datatables') }}",
-                data : function (d) {
+                url: "{{ url('article_datatables') }}",
+                data: function(d) {
                     d.search = $('#article_list_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'br_name', name: 'br_name' },
-            { data: 'p_name', name: 'p_name' },
-            { data: 'p_color', name: 'p_color' },
-            { data: 'action', name: 'action', orderable: false },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        topdeals_table.buttons().container().appendTo($('#topdeals_excel_btn' ));
+        topdeals_table.buttons().container().appendTo($('#topdeals_excel_btn'));
         $('#topdeals_search').on('keyup', function() {
             topdeals_table.draw();
         });
@@ -113,14 +169,17 @@
             var td_id = $('#_td_id').val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {p_id:p_id, td_id:td_id},
+                data: {
+                    p_id: p_id,
+                    td_id: td_id
+                },
                 dataType: 'json',
-                url: "{{ url('add_topdeals')}}",
+                url: "{{ url('add_topdeals') }}",
                 success: function(r) {
                     if (r.status == '200') {
                         toast("Berhasil", "Berhasil menambah artikel", "success");
@@ -140,7 +199,7 @@
             var id = $(this).attr('data-id');
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus artikel ini dari topdeals ?",
+                text: "Yakin hapus artikel ini dari topdeals?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -151,21 +210,24 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {id:id},
+                        data: {
+                            id: id
+                        },
                         dataType: 'json',
-                        url: "{{ url('delete_topdeals')}}",
+                        url: "{{ url('delete_topdeals') }}",
                         success: function(r) {
                             if (r.status == '200') {
-                                toast("Berhasil", "Berhasil hapus artikel", "success");
+                                toastr.success("Berhasil hapus artikel",
+                                    "Berhasil");
                                 topdeals_table.draw();
                                 topdeals_article_table.draw();
                             } else {
-                                toast('Gagal', 'Gagal hapus artikel', 'error');
+                                toastr.error("Gagal hapus artikel", "Gagal");
                             }
                         }
                     });
@@ -174,7 +236,8 @@
             })
         });
 
-        $('#Topdealstb tbody').on('click', 'tr td:not(:nth-child(3))', function () {
+
+        $('#Topdealstb tbody').on('click', 'tr td:not(:nth-child(3))', function() {
             var id = topdeals_table.row(this).data().id;
             var td_name = topdeals_table.row(this).data().td_name;
             var td_due_date = topdeals_table.row(this).data().td_due_date_val;
@@ -188,7 +251,7 @@
             $('#td_status').val(td_status);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
+            @if ($data['user']->delete_access == '1')
                 $('#delete_topdeals_btn').show();
             @endif
         });
@@ -221,11 +284,11 @@
             $("#save_topdeals_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('td_save')}}",
+                type: 'POST',
+                url: "{{ url('td_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -240,16 +303,16 @@
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
         });
 
-        $('#delete_topdeals_btn').on('click', function(){
+        $('#delete_topdeals_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -260,28 +323,31 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('td_delete')}}",
+                        url: "{{ url('td_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
                                 $('#TopdealsModal').modal('hide');
                                 topdeals_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error("Gagal hapus data", "Gagal");
                             }
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>

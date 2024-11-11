@@ -260,21 +260,38 @@
         });
 
         $('#APtb tbody').on('click', 'tr', function () {
+            
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
             var st_name = po_approval_table.row(this).data().st_name;
             var ps_name = po_approval_table.row(this).data().ps_name;
-            var full_date = po_approval_table.row(this).data().created_at;
-            var tgl_terima = full_date.split(' ')[0];
+            // var full_date = po_approval_table.row(this).data().created_at;
+            // var tgl_terima = full_date.split(' ')[0];
+            var stkt_name = po_approval_table.row(this).data().stkt_name;
+            var tax_id = po_approval_table.row(this).data().tax_id;
+            var today = new Date();
+            var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
+            var po_invoice = po_approval_table.row(this).data().po_invoice;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
 
             console.log('STORES : ', tgl_terima);
             console.log('POADS ID :', poads_invoice);
+            function formatRupiah(number) {
+            // Ensure the number is an integer
+            var numberString = Math.round(number).toString();
+
+            // Regular expression to add dots as thousand separators
+            var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            $('#no_po').text(po_invoice);
+            
+            return "Rp. " + formatted;
+        }
 
 
             // call ajax apd_total_price 
@@ -288,14 +305,28 @@
                 success: function (r) {
                     console.log(r);
                     console.log(st_name);
+                    // Convert 'r' to a number if it's not
+                    var priceNumber = typeof r === 'number' ? r : parseFloat(r);
+                    if (isNaN(priceNumber)) {
+                        console.error("Invalid number for total approval price:", r);
+                        priceNumber = 0; // Default to 0 or handle as needed
+                    }
+
+                    // Format the number as Rupiah using the custom function
+                    var formattedPrice = formatRupiah(priceNumber);
+
+                    // Update the DOM element with the formatted price
+                    $('#total_approval_price').text(formattedPrice);
 
                     $('#st_id').val(st_name);
                     $('#ps_name').val(ps_name);
                     $('#po_description').val(po_description);
-                    $('#receive_date').val(tgl_terima);
+                    $('#receive_date').val(tgl_terima).prop('readonly', true);
                     $('#shipping_cost').val(shipping_cost);
                     $('#_po_id').val(po_id);
-                    $('#total_approval_price').text("Rp. " + r);
+                    $('#total_approval_price').text(formatRupiah(r));
+                    $('#stkt_id').val(stkt_name);
+                    $('#tax_id').val(tax_id);
 
                     purchaseOrderInvoiceTable.draw();
                 }

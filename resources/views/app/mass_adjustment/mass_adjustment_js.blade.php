@@ -7,17 +7,19 @@
     var qty_filter = $('#qty_filter').val();
     var pl_id = [];
 
-    function loadLocation(st_id)
-    {
+    function loadLocation(st_id) {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('load_mass_adjustment_location') }}",
-            data: {st_id:st_id, pl_id:pl_id},
+            data: {
+                st_id: st_id,
+                pl_id: pl_id
+            },
             dataType: 'html',
             success: function(r) {
                 $('#bin_panel').html(r);
@@ -26,8 +28,7 @@
         });
     }
 
-    function addCommas(nStr)
-    {
+    function addCommas(nStr) {
         nStr += '';
         x = nStr.split('.');
         x1 = x[0];
@@ -39,17 +40,22 @@
         return x1 + x2;
     }
 
-    function loadAsset(st_id, psc_id, br_id)
-    {
+    function loadAsset(st_id, psc_id, br_id) {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('load_mass_asset') }}",
-            data: {st_id:st_id, psc_id:psc_id, br_id:br_id, pl_id:pl_id, qty_filter:qty_filter},
+            data: {
+                st_id: st_id,
+                psc_id: psc_id,
+                br_id: br_id,
+                pl_id: pl_id,
+                qty_filter: qty_filter
+            },
             dataType: 'json',
             success: function(r) {
                 if (r.status == '200') {
@@ -63,8 +69,7 @@
         });
     }
 
-    function loadApproval()
-    {
+    function loadApproval() {
         $('#approval_label').attr('data-id', '');
         $('#approval_label').val('');
         $('#mad_panel').addClass('d-none');
@@ -74,9 +79,11 @@
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('load_mass_approval') }}",
-            data: {ma_id:$('#ma_code').attr('data-id')},
+            data: {
+                ma_id: $('#ma_code').attr('data-id')
+            },
             dataType: 'json',
             success: function(r) {
                 if (r.status == '200') {
@@ -89,15 +96,15 @@
         });
     }
 
-    function exportTable()
-    {
+    function exportTable() {
         var data = new FormData();
         data.append('st_id', st_id);
         data.append('psc_id', psc_id);
         data.append('br_id', br_id);
         data.append('pl_id', pl_id);
         data.append('qty_filter', qty_filter);
-        window.location.href = "{{ url('export_mass_adjustment_template') }}?st_id="+st_id+"&psc_id="+psc_id+"&br_id="+br_id+"&pl_id="+pl_id+"&qty_filter="+qty_filter+"";
+        window.location.href = "{{ url('export_mass_adjustment_template') }}?st_id=" + st_id + "&psc_id=" + psc_id +
+            "&br_id=" + br_id + "&pl_id=" + pl_id + "&qty_filter=" + qty_filter + "";
 
         // $.ajaxSetup({
         //     headers: {
@@ -148,8 +155,7 @@
         // });
     }
 
-    function exportResult()
-    {
+    function exportResult() {
         var data = new FormData();
         data.append('ma_id', $('#ma_code').attr('data-id'));
         $.ajaxSetup({
@@ -158,10 +164,10 @@
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('export_mass_adjustment_result') }}",
             data: data,
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
             xhrFields: {
@@ -195,7 +201,9 @@
                     } else {
                         window.location.href = downloadUrl;
                     }
-                    setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 10000);
+                    setTimeout(function() {
+                        URL.revokeObjectURL(downloadUrl);
+                    }, 10000);
                 }
             },
         });
@@ -215,12 +223,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('mass_stock_datatables') }}",
-                data : function (d) {
+                url: "{{ url('mass_stock_datatables') }}",
+                data: function(d) {
                     d.search = $('#stock_search').val();
                     d.st_id = st_id;
                     d.psc_id = psc_id;
@@ -229,25 +239,57 @@
                     d.qty_filter = qty_filter;
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'id', searchable: false},
-                { data: 'pl_code', name: 'pl_code' },
-                { data: 'br_name', name: 'br_name' },
-                { data: 'p_name', name: 'p_name' },
-                { data: 'p_color', name: 'p_color' },
-                { data: 'sz_name', name: 'sz_name' },
-                { data: 'psc_name', name: 'psc_name' },
-                { data: 'pls_qty', name: 'pls_qty' },
-                { data: 'purchase', name: 'purchase_1'},
-                { data: 'sell', name: 'sell', orderable: false },
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            order: [[0, 'desc']],
+                    data: 'pl_code',
+                    name: 'pl_code'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'sz_name',
+                    name: 'sz_name'
+                },
+                {
+                    data: 'psc_name',
+                    name: 'psc_name'
+                },
+                {
+                    data: 'pls_qty',
+                    name: 'pls_qty'
+                },
+                {
+                    data: 'purchase',
+                    name: 'purchase_1'
+                },
+                {
+                    data: 'sell',
+                    name: 'sell',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var mass_adjustment_table = $('#MassAdjustmenttb').DataTable({
@@ -256,35 +298,75 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('mass_adjustment_datatables') }}",
-                data : function (d) {
+                url: "{{ url('mass_adjustment_datatables') }}",
+                data: function(d) {
                     d.search = $('#ma_search').val();
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'id', searchable: false},
-                { data: 'ma_code_show', name: 'ma_code' },
-                { data: 'st_name', name: 'st_name' },
-                { data: 'u_name', name: 'u_name'},
-                { data: 'approve', name: 'approve', orderable:false },
-                { data: 'executor', name: 'executor', orderable:false },
-                { data: 'editor', name: 'editor', orderable:false },
-                { data: 'note', name: 'note', orderable:false },
-                { data: 'created_at', name: 'created_at'},
-                { data: 'updated_at', name: 'updated_at'},
-                { data: 'ma_status', name: 'ma_status'},
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            order: [[0, 'desc']],
+                    data: 'ma_code_show',
+                    name: 'ma_code'
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'approve',
+                    name: 'approve',
+                    orderable: false
+                },
+                {
+                    data: 'executor',
+                    name: 'executor',
+                    orderable: false
+                },
+                {
+                    data: 'editor',
+                    name: 'editor',
+                    orderable: false
+                },
+                {
+                    data: 'note',
+                    name: 'note',
+                    orderable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'updated_at',
+                    name: 'updated_at'
+                },
+                {
+                    data: 'ma_status',
+                    name: 'ma_status'
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var mass_adjustment_detail_table = $('#MassAdjustmentDetailtb').DataTable({
@@ -293,42 +375,89 @@
             serverSide: true,
             responsive: false,
             dom: 'Blrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('mass_adjustment_detail_datatables') }}",
-                data : function (d) {
+                url: "{{ url('mass_adjustment_detail_datatables') }}",
+                data: function(d) {
                     d.search = $('#mad_search').val();
                     d.ma_id = $('#ma_code').attr('data-id');
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'id', searchable: false},
-                { data: 'pl_code', name: 'pl_code' },
-                { data: 'br_name', name: 'br_name' },
-                { data: 'p_name', name: 'p_name' },
-                { data: 'p_color', name: 'p_color' },
-                { data: 'sz_name', name: 'sz_name' },
-                { data: 'psc_name', name: 'psc_name' },
-                { data: 'purchase', name: 'purchase_1', orderable: false },
-                { data: 'sell', name: 'sell', orderable: false },
-                { data: 'qty_export', name: 'qty_export' },
-                { data: 'qty_so', name: 'qty_so' },
-                { data: 'mad_type', name: 'mad_type' },
-                { data: 'mad_diff', name: 'mad_diff' },
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                    data: 'pl_code',
+                    name: 'pl_code'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'sz_name',
+                    name: 'sz_name'
+                },
+                {
+                    data: 'psc_name',
+                    name: 'psc_name'
+                },
+                {
+                    data: 'purchase',
+                    name: 'purchase_1',
+                    orderable: false
+                },
+                {
+                    data: 'sell',
+                    name: 'sell',
+                    orderable: false
+                },
+                {
+                    data: 'qty_export',
+                    name: 'qty_export'
+                },
+                {
+                    data: 'qty_so',
+                    name: 'qty_so'
+                },
+                {
+                    data: 'mad_type',
+                    name: 'mad_type'
+                },
+                {
+                    data: 'mad_diff',
+                    name: 'mad_diff'
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#stock_search').on('keyup', function() {
@@ -387,7 +516,9 @@
             var id = $(this).val();
             var label = $('#bin_filter option:selected').text();
             pl_id.push(id);
-            $('#bin_filter_panel').append("<a class='btn-sm btn-success col-2 mt-1 text-center pl_label"+id+"' id='pl_label' data-id='"+id+"'>"+label+"</a>");
+            $('#bin_filter_panel').append(
+                "<a class='btn-sm btn-success col-2 mt-1 text-center pl_label" + id +
+                "' id='pl_label' data-id='" + id + "'>" + label + "</a>");
             stock_table.draw();
             loadLocation(st_id);
             loadAsset(st_id, psc_id, br_id);
@@ -399,7 +530,7 @@
             pl_id = $.grep(pl_id, function(value) {
                 return value != id;
             });
-            $('.pl_label'+id).remove();
+            $('.pl_label' + id).remove();
             stock_table.draw();
             loadLocation(st_id);
             loadAsset(st_id, psc_id, br_id);
@@ -432,7 +563,7 @@
         $(document).delegate('#approval_btn', 'click', function(e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') != '') {
-                swal('Sudah Approve', 'Approval sudah disetujui', 'warning');
+                toastr.warning('Approval sudah disetujui', 'Sudah Approve'); // Use toastr for warning
                 return false;
             }
             swal({
@@ -453,28 +584,38 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {ma_id:$('#ma_code').attr('data-id')},
+                        data: {
+                            ma_id: $('#ma_code').attr('data-id')
+                        },
                         dataType: 'json',
-                        url: "{{ url('mass_adjustment_approval')}}",
+                        url: "{{ url('mass_adjustment_approval') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Berhasil approval", "success");
+                            if (r.status == '200') {
+                                toastr.success("Berhasil approval",
+                                    "Berhasil"); // Use toastr for success
                                 loadApproval();
                                 mass_adjustment_table.draw(false);
                             } else {
-                                swal('Gagal', 'Gagal approval data', 'error');
+                                toastr.error('Gagal approval data',
+                                    'Gagal'); // Use toastr for error
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                                'Terjadi kesalahan saat menghubungi server',
+                                'Error'); // Handle AJAX error
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).delegate('#execution_btn', 'click', function(e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') == '') {
-                swal('Approval', 'Approval masih kosong', 'warning');
+                toastr.warning('Approval masih kosong', 'Approval'); // Use toastr for warning
                 return false;
             }
             swal({
@@ -495,22 +636,32 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {ma_id:$('#ma_code').attr('data-id')},
+                        data: {
+                            ma_id: $('#ma_code').attr('data-id')
+                        },
                         dataType: 'json',
-                        url: "{{ url('mass_adjustment_exec')}}",
+                        url: "{{ url('mass_adjustment_exec') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Berhasil eksekusi", "success");
+                            if (r.status == '200') {
+                                toastr.success("Berhasil eksekusi",
+                                    "Berhasil"); // Use toastr for success
                                 mass_adjustment_table.draw(false);
                             } else {
-                                swal('Gagal', 'Gagal eksekusi', 'error');
+                                toastr.error('Gagal eksekusi',
+                                    'Gagal'); // Use toastr for error
                             }
+                        },
+                        error: function() {
+                            toastr.error(
+                                'Terjadi kesalahan saat menghubungi server',
+                                'Error'); // Handle AJAX error
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
@@ -530,11 +681,11 @@
                 }
             });
             $.ajax({
-                type:'POST',
-                url: "{{ url('import_mass_adjustment_template')}}",
+                type: 'POST',
+                url: "{{ url('import_mass_adjustment_template') }}",
                 data: formData,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(r) {
@@ -548,15 +699,23 @@
                         loadApproval();
                         $('#ImportModal').modal('hide');
                         $('#f_import')[0].reset();
-                        swal('Berhasil', 'Adjustment berhasil dicreate', 'success');
+                        toastr.success('Adjustment berhasil dicreate',
+                        'Berhasil'); // Use toastr for success
                     } else {
-                        swal('Gagal', 'Adjustment gagal dicreate', 'warning');
+                        toastr.warning('Adjustment gagal dicreate',
+                        'Gagal'); // Use toastr for warning
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat menghubungi server',
+                    'Error'); // Handle AJAX error with toastr
                 }
             });
+
+
+
+
+
         });
     });
 </script>

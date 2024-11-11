@@ -1,6 +1,7 @@
-
 <!-- Modal-->
 <div class="modal fade" id="PoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -13,7 +14,8 @@
                 <div class="card-body table-responsive">
                     <!--begin: Datatable-->
                     <input type="hidden" id="_po_id" />
-                    <input type="search" class="form-control form-control-sm" id="po_search" placeholder="Cari artikel" style="border:1px solid black; padding:20px;"/><br/>
+                    <input type="search" class="form-control form-control-sm" id="po_search" placeholder="Cari artikel"
+                        style="border:1px solid black; padding:20px;" /><br />
                     <table class="table table-hover table-checkable" id="Potb">
                         <thead class="bg-light text-dark">
                             <tr>
@@ -33,7 +35,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-light-primary font-weight-bold"
+                    data-dismiss="modal">Tutup</button>
             </div>
             </form>
         </div>

@@ -104,6 +104,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('ap_delete',[POReceiveApprovalController::class, 'deleteData']);
     Route::post('apd_approve', [POReceiveApprovalController::class, 'approveData']);
     Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
+    Route::post('po_receive_detail', [POReceiveApprovalController::class, 'poReceiveDetail']);
+
 
     Route::get('pre_order', [PreOrderController::class, 'index']);
     Route::get('pre_order_datatables', [PreOrderController::class, 'getDatatables']);
@@ -137,5 +139,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('poc_update_is_paid', [PurchaseOrderReceiveCODController::class, 'updateIsPaid']);
     Route::get('pocdetail_datatables', [PurchaseOrderReceiveCODController::class, 'getDetailDatatables']);
     Route::get('po_pembayaran_image', [PurchaseOrderReceiveCODController::class, 'uploadImageInvoice']);
+    Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
+
 
 });

@@ -169,11 +169,6 @@
                                         <th class="text-dark">Tgl Order</th>
                                         <th class="text-dark">Item</th>
                                         <th class="text-dark">NS Before Admin (Retail Price)</th>
-                                        {{-- <th class="text-dark">Status Pengiriman</th> --}}
-                                        {{-- <th class="text-dark">Tgl Cair</th>
-                                        <th class="text-dark">Income Wallet</th>
-                                        <th class="text-dark">Presentase</th>
-                                        <th class="text-dark">Status</th> --}}
                                     </tr>
                                     </thead>
                                     <tbody>

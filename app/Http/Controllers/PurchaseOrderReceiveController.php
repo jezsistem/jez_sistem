@@ -7,6 +7,7 @@ use App\Models\PODeliveryOrder;
 use App\Models\ProductLocationSetup;
 use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\PurchaseOrderReceiveImportExcel;
+use App\Models\ProductCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,12 @@ use App\Models\StockType;
 use App\Models\Tax;
 use Intervention\Image\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Account;
+use App\Models\PreOrder;
+use App\Models\ProductSubCategory;
+use App\Models\Product;
+use App\Models\PurchaseOrderTransferImage;
+use App\Models\UserActivity;
 
 class PurchaseOrderReceiveController extends Controller
 {
@@ -204,8 +211,8 @@ class PurchaseOrderReceiveController extends Controller
     {
         $product_category = new ProductCategory;
         $id = $request->input('_id');
-        $save = $product_category->storeData($id);
-        if ($save) {
+        $delete = $product_category->deleteData($id);
+        if ($delete) {
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -224,11 +231,12 @@ class PurchaseOrderReceiveController extends Controller
         return json_encode($r);
     }
 
+    
     public function generatePoInvoice()
     {
         $invoice = date('YmdHis');
         if ($this->poInvoiceExists($invoice)) {
-            return generatePoInvoice();
+            return $this->generatePoInvoice();
         }
         return $invoice;
     }
