@@ -405,7 +405,15 @@
                     data: 'final_price',
                     name: 'final_price',
                     render: function(data, type, row) {
-                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                        const platformPrice = parseInt(row.shopee_price);
+                        const quantity = parseInt(row.to_qty);
+
+                        if (isNaN(platformPrice) || isNaN(quantity)) {
+                            return '-';
+                        }
+
+                        const calculatedFinalPrice = platformPrice * quantity;
+                        return formatRupiah(calculatedFinalPrice);
                     }
                 },
                 {
