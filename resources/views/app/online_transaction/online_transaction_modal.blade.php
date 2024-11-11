@@ -131,23 +131,23 @@
                         <div class="alert-danger running-text" style="padding: 25px; border-radius:10px; margin-top:10px; margin-bottom:10px;" role="alert">
                             <h3> Important!! Harap perhatikan status pick sebelum cetak nota 🐣🐣</h3>
                         </div>
-                        <style>
-                            .running-text {
-                                overflow: hidden;
-                                white-space: nowrap;
-                                box-sizing: border-box;
-                                animation: scroll-text 20s linear infinite;
-                            }
+{{--                        <style>--}}
+{{--                            .running-text {--}}
+{{--                                overflow: hidden;--}}
+{{--                                white-space: nowrap;--}}
+{{--                                box-sizing: border-box;--}}
+{{--                                animation: scroll-text 20s linear infinite;--}}
+{{--                            }--}}
 
-                            @keyframes scroll-text {
-                                0% {
-                                    transform: translateX(100%);
-                                }
-                                100% {
-                                    transform: translateX(-100%);
-                                }
-                            }
-                        </style>
+{{--                            @keyframes scroll-text {--}}
+{{--                                0% {--}}
+{{--                                    transform: translateX(100%);--}}
+{{--                                }--}}
+{{--                                100% {--}}
+{{--                                    transform: translateX(-100%);--}}
+{{--                                }--}}
+{{--                            }--}}
+{{--                        </style>--}}
                         <thead class="bg-light text-dark">
                         <tr>
                             <th class="text-dark">No</th>
