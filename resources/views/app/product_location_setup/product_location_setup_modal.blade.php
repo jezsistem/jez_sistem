@@ -1,5 +1,7 @@
 <!-- Modal-->
 <div class="modal fade" id="ProductLocationSetupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="overflow-y:auto;">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <form id="f_product_location_setup">

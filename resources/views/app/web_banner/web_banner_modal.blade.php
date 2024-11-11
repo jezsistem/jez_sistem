@@ -1,5 +1,7 @@
 <!-- Modal-->
 <div class="modal fade" id="WbModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_wb" enctype="multipart/form-data">

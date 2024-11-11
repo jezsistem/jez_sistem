@@ -1,6 +1,7 @@
 <!-- Modal-->
-<div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+<div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -16,7 +17,7 @@
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi dari hasil export template
                                 <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="template" id="template" required/>
+                            <input type="file" class="form-control" name="template" id="template" required />
                         </div>
 
                         <div class="form-group">
@@ -36,7 +37,7 @@
 </div><!-- Modal-->
 
 <div class="modal fade" id="ImportScanModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -78,7 +79,7 @@
                                 <option value='0'>- Termasuk yang Sudah Habis -</option>
                             </select>
                             <div id="bin_panel"></div>
-                            <br/>
+                            <br />
                             <div class="row" id="bin_filter_panel">
 
                             </div>
@@ -88,7 +89,7 @@
                             <!--end: List Widget 9-->
                             <label>Masukkan file csv data scan
                                 <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="template" id="template" required/>
+                            <input type="file" class="form-control" name="template" id="template" required />
                         </div>
                     </div>
                 </div>
@@ -105,7 +106,7 @@
 
 <!-- Modal Filter tanggal-->
 <div class="modal fade" id="TanggalModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -121,15 +122,16 @@
                         <div class="form-group">
                             <label>Pilih range tanggal
                                 <span class="text-danger">*</span></label>
-                            <input value="" name="tanggal" id="tanggalrange" type="text" class="form-control"
-                                   placeholder="Periode Tanggal">
+                            <input value="" name="tanggal" id="tanggalrange" type="text"
+                                class="form-control" placeholder="Periode Tanggal">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
                     </button>
-                    <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Tampilkan</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold"
+                        id="import_data_btn">Tampilkan</button>
                 </div>
             </form>
         </div>
@@ -138,7 +140,7 @@
 
 <!-- Modal Export-->
 <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_export" enctype="multipart/form-data">
@@ -157,10 +159,10 @@
                         <div class="form-group">
                             <label>Pilih Range Tanggal
                                 <span class="text-danger">*</span></label>
-                            {{--                            <input type="file" class="form-control" name="template" id="template" required/>--}}
-                            {{--                            <input class="form-control form-control-solid" placeholder="Pick date rage" id="kt_daterangepicker_4"/>--}}
-                            <input value="" name="tanggal" id="tanggalrange" type="text" class="form-control"
-                                   placeholder="Periode Tanggal">
+                            {{--                            <input type="file" class="form-control" name="template" id="template" required/> --}}
+                            {{--                            <input class="form-control form-control-solid" placeholder="Pick date rage" id="kt_daterangepicker_4"/> --}}
+                            <input value="" name="tanggal" id="tanggalrange" type="text"
+                                class="form-control" placeholder="Periode Tanggal">
 
                         </div>
                     </div>

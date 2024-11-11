@@ -4,7 +4,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -14,32 +14,50 @@
             serverSide: true,
             responsive: false,
             dom: 'lBrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('sta_datatables') }}",
-                data : function (d) {
+                url: "{{ url('sta_datatables') }}",
+                data: function(d) {
                     d.search = $('#data_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'sa_name', name: 'sa_name' },
-            { data: 'sa_age', name: 'sa_age' },
-            { data: 'store', name: 'store' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'sa_name',
+                    name: 'sa_name'
+                },
+                {
+                    data: 'sa_age',
+                    name: 'sa_age'
+                },
+                {
+                    data: 'store',
+                    name: 'store'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            order: [[0, 'desc']],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        store_aging_table.buttons().container().appendTo($('#store_aging_excel_btn' ));
+        store_aging_table.buttons().container().appendTo($('#store_aging_excel_btn'));
         $('#data_search').on('keyup', function() {
             store_aging_table.draw();
         });
@@ -50,30 +68,48 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('sta_detail_datatables') }}",
-                data : function (d) {
+                url: "{{ url('sta_detail_datatables') }}",
+                data: function(d) {
                     // d.search = $('#data_search').val();
                     d.sa_id = sa_id;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'st_name', name: 'st_name' },
-            { data: 'show', name: 'show' },
-            { data: 'action', name: 'st_name' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'show',
+                    name: 'show'
+                },
+                {
+                    data: 'action',
+                    name: 'st_name'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-            order: [[0, 'desc']],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var oca_table = $('#OCAtb').DataTable({
@@ -82,31 +118,46 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('oca_datatables') }}",
-                data : function (d) {
+                url: "{{ url('oca_datatables') }}",
+                data: function(d) {
 
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'st_name', name: 'st_name' },
-            { data: 'oca_age', name: 'oca_age' },
-            { data: 'action', name: 'st_name' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'oca_age',
+                    name: 'oca_age'
+                },
+                {
+                    data: 'action',
+                    name: 'st_name'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        $('#Datatb tbody').on('click', 'tr td:not(:nth-child(4))', function () {
+        $('#Datatb tbody').on('click', 'tr td:not(:nth-child(4))', function() {
             var id = store_aging_table.row(this).data().id;
             var sa_name = store_aging_table.row(this).data().sa_name;
             var sa_age = store_aging_table.row(this).data().sa_age;
@@ -127,18 +178,17 @@
             $('#f_data')[0].reset();
             $('#delete_btn').hide();
         });
-
         $('#f_data').on('submit', function(e) {
             e.preventDefault();
             $("#save_btn").html('Proses ..');
             $("#save_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('sta_save')}}",
+                type: 'POST',
+                url: "{{ url('sta_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -146,23 +196,29 @@
                     $("#save_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#DataModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan',
+                            'Berhasil'); // Use toastr for success
                         store_aging_table.draw();
                     } else if (data.status == '400') {
                         $("#DataModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan',
+                            'Gagal'); // Use toastr for warning
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat menyimpan data',
+                        'Error'); // Handle AJAX error with toastr
+                    $("#save_btn").html('Simpan');
+                    $("#save_btn").attr("disabled", false);
                 }
             });
         });
 
-        $('#delete_btn').on('click', function(){
+
+        $('#delete_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -173,28 +229,37 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {id:$('#_id').val()},
+                        data: {
+                            id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('sta_delete')}}",
+                        url: "{{ url('sta_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus",
+                                    "Berhasil"); // Use toastr for success
                                 $('#DataModal').modal('hide');
                                 store_aging_table.draw();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data',
+                                    'Gagal'); // Use toastr for error
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan saat menghapus data',
+                                'Error'); // Handle AJAX error
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).delegate('#store_detail_btn', 'click', function(e) {
             e.preventDefault();
@@ -210,11 +275,11 @@
             var formData = new FormData(this);
             formData.append('sa_id', sa_id);
             $.ajax({
-                type:'POST',
-                url: "{{ url('stas_save')}}",
+                type: 'POST',
+                url: "{{ url('stas_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -224,56 +289,71 @@
                         $('#f_store')[0].reset();
                         store_aging_table.draw();
                         store_aging_detail_table.draw();
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan',
+                            'Berhasil'); // Use toastr for success
                     } else if (data.status == '400') {
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan',
+                            'Gagal'); // Use toastr for warning
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error('Terjadi kesalahan saat menyimpan data',
+                        'Error'); // Use toastr for error
                 }
             });
         });
 
-        $(document).delegate('#delete_detail_btn', 'click', function(e){
+
+        $(document).delegate('#delete_detail_btn', 'click', function(e) {
             e.preventDefault();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:$(this).attr('data-id')},
+                data: {
+                    id: $(this).attr('data-id')
+                },
                 dataType: 'json',
-                url: "{{ url('stas_delete')}}",
+                url: "{{ url('stas_delete') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         store_aging_table.draw();
                         store_aging_detail_table.draw();
-                        swal("Berhasil", "Data berhasil dihapus", "success");
+                        toastr.success("Data berhasil dihapus",
+                        "Berhasil"); // Use toastr for success
                     } else {
-                        swal('Gagal', 'Gagal hapus data', 'error');
+                        toastr.error('Gagal hapus data', 'Gagal'); // Use toastr for error
                     }
+                },
+                error: function() {
+                    toastr.error('Terjadi kesalahan saat menghapus data',
+                    'Error'); // Handle AJAX error
                 }
             });
             return false;
         });
 
-        $(document).delegate('#y_check', 'click', function(e){
+
+        $(document).delegate('#y_check', 'click', function(e) {
             e.preventDefault();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:$(this).attr('data-id'), type:1},
+                data: {
+                    id: $(this).attr('data-id'),
+                    type: 1
+                },
                 dataType: 'json',
-                url: "{{ url('sta_checked')}}",
+                url: "{{ url('sta_checked') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         store_aging_detail_table.draw();
                         toast("Berhasil", "Data berhasil diupdate", "success");
                     } else {
@@ -284,20 +364,23 @@
             return false;
         });
 
-        $(document).delegate('#n_check', 'click', function(e){
+        $(document).delegate('#n_check', 'click', function(e) {
             e.preventDefault();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:$(this).attr('data-id'), type:0},
+                data: {
+                    id: $(this).attr('data-id'),
+                    type: 0
+                },
                 dataType: 'json',
-                url: "{{ url('sta_checked')}}",
+                url: "{{ url('sta_checked') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         store_aging_detail_table.draw();
                         toast("Berhasil", "Data berhasil diupdate", "success");
                     } else {
@@ -312,11 +395,11 @@
             e.preventDefault();
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('oca_save')}}",
+                type: 'POST',
+                url: "{{ url('oca_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -330,26 +413,28 @@
                         toast('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
         });
 
-        $(document).delegate('#delete_oca_btn', 'click', function(e){
+        $(document).delegate('#delete_oca_btn', 'click', function(e) {
             e.preventDefault();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:$(this).attr('data-id')},
+                data: {
+                    id: $(this).attr('data-id')
+                },
                 dataType: 'json',
-                url: "{{ url('oca_delete')}}",
+                url: "{{ url('oca_delete') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         oca_table.draw();
                         toast("Berhasil", "Data berhasil dihapus", "success");
                     } else {

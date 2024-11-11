@@ -11,19 +11,21 @@
     var search_article = 0;
     var qty_edit = 0;
 
-    function loadBin(query)
-    {
-        if($.trim(query) != '' || $.trim(query) != null) {
+    function loadBin(query) {
+        if ($.trim(query) != '' || $.trim(query) != null) {
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                url:"{{  url('fetch_start_scan_adjustment_bin') }}",
-                method:"POST",
-                data:{query:query, st_id:st_id},
-                success:function(data){
+                url: "{{ url('fetch_start_scan_adjustment_bin') }}",
+                method: "POST",
+                data: {
+                    query: query,
+                    st_id: st_id
+                },
+                success: function(data) {
                     $('#itemList').fadeIn();
                     $('#itemList').html(data);
                 }
@@ -33,8 +35,7 @@
         }
     }
 
-    function scanned(barcode)
-    {
+    function scanned(barcode) {
         var data = new FormData();
         data.append('barcode', barcode);
         data.append('st_id', st_id);
@@ -42,18 +43,18 @@
         data.append('sa_code', sa_code);
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            url:"{{  url('scan_adjustment_barcode') }}",
-            method:"POST",
-            data:data,
+            url: "{{ url('scan_adjustment_barcode') }}",
+            method: "POST",
+            data: data,
             dataType: 'json',
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
-            success:function(r){
+            success: function(r) {
                 if (r.status == '200') {
                     loadQty();
                     toast('Scanned', 'Berhasil discan', 'success');
@@ -67,26 +68,25 @@
         });
     }
 
-    function sync()
-    {
+    function sync() {
         var data = new FormData();
         data.append('pl_id', pl_id);
         data.append('sa_code', sa_code);
         data.append('sa_custom', sa_custom);
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            url:"{{  url('scan_adjustment_sync') }}",
-            method:"POST",
-            data:data,
+            url: "{{ url('scan_adjustment_sync') }}",
+            method: "POST",
+            data: data,
             dataType: 'json',
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
-            success:function(r){
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Berhasil', 'Berhasil synchronize', 'success');
                 } else {
@@ -97,25 +97,24 @@
         });
     }
 
-    function loadQty()
-    {
+    function loadQty() {
         var data = new FormData();
         data.append('pl_id', pl_id);
         data.append('sa_code', sa_code);
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            url:"{{  url('scan_adjustment_qty') }}",
-            method:"POST",
-            data:data,
+            url: "{{ url('scan_adjustment_qty') }}",
+            method: "POST",
+            data: data,
             dataType: 'json',
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
-            success:function(r){
+            success: function(r) {
                 if (r.status == '200') {
                     $('#current_qty').text(r.current_qty);
                     $('#scanned_qty').text(r.scanned_qty);
@@ -125,8 +124,7 @@
         });
     }
 
-    function playSound()
-    {
+    function playSound() {
         var audioElement = document.createElement('audio');
         audioElement.setAttribute('src', "{{ asset('scanner/audio/beep.mp3') }}");
         audioElement.play();
@@ -136,7 +134,7 @@
         document.getElementById('bin_search').focus();
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -146,12 +144,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"p>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('start_scan_adjustment_datatables') }}",
-                data : function (d) {
+                url: "{{ url('start_scan_adjustment_datatables') }}",
+                data: function(d) {
                     d.st_id = st_id;
                     d.pl_id = pl_id;
                     d.sa_code = sa_code;
@@ -160,18 +160,29 @@
                     d.search = $('#search_article').val();
                 }
             },
-            columns: [
-            { data: 'article', name: 'p_name' },
-            { data: 'barcode', name: 'barcode', orderable:false },
-            { data: 'action', name: 'action', orderable:false },
+            columns: [{
+                    data: 'article',
+                    name: 'p_name'
+                },
+                {
+                    data: 'barcode',
+                    name: 'barcode',
+                    orderable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-left",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#search_article').on('click', function(e) {
@@ -200,18 +211,18 @@
             data.append('qty', qty);
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                url:"{{  url('scan_adjustment_qty_update') }}",
-                method:"POST",
-                data:data,
+                url: "{{ url('scan_adjustment_qty_update') }}",
+                method: "POST",
+                data: data,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
-                success:function(r){
+                success: function(r) {
                     if (r.status == '200') {
                         scan_adjustment_table.draw();
                         toast('Updated', 'Berhasil diupdate', 'success');
@@ -237,7 +248,10 @@
                 var lastResult, countResults = 0;
 
                 var html5QrcodeScanner = new Html5QrcodeScanner(
-                    "qr-reader", { fps: 10, qrbox: 250 });
+                    "qr-reader", {
+                        fps: 10,
+                        qrbox: 250
+                    });
 
                 function onScanSuccess(decodedText, decodedResult) {
                     playSound();
@@ -355,12 +369,13 @@
         $(document).on('click', '#reset_btn', function(e) {
             e.preventDefault();
             if (pl_id == '') {
-                swal('BIN', 'Belum ada BIN yang aktif', 'warning');
+                toastr.warning('Belum ada BIN yang aktif', 'BIN'); // Use toastr for warning
                 return false;
             }
+
             swal({
                 title: "Reset..?",
-                text: "Yakin reset dari 0 scan adjustment untuk bin ini ?",
+                text: "Yakin reset dari 0 scan adjustment untuk bin ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -371,28 +386,34 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {sa_code:sa_code, pl_id:pl_id},
+                        data: {
+                            sa_code: sa_code,
+                            pl_id: pl_id
+                        },
                         dataType: 'json',
-                        url: "{{ url('scan_adjustment_reset')}}",
+                        url: "{{ url('scan_adjustment_reset') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil direset", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil direset",
+                                    "Berhasil"); // Use toastr for success
                                 scan_adjustment_table.draw();
                                 loadQty();
                             } else {
-                                swal('Gagal', 'Gagal reset data', 'error');
+                                toastr.error('Gagal reset data',
+                                    'Gagal'); // Use toastr for error
                             }
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $(document).on('click', '#sync_btn', function(e) {
             e.preventDefault();
@@ -445,19 +466,20 @@
             qty_edit = 0;
         });
 
-        function loadArticle(query)
-        {
-            if($.trim(query) != '' || $.trim(query) != null) {
+        function loadArticle(query) {
+            if ($.trim(query) != '' || $.trim(query) != null) {
                 $.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 $.ajax({
-                    url:"{{  url('fetch_start_scan_adjustment_article') }}",
-                    method:"POST",
-                    data:{query:query},
-                    success:function(data){
+                    url: "{{ url('fetch_start_scan_adjustment_article') }}",
+                    method: "POST",
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
                         $('#manualList').fadeIn();
                         $('#manualList').html(data);
                     }
@@ -476,18 +498,18 @@
             data.append('pst_id', pst_id);
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                url:"{{  url('scan_adjustment_manual') }}",
-                method:"POST",
-                data:data,
+                url: "{{ url('scan_adjustment_manual') }}",
+                method: "POST",
+                data: data,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
-                success:function(r){
+                success: function(r) {
                     if (r.status == '200') {
                         loadQty();
                         scan_adjustment_table.draw();
@@ -502,26 +524,25 @@
             });
         });
 
-        function minPlus(type, qty, sad_id)
-        {
+        function minPlus(type, qty, sad_id) {
             var data = new FormData();
             data.append('type', type);
             data.append('qty', qty);
             data.append('sad_id', sad_id);
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                url:"{{  url('min_plus_start_scan_adjustment') }}",
-                method:"POST",
-                data:data,
+                url: "{{ url('min_plus_start_scan_adjustment') }}",
+                method: "POST",
+                data: data,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
-                success:function(r){
+                success: function(r) {
                     if (r.status == '200') {
                         loadQty();
                         scan_adjustment_table.draw();
@@ -556,19 +577,20 @@
             minPlus(type, qty, sad_id);
         });
 
-        function loadNotFoundArticle(query)
-        {
-            if($.trim(query) != '' || $.trim(query) != null) {
+        function loadNotFoundArticle(query) {
+            if ($.trim(query) != '' || $.trim(query) != null) {
                 $.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 $.ajax({
-                    url:"{{  url('fetch_start_scan_adjustment_article_barcode') }}",
-                    method:"POST",
-                    data:{query:query},
-                    success:function(data){
+                    url: "{{ url('fetch_start_scan_adjustment_article_barcode') }}",
+                    method: "POST",
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
                         $('#notFoundList').fadeIn();
                         $('#notFoundList').html(data);
                     }
@@ -603,34 +625,44 @@
         $(document).delegate('#save_barcode', 'click', function(e) {
             e.preventDefault();
             if ($('#not_found_pst_id').val() == '') {
-                swal('Tentukan Artikel', 'Silahkan tentukan artikel terkait barcode tersebut', 'warning');
+                swal('Tentukan Artikel', 'Silahkan tentukan artikel terkait barcode tersebut',
+                    'warning');
                 return false;
             }
             var id = $('#not_found_pst_id').val();
             var barcode = $('#not_found_barcode').val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:id, barcode:barcode},
+                data: {
+                    id: id,
+                    barcode: barcode
+                },
                 dataType: 'json',
-                url: "{{ url('scan_adjustment_barcode_update')}}",
+                url: "{{ url('scan_adjustment_barcode_update') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         $('#f_not_found')[0].reset();
                         $('#not_found_pst_id').val('');
                         jQuery.noConflict();
                         $('#NotFoundBarcode').modal('hide');
                         submit = 0;
-                        swal("Berhasil", "Data berhasil diupdate, silahkan scan ulang", "success");
+                        toastr.success("Data berhasil diupdate, silahkan scan ulang",
+                            "Berhasil"); // Use toastr for success
                     } else {
-                        swal('Gagal', 'Gagal update data', 'error');
+                        toastr.error('Gagal update data', 'Gagal'); // Use toastr for error
                     }
+                },
+                error: function() {
+                    toastr.error('Terjadi kesalahan dalam permintaan',
+                    'Error'); // Optional: error handling for AJAX failure
                 }
             });
+
             return false;
         });
 

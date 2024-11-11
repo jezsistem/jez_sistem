@@ -2,10 +2,12 @@
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script>
     function format(d) {
-        var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d.pid + '">' +
+        var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
+            .pid + '">' +
             '<tr>' +
             '<td style="white-space: nowrap;">Diskon (%) :</td>' +
-            '<td><input type="number" id="po_discount' + d.pid + '" value="" onchange="return checkPurchasePrice(' + d.pid + ')"/></td>' +
+            '<td><input type="number" id="po_discount' + d.pid + '" value="" onchange="return checkPurchasePrice(' + d
+            .pid + ')"/></td>' +
             '</tr>' +
             '</table>';
         return str;
@@ -47,9 +49,11 @@
         $.ajax({
             type: "POST",
             dataType: 'html',
-            data: {_po_id: id},
-            url: "{{ url('check_pre_order_detail')}}",
-            success: function (r) {
+            data: {
+                _po_id: id
+            },
+            url: "{{ url('check_pre_order_detail') }}",
+            success: function(r) {
                 $('#purchase_order_detail_content').html(r);
             }
         });
@@ -75,10 +79,14 @@
         });
         $.ajax({
             type: "POST",
-            data: {_poad_id: poad_id, _qty: qty, _total: total},
+            data: {
+                _poad_id: poad_id,
+                _qty: qty,
+                _total: total
+            },
             dataType: 'json',
-            url: "{{ url('proad_save_qty_total')}}",
-            success: function (r) {
+            url: "{{ url('proad_save_qty_total') }}",
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Disimpan', 'Informasi berhasil disimpan', 'success');
                     reloadPoTotalPrice(po_id);
@@ -99,7 +107,7 @@
                 'Hapus'
             ],
             dangerMode: true,
-        }).then(function (isConfirm) {
+        }).then(function(isConfirm) {
             if (isConfirm) {
                 var po_id = $('#_po_id').val();
                 $.ajaxSetup({
@@ -109,22 +117,28 @@
                 });
                 $.ajax({
                     type: "POST",
-                    data: {_id: id},
+                    data: {
+                        _id: id
+                    },
                     dataType: 'json',
-                    url: "{{ url('proad_delete')}}",
-                    success: function (r) {
+                    url: "{{ url('proad_delete') }}",
+                    success: function(r) {
                         if (r.status == '200') {
-                            swal("Berhasil", "Data berhasil dihapus", "success");
+                            toastr.success("Data berhasil dihapus", "Berhasil");
                             reloadArticleDetail(po_id);
                         } else {
-                            swal('Gagal', 'Gagal hapus data', 'error');
+                            toastr.error('Gagal hapus data', 'Gagal');
                         }
+                    },
+                    error: function() {
+                        toastr.error('Terjadi kesalahan saat menghapus data', 'Error');
                     }
                 });
                 return false;
             }
-        })
+        });
     }
+
 
     function deletePoa(id, po_id) {
         swal({
@@ -136,7 +150,7 @@
                 'Hapus'
             ],
             dangerMode: true,
-        }).then(function (isConfirm) {
+        }).then(function(isConfirm) {
             if (isConfirm) {
                 $.ajaxSetup({
                     headers: {
@@ -145,22 +159,28 @@
                 });
                 $.ajax({
                     type: "POST",
-                    data: {_id: id},
+                    data: {
+                        _id: id
+                    },
                     dataType: 'json',
-                    url: "{{ url('proa_delete')}}",
-                    success: function (r) {
+                    url: "{{ url('proa_delete') }}",
+                    success: function(r) {
                         if (r.status == '200') {
-                            swal("Berhasil", "Data berhasil dihapus", "success");
+                            toastr.success("Data berhasil dihapus", "Berhasil");
                             reloadArticleDetail(po_id);
                         } else {
-                            swal('Gagal', 'Gagal hapus data', 'error');
+                            toastr.error('Gagal hapus data', 'Gagal');
                         }
+                    },
+                    error: function() {
+                        toastr.error('Terjadi kesalahan saat menghapus data', 'Error');
                     }
                 });
                 return false;
             }
-        })
+        });
     }
+
 
     // CALCULATION 
     function poadPurchasePrice(id, index, purchase_price) {
@@ -172,10 +192,13 @@
         });
         $.ajax({
             type: "POST",
-            data: {_poad_id: poad_id, _purchase_price: purchase_price},
+            data: {
+                _poad_id: poad_id,
+                _purchase_price: purchase_price
+            },
             dataType: 'json',
-            url: "{{ url('proad_save_purchase_price')}}",
-            success: function (r) {
+            url: "{{ url('proad_save_purchase_price') }}",
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Disimpan', 'Informasi berhasil disimpan', 'success');
                 } else {
@@ -227,10 +250,13 @@
         });
         $.ajax({
             type: "POST",
-            data: {_id: id, _discount: discount},
+            data: {
+                _id: id,
+                _discount: discount
+            },
             dataType: 'json',
-            url: "{{ url('proa_save_discount')}}",
-            success: function (r) {
+            url: "{{ url('proa_save_discount') }}",
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Disimpan', 'Informasi berhasil disimpan', 'success');
                 } else {
@@ -271,10 +297,13 @@
         });
         $.ajax({
             type: "POST",
-            data: {_id: id, _extra_discount: extra_discount},
+            data: {
+                _id: id,
+                _extra_discount: extra_discount
+            },
             dataType: 'json',
-            url: "{{ url('proa_save_extra_discount')}}",
-            success: function (r) {
+            url: "{{ url('proa_save_extra_discount') }}",
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Disimpan', 'Informasi berhasil disimpan', 'success');
                 } else {
@@ -320,7 +349,7 @@
     //         type: "POST",
     //         data: {_id:id, _extra_discount:extra_discount},
     //         dataType: 'json',
-    //         url: "{{ url('poa_save_extra_discount')}}",
+    //         url: "{{ url('poa_save_extra_discount') }}",
     //         success: function(r) {
     //             if (r.status == '200'){
     //                 toast('Disimpan', 'Informasi berhasil disimpan' ,'success');
@@ -357,9 +386,11 @@
         $.ajax({
             type: "POST",
             dataType: 'json',
-            data: {_po_id: id},
-            url: "{{ url('reload_pre_order_detail')}}",
-            success: function (r) {
+            data: {
+                _po_id: id
+            },
+            url: "{{ url('reload_pre_order_detail') }}",
+            success: function(r) {
                 if (r.status == '200') {
                     $('#poad_total_price').text(addCommas(r.total_po));
                 } else {
@@ -398,10 +429,14 @@
         });
         $.ajax({
             type: "POST",
-            data: {_poad_id: poad_id, _qty: qty, _total: total},
+            data: {
+                _poad_id: poad_id,
+                _qty: qty,
+                _total: total
+            },
             dataType: 'json',
-            url: "{{ url('proad_save_qty_total')}}",
-            success: function (r) {
+            url: "{{ url('proad_save_qty_total') }}",
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Disimpan', 'Informasi berhasil disimpan', 'success');
                     reloadPoTotalPrice(po_id);
@@ -423,7 +458,7 @@
                 'Simpan'
             ],
             dangerMode: false,
-        }).then(function (isConfirm) {
+        }).then(function(isConfirm) {
             if (isConfirm) {
                 var total_row = $('.order_po_qty').length;
                 for (let i = 0; i < total_row; ++i) {
@@ -443,10 +478,13 @@
         });
         $.ajax({
             type: "POST",
-            data: {_id: id, _reminder: reminder},
+            data: {
+                _id: id,
+                _reminder: reminder
+            },
             dataType: 'json',
-            url: "{{ url('proa_save_reminder')}}",
-            success: function (r) {
+            url: "{{ url('proa_save_reminder') }}",
+            success: function(r) {
                 if (r.status == '200') {
                     toast('Disimpan', 'Informasi berhasil disimpan', 'success');
                 } else {
@@ -458,7 +496,7 @@
 
     // CALCULATION
 
-    $(document).delegate('#po_check_item', 'click', function () {
+    $(document).delegate('#po_check_item', 'click', function() {
         var pid = $(this).attr('data-id');
         var index = $(this).attr('data-index');
         var total_item_price = $('#po_total_item_price' + pid + index).val();
@@ -475,7 +513,7 @@
         alert(pid + ' || ' + index + ' || ' + po_total_price);
     });
 
-    $(document).delegate('#checkbox_add_item', 'click', function () {
+    $(document).delegate('#checkbox_add_item', 'click', function() {
         var poid = $('#_po_id').val();
         var pid = $(this).attr('data-pid');
         var psid = $(this).attr('data-psid');
@@ -494,9 +532,14 @@
         $.ajax({
             type: "POST",
             dataType: 'json',
-            data: {_poid: poid, _pid: pid, _psid: psid, _status: status},
-            url: "{{ url('create_pre_order_detail')}}",
-            success: function (r) {
+            data: {
+                _poid: poid,
+                _pid: pid,
+                _psid: psid,
+                _status: status
+            },
+            url: "{{ url('create_pre_order_detail') }}",
+            success: function(r) {
                 if (r.status == '200') {
 
                 } else {
@@ -508,7 +551,7 @@
         });
     });
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -524,40 +567,57 @@
             responsive: true,
             searchable: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
-            buttons: [
-                {
-                    "extend": 'excelHtml5',
-                    "text": 'Excel',
-                    "className": 'btn btn-primary btn-xs',
-                    "exportOptions": {orthogonal: 'export'}
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs',
+                "exportOptions": {
+                    orthogonal: 'export'
                 }
-            ],
+            }],
             ajax: {
                 url: "{{ url('pre_order_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#purchase_order_search').val();
                     d.st_id = $('#st_id_filter').val();
                 }
             },
-            columns: [
-                {data: 'DT_RowIndex', name: 'po_id', searchable: false},
-                {data: 'po_created_at_show', name: 'po_created_at'},
-                {data: 'st_name', name: 'st_name'},
-                {data: 'ps_name', name: 'ps_name'},
-                {data: 'pre_order_code', name: 'pre_order_code'},
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'po_id',
+                    searchable: false
+                },
+                {
+                    data: 'po_created_at_show',
+                    name: 'po_created_at'
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'ps_name',
+                    name: 'ps_name'
+                },
+                {
+                    data: 'pre_order_code',
+                    name: 'pre_order_code'
+                },
                 {
                     data: 'po_total',
                     name: 'po_total',
-                    render: function (data, type, row) {
+                    render: function(data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
                     }
                 },
-                {data: 'po_status', name: 'po_status'},
-            ],
-            columnDefs: [
                 {
+                    data: 'po_status',
+                    name: 'po_status'
+                },
+            ],
+            columnDefs: [{
                     "targets": 5,
                     "className": "text-center",
                     "orderable": false,
@@ -579,11 +639,16 @@
                 //     "orderable": false, "targets": 7
                 // }
             ],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var product_table = $('#Producttb').DataTable({
@@ -592,12 +657,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
                 url: "{{ url('product_item_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#product_search').val();
                     d.ps_id = $('#ps_id').val();
                     d.br_id_filter = $('#br_id_filter_item').val();
@@ -606,24 +673,44 @@
                     d.sz_id_filter = $('#sz_id_filter_item').val();
                 }
             },
-            columns: [
-                {data: 'DT_RowIndex', name: 'pid', searchable: false},
-                {data: 'p_name_show', name: 'p_name'},
-                {data: 'article_id', name: 'article_id'},
-                {data: 'p_color_show', name: 'p_color'},
-                {data: 'br_name', name: 'br_name'},
-                {data: 'p_action', name: 'p_action', sortable: false},
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pid',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            order: [[0, 'desc']],
+                    data: 'p_name_show',
+                    name: 'p_name'
+                },
+                {
+                    data: 'article_id',
+                    name: 'article_id'
+                },
+                {
+                    data: 'p_color_show',
+                    name: 'p_color'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'p_action',
+                    name: 'p_action',
+                    sortable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        $('#Producttb tbody').on('click', '#add_product_size_btn', function () {
+        $('#Producttb tbody').on('click', '#add_product_size_btn', function() {
             if ($(this).text().indexOf('Batal') >= 0) {
                 $(this).prop('disabled', true);
                 $(this).html('Tambah Item');
@@ -655,15 +742,34 @@
             });
             $.ajax({
                 type: "POST",
-                data: {_p_id: pid},
+                data: {
+                    _p_id: pid
+                },
                 dataType: 'json',
-                url: "{{ url('check_product_stock')}}",
-                success: function (r) {
+                url: "{{ url('check_product_stock') }}",
+                success: function(r) {
                     if (r.data != '400') {
                         var i = 0;
-                        $('#ProductItemtb' + pid).after('<tr><td></td><td></td><td></td><td></td><td></td><td></td><td>Total Seluruh Harga: <input type="number" id="po_total_price' + pid + '" value="0" readonly/></td></tr>');
-                        $.each($(r.data), function (key, value) {
-                            $('#ProductItemtb' + pid).after('<tr data-id-' + pid + i + '><td><input type="checkbox" data-id=' + pid + ' data-index=' + i + ' id="po_check_item"/></td><td>' + value.sz_name + '</td><td>Stok Tersedia: <input type="number" value="' + value.ps_qty + '" readonly/></td><td>Order Qty:<br/><input type="number" id="po_order_qty' + pid + i + '" onchange="return checkTotalItem(' + pid + ', ' + i + ')"/></td><td>Harga Banderol: <input type="number" id="po_price_tag' + pid + '" value="' + p_price_tag + '" readonly/></td><td>Harga Beli: <input type="number" data-purchase-price=' + pid + ' id="po_purchase_price' + pid + i + '" readonly/></td><td>Total Harga: <input type="number" id="po_total_item_price' + pid + i + '" readonly/></td></tr>');
+                        $('#ProductItemtb' + pid).after(
+                            '<tr><td></td><td></td><td></td><td></td><td></td><td></td><td>Total Seluruh Harga: <input type="number" id="po_total_price' +
+                            pid + '" value="0" readonly/></td></tr>');
+                        $.each($(r.data), function(key, value) {
+                            $('#ProductItemtb' + pid).after('<tr data-id-' + pid +
+                                i + '><td><input type="checkbox" data-id=' +
+                                pid + ' data-index=' + i +
+                                ' id="po_check_item"/></td><td>' + value
+                                .sz_name +
+                                '</td><td>Stok Tersedia: <input type="number" value="' +
+                                value.ps_qty +
+                                '" readonly/></td><td>Order Qty:<br/><input type="number" id="po_order_qty' +
+                                pid + i + '" onchange="return checkTotalItem(' +
+                                pid + ', ' + i +
+                                ')"/></td><td>Harga Banderol: <input type="number" id="po_price_tag' +
+                                pid + '" value="' + p_price_tag +
+                                '" readonly/></td><td>Harga Beli: <input type="number" data-purchase-price=' +
+                                pid + ' id="po_purchase_price' + pid + i +
+                                '" readonly/></td><td>Total Harga: <input type="number" id="po_total_item_price' +
+                                pid + i + '" readonly/></td></tr>');
                             i++;
                         });
                     }
@@ -673,27 +779,27 @@
 
         purchase_order_table.buttons().container().appendTo($('#purchase_order_excel_btn'));
 
-        $('#purchase_order_search').on('keyup', function () {
+        $('#purchase_order_search').on('keyup', function() {
             purchase_order_table.draw();
         });
 
-        $('#product_search').on('keyup', function () {
+        $('#product_search').on('keyup', function() {
             product_table.draw();
         });
 
-        $('#br_id_filter_item').on('change', function () {
+        $('#br_id_filter_item').on('change', function() {
             product_table.draw();
         });
 
-        $('#mc_id_filter_item').on('change', function () {
+        $('#mc_id_filter_item').on('change', function() {
             product_table.draw();
         });
 
-        $('#sz_id_filter_item').on('change', function () {
+        $('#sz_id_filter_item').on('change', function() {
             product_table.draw();
         });
 
-        $('#psc_id_filter_item').on('change', function () {
+        $('#psc_id_filter_item').on('change', function() {
             product_table.draw();
         });
 
@@ -701,7 +807,7 @@
             width: "100%",
             dropdownParent: $('#ps_id_parent')
         });
-        $('#ps_id').on('select2:open', function (e) {
+        $('#ps_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -711,7 +817,7 @@
             width: "100%",
             dropdownParent: $('#ss_id_parent')
         });
-        $('#ss_id').on('select2:open', function (e) {
+        $('#ss_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -721,7 +827,7 @@
             width: "100%",
             dropdownParent: $('#br_id_parent')
         });
-        $('#br_id').on('select2:open', function (e) {
+        $('#br_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -731,7 +837,7 @@
             width: "100%",
             dropdownParent: $('#st_id_parent')
         });
-        $('#st_id').on('select2:open', function (e) {
+        $('#st_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -741,13 +847,13 @@
             width: "300px",
             dropdownParent: $('#st_id_filter_parent')
         });
-        $('#st_id_filter').on('select2:open', function (e) {
+        $('#st_id_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#st_id_filter').on('change', function () {
+        $('#st_id_filter').on('change', function() {
             purchase_order_table.draw();
         });
 
@@ -755,7 +861,7 @@
             width: "150px",
             dropdownParent: $('#br_id_filter_parent_item')
         });
-        $('#br_id_filter_item').on('select2:open', function (e) {
+        $('#br_id_filter_item').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -765,7 +871,7 @@
             width: "150px",
             dropdownParent: $('#sz_id_filter_parent_item')
         });
-        $('#sz_id_filter_item').on('select2:open', function (e) {
+        $('#sz_id_filter_item').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -775,7 +881,7 @@
             width: "150px",
             dropdownParent: $('#mc_id_filter_parent_item')
         });
-        $('#mc_id_filter_item').on('select2:open', function (e) {
+        $('#mc_id_filter_item').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -785,13 +891,13 @@
             width: "150px",
             dropdownParent: $('#psc_id_filter_parent_item')
         });
-        $('#psc_id_filter_item').on('select2:open', function (e) {
+        $('#psc_id_filter_item').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#PurchaseOrdertb tbody').on('click', 'tr', function () {
+        $('#PurchaseOrdertb tbody').on('click', 'tr', function() {
             var po_id = purchase_order_table.row(this).data().po_id;
 
             $.ajaxSetup({
@@ -802,9 +908,11 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {_po_id: po_id},
-                url: "{{ url('pre_order_detail')}}",
-                success: function (r) {
+                data: {
+                    _po_id: po_id
+                },
+                url: "{{ url('pre_order_detail') }}",
+                success: function(r) {
                     if (r.status == '200') {
                         global_po_id = r.po_id;
                         jQuery.noConflict();
@@ -827,7 +935,7 @@
             });
         });
 
-        $('#add_po_btn').on('click', function () {
+        $('#add_po_btn').on('click', function() {
             $('#add_po_btn').prop('disabled', true);
             $('#purchase_order_detail_content').html('');
             $.ajaxSetup({
@@ -838,8 +946,8 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                url: "{{ url('create_pre_order')}}",
-                success: function (r) {
+                url: "{{ url('create_pre_order') }}",
+                success: function(r) {
                     if (r.status == '200') {
                         jQuery.noConflict();
                         $('#PurchaseOrderModal').modal('show');
@@ -873,13 +981,13 @@
             });
         });
 
-        $('#add_item_btn').on('click', function () {
+        $('#add_item_btn').on('click', function() {
             $('#AddProductModal').modal('hide');
             var id = $('#_po_id').val();
             reloadArticleDetail(id);
         });
 
-        $('#save_purchase_order_btn').on('click', function (e) {
+        $('#save_purchase_order_btn').on('click', function(e) {
             e.preventDefault();
             $('#PurchaseOrderModal').modal('hide');
             var po_id = $('#_po_id').val();
@@ -891,9 +999,11 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {_id: po_id},
-                url: "{{ url('po_save_draft')}}",
-                success: function (r) {
+                data: {
+                    _id: po_id
+                },
+                url: "{{ url('po_save_draft') }}",
+                success: function(r) {
                     if (r.status == '200') {
                         //swal("Berhasil", "Data berhasil disimpan", "success");
                     } else {
@@ -904,13 +1014,13 @@
             purchase_order_table.draw(false);
         });
 
-        $('#add_product_btn').on('click', function () {
+        $('#add_product_btn').on('click', function() {
             jQuery.noConflict();
             product_table.draw();
             $('#AddProductModal').modal('show');
         });
 
-        $('#st_id').on('change', function () {
+        $('#st_id').on('change', function() {
             var st_id = $(this).val();
             $.ajaxSetup({
                 headers: {
@@ -920,9 +1030,12 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {_po_id: $('#_po_id').val(), _st_id: st_id},
-                url: "{{ url('pre_order_choose_store')}}",
-                success: function (r) {
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _st_id: st_id
+                },
+                url: "{{ url('pre_order_choose_store') }}",
+                success: function(r) {
                     if (r.status == '200') {
 
                     } else {
@@ -932,7 +1045,7 @@
             });
         });
 
-        $('#ps_id').on('change', function () {
+        $('#ps_id').on('change', function() {
             var ps_id = $(this).val();
             $.ajaxSetup({
                 headers: {
@@ -942,9 +1055,12 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {_po_id: $('#_po_id').val(), _ps_id: ps_id},
-                url: "{{ url('pre_order_choose_product_supplier')}}",
-                success: function (r) {
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _ps_id: ps_id
+                },
+                url: "{{ url('pre_order_choose_product_supplier') }}",
+                success: function(r) {
                     if (r.status == '200') {
 
                     } else {
@@ -954,7 +1070,7 @@
             });
         });
 
-        $('#ss_id').on('change', function () {
+        $('#ss_id').on('change', function() {
             var ss_id = $(this).val();
             $.ajaxSetup({
                 headers: {
@@ -964,9 +1080,12 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {_po_id: $('#_po_id').val(), _ss_id: ss_id},
-                url: "{{ url('pre_order_choose_season')}}",
-                success: function (r) {
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _ss_id: ss_id
+                },
+                url: "{{ url('pre_order_choose_season') }}",
+                success: function(r) {
                     if (r.status == '200') {
 
                     } else {
@@ -976,7 +1095,7 @@
             });
         });
 
-        $('#br_id').on('change', function () {
+        $('#br_id').on('change', function() {
             var br_id = $(this).val();
             $.ajaxSetup({
                 headers: {
@@ -986,9 +1105,12 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
-                data: {_po_id: $('#_po_id').val(), _br_id: br_id},
-                url: "{{ url('pre_order_choose_brand')}}",
-                success: function (r) {
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _br_id: br_id
+                },
+                url: "{{ url('pre_order_choose_brand') }}",
+                success: function(r) {
                     if (r.status == '200') {
 
                     } else {
@@ -999,7 +1121,7 @@
         });
 
 
-        $('#cancel_purchase_order_btn').on('click', function () {
+        $('#cancel_purchase_order_btn').on('click', function() {
             swal({
                 title: "Batal..?",
                 text: "Yakin hapus PO ?",
@@ -1009,7 +1131,7 @@
                     'Hapus PO'
                 ],
                 dangerMode: true,
-            }).then(function (isConfirm) {
+            }).then(function(isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -1018,10 +1140,12 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id: $('#_po_id').val()},
+                        data: {
+                            _id: $('#_po_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('cancel_pre_order')}}",
-                        success: function (r) {
+                        url: "{{ url('cancel_pre_order') }}",
+                        success: function(r) {
                             if (r.status == '200') {
                                 $('#PurchaseOrderModal').modal('hide');
                                 purchase_order_table.ajax.reload();
@@ -1035,19 +1159,19 @@
             })
         });
 
-        $(document).ready(function () {
-            $("#ImportModalBtn").click(function () {
+        $(document).ready(function() {
+            $("#ImportModalBtn").click(function() {
                 $("#ImportModal").modal("show");
             });
         });
 
-        $(document).ready(function () {
-            $("#UploadImageInvoiceBtn").click(function () {
+        $(document).ready(function() {
+            $("#UploadImageInvoiceBtn").click(function() {
                 $("#UploadImageInvoiceModal").modal("show");
             });
         });
 
-        $('#f_import').on('submit', function (e) {
+        $('#f_import').on('submit', function(e) {
             e.preventDefault();
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
@@ -1057,13 +1181,13 @@
             formData.append('_po_invoice_label', po_invoice_label)
             $.ajax({
                 type: 'POST',
-                url: "{{ url('po_import')}}",
+                url: "{{ url('po_import') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (data) {
+                success: function(data) {
 
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
@@ -1075,19 +1199,22 @@
                         reloadArticleDetail(data.po_id)
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat',
+                            'warning');
                     } else {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                        swal('Gagal',
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'warning');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
         });
 
-        $('#f_upload_invoice_image').on('submit', function (e) {
+        $('#f_upload_invoice_image').on('submit', function(e) {
             e.preventDefault();
             $('#upload_image_invoice_btn').html('Proses...');
             $('#upload_image_invoice_btn').attr('disabled', true);
@@ -1097,13 +1224,13 @@
             formData.append('_po_id', po_id)
             $.ajax({
                 type: 'POST',
-                url: "{{ url('po_invoice_image')}}",
+                url: "{{ url('po_invoice_image') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (data) {
+                success: function(data) {
                     $("#upload_image_invoice_btn").html('Upload');
                     $("#upload_image_invoice_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -1114,20 +1241,23 @@
                         reloadArticleDetail(po_id)
                     } else if (data.status == '400') {
                         $("#UploadImageInvoiceModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat', 'warning');
+                        swal('File', 'File yang anda import kosong atau format tidak tepat',
+                            'warning');
                     } else {
                         $("#UploadImageInvoiceModal").modal('hide');
-                        swal('Gagal', 'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem', 'warning');
+                        swal('Gagal',
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'warning');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     swal('Error', data, 'error');
 
                 }
             });
         });
 
-        $(document).delegate('#ExportArticleData', 'click', function (e) {
+        $(document).delegate('#ExportArticleData', 'click', function(e) {
             e.preventDefault();
             var po_id = $('#_po_id').val();
             window.location.href = "{{ url('po_article_export') }}?po_id=" + po_id;

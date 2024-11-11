@@ -2,7 +2,7 @@
         $(document).ready(function() {
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
 
@@ -12,33 +12,51 @@
                 serverSide: true,
                 responsive: false,
                 dom: 'lBrt<"text-right"ip>',
-                buttons: [
-                    { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-                ],
+                buttons: [{
+                    "extend": 'excelHtml5',
+                    "text": 'Excel',
+                    "className": 'btn btn-primary btn-xs'
+                }],
                 ajax: {
-                    url : "{{ url('size_datatables') }}",
-                    data : function (d) {
+                    url: "{{ url('size_datatables') }}",
+                    data: function(d) {
                         d.search = $('#size_search').val();
                         d.sz_id = $('#sz_id_filter').val();
                     }
                 },
-                columns: [
-                { data: 'DT_RowIndex', name: 'sid', searchable: false},
-                { data: 'sz_schema', name: 'sz_schema' },
-                { data: 'sz_name', name: 'sz_name' },
-                { data: 'sz_description', name: 'sz_description' },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'sid',
+                        searchable: false
+                    },
+                    {
+                        data: 'sz_schema',
+                        name: 'sz_schema'
+                    },
+                    {
+                        data: 'sz_name',
+                        name: 'sz_name'
+                    },
+                    {
+                        data: 'sz_description',
+                        name: 'sz_description'
+                    },
                 ],
-                columnDefs: [
-                {
+                columnDefs: [{
                     "targets": 0,
                     "className": "text-center",
                     "width": "0%"
                 }],
-                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-                order: [[0, 'desc']],
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "Semua"]
+                ],
+                order: [
+                    [0, 'desc']
+                ],
             });
 
-            size_table.buttons().container().appendTo($('#size_excel_btn' ));
+            size_table.buttons().container().appendTo($('#size_excel_btn'));
             $('#size_search').on('keyup', function() {
                 size_table.draw();
             });
@@ -50,16 +68,20 @@
                     $('#product_category_selected_label').text(label);
                     $.ajax({
                         type: "GET",
-                        data: {_pc_id:pc_id},
+                        data: {
+                            _pc_id: pc_id
+                        },
                         dataType: 'html',
-                        url: "{{ url('reload_product_sub_category')}}",
+                        url: "{{ url('reload_product_sub_category') }}",
                         success: function(r) {
                             $('#psc_id').html(r);
                         }
                     });
                 } else {
                     $('#product_category_selected_label').text('');
-                    $('#psc_id').html("<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih -</option></select>");
+                    $('#psc_id').html(
+                        "<select class='form-control' id='psc_id' name='psc_id' required><option value=''>- Pilih -</option></select>"
+                    );
                 }
                 $('#product_sub_category_selected_label').text('');
                 $('#size_display').fadeOut();
@@ -88,7 +110,7 @@
                 }
             });
 
-            $('#Sizetb tbody').on('click', 'tr', function () {
+            $('#Sizetb tbody').on('click', 'tr', function() {
                 var id = size_table.row(this).data().sid;
                 var sz_name = size_table.row(this).data().sz_name;
                 var sz_schema = size_table.row(this).data().sz_schema;
@@ -100,34 +122,34 @@
                 $('#sz_description').val(sz_description);
                 $('#_id').val(id);
                 $('#_mode').val('edit');
-                @if ( $data['user']->delete_access == '1' )
-                $('#delete_size_btn').show();
+                @if ($data['user']->delete_access == '1')
+                    $('#delete_size_btn').show();
                 @endif
             });
 
             // masih belum digunakan
-            {{--$('#sz_name').on('change', function() {--}}
-            {{--    var sz_name = $(this).val();--}}
-            {{--    var psc_id = $('#psc_id').val();--}}
-            {{--    $.ajaxSetup({--}}
-            {{--        headers: {--}}
-            {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
-            {{--        }--}}
-            {{--    });--}}
-            {{--    $.ajax({--}}
-            {{--        type: "POST",--}}
-            {{--        data: {_sz_name:sz_name, _psc_id:psc_id},--}}
-            {{--        dataType: 'json',--}}
-            {{--        url: "{{ url('check_exists_size')}}",--}}
-            {{--        success: function(r) {--}}
-            {{--            if (r.status == '200') {--}}
-            {{--                swal('Size', 'Size sudah ada disistem, silahkan ganti dengan yang lain', 'warning');--}}
-            {{--                $('#sz_name').val('');--}}
-            {{--                return false;--}}
-            {{--            }--}}
-            {{--        }--}}
-            {{--    });--}}
-            {{--});--}}
+            {{-- $('#sz_name').on('change', function() { --}}
+            {{--    var sz_name = $(this).val(); --}}
+            {{--    var psc_id = $('#psc_id').val(); --}}
+            {{--    $.ajaxSetup({ --}}
+            {{--        headers: { --}}
+            {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') --}}
+            {{--        } --}}
+            {{--    }); --}}
+            {{--    $.ajax({ --}}
+            {{--        type: "POST", --}}
+            {{--        data: {_sz_name:sz_name, _psc_id:psc_id}, --}}
+            {{--        dataType: 'json', --}}
+            {{--        url: "{{ url('check_exists_size')}}", --}}
+            {{--        success: function(r) { --}}
+            {{--            if (r.status == '200') { --}}
+            {{--                swal('Size', 'Size sudah ada disistem, silahkan ganti dengan yang lain', 'warning'); --}}
+            {{--                $('#sz_name').val(''); --}}
+            {{--                return false; --}}
+            {{--            } --}}
+            {{--        } --}}
+            {{--    }); --}}
+            {{-- }); --}}
 
             $('#add_size_btn').on('click', function() {
                 jQuery.noConflict();
@@ -144,11 +166,11 @@
                 $("#import_data_btn").attr("disabled", true);
                 var formData = new FormData(this);
                 $.ajax({
-                    type:'POST',
-                    url: "{{ url('psc_import')}}",
+                    type: 'POST',
+                    url: "{{ url('psc_import') }}",
                     data: formData,
                     dataType: 'json',
-                    cache:false,
+                    cache: false,
                     contentType: false,
                     processData: false,
                     success: function(data) {
@@ -157,32 +179,32 @@
                         jQuery.noConflict();
                         if (data.status == '200') {
                             $("#ImportModal").modal('hide');
-                            swal('Berhasil', 'Data berhasil diimport', 'success');
+                            toastr.success('Data berhasil diimpor', 'Berhasil');
                             $('#f_import')[0].reset();
                             size_table.ajax.reload();
                         } else if (data.status == '400') {
                             $("#ImportModal").modal('hide');
-                            swal('Gagal', 'Data gagal diimport', 'warning');
+                            toastr.warning('Data gagal diimpor', 'Gagal');
                         }
                     },
-                    error: function(data){
-                        swal('Error', data, 'error');
+                    error: function() {
+                        toastr.error('Terjadi kesalahan saat mengimpor data', 'Error');
                     }
                 });
             });
+
 
             $('#f_size').on('submit', function(e) {
                 e.preventDefault();
                 $("#save_size_btn").html('Proses ..');
                 $("#save_size_btn").attr("disabled", true);
                 var formData = new FormData(this);
-                // formData.append('psc_id', $('#psc_id').val());
                 $.ajax({
-                    type:'POST',
-                    url: "{{ url('sz_save')}}",
+                    type: 'POST',
+                    url: "{{ url('sz_save') }}",
                     data: formData,
                     dataType: 'json',
-                    cache:false,
+                    cache: false,
                     contentType: false,
                     processData: false,
                     success: function(data) {
@@ -190,24 +212,25 @@
                         $("#save_size_btn").attr("disabled", false);
                         if (data.status == '200') {
                             $("#SizeModal").modal('hide');
-                            swal('Berhasil', 'Data berhasil disimpan', 'success');
+                            toastr.success('Data berhasil disimpan', 'Berhasil');
                             size_table.ajax.reload();
                         } else if (data.status == '400') {
                             $("#SizeModal").modal('hide');
-                            swal('Gagal', 'Data tidak tersimpan', 'warning');
+                            toastr.warning('Data tidak tersimpan', 'Gagal');
                         }
                     },
-                    error: function(data){
-                        swal('Error', data, 'error');
+                    error: function() {
+                        toastr.error('Terjadi kesalahan saat menyimpan data', 'Error');
                     }
                 });
             });
 
-            $('#delete_size_btn').on('click', function(){
+
+            $('#delete_size_btn').on('click', function() {
                 var idd = $('#_id').val();
                 swal({
                     title: "Hapus..?",
-                    text: "Yakin hapus data ini ?"+idd,
+                    text: "Yakin hapus data ini? " + idd,
                     icon: "warning",
                     buttons: [
                         'Batalkan',
@@ -218,35 +241,42 @@
                     if (isConfirm) {
                         $.ajaxSetup({
                             headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             }
                         });
                         $.ajax({
                             type: "POST",
-                            data: {_id:$('#_id').val()},
+                            data: {
+                                _id: idd
+                            },
                             dataType: 'json',
-                            url: "{{ url('sz_delete')}}",
+                            url: "{{ url('sz_delete') }}",
                             success: function(r) {
-                                if (r.status == '200'){
-                                    swal("Berhasil", "Data berhasil dihapus", "success");
+                                if (r.status == '200') {
+                                    toastr.success("Data berhasil dihapus", "Berhasil");
                                     $('#SizeModal').modal('hide');
                                     size_table.ajax.reload();
                                 } else {
-                                    swal('Gagal', 'Gagal hapus data', 'error');
+                                    toastr.error('Gagal hapus data', 'Gagal');
                                 }
+                            },
+                            error: function() {
+                                toastr.error('Terjadi kesalahan saat menghapus data',
+                                    'Error');
                             }
                         });
                         return false;
                     }
-                })
+                });
             });
+
 
             $('#sz_id_filter').select2({
                 width: "300px",
                 dropdownParent: $('#sz_id_parent')
             });
 
-            $('#sz_id_filter').on('select2:open', function (e) {
+            $('#sz_id_filter').on('select2:open', function(e) {
                 const evt = "scroll.select2";
                 $(e.target).parents().off(evt);
                 $(window).off(evt);
