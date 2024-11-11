@@ -39,7 +39,8 @@
                 },
                 {
                     data: 'po_invoice',
-                    name: 'po_invoice'
+                    name: 'po_invoice',
+                    searchable: true
                 },
                 {
                     data: 'ps_name',
