@@ -56,6 +56,7 @@
             },
             url: "{{ url('check_po_detail') }}",
             success: function(r) {
+                console.log(r);
                 $('#purchase_order_detail_content').html(r);
             }
         });
@@ -700,6 +701,43 @@
             ],
         });
 
+        var purchaseOrderInvoiceTable = $('#InvoiceImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_invoice_image_datatable') }}",
+                data: function (d) {
+                    console.log(d); 
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'image',
+                name: 'invoice_image',
+                searchable: false
+            },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": [0, 1],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+
         $('#Producttb tbody').on('click', '#add_product_size_btn', function() {
             if ($(this).text().indexOf('Batal') >= 0) {
                 $(this).prop('disabled', true);
@@ -942,6 +980,14 @@
                         swal('Error', 'terjadi kesalahan', 'warning');
                     }
                 }
+            });
+        });
+
+        $(document).ready(function () {
+            $("#InvoiceImagesBtn").click(function () {
+                $("#InvoiceImagesModal").modal("show");
+                purchaseOrderInvoiceTable.draw();
+                console.log($('#po_id').val());
             });
         });
 
