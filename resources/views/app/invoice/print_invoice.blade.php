@@ -16,6 +16,7 @@
             .content .title {
                 text-align: center;
                 width: 97%;
+                font-size: 14px;
             }
             .title-left {
                 text-align: left;
@@ -102,16 +103,18 @@
         <div class="content">
             <center>
             <div class="user">{{ $data['invoice'] }}</div><br/>
-            <div id="product_qr"></div>
+            <img class="rounded reload" {{ $data['transaction']->pt_id }}
+                     src="{{ asset('logo/logo_jez_sport.png') }}"
+                     style="width:43%; padding:10px; background-color:#000;"/>
+                <div class="title" style="margin-top: 20px;">
+                    <strong>{{ $data['transaction']->st_name }}</strong><br/>
+                    {{ $data['transaction']->st_address }}<br/>
+                    {{ $data['transaction']->st_phone }}<br/>
+                    Jersey Zone<br/>
+                    www.jez.co.id
+                </div>
             </center><br/>
             <div class="separate"></div>
-            <div class="title">
-                <strong>{{ $data['transaction']->st_name }}</strong><br/>
-                {{ $data['transaction']->st_address }}<br/>
-                {{ $data['transaction']->st_phone }}<br/><br/>
-                Jersey Zone<br/>
-                www.jez.co.id
-            </div>
 
             <div class="head-desc">
                 <div class="date">
@@ -368,6 +371,18 @@
             <div class="nota">
                 <strong>{{ $data['transaction']->pos_order_number }}</strong>
             </div>
+            <div class="note">
+                <span style="font-size: 12px; color: #2b272799;">NOTE:</span>
+                <span style="font-size: 12px; color: #2b272799; text-align: right;">
+                    <strong>
+                        {{ $data['note'][0]->pos_td_description }}
+                        {{-- @foreach($data['transaction_detail'] as $detail)
+                            {{ $detail->pos_td_description ?? "No Notes Available" }}
+                        @endforeach --}}
+                    </strong>
+                </span>
+            </div>
+            
             <div class="title-left">
                 <strong>PENERIMA</strong><br/>
                 {{ $data['customer']->cust_name }}<br/>

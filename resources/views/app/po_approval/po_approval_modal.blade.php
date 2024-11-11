@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-xl" role="document" style="width: 100%; max-width: 1300px;">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">#<span id="invoice_label"></span></h5>
+                <h5 class="modal-title text-dark" id="exampleModalLabel">#<span id="no_po">Ini nomor PO</span> - <span id="invoice_label"></span> </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
@@ -40,13 +40,14 @@
                         </div>
                         <div class="col-4">
                             <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
-                            <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
+                            {{-- <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
                                 <option value="">- Pilih Tipe Stok -</option>
                                 @foreach ($data['stkt_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
                                 @endforeach
-                            </select>
-                            <div id="stkt_id_parent"></div>
+                            </select> --}}
+                            {{-- <div id="stkt_id_parent"></div> --}}
+                            <input type="text" class="form-control" id="stkt_id" name="stkt_id" readonly>
                         </div>
                         <div class="col-4">
                             <label>Pajak</label>
@@ -59,7 +60,7 @@
                             <div id="tax_id_parent"></div>
                         </div>
                         <div class="col-4">
-                            <label>Tanggal Terima</label>
+                            <label>Tanggal Terima (mm/dd/yy) </label>
                             <input type="date" id="receive_date" class="form-control" value=""/>
                         </div>
                         <div class="col-4 mt-3">

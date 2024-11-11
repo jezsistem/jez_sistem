@@ -168,7 +168,7 @@
         });
 
 
-        var apd_table = $('#APDtb').DataTable({
+        var apd_table = $('#CODtb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -180,7 +180,7 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('apd_datatables') }}",
+                url: "{{ url('pocdetail_datatables') }}",
                 data: function(d) {
                     d.poads_invoice = $('#invoice_label').text();
                 }
@@ -231,13 +231,19 @@
                     name: 'ps_qty'
                 }
                 ,
-                // {
-                //     data: 'poads_purchase_price',
-                //     name: 'poads_purchase_price'
-                // },
+                {
+                    data: 'poads_purchase_price',
+                    name: 'poads_purchase_price',
+                    render: function(data) {
+                        return formatRupiah(data);
+                    }
+                },
                 {
                     data: 'poads_total_price',
-                    name: 'poads_total_price'
+                    name: 'poads_total_price',
+                    render: function(data) {
+                        return formatRupiah(data);
+                    }
                 },
                 {
                     data: 'delete',
@@ -260,25 +266,61 @@
                 [0, 'desc']
             ],
         });
+        
+        function formatRupiah(data) {
+            // Check if data is undefined or null, return 'Rp. 0' if true
+            if (data === null || data === undefined || isNaN(data)) {
+                return 'Rp. 0';
+            }
+            
+            // Convert the data to integer and format
+            var numberString = parseInt(data, 10).toString();
+            var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            return "Rp. " + formatted;
+        }
 
         po_approval_table.buttons().container().appendTo($('#po_approval_excel_btn'));
         $('#po_approval_search').on('keyup', function() {
             po_approval_table.draw(false);
         });
 
-        $('#APtb tbody').on('click', 'tr', function() {
+        $('#APtb tbody').on('click', 'tr', function () {
+            
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
             var st_name = po_approval_table.row(this).data().st_name;
             var ps_name = po_approval_table.row(this).data().ps_name;
-            var full_date = po_approval_table.row(this).data().created_at;
-            var tgl_terima = full_date.split(' ')[0];
+            // var full_date = po_approval_table.row(this).data().created_at;
+            // var tgl_terima = full_date.split(' ')[0];
+            var stkt_id = po_approval_table.row(this).data().stkt_id;  // Access stkt_id
+            var tax_id = po_approval_table.row(this).data().tax_id;    // Access tax_id
+            var stkt_name = po_approval_table.row(this).data().stkt_name; // Access stkt_name
+            var tx_name = po_approval_table.row(this).data().tx_name;    // Access tx_name
+            var today = new Date();
+            var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
+            var po_invoice = po_approval_table.row(this).data().po_invoice;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
+
+            console.log('STORES : ', tgl_terima);
+            console.log('POADS ID :', poads_invoice);
+            function formatRupiah(number) {
+            // Ensure the number is an integer
+            var numberString = Math.round(number).toString();
+
+            // Regular expression to add dots as thousand separators
+            var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+            $('#no_po').text(po_invoice);
+            
+            return "Rp. " + formatted;
+        }
+
 
             // call ajax apd_total_price 
             $.ajax({
@@ -288,25 +330,43 @@
                 },
                 dataType: 'json',
                 url: "{{ url('apd_total_price') }}",
-                success: function(r) {
+                success: function (r) {
                     console.log(r);
+                    console.log(st_name);
+                    // Convert 'r' to a number if it's not
+                    var priceNumber = typeof r === 'number' ? r : parseFloat(r);
+                    if (isNaN(priceNumber)) {
+                        console.error("Invalid number for total approval price:", r);
+                        priceNumber = 0; // Default to 0 or handle as needed
+                    }
+
+                    // Format the number as Rupiah using the custom function
+                    var formattedPrice = formatRupiah(priceNumber);
+
+                    // Update the DOM element with the formatted price
+                    $('#total_approval_price').text(formattedPrice);
+
                     $('#st_id').val(st_name);
                     $('#ps_name').val(ps_name);
                     $('#po_description').val(po_description);
-                    $('#receive_date').val(tgl_terima);
+                    $('#receive_date').val(tgl_terima).prop('readonly', true);
                     $('#shipping_cost').val(shipping_cost);
-                    // $('#po_id').val(po_id);
                     $('#_po_id').val(po_id);
-                    $('#total_approval_price').text("Rp. " + r);
+                    $('#total_approval_price').text(formatRupiah(r));
+                    $('#stkt_id').val(stkt_id);
+                    $('#tax_id').val(tax_id);
+                    $('#stkt_name').val(stkt_name);  // Set stkt_name value
+                    $('#tax_name').val(tx_name);
 
                     purchaseOrderInvoiceTable.draw();
                 }
             });
-
             $('#ApproveModal').modal('show');
             $('#invoice_label').text(poads_invoice.replace("&amp;", "&"));
 
             apd_table.draw();
+
+
         });
 
 

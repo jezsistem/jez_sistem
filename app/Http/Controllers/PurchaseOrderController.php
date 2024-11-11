@@ -299,6 +299,37 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    public function getImageInvoiceDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id) {
+                $images = PurchaseOrderInvoiceImage::select('id', 'invoice_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->invoice_image)) {
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
+                        } else {
+                            //                            return '<a href="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).' target=_blank>$row->invoice_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
+                        }
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="' . $row->id . '">Delete</a>';
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
     public function cancelPo(Request $request)
     {
         $poa = DB::table('purchase_order_articles')->where(['po_id' => $request->_id])->get();
@@ -473,26 +504,9 @@ class PurchaseOrderController extends Controller
 
             $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder', 'article_id', 'article_id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-//                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
+                //                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();
-
-
-            //            $pst_article = $poa_data->pluck('article_id');
-
-            //            $total_stok = DB::table('product_location_setups as t1')
-            //                ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
-            //                ->join('products as t3', 't2.p_id', '=', 't3.id')
-            //                ->select(DB::raw('SUM(pls_qty) as total_qty'))
-            //                ->where('article_id', $pst_article)
-            //                ->groupBy('t3.p_name')
-            //                ->get()->first()->total_qty;
-
-
-            //            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder')
-            //                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-            //                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            //                ->where(['po_id' => $po_id])->get();
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
@@ -515,47 +529,35 @@ class PurchaseOrderController extends Controller
                         ->where(['stores.id' => $po_st_id])
                         ->groupBy('pst_id')
                         ->get();
-
-                    //                    $plsQtyDataAll = ProductLocationSetup::whereIn('p_id', $pIds)
-                    //                        ->select('pst_id', DB::raw('SUM(pls_qty) as total_pls_qty_all'))
-                    //                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    //                        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                    //                        ->join('products', 'products.id', '=', 'product_stocks.p_id')
-                    //                        ->where(['products.id' => '11040092'])
-                    //                        ->groupBy('pst_id')
-                    //                        ->get();
-
-                    //                    $plsQtyDataAll = ProductLocationSetup::select('ts_products.p_name', DB::raw('SUM(ts_product_location_setups.pls_qty) as total_pls_qty_all'))
-                    //                        ->join('ts_product_stocks', 'ts_product_location_setups.pst_id', '=', 'ts_product_stocks.id')
-                    //                        ->join('ts_products', 'ts_product_stocks.p_id', '=', 'ts_products.id')
-                    //                        ->whereIn('ts_products.id', $pIds)
-                    //                        ->groupBy('pst_id')
-                    //                        ->get();
-
-                    // Step 3: Merge data with $poad_data
                     $poad_data = $poad_data->map(function ($item) use ($plsQtyData) {
                         $item['total_pls_qty'] = $plsQtyData->where('pst_id', $item['pst_id'])->first()['total_pls_qty'] ?? 0;
                         //                        $item['total_pls_qty_all'] = $plsQtyDataAll->where('pst_id', $item['pst_id'])->first()['total_pls_qty_all'] ?? 0;
                         return $item;
                     });
-
-                    //                    $pst_article = $poad_data->pluck('ps_barcode');
-
-                    // Step 4: Get Stok ALl Cabang
-                    //                    $total_stok = DB::table('product_location_setups as t1')
-                    //                        ->join('product_stocks as t2', 't1.pst_id', '=', 't2.id')
-                    //                        ->join('products as t3', 't2.p_id', '=', 't3.id')
-                    //                        ->select(DB::raw('SUM(pls_qty) as total_qty'))
-                    //                        ->where('article_id', $pst_article)
-                    //                        ->groupBy('t3.p_name')
-                    //                        ->get();
-
                     if (!empty($poad_data)) {
-                        $poa->subitem = $poad_data;
+                        // Define custom size order for T-shirt sizes
+                        $tshirtSizesOrder = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
+                    
+                        $poa->subitem = $poad_data->sortBy(function ($item) use ($tshirtSizesOrder) {
+                            $szName = $item->sz_name;
+                    
+                            // Check if it's a T-shirt size by looking for it in the custom size order
+                            if (in_array($szName, $tshirtSizesOrder)) {
+                                // Return the index of the T-shirt size in the predefined order
+                                return array_search($szName, $tshirtSizesOrder);
+                            } elseif (is_numeric($szName)) {
+                                // For numeric sizes, convert to integer for natural sorting
+                                return (int) $szName;
+                            } else {
+                                // If sz_name doesn't match any known format, return a large value to sort it to the end
+                                return PHP_INT_MAX;
+                            }
+                        });
+                    
                         array_push($get_product, $poa);
                     } else {
                         $get_product = null;
-                    }
+                    }                    
                 }
             } else {
                 $get_product = null;

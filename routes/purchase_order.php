@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_pembayaran_image', [PurchaseOrderController::class, 'uploadPembayaranInvoice']);
     Route::get('po_article_export', [PurchaseOrderController::class, 'exportPurchaseOrderArticleData']);
     Route::post('po_transfer_image', [PurchaseOrderController::class, 'uploadImageTransfer']);
+    Route::get('po_invoice_image_datatable', [PurchaseOrderController::class, 'getImageInvoiceDatatables']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
@@ -139,5 +140,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('poc_update_is_paid', [PurchaseOrderReceiveCODController::class, 'updateIsPaid']);
     Route::get('pocdetail_datatables', [PurchaseOrderReceiveCODController::class, 'getDetailDatatables']);
     Route::get('po_pembayaran_image', [PurchaseOrderReceiveCODController::class, 'uploadImageInvoice']);
+    Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
+
 
 });

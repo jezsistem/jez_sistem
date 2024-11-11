@@ -227,12 +227,9 @@
                     $(row).hide();
                 }
             },
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "Semua"]
-            ],
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
-                "lengthMenu": "MENU",
+                "lengthMenu": "_MENU_",
             },
             order: [
                 [0, 'desc']
@@ -553,7 +550,7 @@
 
                             // Now show the swal with the promo data
                             swal({
-                                title: "Pickup..?",
+                                title: bin,
                                 text: "Yakin pickup item " + p_name + " dari bin " +
                                     bin + " ?\n\nPromotions:\n" + promoInfo + "\n" +
                                     promoPrice,
