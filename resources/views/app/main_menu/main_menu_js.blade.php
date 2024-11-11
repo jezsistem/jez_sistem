@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,35 +12,47 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('mm_datatables') }}",
-                data : function (d) {
+                url: "{{ url('mm_datatables') }}",
+                data: function(d) {
                     d.search = $('#main_menu_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'mt_title', name: 'mt_title' },
-            { data: 'mt_sort_show', name: 'mt_sort' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'mt_title',
+                    name: 'mt_title'
+                },
+                {
+                    data: 'mt_sort_show',
+                    name: 'mt_sort'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        main_menu_table.buttons().container().appendTo($('#main_menu_excel_btn' ));
+        main_menu_table.buttons().container().appendTo($('#main_menu_excel_btn'));
         $('#main_menu_search').on('keyup', function() {
             main_menu_table.draw(false);
         });
 
-        $('#MMtb tbody').on('click', 'tr td:not(:nth-child(3))', function () {
+        $('#MMtb tbody').on('click', 'tr td:not(:nth-child(3))', function() {
             var id = main_menu_table.row(this).data().id;
             var mt_title = main_menu_table.row(this).data().mt_title;
             var mt_sort = main_menu_table.row(this).data().mt_sort;
@@ -68,11 +80,11 @@
             $("#save_main_menu_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('mm_save')}}",
+                type: 'POST',
+                url: "{{ url('mm_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -81,19 +93,21 @@
                     if (data.status == '200') {
                         $("#MMModal").modal('hide');
                         main_menu_table.draw(false);
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success("Data berhasil disimpan", "Success");
                     } else if (data.status == '400') {
                         $("#MMModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning("Data tidak tersimpan", "Failed");
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    const errorMessage = data.responseText ||
+                        "Terjadi kesalahan saat memproses permintaan";
+                    toastr.error(errorMessage, "Error");
                 }
             });
         });
 
-        $('#delete_main_menu_btn').on('click', function(){
+        $('#delete_main_menu_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -107,21 +121,23 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('mm_delete')}}",
+                        url: "{{ url('mm_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus", "Success");
                                 $('#MMModal').modal('hide');
                                 main_menu_table.draw(false);
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.warning("Data gagal dihapus", "Failed");
                             }
                         }
                     });
@@ -136,16 +152,19 @@
             var sort = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:id, sort:sort},
+                data: {
+                    id: id,
+                    sort: sort
+                },
                 dataType: 'json',
-                url: "{{ url('mm_update')}}",
+                url: "{{ url('mm_update') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         main_menu_table.draw(false);
                         toast("Berhasil", "Data berhasil diupdate", "success");
                     } else {

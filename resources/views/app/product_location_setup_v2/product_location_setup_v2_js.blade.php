@@ -60,6 +60,8 @@
         });
         return false;
     }
+
+    //button cancel
     $('#CancelBtn').on('click', function() {
         jQuery.noConflict();
 
@@ -87,6 +89,8 @@
     });
 
 
+
+    //button import
     $('#f_import').on('submit', function(e) {
         e.preventDefault();
         $('#import_data_btn').html('Proses...');
@@ -131,6 +135,7 @@
     });
 
 
+    //button
     function checkMissingBarcode(missingBarcodeData) {
         // each from missingBarcodeData array
         var missingBarcode = [];
@@ -148,6 +153,8 @@
         $('#ImportModal').modal('show');
     });
 
+
+
     $(document).ready(function() {
         // $('body').addClass('kt-primary--minimize aside-minimize');
         loadStartEnd();
@@ -157,6 +164,7 @@
             }
         });
 
+        //button untuk memilih jumlah data yang akan di tampilkan kiri
         start_bin_table = $('#StartBintb').DataTable({
             destroy: true,
             processing: true,
@@ -219,6 +227,7 @@
             start_bin_table.draw();
         });
 
+        //button untuk memilih jumlah data yang akan di tampilkan kanan
         end_bin_table = $('#EndBintb').DataTable({
             destroy: true,
             processing: true,
@@ -276,6 +285,9 @@
             end_bin_table.draw();
         });
 
+
+
+        //ISI TABEL HISTORY SETUP
         var bin_history_table = $('#BinHistorytb').DataTable({
             destroy: true,
             processing: true,
@@ -371,6 +383,7 @@
             bin_history_table.draw();
         });
 
+        //KOLOM JIKA INGIN MENGURANGI STOK namun stoknya kebanyakan(dr stok yg dipunya)/minus
         $(document).delegate('#mutation_qty', 'change', function(e) {
             var pls_qty = $(this).attr('data-qty');
             var qty = $(this).val();
@@ -385,6 +398,7 @@
             }
         });
 
+        //BUTTON  MUTATION DI TABEL A/KIRI
         $('#mutation_btn').on('click', function() {
             swal({
                 title: "Mutasi..?",
@@ -430,6 +444,13 @@
                 }
             })
         });
+
+
+
+
+
+
+        //HISTORY SETUP
 
         $(document).delegate('#export_btn', 'click', function(e) {
             e.preventDefault();

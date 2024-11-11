@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,38 +12,59 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('payment_method_datatables') }}",
-                data : function (d) {
+                url: "{{ url('payment_method_datatables') }}",
+                data: function(d) {
                     d.search = $('#payment_method_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pm_id', searchable: false},
-            { data: 'st_name', name: 'st_name' },
-            { data: 'pm_name', name: 'pm_name' },
-            { data: 'stt_name', name: 'stt_name' },
-            { data: 'a_name', name: 'a_name' },
-            { data: 'pm_description', name: 'pm_description' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pm_id',
+                    searchable: false
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'pm_name',
+                    name: 'pm_name'
+                },
+                {
+                    data: 'stt_name',
+                    name: 'stt_name'
+                },
+                {
+                    data: 'a_name',
+                    name: 'a_name'
+                },
+                {
+                    data: 'pm_description',
+                    name: 'pm_description'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        payment_method_table.buttons().container().appendTo($('#payment_method_excel_btn' ));
+        payment_method_table.buttons().container().appendTo($('#payment_method_excel_btn'));
         $('#payment_method_search').on('keyup', function() {
             payment_method_table.draw();
         });
 
-        $('#PaymentMethodtb tbody').on('click', 'tr', function () {
+        $('#PaymentMethodtb tbody').on('click', 'tr', function() {
             var id = payment_method_table.row(this).data().pm_id;
             var pm_name = payment_method_table.row(this).data().pm_name;
             var stt_id = payment_method_table.row(this).data().stt_id;
@@ -59,41 +80,41 @@
             $('#pm_description').val(pm_description);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_payment_method_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_payment_method_btn').show();
             @endif
         });
 
         // Saat ini masih belum digunakan
-        {{--$('#pm_name').on('change', function() {--}}
-        {{--    var pm_name = $(this).val();--}}
-        {{--    var stt_id = $('#stt_id option:selected').val();--}}
-        {{--    if (stt_id == '') {--}}
-        {{--        swal('Divisi', 'Silahkan isi divisi terlebih dahulu', 'warning');--}}
-        {{--        $('#pm_name').val('');--}}
-        {{--        return false;--}}
-        {{--    }--}}
+        {{-- $('#pm_name').on('change', function() { --}}
+        {{--    var pm_name = $(this).val(); --}}
+        {{--    var stt_id = $('#stt_id option:selected').val(); --}}
+        {{--    if (stt_id == '') { --}}
+        {{--        swal('Divisi', 'Silahkan isi divisi terlebih dahulu', 'warning'); --}}
+        {{--        $('#pm_name').val(''); --}}
+        {{--        return false; --}}
+        {{--    } --}}
 
-        {{--    //alert(pm_name+' '+stt_id);--}}
-        {{--    $.ajaxSetup({--}}
-        {{--        headers: {--}}
-        {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--    $.ajax({--}}
-        {{--        type: "POST",--}}
-        {{--        data: {_pm_name:pm_name, _stt_id:stt_id},--}}
-        {{--        dataType: 'json',--}}
-        {{--        url: "{{ url('check_exists_pm')}}",--}}
-        {{--        success: function(r) {--}}
-        {{--            if (r.status == '200') {--}}
-        {{--                swal('Metode Pembayaran', 'metode pembayaran dengan divisi ini sudah ada disistem, silahkan ganti dengan yang lain', 'warning');--}}
-        {{--                $('#pm_name').val('');--}}
-        {{--                return false;--}}
-        {{--            }--}}
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
+        {{--    //alert(pm_name+' '+stt_id); --}}
+        {{--    $.ajaxSetup({ --}}
+        {{--        headers: { --}}
+        {{--        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') --}}
+        {{--        } --}}
+        {{--    }); --}}
+        {{--    $.ajax({ --}}
+        {{--        type: "POST", --}}
+        {{--        data: {_pm_name:pm_name, _stt_id:stt_id}, --}}
+        {{--        dataType: 'json', --}}
+        {{--        url: "{{ url('check_exists_pm')}}", --}}
+        {{--        success: function(r) { --}}
+        {{--            if (r.status == '200') { --}}
+        {{--                swal('Metode Pembayaran', 'metode pembayaran dengan divisi ini sudah ada disistem, silahkan ganti dengan yang lain', 'warning'); --}}
+        {{--                $('#pm_name').val(''); --}}
+        {{--                return false; --}}
+        {{--            } --}}
+        {{--        } --}}
+        {{--    }); --}}
+        {{-- }); --}}
 
         $('#add_payment_method_btn').on('click', function() {
             jQuery.noConflict();
@@ -112,33 +133,35 @@
             $("#save_payment_method_btn").html('Proses ..');
             $("#save_payment_method_btn").attr("disabled", true);
             var formData = new FormData(this);
+
             $.ajax({
-                type:'POST',
-                url: "{{ url('pm_save')}}",
+                type: 'POST',
+                url: "{{ url('pm_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
                     $("#save_payment_method_btn").html('Simpan');
                     $("#save_payment_method_btn").attr("disabled", false);
+                    $("#PaymentMethodModal").modal('hide');
+
                     if (data.status == '200') {
-                        $("#PaymentMethodModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                         payment_method_table.ajax.reload();
                     } else if (data.status == '400') {
-                        $("#PaymentMethodModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error('Terjadi kesalahan pada server', 'Error');
                 }
             });
         });
 
-        $('#delete_payment_method_btn').on('click', function(){
+
+        $('#delete_payment_method_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -152,38 +175,44 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('pm_delete')}}",
+                        url: "{{ url('pm_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
                                 $('#PaymentMethodModal').modal('hide');
                                 payment_method_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error("Gagal hapus data", "Error");
                             }
+                        },
+                        error: function() {
+                            toastr.error("Terjadi kesalahan, coba lagi.", "Error");
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
         $('#st_id').select2({
             multiple: true,
             width: "100%",
             dropdownParent: $('#st_id_parent'),
-            closeOnSelect:true,
+            closeOnSelect: true,
             allowClear: true,
         });
 
-        $('#st_id').on('select2:open', function (e) {
+        $('#st_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
