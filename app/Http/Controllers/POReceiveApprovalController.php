@@ -206,26 +206,26 @@ class POReceiveApprovalController extends Controller
     }
     
 
-    // public function poReceiveDetail(Request $request)
-    // {
-    //     $po_id = $request->_po_id;
-    //     $check = PurchaseOrder::where(['id' => $po_id])->exists();
-    //     if ($check) {
-    //         $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
-    //         $r['status'] = '200';
-    //         $r['po_id'] = $draft->id;
-    //         $r['st_id'] = $draft->st_id;
-    //         $r['ps_id'] = $draft->ps_id;
-    //         $r['stkt_id'] = $draft->stkt_id;
-    //         $r['tax_id'] = $draft->tax_id;
-    //         $r['po_description'] = $draft->po_description;
-    //         $r['po_shipping_cost'] = $draft->po_shipping_cost;
-    //         $r['po_invoice'] = $draft->po_invoice;
-    //     } else {
-    //         $r['status'] = '400';
-    //     }
-    //     return json_encode($r);
-    // }
+     public function poReceiveDetail(Request $request)
+     {
+         $po_id = $request->_po_id;
+         $check = PurchaseOrder::where(['id' => $po_id])->exists();
+         if ($check) {
+             $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
+             $r['status'] = '200';
+             $r['po_id'] = $draft->id;
+             $r['st_id'] = $draft->st_id;
+             $r['ps_id'] = $draft->ps_id;
+             $r['stkt_id'] = $draft->stkt_id;
+             $r['tax_id'] = $draft->tax_id;
+             $r['po_description'] = $draft->po_description;
+             $r['po_shipping_cost'] = $draft->po_shipping_cost;
+             $r['po_invoice'] = $draft->po_invoice;
+         } else {
+             $r['status'] = '400';
+         }
+         return json_encode($r);
+     }
 
     public function getDetailDatatables(Request $request)
     {
