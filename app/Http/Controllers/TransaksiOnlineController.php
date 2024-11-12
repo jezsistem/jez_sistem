@@ -437,7 +437,7 @@ class TransaksiOnlineController extends Controller
 
                             foreach ($keep_online_details as $key => $cko) {
                                 $barcode_id = ProductStock::where('ps_barcode', $cko->ps_barcode)->first()->id;
-                                if ($key < $data->qty) {
+//                                if ($key < $data->qty) {
                                     PosTransactionDetail::create([
                                         'pt_id' => $trx_id_new,
                                         'pst_id' => $barcode_id,
@@ -457,7 +457,7 @@ class TransaksiOnlineController extends Controller
                                     ]);
 
                                     ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
-                                }
+//                                }
 
                             }
                         }
