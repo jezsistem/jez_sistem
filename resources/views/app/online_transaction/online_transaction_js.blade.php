@@ -405,7 +405,7 @@
                     data: 'final_price',
                     name: 'final_price',
                     render: function(data, type, row) {
-                        const platformPrice = parseInt(row.shopee_price);
+                        const platformPrice = parseInt(row.ns_before_admin);
                         const quantity = parseInt(row.to_qty);
 
                         if (isNaN(platformPrice) || isNaN(quantity)) {
