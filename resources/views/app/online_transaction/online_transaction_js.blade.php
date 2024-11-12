@@ -77,7 +77,7 @@
                 "width": "0%"
             }],
             language: {
-                "lengthMenu": "_MENU_",
+                "lengthMenu": "MENU",
             }
         });
 
@@ -95,6 +95,7 @@
             console.log($(this).val()); // Logs the selected value (0 or 1)
             online_transaction_table.draw();
         });
+        
 
         $(document).delegate('#import_modal', 'click', function() {
             $('#ImportModal').modal('show');
@@ -408,10 +409,6 @@
                         return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
                     }
                 },
-                {
-                    data: 'status_pick',
-                    name: 'status_pick'
-                },
             ],
             columnDefs: [{
                 "targets": 0,
@@ -419,7 +416,7 @@
                 "width": "0%"
             }],
             language: {
-                "lengthMenu": "_MENU_",
+                "lengthMenu": "MENU",
             },
             order: [
                 [0, 'desc']
@@ -451,7 +448,6 @@
                         },
                         success: function(response) {
                             console.log(response.status);
-                            console.log(response.data);
                             if (response.status == 200) {
                                 var printUrl = '{{ url('print_online_nota') }}/' +
                                     numOrder;
