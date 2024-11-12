@@ -450,6 +450,8 @@
                 if (result.isConfirmed) {
                     console.log(numOrder);
 
+                    $('#loader').show();
+
                     $.ajax({
                         url: '{{ url('print_online_invoice') }}',
                         method: 'POST',
@@ -483,6 +485,9 @@
                                 icon: 'error',
                                 confirmButtonColor: '#3085d6'
                             });
+                        },
+                        complete: function () {
+                            $('#loader').hide();
                         }
                     });
                 }
