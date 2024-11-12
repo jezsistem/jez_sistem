@@ -665,7 +665,7 @@ class SalesReportController extends Controller
                 ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                 ->leftJoin('pos_transaction_details', 'pos_transaction_details.pst_id', '=', 'product_stocks.id')
                 // ->leftJoin('pos_transaction_details', 'pos_transaction_details.br_id', '=', 'brands.id')
-                ->leftJoin('ts_pos_transactions', 'ts_pos_transactions.id', '=', 'pos_transaction_details.pt_id') // Added Join
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id') // Added Join
                 ->groupBy('product_stocks.id'))
                 ->editColumn('hb', function ($data) {
                     $purchase = 0;
