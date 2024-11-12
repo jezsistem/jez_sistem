@@ -228,10 +228,11 @@ class ReportShiftController extends Controller
                 ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
                 ->leftjoin('user_shifts', 'users.id', '=', 'user_shifts.user_id')
                 ->leftjoin('pos_transactions', function ($join) {
-                    $join->on('users.id', '=', 'pos_transactions.u_id')
+                    $join->on('users.id', '=', 'pos_transactions.kasir_id')
                         ->where('pos_transactions.pos_refund', '=', '0')
                         ->whereBetween('pos_transactions.created_at', [DB::raw('ts_user_shifts.start_time'), DB::raw('ts_user_shifts.end_time')]);
                 })
+                ->havingRaw('total_pos_real_price IS NOT NULL AND total_pos_real_price != 0')
                 ->groupBy(
                     'users.id',
                     'user_shifts.id',
@@ -249,16 +250,16 @@ class ReportShiftController extends Controller
                     return date('H:i:s', strtotime($row->end_time));
                 })
                 ->editColumn('total_pos_payment_price', function ($row) {
-                    return 'Rp. ' . $row->total_pos_payment_price;
+                    return 'Rp. ' . number_format($row->total_pos_payment_price, 0, ',', '.');
                 })
                 ->editColumn('total_pos_real_price', function ($row) {
-                    return 'Rp. ' . $row->total_pos_real_price;
+                    return 'Rp. ' . number_format($row->total_pos_real_price, 0, ',', '.');
                 })
-                ->editColumn('laba_shift', function ($row) {
-                    return 'Rp. ' . $row->laba_shift;
-                })
+                    ->editColumn('laba_shift', function ($row) {
+                        return 'Rp. ' . number_format($row->laba_shift, 0, ',', '.');
+                    })
                 ->editColumn('difference', function ($row) {
-                    return 'Rp. ' . $row->total_pos_real_price - $row->total_pos_payment_price;
+                    return 'Rp. ' . number_format($row->total_pos_real_price - $row->total_pos_payment_price, 0, ',', '.');
                 })
                 ->editColumn('start_time_original', function ($row) {
                     return $row->start_time;
@@ -415,7 +416,7 @@ class ReportShiftController extends Controller
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_payment_methods.st_id AND ts_pos_transactions.stt_id = ts_payment_methods.stt_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_payment_expected'),
             )
                 ->join('pos_transactions', 'pos_transactions.pm_id', '=', 'payment_methods.id')
-                ->where('pos_transactions.u_id', '=', $data['user_id'])
+                ->where('pos_transactions.kasir_id', '=', $data['user_id'])
                 ->where('pos_transactions.st_id', "=", $data['st_id'])
 //                ->join('user_shifts', 'pos_transactions.u_id', '=', 'user_shifts.user_id')
                 ->whereBetween('pos_transactions.created_at', [$data['start_time'], $data['end_time']])
@@ -431,10 +432,11 @@ class ReportShiftController extends Controller
             $transferBca = [];
             $transferBni = [];
             $transferBri = [];
+            $qris = [];
 
-            $PaymentPartials = PosTransaction::where('u_id', $data['user_id'])
+            $PaymentPartials = PosTransaction::where('kasir_id', $data['user_id'])
                 ->join('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
-                ->where('pos_transactions.u_id', '=', $data['user_id'])
+                ->where('pos_transactions.kasir_id', '=', $data['user_id'])
                 ->where('pos_transactions.st_id', $data['st_id'])
                 ->whereBetween('pos_transactions.created_at', [$data['start_time'], $data['end_time']])
                 ->get();
@@ -462,6 +464,9 @@ class ReportShiftController extends Controller
                 if (stripos($paymentMethod->pm_name, 'TRANSFER BRI') !== false) {
                     $transferBri = $paymentMethod;
                 }
+                if (stripos($paymentMethod->pm_name, 'QRIS') !== false) {
+                    $qris = $paymentMethod;
+                }
             }
             $total_sold_items = $this->totalProductSold($data, $request->id, $data['start_time'], $data['end_time']) ?? 0;
             $total_refund_items = $this->totalProductRefund($data, $request->id, $data['start_time'], $data['end_time']) ?? 0;
@@ -477,7 +482,7 @@ class ReportShiftController extends Controller
             }
 
             return view('app.report.shift._shift_detail',
-                compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri',
+                compact('data', 'cashMethods', 'bcaMethods', 'bniMethods', 'briMethods', 'transferBca', 'transferBni', 'transferBri', 'qris',
                     'total_sold_items', 'total_refund_items', 'total_payment_two','total_expected_payment', 'total_actual_payment', 'methodsPartials'));
         } catch (\Exception $e) {
             return $e->getMessage();
@@ -492,11 +497,11 @@ class ReportShiftController extends Controller
             )
                 ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
                 ->join('user_shifts', 'users.id', '=', 'user_shifts.user_id')
-//                ->join('pos_transactions', function($join) {
-//                    $join->on('users.id', '=', 'pos_transactions.u_id')
-//                        ->whereBetween('pos_transactions.created_at', [DB::raw('ts_user_shifts.start_time'), DB::raw('ts_user_shifts.end_time')]);
-//                    $join->join('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id');
-//                })
+                ->join('pos_transactions', function($join) {
+                    $join->on('users.id', '=', 'pos_transactions.kasir_id')
+                        ->whereBetween('pos_transactions.created_at', [DB::raw('ts_user_shifts.start_time'), DB::raw('ts_user_shifts.end_time')]);
+                    $join->join('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id');
+                })
                 ->where('users.id', '=', $request->id)
                 ->groupBy(
                     'users.id',
@@ -523,7 +528,7 @@ class ReportShiftController extends Controller
             DB::raw('SUM(ts_pos_transaction_details.pos_td_qty) as total_product_sold')
         )
             ->join('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-            ->where('pos_transactions.u_id', '=', $user_id)
+            ->where('pos_transactions.kasir_id', '=', $user_id)
             ->where('pos_transactions.st_id', "=", $data['st_id'])
             ->whereBetween('pos_transactions.created_at', [$start_time, $end_time])
             ->first();
@@ -540,7 +545,7 @@ class ReportShiftController extends Controller
                 ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
                 ->join('user_shifts', 'users.id', '=', 'user_shifts.user_id')
                 ->join('pos_transactions', function ($join) {
-                    $join->on('users.id', '=', 'pos_transactions.u_id')
+                    $join->on('users.id', '=', 'pos_transactions.kasir_id')
                         ->whereBetween('pos_transactions.created_at', [DB::raw('ts_user_shifts.start_time'), DB::raw('ts_user_shifts.end_time')]);
                     $join->join('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id');
                 })
@@ -569,7 +574,7 @@ class ReportShiftController extends Controller
             DB::raw('SUM(ts_pos_transaction_details.pos_td_qty) as total_product_refund')
         )
             ->join('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-            ->where('pos_transactions.u_id', '=', $user_id)
+            ->where('pos_transactions.kasir_id', '=', $user_id)
             ->where('pos_transactions.st_id', "=", $data['st_id'])
             ->where('pos_transactions.pos_refund', "=", "1")
             ->whereBetween('pos_transactions.created_at', [$start_time, $end_time])
