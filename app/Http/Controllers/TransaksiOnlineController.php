@@ -494,7 +494,6 @@ class TransaksiOnlineController extends Controller
                             DB::table('pos_transaction_details')->whereIn('id', $duplicateIds)->delete();
                         }
 
-
                         foreach ($online_transactions as $transaction) {
                             // Update each waiting transaction to 'DONE AMP'
                             $paramsPlst = [
