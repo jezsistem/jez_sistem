@@ -443,7 +443,11 @@ class TransaksiOnlineController extends Controller
                         foreach ($keep_online_details as $key => $cko) {
                             $barcode_id = ProductStock::where('ps_barcode', $data->sku)->first()->id;
 
+                            $item_detail_checks = PosTransactionDetail::where('pst_id', $barcode_id)->where('pt_id', $trx_id_new)->exists();
+
 //                            if ($key <= $data->qty) {
+
+                            if (!$item_detail_checks) {
                                 $insert_details = PosTransactionDetail::create([
                                     'pt_id' => $trx_id_new,
                                     'pst_id' => $barcode_id,
@@ -462,37 +466,37 @@ class TransaksiOnlineController extends Controller
                                     'created_at' => date('Y-m-d H:i:s')
                                 ]);
 
-                                ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
-
+                            }
+                            ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
 
                         }
 
                         // Step 1: Find duplicate entries based on `pt_id` and `pst_id`
-                        $duplicates = DB::table('pos_transaction_details')
-                            ->select('pt_id', 'pst_id', DB::raw('COUNT(*) as duplicate_count'))
-                            ->groupBy('pt_id', 'pst_id')
-                            ->having('duplicate_count', '>', 1)
-                            ->get();
-
-
-                        foreach ($duplicates as $duplicate) {
-                            // Step 2: Get the IDs of duplicates, excluding the minimum `id` for each duplicate group
-                            $duplicateIds = DB::table('pos_transaction_details')
-                                ->where('pt_id', $duplicate->pt_id)
-                                ->where('pst_id', $duplicate->pst_id)
-                                ->where('id', '!=', function ($query) use ($duplicate) {
-                                    $query->select('id')
-                                        ->from('pos_transaction_details')
-                                        ->where('pt_id', $duplicate->pt_id)
-                                        ->where('pst_id', $duplicate->pst_id)
-                                        ->orderBy('id', 'asc')
-                                        ->limit(1); // Select the minimum id to keep
-                                })
-                                ->pluck('id');
-
-                            // Step 3: Delete duplicates
-                            DB::table('pos_transaction_details')->whereIn('id', $duplicateIds)->delete();
-                        }
+//                        $duplicates = DB::table('pos_transaction_details')
+//                            ->select('pt_id', 'pst_id', DB::raw('COUNT(*) as duplicate_count'))
+//                            ->groupBy('pt_id', 'pst_id')
+//                            ->having('duplicate_count', '>', 1)
+//                            ->get();
+//
+//
+//                        foreach ($duplicates as $duplicate) {
+//                            // Step 2: Get the IDs of duplicates, excluding the minimum `id` for each duplicate group
+//                            $duplicateIds = DB::table('pos_transaction_details')
+//                                ->where('pt_id', $duplicate->pt_id)
+//                                ->where('pst_id', $duplicate->pst_id)
+//                                ->where('id', '!=', function ($query) use ($duplicate) {
+//                                    $query->select('id')
+//                                        ->from('pos_transaction_details')
+//                                        ->where('pt_id', $duplicate->pt_id)
+//                                        ->where('pst_id', $duplicate->pst_id)
+//                                        ->orderBy('id', 'asc')
+//                                        ->limit(1); // Select the minimum id to keep
+//                                })
+//                                ->pluck('id');
+//
+//                            // Step 3: Delete duplicates
+//                            DB::table('pos_transaction_details')->whereIn('id', $duplicateIds)->delete();
+//                        }
 
                         foreach ($online_transactions as $transaction) {
                             // Update each waiting transaction to 'DONE AMP'
@@ -513,7 +517,7 @@ class TransaksiOnlineController extends Controller
                 }
             }
 
-            if ($insert_details) {
+            if ($trx_id_new) {
                 $response['status'] = 200;
             } else {
                 $response['status'] = 400;
