@@ -417,6 +417,10 @@
                         return formatRupiah(calculatedFinalPrice);
                     }
                 },
+                {
+                    data: 'status_pick',
+                    name: 'status_pick'
+                },
             ],
             columnDefs: [{
                 "targets": 0,
