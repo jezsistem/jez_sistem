@@ -215,40 +215,45 @@
     }
 
     //hitung cogs baru
-        function discount(id) {
+    function discount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
         var total_row = $('span[data-poa-' + id + ']').length;
 
+        // Reset discount if empty or 0
         if (discount == '' || discount == 0) {
             $('#poa_extra_discount' + id).val('');
             discount = 0;
             extra_discount = 0;
         }
 
+        // Handle extra discount if empty or 0
         if (extra_discount == '' || extra_discount == 0) extra_discount = 0;
 
         for (let i = 0; i < total_row; ++i) {
             var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
-            var qty = $('#poad_qty_' + id + '_' + i).val() || 1;  // Use entered qty or default to 1
+            var qty = $('#poad_qty_' + id + '_' + i).val() || 1;  // Default qty to 1 if not entered
             var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
             var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-            
+
+            // Update purchase price for this row
             $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
-            
-            // Calculate and set total_purchase_price based on qty and adjusted price
+
+            // Calculate and update total purchase price
             var total_purchase_price = total * parseFloat(qty);
             $('#total_purchase_price_' + id + '_' + i).val(addCommas(total_purchase_price));
-            
-            // Pass calculated total to other function
+
+            // Update total for this row
             poadPurchasePrice(id, i, total);
         }
 
+        // Send updated discount information via AJAX
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
         $.ajax({
             type: "POST",
             data: {
@@ -266,6 +271,8 @@
             }
         });
     }
+
+
 
 
     function extraDiscount(id) {
@@ -410,20 +417,31 @@
         var total_row = $('span[data-poa-' + id + ']').length;
         var total_price = 0;
         var total = 0;
+
+        // If qty is empty, set to 0
         if (qty == '') {
             qty = 0;
         }
+
+        // Use the purchase price if it is available, otherwise fallback to price tag
         if (purchase_price != '') {
             total = parseFloat(qty) * parseFloat(replaceComma(purchase_price));
         } else {
             total = parseFloat(qty) * parseFloat(replaceComma(price_tag));
         }
+
+        // Set total purchase price for this row
         $('#total_purchase_price_' + id + '_' + index).val(addCommas(total));
+
+        // Recalculate the total price for all rows
         for (let i = 0; i < total_row; ++i) {
-            total_price = total_price + parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val()));
-            //alert(total_price);
+            total_price += parseFloat(replaceComma($('#total_purchase_price_' + id + '_' + i).val()));
         }
+
+        // Update the total price on the page
         $('#poad_total_price_' + id).text(addCommas(total_price));
+
+        // Send updated qty and total price via AJAX
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -437,7 +455,6 @@
                 _qty: qty,
                 _total: total,
                 _purchase_price: replaceComma(purchase_price)
-
             },
             dataType: 'json',
             url: "{{ url('poad_save_qty_total') }}",
@@ -451,6 +468,7 @@
             }
         });
     }
+
 
     function saveAllPo() {
         var po_id = $('#_po_id').val();
