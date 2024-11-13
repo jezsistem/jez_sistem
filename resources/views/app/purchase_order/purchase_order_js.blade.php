@@ -233,7 +233,7 @@
                 total = price_tag - (price_tag / 100 * parseFloat(discount))
                 //alert(total);
                 $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
-                $('#poad_qty_' + id + '_' + i).val('');
+                // $('#poad_qty_' + id + '_' + i).val('');
                 $('#total_purchase_price_' + id + '_' + i).val('');
                 poadPurchasePrice(id, i, total);
             }

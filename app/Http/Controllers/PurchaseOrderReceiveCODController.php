@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\User;
+use App\Models\Tax;
 use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -68,6 +69,7 @@ class PurchaseOrderReceiveCODController extends Controller
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
             'segment' => request()->segment(1)
         ];
         return view('app.purchase_order_receive_cod.purchase_order_receive_cod', compact('data'));
@@ -82,7 +84,7 @@ class PurchaseOrderReceiveCODController extends Controller
                     ts_purchase_orders.stkt_id,
                     ts_purchase_orders.tax_id,
                     ts_stock_types.stkt_name,
-                    ts_taxes.tx_name")                
+                    ts_taxes.tx_name")
                 ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
@@ -209,5 +211,4 @@ class PurchaseOrderReceiveCODController extends Controller
             $r['status'] = '400';
         }
     }
-
 }
