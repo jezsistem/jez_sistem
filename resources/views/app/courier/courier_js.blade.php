@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         var courier_table = $('#Couriertb').DataTable({
@@ -11,35 +11,47 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('courier_datatables') }}",
-                data : function (d) {
+                url: "{{ url('courier_datatables') }}",
+                data: function(d) {
                     d.search = $('#courier_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'cr_name', name: 'cr_name' },
-            { data: 'cr_description', name: 'cr_description' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'cr_name',
+                    name: 'cr_name'
+                },
+                {
+                    data: 'cr_description',
+                    name: 'cr_description'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        courier_table.buttons().container().appendTo($('#courier_excel_btn' ));
+        courier_table.buttons().container().appendTo($('#courier_excel_btn'));
         $('#courier_search').on('keyup', function() {
             courier_table.draw();
         });
 
-        $('#Couriertb tbody').on('click', 'tr td:not(:nth-child(2))', function () {
+        $('#Couriertb tbody').on('click', 'tr td:not(:nth-child(2))', function() {
             $('#imagePreview').attr('src', '');
             var id = courier_table.row(this).data().id;
             var cr_name = courier_table.row(this).data().cr_name;
@@ -50,7 +62,7 @@
             $('#cr_description').val(cr_description);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
+            @if ($data['user']->delete_access == '1')
                 $('#delete_courier_btn').show();
             @endif
         });
@@ -70,11 +82,11 @@
             $("#save_courier_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('cr_save')}}",
+                type: 'POST',
+                url: "{{ url('cr_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -82,20 +94,21 @@
                     $("#save_courier_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#CourierModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                         courier_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#CourierModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error('Terjadi kesalahan, coba lagi.', 'Error');
                 }
             });
         });
 
-        $('#delete_courier_btn').on('click', function(){
+
+        $('#delete_courier_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -109,28 +122,34 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('cr_delete')}}",
+                        url: "{{ url('cr_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                                 $('#CourierModal').modal('hide');
                                 courier_table.ajax.reload();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan, coba lagi.', 'Error');
                         }
                     });
                     return false;
                 }
             })
         });
+
 
     });
 </script>

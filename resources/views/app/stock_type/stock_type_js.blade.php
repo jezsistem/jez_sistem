@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,36 +12,51 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('stock_type_datatables') }}",
-                data : function (d) {
+                url: "{{ url('stock_type_datatables') }}",
+                data: function(d) {
                     d.search = $('#stock_type_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'stktid', searchable: false},
-            { data: 'stkt_name', name: 'stkt_name' },
-            { data: 'a_name', name: 'a_name' },
-            { data: 'stkt_description', name: 'stkt_description' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'stktid',
+                    searchable: false
+                },
+                {
+                    data: 'stkt_name',
+                    name: 'stkt_name'
+                },
+                {
+                    data: 'a_name',
+                    name: 'a_name'
+                },
+                {
+                    data: 'stkt_description',
+                    name: 'stkt_description'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        stock_type_table.buttons().container().appendTo($('#stock_type_excel_btn' ));
+        stock_type_table.buttons().container().appendTo($('#stock_type_excel_btn'));
         $('#stock_type_search').on('keyup', function() {
             stock_type_table.draw();
         });
 
-        $('#StockTypetb tbody').on('click', 'tr', function () {
+        $('#StockTypetb tbody').on('click', 'tr', function() {
             $('#imagePreview').attr('src', '');
             var id = stock_type_table.row(this).data().stktid;
             var a_id = stock_type_table.row(this).data().a_id;
@@ -54,8 +69,8 @@
             $('#a_id').val(a_id).trigger('change');
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_stock_type_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_stock_type_btn').show();
             @endif
         });
 
@@ -72,17 +87,21 @@
             var stkt_name = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_stkt_phone:stkt_phone},
+                data: {
+                    _stkt_phone: stkt_phone
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_customer')}}",
+                url: "{{ url('check_exists_customer') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('No Telepon', 'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('No Telepon',
+                            'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#stkt_phone').val('');
                         return false;
                     }
@@ -95,69 +114,72 @@
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
+
             $.ajax({
-                type:'POST',
-                url: "{{ url('stkt_import')}}",
+                type: 'POST',
+                url: "{{ url('stkt_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
-                    jQuery.noConflict();
+                    $("#ImportModal").modal('hide');
+                    $('#f_import')[0].reset();
+                    stock_type_table.ajax.reload();
+
                     if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_import')[0].reset();
-                        stock_type_table.ajax.reload();
+                        toastr.success('Data berhasil diimport', 'Berhasil');
                     } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Data gagal diimport', 'warning');
+                        toastr.warning('Data gagal diimport', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error('Terjadi kesalahan pada server', 'Error');
                 }
             });
         });
+
 
         $('#f_stock_type').on('submit', function(e) {
             e.preventDefault();
             $("#save_stock_type_btn").html('Proses ..');
             $("#save_stock_type_btn").attr("disabled", true);
             var formData = new FormData(this);
+
             $.ajax({
-                type:'POST',
-                url: "{{ url('stkt_save')}}",
+                type: 'POST',
+                url: "{{ url('stkt_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
                     $("#save_stock_type_btn").html('Simpan');
                     $("#save_stock_type_btn").attr("disabled", false);
+                    $("#StockTypeModal").modal('hide');
+                    stock_type_table.ajax.reload();
+
                     if (data.status == '200') {
-                        $("#StockTypeModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
-                        stock_type_table.ajax.reload();
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                     } else if (data.status == '400') {
-                        $("#StockTypeModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error('Terjadi kesalahan pada server', 'Error');
                 }
             });
         });
 
-        $('#delete_stock_type_btn').on('click', function(){
+
+        $('#delete_stock_type_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini ?",
+                text: "Yakin hapus data ini?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
@@ -168,28 +190,35 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('stkt_delete')}}",
+                        url: "{{ url('stkt_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
-                                $('#StockTypeModal').modal('hide');
-                                stock_type_table.ajax.reload();
+                            $('#StockTypeModal').modal('hide');
+                            stock_type_table.ajax.reload();
+
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan pada server', 'Error');
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>

@@ -2,36 +2,39 @@
     var u_id = '';
     var ma_id = [];
 
-    function reloadGroup()
-    {
+    function reloadGroup() {
         $.ajax({
             type: "GET",
             dataType: 'html',
-            url: "{{ url('reload_group')}}",
+            url: "{{ url('reload_group') }}",
             success: function(r) {
                 $('#gr_id').html(r);
             }
         });
     }
 
-    function loadUserMenu()
-    {
+    function loadUserMenu() {
         ma_id = [];
         $('.menu-option').remove();
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
-            data: {u_id:u_id},
+            data: {
+                u_id: u_id
+            },
             dataType: 'json',
-            url: "{{ url('load_user_menu')}}",
+            url: "{{ url('load_user_menu') }}",
             success: function(r) {
                 console.log(r);
                 for (var i = 0; i < r.length; i++) {
-                    $('#menu_panel').append("<a class='btn btn-sm btn-primary menu-option mr-1 mb-1' data-id='"+r[i]['id']+"'>"+r[i]['ma_title']+"</a>");
+                    $('#menu_panel').append(
+                        "<a class='btn btn-sm btn-primary menu-option mr-1 mb-1' data-id='" + r[i][
+                            'id'
+                        ] + "'>" + r[i]['ma_title'] + "</a>");
                 }
             }
         });
@@ -44,8 +47,8 @@
             $(this).removeClass('btn-success');
             $(this).addClass('btn-primary');
             ma_id = $.grep(ma_id, function(value) {
-                        return value != id;
-                    });
+                return value != id;
+            });
         } else {
             $(this).removeClass('btn-primary');
             $(this).addClass('btn-success');
@@ -57,7 +60,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -67,35 +70,47 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('group_datatables') }}",
-                data : function (d) {
+                url: "{{ url('group_datatables') }}",
+                data: function(d) {
                     d.search = $('#group_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'g_name', name: 'g_name' },
-            { data: 'g_description', name: 'g_description' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'g_name',
+                    name: 'g_name'
+                },
+                {
+                    data: 'g_description',
+                    name: 'g_description'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        group_table.buttons().container().appendTo($('#group_excel_btn' ));
+        group_table.buttons().container().appendTo($('#group_excel_btn'));
         $('#group_search').on('keyup', function() {
             group_table.draw(false);
         });
 
-        $('#Grouptb tbody').on('click', 'tr', function () {
+        $('#Grouptb tbody').on('click', 'tr', function() {
             var id = group_table.row(this).data().id;
             var gr_name = group_table.row(this).data().g_name;
             var gr_description = group_table.row(this).data().g_description;
@@ -105,8 +120,8 @@
             $('#gr_description').val(gr_description);
             $('#_id_gr').val(id);
             $('#_mode_gr').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_group_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_group_btn').show();
             @endif
         });
 
@@ -123,35 +138,38 @@
             var u_secret_code = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_u_secret_code:u_secret_code},
+                data: {
+                    _u_secret_code: u_secret_code
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_secret_code')}}",
+                url: "{{ url('check_exists_secret_code') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Kode', 'Kode sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('Kode',
+                            'Kode sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#u_secret_code').val('');
                         return false;
                     }
                 }
             });
         });
-
         $('#f_group').on('submit', function(e) {
             e.preventDefault();
             $("#save_group_btn").html('Proses ..');
             $("#save_group_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('gr_save')}}",
+                type: 'POST',
+                url: "{{ url('gr_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -159,21 +177,22 @@
                     $("#save_group_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#GroupModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success("Data berhasil disimpan", "Success");
                         group_table.draw(false);
                         reloadGroup();
                     } else if (data.status == '400') {
                         $("#GroupModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning("Data tidak tersimpan", 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan', 'Error');
                 }
             });
         });
 
-        $('#delete_group_btn').on('click', function(){
+
+        $('#delete_group_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -187,25 +206,29 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id_gr').val(),_item:$('#gr_name').val()},
+                        data: {
+                            _id: $('#_id_gr').val(),
+                            _item: $('#gr_name').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('gr_delete')}}",
+                        url: "{{ url('gr_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                                 $('#GroupModal').modal('hide');
                                 group_table.draw(false);
                                 reloadGroup();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Gagal');
                             }
                         }
                     });
+
                     return false;
                 }
             })
@@ -217,7 +240,7 @@
             width: "100%",
             dropdownParent: $('#st_id_parent')
         });
-        $('#st_id').on('select2:open', function (e) {
+        $('#st_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -227,7 +250,7 @@
             width: "100%",
             dropdownParent: $('#gr_id_parent')
         });
-        $('#gr_id').on('select2:open', function (e) {
+        $('#gr_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -237,7 +260,7 @@
             width: "100%",
             dropdownParent: $('#stt_id_parent')
         });
-        $('#stt_id').on('select2:open', function (e) {
+        $('#stt_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -249,45 +272,87 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('user_datatables') }}",
-                data : function (d) {
+                url: "{{ url('user_datatables') }}",
+                data: function(d) {
                     d.search = $('#user_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'uid', searchable: false},
-            { data: 'u_name', name: 'u_name' },
-            { data: 'g_name', name: 'g_name' },
-            { data: 'menu_access', name: 'uma' },
-            { data: 'delete_access_show', name: 'delete_access' },
-            { data: 'stt_name', name: 'stt_name' },
-            { data: 'st_name', name: 'st_name' },
-            { data: 'u_nip', name: 'u_nip' },
-            { data: 'u_ktp', name: 'u_ktp' },
-            { data: 'u_secret_code', name: 'u_secret_code' },
-            { data: 'u_phone', name: 'u_phone' },
-            { data: 'u_email', name: 'u_email' },
-            { data: 'u_address', name: 'u_address' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'uid',
+                    searchable: false
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'g_name',
+                    name: 'g_name'
+                },
+                {
+                    data: 'menu_access',
+                    name: 'uma'
+                },
+                {
+                    data: 'delete_access_show',
+                    name: 'delete_access'
+                },
+                {
+                    data: 'stt_name',
+                    name: 'stt_name'
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'u_nip',
+                    name: 'u_nip'
+                },
+                {
+                    data: 'u_ktp',
+                    name: 'u_ktp'
+                },
+                {
+                    data: 'u_secret_code',
+                    name: 'u_secret_code'
+                },
+                {
+                    data: 'u_phone',
+                    name: 'u_phone'
+                },
+                {
+                    data: 'u_email',
+                    name: 'u_email'
+                },
+                {
+                    data: 'u_address',
+                    name: 'u_address'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        user_table.buttons().container().appendTo($('#user_excel_btn' ));
+        user_table.buttons().container().appendTo($('#user_excel_btn'));
         $('#user_search').on('keyup', function() {
             user_table.draw(false);
         });
 
-        $('#Usertb tbody').on('click', 'tr td:not(:nth-child(4), :nth-child(5))', function () {
+        $('#Usertb tbody').on('click', 'tr td:not(:nth-child(4), :nth-child(5))', function() {
             var uid = user_table.row(this).data().uid;
             var gr_id = user_table.row(this).data().gr_id;
             var stt_id = user_table.row(this).data().stt_id;
@@ -317,8 +382,8 @@
             $('#_id').val(uid);
             $('#_mode').val('edit');
 
-            @if ( $data['user']->g_name == 'administrator' )
-            $('#delete_user_btn').show();
+            @if ($data['user']->g_name == 'administrator')
+                $('#delete_user_btn').show();
             @endif
         });
 
@@ -340,11 +405,11 @@
             $("#save_user_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('u_save')}}",
+                type: 'POST',
+                url: "{{ url('u_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -355,20 +420,21 @@
                         jQuery('#gr_id').val('').trigger('change');
                         jQuery('#stt_id').val('').trigger('change');
                         jQuery('#st_id').val('').trigger('change');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                         user_table.draw(false);
                     } else if (data.status == '400') {
                         $("#UserModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan', 'Error');
                 }
             });
+
         });
 
-        $('#delete_user_btn').on('click', function(){
+        $('#delete_user_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -382,24 +448,27 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('u_delete')}}",
+                        url: "{{ url('u_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                                 $('#UserModal').modal('hide');
                                 user_table.draw(false);
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Gagal');
                             }
                         }
                     });
+
                     return false;
                 }
             })
@@ -412,25 +481,40 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             ajax: {
-                url : "{{ url('uma_datatables') }}",
-                data : function (d) {
+                url: "{{ url('uma_datatables') }}",
+                data: function(d) {
                     d.u_id = u_id;
                     d.search = $('#menu_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'ma_title', name: 'ma_title' },
-            { data: 'uma_default', name: 'uma_default', orderable: false },
-            { data: 'action', name: 'action', orderable: false },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'ma_title',
+                    name: 'ma_title'
+                },
+                {
+                    data: 'uma_default',
+                    name: 'uma_default',
+                    orderable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#menu_search').on('keyup', function() {
@@ -446,19 +530,21 @@
             menu_access_table.draw();
         });
 
-        $('#ma_id_access').on('keyup', function(){
+        $('#ma_id_access').on('keyup', function() {
             var query = $(this).val();
-            if($.trim(query) != '' || $.trim(query) != null) {
+            if ($.trim(query) != '' || $.trim(query) != null) {
                 $.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 $.ajax({
-                    url:"{{  url('autocomplete_menu') }}",
-                    method:"POST",
-                    data:{query:query},
-                    success:function(data){
+                    url: "{{ url('autocomplete_menu') }}",
+                    method: "POST",
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
                         $('#menuList').fadeIn();
                         $('#menuList').html(data);
                     }
@@ -468,19 +554,21 @@
             }
         });
 
-        $('#st_id_access').on('keyup', function(){
+        $('#st_id_access').on('keyup', function() {
             var query = $(this).val();
-            if($.trim(query) != '' || $.trim(query) != null) {
+            if ($.trim(query) != '' || $.trim(query) != null) {
                 $.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 $.ajax({
-                    url:"{{  url('autocomplete_store') }}",
-                    method:"POST",
-                    data:{query:query},
-                    success:function(data){
+                    url: "{{ url('autocomplete_store') }}",
+                    method: "POST",
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
                         $('#storeList').fadeIn();
                         $('#storeList').html(data);
                     }
@@ -506,31 +594,36 @@
 
         $(document).on('click', '#add_menu_access_btn', function(e) {
             if (ma_id.length <= 0) {
-                swal('Tentukan Menu', 'Silahkan ketik menu pada pencarian, kemudian pilih salah satu', 'warning');
+                swal('Tentukan Menu', 'Silahkan ketik menu pada pencarian, kemudian pilih salah satu',
+                    'warning');
                 return false;
             }
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {ma_id:ma_id, u_id:u_id},
+                data: {
+                    ma_id: ma_id,
+                    u_id: u_id
+                },
                 dataType: 'json',
-                url: "{{ url('uma_save')}}",
+                url: "{{ url('uma_save') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         $('#ma_id_access_hidden').val('');
                         $('#ma_id_access').val('');
                         menu_access_table.draw(false);
                         loadUserMenu();
-                        swal("Berhasil", "Data berhasil ditambah", "success");
+                        toastr.success('Data berhasil ditambah', 'Berhasil');
                     } else {
-                        swal('Gagal', 'Gagal tambah data', 'error');
+                        toastr.error('Gagal tambah data', 'Gagal');
                     }
                 }
             });
+
             return false;
         });
 
@@ -538,43 +631,46 @@
             var id = $(this).attr('data-id');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {id:id},
+                data: {
+                    id: id
+                },
                 dataType: 'json',
-                url: "{{ url('uma_delete')}}",
+                url: "{{ url('uma_delete') }}",
                 success: function(r) {
-                    if (r.status == '200'){
+                    if (r.status == '200') {
                         menu_access_table.draw(false);
                         loadUserMenu();
-                        toast("Berhasil", "Data berhasil dihapus", "success");
+                        toastr.success('Data berhasil dihapus', 'Berhasil');
                     } else {
-                        toast('Gagal', 'Gagal hapus data', 'error');
+                        toastr.error('Gagal hapus data', 'Gagal');
                     }
                 }
             });
+
             return false;
         });
-        
+
         $(document).on('click', 'body', function(e) {
             $('#menuList').fadeOut();
             $('#storeList').fadeOut();
         });
 
-        $('#ma_id_access').on('focus', function(){
+        $('#ma_id_access').on('focus', function() {
             $('#ma_id_access_hidden').val('');
             $('#ma_id_access').val('');
         });
 
-        $('#st_id_access').on('focus', function(){
+        $('#st_id_access').on('focus', function() {
             $('#st_id_access_hidden').val('');
             $('#st_id_access').val('');
         });
 
-        $('#MenuAccesstb tbody').on('click', 'tr td:not(:nth-child(4))', function () {
+        $('#MenuAccesstb tbody').on('click', 'tr td:not(:nth-child(4))', function() {
             var ma_id = menu_access_table.row(this).data().ma_id;
             swal({
                 title: "Set Default..?",
@@ -589,23 +685,28 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {u_id:u_id, ma_id:ma_id},
+                        data: {
+                            u_id: u_id,
+                            ma_id: ma_id
+                        },
                         dataType: 'json',
-                        url: "{{ url('uma_default')}}",
+                        url: "{{ url('uma_default') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil disetups", "success");
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil disetups',
+                                'Berhasil');
                                 menu_access_table.draw(false);
                             } else {
-                                swal('Gagal', 'Gagal setup data', 'error');
+                                toastr.error('Gagal setup data', 'Gagal');
                             }
                         }
                     });
+
                     return false;
                 }
             })

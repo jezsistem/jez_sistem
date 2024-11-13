@@ -95,6 +95,7 @@
             console.log($(this).val()); // Logs the selected value (0 or 1)
             online_transaction_table.draw();
         });
+        
 
         $(document).delegate('#import_modal', 'click', function() {
             $('#ImportModal').modal('show');

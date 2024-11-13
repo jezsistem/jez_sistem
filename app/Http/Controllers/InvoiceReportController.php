@@ -24,7 +24,7 @@ class InvoiceReportController extends Controller
                 'pos_transactions.id as pt_id', 'pos_transactions.created_at as pos_created', 'pos_invoice', 'pos_shipping', 'pos_unique_code',
                 'pos_admin_cost', 'pos_discount_seller','pos_another_cost', 'dv_name', 'cross_order', 'u_name', 'pos_payment', 'pos_payment_partial',
                 'pos_note', 'pm_id', 'pm_id_partial', 'cp_id', 'cp_id_partial', 'cust_name', 'pos_refund', 'pos_status',
-                'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'st_name' ,'pos_paid_dp', 'pos_paid_dp_date', 'pos_status')
+                'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'st_name' ,'pos_paid_dp', 'pos_paid_dp_date', 'pos_status', 'pos_order_number')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')

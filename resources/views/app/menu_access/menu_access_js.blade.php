@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,33 +12,51 @@
             serverSide: true,
             responsive: false,
             dom: 'Brtl<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('ma_datatables') }}",
-                data : function (d) {
+                url: "{{ url('ma_datatables') }}",
+                data: function(d) {
                     d.search = $('#menu_access_search').val();
                     d.mt_id = $('#mt_id_filter').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'mt_title', name: 'mt_title' },
-            { data: 'ma_title', name: 'ma_title' },
-            { data: 'ma_sort', name: 'ma_sort' },
-            { data: 'ma_slug', name: 'ma_slug' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'mt_title',
+                    name: 'mt_title'
+                },
+                {
+                    data: 'ma_title',
+                    name: 'ma_title'
+                },
+                {
+                    data: 'ma_sort',
+                    name: 'ma_sort'
+                },
+                {
+                    data: 'ma_slug',
+                    name: 'ma_slug'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        menu_access_table.buttons().container().appendTo($('#menu_access_excel_btn' ));
+        menu_access_table.buttons().container().appendTo($('#menu_access_excel_btn'));
         $('#menu_access_search').on('keyup', function() {
             menu_access_table.draw();
         });
@@ -47,7 +65,7 @@
             menu_access_table.draw();
         });
 
-        $('#MAtb tbody').on('click', 'tr', function () {
+        $('#MAtb tbody').on('click', 'tr', function() {
             var id = menu_access_table.row(this).data().id;
             var mt_id = menu_access_table.row(this).data().mt_id;
             var ma_title = menu_access_table.row(this).data().ma_title;
@@ -79,11 +97,11 @@
             $("#save_menu_access_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('ma_save')}}",
+                type: 'POST',
+                url: "{{ url('ma_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -92,19 +110,22 @@
                     if (data.status == '200') {
                         $("#MMModal").modal('hide');
                         menu_access_table.draw();
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
+                        toastr.success("Data berhasil disimpan", "Success");
+
                     } else if (data.status == '400') {
                         $("#MMModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning("Data tidak tersimpan", "Failed");
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    const errorMessage = data.responseText ||
+                        "Terjadi kesalahan saat memproses permintaan";
+                    toastr.error(errorMessage, "Error");
                 }
             });
         });
 
-        $('#delete_menu_access_btn').on('click', function(){
+        $('#delete_menu_access_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -118,21 +139,24 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('ma_delete')}}",
+                        url: "{{ url('ma_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
+                            if (r.status == '200') {
+                                toastr.success("Data berhasil dihapus", "Success");
+                                
                                 $('#MMModal').modal('hide');
                                 menu_access_table.draw();
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.warning("Data gagal dihapus", "Failed");
                             }
                         }
                     });

@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -12,39 +12,63 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('tax_datatables') }}",
-                data : function (d) {
+                url: "{{ url('tax_datatables') }}",
+                data: function(d) {
                     d.search = $('#tax_search').val();
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'tx_code', name: 'tx_code' },
-            { data: 'tx_name', name: 'tx_name' },
-            { data: 'a_id_purchase_name', name: 'a_id_purchase_name' },
-            { data: 'a_id_sell_name', name: 'a_id_sell_name' },
-            { data: 'tx_npwp', name: 'tx_npwp' },
-            { data: 'tx_non_npwp', name: 'tx_non_npwp' },
-            ], 
-            columnDefs: [
-            {
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
+                {
+                    data: 'tx_code',
+                    name: 'tx_code'
+                },
+                {
+                    data: 'tx_name',
+                    name: 'tx_name'
+                },
+                {
+                    data: 'a_id_purchase_name',
+                    name: 'a_id_purchase_name'
+                },
+                {
+                    data: 'a_id_sell_name',
+                    name: 'a_id_sell_name'
+                },
+                {
+                    data: 'tx_npwp',
+                    name: 'tx_npwp'
+                },
+                {
+                    data: 'tx_non_npwp',
+                    name: 'tx_non_npwp'
+                },
+            ],
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
-        tax_table.buttons().container().appendTo($('#tax_excel_btn' ));
+        tax_table.buttons().container().appendTo($('#tax_excel_btn'));
         $('#tax_search').on('keyup', function() {
             tax_table.draw();
         });
 
-        $('#Taxtb tbody').on('click', 'tr', function () {
+        $('#Taxtb tbody').on('click', 'tr', function() {
             $('#imagePreview').attr('src', '');
             var id = tax_table.row(this).data().tid;
             var a_id_purchase = tax_table.row(this).data().a_id_purchase;
@@ -61,8 +85,8 @@
             $('#tx_non_npwp').val(tx_non_npwp);
             $('#_id').val(id);
             $('#_mode').val('edit');
-            @if ( $data['user']->delete_access == '1' )
-            $('#delete_tax_btn').show();
+            @if ($data['user']->delete_access == '1')
+                $('#delete_tax_btn').show();
             @endif
         });
 
@@ -79,17 +103,21 @@
             var tx_name = $(this).val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {_tx_phone:tx_phone},
+                data: {
+                    _tx_phone: tx_phone
+                },
                 dataType: 'json',
-                url: "{{ url('check_exists_customer')}}",
+                url: "{{ url('check_exists_customer') }}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('No Telepon', 'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                        swal('No Telepon',
+                            'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain',
+                            'warning');
                         $('#tx_phone').val('');
                         return false;
                     }
@@ -103,32 +131,33 @@
             $("#import_data_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('tx_import')}}",
+                type: 'POST',
+                url: "{{ url('tx_import') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
+                    $("#ImportModal").modal('hide');
+                    $('#f_import')[0].reset();
+                    tax_table.ajax.reload();
+
                     if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_import')[0].reset();
-                        tax_table.ajax.reload();
+                        toastr.success('Data berhasil diimport', 'Berhasil');
                     } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal', 'Data gagal diimport', 'warning');
+                        toastr.warning('Data gagal diimport', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error('Terjadi kesalahan pada server', 'Error');
                 }
             });
         });
+
 
         $('#f_tax').on('submit', function(e) {
             e.preventDefault();
@@ -136,32 +165,33 @@
             $("#save_tax_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type:'POST',
-                url: "{{ url('tx_save')}}",
+                type: 'POST',
+                url: "{{ url('tx_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
                     $("#save_tax_btn").html('Simpan');
                     $("#save_tax_btn").attr("disabled", false);
+                    $("#TaxModal").modal('hide');
+                    tax_table.ajax.reload();
+
                     if (data.status == '200') {
-                        $("#TaxModal").modal('hide');
-                        swal('Berhasil', 'Data berhasil disimpan', 'success');
-                        tax_table.ajax.reload();
+                        toastr.success('Data berhasil disimpan', 'Berhasil');
                     } else if (data.status == '400') {
-                        $("#TaxModal").modal('hide');
-                        swal('Gagal', 'Data tidak tersimpan', 'warning');
+                        toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function() {
+                    toastr.error('Terjadi kesalahan pada server', 'Error');
                 }
             });
         });
 
-        $('#delete_tax_btn').on('click', function(){
+
+        $('#delete_tax_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -175,28 +205,35 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {_id:$('#_id').val()},
+                        data: {
+                            _id: $('#_id').val()
+                        },
                         dataType: 'json',
-                        url: "{{ url('tx_delete')}}",
+                        url: "{{ url('tx_delete') }}",
                         success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Data berhasil dihapus", "success");
-                                $('#TaxModal').modal('hide');
-                                tax_table.ajax.reload();
+                            $('#TaxModal').modal('hide');
+                            tax_table.ajax.reload();
+
+                            if (r.status == '200') {
+                                toastr.success('Data berhasil dihapus', 'Berhasil');
                             } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
+                                toastr.error('Gagal hapus data', 'Gagal');
                             }
+                        },
+                        error: function() {
+                            toastr.error('Terjadi kesalahan pada server', 'Error');
                         }
                     });
                     return false;
                 }
-            })
+            });
         });
+
 
     });
 </script>
