@@ -1365,11 +1365,11 @@
                     $("#save_product_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#ProductModal").modal('hide');
-<<<<<<< HEAD
+
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
-=======
+
                         toastr.success('Data berhasil disimpan', 'Berhasil');
->>>>>>> origin/temporary
+
                         console.log(data.consignment);
                         console.log(data.complement);
                         product_table.draw(false);
