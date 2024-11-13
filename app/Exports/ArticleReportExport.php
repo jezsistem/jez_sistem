@@ -31,7 +31,7 @@ class ArticleReportExport implements FromCollection, withHeadings
     public function headings(): array
     {
         if ($this->type == 'article' || $this->type == 'cross') {
-            return ["Tanggal", "STORE", "POS_Order_Number", "POS Invoice", "Cross", "Customer", "Kasir", "Divisi", "Tipe Stok", "Brand", "SKU", "Artikel", "Warna", "Size", "Kategori", "Sub Kategori", "Sub Sub Kategori", "Qty", "Bandrol", "Harga Beli", "Harga Jual", "Discount", "Total Price", "Total Invoice", "B1G1"];
+            return ["Tanggal", "STORE", "POS Invoice", "Cross", "Customer", "Kasir", "Divisi", "Tipe Stok", "Brand", "SKU", "Artikel", "Warna", "Size", "Kategori", "Sub Kategori", "Sub Sub Kategori", "Qty", "Bandrol", "Harga Beli", "Harga Jual", "Discount", "Total Price", "Total Invoice", "B1G1"];
         } else {
             return ["Tanggal", "STORE", "POS_Order_Number", "POS Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Total before Discount", "Total Discount", "Total", "Jumlah Bayar 1", "Tipe Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Tanggal Bayar Sisa DP", "Status", "Note"];
         }
