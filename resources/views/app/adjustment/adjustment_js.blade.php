@@ -250,24 +250,44 @@
         });
 
         $('#save_adjustment_btn').on('click', function(e) {
-            e.preventDefault();
-            swal({
-                title: "Adjustment..?",
-                text: "Yakin adjust data ?",
-                icon: "info",
-                buttons: [
-                    'Batal',
-                    'Yakin'
-                ],
-                dangerMode: false,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
+        e.preventDefault();
+
+        // Check if any inputted quantity matches the available quantity
+        var total_row = $('input[data-adjustment-qty]').length;
+        var quantityMismatch = false;
+
+        for (let i = 1; i <= total_row; ++i) {
+            var inputQty = parseInt($('.adjustment_qty' + i).val(), 10);
+            var stockQty = parseInt($('.adjustment_qty' + i).data('qty'), 10);
+
+            if (inputQty === stockQty) {
+                // Display SweetAlert if quantities are the same
+                Swal.fire({
+                    title: 'Gagal',
+                    text: 'Qty SO yang dimasukkan tidak dapat sama dengan stok, periksa kembali',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                quantityMismatch = true;
+                break; // Stop the loop if a match is found
+            }
+        }
+
+        if (!quantityMismatch) {
+            Swal.fire({
+                title: 'Adjustment..?',
+                text: 'Yakin adjust data?',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Yakin',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
                     $(this).prop('disabled', true);
-                    var total_row = $('input[data-adjustment-qty]').length;
                     var finish = '';
-                    //alert(total_row);
-                    for (let i = 1; i <= total_row+1; ++i) {
-                        $('#saveAdjustment'+i).trigger('click');
+                    for (let i = 1; i <= total_row + 1; ++i) {
+                        $('#saveAdjustment' + i).trigger('click');
                         if (i == total_row) {
                             finish = 'true';
                         }
@@ -279,11 +299,20 @@
                         $('#AdjustmentModal').modal('hide');
                         reloadLocation();
                         $(this).prop('disabled', false);
-                        toast('Berhasil', 'Berhasil adjustment', 'success');
+                        
+                        // Display success notification with SweetAlert
+                        Swal.fire({
+                            title: 'Berhasil',
+                            text: 'Berhasil adjustment',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
                     }
                 }
-            })
-        });
+            });
+        }
+    });
+
 
         $('#product_name_input').on('keyup', function(){ 
             var query = $(this).val();
