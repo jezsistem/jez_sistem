@@ -215,11 +215,10 @@
     }
 
     //hitung cogs baru
-    function discount(id) {
+        function discount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
         var total_row = $('span[data-poa-' + id + ']').length;
-        var total = 0;
 
         if (discount == '' || discount == 0) {
             $('#poa_extra_discount' + id).val('');
@@ -227,27 +226,22 @@
             extra_discount = 0;
         }
 
-        if (extra_discount == '' || extra_discount == 0) {
-            for (let i = 0; i < total_row; ++i) {
-                var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
-                total = price_tag - (price_tag / 100 * parseFloat(discount))
-                //alert(total);
-                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
-                // $('#poad_qty_' + id + '_' + i).val('');
-                $('#total_purchase_price_' + id + '_' + i).val('');
-                poadPurchasePrice(id, i, total);
-            }
-        } else {
-            for (let i = 0; i < total_row; ++i) {
-                var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount))
-                var total = subtotal - (subtotal / 100 * parseFloat(extra_discount))
-                //alert(total);
-                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
-                $('#poad_qty_' + id + '_' + i).val('');
-                $('#total_purchase_price_' + id + '_' + i).val('');
-                poadPurchasePrice(id, i, total);
-            }
+        if (extra_discount == '' || extra_discount == 0) extra_discount = 0;
+
+        for (let i = 0; i < total_row; ++i) {
+            var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
+            var qty = $('#poad_qty_' + id + '_' + i).val() || 1;  // Use entered qty or default to 1
+            var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
+            var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
+            
+            $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
+            
+            // Calculate and set total_purchase_price based on qty and adjusted price
+            var total_purchase_price = total * parseFloat(qty);
+            $('#total_purchase_price_' + id + '_' + i).val(addCommas(total_purchase_price));
+            
+            // Pass calculated total to other function
+            poadPurchasePrice(id, i, total);
         }
 
         $.ajaxSetup({
@@ -272,6 +266,7 @@
             }
         });
     }
+
 
     function extraDiscount(id) {
         var discount = $('#poa_discount' + id).val();

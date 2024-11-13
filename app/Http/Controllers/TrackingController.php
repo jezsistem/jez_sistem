@@ -567,7 +567,19 @@ class TrackingController extends Controller
     public function scanInDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'plst_status', 'p_name', 'br_name', 'p_color', 'pl_code', 'pl_name', 'sz_name')
+            return datatables()->of(ProductLocationSetupTransaction::select(
+                    'product_location_setup_transactions.id as plst_id', 
+                    'pls_id', 
+                    'plst_qty', 
+                    'plst_status', 
+                    'p_name', 
+                    'br_name', 
+                    'p_color', 
+                    'pl_code', 
+                    'pl_name', 
+                    'sz_name', 
+                    'product_location_setup_transactions.created_at as TanggalTrx' // Ensure the alias is here
+                )
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -580,32 +592,33 @@ class TrackingController extends Controller
                 ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'REJECT', 'EXCHANGE', 'REFUND', 'WAITING FOR CHECKOUT']))
                 ->editColumn('article', function ($data) {
                     $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
-                    if ($data->plst_status == 'WAITING OFFLINE') {
-                        $btn = 'btn-warning';
-                    } else if ($data->plst_status == 'WAITING ONLINE') {
-                        $btn = 'btn-light-warning';
-                    } else if ($data->plst_status == 'WAITING FOR CHECKOUT') {
-                        $btn = 'btn-info';
-                    } else if ($data->plst_status == 'WAITING TO TAKE') {
-                        $btn = 'btn-info';
-                    } else if ($data->plst_status == 'REJECT') {
-                        $btn = 'btn-danger';
-                    } else if ($data->plst_status == 'EXCHANGE') {
-                        $btn = 'btn-danger';
-                    } else if ($data->plst_status == 'REFUND') {
-                        $btn = 'btn-danger';
-                    }
-                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
-                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
-                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
-                <a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
+                    
+                    // Determine button class based on status
+                    $btn = match($data->plst_status) {
+                        'WAITING OFFLINE' => 'btn-warning',
+                        'WAITING ONLINE' => 'btn-light-warning',
+                        'WAITING FOR CHECKOUT', 'WAITING TO TAKE' => 'btn-info',
+                        'REJECT', 'EXCHANGE', 'REFUND' => 'btn-danger',
+                        default => 'btn-secondary',
+                    };
+
+                    // Format the date
+                    $dateTime = $data->TanggalTrx;
+                    $time = $dateTime ? Carbon::parse($dateTime, 'Asia/Jakarta')->format('d-F-Y H:i:s') : 'N/A';
+
+                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
+                    <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
+                    <span style="white-space: nowrap; font-weight:bold;">' . $time . '</span><br/>
+                    <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
+                    <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
+                    <a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
+
                 })
                 ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            //                            $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
                             $w->where('product_stocks.ps_barcode', $search);
                         });
                     }
@@ -619,6 +632,8 @@ class TrackingController extends Controller
                 ->make(true);
         }
     }
+
+
 
     public function scanOnlineDatatables(Request $request)
     {

@@ -77,7 +77,26 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="user_shift_search" placeholder="Cari Nama Shift"/><br/>
+
+                                <div class="row">
+                                    <div class="col-9">
+                                        <input type="search" class="form-control" id="user_shift_search" placeholder="Cari Nama Shift"/><br/>
+
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="" role="alert">
+                                            <input type="hidden" id="sales_date" value=""/>
+                                            <a href="#" class="btn btn-date-info font-weight-bold col-12"
+                                               id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal"
+                                               data-placement="left">
+                                            <span class="text-muted font-size-base font-weight-bold"
+                                                  id="kt_dashboard_daterangepicker_title">Today</span>
+                                                <span class="text-primary font-size-base font-weight-bolder"
+                                                      id="kt_dashboard_daterangepicker_date"></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                                 <table class="table table-hover table-checkable" id="UserShiftTb">
                                     <thead class="bg-light text-dark">
                                     <tr>
