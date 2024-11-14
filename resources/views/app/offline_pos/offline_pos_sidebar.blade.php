@@ -25,7 +25,6 @@
                 </div>
             </div>
             <div class="resulttable-pos">
-                <input type="text" id="discount_total_temporary">
                 <table class="table right-table">
                     <tbody>
                     <tr class="d-flex align-items-center justify-content-between">
@@ -75,7 +74,7 @@
                         <th class="border-0">
                             <div class="d-flex align-items-center font-size-h5 mb-0 font-size-bold text-dark">
                                 Diskon Total &nbsp;<span id="total_discount_side"></span>
-                                <input type="text" id="total_discount_value"/>
+                                <input type="hidden" id="total_discount_value"/>
                                 <span class="badge badge-primary white rounded-circle ml-2" data-toggle="modal"
                                       data-target="#totalDiscountModal">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="svg-sm"
