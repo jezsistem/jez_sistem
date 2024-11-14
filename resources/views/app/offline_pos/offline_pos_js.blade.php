@@ -93,8 +93,8 @@
                 if (typeof sbttl === 'undefined' && sbttl == '') {
                     sbttl = 0;
                 }
-
-                final_price += (sbttl * item_qty);
+                // Perubahan QTY Price
+                final_price += (sbttl   );
             }
 
             var disc_item = jQuery(row).find('.discount_number').val();
@@ -313,7 +313,24 @@
         });
     };
 
-    function reloadRefund() {
+    {{--function reloadRefund() {--}}
+    {{--    jQuery.ajaxSetup({--}}
+    {{--        headers: {--}}
+    {{--            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')--}}
+    {{--        }--}}
+    {{--    });--}}
+    {{--    jQuery.ajax({--}}
+    {{--        type: "GET",--}}
+    {{--        dataType: 'html',--}}
+    {{--        url: "{{ url('reload_refund_offline') }}",--}}
+    {{--        success: function (r) {--}}
+    {{--            jQuery('#refund_reload').html(r);--}}
+    {{--            toast('Reloaded', 'Refund berhasil direload', 'success');--}}
+    {{--        }--}}
+    {{--    });--}}
+    {{--};--}}
+
+    function dpInvoiceRefund() {
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -322,10 +339,10 @@
         jQuery.ajax({
             type: "GET",
             dataType: 'html',
-            url: "{{ url('reload_refund_offline') }}",
+            url: "{{ url('reload_dp_offline') }}",
             success: function (r) {
-                jQuery('#refund_reload').html(r);
-                toast('Reloaded', 'Refund berhasil direload', 'success');
+                jQuery('#dp_invoice_reload').html(r);
+                toast('Reloaded', 'Invoice DP berhasil direload', 'success');
             }
         });
     };
@@ -524,6 +541,27 @@
         })
     }
 
+    function send_nota() {
+        var nohp = '085649888272'; // nomer wa customer
+        var pesan = 'Your message content here'; // Customize your message as needed
+        jQuery.ajax({
+            type: "GET",
+            url: "http://jezdb.com:3000/api",
+            data: {
+                nohp: nohp,
+                pesan: pesan
+            },
+            success: function (response) {
+                console.log("Message sent successfully:", response);
+                // You can add additional success handling here if needed
+            },
+            error: function (xhr, status, error) {
+                console.error("Error sending message:", error);
+                // You can add error handling here if needed
+            }
+        });
+    }
+
 
     function checkout() {
         var payement = document.getElementById('total_payment').value
@@ -662,6 +700,9 @@
                     jQuery('#pm_id_offline_two').val('');
                     jQuery('#_pt_id_complaint').val('');
                     jQuery('#_exchange').val('');
+                    jQuery('#discount_total_temporary').val(0);
+
+
 
                     jQuery('#card_provider_content').addClass('d-none');
                     jQuery('#card_provider_content').removeClass('d-flex');
@@ -723,7 +764,7 @@
                     // swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
 
                     // print nota off dulu sam e
-                    console.log(st_id);
+                    // console.log(st_id);
                     {{--setTimeout(() => {--}}
                     {{--    if (std_id > '0') {--}}
                     {{--        var win = window.open('{{ url('') }}/print_offline_invoice/' + r--}}
@@ -815,6 +856,7 @@
     //disini diskon totalnya
     function changeDiscountNumber(row, pst_id, pls_qty) {
         var item_qty = jQuery('#item_qty' + row).val();
+        // var temporary_discount = jQuery('#discount_total_temporary').val();
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
         var subtotal_item = replaceComma(jQuery('#subtotal_item' + row).text());
         var total_row = jQuery('tr[data-list-item]').length;
@@ -827,8 +869,15 @@
             if (typeof disc_item !== 'undefined' && disc_item !== 0) {
                 total_disc_item += parseFloat(disc_item);
             }
+
+            console.log(disc_item);
         });
-        jQuery('#total_discount_value_side').text(addCommas(total_disc_item));
+        var temporary_discount = parseFloat(jQuery('#discount_total_temporary').val()) || 0;
+        console.log('Total Discount Items:', total_disc_item);
+        console.log('Temporary Discount:', temporary_discount);
+
+        var total_discount = total_disc_item + temporary_discount;
+        jQuery('#total_discount_value_side').text(addCommas(total_discount));
 
         var b1g1_total_row = b1g1_temp.length;
         var b1g1_qty_total = 0;
@@ -899,9 +948,14 @@
             jQuery('#subtotal_item' + row).text(addCommas(subtotal));
         }
 
-        // jQuery('#total_price_side').text(addCommas(final_price - discount));
+        var temp_final = replaceComma(jQuery('#total_price_side').text());
+        console.log('TOTAL DISCOUNT: ', total_discount);
+        console.log('TOTAL NAMESET: ', nameset);
+        console.log('TOTAL FINAL: ', final_price);
+        console.log('TOTAL TEMP: ', temp_final, ' ',Number(temp_final) + Number(total_nameset_side));
 
-        jQuery('#total_final_price_side').text(addCommas(final_price + nameset - discount));
+
+        jQuery('#total_final_price_side').text(addCommas((Number(temp_final) + Number(total_nameset_side)) - total_discount));
     }
 
 
@@ -1428,6 +1482,7 @@
                     var b1g1_price = r.b1g1_price;
                     var highlight = '';
                     var b1g1_mode = '';
+                    var total_discount = jQuery('#total_discount_value_side').text();
 
                     if (psc_id == '1') {
                         shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
@@ -1507,12 +1562,12 @@
                                 toast('Ditambah', 'Item berhasil ditambah', 'success');
                                 jQuery('#total_item_side').text(parseInt(total_item) +
                                     1);
-                                jQuery('#total_price_side').text(addCommas(parseFloat(
-                                    replaceComma(total_price)) + parseFloat(
-                                    sell_price)));
-                                jQuery('#total_final_price_side').text(addCommas(
-                                    parseFloat(replaceComma(total_price)) +
-                                    parseFloat(sell_price)));
+                                console.log('TOTAL PRICE: ', total_price_side);
+                                console.log('TOTAL NAMESET: ', total_nameset_side);
+                                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price)));
+                                // jQuery('#total_final_price_side').text(addCommas(parseFloat(Number(replaceComma(total_price_side)) + Number(total_nameset_side)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))));
+
+                                // JQuery('#temp_total_side').val(addCommas(parseFloat(Number(replaceComma(total_price)) + Number(total_nameset)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))))
                                 if (item_type == 'waiting') {
                                     jQuery('#orderTable tr:last').after("" +
                                         "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
@@ -1614,7 +1669,17 @@
                                         ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
                                     );
                                 }
-                                // console.log(b1g1_temp);
+                                var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
+                                var total_price_side = replaceComma(jQuery('#total_price_side').text());
+                                var total_discount_side = replaceComma(jQuery('#total_discount_value_side').text());
+
+                                console.log(Number(total_price_side));
+                                console.log(Number(total_nameset_side));
+                                console.log(Number(total_discount_side));
+
+                                jQuery('#total_final_price_side').text(
+                                    addCommas(parseFloat(Number(total_price_side) + Number(total_nameset_side) - Number(total_discount_side)))
+                                );
                             } else if (r.status == '400') {
                                 console.log(r.barang);
                                 toast('Gagal', 'Item gagal ditambah', 'danger');
@@ -1641,6 +1706,8 @@
         });
         jQuery('#barcode_input').val('');
         jQuery('#barcode_input').focus();
+
+
     });
 
     var product = jQuery('#Ptb').DataTable({
@@ -1833,7 +1900,8 @@
         jQuery('#_exchange').val('');
         reloadWaitingForCheckout();
         reloadComplaint();
-        reloadRefund();
+        // reloadRefund();
+        dpInvoiceRefund();
         jQuery('#card_provider_content').addClass('d-none');
         jQuery('#card_provider_content').removeClass('d-flex');
         jQuery('#card_number_label').addClass('d-none');
@@ -2053,6 +2121,61 @@
             ],
         });
 
+        var dp_invoice_table = jQuery('#DpInvoicetb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'Brt<"text-right"ip>',
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
+            ajax: {
+                url: "{{ url('dp_invoice_datatables') }}",
+                data: function (d) {
+                    d.pt_id = jQuery('#dp_pt_id').val();
+
+                    // console.log("test");
+                }
+            },
+            columns: [{
+                data: 'DT_RowIndex',
+                name: 'ptd_id',
+                searchable: false
+            },
+                {
+                    data: 'article',
+                    name: 'article',
+                    orderable: false
+                },
+                {
+                    data: 'datetime',
+                    name: 'datetime',
+                    orderable: false
+                },
+                {
+                    data: 'qty',
+                    name: 'qty',
+                    orderable: false
+                },
+                {
+                    data: 'price',
+                    name: 'price',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         jQuery('#choosecustomer').on('hide.bs.modal', function () {
             jQuery('#f_customer')[0].reset();
         });
@@ -2147,8 +2270,12 @@
             }
         });
 
-        jQuery('#reload_refund_list').on('click', function () {
-            reloadRefund();
+        // jQuery('#reload_refund_list').on('click', function () {
+        //     reloadRefund();
+        // });
+
+        jQuery('#reload_dp_list').on('click', function () {
+            dpInvoiceRefund();
         });
 
         function addRefundExchangeList(type, plst_id, pt_id) {
@@ -2301,6 +2428,17 @@
             jQuery('#refund_retur_pt_id').val(pt_id);
             jQuery('#RefundExchangeModal').modal('show');
             refund_retur_table.draw();
+        });
+
+        jQuery(document).delegate('#dp_invoice', 'change', function (e) {
+            e.preventDefault();
+            var invoice = jQuery('option:selected', this).text();
+            var pt_id = jQuery(this).val();
+            //alert(invoice+' '+pt_id);
+            jQuery('#dp_invoice_label').text(invoice);
+            jQuery('#dp_pt_id').val(pt_id);
+            jQuery('#DpExchangeModal').modal('show');
+            dp_invoice_table.draw();
         });
 
         @if (strtolower($data['user']->stt_name) == 'offline')
@@ -2643,37 +2781,10 @@
                     return false;
                 }
                 jQuery("#InputCodeModal").modal('show');
-                //Open Modal
-                // swal({
-                //     title: "Data pembelian sudah sesuai ..?",
-                //     text: "",
-                //     icon: "warning",
-                //     buttons: [
-                //         'Batal',
-                //         'Benar'
-                //     ],
-                //     dangerMode: false,
-                // }).then(function(isConfirm) {
-                //     if (isConfirm) {
-                //         checkout()
-                //     }
-                // })
+
             } else {
                 jQuery("#InputCodeModal").modal('show');
-                // swal({
-                //     title: "Data pembelian sudah sesuai ..?",
-                //     text: "",
-                //     icon: "warning",
-                //     buttons: [
-                //         'Batal',
-                //         'Benar'
-                //     ],
-                //     dangerMode: false,
-                // }).then(function(isConfirm) {
-                //     if (isConfirm) {
-                //         checkout()
-                //     }
-                // })
+
             }
         });
 
@@ -2687,6 +2798,7 @@
 
             e.preventDefault();
             var u_secret_code = jQuery('#u_secret_code').val();
+            var cust_id_num = jQuery('#cust_id_num').val();
             var type = jQuery('#_type').val();
             if (jQuery.trim(u_secret_code) == '') {
                 swal("Kode Akses", "Scan Kode Akses Anda");
@@ -2700,7 +2812,8 @@
                 jQuery.ajax({
                     type: "POST",
                     data: {
-                        _u_secret_code: u_secret_code
+                        _u_secret_code: u_secret_code,
+                        _cust_id: cust_id_num
                     },
                     dataType: 'json',
                     url: "{{ url('check_secret_code') }}",
@@ -2715,6 +2828,7 @@
                     },
                     success: function (r) {
                         if (r.status == '200') {
+                            // send_nota();
                             checkout();
                             Swal.fire({
                                 icon: 'success',
@@ -2722,6 +2836,8 @@
                                 timer: 1000, // Close after 2 seconds (2000 milliseconds)
                                 showConfirmButton: false
                             });
+                            // Send a message using the external API
+
                         } else {
                             swal.fire('Salah', 'Kode salah', 'warning');
                         }
@@ -2869,9 +2985,11 @@
                     jQuery("#save_customer_btn").html('Simpan');
                     jQuery("#save_customer_btn").attr("disabled", false);
                     if (data.status == '200') {
-                        jQuery('#cust_id').val(1);
+                        // console.log(data.new_id);
+                        jQuery('#cust_id').val(data.new_id);
+                        jQuery('#cust_id_num').val(data.new_id);
                         jQuery('#cust_id_label').val('');
-                        jQuery("#f_customer")[0].reset();
+                        // jQuery("#f_customer")[0].reset();
                         jQuery("#choosecustomer").modal('hide');
                         toast('Berhasil', 'Data berhasil disimpan', 'success');
                     } else if (data.status == '400') {
@@ -3456,6 +3574,10 @@
             }
         });
 
+        var temporary_disc = jQuery('#discount_total_temporary').val();
+
+        console.log('TOTAL DISKON :', temporary_disc);
+
         var new_discount = 0;
         var total_final = jQuery('#total_final_price_side').text();
         var curren_discount = removeCommasAndConvertToNumber(jQuery('#total_discount_value_side').text());
@@ -3480,15 +3602,29 @@
                         jQuery('#total_final_price_side').text(addCommas(new_total));
                         jQuery('#total_discount_value_side').text(addCommas(new_discount));
 
+
                         console.log(discount, 'discount hitung persen');
                         console.log(curren_discount, 'current discount');
                         console.log(new_discount, 'diskon baru');
+                        var total_temporary = new_discount + temporary_disc;
+
+                        jQuery('#discount_total_temporary').val(total_temporary);
                     }
 
                     if (r.discountType == 'nominal') {
-                        var new_total = parseFloat(total) - parseFloat(r.total);
+                        var discount = parseFloat(r.total);
+                        var new_discount = curren_discount + discount;
+                        var new_total = parseFloat(total) - parseFloat(discount);
+
                         jQuery('#total_final_price_side').text(addCommas(new_total));
-                        jQuery('#total_discount_value_side').text(addCommas(r.total));
+                        jQuery('#total_discount_value_side').text(addCommas(new_discount));
+
+                        console.log(discount, 'discount hitung persen');
+                        console.log(curren_discount, 'current discount');
+                        console.log(new_discount, 'diskon baru');
+                        var total_temporary = new_discount + temporary_disc;
+
+                        jQuery('#discount_total_temporary').val(total_temporary);
                     }
                 } else {
                     alert('kode salah');

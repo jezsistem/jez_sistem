@@ -266,22 +266,7 @@
                                         </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="3" class="final-price">
-                                <span style="float:left;">DISKON</span>
-                            </td>
-                            <td class="final-price">
-                                        <span style="float:right;">
-                                        (
-                                        @if (!empty($total_discount))
-                                                {{ number_format($total_discount) }}
-                                            @else
-                                                0
-                                            @endif
-                                            )
-                                        </span>
-                            </td>
-                        </tr>
+
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left;">SUBTOTAL</span>
@@ -289,6 +274,22 @@
                             <td class="final-price">
                                         <span style="float:right;">
                                         {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}
+                                        </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left;">DISKON</span>
+                            </td>
+                            <td class="final-price">
+                                        <span style="float:right;">
+
+                                        @if (!empty($total_discount))
+                                                {{ number_format($row->pos_total_discount) }}
+                                            @else
+                                                0
+                                            @endif
+
                                         </span>
                             </td>
                         </tr>
@@ -302,16 +303,16 @@
                                         </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="3" class="final-price">
-                                <span style="float:left;">CHARGE (CC)</span>
-                            </td>
-                            <td class="final-price">
-                                        <span style="float:right; white-space: nowrap;">
-                                        {{ $row->pos_cc_charge }} % (+ {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset)/100*$row->pos_cc_charge) }})
-                                        </span>
-                            </td>
-                        </tr>
+{{--                        <tr>--}}
+{{--                            <td colspan="3" class="final-price">--}}
+{{--                                <span style="float:left;">CHARGE (CC)</span>--}}
+{{--                            </td>--}}
+{{--                            <td class="final-price">--}}
+{{--                                        <span style="float:right; white-space: nowrap;">--}}
+{{--                                        {{ $row->pos_cc_charge }} % (+ {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset)/100*$row->pos_cc_charge) }})--}}
+{{--                                        </span>--}}
+{{--                            </td>--}}
+{{--                        </tr>--}}
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left;">BIAYA LAIN</span>
@@ -327,7 +328,7 @@
                             <td class="final-price">
                                         <span style="float:right;">
                                             @if (!empty($total_discount))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR((($total_price+$nameset) - ($total_discount)) - $total_voucher) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR((($total_price+$nameset) - ($row->pos_total_discount)) - $total_voucher) }}
                                             @else
                                                 {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) - $total_voucher) }}
                                             @endif
@@ -357,7 +358,7 @@
                                         @if (!empty($row->pos_payment))
                                                 {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
 
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - (($total_price+$nameset) - ($total_discount))) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - (($total_price+$nameset) - ($row->pos_total_discount))) }}
                                             @else
                                                 0
                                             @endif
