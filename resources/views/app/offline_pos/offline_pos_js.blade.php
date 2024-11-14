@@ -869,6 +869,8 @@
             if (typeof disc_item !== 'undefined' && disc_item !== 0) {
                 total_disc_item += parseFloat(disc_item);
             }
+
+            console.log(disc_item);
         });
         var temporary_discount = parseFloat(jQuery('#discount_total_temporary').val()) || 0;
         console.log('Total Discount Items:', total_disc_item);
@@ -946,9 +948,14 @@
             jQuery('#subtotal_item' + row).text(addCommas(subtotal));
         }
 
-        // jQuery('#total_price_side').text(addCommas(final_price - discount));
+        var temp_final = replaceComma(jQuery('#total_price_side').text());
+        console.log('TOTAL DISCOUNT: ', total_discount);
+        console.log('TOTAL NAMESET: ', nameset);
+        console.log('TOTAL FINAL: ', final_price);
+        console.log('TOTAL TEMP: ', temp_final, ' ',Number(temp_final) + Number(total_nameset_side));
 
-        jQuery('#total_final_price_side').text(addCommas(final_price + nameset - total_discount));
+
+        jQuery('#total_final_price_side').text(addCommas((Number(temp_final) + Number(total_nameset_side)) - total_discount));
     }
 
 

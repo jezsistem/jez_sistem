@@ -968,7 +968,7 @@
             });
         }
 
-        function handleSchemaChange(selectedValue, id) {
+        function handleSchemaChange(selectedValue, id, psc_id) {
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -979,7 +979,8 @@
                 type: "GET",
                 data: {
                     _sz_schema: selectedValue,
-                    _id: id
+                    _id: id,
+                    _psc_id: psc_id
                 }, // Pass id as data parameter
                 dataType: 'html',
                 url: "{{ url('reload_size_schema_modal') }}",
@@ -1095,7 +1096,7 @@
             //     var selectedValue = $('#sz_schema_modal_id').val();
             //     handleSchemaChange(selectedValue, article_id);
             // });
-            handleSchemaChange(schema_size, id);
+            handleSchemaChange(schema_size, id,psc_id);
             jQuery.noConflict();
             $('#ProductModal').modal('show');
             $('#product_label_modal').text(product_label);

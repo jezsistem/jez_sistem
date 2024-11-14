@@ -161,7 +161,8 @@ class SizeController extends Controller
         $size = new Size;
         $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
         $where = [
-            'sz_schema' => $request->_sz_schema
+            'sz_schema' => $request->_sz_schema,
+            'psc_id'    => $request->_psc_id
         ];
         $size_data = $size->getAllData($select, $where);
         $data = [
