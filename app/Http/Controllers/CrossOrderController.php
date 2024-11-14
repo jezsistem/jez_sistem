@@ -125,7 +125,7 @@ class CrossOrderController extends Controller
             ->groupBy('pos_invoice'))
             ->editColumn('pos_invoice', function($data){
                 if (!empty($data->pt_id_ref)) {
-                    $invoice = PosTransaction::select('pos_invoice')->where('id', $data->pt_id_ref)->get()->first()->pos_invoice;
+                    $invoice = TransaksiOnline::select('pos_invoice')->where('id', $data->pt_id_ref)->get()->first()->pos_invoice;
                     if (strtoupper($data->stt_name) == 'ONLINE') {
                         return '<a class="text-white" href="#" data-pt_id="'.$data->pt_id.'" id="detail_btn"><span class="btn btn-sm btn-warning" title="'.$invoice.'">'.$data->pos_invoice.'</span></a>';
                     } else {
@@ -518,7 +518,7 @@ class CrossOrderController extends Controller
                   $cust_subdistrict = '';
 
         if ($check) {
-            $transaction = PosTransaction::select('pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name', 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_discount' , 'pos_transactions.created_at as pos_created')
+            $transaction = PosTransaction::select('pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'pos_order_number', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_discount' , 'pos_transactions.created_at as pos_created')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')

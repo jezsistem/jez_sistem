@@ -69,18 +69,43 @@ class ProductLocationSetup extends Model
     
     public static function getExport($st_id)
     {
+
         $export = DB::table('product_location_setups')
-                    ->selectRaw("CONCAT(pl_name,' (',pl_code,')') as location, CONCAT(p_name) as article, CONCAT(br_name) as br_name, CONCAT(p_color) as p_color, CONCAT(sz_name) as sz_name, CONCAT(ps_barcode) as ps_barcode, CONCAT(pls_qty) as pls_qty, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as hpp, p_sell_price")
-                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
-                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->where('product_locations.st_id', '=', $st_id)
-                    ->groupBy('product_location_setups.id')
-                    ->get()->toArray();
+        ->selectRaw("
+        CONCAT(pl_name, ' (', pl_code, ')') as location,
+        article_id,
+        p_name as article,
+        br_name,
+        p_color,
+        sz_name,
+        ps_barcode,
+        pls_qty,
+        AVG(COALESCE(ts_products.p_purchase_price, 0)) as hpp,
+        p_sell_price 
+    ")
+    ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_location_setups.pst_id')
+    ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
+    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+    ->where('product_locations.st_id', '=', $st_id)
+    ->groupBy(
+        'product_location_setups.id',
+        'article_id',
+        'p_name',
+        'br_name',
+        'p_color',
+        'sz_name',
+        'ps_barcode',
+        'pls_qty',
+        'p_sell_price'
+    )
+    ->get()->toArray();
+
         return $export;
+
+
     }
 }

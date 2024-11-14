@@ -77,6 +77,8 @@
                             <option value="ide">ID Express</option>
                             <option value="spx">Shopee Express</option>
                             <option value="kgx">KGX Express</option>
+                            <option value="kgx">Grab Express (Instan)</option>
+                            <option value="kgx">Gosend Express (Instan)</option>
                         </select>
                     </div>
                     <div class="form-group mb-1 pb-1">

@@ -629,7 +629,6 @@ class CustomerController extends Controller
             'cust_city' => $request->input('cust_city'),
             'cust_subdistrict' => $request->input('cust_subdistrict'),
             'cust_address' => $request->input('cust_address'),
-            'cust_token_active' => $request->input('cust_token_active'),
             'cust_delete' => '0'
         ];
         if (!empty($request->input('password'))) {
@@ -644,6 +643,7 @@ class CustomerController extends Controller
                 $this->UserActivity('mengubah data customer ' . strtoupper($request->input('cust_name')) . ' ' . $request->input('cust_phone'));
             }
             $r['status'] = '200';
+            $r['new_id'] = $save;
         } else {
             $r['status'] = '400';
             $r['data'] = $data;

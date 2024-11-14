@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use GuzzleHttp\Client;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\UserShift;
 use Illuminate\Support\Carbon;
@@ -85,10 +86,6 @@ class PointOfSaleController extends Controller
         $store = Store::where('id', Auth::user()->st_id)->get()->first();
         $payment_method = PaymentMethod::where('pm_delete', '!=', '1')->where('st_id', Auth::user()->st_id)->orderByDesc('pm_name')->pluck('pm_name', 'id');
 
-//        $time_start = UserShift::where('start_time', '!=', null)
-//            ->where('end_time', null)
-//            ->where('user_id', Auth::user()->id)
-//            ->orderBy('id', 'desc')->first();
         $data = [
             'app_title' => 'JEZ SYSTEM',
             'title' => 'POINT OF SALE',
@@ -97,9 +94,13 @@ class PointOfSaleController extends Controller
             'pt_id' => null,
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
-            'cust_id' => Customer::selectRaw('id, CONCAT(cust_name," (",cust_phone,")") as name')
+            // 'cust_id' => Customer::selectRaw('id, CONCAT(cust_name," (",cust_phone,")") as name')
+            //     ->where('cust_delete', '!=', '1')
+            //     ->orderBy('cust_name')->pluck('name', 'id'),
+            'cust_id' => Customer::selectRaw('id, CONCAT(cust_name, " (", REPLACE(cust_phone, "+62", "0"), ")") as name')
                 ->where('cust_delete', '!=', '1')
                 ->orderBy('cust_name')->pluck('name', 'id'),
+
             'ct_id' => CustomerType::where('ct_delete', '!=', '1')->orderByDesc('id')->pluck('ct_name', 'id'),
             'cp_id' => CardProvider::orderBy('cp_name')->pluck('cp_name', 'id'),
             'segment' => request()->segment(1),
@@ -163,7 +164,7 @@ class PointOfSaleController extends Controller
             ->where('pos_transactions.created_at', '>', $startTime)
             ->where('pos_transactions.st_id', '=', $storeId)
             ->groupBy('stores.st_name', DB::raw('DATE(ts_pos_transactions.created_at)'), 'payment_methods.pm_name')
-//            ->orderBy('stores.st_name')
+            //            ->orderBy('stores.st_name')
             ->orderBy('payment_methods.pm_name');
 
         return DataTables::of($query)->make(true);
@@ -233,6 +234,53 @@ class PointOfSaleController extends Controller
         }
     }
 
+    public function dpInvoiceDatatables(Request $request)
+    {
+        if (request()->ajax()) {
+            return datatables()->of(PosTransactionDetail::select(
+                'pos_transaction_details.id as ptd_id',
+                'product_stocks.id as pst_id',
+                'pos_transactions.id as pt_id',
+                'ps_barcode',
+                'pos_invoice',
+                'p_name',
+                'pos_td_discount',
+                'ps_qty',
+                'pl_id',
+                'p_color',
+                'sz_name',
+                'br_name',
+                'pos_td_qty',
+                'pos_td_total_price',
+                'pos_td_sell_price',
+                'pos_td_nameset_price',
+                'pos_td_marketplace_price',
+                'pos_transactions.created_at as p_created'
+            )
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('pos_transactions.id', '=', $request->pt_id))
+                ->editColumn('article', function ($data) {
+                    return '<span class="btn-sm btn-primary" style="white-space: nowrap;">[' . $data->br_name . '] ' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '</span>';
+                })
+                ->editColumn('datetime', function ($data) {
+                    return '<span style="white-space: nowrap;">' . date('d-m-Y H:i:s', strtotime($data->p_created)) . '</span>';
+                })
+                ->editColumn('qty', function ($data) {
+                    return $data->pos_td_qty;
+                })
+                ->editColumn('price', function ($data) {
+                    return number_format($data->pos_td_total_price);
+                })
+                ->rawColumns(['article', 'datetime', 'qty', 'price', 'action'])
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
     public function reloadRefund()
     {
         $data = [
@@ -260,6 +308,21 @@ class PointOfSaleController extends Controller
         ];
 
         return view('app.offline_pos._reload_refund', compact('data'));
+    }
+
+    public function reloadDpOffline()
+    {
+        $data = [
+            'invoice' => PosTransaction::select('id', 'pos_invoice', 'created_at')
+                //            ->whereRaw('created_at  >= now() - INTERVAL 7 DAY')
+                ->whereIn('stt_id', ['1', '2'])
+                ->where('st_id', '=', Auth::user()->st_id)
+                ->where('pos_refund', '!=', '1')
+                ->whereIn('pos_status', ['DP'])
+                ->orderBy('id', 'desc')->pluck('pos_invoice', 'id'),
+        ];
+
+        return view('app.offline_pos._reload_dp', compact('data'));
     }
 
     public function refundExchangeList(Request $request)
@@ -628,7 +691,7 @@ class PointOfSaleController extends Controller
 
             $rand = str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
             $u_id = User::select('id')->where('u_secret_code', $secret_code)->get()->first()->id;
-//            $u_id = Auth::user()->id;
+            //            $u_id = Auth::user()->id;
             $prefix = WebConfig::select('config_value')->where('config_name', 'pos_prefix')->get()->first()->config_value;
 
             $store_prefix = Store::select('st_description')->where('id', '=', Auth::user()->st_id)->get()->first()->st_description;
@@ -736,6 +799,57 @@ class PointOfSaleController extends Controller
                         'updated_at' => date('Y-m-d'),
                     ]);
                 }
+
+                $customer = Customer::where('id', '=', $cust_id)->first();
+
+                $st_id = Auth::user()->st_id;
+
+                $store = Store::where('id', $st_id)->first(); // Assuming you want the store object
+                $store_name = $store->name;
+
+
+                //                $client = new Client();
+                //                $nohp = $customer->cust_phone;
+                //                $receipt_url = url('/e_receipt/'.$invoice);
+                //                $pesan = "Struk belanja $store_name, \n\nTerima kasih telah melakukan pembelian dengan total pembelian Rp. $real_price. \nLihat detail & beri saran di $receipt_url \n\n[ABAIKAN BILA TIDAK MEMBELI]";
+                //
+                //                $st_code = $store->st_code;
+                //
+                //                if ($st_code != 'MALANG') {
+                //                    try {
+                //                        $response = $client->get('http://jezdb.com:3001/api', [
+                //                            'query' => [
+                //                                'nohp' => $nohp,
+                //                                'pesan' => $pesan,
+                //                            ]
+                //                        ]);
+                //
+                //                        if ($response->getStatusCode() == 200) {
+                //                            $responseData = json_decode($response->getBody()->getContents(), true);
+                //                        }
+                //                    } catch (\Exception $e) {
+                //                        $r['status'] = '500';
+                //                        $r['message'] = 'Error communicating with external API';
+                //                    }
+                //                } else {
+                //                    try {
+                //                        $response = $client->get('http://jezdb.com:3001/api', [
+                //                            'query' => [
+                //                                'nohp' => $nohp,
+                //                                'pesan' => $pesan,
+                //                            ]
+                //                        ]);
+                //
+                //                        if ($response->getStatusCode() == 200) {
+                //                            $responseData = json_decode($response->getBody()->getContents(), true);
+                //                        }
+                //                    } catch (\Exception $e) {
+                //                        $r['status'] = '500';
+                //                        $r['message'] = 'Error communicating with external API';
+                //                    }
+                //                }
+
+
                 $r['status'] = '200';
                 $r['pt_id'] = $insert_get_id;
                 $r['invoice'] = $invoice;
@@ -1105,7 +1219,7 @@ class PointOfSaleController extends Controller
                 'pst_id' => $pst_id,
                 'pl_id' => $pl_id,
                 'pos_td_qty' => $item_qty,
-//                'pos_td_sell_price' => $final_price,
+                //                'pos_td_sell_price' => $final_price,
                 'pos_td_sell_price' => ($pos_td_discount_price + $nameset_price) - $discount_number,
                 'pos_td_discount' => $discount,
                 'pos_td_discount_number' => $discount_number,
@@ -1219,7 +1333,7 @@ class PointOfSaleController extends Controller
             $date2_remain_po = date('Y-m-d H:i:s');
             $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
             if ($date1_remain_po > $date2_remain_po) {
-                $diff_remain_po = -($diff_remain_po);
+                $diff_remain_po = - ($diff_remain_po);
             }
             $days_remain_po = round($diff_remain_po / 86400);
         }
@@ -1228,7 +1342,7 @@ class PointOfSaleController extends Controller
             $date2_remain_tf = date('Y-m-d H:i:s');
             $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
             if ($date1_remain_tf > $date2_remain_tf) {
-                $diff_remain_tf = -($diff_remain_tf);
+                $diff_remain_tf = - ($diff_remain_tf);
             }
             $days_remain_tf = round($diff_remain_tf / 86400);
         }
@@ -2425,7 +2539,7 @@ class PointOfSaleController extends Controller
         ];
 
         if ($item_type == 'waiting') {
-//            backup
+            //            backup
             $data = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'plst_status', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
                 ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -2439,34 +2553,34 @@ class PointOfSaleController extends Controller
                 ->where('product_stocks.ps_barcode', '=', $barcode)
                 ->first();
 
-//            $data = ProductLocationSetupTransaction::select(
-//                'product_location_setup_transactions.id as plst_id',
-//                'products.psc_id',
-//                'products.p_name',
-//                'products.p_color',
-//                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_products.p_sell_price) as p_sell_price"),
-//                'products.p_price_tag',
-//                'product_stocks.ps_price_tag',
-//                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_product_stocks.ps_sell_price) as ps_sell_price"),
-//                'sizes.sz_name',
-//                'product_stocks.ps_qty',
-//                'product_location_setups.pls_qty',
-//                'brands.br_name',
-//                'product_location_setup_transactions.plst_status',
-//                'product_stocks.id as pst_id',
-//                'product_locations.id as pl_id'
-//            )
-//                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-//                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-//                ->join('products', 'products.id', '=', 'product_stocks.p_id')
-//                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                ->join('brands', 'brands.id', '=', 'products.br_id')
-//                ->leftJoin('articles_promo', 'products.article_id', '=', 'articles_promo.article_id')
-//                ->whereNotIn('pl_code', $exception)
-//                ->whereIn('plst_status', $plst_status_new)
-//                ->where('product_stocks.ps_barcode', '=', $barcode) // replace with actual barcode value
-//                ->first();
+            //            $data = ProductLocationSetupTransaction::select(
+            //                'product_location_setup_transactions.id as plst_id',
+            //                'products.psc_id',
+            //                'products.p_name',
+            //                'products.p_color',
+            //                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_products.p_sell_price) as p_sell_price"),
+            //                'products.p_price_tag',
+            //                'product_stocks.ps_price_tag',
+            //                DB::raw("IF(ts_articles_promo.promo_price IS NOT NULL AND ts_articles_promo.promo_price <> '0' AND ts_articles_promo.promo_price <> '', ts_articles_promo.promo_price, ts_product_stocks.ps_sell_price) as ps_sell_price"),
+            //                'sizes.sz_name',
+            //                'product_stocks.ps_qty',
+            //                'product_location_setups.pls_qty',
+            //                'brands.br_name',
+            //                'product_location_setup_transactions.plst_status',
+            //                'product_stocks.id as pst_id',
+            //                'product_locations.id as pl_id'
+            //            )
+            //                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+            //                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            //                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            //                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            //                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            //                ->join('brands', 'brands.id', '=', 'products.br_id')
+            //                ->leftJoin('articles_promo', 'products.article_id', '=', 'articles_promo.article_id')
+            //                ->whereNotIn('pl_code', $exception)
+            //                ->whereIn('plst_status', $plst_status_new)
+            //                ->where('product_stocks.ps_barcode', '=', $barcode) // replace with actual barcode value
+            //                ->first();
         } else if ($item_type == 'b1g1') {
             $data = ProductStock::select('product_locations.id as pl_id', 'products.psc_id', 'p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'br_name', 'product_stocks.id as pst_id')
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
@@ -2514,7 +2628,7 @@ class PointOfSaleController extends Controller
                 ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->where('product_locations.st_id', '=', Auth::user()->st_id)
                 ->where('pst_id', $row->pst_id)
-//                ->where('pls_qty', '>=', '0')
+                //                ->where('pls_qty', '>=', '0')
                 ->whereNotIn('pl_code', $exception)->get();
             $bin = '';
             $sell_price = 0;

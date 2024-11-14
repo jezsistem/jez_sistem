@@ -7,6 +7,9 @@ use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
+use App\Http\Controllers\InvoiceEditorOnlineController;
+use App\Http\Controllers\PowerBiDashboardController;
+use App\Http\Controllers\ApiController;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
@@ -67,9 +70,13 @@ use App\Http\Controllers\UserMenuAccessController;
 use App\Http\Controllers\MainMenuController;
 use App\Http\Controllers\MenuAccessController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\SendNotificationController;
 
 
 use App\Http\Controllers\WebConfigController;
+
+
+
 
 use Illuminate\Support\Facades\DB;
 /*
@@ -90,9 +97,12 @@ Route::post('user_login', [AuthController::class, 'login']);
 Route::get('payment_check/88991703/show', [PaymentCheckController::class, 'checkData']);
 Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAutoUpdateArticleInformation']);
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
+Route::post('send_notification_whatsapp', [SendNotificationController::class, 'sendNotification']);
 
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
+Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
+
 
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
@@ -119,6 +129,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('product_out_datatables', [TrackingController::class, 'outDatatables']);
     Route::get('scan_product_out_datatables', [TrackingController::class, 'scanOutDatatables']);
     Route::get('scan_product_in_datatables', [TrackingController::class, 'scanInDatatables']);
+    Route::get('scan_product_online_datatables', [TrackingController::class, 'scanOnlineDatatables']);
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
 
@@ -127,7 +138,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
     Route::get('reload_refund', [PointOfSaleController::class, 'reloadRefund']);
     Route::get('reload_refund_offline', [PointOfSaleController::class, 'reloadRefundOffline']);
+    Route::get('reload_dp_offline', [PointOfSaleController::class, 'reloadDpOffline']);
     Route::get('refund_retur_datatables', [PointOfSaleController::class, 'refundReturDatatables']);
+    Route::get('dp_invoice_datatables', [PointOfSaleController::class, 'dpInvoiceDatatables']);
     Route::post('refund_exchange_list', [PointOfSaleController::class, 'refundExchangeList']);
     Route::post('check_barcode', [PointOfSaleController::class, 'checkBarcode']);
     Route::post('check_barcode_by_waiting', [PointOfSaleController::class, 'checkBarcodeWaiting']);
@@ -164,6 +177,22 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
     Route::post('ie_permission_cancel_invoice', [InvoiceEditorController::class, 'cancelInvoice']);
 
+    // InvoiceEditorController
+    Route::get('invoice_editor_online', [InvoiceEditorOnlineController::class, 'index']);
+    Route::get('ie_online_permission_datatables', [InvoiceEditorOnlineController::class, 'getPermissionDatatables']);
+    Route::get('ie_online_permission_invoice_datatables', [InvoiceEditorOnlineController::class, 'getInvoiceDatatables']);
+    Route::get('ie_online_permission_detail_datatables', [InvoiceEditorOnlineController::class, 'getDetailDatatables']);
+    Route::get('ie_online_permission_tracking_datatables', [InvoiceEditorOnlineController::class, 'getTrackingDatatables']);
+    Route::get('ie_online_permission_history_datatables', [InvoiceEditorOnlineController::class, 'getHistoryDatatables']);
+    Route::post('ie_online_permission_save', [InvoiceEditorOnlineController::class, 'storePermissionData']);
+    Route::post('ie_online_permission_delete', [InvoiceEditorOnlineController::class, 'deletePermissionData']);
+    Route::post('ie_online_permission_invoice', [InvoiceEditorOnlineController::class, 'checkInvoice']);
+    Route::post('ie_online_permission_check_active_edit', [InvoiceEditorOnlineController::class, 'checkActiveEdit']);
+    Route::post('ie_online_permission_done_edit', [InvoiceEditorOnlineController::class, 'doneEdit']);
+    Route::post('ie_online_permission_do_edit', [InvoiceEditorOnlineController::class, 'doEdit']);
+    Route::post('ie_online_permission_edit_sku', [InvoiceEditorOnlineController::class, 'doEditSku']);
+    Route::post('ie_online_permission_cancel_item', [InvoiceEditorOnlineController::class, 'cancelItem']);
+    Route::post('ie_online_permission_cancel_invoice', [InvoiceEditorOnlineController::class, 'cancelInvoice']);
 
     // Auth Controller
     Route::get('logout', [AuthController::class, 'logout'])->name('logout');
@@ -182,13 +211,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('load_assets', [AssetController::class, 'loadAssets']);
     Route::post('load_cassets', [AssetController::class, 'loadCAssets']);
 
-
     // ==== Dashboard ==== //
     Route::get('asset_by_store_datatables', [AssetController::class, 'assetByStoreDatatables']);
     Route::get('debt_by_store_datatables', [AssetController::class, 'debtByStoreDatatables']);
     Route::get('nett_sale_by_store_datatables', [AssetController::class, 'nettSaleByStoreDatatables']);
     Route::get('brand_value_datatables', [AssetController::class, 'getAssetByBrand']);
-    // ==== Dashboard ==== //
+
     // Helper Backup //
     Route::get('helper_backup', [HelperBackupController::class, 'index']);
     // Customer Type
@@ -239,6 +267,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pu_delete', [ProductUnitController::class, 'deleteData']);
     Route::post('pu_import', [ProductUnitController::class, 'importData']);
     Route::post('check_exists_product_unit', [ProductUnitController::class, 'checkExistsProductUnit']);
+    //Product
+    // Route::post('stock_data_search_product', [ProductController::class, 'searchProduct']);
     // Gender
     Route::get('gender', [GenderController::class, 'index'])->name('gender');
     Route::get('gender_datatables', [GenderController::class, 'getDatatables']);
@@ -288,7 +318,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pssc_save', [ProductSubSubCategoryTestController::class, 'storeData']);
     Route::post('pssc_delete', [ProductSubSubCategoryTestController::class, 'deleteData']);
     Route::post('pssc_import', [ProductSubSubCategoryTestController::class, 'importData']);
-
     // Product Main Color
     Route::get('warna_produk', [MainColorController::class, 'index'])->name('main_color');
     Route::get('main_color_datatables', [MainColorController::class, 'getDatatables']);
@@ -313,7 +342,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('sz_import', [SizeController::class, 'importData']);
     Route::post('check_exists_size', [SizeController::class, 'checkExistsSize']);
     Route::post('check_schema_size_product_stock', [SizeController::class, 'checkSchemaSizeProductStock']);
-
     // Product
     Route::get('data_produk', [ProductController::class, 'index'])->name('product');
     Route::get('product_datatables', [ProductController::class, 'getDatatables']);
@@ -425,7 +453,6 @@ Route::group(['middleware' => 'auth'], function () {
 
     // total discount point of sale
     Route::post('pos-total-discount', [PointOfSaleController::class, 'totalDiscount']);
-
     // Shopee
     /**
      * NOTE: Open when needed
@@ -511,7 +538,6 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::get('rbl_datatables', [ResellerBrandLevelController::class, 'getDatatables']);
     // Route::post('rbl_update', [ResellerBrandLevelController::class, 'updateData']);
 
-    // ResellerTransactionController
     /**
      * NOTE: Open when needed
      */
@@ -545,6 +571,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ad_load_data', [AssetDetailController::class, 'loadData']);
     Route::get('ad_export', [AssetDetailController::class, 'exportData']);
     Route::post('get_asset_sales_summaries', [AssetDetailController::class, 'getSummary']);
+
+    // Power BI Dashboard
+    Route::get('power_bi_dashboard', [PowerBiDashboardController::class, 'index']);
 
     // UserMenuAccessController
     Route::get('uma_datatables', [UserMenuAccessController::class, 'getDatatables']);

@@ -110,6 +110,7 @@ class PurchaseOrderArticleExport implements FromCollection, WithHeadings
 
             return collect($export_data);
         }
+        return collect([]);
     }
 
 }

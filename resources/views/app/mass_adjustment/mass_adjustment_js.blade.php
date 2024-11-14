@@ -273,6 +273,7 @@
                 { data: 'approve', name: 'approve', orderable:false },
                 { data: 'executor', name: 'executor', orderable:false },
                 { data: 'editor', name: 'editor', orderable:false },
+                { data: 'note', name: 'note', orderable:false },
                 { data: 'created_at', name: 'created_at'},
                 { data: 'updated_at', name: 'updated_at'},
                 { data: 'ma_status', name: 'ma_status'},
@@ -519,6 +520,8 @@
             }
             var formData = new FormData(this);
             formData.append('st_id', st_id);
+
+            // console.log(formData);
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
             $.ajaxSetup({

@@ -394,6 +394,45 @@
         });
     }
 
+    // Waiting Online
+    var scan_keep_table = $('#ScanInOnlinetb').DataTable({
+        destroy: true,
+        processing: false,
+        serverSide: true,
+        responsive: false,
+        dom: 'rt<"text-right"ip>',
+        ajax: {
+            url: "{{ url('scan_product_online_datatables') }}",
+            data: function(d) {
+                d.search = $('#scan_in_search').val();
+                d.st_id = $('#st_id').val();
+                d.waiting = 'WAITING ONLINE';
+            }
+        },
+        columns: [{
+            data: 'article',
+            name: 'article',
+            sortable: false
+        }],
+        columnDefs: [{
+            "targets": 0,
+            "className": "text-left",
+            "width": "0%"
+        }],
+        order: [
+            [0, 'desc']
+        ],
+        drawCallback: function(settings) {
+            var api = this.api();
+            $('#scan_out_search').off('keyup').on('keyup', function(event) {
+                if (event.keyCode === 13) {
+                    scanInTbEnterPressed = true;
+                    api.search(this.value).draw();
+                }
+            });
+        }
+    });
+
     var scan_out_table = $('#ScanOuttb').DataTable({
         destroy: true,
         processing: false,
@@ -578,51 +617,12 @@
         }
     });
 
-    {{--var scan_keep_table = $('#ScanIntb').DataTable({--}}
-    {{--    destroy: true,--}}
-    {{--    processing: false,--}}
-    {{--    serverSide: true,--}}
-    {{--    responsive: false,--}}
-    {{--    dom: 'rt<"text-right"ip>',--}}
-    {{--    ajax: {--}}
-    {{--        url: "{{ url('scan_product_in_datatables') }}",--}}
-    {{--        data: function(d) {--}}
-    {{--            d.search = $('#scan_in_search').val();--}}
-    {{--            d.st_id = $('#st_id').val();--}}
-    {{--            d.waiting = $('#waiting_filter').val();--}}
-    {{--        }--}}
-    {{--    },--}}
-    {{--    columns: [{--}}
-    {{--        data: 'article',--}}
-    {{--        name: 'article',--}}
-    {{--        sortable: false--}}
-    {{--    }],--}}
-    {{--    columnDefs: [{--}}
-    {{--        "targets": 0,--}}
-    {{--        "className": "text-left",--}}
-    {{--        "width": "0%"--}}
-    {{--    }],--}}
-    {{--    order: [--}}
-    {{--        [0, 'desc']--}}
-    {{--    ],--}}
-    {{--    drawCallback: function(settings) {--}}
-    {{--        var api = this.api();--}}
-    {{--        $('#scan_out_search').off('keyup').on('keyup', function(event) {--}}
-    {{--            if (event.keyCode === 13) {--}}
-    {{--                scanInTbEnterPressed = true;--}}
-    {{--                api.search(this.value).draw();--}}
-    {{--            }--}}
-    {{--        });--}}
-    {{--    }--}}
-    {{--});--}}
-
 
     $('#ScanIntb').on('draw.dt', function() {
         if (!scanInTbEnterPressed) {
             return;
         }
 
-        // if input is empty, do nothing
         if ($('#scan_in_search').val().trim() === '') {
             return;
         }
@@ -704,133 +704,20 @@
 
         console.log($('#scan_out_search').val())
     });
-
-
+    
     $('#waiting_filter').on('change', function() {
-        in_table.draw();
+        var selectedValue = $('#waiting_filter').val(); // Get the selected value
+        console.log(selectedValue); // Log the selected value to the console
+        scan_in_table.ajax.reload();
     });
-
-    {{--var stock_data_table = $('#HelperStockDatatb').DataTable({--}}
-    {{--    destroy: true,--}}
-    {{--    processing: true,--}}
-    {{--    serverSide: true,--}}
-    {{--    responsive: false,--}}
-    {{--    dom: '<"text-right"l>rt<"text-right"ip>',--}}
-    {{--    buttons: [{--}}
-    {{--        "extend": 'excelHtml5',--}}
-    {{--        "text": 'Excel',--}}
-    {{--        "className": 'btn btn-primary btn-xs'--}}
-    {{--    }],--}}
-    {{--    ajax: {--}}
-    {{--        url: "{{ url('helper_stock_data_datatables') }}",--}}
-    {{--        data: function(d) {--}}
-    {{--            d.search = $('#stock_data_search').val();--}}
-    {{--            d.st_id = $('#st_filter').val();--}}
-    {{--        }--}}
-    {{--    },--}}
-    {{--    columns: [{--}}
-    {{--            data: 'article_name',--}}
-    {{--            name: 'article_name',--}}
-    {{--            orderable: false--}}
-    {{--        },--}}
-    {{--        {--}}
-    {{--            data: 'article_stock',--}}
-    {{--            name: 'article_stock',--}}
-    {{--            orderable: false--}}
-    {{--        },--}}
-    {{--    ],--}}
-    {{--    columnDefs: [{--}}
-    {{--        "targets": 0,--}}
-    {{--        "className": "text-left",--}}
-    {{--        "width": "0%"--}}
-    {{--    }],--}}
-    {{--    rowCallback: function(row, data, index) {--}}
-    {{--        if (data.article_stock.indexOf("<table></table>") >= 0) {--}}
-    {{--            $(row).hide();--}}
-    {{--        }--}}
-    {{--    },--}}
-    {{--    lengthMenu: [--}}
-    {{--        [10, 25, 50, 100, -1],--}}
-    {{--        [10, 25, 50, 100, "Semua"]--}}
-    {{--    ],--}}
-    {{--    language: {--}}
-    {{--        "lengthMenu": "_MENU_",--}}
-    {{--    },--}}
-    {{--    order: [--}}
-    {{--        [0, 'desc']--}}
-    {{--    ],--}}
-    {{--});--}}
 
     $('#in_search').on('keyup', function() {
         in_table.draw();
     });
 
-
-
     $('#out_search').on('keyup', function() {
         out_table.draw();
     });
-
-    {{--$('#scan_out_search').on('keyup', function(event) {--}}
-    {{--    scan_out_table.draw();--}}
-    {{--    if (event.keyCode === 13) {--}}
-    {{--        var scan_out_data = [];--}}
-    {{--        var totalRequests = 0;--}}
-    {{--        let completedRequests = 0;--}}
-
-
-    {{--        scan_out_table.rows().every(function() {--}}
-    {{--            // totalRequests++;--}}
-    {{--            var rowData = this.data();--}}
-    {{--            scan_out_data.push({--}}
-    {{--                _plst_id: rowData.plst_id,--}}
-    {{--                _pls_id: rowData.pls_id,--}}
-    {{--            });--}}
-
-    {{--            console.log(scan_out_data)--}}
-    {{--        });--}}
-
-    {{--        // Iterate through scan_out_data and make separate AJAX requests--}}
-    {{--        scan_out_data.forEach(function(item) {--}}
-    {{--            $.ajaxSetup({--}}
-    {{--                headers: {--}}
-    {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
-    {{--                }--}}
-    {{--            });--}}
-
-    {{--            $.ajax({--}}
-    {{--                url: "{{ url('save_out_activity') }}",--}}
-    {{--                type: "POST",--}}
-    {{--                data: {--}}
-    {{--                    _plst_id: item._plst_id,--}}
-    {{--                    _pls_id: item._pls_id,--}}
-    {{--                },--}}
-    {{--                success: function(response) {--}}
-    {{--                    var responseObject = JSON.parse(response);--}}
-    {{--                    var status = responseObject.status;--}}
-
-    {{--                    completedRequests++;--}}
-    {{--                    if (status == '200') {--}}
-    {{--                        scan_out_table.draw();--}}
-    {{--                        if (completedRequests === totalRequests) {--}}
-    {{--                            // All requests have completed--}}
-    {{--                            if (status == 200) {--}}
-    {{--                                scan_out_table.draw();--}}
-    {{--                                toast('Dikeluarkan', ' berhasil dikeluarkan',--}}
-    {{--                                    'success');--}}
-    {{--                                // swal('Dikeluarkan', 'Berhasil keluar produk', 'success');--}}
-    {{--                            } else {--}}
-    {{--                                // toast('Dikeluarkan', ' berhasil dikeluarkan', 'success');--}}
-    {{--                                swal('Gagal', 'Gagal keluar produk', 'error');--}}
-    {{--                            }--}}
-    {{--                        }--}}
-    {{--                    }--}}
-    {{--                },--}}
-    {{--            });--}}
-    {{--        });--}}
-    {{--    }--}}
-    {{--});--}}
-
 
     var transfer_list_table = $('#TransferListtb').DataTable({
         destroy: true,
@@ -1317,6 +1204,7 @@
                         success: function(r) {
                             if (r.status == '200') {
                                 scan_in_table.draw();
+                                scan_keep_table.draw();
                                 $(this).prop('disabled', false);
                                 toast('Dimasukkan', p_name + ' berhasil dimasukkan',
                                     'success');
@@ -1916,4 +1804,6 @@
             scan_transfer_list_table.draw();
         }).modal('show');
     });
+
+
 </script>

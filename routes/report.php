@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PoReceiveReportController;
 use App\Http\Controllers\ReportShiftController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TransaksiOnlineController;
 
 Route::middleware(['auth'])->group(function () {
     // Report 
@@ -14,6 +15,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('sales_report_datatables', [SalesReportController::class, 'getDatatables']);
     Route::get('check_hb_hj', [SalesReportController::class, 'hbhjDatatables']);
     Route::get('sales_export', [SalesReportController::class, 'exportData']);
+    Route::get('online_sales_export', [TransaksiOnlineController::class, 'exportDataOnline']);
     Route::post('cabang_summary', [SalesReportController::class, 'cabangSummary']);
 
     // StockCardController

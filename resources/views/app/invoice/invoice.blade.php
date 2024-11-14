@@ -63,7 +63,7 @@
                                                 <div class="font-weight-bold font-size-h6 mb-3">METODE <span class="float-right"><strong>{{ $row->pm_name }}</strong></span></div>
                                                 @if ($row->pm_name == 'Debit')
                                                 <div class="d-flex justify-content-between font-size-lg mb-3">
-                                                    <td><span class="font-weight-bold mr-15">No. Kartu</span></td>
+                                                    <td><span class="font-weight-bold mr-15">No.Kartu</span></td>
                                                     <td><span class="text-right">{{ $row->pos_card_number }}</span></td>
                                                 </div>
                                                 @endif
