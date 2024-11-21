@@ -7,13 +7,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
 
-class MassImport implements ToCollection, WithStartRow
+class MassImport implements ToCollection, WithStartRow, WithValidation
 {
-    /**
-     * @param Collection $collection
-     */
-
     private $rows = 0;
     private $ma_id_throw = null;
     private $ma_code_throw = null;
@@ -39,7 +36,6 @@ class MassImport implements ToCollection, WithStartRow
         return 2;
     }
 
-
     public function collection(Collection $collection)
     {
         ++$this->rows;
@@ -48,15 +44,22 @@ class MassImport implements ToCollection, WithStartRow
         $st_id = $this->st_id;
         $ma_id = null;
         $detail = array();
+
         foreach ($collection as $r) {
             if ($r[0] == null) {
                 return null;
             }
+
+            if ($r[10] == 0) {
+                throw new \Exception('Nilai Adjustment tidak boleh bernilai 0.');
+            }
+
             $pls_id = $r[0];
             $qty_export = (int)$r[10];
             $qty_so = (int)$r[11];
             $type = null;
             $diff = null;
+
             if ($qty_export > $qty_so) {
                 $type = '-';
                 $diff = $qty_export - $qty_so;
@@ -67,6 +70,7 @@ class MassImport implements ToCollection, WithStartRow
                 $type = '=';
                 $diff = 0;
             }
+
             if (empty($ma_id)) {
                 $ma_id = DB::table('mass_adjustments')->insertGetId([
                     'st_id' => $st_id,
@@ -82,6 +86,7 @@ class MassImport implements ToCollection, WithStartRow
                 ]);
                 $this->ma_id_throw = $ma_id;
             }
+
             $detail[] = [
                 'ma_id' => $ma_id,
                 'pls_id' => $pls_id,
@@ -93,6 +98,7 @@ class MassImport implements ToCollection, WithStartRow
                 'updated_at' => date('Y-m-d H:i:s')
             ];
         }
+
         $insert = DB::table('mass_adjustment_details')->insert($detail);
     }
 
@@ -103,5 +109,12 @@ class MassImport implements ToCollection, WithStartRow
             'ma_code' => $this->ma_code_throw,
         ];
         return $data;
+    }
+
+    public function rules(): array
+    {
+        return [
+            '10' => 'required|gt:0' // Kolom index 10 adalah nilai_adjustment, yang harus lebih besar dari 0
+        ];
     }
 }
