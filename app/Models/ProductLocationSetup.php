@@ -26,6 +26,11 @@ class ProductLocationSetup extends Model
         return $affected;
     }
 
+    public function productStock()
+    {
+        return $this->belongsTo(ProductStock::class, 'pst_id');
+    }
+
     public function storeData($mode, $id, $data)
     {
         $created = [

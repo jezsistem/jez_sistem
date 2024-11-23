@@ -314,19 +314,20 @@
         });
 
 
-        $('#product_name_input').on('keyup', function(){ 
+        $('#product_name_input').on('keyup', function() { 
             var query = $(this).val();
-            if($.trim(query) != '' || $.trim(query) != null) {
+            var type = $.isNumeric(query) ? 'article_id' : 'p_name';  // Assume 'article_id' if input is numeric
+            if ($.trim(query) !== '') {
                 jQuery.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 jQuery.ajax({
-                    url:"{{  url('autocomplete_article') }}",
-                    method:"POST",
-                    data:{query:query},
-                    success:function(data){
+                    url: "{{ url('autocomplete_article') }}",
+                    method: "POST",
+                    data: { query: query, type: type },  // Include type parameter
+                    success: function(data) {
                         $('#itemList').fadeIn();
                         $('#itemList').html(data);
                     }

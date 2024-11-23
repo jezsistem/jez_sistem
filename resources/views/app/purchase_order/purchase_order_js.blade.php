@@ -272,9 +272,6 @@
         });
     }
 
-
-
-
     function extraDiscount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
@@ -468,6 +465,7 @@
             }
         });
     }
+
 
 
     function saveAllPo() {
