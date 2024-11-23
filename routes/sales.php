@@ -95,24 +95,6 @@ Route::middleware(['auth'])->group(function () {
     // Invoice 
     Route::post('search_invoice', [InvoiceController::class, 'searchInvoice']);
 
-    // Transaksi Online
-    /**
-     * TODO:
-     * 1. Transaksi Online Get Data Tables
-     * 2. Transaksi Online Import
-     * 3. Automization Select Shopee / Tiktok Platform
-     * 4. Export per period
-     */
-    Route::get('transaksi_online', [TransaksiOnlineController::class, 'index']);
-    Route::get('transaksi_online_datatables', [TransaksiOnlineController::class, 'getDatatables']);
-    Route::get('transaksi_online_datatables_detail', [TransaksiOnlineController::class, 'detailDatatables']);
-    Route::post('transaksi_online_detail', [TransaksiOnlineController::class, 'detail']);
-    Route::post('transaksi_online_import', [TransaksiOnlineController::class, 'importData']);
-    Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
-    Route::post('transaksi_online_delete', [TransaksiOnlineController::class, 'delete']);
-    Route::post('print_online_invoice', [TransaksiOnlineController::class, 'cetak_invoice']);
-    Route::get('print_online_nota/{orderNum}', [TransaksiOnlineController::class, 'cetak_nota'])->name('print_online_nota');
-
     /*
     POS VERSI 2 -- 27-09-24
     */

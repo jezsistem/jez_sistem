@@ -5,7 +5,7 @@
 <!--end::Head-->
 @if (request()->segment(1) == 'rating_app')
 <body id="device_background_panel">
-@else 
+@else
 <body class="d-none" id="device_background_panel">
 @endif
     <div class="d-flex flex-column-fluid flex-center" id="device_background">
