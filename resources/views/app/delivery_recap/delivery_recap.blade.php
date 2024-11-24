@@ -84,7 +84,7 @@
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
                                 <input type="search" class="form-control  col-6" id="menu_access_search" placeholder="Cari Nomor Recap"/><br/>
-                                <table class="table table-hover table-checkable" id="MAtb">
+                                <table class="table table-hover table-checkable" id="DeliveryRecapTb">
                                     <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
@@ -93,7 +93,6 @@
                                         <th class="text-dark">Courir Name</th>
                                         <th class="text-dark">Expeditions</th>
                                         <th class="text-dark">Created Time</th>
-                                        <th class="text-dark">Action</th>
                                     </tr>
                                     </thead>
                                     <tbody>

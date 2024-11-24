@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeliveryRecap;
+use App\Models\OnlineTransactionDetails;
+use App\Models\OnlineTransactions;
 use App\Models\Size;
 use App\Models\TransaksiOnline;
 use App\Models\User;
@@ -9,6 +12,7 @@ use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 
 class DeliveryRecapController extends Controller
 {
@@ -71,6 +75,59 @@ class DeliveryRecapController extends Controller
 
         ];
         return view('app.delivery_recap.delivery_recap', compact('data'));
+    }
+
+    public function getDatatables(Request $request)
+    {
+        if (!empty($request->st_id)) {
+            $st_id = $request->st_id;
+        } else {
+            $st_id = Auth::user()->st_id;
+        }
+        if (request()->ajax()) {
+            return DataTables::of(
+                DeliveryRecap::select([
+                    'delivery_recap.id as dr_id',
+                    'dr_invoice',
+                    'courier_name',
+                    'expedition',
+                    'note',
+                    'users.u_name as user_name',
+                    'delivery_recap.created_at'
+                ])
+                    ->leftjoin('users', 'delivery_recap.sender_id', '=', 'users.id')
+                    ->where('delivery_recap.st_id', '=', $st_id)
+                    ->orderBy('delivery_recap.created_at', 'DESC')
+            )
+                ->editColumn('dr_invoice', function ($data) {
+                    return '<a class="text-white" href="#" data-dr_id="' . $data->dr_id . '"  data-dr_invoice="' . $data->dr_invoice . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->dr_invoice . '</span></a><br>';
+                })
+
+                ->rawColumns(['dr_invoice'])
+//                ->filter(function ($instance) use ($request) {
+//                    if (!empty($request->get('search'))) {
+//                        $instance->where(function ($w) use ($request) {
+//                            $search = $request->get('search');
+//                            $w->orWhere('no_resi', 'LIKE', "%$search%")
+//                                ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
+//                        });
+//                    }
+//
+//                    if (!empty($request->get('status'))) {
+//                        $instance->where(function ($w) use ($request) {
+//                            $status = $request->get('status');
+//
+//                            if ($status == 0) {
+//                                $w->orWhere('online_print', '=', "0");
+//                            } else if ($status == 1) {
+//                                $w->orWhere('online_print', '=', "1");
+//                            }
+//                        });
+//                    }
+//                })
+                ->addIndexColumn()
+                ->make(true);
+        }
     }
 
 

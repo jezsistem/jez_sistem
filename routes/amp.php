@@ -6,10 +6,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeliveryRecapController;
 
 
-use App\Http\Controllers\SatuanPosV2Controller;
-use App\Http\Controllers\BahanBakuPosV2Controller;
-use App\Http\Controllers\DataUserPosV2Controller;
-
 Route::middleware(['auth'])->group(function () {
 
     // Transaksi Online
@@ -38,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
      * 3. Automization Select Shopee / Tiktok Platform
      * 4. Export per period
      */
-    Route::get('delivery_rec    ap', [DeliveryRecapController::class, 'index']);
+    Route::get('delivery_recap', [DeliveryRecapController::class, 'index']);
     Route::get('delivery_recap_datatables', [DeliveryRecapController::class, 'getDatatables']);
     Route::get('add_delivery_recap', [DeliveryRecapController::class, 'add']);
 });
