@@ -43,7 +43,7 @@
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-dark">
-                            Total Nameset
+                             Total Nameset
                         </th>
                         <td class="border-0 justify-content-end d-flex text-dark font-size-base"><span
                                     id="total_nameset_side">0</span></td>
@@ -107,13 +107,13 @@
                         </td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between item-price pl-3 pr-3"
-                        style="background:#FFDB89">
+                    style="background:#FFDB89">
                         <th class="border-0 font-size-h5 mb-0 font-size-bold text-primary" >
                             Grand Total
                         </th>
                         <td class="border-0 justify-content-end d-flex text-primary font-size-base"><span
                                     id="total_final_price_side">0</span>
-                            {{--                            <input type="text" id="temp_total_side">--}}
+{{--                            <input type="text" id="temp_total_side">--}}
                         </td>
                     </tr>
                     </tbody>
