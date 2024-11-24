@@ -1562,8 +1562,12 @@
                                 toast('Ditambah', 'Item berhasil ditambah', 'success');
                                 jQuery('#total_item_side').text(parseInt(total_item) +
                                     1);
+                                console.log('TOTAL PRICE: ', total_price_side);
+                                console.log('TOTAL NAMESET: ', total_nameset_side);
                                 jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price)));
-                                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))));
+                                // jQuery('#total_final_price_side').text(addCommas(parseFloat(Number(replaceComma(total_price_side)) + Number(total_nameset_side)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))));
+
+                                // JQuery('#temp_total_side').val(addCommas(parseFloat(Number(replaceComma(total_price)) + Number(total_nameset)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))))
                                 if (item_type == 'waiting') {
                                     jQuery('#orderTable tr:last').after("" +
                                         "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
@@ -1665,7 +1669,17 @@
                                         ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
                                     );
                                 }
-                                // console.log(b1g1_temp);
+                                var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
+                                var total_price_side = replaceComma(jQuery('#total_price_side').text());
+                                var total_discount_side = replaceComma(jQuery('#total_discount_value_side').text());
+
+                                console.log(Number(total_price_side));
+                                console.log(Number(total_nameset_side));
+                                console.log(Number(total_discount_side));
+
+                                jQuery('#total_final_price_side').text(
+                                    addCommas(parseFloat(Number(total_price_side) + Number(total_nameset_side) - Number(total_discount_side)))
+                                );
                             } else if (r.status == '400') {
                                 console.log(r.barang);
                                 toast('Gagal', 'Item gagal ditambah', 'danger');
@@ -1692,6 +1706,8 @@
         });
         jQuery('#barcode_input').val('');
         jQuery('#barcode_input').focus();
+
+
     });
 
     var product = jQuery('#Ptb').DataTable({
