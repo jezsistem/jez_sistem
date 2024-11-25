@@ -573,7 +573,6 @@ class MassAdjustmentController extends Controller
     public function cancelData(Request $req)
     {
         $ma_id = $req->post('ma_id');
-n
         $check = DB::table('mass_adjustments')
             ->where('id', '=', $ma_id)
             ->where('ma_status', '=', '1')
