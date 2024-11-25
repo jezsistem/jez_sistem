@@ -406,8 +406,20 @@
                     data: 'final_price',
                     name: 'final_price',
                     render: function(data, type, row) {
-                        return !data || isNaN(data) ? '-' : formatRupiah(parseInt(data));
+                        const platformPrice = parseInt(row.ns_before_admin);
+                        const quantity = parseInt(row.to_qty);
+
+                        if (isNaN(platformPrice) || isNaN(quantity)) {
+                            return '-';
+                        }
+
+                        const calculatedFinalPrice = platformPrice * quantity;
+                        return formatRupiah(calculatedFinalPrice);
                     }
+                },
+                {
+                    data: 'status_pick',
+                    name: 'status_pick'
                 },
             ],
             columnDefs: [{
@@ -438,6 +450,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     console.log(numOrder);
+
+                    $('#loader').show();
 
                     $.ajax({
                         url: '{{ url('print_online_invoice') }}',
@@ -471,6 +485,9 @@
                                 icon: 'error',
                                 confirmButtonColor: '#3085d6'
                             });
+                        },
+                        complete: function () {
+                            $('#loader').hide();
                         }
                     });
                 }

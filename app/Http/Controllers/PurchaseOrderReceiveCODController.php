@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\User;
+use App\Models\Tax;
 use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -68,6 +69,7 @@ class PurchaseOrderReceiveCODController extends Controller
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
             'segment' => request()->segment(1)
         ];
         return view('app.purchase_order_receive_cod.purchase_order_receive_cod', compact('data'));
@@ -75,13 +77,14 @@ class PurchaseOrderReceiveCODController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if (request()->ajax()) {
-            return datatables()->of(DB::table('purchase_order_article_detail_statuses')
-//                ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
-//            sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid")
+        if ($request->ajax()) {
+            $query = DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
                 sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost,
-                       ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_stock_types.stkt_name, ts_taxes.tx_name")
+                    ts_purchase_orders.stkt_id,
+                    ts_purchase_orders.tax_id,
+                    ts_stock_types.stkt_name,
+                    ts_taxes.tx_name")
                 ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
@@ -93,7 +96,14 @@ class PurchaseOrderReceiveCODController extends Controller
                 ->whereNotNull('poads_invoice')
                 ->where('acc_id', 93)
                 ->where('is_paid', 0)
-                ->groupBy('poads_invoice'))
+                ->groupBy('poads_invoice');
+
+            // Apply search filter for `po_invoice`
+            if (!empty($request->search)) {
+                $query->where('po_invoice', 'like', '%' . $request->search . '%');
+            }
+
+            return datatables()->of($query)
                 ->editColumn('poads_invoice_show', function ($d) {
                     return "<a class='btn btn-primary'>" . $d->poads_invoice . "</a>";
                 })
@@ -201,5 +211,4 @@ class PurchaseOrderReceiveCODController extends Controller
             $r['status'] = '400';
         }
     }
-
 }
