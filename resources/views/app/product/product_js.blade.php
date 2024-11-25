@@ -35,7 +35,7 @@
             row.style.display = ""; // Menampilkan semua baris
         });
 
-        console.log(allSchemaBtn, stockedSchemaBtn); 
+        console.log(allSchemaBtn, stockedSchemaBtn);
 
         // Update button styles
         document.getElementById("allSchemaBtn").classList.add("btn-primary");
@@ -968,7 +968,7 @@
             });
         }
 
-        function handleSchemaChange(selectedValue, id) {
+        function handleSchemaChange(selectedValue, id, psc_id) {
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -979,7 +979,8 @@
                 type: "GET",
                 data: {
                     _sz_schema: selectedValue,
-                    _id: id
+                    _id: id,
+                    _psc_id: psc_id
                 }, // Pass id as data parameter
                 dataType: 'html',
                 url: "{{ url('reload_size_schema_modal') }}",
@@ -1095,13 +1096,21 @@
             //     var selectedValue = $('#sz_schema_modal_id').val();
             //     handleSchemaChange(selectedValue, article_id);
             // });
-            handleSchemaChange(schema_size, id);
+            handleSchemaChange(schema_size, id, psc_id);
             jQuery.noConflict();
             $('#ProductModal').modal('show');
             $('#product_label_modal').text(product_label);
             $('#pcpscpssc_edit').show();
             $('#barcode_running_label').show();
-            $('#p_name').val(p_name);
+
+
+            // Dekode HTML entities pada p_name
+            function decodeHtmlEntity(str) {
+                const textArea = document.createElement('textarea');
+                textArea.innerHTML = str;
+                return textArea.value;
+            }
+            $('#p_name').val(decodeHtmlEntity(p_name));
             $('#article_id').val(article_id);
             $('#p_aging').val(p_aging);
             $('#p_color').val(p_color);
@@ -1365,11 +1374,11 @@
                     $("#save_product_btn").attr("disabled", false);
                     if (data.status == '200') {
                         $("#ProductModal").modal('hide');
-<<<<<<< HEAD
+
                         swal('Berhasil', 'Data berhasil disimpan', 'success');
-=======
+
                         toastr.success('Data berhasil disimpan', 'Berhasil');
->>>>>>> origin/temporary
+
                         console.log(data.consignment);
                         console.log(data.complement);
                         product_table.draw(false);

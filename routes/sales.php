@@ -41,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('check_str', [TargetController::class, 'checkStr']);
     Route::post('edit_target', [TargetController::class, 'editTarget']);
     Route::post('sv_target_detail_import', [TargetController::class, 'saveTargetDetailImport']);
+    Route::post('import-csv', [TargetController::class, 'importCSV'])->name('import.csv'); //fitur baru -> template csv
 
     // Product Discount
     Route::get('setup_diskon', [ProductDiscountController::class, 'index'])->name('product_discount');

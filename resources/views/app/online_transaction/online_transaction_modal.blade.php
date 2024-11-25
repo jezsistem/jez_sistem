@@ -16,7 +16,7 @@
                         <div class="form-group">
                             <label>Download Template
                                 <span class="text-danger">*</span></label>
-                            {{--                            <a href="{{ asset('upload/template/data_supplier_template.xlsx') }}" class="btn btn-xs btn-primary">Download</a>--}}
+                                                       {{-- <a href="{{ asset('upload/template/data_supplier_template.xlsx') }}" class="btn btn-xs btn-primary">Download</a> --}}
                             <div class="dropdown dropdown-inline mr-2">
                                 <button type="button"
                                         class="btn btn-light-danger font-weight-bolder dropdown-toggle"
@@ -61,6 +61,9 @@
                         </div>
                     </div>
                 </div>
+
+
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
                     </button>

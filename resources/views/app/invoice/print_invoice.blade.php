@@ -371,17 +371,7 @@
             <div class="nota">
                 <strong>{{ $data['transaction']->pos_order_number }}</strong>
             </div>
-            <div class="note">
-                <span style="font-size: 12px; color: #2b272799;">NOTE:</span>
-                <span style="font-size: 12px; color: #2b272799; text-align: right;">
-                    <strong>
-                        {{ $data['note'][0]->pos_td_description }}
-                        {{-- @foreach($data['transaction_detail'] as $detail)
-                            {{ $detail->pos_td_description ?? "No Notes Available" }}
-                        @endforeach --}}
-                    </strong>
-                </span>
-            </div>
+           
             
             <div class="title-left">
                 <strong>PENERIMA</strong><br/>
