@@ -145,7 +145,7 @@
                             <td class="qty">{{ $srow->pos_td_qty }}x</td>
                             @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WHATSAPP' AND $data['transaction']->dv_name != 'TIKTOK' AND $data['transaction']->dv_name != 'WEBSITE')
                                 <td class="sell-price">
-                                    <s>{{ number_format($srow->productStock->ps_price_tag) }}</s>
+                                    <s>{{ number_format($srow->productStock?->ps_price_tag ?? 0) }}</s>
                                     {{ round($srow->pos_td_marketplace_price/$srow->pos_td_qty) }}
                                     @if (!empty($srow->pos_td_discount))
                                         <br/>{{ $srow->pos_td_discount }}%
@@ -171,7 +171,7 @@
                                 <td class="final-price">{{ number_format($srow->pos_td_qty * $srow->pos_td_sell_price) }}</td>
                                 @else 
                                 <td class="sell-price">
-                                    <s>{{ number_format($srow->productStock->ps_price_tag) }}</s>
+                                    <s>{{ number_format($srow->productStock?->ps_price_tag ?? 0) }}</s>
                                     <br/>
                                     {{ number_format($srow->pos_td_sell_price) }}
                                     @if (!empty($srow->pos_td_discount))

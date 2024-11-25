@@ -120,3 +120,7 @@
     @include('app._partials.js')
     @include('app.invoice_tracking.invoice_tracking_js')
 @endSection()
+
+
+
+invoice_tracking.blade.php
