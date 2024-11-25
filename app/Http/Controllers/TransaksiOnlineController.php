@@ -289,8 +289,6 @@ class TransaksiOnlineController extends Controller
         } else {
             $online_transactions = [];
 
-<<<<<<<<< Temporary merge branch 1
-
             $sku_current_print = OnlineTransactionDetails::where('order_number', $invoice);
 
             $cur_trx = OnlineTransactions::where('order_number', $invoice)->get()->first();
@@ -414,9 +412,9 @@ class TransaksiOnlineController extends Controller
                     }
                 }
 
-=========
+
             foreach ($sku_current_print as $key => $data) {
->>>>>>>>> Temporary merge branch 2
+
                 // Get product stock ID based on barcode
                 $ps_barcode_record = ProductStock::where('ps_barcode', $data->ps_barcode)->first();
 
@@ -443,7 +441,6 @@ class TransaksiOnlineController extends Controller
                         ->where('plst_status', '=', 'WAITING ONLINE')
                         ->count();
 
-<<<<<<<<< Temporary merge branch 1
 //            Salah disini untuk looping item change status done amp
 //             If all transactions match the SKU count, proceed with updates
                     if (count($online_transactions) >= $sku_count) {
@@ -473,7 +470,7 @@ class TransaksiOnlineController extends Controller
                     } else {
                         // If not all transactions match, return a 400 Bad Request status
                         $response['status'] = 400;
-=========
+
                     // Fetch the first record of waiting online transactions
                     $data_keep_online = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id')
                         ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
@@ -491,7 +488,6 @@ class TransaksiOnlineController extends Controller
                             'id' => $data_keep_online->plst_id,
                             'online_id' => $data->to_id,
                         ];
->>>>>>>>> Temporary merge branch 2
                     }
                 }
             }
