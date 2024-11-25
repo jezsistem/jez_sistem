@@ -203,8 +203,7 @@
                                         id="execution_btn">Eksekusi Penyesuaian</a>
                                     <a class="btn btn-primary ml-auto mr-2" style="float:right;"
                                         id="export_mad_btn">Export</a>
-                                    <a class="btn btn-danger ml-auto mr-2" style="float:right;"
-                                        id="cancel_btn">Batalkan</a>
+
                                 </div>
                             </div>
                             <div class="card-body table-responsive">

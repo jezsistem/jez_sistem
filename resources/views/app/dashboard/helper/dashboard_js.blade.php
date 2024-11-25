@@ -1266,6 +1266,7 @@
         .on('click', function(e) {
             $('#OutModal').modal('hide');
             $('#ScanOutModal').modal('hide');
+            $('#KeepOnModal').modal('hide');
             $('#InModal').modal('hide');
             $('#ScanInModal').modal('hide');
             $('#TrackingTypeModal').modal('hide');

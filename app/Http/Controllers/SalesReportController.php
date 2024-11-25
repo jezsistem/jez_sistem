@@ -106,6 +106,7 @@ class SalesReportController extends Controller
                 'ps_sell_price',
                 'pos_transactions.created_at as pos_created',
                 'pos_td_qty',
+                'pos_order_number',
                 'pos_invoice',
                 'pos_td_discount',
                 'pos_td_discount_price',
@@ -656,7 +657,7 @@ class SalesReportController extends Controller
                              avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, 
                              avg(ts_purchase_order_article_details.poad_purchase_price) as purchase2, 
                              ps_purchase_price, p_purchase_price, ps_sell_price, p_sell_price, 
-                             p_price_tag, ps_price_tag, pos_order_number")
+                             p_price_tag, ps_price_tag")
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')

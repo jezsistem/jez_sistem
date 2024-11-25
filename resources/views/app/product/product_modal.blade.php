@@ -102,6 +102,9 @@
                                 <div id="_pssc_id_parent"></div>
                             </div>
                         </div>
+
+
+                        {{-- ini dalam masa perbaikan --}}
                         <div class="form-group row">
                             <div class="col-lg-4 pt-1">
                                 <label>Nama Artikel <span class="text-danger">*</span></label>

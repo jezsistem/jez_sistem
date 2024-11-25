@@ -662,60 +662,6 @@
             });
         });
 
-        $(document).delegate('#cancel_btn', 'click', function(e) {
-            e.preventDefault();
-
-            // Konfirmasi menggunakan swal
-            swal({
-                title: "Batalkan proses pengeksekusian data?",
-                text: "Yakin ingin membatalkan pengeksekusian data ini?",
-                icon: "warning",
-                buttons: [
-                    'Tidak',
-                    'Ya, Batalkan'
-                ],
-                dangerMode: true,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
-                    console.log($('#ma_code').attr('data-id'));
-
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        data: {
-                            ma_id: $('#ma_code').attr('data-id')
-                        },
-                        dataType: 'json',
-                        url: "{{ url('mass_adjustment_cancel') }}", // URL endpoint untuk pembatalan
-                        success: function(response) {
-                            if (response.status === '200') {
-                                toastr.success(response.message,
-                                "Berhasil"); // Tampilkan pesan sukses dari server
-                                mass_adjustment_table.draw(
-                                false); // Refresh tabel penyesuaian
-                            } else {
-                                toastr.error(response.message ||
-                                    'Gagal membatalkan pengeksekusian data',
-                                    'Gagal'); // Tampilkan pesan gagal dari server
-                            }
-                        },
-                        error: function(xhr) {
-                            toastr.error('Error: ' + (xhr.responseJSON?.message ||
-                                    'Terjadi kesalahan saat menghubungi server'
-                                    ), 'Error'
-                                ); // Tampilkan pesan error dari server jika ada
-                        }
-                    });
-                }
-            });
-        });
-
-
-
 
         // $('#f_import').on('submit', function(e) {
         //     e.preventDefault();
@@ -811,16 +757,23 @@
                         loadApproval();
                         $('#ImportModal').modal('hide');
                         $('#f_import')[0].reset();
-                        toastr.success('Adjustment berhasil dicreate', 'Berhasil');
+                        toastr.success('Adjustment berhasil dicreate',
+                            'Berhasil'); // Use toastr for success
                     } else {
-                        toastr.warning(r.message || 'Adjustment gagal dicreate', 'Gagal');
+                        toastr.warning('Adjustment gagal dicreate',
+                            'Gagal'); // Use toastr for warning
                     }
                 },
                 error: function(data) {
-                    toastr.error('Terjadi kesalahan saat menghubungi server', 'Error');
+                    toastr.error('Terjadi kesalahan saat menghubungi server',
+                        'Error'); // Handle AJAX error with toastr
                 }
             });
-        });
 
+
+
+
+
+        });
     });
 </script>

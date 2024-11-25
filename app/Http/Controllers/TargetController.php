@@ -16,16 +16,17 @@ use App\Models\StoreType;
 use App\Models\PosTransactionDetail;
 use App\Models\UserActivity;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class TargetController extends Controller
 {
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -34,7 +35,7 @@ class TargetController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -47,9 +48,9 @@ class TargetController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -58,7 +59,7 @@ class TargetController extends Controller
         }
         return $sidebar;
     }
-    
+
     protected function UserActivity($activity)
     {
         UserActivity::create([
@@ -92,164 +93,164 @@ class TargetController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(Target::select('targets.id as tr_id', 'tr_date'))
-            ->editColumn('tr_date_show', function($data){
-                $date = date('F Y', strtotime($data->tr_date));
-                return $date;
-            })
-            ->editColumn('tr_amount_show', function($data){
-                $amount = SubSubTarget::select('sstr_amount')->where('targets.id', '=', $data->tr_id)
-                ->leftJoin('sub_targets', 'sub_targets.id', '=', 'sub_sub_targets.str_id')
-                ->leftJoin('targets', 'targets.id', '=', 'sub_targets.tr_id')
-                ->sum('sstr_amount');
-                return '<span class="btn btn-sm btn-primary">'.number_format($amount).'</span>';
-            })
-            ->editColumn('tr_amount_get', function($data){
-                $get = 0;
-                $exp = explode('-', $data->tr_date);
-                $month = $exp[1];
-                $year = $exp[0];
-                $pos_transaction_detail = PosTransactionDetail::select('pos_td_qty', 'pos_td_marketplace_price', 'pos_td_discount_price')
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transactions.id')
-                ->whereIn('plst_status', ['DONE', 'WAITING FOR PACKING', 'WAITING ONLINE', 'WAITING FOR NAMESET'])
-                ->whereMonth('pos_transaction_details.created_at', '=', $month)
-                ->whereYear('pos_transaction_details.created_at', '=', $year)
-                ->groupBy('pos_transaction_details.id')
-                ->get();
-                if (!empty($pos_transaction_detail)) {
-                    foreach ($pos_transaction_detail as $ptd) {
-                        if (!empty($ptd->pos_td_marketplace_price)) {
-                            $get += $ptd->pos_td_marketplace_price;
-                        } else {
-                            $get += $ptd->pos_td_discount_price;
+                ->editColumn('tr_date_show', function ($data) {
+                    $date = date('F Y', strtotime($data->tr_date));
+                    return $date;
+                })
+                ->editColumn('tr_amount_show', function ($data) {
+                    $amount = SubSubTarget::select('sstr_amount')->where('targets.id', '=', $data->tr_id)
+                        ->leftJoin('sub_targets', 'sub_targets.id', '=', 'sub_sub_targets.str_id')
+                        ->leftJoin('targets', 'targets.id', '=', 'sub_targets.tr_id')
+                        ->sum('sstr_amount');
+                    return '<span class="btn btn-sm btn-primary">' . number_format($amount) . '</span>';
+                })
+                ->editColumn('tr_amount_get', function ($data) {
+                    $get = 0;
+                    $exp = explode('-', $data->tr_date);
+                    $month = $exp[1];
+                    $year = $exp[0];
+                    $pos_transaction_detail = PosTransactionDetail::select('pos_td_qty', 'pos_td_marketplace_price', 'pos_td_discount_price')
+                        ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+                        ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transactions.id')
+                        ->whereIn('plst_status', ['DONE', 'WAITING FOR PACKING', 'WAITING ONLINE', 'WAITING FOR NAMESET'])
+                        ->whereMonth('pos_transaction_details.created_at', '=', $month)
+                        ->whereYear('pos_transaction_details.created_at', '=', $year)
+                        ->groupBy('pos_transaction_details.id')
+                        ->get();
+                    if (!empty($pos_transaction_detail)) {
+                        foreach ($pos_transaction_detail as $ptd) {
+                            if (!empty($ptd->pos_td_marketplace_price)) {
+                                $get += $ptd->pos_td_marketplace_price;
+                            } else {
+                                $get += $ptd->pos_td_discount_price;
+                            }
                         }
                     }
-                }
-                return '<span class="btn btn-sm btn-success">'.number_format($get).'</span>';
-            })
-            ->editColumn('tr_progress', function($data){
-                return '<span class="btn btn-sm btn-success" style="white-space: nowrap;">%</span>';
-            })
-            ->editColumn('tr_total_sale', function($data){
-                $exp = explode('-', $data->tr_date);
-                $month = $exp[1];
-                $year = $exp[0];
+                    return '<span class="btn btn-sm btn-success">' . number_format($get) . '</span>';
+                })
+                ->editColumn('tr_progress', function ($data) {
+                    return '<span class="btn btn-sm btn-success" style="white-space: nowrap;">%</span>';
+                })
+                ->editColumn('tr_total_sale', function ($data) {
+                    $exp = explode('-', $data->tr_date);
+                    $month = $exp[1];
+                    $year = $exp[0];
 
-                $total_sale = DB::table('pos_transactions')
-                
-                ->whereMonth('created_at', '=', $month)
-                ->whereYear('created_at', '=', $year)
-                ->count('id');
+                    $total_sale = DB::table('pos_transactions')
 
-                $total_item = DB::table('pos_transaction_details')
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                
-                ->whereMonth('pos_transaction_details.created_at', '=', $month)
-                ->whereYear('pos_transaction_details.created_at', '=', $year)
-                ->count('pos_transaction_details.id');
-                $date = date('m-Y', strtotime($data->tr_date));
-                return '<span class="btn btn-sm btn-primary" style="white-space: nowrap;" data-tr_id="'.$data->tr_id.'" data-target_date="'.$date.'" id="sub_target_detail">['.$total_sale.'] ['.$total_item.']</span>';
-            })
-            ->rawColumns(['tr_date_show', 'tr_amount_show', 'tr_amount_get', 'tr_progress', 'tr_total_sale'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('tr_date', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                        ->whereMonth('created_at', '=', $month)
+                        ->whereYear('created_at', '=', $year)
+                        ->count('id');
+
+                    $total_item = DB::table('pos_transaction_details')
+                        ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+
+                        ->whereMonth('pos_transaction_details.created_at', '=', $month)
+                        ->whereYear('pos_transaction_details.created_at', '=', $year)
+                        ->count('pos_transaction_details.id');
+                    $date = date('m-Y', strtotime($data->tr_date));
+                    return '<span class="btn btn-sm btn-primary" style="white-space: nowrap;" data-tr_id="' . $data->tr_id . '" data-target_date="' . $date . '" id="sub_target_detail">[' . $total_sale . '] [' . $total_item . ']</span>';
+                })
+                ->rawColumns(['tr_date_show', 'tr_amount_show', 'tr_amount_get', 'tr_progress', 'tr_total_sale'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('tr_date', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
     public function getDetailDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(SubTarget::select('sub_targets.id as str_id', 'tr_id', 'st_name', 'stt_id', 'st_id', 'stt_name', 'tr_date')
-            ->leftJoin('targets', 'targets.id', '=', 'sub_targets.tr_id')
-            ->leftJoin('stores', 'stores.id', '=', 'sub_targets.st_id')
-            ->leftJoin('store_types', 'store_types.id', '=', 'sub_targets.stt_id')
-            ->where('targets.id', '=', $request->tr_id))
-            ->editColumn('st_name', function($data){
-                return '<span style="white-space:nowrap;">'.$data->st_name.'</span>';
-            })
-            ->editColumn('tr_amount_show', function($data){
-                $amount = SubSubTarget::select('sstr_amount')->where('sub_targets.id', '=', $data->str_id)
-                ->leftJoin('sub_targets', 'sub_targets.id', '=', 'sub_sub_targets.str_id')
-                ->sum('sstr_amount');
-                return '<span class="btn btn-sm btn-primary" data-id="'.$data->str_id.'" id="tr_amount_btn">'.number_format($amount).'</span>';
-            })
-            ->editColumn('tr_amount_get', function($data){
-                $get = 0;
-                $exp = explode('-', $data->tr_date);
-                $month = $exp[1];
-                $year = $exp[0];
-                $pos_transaction_detail = PosTransactionDetail::select('pos_td_qty', 'pos_td_marketplace_price', 'pos_td_discount_price')
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transactions.id')
-                ->whereIn('plst_status', ['DONE', 'WAITING FOR PACKING', 'WAITING ONLINE', 'WAITING FOR NAMESET'])
-                ->whereMonth('pos_transaction_details.created_at', '=', $month)
-                ->whereYear('pos_transaction_details.created_at', '=', $year)
-                ->where('pos_transactions.stt_id', '=', $data->stt_id)
-                ->where('pos_transactions.st_id', '=', $data->st_id)
-                ->groupBy('pos_transaction_details.id')
-                ->get();
-                if (!empty($pos_transaction_detail)) {
-                    foreach ($pos_transaction_detail as $ptd) {
-                        if (!empty($ptd->pos_td_marketplace_price)) {
-                            $get += $ptd->pos_td_marketplace_price;
-                        } else {
-                            $get += $ptd->pos_td_discount_price;
+                ->leftJoin('targets', 'targets.id', '=', 'sub_targets.tr_id')
+                ->leftJoin('stores', 'stores.id', '=', 'sub_targets.st_id')
+                ->leftJoin('store_types', 'store_types.id', '=', 'sub_targets.stt_id')
+                ->where('targets.id', '=', $request->tr_id))
+                ->editColumn('st_name', function ($data) {
+                    return '<span style="white-space:nowrap;">' . $data->st_name . '</span>';
+                })
+                ->editColumn('tr_amount_show', function ($data) {
+                    $amount = SubSubTarget::select('sstr_amount')->where('sub_targets.id', '=', $data->str_id)
+                        ->leftJoin('sub_targets', 'sub_targets.id', '=', 'sub_sub_targets.str_id')
+                        ->sum('sstr_amount');
+                    return '<span class="btn btn-sm btn-primary" data-id="' . $data->str_id . '" id="tr_amount_btn">' . number_format($amount) . '</span>';
+                })
+                ->editColumn('tr_amount_get', function ($data) {
+                    $get = 0;
+                    $exp = explode('-', $data->tr_date);
+                    $month = $exp[1];
+                    $year = $exp[0];
+                    $pos_transaction_detail = PosTransactionDetail::select('pos_td_qty', 'pos_td_marketplace_price', 'pos_td_discount_price')
+                        ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+                        ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transactions.id')
+                        ->whereIn('plst_status', ['DONE', 'WAITING FOR PACKING', 'WAITING ONLINE', 'WAITING FOR NAMESET'])
+                        ->whereMonth('pos_transaction_details.created_at', '=', $month)
+                        ->whereYear('pos_transaction_details.created_at', '=', $year)
+                        ->where('pos_transactions.stt_id', '=', $data->stt_id)
+                        ->where('pos_transactions.st_id', '=', $data->st_id)
+                        ->groupBy('pos_transaction_details.id')
+                        ->get();
+                    if (!empty($pos_transaction_detail)) {
+                        foreach ($pos_transaction_detail as $ptd) {
+                            if (!empty($ptd->pos_td_marketplace_price)) {
+                                $get += $ptd->pos_td_marketplace_price;
+                            } else {
+                                $get += $ptd->pos_td_discount_price;
+                            }
                         }
                     }
-                }
-                return '<span class="btn btn-sm btn-success">'.number_format($get).'</span>';
-            })
-            ->editColumn('tr_progress', function($data){
-                return '<span class="btn btn-sm btn-success" style="white-space: nowrap;">%</span>';
-            })
-            ->editColumn('tr_total_sale', function($data){
-                $exp = explode('-', $data->tr_date);
-                $month = $exp[1];
-                $year = $exp[0];
+                    return '<span class="btn btn-sm btn-success">' . number_format($get) . '</span>';
+                })
+                ->editColumn('tr_progress', function ($data) {
+                    return '<span class="btn btn-sm btn-success" style="white-space: nowrap;">%</span>';
+                })
+                ->editColumn('tr_total_sale', function ($data) {
+                    $exp = explode('-', $data->tr_date);
+                    $month = $exp[1];
+                    $year = $exp[0];
 
-                $total_sale = DB::table('pos_transactions')
-                ->where('pos_transactions.stt_id', '=', $data->stt_id)
-                ->where('pos_transactions.st_id', '=', $data->st_id)
-                
-                ->whereMonth('created_at', '=', $month)
-                ->whereYear('created_at', '=', $year)
-                ->count('id');
+                    $total_sale = DB::table('pos_transactions')
+                        ->where('pos_transactions.stt_id', '=', $data->stt_id)
+                        ->where('pos_transactions.st_id', '=', $data->st_id)
 
-                $total_item = DB::table('pos_transaction_details')
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                
-                ->whereMonth('pos_transaction_details.created_at', '=', $month)
-                ->whereYear('pos_transaction_details.created_at', '=', $year)
-                ->where('pos_transactions.stt_id', '=', $data->stt_id)
-                ->where('pos_transactions.st_id', '=', $data->st_id)
-                ->count('pos_transaction_details.id');
-                $date = date('m-Y', strtotime($data->tr_date));
-                return '<span class="btn btn-sm btn-primary" style="white-space: nowrap;" data-tr_id="'.$data->tr_id.'" data-target_date="'.$date.'" id="sub_target_detail">['.$total_sale.'] ['.$total_item.']</span>';
-            })
-            ->editColumn('action', function($data){
-                return '<span class="btn btn-sm btn-danger" style="white-space: nowrap;" data-str_id="'.$data->str_id.'" id="delete_sub_target">Hapus</span>';
-            })
-            ->rawColumns(['st_name', 'tr_date_show', 'tr_amount_show', 'tr_amount_get', 'tr_progress', 'tr_total_sale', 'action'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('tr_date', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                        ->whereMonth('created_at', '=', $month)
+                        ->whereYear('created_at', '=', $year)
+                        ->count('id');
+
+                    $total_item = DB::table('pos_transaction_details')
+                        ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+
+                        ->whereMonth('pos_transaction_details.created_at', '=', $month)
+                        ->whereYear('pos_transaction_details.created_at', '=', $year)
+                        ->where('pos_transactions.stt_id', '=', $data->stt_id)
+                        ->where('pos_transactions.st_id', '=', $data->st_id)
+                        ->count('pos_transaction_details.id');
+                    $date = date('m-Y', strtotime($data->tr_date));
+                    return '<span class="btn btn-sm btn-primary" style="white-space: nowrap;" data-tr_id="' . $data->tr_id . '" data-target_date="' . $date . '" id="sub_target_detail">[' . $total_sale . '] [' . $total_item . ']</span>';
+                })
+                ->editColumn('action', function ($data) {
+                    return '<span class="btn btn-sm btn-danger" style="white-space: nowrap;" data-str_id="' . $data->str_id . '" id="delete_sub_target">Hapus</span>';
+                })
+                ->rawColumns(['st_name', 'tr_date_show', 'tr_amount_show', 'tr_amount_get', 'tr_progress', 'tr_total_sale', 'action'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('tr_date', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -260,25 +261,25 @@ class TargetController extends Controller
         $stt_id = $request->_stt_id;
         $arr = $request->_arr;
         $str_id = DB::table('sub_targets')->insertGetId([
-          'tr_id' => $tr_id,
-          'st_id' => $st_id,
-          'stt_id' => $stt_id,
-          'created_at' => date('Y-m-d H:i:s')
+            'tr_id' => $tr_id,
+            'st_id' => $st_id,
+            'stt_id' => $stt_id,
+            'created_at' => date('Y-m-d H:i:s')
         ]);
         $insert = array();
         foreach ($arr as $row) {
-          $insert[] = [
-              'str_id' => $str_id,
-              'sstr_date' => $row[0],
-              'sstr_amount' => $row[1],
-              'created_at' => date('Y-m-d H:i:s')
-          ];
+            $insert[] = [
+                'str_id' => $str_id,
+                'sstr_date' => $row[0],
+                'sstr_amount' => $row[1],
+                'created_at' => date('Y-m-d H:i:s')
+            ];
         }
         $save = DB::table('sub_sub_targets')->insert($insert);
         if (!empty($save)) {
-          $r['status'] = '200';
+            $r['status'] = '200';
         } else {
-          $r['status'] = '400';
+            $r['status'] = '400';
         }
         return json_encode($r);
     }
@@ -287,12 +288,12 @@ class TargetController extends Controller
     {
         $str_id = $request->_str_id;
         $delete = SubSubTarget::where('str_id', '=', $str_id)->delete();
-        if(SubTarget::where('id', '=', $str_id)->delete()) {
+        if (SubTarget::where('id', '=', $str_id)->delete()) {
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
         }
-        return json_encode ($r);
+        return json_encode($r);
     }
 
     public function storeData(Request $request)
@@ -308,9 +309,9 @@ class TargetController extends Controller
         $save = $target->storeData($mode, $id, $data);
         if ($save) {
             if ($mode == 'add') {
-                $this->UserActivity('menambah data target '.strtoupper(date('m-Y', strtotime($request->input('tr_date')))).' '.strtoupper($request->input('tr_amount')));
+                $this->UserActivity('menambah data target ' . strtoupper(date('m-Y', strtotime($request->input('tr_date')))) . ' ' . strtoupper($request->input('tr_amount')));
             } else {
-                $this->UserActivity('mengubah data target '.strtoupper(date('m-Y', strtotime($request->input('tr_date')))).' '.strtoupper($request->input('tr_amount')));
+                $this->UserActivity('mengubah data target ' . strtoupper(date('m-Y', strtotime($request->input('tr_date')))) . ' ' . strtoupper($request->input('tr_amount')));
             }
             $r['status'] = '200';
         } else {
@@ -326,7 +327,7 @@ class TargetController extends Controller
         $item_name = Target::select('tr_date', 'tr_amount')->where('id', $id)->get()->first();
         $save = $target->deleteData($id);
         if ($save) {
-            $this->UserActivity('menghapus data target '.date('m-Y', strtotime($item_name->tr_date)).' '.$item_name->tr_amount);
+            $this->UserActivity('menghapus data target ' . date('m-Y', strtotime($item_name->tr_date)) . ' ' . $item_name->tr_amount);
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -350,10 +351,10 @@ class TargetController extends Controller
         $str_id = $request->input('_str_id');
         $check = SubSubTarget::where('str_id', '=', $str_id)->get();
         if (!empty($check)) {
-          $r['status'] = '200';
-          $r['sstr'] = json_decode($check);
+            $r['status'] = '200';
+            $r['sstr'] = json_decode($check);
         } else {
-          $r['status'] = '400';
+            $r['status'] = '400';
         }
         return json_encode($r);
     }
@@ -363,16 +364,46 @@ class TargetController extends Controller
         $sstr_id = $request->input('_sstr_id');
         $value = $request->input('_value');
         $update = SubSubTarget::where('id', '=', $sstr_id)->update([
-          'sstr_amount' => $value
+            'sstr_amount' => $value
         ]);
         if (!empty($update)) {
-          $this->UserActivity('mengubah data target menjadi '.$value);
-          $r['status'] = '200';
+            $this->UserActivity('mengubah data target menjadi ' . $value);
+            $r['status'] = '200';
         } else {
-          $r['status'] = '400';
+            $r['status'] = '400';
         }
         return json_encode($r);
     }
+
+    // public function saveTargetDetailImport(Request $request)
+    // {
+    //     try {
+    //         if ($request->hasFile('importFile')) {
+
+    //             $file = $request->file('importFile');
+    //             // membuat nama file unik
+    //             $nama_file = rand() . $file->getClientOriginalName();
+
+    //             // upload ke folder file_siswa di dalam folder public
+    //             $file->move('excel', $nama_file);
+
+    //             $tr_id = $request->_tr_id;
+    //             $st_id = $request->_st_id;
+    //             $stt_id = $request->_stt_id;
+    //             $import = new TargetDetailImport($tr_id, $st_id, $stt_id);
+    //             Excel::import($import, public_path('/excel/' . $nama_file));
+
+    //             $r['status'] = '200';
+    //             unlink(public_path('/excel/' . $nama_file));
+    //         } else {
+    //             $r['status'] = '400';
+    //         }
+
+    //         return json_encode($r);
+    //     } catch (\Exception $e) {
+    //         return json_encode($e->getMessage());
+    //     }
+    // }
 
     public function saveTargetDetailImport(Request $request)
     {
@@ -380,58 +411,153 @@ class TargetController extends Controller
             if ($request->hasFile('importFile')) {
 
                 $file = $request->file('importFile');
-                // membuat nama file unik
+                // Membuat nama file unik
                 $nama_file = rand() . $file->getClientOriginalName();
 
-                // upload ke folder file_siswa di dalam folder public
+                // Upload ke folder excel di dalam folder public
                 $file->move('excel', $nama_file);
 
+                // Mengambil ID yang diperlukan dari request
                 $tr_id = $request->_tr_id;
                 $st_id = $request->_st_id;
                 $stt_id = $request->_stt_id;
-                $import = new TargetDetailImport($tr_id, $st_id, $stt_id);
-                Excel::import($import, public_path('/excel/' . $nama_file));
 
+                // Membaca CSV menggunakan built-in PHP function
+                $file_path = public_path('/excel/' . $nama_file);
+                $data = array_map('str_getcsv', file($file_path));
+
+                // Looping untuk menyimpan data ke dalam database
+                foreach ($data as $row) {
+                    // Pastikan data sesuai dengan kolom yang benar (sstr_date dan sstr_amount)
+                    DB::table('sub_sub_targets')->insert([
+                        'str_id' => $this->getOrCreateSubTarget($tr_id, $st_id, $stt_id), // mendapatkan atau membuat sub target
+                        'sstr_date' => $row[0], // Kolom sstr_date pada CSV
+                        'sstr_amount' => $row[1], // Kolom sstr_amount pada CSV
+                        'created_at' => now(),
+                    ]);
+                }
+
+                // Hapus file setelah selesai
+                unlink($file_path);
+
+                // Mengembalikan respons sukses
                 $r['status'] = '200';
-                unlink(public_path('/excel/' . $nama_file));
-                } else {
+            } else {
                 $r['status'] = '400';
             }
 
-        return json_encode($r);
+            return json_encode($r);
         } catch (\Exception $e) {
             return json_encode($e->getMessage());
         }
     }
 
-//    public function saveTargetDetail(Request $request)
-//    {
-//        $tr_id = $request->_tr_id;
-//        $st_id = $request->_st_id;
-//        $stt_id = $request->_stt_id;
-//        $arr = $request->_arr;
-//        $str_id = DB::table('sub_targets')->insertGetId([
-//            'tr_id' => $tr_id,
-//            'st_id' => $st_id,
-//            'stt_id' => $stt_id,
-//            'created_at' => date('Y-m-d H:i:s')
-//        ]);
-//        $insert = array();
-//        foreach ($arr as $row) {
-//            $insert[] = [
-//                'str_id' => $str_id,
-//                'sstr_date' => $row[0],
-//                'sstr_amount' => $row[1],
-//                'created_at' => date('Y-m-d H:i:s')
-//            ];
-//        }
-//        $save = DB::table('sub_sub_targets')->insert($insert);
-//        if (!empty($save)) {
-//            $r['status'] = '200';
-//        } else {
-//            $r['status'] = '400';
-//        }
-//        return json_encode($r);
-//    }
+    /**
+     * Helper function untuk mendapatkan atau membuat SubTarget berdasarkan tr_id, st_id, dan stt_id
+     */
+    private function getOrCreateSubTarget($tr_id, $st_id, $stt_id)
+    {
+        // Cek apakah ada sub target yang sesuai
+        $subTarget = DB::table('sub_targets')->where([
+            'tr_id' => $tr_id,
+            'st_id' => $st_id,
+            'stt_id' => $stt_id
+        ])->first();
 
+        // Jika tidak ada, buat baru
+        if (!$subTarget) {
+            $subTargetId = DB::table('sub_targets')->insertGetId([
+                'tr_id' => $tr_id,
+                'st_id' => $st_id,
+                'stt_id' => $stt_id,
+                'created_at' => now(),
+            ]);
+            return $subTargetId;
+        }
+
+        // Jika sudah ada, kembalikan ID yang ada
+        return $subTarget->id;
+    }
+
+    // public function importCSV(Request $request)
+    // {
+    //     // Validasi jika file CSV ada
+    //     $request->validate([
+    //         'csv_file' => 'required|mimes:csv,txt|max:10240', // pastikan tipe file csv
+    //     ]);
+
+    //     try {
+    //         // Ambil file CSV
+    //         $file = $request->file('csv_file');
+
+    //         // Baca CSV
+    //         $data = array_map('str_getcsv', file($file));
+
+    //         // Looping untuk menyimpan data ke dalam database
+    //         foreach ($data as $row) {
+
+    //             // Konversi format tanggal dari d/m/Y ke Y-m-d
+    //             $originalDate = $row[0]; // Tanggal dalam format d/m/Y dari CSV
+    //             $dateObject = \DateTime::createFromFormat('m/d/Y', $originalDate);
+
+    //             if ($dateObject !== false) {
+    //                 // Jika konversi sukses, dapatkan tanggal dalam format Y-m-d
+    //                 $formattedDate = $dateObject->format('Y-m-d');
+    //             } else {
+
+    //                 continue;
+    //             }
+
+    //             // Pastikan data sesuai dengan kolom yang benar (sstr_date dan sstr_amount)
+    //             DB::table('your_table_name')->insert([
+    //                 'sstr_date' => $row[0], // Kolom sstr_date pada CSV
+    //                 'sstr_amount' => $row[1], // Kolom sstr_amount pada CSV
+    //             ]);
+    //         }
+
+    //         return back()->with('success', 'Data CSV berhasil diimpor.');
+    //     } catch (\Exception $e) {
+    //         return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    //     }
+    // }
+
+
+    public function importCSV(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('csv_file');
+
+            $data = array_map('str_getcsv', file($file));
+
+            foreach ($data as $row) {
+                $originalDate = $row[0];
+
+                try {
+                    $dateObject = Carbon::createFromFormat('m/d/Y', $originalDate);
+
+                    if ($dateObject && $dateObject->format('Y-m-d') !== '0000-00-00') {
+
+                        $formattedDate = $dateObject->format('Y-m-d');
+                    } else {
+                        continue;
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                DB::table('your_table_name')->insert([
+                    'sstr_date' => $formattedDate,
+                    'sstr_amount' => $row[1],
+                ]);
+            }
+
+            return back()->with('success', 'Data CSV berhasil diimpor.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
 }

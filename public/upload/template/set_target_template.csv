@@ -1,0 +1,8 @@
+﻿sstr_date,sstr_amount,,
+,,,
+,,,
+,,,
+,,,sstr_date: Tolong di isi dengan format tahun-bulan-tanggal dari target pada 1 bulan penuh. Format penulisan date=  2024-10-01
+,,,"sstr_amount: adalah target perharinya, wajib di isi dengan nominal rupiah (contoh= 20,000 / 42,000,000 -> pakai koma ya)"
+,,,
+,,,note : tolong rubah format kolom di sstr_date menjadi date = tahun-bulan-tanggal.

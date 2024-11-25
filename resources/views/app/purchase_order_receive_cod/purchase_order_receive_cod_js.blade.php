@@ -39,7 +39,8 @@
                 },
                 {
                     data: 'po_invoice',
-                    name: 'po_invoice'
+                    name: 'po_invoice',
+                    searchable: true
                 },
                 {
                     data: 'ps_name',
@@ -353,7 +354,7 @@
                     $('#shipping_cost').val(shipping_cost);
                     $('#_po_id').val(po_id);
                     $('#total_approval_price').text(formatRupiah(r));
-                    $('#stkt_id').val(stkt_id);
+                    $('#stkt_id').val(stkt_name);
                     $('#tax_id').val(tax_id);
                     $('#stkt_name').val(stkt_name);  // Set stkt_name value
                     $('#tax_name').val(tx_name);

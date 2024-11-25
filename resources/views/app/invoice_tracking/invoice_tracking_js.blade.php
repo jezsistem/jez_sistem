@@ -13,7 +13,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -28,12 +28,14 @@
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('invoice_tracking_datatables') }}",
-                data : function (d) {
+                url: "{{ url('invoice_tracking_datatables') }}",
+                data: function(d) {
                     d.search = $('#invoice_tracking_search').val();
                     d.status = $('#status_filter').val();
                     d.division = $('#std_id').val();
@@ -41,30 +43,67 @@
                     d.date = date;
                 }
             },
-            columns: [
-            { data: 'DT_RowIndex', name: 'pt_id', searchable: false},
-            { data: 'pos_invoice', name: 'pos_invoice' },
-            { data: 'u_name', name: 'u_name' },
-            { data: 'cust_name', name: 'cust_name' },
-            { data: 'dv_name', name: 'dv_name' },
-            { data: 'pos_created', name: 'pos_created' },
-            { data: 'total_item', name: 'total_item' },
-            { data: 'pos_real_price', name: 'pos_real_price' },
-            { data: 'pos_shipping_number', name: 'pos_shipping_number' },
-            { data: 'pos_shipment', name: 'psi_description' },
-            { data: 'pos_status', name: 'pos_status' },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pt_id',
+                    searchable: false
+                },
+                {
+                    data: 'pos_invoice',
+                    name: 'pos_invoice'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'cust_name',
+                    name: 'cust_name'
+                },
+                {
+                    data: 'dv_name',
+                    name: 'dv_name'
+                },
+                {
+                    data: 'pos_created',
+                    name: 'pos_created'
+                },
+                {
+                    data: 'total_item',
+                    name: 'total_item'
+                },
+                {
+                    data: 'pos_real_price',
+                    name: 'pos_real_price'
+                },
+                {
+                    data: 'pos_shipping_number',
+                    name: 'pos_shipping_number'
+                },
+                {
+                    data: 'pos_shipment',
+                    name: 'psi_description'
+                },
+                {
+                    data: 'pos_status',
+                    name: 'pos_status'
+                },
             ],
-            columnDefs: [
-            {
+            columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#status_filter').on('change', function() {
@@ -88,7 +127,7 @@
             }
         });
 
-        invoice_tracking_table.buttons().container().appendTo($('#stock_tracking_excel_btn' ));
+        invoice_tracking_table.buttons().container().appendTo($('#stock_tracking_excel_btn'));
         $('#stock_tracking_search').on('keyup', function() {
             invoice_tracking_table.draw(false);
         });
@@ -102,11 +141,11 @@
             $('#_cust_id').val(cust_id);
             $('#ShippingNumberModal').modal('show');
             if (image != '') {
-                $('#imagePreview').attr('src', "{{ asset('upload/shipping_img/600x600') }}/"+image);
+                $('#imagePreview').attr('src', "{{ asset('upload/shipping_img/600x600') }}/" + image);
             }
         });
 
-        $(document).delegate('#dp_payment_btn', 'click', function () {
+        $(document).delegate('#dp_payment_btn', 'click', function() {
             var pt_id = $(this).attr('data-pt_id');
             var total_payment_real_price = $(this).attr('data-pos_real_price');
             var pos_payment = $(this).attr('data-pos_payment');
@@ -118,7 +157,7 @@
             $('#DPPaymentModal').modal('show');
         });
 
-        $('#payment_dp').on('input', function () {
+        $('#payment_dp').on('input', function() {
             // Get the values of payment_dp and difference_payment
             var paymentDpValue = parseFloat($(this).val());
             var differencePaymentValue = parseFloat($('#difference_payment').text());
@@ -127,7 +166,8 @@
             if (paymentDpValue > differencePaymentValue || paymentDpValue < 0) {
                 // cant be more than difference_payment
                 $(this).val(differencePaymentValue);
-                swal('Error', 'Pembayaran DP tidak boleh lebih dari sisa pembayaran atau kurang dari 0', 'error');
+                swal('Error', 'Pembayaran DP tidak boleh lebih dari sisa pembayaran atau kurang dari 0',
+                    'error');
             }
         });
 
@@ -138,19 +178,22 @@
             $('#WaybillTrackingModal').modal('show');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                type:'POST',
-                url: "{{ url('waybill_tracking')}}",
-                data: {_waybill_number:waybill_number, _id:pt_id},
-				dataType: 'html',
+                type: 'POST',
+                url: "{{ url('waybill_tracking') }}",
+                data: {
+                    _waybill_number: waybill_number,
+                    _id: pt_id
+                },
+                dataType: 'html',
                 success: function(data) {
                     invoice_tracking_table.draw(false);
                     $('#waybill_tracking').html(data);
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -163,15 +206,15 @@
             var formData = new FormData(this);
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                type:'POST',
-                url: "{{ url('shipping_number_save')}}",
+                type: 'POST',
+                url: "{{ url('shipping_number_save') }}",
                 data: formData,
-				dataType: 'json',
-                cache:false,
+                dataType: 'json',
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -187,13 +230,13 @@
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
         });
 
-        $('#f_payment_dp').on('submit', function(e){
+        $('#f_payment_dp').on('submit', function(e) {
             e.preventDefault();
             $("#save_payment_dp_btn").html('Proses ..');
             $("#save_payment_dp_btn").attr("disabled", true);
@@ -206,11 +249,11 @@
             });
 
             $.ajax({
-                type:'POST',
-                url: "{{ url('invoice_dp_repayment')}}",
+                type: 'POST',
+                url: "{{ url('invoice_dp_repayment') }}",
                 data: formData,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -225,7 +268,7 @@
                         swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -242,23 +285,26 @@
             var invoice = $('#complaint_invoice').val();
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
-                type:'POST',
-                url: "{{ url('search_invoice')}}",
-                data: {invoice:invoice},
-				dataType: 'json',
+                type: 'POST',
+                url: "{{ url('search_invoice') }}",
+                data: {
+                    invoice: invoice
+                },
+                dataType: 'json',
                 success: function(data) {
                     if (data.status == '200') {
                         swal('Ditemukan', data.invoice, 'success');
-                        $('#invoice_result').html('Ditemukan, invoice barunya adalah : '+data.invoice);
+                        $('#invoice_result').html('Ditemukan, invoice barunya adalah : ' +
+                            data.invoice);
                     } else if (data.status == '400') {
                         swal('Tidak Ada', 'Data invoice yang berkaitan', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -272,6 +318,7 @@
         }
         var start = moment();
         var end = moment();
+        var date = '';
 
         function cb(start, end, label) {
             var title = '';
@@ -307,7 +354,8 @@
                 '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
                 '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
                 'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
-                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
             }
         }, cb);
         cb(start, end, '');
