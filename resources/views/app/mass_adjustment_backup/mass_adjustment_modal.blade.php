@@ -22,9 +22,8 @@
 
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Note Adjustment</label>
-                            <textarea class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;" placeholder="Wajib di isi ya!"></textarea>
+                            <textarea class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;"></textarea>
                         </div>
-                        
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -177,10 +176,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    #note_adjustment::placeholder {
-        color: gray; /* Change this to any shade of gray you prefer */
-        opacity: 1; /* Ensures the color shows clearly */
-    }
-</style>

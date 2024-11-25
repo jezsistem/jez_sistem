@@ -196,25 +196,21 @@
             var date = $('#target_date').val();
             var dt = date.split('-');
             var total_row = daysInMonth(dt[0], dt[1]);
-            var day = [
-                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu',
-                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu',
-                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu',
-                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu',
-                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'
-            ];
             for (let i = 0; i < total_row; i++) {
                 $('#target_amount').append(
                     '<input class="form-control pb-1" type="number" data-date="' + dt[1] + '-' + dt[
-                        0] + '-' + (i + 1) + '" id="target_amount' + (i + 1) + '" placeholder="[' +
-                    day[i + 1] + '] Tanggal ' + (i + 1) + '"/>');
+                        0] + '-' + (i + 1) + '" id="target_amount' + (i + 1) +
+                    '" placeholder="Tanggal ' + (i + 1) + '"/>'
+                );
             }
         });
+
 
         jQuery.noConflict();
         $('#SubSubTargetModal').on('hide.bs.modal', function() {
             $('#target_amount').html('');
         }).modal('hide');
+
 
         $('#save_target_detail_btn').on('click', function() {
             var date = $('#target_date').val();
@@ -279,6 +275,8 @@
 
             return false;
         });
+
+
 
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
@@ -488,32 +486,22 @@
                             $('#SubSubTargetModal').modal('show');
                             var date = $('#target_date').val();
                             var dt = date.split('-');
-                            var day = [
-                                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis',
-                                'Jumat', 'Sabtu',
-                                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis',
-                                'Jumat', 'Sabtu',
-                                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis',
-                                'Jumat', 'Sabtu',
-                                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis',
-                                'Jumat', 'Sabtu',
-                                'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis',
-                                'Jumat', 'Sabtu'
-                            ];
                             $('#target_amount').append(
                                 '<input class="form-control pb-1 edit_amount" data-sstr_id="' +
                                 value['id'] + '" type="number" data-date="' +
                                 dt[1] + '-' + dt[0] + '-' + (index + 1) +
                                 '" id="target_amount' + (index + 1) +
                                 '" value="' + value['sstr_amount'] +
-                                '" placeholder="[' + day[index + 1] +
-                                '] Tanggal ' + (index + 1) + '"/>');
+                                '" placeholder="Tanggal ' + (index + 1) + '"/>'
+                            );
                         });
                     }
                 }
             });
             return false;
         });
+
+
 
         $(document).delegate('.edit_amount', 'change', function() {
             var sstr_id = $(this).attr('data-sstr_id');

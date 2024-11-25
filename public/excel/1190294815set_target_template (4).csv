@@ -1,0 +1,7 @@
+﻿sstr_date,sstr_amount,,,,
+7/2/2024,10000,,,,
+7/3/2024,10000,,,,
+7/4/2024,10000,,,,
+7/5/2024,10000,,,,sstr_date: di isi dengan format tahun-bulan-tanggal dari target pada 1 bulan penuh. Format penulisan date=  2024-10-01
+7/6/2024,10000,,,,"sstr_amount: adalah target perharinya, wajib di isi dengan nominal rupiah (contoh= 20,000 / 42,000,000 -> pakai koma ya)"
+7/7/2024,10000,,,,

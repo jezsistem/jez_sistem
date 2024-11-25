@@ -218,6 +218,7 @@
                     data: 'st_name',
                     name: 'st_name'
                 },
+
                 {
                     data: 'pos_invoice',
                     name: 'pos_invoice'
@@ -356,7 +357,7 @@
                 {
                     data: 'pos_order_number',
                     name: 'pos_order_number'
-                }, 
+                },
                 {
                     data: 'pos_status',
                     name: 'pos_status'

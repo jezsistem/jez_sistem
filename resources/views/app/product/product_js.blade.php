@@ -35,7 +35,7 @@
             row.style.display = ""; // Menampilkan semua baris
         });
 
-        console.log(allSchemaBtn, stockedSchemaBtn); 
+        console.log(allSchemaBtn, stockedSchemaBtn);
 
         // Update button styles
         document.getElementById("allSchemaBtn").classList.add("btn-primary");
@@ -1096,13 +1096,21 @@
             //     var selectedValue = $('#sz_schema_modal_id').val();
             //     handleSchemaChange(selectedValue, article_id);
             // });
-            handleSchemaChange(schema_size, id,psc_id);
+            handleSchemaChange(schema_size, id, psc_id);
             jQuery.noConflict();
             $('#ProductModal').modal('show');
             $('#product_label_modal').text(product_label);
             $('#pcpscpssc_edit').show();
             $('#barcode_running_label').show();
-            $('#p_name').val(p_name);
+
+
+            // Dekode HTML entities pada p_name
+            function decodeHtmlEntity(str) {
+                const textArea = document.createElement('textarea');
+                textArea.innerHTML = str;
+                return textArea.value;
+            }
+            $('#p_name').val(decodeHtmlEntity(p_name));
             $('#article_id').val(article_id);
             $('#p_aging').val(p_aging);
             $('#p_color').val(p_color);

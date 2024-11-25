@@ -39,21 +39,22 @@
                             </div>
                             <div class="col-4">
                                 <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
-                                <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
-                                    <option value="">- Pilih Tipe Stok -</option>
+                                {{-- <select class="form-control" id="stkt_id" name="stkt_id" required disabled> --}}
+                                    {{-- <option value="">- Pilih Tipe Stok -</option> --}}
                                     {{--                                    @foreach ($data['stkt_id'] as $key => $value)--}}
                                     {{--                                        <option value="{{ $key }}">{{ $value }}</option>--}}
                                     {{--                                    @endforeach--}}
-                                </select>
-                                <div id="stkt_id_parent"></div>
+                                {{-- </select> --}}
+                                {{-- <div id="stkt_id_parent"></div> --}}
+                                <input type="text" class="form-control" id="stkt_id" name="stkt_id" readonly>
                             </div>
                             <div class="col-4">
                                 <label>Pajak</label>
                                 <select class="form-control" id="tax_id" name="tax_id" required disabled>
                                     <option value="">- Pajak -</option>
-                                    {{--                                    @foreach ($data['tax_id'] as $key => $value)--}}
-                                    {{--                                        <option value="{{ $key }}">{{ $value }}</option>--}}
-                                    {{--                                    @endforeach--}}
+                                    @foreach ($data['tax_id'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
                                 </select>
                                 <div id="tax_id_parent"></div>
                             </div>
