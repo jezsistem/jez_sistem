@@ -17,7 +17,7 @@
                         <div class="card card-custom gutter-b">
                             <div class="card-header flex-wrap py-3 mt-4">
                                 <iframe title="DAILY REPORT" width="1340" height="720.25"
-                                        src="https://app.powerbi.com/reportEmbed?reportId=3ba8e8c9-d53b-48ba-b263-b2a6c10a7c53&autoAuth=true&ctid=360615dc-a711-43f5-a2bf-9e1f5c5dd846"
+                                        src="http://bi.jezpro.id/reports/powerbi/Marketing-Sales/Daily_Report?rs:embed=true"
                                         frameborder="0" allowFullScreen="true"></iframe>
                             </div>
                         </div>
