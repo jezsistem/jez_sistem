@@ -48,12 +48,12 @@
                                     <input type="hidden" id="cust_id" value="{{ Auth::user()->st_id }}"/>
                                     <input type="search" id="cust_id_label" placeholder="Ketik minimal 4 huruf customer" autocomplete="off" />
                                     <a href="#" class="btn btn-inventory" data-id="" id="check_customer">Check</a>
-                                    
+
                                     <script>
                                         // Event listener untuk mengubah +62 atau 62 menjadi 08
                                         document.getElementById('cust_id_label').addEventListener('input', function(e) {
                                             let inputText = e.target.value;
-                                    
+
                                             // Jika awalan +62, ubah menjadi 08
                                             if (inputText.startsWith('+62')) {
                                                 e.target.value = '08' + inputText.substring(3); // Ganti +62 di awal dengan 08
@@ -64,7 +64,7 @@
                                             }
                                         });
                                     </script>
-                                    
+
                                     <div id="itemListCust"></div>
                                     <br/>
                                     <select class="form-control border-dark col-12 mr-1 bg-info text-white"
@@ -163,7 +163,7 @@
                                         <th>Discount (%)</th>
                                         <th>Discount (Rp)</th>
                                         <th>Nameset</th>
-{{--                                        <th>Harga Satuan</th>--}}
+                                        {{--                                        <th>Harga Satuan</th>--}}
                                         <th>Harga</th>
                                         <th>Subtotal</th>
                                     </tr>

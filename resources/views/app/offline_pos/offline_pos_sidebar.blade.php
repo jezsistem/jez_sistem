@@ -112,7 +112,9 @@
                             Grand Total
                         </th>
                         <td class="border-0 justify-content-end d-flex text-primary font-size-base"><span
-                                    id="total_final_price_side">0</span></td>
+                                    id="total_final_price_side">0</span>
+{{--                            <input type="text" id="temp_total_side">--}}
+                        </td>
                     </tr>
                     </tbody>
                 </table>

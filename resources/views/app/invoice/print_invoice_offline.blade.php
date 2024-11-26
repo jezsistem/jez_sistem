@@ -123,6 +123,15 @@
     @foreach ($data['invoice_data'] as $row)
         <center class="content">
             <center>
+                {{--                @if($data['store_code'] == 'JZ')--}}
+                {{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
+                {{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
+                {{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
+                {{--                @elseif($data['store_code'] == 'SZ')--}}
+                {{--                    <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"--}}
+                {{--                         src="{{ asset('logo/logo_jez_sport.png') }}"--}}
+                {{--                         style="width:43%; padding:10px; background-color:#000;"/>--}}
+                {{--                @endif--}}
                 <img class="rounded reload" data-pt_id="{{ $row->pt_id }}"
                      src="{{ asset('logo/logo_jez_sport.png') }}"
                      style="width:43%; padding:10px; background-color:#000;"/>
@@ -192,7 +201,6 @@
                         @endphp
 
 
-                        {{--                        item detail --}}
                         @foreach ($row->subitem as $srow)
                             @php
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
@@ -214,9 +222,9 @@
                                         @endif
 
 
-                                        @if(!empty($srow->pos_td_discount_number))
-                                            <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number) }})</span>
-                                        @endif
+                                            @if(!empty($srow->pos_td_discount_number))
+                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number) }})</span>
+                                            @endif
 
 
                                         @if (!empty($srow->pos_td_discount))
@@ -248,35 +256,17 @@
                                         </span>
                             </td>
                         </tr>
-                        @if($total_voucher != 0)
-                            <tr>
-                                <td colspan="3" class="final-price">
-                                    <span style="float:left;">Voucher</span>
-                                </td>
-                                <td class="final-price">
-                                        <span style="float:right;">
-                                        {{ $total_voucher }}
-                                        </span>
-                                </td>
-                            </tr>
-                        @endif
-
                         <tr>
                             <td colspan="3" class="final-price">
-                                <span style="float:left;">DISKON</span>
+                                <span style="float:left;">Voucher</span>
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
-                                        (
-                                        @if (!empty($total_discount))
-                                                {{ number_format($total_discount) }}
-                                            @else
-                                                0
-                                            @endif
-                                            )
+                                        {{ $total_voucher }}
                                         </span>
                             </td>
                         </tr>
+
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left;">SUBTOTAL</span>
@@ -287,30 +277,50 @@
                                         </span>
                             </td>
                         </tr>
-                        @if($nameset != 0)
-                            <tr>
-                                <td colspan="3" class="final-price">
-                                    <span style="float:left;">NAMESET</span>
-                                </td>
-                                <td class="final-price">
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left;">DISKON</span>
+                            </td>
+                            <td class="final-price">
+                                        <span style="float:right;">
+
+                                        @if (!empty($total_discount))
+                                                {{ number_format($row->pos_total_discount) }}
+                                            @else
+                                                0
+                                            @endif
+
+                                        </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left;">NAMESET</span>
+                            </td>
+                            <td class="final-price">
                                         <span style="float:right;">
                                             {{ \App\Libraries\CurrencyFormatter::formatToIDR($nameset) }}
                                         </span>
-                                </td>
-                            </tr>
-                        @endif
-
-
-                        @if($row->pos_another_cost != 0)
-                            <tr>
-                                <td colspan="3" class="final-price">
-                                    <span style="float:left;">BIAYA LAIN</span>
-                                </td>
-                                <td class="final-price">
-                                    <span style="float:right;">{{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_another_cost) }}</span>
-                                </td>
-                            </tr>
-                        @endif
+                            </td>
+                        </tr>
+{{--                        <tr>--}}
+{{--                            <td colspan="3" class="final-price">--}}
+{{--                                <span style="float:left;">CHARGE (CC)</span>--}}
+{{--                            </td>--}}
+{{--                            <td class="final-price">--}}
+{{--                                        <span style="float:right; white-space: nowrap;">--}}
+{{--                                        {{ $row->pos_cc_charge }} % (+ {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset)/100*$row->pos_cc_charge) }})--}}
+{{--                                        </span>--}}
+{{--                            </td>--}}
+{{--                        </tr>--}}
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left;">BIAYA LAIN</span>
+                            </td>
+                            <td class="final-price">
+                                <span style="float:right;">{{ \App\Libraries\CurrencyFormatter::formatToIDR($row->pos_another_cost) }}</span>
+                            </td>
+                        </tr>
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left; font-weight:bold;">TOTAL AKHIR</span>
@@ -318,7 +328,7 @@
                             <td class="final-price">
                                         <span style="float:right;">
                                             @if (!empty($total_discount))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR((($total_price+$nameset) - ($total_discount)) - $total_voucher) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR((($total_price+$nameset) - ($row->pos_total_discount)) - $total_voucher) }}
                                             @else
                                                 {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) - $total_voucher) }}
                                             @endif
@@ -348,7 +358,7 @@
                                         @if (!empty($row->pos_payment))
                                                 {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
 
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - (($total_price+$nameset) - ($total_discount))) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - (($total_price+$nameset) - ($row->pos_total_discount))) }}
                                             @else
                                                 0
                                             @endif
@@ -369,16 +379,6 @@
                     www.jez.co.id
                 </div>
                 <br/>
-
-                <div class="note">
-                    <span style="font-size: 12px; color: #2b272799;">NOTE:</span>
-                    <span style="font-size: 12px; color: #2b272799; text-align: right;">
-                        {{ $row->pos_note ?? "No Notes Available" }}
-                    </span>
-                </div>                
-                
-                        
-                </br>
 
                 <div class="title">
                     <strong><i>Cust Experience :</i></strong>
@@ -409,19 +409,9 @@
 @endif
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script>
-    // $(document).ready(function () {
-    //     window.print();
-    // });
-
-    let hasPrinted = false;
-
     $(document).ready(function () {
-        if (!hasPrinted) {
-            hasPrinted = true;
-            window.print();
-        }
+        window.print();
     });
-
 
     $(document).delegate('.reload', 'click', function (e) {
         e.preventDefault();

@@ -5,12 +5,12 @@
             <div class="col-xl-4 col-lg-4 col-md-6">
                 <div class="greeting-text">
                     <a href="{{ url('/redirect') }}">
-{{--                        <h3 class="card-label mb-0 font-weight-bold text-white">{{ $data['app_title'] }}</h3>--}}
+                        {{--                        <h3 class="card-label mb-0 font-weight-bold text-white">{{ $data['app_title'] }}</h3>--}}
                         <img style="width:100px; margin-left: 25px;" alt="Logo" src="{{ asset('logo') }}/jez_pro_putih.png" />
                     </a>
-{{--                    <h3 class="card-label mb-0 ">--}}
-{{--                        {{ $data['title'] }}--}}
-{{--                    </h3>--}}
+                    {{--                    <h3 class="card-label mb-0 ">--}}
+                    {{--                        {{ $data['title'] }}--}}
+                    {{--                    </h3>--}}
                 </div>
             </div>
             <div class="col-xl-4 col-lg-5 col-md-6 clock-main">
@@ -36,36 +36,36 @@
                         Hallo, {{ $data['user']->u_name }}
                     </div>
 
-{{--                    <div class="topbar-item">--}}
-{{--                        <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3"--}}
-{{--                             data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn">--}}
-{{--                            <!-- <span class="badge badge-pill badge-primary">5</span> -->--}}
-{{--                            <span class="symbol symbol-35 symbol-light-success">--}}
-{{--                                <span class="symbol-label bg-warning font-size-h5">--}}
-{{--                                    <i class="fas fa-clock" style="color: white;"></i>--}}
-{{--                                </span>--}}
-{{--                            </span>--}}
-{{--                        </div>--}}
-{{--                    </div>--}}
+                    {{--                    <div class="topbar-item">--}}
+                    {{--                        <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3"--}}
+                    {{--                             data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn">--}}
+                    {{--                            <!-- <span class="badge badge-pill badge-primary">5</span> -->--}}
+                    {{--                            <span class="symbol symbol-35 symbol-light-success">--}}
+                    {{--                                <span class="symbol-label bg-warning font-size-h5">--}}
+                    {{--                                    <i class="fas fa-clock" style="color: white;"></i>--}}
+                    {{--                                </span>--}}
+                    {{--                            </span>--}}
+                    {{--                        </div>--}}
+                    {{--                    </div>--}}
                     <div class="topbar-item">
-{{--                        <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3" data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn" data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn">--}}
+                        {{--                        <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3" data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn" data-toggle="modal" data-target="#shiftEmployeeModal" id="shiftEmployeeBtn">--}}
                         @if($data['shift_status'] == 0)
-                        <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3" id="startShiftButton" style="display: none;" >
-                            <!-- <span class="badge badge-pill badge-primary">5</span> -->
-                            <span class="symbol symbol-35 symbol-light-success">
+                            <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3" id="startShiftButton" style="display: none;" >
+                                <!-- <span class="badge badge-pill badge-primary">5</span> -->
+                                <span class="symbol symbol-35 symbol-light-success">
                                 <span class="symbol-label bg-warning font-size-h5">
                                     <i class="fas fa-power-off" style="color: white;"></i>
                                 </span>
                             </span>
-                        </div>
+                            </div>
                         @else
-                        <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3" id="stopShiftButton" style="display: none;">
+                            <div class="btn btn-icon w-auto h-auto btn-clean d-flex align-items-center py-0 mr-3" id="stopShiftButton" style="display: none;">
                             <span class="symbol symbol-35 symbol-light-danger">
                                 <span class="symbol-label bg-danger font-size-h5">
                                     <i class="fas fa-power-off" style="color: white;"></i>
                                 </span>
                             </span>
-                        </div>
+                            </div>
                         @endif
                     </div>
                     <div class="dropdown mega-dropdown">
