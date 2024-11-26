@@ -9,7 +9,6 @@
     <meta name="google" content="notranslate">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
 {{--    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">--}}
-    <meta http-equiv="Content-Security-Policy" content="block-all-mixed-content; script-src 'unsafe-inline' http://bi.jezpro.id/reports/powerbi/Marketing-Sales/Daily_Report?rs:embed=true;">
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
