@@ -33,7 +33,7 @@ class ArticleReportExport implements FromCollection, withHeadings
         if ($this->type == 'article' || $this->type == 'cross') {
             return ["Tanggal", "STORE", "POS Invoice", "Cross", "Customer", "Kasir", "Divisi", "Tipe Stok", "Brand", "SKU", "Artikel", "Warna", "Size", "Kategori", "Sub Kategori", "Sub Sub Kategori", "Qty", "Bandrol", "Harga Beli", "Harga Jual", "Discount", "Total Price", "Total Invoice", "B1G1"];
         } else {
-            return ["Tanggal", "STORE", "POS_Order_Number", "POS Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Total before Discount", "Total Discount", "Total", "Jumlah Bayar 1", "Tipe Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Tanggal Bayar Sisa DP", "Status", "Note"];
+            return ["Tanggal", "STORE", "POS Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Total before Discount", "Total Discount", "Total", "Jumlah Bayar 1", "Tipe Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Tanggal Bayar Sisa DP", "Status", "Note"];
         }
     }
 
@@ -131,7 +131,7 @@ class ArticleReportExport implements FromCollection, withHeadings
                         $b1g1 = '0';
                     }
 
-                    $export[] = [date('d/m/Y H:i:s', strtotime($row->ptd_created)), $row->st_name, $row->pos_order_number, $row->pos_invoice, $row->cross_order, $row->cust_name, $row->u_name, $row->dv_name, $row->stkt_name, $row->br_name, $row->ps_barcode, $row->p_name, $row->p_color, $row->sz_name, $row->pc_name, $row->psc_name, $row->pssc_name, $row->pos_td_qty, $bandrol, $purchase, $row->pos_td_sell_price, $discount, $total, $total_price, $b1g1];
+                    $export[] = [date('d/m/Y H:i:s', strtotime($row->ptd_created)), $row->st_name, $row->pos_invoice, $row->cross_order, $row->cust_name, $row->u_name, $row->dv_name, $row->stkt_name, $row->br_name, $row->ps_barcode, $row->p_name, $row->p_color, $row->sz_name, $row->pc_name, $row->psc_name, $row->pssc_name, $row->pos_td_qty, $bandrol, $purchase, $row->pos_td_sell_price, $discount, $total, $total_price, $b1g1];
                 }
             }
         }
