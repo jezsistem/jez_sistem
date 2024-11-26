@@ -453,16 +453,16 @@ class TransaksiOnlineController extends Controller
                                     'pst_id' => $barcode_id,
                                     'pl_id' => $data->pl_id,
                                     'pos_td_qty' => $data->qty,
-                                    'pos_td_sell_price' => $data->original_price,
-                                    'pos_td_discount' => $data->total_discount,
+                                    'pos_td_sell_price' => $data->original_price * $data->qty,
+                                    'pos_td_discount' => $data->total_discount * $data->qty,
                                     'pos_td_discount_number' => 0,
-                                    'pos_td_discount_price' => $data->price_after_discount,
+                                    'pos_td_discount_price' => $data->price_after_discount * $data->qty,
                                     'pos_td_marketplace_price' => 0,
                                     'pos_td_nameset_price' => 0,
                                     'pos_td_nameset' => 0,
                                     'pos_td_description' => '',
                                     'pos_td_price_item_discount' => 0,
-                                    'pos_td_total_price' => $data->price_after_discount,
+                                    'pos_td_total_price' => $data->price_after_discount * $data->qty,
                                     'created_at' => date('Y-m-d H:i:s')
                                 ]);
 
