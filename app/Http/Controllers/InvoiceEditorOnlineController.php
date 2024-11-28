@@ -93,11 +93,7 @@ class InvoiceEditorOnlineController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        if ($user_data->g_name != 'administrator') {
-            if ($this->checkAccess() != 1) {
-                dd("Anda tidak memiliki akses ke fitur ini");
-            }
-        }
+
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
