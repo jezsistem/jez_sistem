@@ -461,6 +461,7 @@ class TransaksiOnlineController extends Controller
                                     'pos_td_nameset_price' => 0,
                                     'pos_td_nameset' => 0,
                                     'pos_td_description' => '',
+                                    'pos_order_number' => '',
                                     'pos_td_price_item_discount' => 0,
                                     'pos_td_total_price' => $data->price_after_discount,
                                     'created_at' => date('Y-m-d H:i:s')
