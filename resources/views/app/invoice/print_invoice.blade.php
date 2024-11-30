@@ -371,7 +371,7 @@
             <div class="nota">
                 <strong>{{ $data['transaction']->pos_order_number }}</strong>
             </div>
-           
+
             
             <div class="title-left">
                 <strong>PENERIMA</strong><br/>

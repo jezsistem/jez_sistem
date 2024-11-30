@@ -445,27 +445,6 @@ class MassAdjustmentController extends Controller
         return Excel::download(new MassResult($ma_id), 'mass_adjustment_results.xlsx');
     }
 
-    // public function importData(Request $req)
-    // {
-    //     $st_id = $req->post('st_id');
-    //     $psc_id = $req->post('psc_id');
-    //     $br_id = $req->post('br_id');
-    //     $pl_id = $req->post('pl_id');
-    //     $qty_filter = $req->post('qty_filter');
-    //     $note = $req->post('note_adjustment');
-
-    //     if (request()->hasFile('template')) {
-    //         $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note);
-    //         Excel::import($import, request()->file('template'));
-    //         $r['ma_id'] = $import->getRowCount()['ma_id'];
-    //         $r['ma_code'] = $import->getRowCount()['ma_code'];
-    //         $r['status'] = '200';
-    //     } else {
-    //         $r['status'] = '500';
-    //     }
-    //     return json_encode($r);
-    // }
-
     public function importData(Request $req)
     {
         $st_id = $req->post('st_id');
@@ -478,27 +457,48 @@ class MassAdjustmentController extends Controller
         if (request()->hasFile('template')) {
             $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note);
             Excel::import($import, request()->file('template'));
-            $result = $import->getRowCount();
-
-            // Jika ada error pada pesan
-            if ($result['error_message']) {
-                return response()->json([
-                    'status' => '500',
-                    'message' => $result['error_message']
-                ]);
-            }
-
-            $r['ma_id'] = $result['ma_id'];
-            $r['ma_code'] = $result['ma_code'];
+            $r['ma_id'] = $import->getRowCount()['ma_id'];
+            $r['ma_code'] = $import->getRowCount()['ma_code'];
             $r['status'] = '200';
-            return response()->json($r);
         } else {
-            return response()->json([
-                'status' => '500',
-                'message' => 'No file uploaded.'
-            ]);
+            $r['status'] = '500';
         }
+        return json_encode($r);
     }
+
+    // public function importData(Request $req)
+    // {
+    //     $st_id = $req->post('st_id');
+    //     $psc_id = $req->post('psc_id');
+    //     $br_id = $req->post('br_id');
+    //     $pl_id = $req->post('pl_id');
+    //     $qty_filter = $req->post('qty_filter');
+    //     $note = $req->post('note_adjustment');
+
+    //     if (request()->hasFile('template')) {
+    //         $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note);
+    //         Excel::import($import, request()->file('template'));
+    //         $result = $import->getRowCount();
+
+    //         // Jika ada error pada pesan
+    //         if ($result['error_message']) {
+    //             return response()->json([
+    //                 'status' => '500',
+    //                 'message' => $result['error_message']
+    //             ]);
+    //         }
+
+    //         $r['ma_id'] = $result['ma_id'];
+    //         $r['ma_code'] = $result['ma_code'];
+    //         $r['status'] = '200';
+    //         return response()->json($r);
+    //     } else {
+    //         return response()->json([
+    //             'status' => '500',
+    //             'message' => 'No file uploaded.'
+    //         ]);
+    //     }
+    // }
 
 
     public function loadApproval(Request $req)
