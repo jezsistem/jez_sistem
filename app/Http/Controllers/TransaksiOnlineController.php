@@ -98,12 +98,8 @@ class TransaksiOnlineController extends Controller
 
     public function getDatatables(Request $request)
     {
-        //echo
-        if (!empty($request->st_id)) {
-            $st_id = $request->st_id;
-        } else {
-            $st_id = Auth::user()->st_id;
-        }
+        $st_id = !empty($request->st_id) ? $request->st_id : Auth::user()->st_id;
+
         if (request()->ajax()) {
             return DataTables::of(
                 OnlineTransactions::select([
@@ -130,7 +126,8 @@ class TransaksiOnlineController extends Controller
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
-                    return $data->no_resi . '<br>' . ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
+                    $statusCetak = $data->online_print == 1 ? 'Sudah Cetak' : 'Belum Cetak';
+                    return $data->no_resi . '<br>' . '<span style="color: red;" class="text-center">' . $statusCetak . '</span>';
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
@@ -149,16 +146,14 @@ class TransaksiOnlineController extends Controller
                         });
                     }
 
-                    if (!empty($request->get('status'))) {
-                        $instance->where(function ($w) use ($request) {
-                            $status = $request->get('status');
+                    if ($request->has('status') && $request->get('status') !== '') {
+                        $status = $request->get('status');
 
-                            if ($status == 0) {
-                                $w->orWhere('online_print', '=', "0");
-                            } else if ($status == 1) {
-                                $w->orWhere('online_print', '=', "1");
-                            }
-                        });
+                        if ($status == 0) {
+                            $instance->where('online_print', '=', 0);
+                        } elseif ($status == 1) {
+                            $instance->where('online_print', '=', 1);
+                        }
                     }
                 })
                 ->addIndexColumn()
@@ -182,16 +177,44 @@ class TransaksiOnlineController extends Controller
             } else {
                 $start = $request->get('date');
             }
-            // Mendapatkan tanggal dan waktu saat ini
+
+            $onlineTransactions = OnlineTransactions::query()
+                ->select([
+                    'online_transactions.id as to_id',
+                    'online_transactions.order_number as to_order_number',
+                    'no_resi',
+                    'platform_name',
+                    'order_date_created',
+                    'sku',
+                    'shipping_fee',
+                    'total_payment',
+                    'order_status',
+                    'online_print'
+                ])
+                ->where('st_id', '=', $branch);
+
+            if ($status !== null) {
+                if ($status == 0) {
+                    $onlineTransactions->where('online_print', '=', 0);
+                } elseif ($status == 1) {
+                    $onlineTransactions->where('online_print', '=', 1);
+                }
+            }
+
+            if ($start && $end) {
+                $onlineTransactions->whereBetween('order_date_created', [$start, $end]);
+            }
+
             $now = new \DateTime();
             $timestamp = $now->format('d-m-Y_H.i.s');
-            $fileName = 'item_online_details' . $timestamp . '.xlsx';
+            $fileName = 'item_online_details_' . $timestamp . '.xlsx';
 
             return Excel::download(new OnlineReportExport($branch, $start, $end, $status, $changeplatform), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }
     }
+
 
     public function detailDatatables(Request $request)
     {
