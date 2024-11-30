@@ -363,12 +363,16 @@
             <div class="ordernumber">
                 <strong>{{ $data['invoice'] }}</strong>
             </div>
+<<<<<<< HEAD
+
+=======
             
             <div class="pos-order-number">
                 <strong>{{ $data['transaction']->pos_order_number ?? 'N/A' }}</strong></p>
             </div>                   
             
            
+>>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
             
             <div class="title-left">
                 <strong>PENERIMA</strong><br/>
