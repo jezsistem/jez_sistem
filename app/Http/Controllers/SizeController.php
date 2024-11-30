@@ -18,10 +18,10 @@ class SizeController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -30,7 +30,7 @@ class SizeController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -43,9 +43,9 @@ class SizeController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -54,8 +54,8 @@ class SizeController extends Controller
         }
         return $sidebar;
     }
-    
-    public function index() 
+
+    public function index()
     {
         $this->validateAccess();
         $user = new User;
@@ -83,26 +83,26 @@ class SizeController extends Controller
         $sz_id = $request->sz_id;
         if(request()->ajax()) {
             return datatables()->of(Size::select('sizes.id as sid', 'sz_name', 'sz_schema' ,'sz_description')
-            ->where('sz_delete', '!=', '1')
-            ->where(function ($query) use ($sz_id) {
-                if (!empty($sz_id)) {
-                    $query->where('sz_schema', $sz_id);
-                }
-            })
-            ->where('sz_schema','!=', '')
-            ->orderBy('sz_schema'))
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('sz_name', 'LIKE', "%$search%")
-                        ->orWhere('sz_description', 'LIKE', "%$search%")
-                        ->orWhere('sz_schema', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->where('sz_delete', '!=', '1')
+                ->where(function ($query) use ($sz_id) {
+                    if (!empty($sz_id)) {
+                        $query->where('sz_schema', $sz_id);
+                    }
+                })
+                ->where('sz_schema','!=', '')
+                ->orderBy('sz_schema'))
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhere('sz_name', 'LIKE', "%$search%")
+                                ->orWhere('sz_description', 'LIKE', "%$search%")
+                                ->orWhere('sz_schema', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -152,35 +152,19 @@ class SizeController extends Controller
         $size_data = $size->getAllData($select, $where);
         $data = [
             'size' => $size_data
-		];
+        ];
         return view('app.product._reload_size', compact('data'));
     }
-//ini yang lama, kalau error kembalikan keisni ya cantik ^-^
-    // public function reloadSizeSchemaModal(Request $request)
-    // {
-    //     $size = new Size;
-    //     $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
-    //     $where = [
-    //         'sz_schema' => $request->_sz_schema
-    //     ];
-    //     $size_data = $size->getAllData($select, $where);
-    //     $data = [
-    //         'size' => $size_data
-    //     ];
 
-    //     return view('app.product._reload_size_schema', compact('data'));
-    // }
-
-//new 5-11-24
     public function reloadSizeSchemaModal(Request $request)
     {
         $size = new Size;
-        $select = ['T1.article_id', 'T1.p_name', 'T1.schema_size', 'T3.sz_name', 'T2.id', 'T3.pcs_id']; 
-        $articleId = $request->input('article_id'); 
-        
-
-        $size_data = $size->getAllData($select, $articleId);
-
+        $select = ['id', 'sz_name', 'sz_description', 'psc_id'];
+        $where = [
+            'sz_schema' => $request->_sz_schema,
+            'psc_id'    => $request->_psc_id
+        ];
+        $size_data = $size->getAllData($select, $where);
         $data = [
             'size' => $size_data
         ];
@@ -188,13 +172,11 @@ class SizeController extends Controller
         return view('app.product._reload_size_schema', compact('data'));
     }
 
-
-
     public function reloadSizeSchema(Request $request)
     {
         try {
             return  Size::where('sz_delete', '!=', '1')
-            ->Where('sz_schema', $request->schema_id)->get();
+                ->Where('sz_schema', $request->schema_id)->get();
         }catch (\Exception $e) {
             return $e->getMessage();
         }

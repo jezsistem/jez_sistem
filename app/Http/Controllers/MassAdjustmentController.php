@@ -221,25 +221,25 @@ class MassAdjustmentController extends Controller
     {
         if (request()->ajax()) {
             // Step 1: Update `qty_export` to match `pls_qty` where needed
-            //            DB::table('mass_adjustment_details')
-            //                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
-            //                ->whereColumn('mass_adjustment_details.qty_export', '<>', 'product_location_setups.pls_qty')
-            //                ->update(['mass_adjustment_details.qty_export' => DB::raw('ts_product_location_setups.pls_qty')]);
-            //
-            //            // Step 2: Update `mad_type` and `mad_diff` based on comparison between `qty_so` and `qty_export`
-            //            DB::table('mass_adjustment_details')
-            //                ->whereColumn('qty_so', '>', 'qty_export')
-            //                ->update([
-            //                    'mad_type' => '+',
-            //                    'mad_diff' => DB::raw('qty_so - qty_export')
-            //                ]);
-            //
-            //            DB::table('mass_adjustment_details')
-            //                ->whereColumn('qty_so', '<', 'qty_export')
-            //                ->update([
-            //                    'mad_type' => '-',
-            //                    'mad_diff' => DB::raw('qty_so - qty_export')
-            //                ]);
+//            DB::table('mass_adjustment_details')
+//                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+//                ->whereColumn('mass_adjustment_details.qty_export', '<>', 'product_location_setups.pls_qty')
+//                ->update(['mass_adjustment_details.qty_export' => DB::raw('ts_product_location_setups.pls_qty')]);
+//
+//            // Step 2: Update `mad_type` and `mad_diff` based on comparison between `qty_so` and `qty_export`
+//            DB::table('mass_adjustment_details')
+//                ->whereColumn('qty_so', '>', 'qty_export')
+//                ->update([
+//                    'mad_type' => '+',
+//                    'mad_diff' => DB::raw('qty_so - qty_export')
+//                ]);
+//
+//            DB::table('mass_adjustment_details')
+//                ->whereColumn('qty_so', '<', 'qty_export')
+//                ->update([
+//                    'mad_type' => '-',
+//                    'mad_diff' => DB::raw('qty_so - qty_export')
+//                ]);
 
             // Proceed with the DataTables query
             return datatables()->of(
@@ -256,9 +256,7 @@ class MassAdjustmentController extends Controller
                     ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
                     ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                     ->where('mass_adjustment_details.ma_id', '=', $request->get('ma_id'))
-                    ->whereColumn('qty_export', '<>', 'qty_so') //newfitur
-                    ->groupBy('mass_adjustment_details.id')
-            )
+                    ->groupBy('mass_adjustment_details.id'))
                 ->editColumn('purchase', function ($data) {
                     if (!empty($data->purchase_1)) {
                         return number_format($data->purchase_1);
@@ -343,7 +341,7 @@ class MassAdjustmentController extends Controller
         if (!empty($asset_cc->first())) {
             foreach ($asset_cc as $row) {
                 $purchase = 0;
-                if (!empty($row->purchase)) {
+                if (!empty ($row->purchase)) {
                     $purchase = round($row->purchase);
                 } else {
                     if (!empty($row->ps_purchase_price)) {
@@ -391,7 +389,7 @@ class MassAdjustmentController extends Controller
         if (!empty($asset_c->first())) {
             foreach ($asset_c as $row) {
                 $purchase = 0;
-                if (!empty($row->purchase)) {
+                if (!empty ($row->purchase)) {
                     $purchase = round($row->purchase);
                 } else {
                     if (!empty($row->ps_purchase_price)) {
@@ -466,6 +464,7 @@ class MassAdjustmentController extends Controller
         return json_encode($r);
     }
 
+<<<<<<< HEAD
     // public function importData(Request $req)
     // {
     //     $st_id = $req->post('st_id');
@@ -501,6 +500,8 @@ class MassAdjustmentController extends Controller
     // }
 
 
+=======
+>>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
     public function loadApproval(Request $req)
     {
         $ma_id = $req->post('ma_id');
@@ -511,6 +512,7 @@ class MassAdjustmentController extends Controller
             if (!empty($get->ma_approve)) {
                 $approval = $get->ma_approve;
                 $approval_label = DB::table('users')->select('u_name')->where('id', '=', $approval)->first()->u_name;
+
             }
             $r['approval'] = $approval;
             $r['approval_label'] = $approval_label;
@@ -568,51 +570,5 @@ class MassAdjustmentController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
-    }
-
-    public function cancelData(Request $req)
-    {
-        $ma_id = $req->post('ma_id');
-        $check = DB::table('mass_adjustments')
-            ->where('id', '=', $ma_id)
-            ->where('ma_status', '=', '1')
-            ->exists();
-
-        if (!$check) {
-            $response['status'] = '400';
-            $response['message'] = 'Data tidak memenuhi syarat untuk dibatalkan atau tidak ditemukan';
-            return response()->json($response);
-        }
-        $get = DB::table('mass_adjustment_details')
-            ->select('pls_id', 'qty_so')
-            ->where('ma_id', '=', $ma_id)
-            ->where('mad_type', '!=', '=')
-            ->get();
-
-        if (!empty($get->first())) {
-            DB::table('mass_adjustments')
-                ->where('id', '=', $ma_id)
-                ->update([
-                    'ma_status' => 'canceled',
-                    'updated_at' => now()
-                ]);
-
-            // Mengembalikan qty produk ke nilai sebelum dieksekusi
-            foreach ($get as $row) {
-                DB::table('product_location_setups')
-                    ->where('id', '=', $row->pls_id)
-                    ->update([
-                        'pls_qty' => $row->qty_so
-                    ]);
-            }
-
-            $response['status'] = '200';
-            $response['message'] = 'Data berhasil dibatalkan';
-        } else {
-            $response['status'] = '400';
-            $response['message'] = 'Tidak ada data yang bisa dibatalkan';
-        }
-
-        return response()->json($response);
     }
 }

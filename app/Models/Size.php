@@ -17,37 +17,18 @@ class Size extends Model
         'sz_delete',
     ];
 
-    //ini yang lama, kalau error kembalikan keisni ya cantik ^-^
-    // public function getAllData($select, $where)
-    // {
-    //     $affected = DB::table('sizes')
-    //         ->select($select)
-    //         //            ->leftjoin('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
-    //         //            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
-    //         ->where($where)
-    //         ->where('sz_delete', '!=', '1')
-    //         ->orderBy('sz_name')
-    //         ->get();
-    //     return $affected;
-    // }
-
-//new 5-11-24
-    public function getAllData($select, $articleId)
+    public function getAllData($select, $where)
     {
-        $affected = DB::table('ts_products as T1')
-            ->select($select) 
-            ->leftJoin('ts_product_sub_categories as T2', 'T1.psc_id', '=', 'T2.id')
-            ->leftJoin('ts_sizes as T3', 'T2.id', '=', 'T3.psc_id')
-            ->where('T1.article_id', '=', $articleId) 
-            ->where('T3.sz_schema', '=', 'T1.schema_size') 
-            ->where('T3.sz_delete', '!=', '1')
-            ->orderBy('T3.sz_name')
+        $affected = DB::table('sizes')
+            ->select($select)
+//            ->leftjoin('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+//            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+            ->where($where)
+            ->where('sz_delete', '!=', '1')
+            ->orderBy('sz_name')
             ->get();
-
         return $affected;
     }
-
-
 
     public function checkData($select, $where)
     {
@@ -74,7 +55,7 @@ class Size extends Model
                 $store = DB::table($this->table)->where('id', $id)->update(array_merge($data, $updated));
                 return $store;
             } catch (\Illuminate\Database\QueryException $ex) {
-                if ($ex->getCode() === '23000') {
+                if($ex->getCode() === '23000') {
                     return false;
                 }
             }
@@ -93,7 +74,7 @@ class Size extends Model
                 return false;
             }
         } catch (\Illuminate\Database\QueryException $ex) {
-            if ($ex->getCode() === '23000') {
+            if($ex->getCode() === '23000') {
                 return false;
             }
         }

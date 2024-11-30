@@ -2002,7 +2002,7 @@ class PointOfSaleController extends Controller
                 ->where('vc_due_date', '>=', date('Y-m-d'))
                 ->where('vc_status', '=', '1')->get()->first();
 
-            //            return $check;
+            // return $check;
             if (!empty($check)) {
                 $check_vtrx = DB::table('voucher_transactions')->where('vc_id', '=', $check->id)->get()->first();
                 if ($check->vc_reuse == '0') {

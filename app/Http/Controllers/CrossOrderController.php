@@ -252,6 +252,12 @@ class CrossOrderController extends Controller
         }
     }
 
+    public function productStock()
+    {
+            return $this->belongsTo(ProductStock::class, 'product_stock_id', 'id');
+    }
+
+
     public function confirmationDatatables(Request $request)
     {
         if(request()->ajax()) {

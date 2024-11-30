@@ -1,7 +1,7 @@
 <head>
 	<meta charset="utf-8" />
 	<title>JEZ SYSTEM | Point Of Sale</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+	<meta name="csrf-token" content="{{ csrf_token() }}">
 	<meta name="description" content="Updates and statistics" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 	<!--begin::Fonts-->
@@ -14,8 +14,8 @@
 	<link href="{{ asset('pos/css') }}/jquery.mCustomScrollbar.css" rel="stylesheet" type="text/css" />
 	<link href="{{ asset('pos/css') }}/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
 	<link href="{{ asset('pos/css') }}/multiple-select.min.css" rel="stylesheet">
-    <link href="{{ asset('cdn/jquery.toast.min.css') }}" rel="stylesheet" type="text/css" >
-    <link href="{{ asset('cdn/select2.min.css') }}" rel="stylesheet" type="text/css" >
+	<link href="{{ asset('cdn/jquery.toast.min.css') }}" rel="stylesheet" type="text/css" >
+	<link href="{{ asset('cdn/select2.min.css') }}" rel="stylesheet" type="text/css" >
 	<link rel="shortcut icon" href="assets/media/logos/favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="{{ asset('pos/css') }}/daterangepicker.css" />
 
