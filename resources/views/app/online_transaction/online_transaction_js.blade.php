@@ -178,22 +178,22 @@
                 "width": "0%"
             }],
             language: {
-                "lengthMenu": "Tampilkan _MENU_ data per halaman", // Menyesuaikan teks menu panjang
+                "lengthMenu": "Tampilkan MENU data per halaman", // Menyesuaikan teks menu panjang
             }
         });
 
-        // Event listener untuk dropdown filter `st_id_filter`
+        // Event listener untuk dropdown filter st_id_filter
         $('#st_id_filter').on('change', function() {
             online_transaction_table.draw(false); // Memuat ulang tabel tanpa reset halaman
         });
 
-        // Initialize Select2 pada elemen select `filter_status`
+        // Initialize Select2 pada elemen select filter_status
         $('#filter_status').select2({
             width: "200px",
             dropdownParent: $('#filter_status_parent') // Menentukan parent untuk dropdown
         });
 
-        // Event listener untuk perubahan pada `filter_status`
+        // Event listener untuk perubahan pada filter_status
         $('#filter_status').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             online_transaction_table.draw(); // Memuat ulang tabel sesuai dengan filter status
@@ -627,19 +627,26 @@
         })
 
         // $('#sales_online_export').on('click', function () {
-        $(document).delegate('#sales_online_export', 'click', function(e) {
+            $(document).delegate('#sales_online_export', 'click', function(e) {
             e.preventDefault();
-            let date = $('#sales_date').val() //daterange
+            let date = $('#kt_dashboard_daterangepicker_date').text(); // Ensure this gets the correct date range
             let branch_trx = $('#branch_trx').val();
             let status_trx = $('#status_trx').val();
             let changeplatform = $('#changeplatform').val();
 
-            console.log(status_trx);
+            console.log("Branch:", branch_trx);
+            console.log("Status:", status_trx);
+            console.log("Platform:", changeplatform);
+            console.log("Date:", date);
 
-
-            window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + "&date=" +
-                date + "&status=" + status_trx + "&changeplatform=" + changeplatform;
+            // Redirect with parameters
+            window.location.href = "{{ url('online_sales_export') }}?branch=" + branch_trx + 
+                                "&date=" + date + 
+                                "&status=" + status_trx + 
+                                "&changeplatform=" + changeplatform;
         });
+
+
 
 
 

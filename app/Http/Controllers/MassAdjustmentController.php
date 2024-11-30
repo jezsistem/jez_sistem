@@ -464,7 +464,6 @@ class MassAdjustmentController extends Controller
         return json_encode($r);
     }
 
-<<<<<<< HEAD
     // public function importData(Request $req)
     // {
     //     $st_id = $req->post('st_id');
@@ -500,8 +499,6 @@ class MassAdjustmentController extends Controller
     // }
 
 
-=======
->>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
     public function loadApproval(Request $req)
     {
         $ma_id = $req->post('ma_id');

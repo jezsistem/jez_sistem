@@ -98,8 +98,12 @@ class TransaksiOnlineController extends Controller
 
     public function getDatatables(Request $request)
     {
-        $st_id = !empty($request->st_id) ? $request->st_id : Auth::user()->st_id;
-
+        //echo
+        if (!empty($request->st_id)) {
+            $st_id = $request->st_id;
+        } else {
+            $st_id = Auth::user()->st_id;
+        }
         if (request()->ajax()) {
             return DataTables::of(
                 OnlineTransactions::select([
@@ -126,8 +130,7 @@ class TransaksiOnlineController extends Controller
                     return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
                 })
                 ->editColumn('no_resi', function ($data) {
-                    $statusCetak = $data->online_print == 1 ? 'Sudah Cetak' : 'Belum Cetak';
-                    return $data->no_resi . '<br>' . '<span style="color: red;" class="text-center">' . $statusCetak . '</span>';
+                    return $data->no_resi . '<br>' . ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
                 })
                 ->editColumn('total_item', function ($data) {
                     $total_item = OnlineTransactionDetails::where('to_id', $data->to_id)->count();
@@ -148,8 +151,6 @@ class TransaksiOnlineController extends Controller
                     }
 
                     if ($request->has('status') && $request->get('status') !== null) {
-                        $status = $request->get('status');
-                    if ($request->has('status') && $request->get('status') !== '') {
                         $status = $request->get('status');
 
                         if ($status == 0) { // Belum Cetak
@@ -180,13 +181,6 @@ class TransaksiOnlineController extends Controller
                 //         });
                 //     }
                 // })
-                        if ($status == 0) {
-                            $instance->where('online_print', '=', 0);
-                        } elseif ($status == 1) {
-                            $instance->where('online_print', '=', 1);
-                        }
-                    }
-                })
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -204,50 +198,32 @@ class TransaksiOnlineController extends Controller
             // Parse date range if provided
             $start = null;
             $end = null;
-            if (!empty($exp[1])) {
-                $start = $exp[0];
-                $end = $exp[1];
-            } else {
-                $start = $request->get('date');
-            }
+            if (!empty($date)) {
+                $exp = explode('|', $date);
+                $start = $exp[0] ?? null;
+                $end = $exp[1] ?? null;
 
-            $onlineTransactions = OnlineTransactions::query()
-                ->select([
-                    'online_transactions.id as to_id',
-                    'online_transactions.order_number as to_order_number',
-                    'no_resi',
-                    'platform_name',
-                    'order_date_created',
-                    'sku',
-                    'shipping_fee',
-                    'total_payment',
-                    'order_status',
-                    'online_print'
-                ])
-                ->where('st_id', '=', $branch);
-
-            if ($status !== null) {
-                if ($status == 0) {
-                    $onlineTransactions->where('online_print', '=', 0);
-                } elseif ($status == 1) {
-                    $onlineTransactions->where('online_print', '=', 1);
+                if ($start && $end) {
+                    $start = \Carbon\Carbon::parse($start)->startOfDay();
+                    $end = \Carbon\Carbon::parse($end)->endOfDay();
                 }
             }
 
-            if ($start && $end) {
-                $onlineTransactions->whereBetween('order_date_created', [$start, $end]);
-            }
+            // Debugging log
+            \Log::info("Branch: $branch, Status: $status, Platform: $changeplatform, Start Date: $start, End Date: $end");
 
-            $now = new \DateTime();
-            $timestamp = $now->format('d-m-Y_H.i.s');
+            // Generate timestamp for filename
+            $timestamp = now()->format('d-m-Y_H.i.s');
             $fileName = 'item_online_details_' . $timestamp . '.xlsx';
 
             // Pass data to the export class
             return Excel::download(new OnlineReportExport($branch, $start, $end, $status, $changeplatform), $fileName);
         } catch (\Exception $e) {
+            \Log::error('Export Data Online Error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
 
     public function detailDatatables(Request $request)
@@ -517,64 +493,6 @@ class TransaksiOnlineController extends Controller
                         //            Salah disini untuk looping item change status done amp
                         //             If all transactions match the SKU count, proceed with updates
                         if (count($online_transactions) >= $sku_count) {
-                        foreach ($keep_online_details as $key => $cko) {
-                            $barcode_id = ProductStock::where('ps_barcode', $data->sku)->first()->id;
-
-                            $item_detail_checks = PosTransactionDetail::where('pst_id', $barcode_id)->where('pt_id', $trx_id_new)->exists();
-
-//                            if ($key <= $data->qty) {
-
-                            if (!$item_detail_checks) {
-                                $insert_details = PosTransactionDetail::create([
-                                    'pt_id' => $trx_id_new,
-                                    'pst_id' => $barcode_id,
-                                    'pl_id' => $data->pl_id,
-                                    'pos_td_qty' => $data->qty,
-                                    'pos_td_sell_price' => $data->original_price * $data->qty,
-                                    'pos_td_discount' => $data->total_discount * $data->qty,
-                                    'pos_td_discount_number' => 0,
-                                    'pos_td_discount_price' => $data->price_after_discount * $data->qty,
-                                    'pos_td_marketplace_price' => 0,
-                                    'pos_td_nameset_price' => 0,
-                                    'pos_td_nameset' => 0,
-                                    'pos_td_description' => '',
-                                    'pos_order_number' => '',
-                                    'pos_td_price_item_discount' => 0,
-                                    'pos_td_total_price' => $data->price_after_discount * $data->qty,
-                                    'created_at' => date('Y-m-d H:i:s')
-                                ]);
-
-                            }
-                            ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
-
-                        }
-
-                        // Step 1: Find duplicate entries based on `pt_id` and `pst_id`
-//                        $duplicates = DB::table('pos_transaction_details')
-//                            ->select('pt_id', 'pst_id', DB::raw('COUNT(*) as duplicate_count'))
-//                            ->groupBy('pt_id', 'pst_id')
-//                            ->having('duplicate_count', '>', 1)
-//                            ->get();
-//
-//
-//                        foreach ($duplicates as $duplicate) {
-//                            // Step 2: Get the IDs of duplicates, excluding the minimum `id` for each duplicate group
-//                            $duplicateIds = DB::table('pos_transaction_details')
-//                                ->where('pt_id', $duplicate->pt_id)
-//                                ->where('pst_id', $duplicate->pst_id)
-//                                ->where('id', '!=', function ($query) use ($duplicate) {
-//                                    $query->select('id')
-//                                        ->from('pos_transaction_details')
-//                                        ->where('pt_id', $duplicate->pt_id)
-//                                        ->where('pst_id', $duplicate->pst_id)
-//                                        ->orderBy('id', 'asc')
-//                                        ->limit(1); // Select the minimum id to keep
-//                                })
-//                                ->pluck('id');
-//
-//                            // Step 3: Delete duplicates
-//                            DB::table('pos_transaction_details')->whereIn('id', $duplicateIds)->delete();
-//                        }
 
                             foreach ($online_transactions as $transaction) {
                                 // Update each waiting transaction to 'DONE AMP'
