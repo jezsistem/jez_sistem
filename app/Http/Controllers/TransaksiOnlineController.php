@@ -354,7 +354,6 @@ class TransaksiOnlineController extends Controller
 
                 $chk_pos_offline = PosTransaction::where('pos_invoice', $invoice)->count();
 
-<<<<<<< HEAD
                 if ($chk_pos_offline == 0) {
                     $trx_id_new = DB::table('pos_transactions')->insertGetId([
                         'u_id' => Auth::user()->id,
@@ -380,79 +379,6 @@ class TransaksiOnlineController extends Controller
                 } else {
                     $trx_id_new = PosTransaction::where('pos_invoice', $invoice)->get()->first()->id;
                 }
-=======
-                // Get product stock ID based on barcode
-                if ($ind <= $sku_current_print->count()) {
-                    $ps_barcode_record = ProductStock::where('ps_barcode', $data->sku)->first();
-
-//                    dd($ps_barcode_record);
-
-                    if ($ps_barcode_record) {
-                        $ps_barcode_id = $ps_barcode_record->id;
-
-                        // Check for any waiting online transactions
-                        $cek_keep_online = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                            ->where('product_stocks.ps_barcode', '=', $data->sku)
-                            ->where('st_id', '=', $st_id)
-                            ->whereNull('pt_id')
-                            ->where('plst_status', '=', 'WAITING ONLINE')
-                            ->count();
-
-                        // Fetch the first record of waiting online transactions
-                        $data_keep_online = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id')
-                            ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                            ->where('product_stocks.ps_barcode', '=', $data->sku)
-                            ->where('st_id', '=', $st_id)
-                            ->whereNull('pt_id')
-                            ->where('plst_status', '=', 'WAITING ONLINE')
-                            ->first();
-
-//                        dd($cek_keep_online, $data_keep_online);
-
-                        // If there are any waiting transactions, store them for further processing
-                        if ($cek_keep_online > 0 && $data_keep_online) {
-                            $online_transactions[] = [
-                                'ps_barcode' => $data->ps_barcode,
-                                'qty' => $data->qty,
-                                'id' => $data_keep_online->plst_id,
-                                'online_id' => $data->to_id,
-                            ];
-                        }
-                    }
-
-                    $sku_count = OnlineTransactionDetails::where('order_number', $invoice)->where('sku', $data->sku)->count();
-//                    dd(count($online_transactions), $sku_count);
-//
-                    if (count($online_transactions) >= $sku_count) {
-
-                        if ($chk_pos_offline == 0) {
-                            $trx_id_new = DB::table('pos_transactions')->insertGetId([
-                                'u_id' => Auth::user()->id,
-                                'kasir_id' => Auth::user()->id,
-                                'st_id' => Auth::user()->st_id,
-                                'stt_id' => Auth::user()->stt_id,
-                                'pos_online_payment' => $cur_trx->payment_method,
-                                'std_id' => $platform,
-                                'cust_id' => 1,
-                                'pos_admin_cost' => 0,
-                                'pos_another_cost' => 0,
-                                'pos_real_price' => $cur_trx->total_payment,
-                                'pos_order_number' => $cur_trx->order_number,
-                                'pos_invoice' => $cur_trx->order_number,
-                                'pos_unique_code' => 0,
-                                'pos_shipping' => $cur_trx->shipping_fee,
-                                'pos_total_discount' => 0,
-                                'pos_discount_seller' => 0,
-                                'created_at' => date('Y-m-d H:i:s'),
-                                'pos_status' => 'DONE',
-                                'pos_payment' => $cur_trx->total_payment
-                            ]);
-                        } else {
-                            $trx_id_new = PosTransaction::where('pos_invoice', $invoice)->get()->first()->id;
-                        }
->>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
 
                 $params = [
                     'online_print' => true,
@@ -504,7 +430,6 @@ class TransaksiOnlineController extends Controller
                             ->limit($data->qty)
                             ->get();
 
-<<<<<<< HEAD
                     $paramsPlst = [
                         'plst_status' => 'DONE',
                         'updated_at' => now(),
@@ -516,17 +441,10 @@ class TransaksiOnlineController extends Controller
                         $barcode_id = ProductStock::where('ps_barcode', $cko->ps_barcode)->first()->id;
                         //                                if ($key < $data->qty) {
                         PosTransactionDetail::create([
-=======
-                        $paramsPlst = [
-                            'plst_status' => 'DONE',
-                            'updated_at' => now(),
-                            'u_id_packer' => Auth::user()->id,
->>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
                             'pt_id' => $trx_id_new,
-                        ];
+                        ]);
 //                            dd($keep_online_details);
 
-<<<<<<< HEAD
                         ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
                     }
                 }
@@ -615,67 +533,6 @@ class TransaksiOnlineController extends Controller
                     //            Salah disini untuk looping item change status done amp
                     // If all transactions match the SKU count, proceed with updates
                     if (count($online_transactions) >= $sku_count) {
-=======
-                        foreach ($keep_online_details as $key => $cko) {
-                            $barcode_id = ProductStock::where('ps_barcode', $data->sku)->first()->id;
-
-                            $item_detail_checks = PosTransactionDetail::where('pst_id', $barcode_id)->where('pt_id', $trx_id_new)->exists();
-
-//                            if ($key <= $data->qty) {
-
-                            if (!$item_detail_checks) {
-                                $insert_details = PosTransactionDetail::create([
-                                    'pt_id' => $trx_id_new,
-                                    'pst_id' => $barcode_id,
-                                    'pl_id' => $data->pl_id,
-                                    'pos_td_qty' => $data->qty,
-                                    'pos_td_sell_price' => $data->original_price,
-                                    'pos_td_discount' => $data->total_discount,
-                                    'pos_td_discount_number' => 0,
-                                    'pos_td_discount_price' => $data->price_after_discount,
-                                    'pos_td_marketplace_price' => 0,
-                                    'pos_td_nameset_price' => 0,
-                                    'pos_td_nameset' => 0,
-                                    'pos_td_description' => '',
-                                    'pos_order_number' => '',
-                                    'pos_td_price_item_discount' => 0,
-                                    'pos_td_total_price' => $data->price_after_discount,
-                                    'created_at' => date('Y-m-d H:i:s')
-                                ]);
-
-                            }
-                            ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
-
-                        }
-
-                        // Step 1: Find duplicate entries based on `pt_id` and `pst_id`
-//                        $duplicates = DB::table('pos_transaction_details')
-//                            ->select('pt_id', 'pst_id', DB::raw('COUNT(*) as duplicate_count'))
-//                            ->groupBy('pt_id', 'pst_id')
-//                            ->having('duplicate_count', '>', 1)
-//                            ->get();
-//
-//
-//                        foreach ($duplicates as $duplicate) {
-//                            // Step 2: Get the IDs of duplicates, excluding the minimum `id` for each duplicate group
-//                            $duplicateIds = DB::table('pos_transaction_details')
-//                                ->where('pt_id', $duplicate->pt_id)
-//                                ->where('pst_id', $duplicate->pst_id)
-//                                ->where('id', '!=', function ($query) use ($duplicate) {
-//                                    $query->select('id')
-//                                        ->from('pos_transaction_details')
-//                                        ->where('pt_id', $duplicate->pt_id)
-//                                        ->where('pst_id', $duplicate->pst_id)
-//                                        ->orderBy('id', 'asc')
-//                                        ->limit(1); // Select the minimum id to keep
-//                                })
-//                                ->pluck('id');
-//
-//                            // Step 3: Delete duplicates
-//                            DB::table('pos_transaction_details')->whereIn('id', $duplicateIds)->delete();
-//                        }
-
->>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
                         foreach ($online_transactions as $transaction) {
                             // Update each waiting transaction to 'DONE AMP'
                             $paramsPlst = [
@@ -687,7 +544,6 @@ class TransaksiOnlineController extends Controller
                             ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
                         }
 
-<<<<<<< HEAD
                         // Updateo  the transaction header tmark it as printed
                         $params = [
                             'online_print' => true,
@@ -697,8 +553,6 @@ class TransaksiOnlineController extends Controller
                         ];
                         OnlineTransactions::where('order_number', $invoice)->update($params);
 
-=======
->>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
                         // Return a 200 OK status
                     } else {
                         $response['status'] = 400;
@@ -707,18 +561,8 @@ class TransaksiOnlineController extends Controller
 
                 return $response;
             }
-<<<<<<< HEAD
-=======
-
-            if ($trx_id_new) {
-                $response['status'] = 200;
-            } else {
-                $response['status'] = 400;
-            }
-
->>>>>>> bdbf59e1bcf59a9e18a1d6760c436c20a571816d
         }
-    }
+    
 
 
     public function cetak_nota($orderNumber)
