@@ -497,17 +497,17 @@ class TransaksiOnlineController extends Controller
 //                            // Step 3: Delete duplicates
 //                            DB::table('pos_transaction_details')->whereIn('id', $duplicateIds)->delete();
 //                        }
-
-                        foreach ($online_transactions as $transaction) {
-                            // Update each waiting transaction to 'DONE AMP'
-                            $paramsPlst = [
-                                'plst_status' => 'DONE',
-                                'updated_at' => now(),
-                                'u_id_packer' => Auth::user()->id,
-                                'pt_id' => $transaction['online_id'],
-                            ];
-                            ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
-                        }
+//
+//                        foreach ($online_transactions as $transaction) {
+//                            // Update each waiting transaction to 'DONE AMP'
+//                            $paramsPlst = [
+//                                'plst_status' => 'DONE',
+//                                'updated_at' => now(),
+//                                'u_id_packer' => Auth::user()->id,
+//                                'pt_id' => $transaction['online_id'],
+//                            ];
+//                            ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
+//                        }
 
                         // Return a 200 OK status
                     } else {

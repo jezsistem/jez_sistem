@@ -274,7 +274,7 @@
                 url: "{{ url('print_cross_invoice')}}",
                 success: function(r) {
                     if (r.status == '200'){
-                        var win = window.open('{{ url('/') }}/cross_invoice/'+r.invoice, '_blank');
+                        var win = window.open('{{ url('/') }}/print_invoice/'+r.invoice, '_blank');
                         if (win) {
                             win.focus();
                         } else {
