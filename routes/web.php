@@ -108,8 +108,10 @@ Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
     Route::get('redirect', [RedirectController::class, 'index'])->name('redirect');
+    
     // Upcloud Balance
     Route::get('get_upcloud_balance', [UpcloudBalanceController::class, 'getBalance']);
+    
     // Tracking
     Route::get('tracking', [TrackingController::class, 'index'])->name('tracking');
     Route::get('check_invoice/{invoice}', [InvoiceController::class, 'checkInvoice'])->name('check_invoice');
@@ -133,9 +135,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('scan_product_online_datatables', [TrackingController::class, 'scanOnlineDatatables']);
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
-
-    //POS NEWPAGE 27-09-24
-
 
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
@@ -223,6 +222,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Helper Backup //
     Route::get('helper_backup', [HelperBackupController::class, 'index']);
+    
     // Customer Type
     Route::get('customer_type_datatables', [CustomerTypeController::class, 'getDatatables']);
     Route::get('reload_customer_type', [CustomerTypeController::class, 'reloadCustomerType']);
@@ -238,16 +238,19 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('reload_store_type', [StoreTypeController::class, 'reloadStoreType']);
     Route::post('stt_save', [StoreTypeController::class, 'storeData']);
     Route::post('stt_delete', [StoreTypeController::class, 'deleteData']);
+    
     // Store Division
     Route::get('data_divisi', [StoreTypeDivisionController::class, 'index'])->name('store_type_division');
     Route::get('store_type_division_datatables', [StoreTypeDivisionController::class, 'getDatatables']);
     Route::post('dv_save', [StoreTypeDivisionController::class, 'storeData']);
     Route::post('dv_delete', [StoreTypeDivisionController::class, 'deleteData']);
+    
     // Store
     Route::get('data_store', [StoreController::class, 'index'])->name('store');
     Route::get('store_datatables', [StoreController::class, 'getDatatables']);
     Route::post('st_save', [StoreController::class, 'storeData']);
     Route::post('st_delete', [StoreController::class, 'deleteData']);
+    
     // Product Supplier
     Route::get('data_supplier', [ProductSupplierController::class, 'index'])->name('product_supplier');
     Route::get('product_supplier_datatables', [ProductSupplierController::class, 'getDatatables']);
@@ -255,6 +258,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ps_delete', [ProductSupplierController::class, 'deleteData']);
     Route::post('ps_import', [ProductSupplierController::class, 'importData']);
     Route::post('check_exists_supplier', [ProductSupplierController::class, 'checkExistsSupplier']);
+    
     // Brand
     Route::get('brands', [BrandController::class, 'index'])->name('brands');
     Route::get('brand_datatables', [BrandController::class, 'getDatatables']);
@@ -264,6 +268,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('delete_banner_brand', [BrandController::class, 'deleteBannerImage']);
     Route::post('br_import', [BrandController::class, 'importData']);
     Route::post('check_exists_brand', [BrandController::class, 'checkExistsBrand']);
+    
     // Product Unit
     Route::get('satuan_produk', [ProductUnitController::class, 'index'])->name('product_unit');
     Route::get('product_unit_datatables', [ProductUnitController::class, 'getDatatables']);
@@ -273,6 +278,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_product_unit', [ProductUnitController::class, 'checkExistsProductUnit']);
     //Product
     // Route::post('stock_data_search_product', [ProductController::class, 'searchProduct']);
+    
     // Gender
     Route::get('gender', [GenderController::class, 'index'])->name('gender');
     Route::get('gender_datatables', [GenderController::class, 'getDatatables']);
@@ -280,6 +286,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('gn_delete', [GenderController::class, 'deleteData']);
     Route::post('gn_import', [GenderController::class, 'importData']);
     Route::post('check_exists_gender', [GenderController::class, 'checkExistsGender']);
+    
     // Season
     Route::get('season', [SeasonController::class, 'index'])->name('season');
     Route::get('season_datatables', [SeasonController::class, 'getDatatables']);
@@ -287,6 +294,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ss_delete', [SeasonController::class, 'deleteData']);
     Route::post('ss_import', [SeasonController::class, 'importData']);
     Route::post('check_exists_season', [SeasonController::class, 'checkExistsSeason']);
+    
     // Product Category
     Route::get('kategori_produk', [ProductCategoryController::class, 'index'])->name('product_category');
     Route::get('product_category_datatables', [ProductCategoryController::class, 'getDatatables']);
@@ -294,6 +302,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pc_dele te', [ProductCategoryController::class, 'deleteData']);
     Route::post('pc_import', [ProductCategoryController::class, 'importData']);
     Route::post('check_exists_product_category', [ProductCategoryController::class, 'checkExistsProductCategory']);
+    
     // Product Sub Category
     Route::get('sub_kategori_produk', [ProductSubCategoryController::class, 'index'])->name('product_sub_category');
     Route::get('product_sub_category_datatables', [ProductSubCategoryController::class, 'getDatatables']);
@@ -302,8 +311,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('psc_delete', [ProductSubCategoryController::class, 'deleteData']);
     Route::post('psc_import', [ProductSubCategoryController::class, 'importData']);
     Route::post('check_exists_product_sub_category', [ProductSubCategoryController::class, 'checkExistsProductSubCategory']);
-    // Product Sub Sub Category
     
+    // Product Sub Sub Category
     Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryController::class, 'index'])->name('product_sub_sub_category');
     Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryController::class, 'getDatatables']);
     Route::get('reload_product_sub_category', [ProductSubCategoryController::class, 'reloadProductSubCategory']);
@@ -331,12 +340,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('mc_delete', [MainColorController::class, 'autocomplete_customer']);
     Route::post('mc_import', [MainColorController::class, 'importData']);
     Route::post('check_exists_main_color', [MainColorController::class, 'checkExistsMainColor']);
+    
     // Product Sub Color
     Route::get('sub_warna_produk', [ColorController::class, 'index'])->name('color');
     Route::get('color_datatables', [ColorController::class, 'getDatatables']);
     Route::post('cl_save', [ColorController::class, 'storeData']);
     Route::post('cl_delete', [ColorController::class, 'deleteData']);
     Route::post('cl_import', [ColorController::class, 'importData']);
+    
     // Product Size
     Route::get('size_produk', [SizeController::class, 'index'])->name('size');
     Route::get('size_datatables', [SizeController::class, 'getDatatables']);
@@ -362,8 +373,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_barcode', [ProductController::class, 'checkExistsBarcode']);
     Route::post('check_exists_article_id', [ProductController::class, 'checkExistsArticleID']);
     Route::post('update_barcode', [ProductController::class, 'updateBarcode']);
+    
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
+    
     // Product Stock
     Route::post('check_product_stock', [ProductStockController::class, 'checkProductStock']);
     Route::post('update_sell_price', [ProductStockController::class, 'updateSellPrice']);

@@ -137,21 +137,26 @@
                     @php $discount = 0; $nameset = 0; $subtotal = 0; $total_price = 0;
                         $total_discount = $data['transaction']->pos_total_discount;
                         $total_discount_show= $data['transaction']->pos_total_discount ;
-                        $total_marketplace = 0; @endphp
+                        $total_marketplace = 0;
+                        $row_discount_sum = 0; @endphp
                     @if (!empty($data['transaction_detail']))
                         @foreach ($data['transaction_detail'] as $srow)
+                            @php
+                            // Calculate the discount for this row
+                            $row_discount = $srow->pos_td_qty * ($srow->pos_td_sell_price / 100 * $srow->pos_td_discount);
+                            $row_discount_sum += $row_discount; // Accumulate the row discounts
+                            @endphp
                         <tr style="margin-bottom:5px;">
                             <td class="name">[{{ $srow->br_name }}] {{ $srow->p_name }} {{ $srow->p_color }} ({{ $srow->sz_name }})</td>
                             <td class="qty">{{ $srow->pos_td_qty }}x</td>
                             @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WHATSAPP' AND $data['transaction']->dv_name != 'TIKTOK' AND $data['transaction']->dv_name != 'WEBSITE')
                                 <td class="sell-price">
                                     <s>{{ number_format($srow->productStock?->ps_price_tag ?? 0) }}</s>
-                                    {{ round($srow->pos_td_marketplace_price/$srow->pos_td_qty) }}
                                     @if (!empty($srow->pos_td_discount))
                                         <br/>{{ $srow->pos_td_discount }}%
                                     @endif
                                     @if(!empty($srow->pos_td_discount_number))
-                                        <br/> <span class="text-red">({{ $srow->pos_td_discount_number }})</span>
+                                        <br/> <span class="text-red">({{ number_format($srow->pos_td_discount_number) }})</span>
                                     @endif
                                 </td>
                                 <td class="final-price">
@@ -161,36 +166,34 @@
                                         {{ number_format($srow->pos_td_qty * $srow->pos_td_sell_price) }}
                                     @endif
                                     @if (!empty($srow->pos_td_discount))
-                                        <br/>(-{{ number_format($srow->pos_td_qty * ($srow->pos_td_sell_price/100 * $srow->pos_td_discount)) }})
+                                        <br/>(-{{ number_format($srow->pos_td_qty * ($srow->pos_td_sell_price / 100 * $srow->pos_td_discount)) }})
                                     @endif
                                 </td>
-                            @else 
+                            @else
                                 @if ($data['transaction']->is_website == '1')
-                                <td class="sell-price">{{ number_format($srow->pos_td_sell_price) }}
-                                </td>
-                                <td class="final-price">{{ number_format($srow->pos_td_qty * $srow->pos_td_sell_price) }}</td>
-                                @else 
-                                <td class="sell-price">
-                                    <s>{{ number_format($srow->productStock?->ps_price_tag ?? 0) }}</s>
-                                    <br/>
-                                    {{ number_format($srow->pos_td_sell_price) }}
-                                    @if (!empty($srow->pos_td_discount))
-                                    <br/>{{ $srow->pos_td_discount }}%
-                                    @endif
-                                    @if(!empty($srow->pos_td_discount_number))
-                                        <br/> <span class="text-red">({{ $srow->pos_td_discount_number }})</span>
-                                    @endif
-                                </td>
-                                <td class="final-price">
-                                    @if(!empty($srow->pos_td_discount_number))
-                                        <span>{{ number_format(($srow->pos_td_qty * $srow->pos_td_sell_price) - $srow->pos_td_discount_number) }}</span>
-                                    @else
+                                    <td class="sell-price">{{ number_format($srow->pos_td_sell_price) }}</td>
+                                    <td class="final-price">
                                         {{ number_format($srow->pos_td_qty * $srow->pos_td_sell_price) }}
-                                    @endif
-                                    @if (!empty($srow->pos_td_discount))
-                                    <br/>(-{{ number_format($srow->pos_td_qty * ($srow->pos_td_sell_price/100 * $srow->pos_td_discount)) }})
-                                    @endif
-                                </td>
+                                    </td>                                                                    @else
+                                    <td class="sell-price">
+                                        <s>{{ number_format($srow->productStock?->ps_price_tag ?? 0) }}</s>
+                                        @if (!empty($srow->pos_td_discount))
+                                            <br/>{{ $srow->pos_td_discount }}%
+                                        @endif
+                                        @if(!empty($srow->pos_td_discount_number))
+                                            <br/> <span class="text-red">({{ number_format($srow->pos_td_discount_number) }})</span>
+                                        @endif
+                                    </td>
+                                    <td class="final-price">
+                                        @if(!empty($srow->pos_td_discount_number))
+                                            <span>{{ number_format($srow->pos_td_discount_price ) }}</span>
+                                        @else
+                                            {{ number_format($srow->pos_td_qty * $srow->pos_td_sell_price) }}
+                                        @endif
+                                        @if (!empty($srow->pos_td_discount))
+                                            <br/>(-{{ number_format($srow->pos_td_qty * ($srow->pos_td_sell_price / 100 * $srow->pos_td_discount)) }})
+                                        @endif
+                                    </td>
                                 @endif
                             @endif
                         </tr>
@@ -240,26 +243,15 @@
                         <td class="final-price">
                             <span style="float:right;">
                             @if ($data['transaction']->dv_name != 'DROPSHIPPER' AND $data['transaction']->dv_name != 'RESELLER' AND $data['transaction']->dv_name != 'WHATSAPP' AND $data['transaction']->dv_name != 'TIKTOK' AND $data['transaction']->dv_name != 'WEBSITE')
-                                    (
-                                    @if (!empty($total_discount_show))
-                                        {{ ($total_discount_show) }}
-                                    @else
-                                        0
-                                    @endif
-                                    )
+                                ({{ number_format($row_discount_sum) }})
                             @else
                             <span class="text-red">
-                            (
-                            @if (!empty($total_discount_show))
-                            {{ ($total_discount_show) }}
-                            @else 
-                            0
+                                ({{ number_format($row_discount_sum) }})
+                            </span>
                             @endif
-                            )
-                                </span>
-                            @endif</span>
+                            </span>
                         </td>
-                    </tr>
+                    </tr>                    
                     <tr>
                         <td colspan="3" class="final-price">
                             <span style="float:left;">ONGKIR</span>
@@ -332,7 +324,7 @@
                             @else
                                 @php 
                                 if (!empty($total_discount)) {
-                                    $totals = $subtotal-$total_discount+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_another_cost;
+                                    $totals = $subtotal-$row_discount_sum+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_another_cost;
                                 } else {
                                     if ($data['transaction']->is_website == '1') {
                                         $totals = $subtotal+$data['transaction']->pos_shipping+$nameset+$data['transaction']->pos_unique_code;
@@ -368,10 +360,9 @@
             </div>
 
             <div class="separate"></div>
-            <div class="nota">
-                <strong>{{ $data['transaction']->pos_order_number }}</strong>
+            <div class="ordernumber">
+                <strong>{{ $data['invoice'] }}</strong>
             </div>
-           
             
             <div class="title-left">
                 <strong>PENERIMA</strong><br/>

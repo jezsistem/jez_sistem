@@ -521,12 +521,18 @@ class CrossOrderController extends Controller
         $cust_subdistrict = null;
         $transaction = null;
         $transaction_detail = null;
-         $cust_province = '';
-                  $cust_city = '';
-                  $cust_subdistrict = '';
-
+        $cust_province = '';
+        $cust_city = '';
+        $cust_subdistrict = '';
         if ($check) {
-            $transaction = PosTransaction::select('pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city', 'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'pos_order_number', 'st_name', 'st_phone', 'st_address', 'pos_shipping', 'cr_id', 'pos_discount' , 'pos_transactions.created_at as pos_created, pos_td_description')
+            $transaction = PosTransaction::select(
+                'pos_discount', 'is_website', 'pos_unique_code', 'pos_courier',
+                'pos_transactions.id as pt_id', 'cust_id', 'cust_province', 'cust_city',
+                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'dv_name', 'cr_name',
+                'pos_another_cost', 'pos_ref_number', 'pos_card_number', 'cust_name', 'cust_phone',
+                'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address', 'pos_shipping',
+                'cr_id', 'pos_transactions.created_at as pos_created',
+                'pos_total_discount', 'pos_order_number')
             ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
             ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
@@ -541,28 +547,35 @@ class CrossOrderController extends Controller
                     $dropshipper = Customer::select('cust_name', 'cust_address', 'cust_phone', 'cust_store', 'cust_province', 'cust_city', 'cust_subdistrict')->where('id', $transaction->cust_id)->get()->first();
                     $customer = Customer::select('cust_name', 'cust_address', 'cust_phone', 'cust_store', 'cust_province', 'cust_city', 'cust_subdistrict')->where('id', $transaction->sub_cust_id)->get()->first();
                 } else {
-                    $customer = Customer::select('cust_name', 'cust_address', 'cust_phone', 'cust_store', 'cust_province', 'cust_city', 'cust_subdistrict')->where('id', $transaction->cust_id)->get()->first();
+                    $customer = Customer::select('cust_name', 'cust_address', 'cust_phone', 'cust_store', 'cust_province', 'cust_city', 'cust_subdistrict', 'cust_city_ro_id', 'cust_subdistrict_ro_id')->where('id', $transaction->cust_id)->get()->first();
                 }
-                if (!empty($customer->cust_subdistrict)) {
+                if (!empty($customer)) {
+                if (!empty($customer->cust_city_ro_id)) {
+                  $cust_province = DB::table('ro_provinces')->select('province_name')
+                  ->leftJoin('ro_cities', 'ro_cities.province_id', '=', 'ro_provinces.province_id')->where('city_id', '=', $customer->cust_city_ro_id)->get()->first()->province_name;
+                  $cust_city = DB::table('ro_cities')->select('city_name')->where('city_id', '=', $customer->cust_city_ro_id)->get()->first()->city_name;
+                  $cust_subdistrict = DB::table('ro_subdistricts')->select('subdistrict_name')->where('subdistrict_id', '=', $customer->cust_subdistrict_ro_id)->get()->first()->subdistrict_name;
+                } else {
+                    if (!empty($customer->cust_subdistrict)) {
                   $cust_province = Wilayah::select('nama')->where('kode', $customer->cust_province)->get()->first()->nama;
                   $cust_city = Wilayah::select('nama')->where('kode', $customer->cust_city)->get()->first()->nama;
                   $cust_subdistrict = Wilayah::select('nama')->where('kode', $customer->cust_subdistrict)->get()->first()->nama;
+                    }
                 }
-                $transaction_detail = PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name', 'pl_code', 'p_color', 'sz_name', 'pos_td_qty', 'pos_td_description', 'pos_td_reject')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'pos_transaction_details.pl_id')
-                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                }
+                $transaction_detail = PosTransactionDetail::
+                leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                ->where([
-                  'pt_id' => $transaction->pt_id,
-                  'pos_td_reject' => '0'
-                ])->get();
-                $note = PosTransactionDetail::where('pt_id', $transaction->pt_id)->get();
+                ->where(['pt_id' => $transaction->pt_id])
+                ->where('pos_td_reject', '!=', '1')
+                ->with('productStock')
+                ->get();
             }
-          
         }
+
+
         $data = [
             'title' => 'Invoice '.$invoice,
             'invoice' => $invoice,
@@ -573,9 +586,9 @@ class CrossOrderController extends Controller
             'cust_subdistrict' => $cust_subdistrict,
             'transaction' => $transaction,
             'transaction_detail' => $transaction_detail,
-            'note' => $note,
             'segment' => request()->segment(1)
         ];
+
         return view('app.invoice.print_invoice', compact('data'));
     }
 

@@ -59,8 +59,8 @@
                                     <select class="form-control" id="status_trx">
                                         <option value="">-- Pilih Status Cetak ---</option>
                                         <option value="2">Semua Status</option>
-                                        <option value="1">Sudah di Cetak</option>
-                                        <option value="0">Belum di Cetak</option>
+                                        <option value="1">Sudah Cetak</option>
+                                        <option value="0">Belum Cetak</option>
                                     </select>
                                 </div>
 
