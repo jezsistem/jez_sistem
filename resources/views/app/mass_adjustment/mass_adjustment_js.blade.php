@@ -694,9 +694,10 @@
                         success: function(response) {
                             if (response.status === '200') {
                                 toastr.success(response.message,
-                                "Berhasil"); // Tampilkan pesan sukses dari server
+                                    "Berhasil"
+                                ); // Tampilkan pesan sukses dari server
                                 mass_adjustment_table.draw(
-                                false); // Refresh tabel penyesuaian
+                                    false); // Refresh tabel penyesuaian
                             } else {
                                 toastr.error(response.message ||
                                     'Gagal membatalkan pengeksekusian data',
@@ -706,7 +707,8 @@
                         error: function(xhr) {
                             toastr.error('Error: ' + (xhr.responseJSON?.message ||
                                     'Terjadi kesalahan saat menghubungi server'
-                                    ), 'Error'
+                                ),
+                                'Error'
                                 ); // Tampilkan pesan error dari server jika ada
                         }
                     });
@@ -717,62 +719,6 @@
 
 
 
-        // $('#f_import').on('submit', function(e) {
-        //     e.preventDefault();
-
-        //     if (st_id == 'all') {
-        //         swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
-        //         return false;
-        //     }
-        //     var formData = new FormData(this);
-        //     formData.append('st_id', st_id);
-
-        //     // console.log(formData);
-        //     $("#import_data_btn").html('Proses ..');
-        //     $("#import_data_btn").attr("disabled", true);
-        //     $.ajaxSetup({
-        //         headers: {
-        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        //         }
-        //     });
-        //     $.ajax({
-        //         type: 'POST',
-        //         url: "{{ url('import_mass_adjustment_template') }}",
-        //         data: formData,
-        //         dataType: 'json',
-        //         cache: false,
-        //         contentType: false,
-        //         processData: false,
-        //         success: function(r) {
-        //             $("#import_data_btn").html('Import');
-        //             $("#import_data_btn").attr("disabled", false);
-        //             if (r.status == '200') {
-        //                 mass_adjustment_table.draw(false);
-        //                 $('#ma_code').attr('data-id', r.ma_id);
-        //                 $('#ma_code').text(r.ma_code);
-        //                 mass_adjustment_detail_table.draw(false);
-        //                 loadApproval();
-        //                 $('#ImportModal').modal('hide');
-        //                 $('#f_import')[0].reset();
-        //                 toastr.success('Adjustment berhasil dicreate',
-        //                     'Berhasil'); // Use toastr for success
-        //             } else {
-        //                 toastr.warning('Adjustment gagal dicreate',
-        //                     'Gagal'); // Use toastr for warning
-        //             }
-        //         },
-        //         error: function(data) {
-        //             toastr.error('Terjadi kesalahan saat menghubungi server',
-        //                 'Error'); // Handle AJAX error with toastr
-        //         }
-        //     });
-
-
-
-
-
-        // });
-
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
 
@@ -780,10 +726,10 @@
                 swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
                 return false;
             }
-
             var formData = new FormData(this);
             formData.append('st_id', st_id);
 
+            // console.log(formData);
             $("#import_data_btn").html('Proses ..');
             $("#import_data_btn").attr("disabled", true);
             $.ajaxSetup({
@@ -791,7 +737,6 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-
             $.ajax({
                 type: 'POST',
                 url: "{{ url('import_mass_adjustment_template') }}",
@@ -811,16 +756,73 @@
                         loadApproval();
                         $('#ImportModal').modal('hide');
                         $('#f_import')[0].reset();
-                        toastr.success('Adjustment berhasil dicreate', 'Berhasil');
+                        toastr.success('Adjustment berhasil dicreate',
+                            'Berhasil'); // Use toastr for success
                     } else {
-                        toastr.warning(r.message || 'Adjustment gagal dicreate', 'Gagal');
+                        toastr.warning('Adjustment gagal dicreate',
+                            'Gagal'); // Use toastr for warning
                     }
                 },
                 error: function(data) {
-                    toastr.error('Terjadi kesalahan saat menghubungi server', 'Error');
+                    toastr.error('Terjadi kesalahan saat menghubungi server',
+                        'Error'); // Handle AJAX error with toastr
                 }
             });
+
+
+
+
+
         });
+
+        // $('#f_import').on('submit', function(e) {
+        //     e.preventDefault();
+
+        //     if (st_id == 'all') {
+        //         swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
+        //         return false;
+        //     }
+
+        //     var formData = new FormData(this);
+        //     formData.append('st_id', st_id);
+
+        //     $("#import_data_btn").html('Proses ..');
+        //     $("#import_data_btn").attr("disabled", true);
+        //     $.ajaxSetup({
+        //         headers: {
+        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //         }
+        //     });
+
+        //     $.ajax({
+        //         type: 'POST',
+        //         url: "{{ url('import_mass_adjustment_template') }}",
+        //         data: formData,
+        //         dataType: 'json',
+        //         cache: false,
+        //         contentType: false,
+        //         processData: false,
+        //         success: function(r) {
+        //             $("#import_data_btn").html('Import');
+        //             $("#import_data_btn").attr("disabled", false);
+        //             if (r.status == '200') {
+        //                 mass_adjustment_table.draw(false);
+        //                 $('#ma_code').attr('data-id', r.ma_id);
+        //                 $('#ma_code').text(r.ma_code);
+        //                 mass_adjustment_detail_table.draw(false);
+        //                 loadApproval();
+        //                 $('#ImportModal').modal('hide');
+        //                 $('#f_import')[0].reset();
+        //                 toastr.success('Adjustment berhasil dicreate', 'Berhasil');
+        //             } else {
+        //                 toastr.warning(r.message || 'Adjustment gagal dicreate', 'Gagal');
+        //             }
+        //         },
+        //         error: function(data) {
+        //             toastr.error('Terjadi kesalahan saat menghubungi server', 'Error');
+        //         }
+        //     });
+        // });
 
     });
 </script>
