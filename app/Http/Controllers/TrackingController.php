@@ -106,7 +106,6 @@ class TrackingController extends Controller
         $r = []; // Initialize response array
 
 
-
         if ($check) {
             $r['level'] = User::select('g_name')
                 ->join('user_groups', 'user_groups.user_id', '=', 'users.id')
@@ -150,7 +149,7 @@ class TrackingController extends Controller
 
         $update_plst = DB::table('product_location_setup_transactions')
             ->where('id', $plst_id)->where('pls_id', $pls_id)
-            ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'EXCHANGE', 'REFUND','WAITING FOR CHECKOUT'])->update([
+            ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'EXCHANGE', 'REFUND', 'WAITING FOR CHECKOUT'])->update([
                 'u_id_helper' => $u_id,
                 'plst_type' => 'IN',
                 'plst_status' => $status,
@@ -442,11 +441,11 @@ class TrackingController extends Controller
                 ->editColumn('article', function ($data) {
                     $timestamp = $data->created_at;
                     $formattedTimestamp = Carbon::parse($timestamp)->translatedFormat('d F Y H:i:s');
-                    $p_name =  $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
+                    $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
                     return '
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
-                    <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode. ' - '. $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>
-                    <small style="white-space: nowrap; font-weight:bold;">Stok Bin : '. $data->pls_qty + 1 .' | '. $formattedTimestamp .'</small><br/>
+                    <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>
+                    <small style="white-space: nowrap; font-weight:bold;">Stok Bin : ' . $data->pls_qty + 1 . ' | ' . $formattedTimestamp . '</small><br/>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->plst_qty . '</span>
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->pl_code . ']</span>                    
                     <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="' . $data->pls_qty . '" data-pls_id="' . $data->pls_id . '" id="get_out_btn" style="font-weight:bold;">Keluar</a><br><hr>
@@ -490,7 +489,7 @@ class TrackingController extends Controller
                     $real_stock = $data->pls_qty + 1;
                     return '
                 <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
-                <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>'. $data->ps_barcode . ' - ' .$data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/><span style="white-space: nowrap; font-weight:bold; font-size: 10px;">'. $time .' </span><br/>
+                <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/><span style="white-space: nowrap; font-weight:bold; font-size: 10px;">' . $time . ' </span><br/>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->pls_qty . '</span>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Stok : ' . $real_stock . '</span>
                 <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->pl_code . ']</span>
@@ -596,7 +595,7 @@ class TrackingController extends Controller
                     $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
 
                     // Determine button class based on status
-                    $btn = match($data->plst_status) {
+                    $btn = match ($data->plst_status) {
                         'WAITING OFFLINE' => 'btn-warning',
                         'WAITING ONLINE' => 'btn-light-warning',
                         'WAITING FOR CHECKOUT', 'WAITING TO TAKE' => 'btn-info',
@@ -634,7 +633,6 @@ class TrackingController extends Controller
                 ->make(true);
         }
     }
-
 
 
     public function scanOnlineDatatables(Request $request)
@@ -685,11 +683,27 @@ class TrackingController extends Controller
                     } else {
                         $cross_order = 'No';
                     }
-                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span> | '. $time .' <br/>
-                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
-                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
-                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">DO : ' . $cross_order . '</a>
-                <a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
+                    $returnHtml = '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
+                                    <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span> | ' . $time . ' <br/>
+                                    <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
+                                    <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
+                                    <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">POS TRX: ' . $cross_order . '</a>';
+
+                    if ($cross_order == 'No') {
+                        $returnHtml .= '<a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" 
+                                        data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" 
+                                        data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" 
+                                        id="scan_get_in_btn" style="font-weight:bold; margin-left: 3px;">Masuk</a>';
+                    }
+
+                    return $returnHtml;
+
+
+//                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span> | '. $time .' <br/>
+//                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
+//                <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
+//                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">POS TRX: ' . $cross_order . '</a>
+//                <a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
                 })
                 ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])
                 ->filter(function ($instance) use ($request) {
