@@ -648,7 +648,7 @@ class TrackingController extends Controller
 
 //            dd($branch);
 
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'plst_status', 'p_name', 'br_name', 'p_color', 'pl_code', 'pl_name', 'sz_name', 'product_location_setup_transactions.created_at as TanggalTrx')
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'plst_status', 'p_name', 'br_name', 'p_color', 'pl_code', 'pl_name', 'sz_name', 'product_location_setup_transactions.created_at as TanggalTrx', 'pt_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -680,9 +680,15 @@ class TrackingController extends Controller
 
                     $dateTime = $data->TanggalTrx; // '2024-08-07 14:13:46'
                     $time = Carbon::parse($dateTime, 'Asia/Jakarta')->format('d-F-Y H:i:s'); // '14:13:46'
+                    if ($data->plst_status == 'WAITING ONLINE' && $data->pt_id != null) {
+                        $cross_order = 'Yes';
+                    } else {
+                        $cross_order = 'No';
+                    }
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span> | '. $time .' <br/>
                 <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
+                <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">DO : ' . $cross_order . '</a>
                 <a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
                 })
                 ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])
