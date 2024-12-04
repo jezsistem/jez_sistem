@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\ProductSubSubCategoryTestController;
 use App\Http\Controllers\ProductSubSubCategoryController;
+use App\Http\Controllers\PhotoController;
 
 use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
@@ -103,6 +104,7 @@ Route::post('send_notification_whatsapp', [SendNotificationController::class, 's
 Route::get('print_invoice/{invoice}', [InvoiceController::class, 'printInvoice'])->name('print_invoice');
 Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printOfflineInvoice'])->name('print_offline_invoice');
 Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
+Route::post('/upload-photo', [PhotoController::class, 'upload'])->name('upload.photo');
 
 
 Route::group(['middleware' => 'auth'], function () {
