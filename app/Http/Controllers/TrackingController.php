@@ -408,42 +408,42 @@ class TrackingController extends Controller
     public function outDatatables(Request $request)
     {
         if (request()->ajax()) {
-                return datatables()->of(ProductLocationSetupTransaction::select(
-                    'product_location_setup_transactions.id as plst_id',
-                    'pls_id',
-                    'pst_id',
-                    'pls_qty',
-                    'plst_qty',
-                    'plst_status',
-                    'pl_id',
-                    'u_name',
-                    'p_name',
-                    'br_name',
-                    'p_color',
-                    'sz_name',
-                    'pl_code',
-                    'pl_name',
-                    'pl_description',
-                    'product_location_setup_transactions.created_at as plst_created',
-                    'ps_barcode',
-                    'product_location_setup_transactions.created_at'
-                )
-                    ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                    ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
-                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                    ->where(function ($w) {
-                        $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
-                    })
-                    ->where('plst_status', '=', 'WAITING TO TAKE'))
-                    ->editColumn('article', function ($data) {
-                        $timestamp = $data->created_at;
-                        $formattedTimestamp = Carbon::parse($timestamp)->translatedFormat('d F Y H:i:s');
-                        $p_name =  $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
-                        return '
+            return datatables()->of(ProductLocationSetupTransaction::select(
+                'product_location_setup_transactions.id as plst_id',
+                'pls_id',
+                'pst_id',
+                'pls_qty',
+                'plst_qty',
+                'plst_status',
+                'pl_id',
+                'u_name',
+                'p_name',
+                'br_name',
+                'p_color',
+                'sz_name',
+                'pl_code',
+                'pl_name',
+                'pl_description',
+                'product_location_setup_transactions.created_at as plst_created',
+                'ps_barcode',
+                'product_location_setup_transactions.created_at'
+            )
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($w) {
+                    $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+                })
+                ->where('plst_status', '=', 'WAITING TO TAKE'))
+                ->editColumn('article', function ($data) {
+                    $timestamp = $data->created_at;
+                    $formattedTimestamp = Carbon::parse($timestamp)->translatedFormat('d F Y H:i:s');
+                    $p_name =  $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
+                    return '
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
                     <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode. ' - '. $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>
                     <small style="white-space: nowrap; font-weight:bold;">Stok Bin : '. $data->pls_qty + 1 .' | '. $formattedTimestamp .'</small><br/>
@@ -451,20 +451,20 @@ class TrackingController extends Controller
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->pl_code . ']</span>                    
                     <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="' . $data->pls_qty . '" data-pls_id="' . $data->pls_id . '" id="get_out_btn" style="font-weight:bold;">Keluar</a><br><hr>
                     ';
-                    })
-                    ->rawColumns(['article', 'bin', 'status', 'qty', 'action'])
-                    ->filter(function ($instance) use ($request) {
-                        if (!empty($request->get('search'))) {
-                            $instance->where(function ($w) use ($request) {
-                                $search = $request->get('search');
-                                $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
-                                // create search by ps_barcode from product_stocks
-                                $w->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
-                            });
-                        }
-                    })
-                    ->addIndexColumn()
-                    ->make(true);
+                })
+                ->rawColumns(['article', 'bin', 'status', 'qty', 'action'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                            // create search by ps_barcode from product_stocks
+                            $w->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -570,18 +570,18 @@ class TrackingController extends Controller
     {
         if (request()->ajax()) {
             return datatables()->of(ProductLocationSetupTransaction::select(
-                    'product_location_setup_transactions.id as plst_id', 
-                    'pls_id', 
-                    'plst_qty', 
-                    'plst_status', 
-                    'p_name', 
-                    'br_name', 
-                    'p_color', 
-                    'pl_code', 
-                    'pl_name', 
-                    'sz_name', 
-                    'product_location_setup_transactions.created_at as TanggalTrx' // Ensure the alias is here
-                )
+                'product_location_setup_transactions.id as plst_id',
+                'pls_id',
+                'plst_qty',
+                'plst_status',
+                'p_name',
+                'br_name',
+                'p_color',
+                'pl_code',
+                'pl_name',
+                'sz_name',
+                'product_location_setup_transactions.created_at as TanggalTrx' // Ensure the alias is here
+            )
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -594,7 +594,7 @@ class TrackingController extends Controller
                 ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'REJECT', 'EXCHANGE', 'REFUND', 'WAITING FOR CHECKOUT']))
                 ->editColumn('article', function ($data) {
                     $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
-                    
+
                     // Determine button class based on status
                     $btn = match($data->plst_status) {
                         'WAITING OFFLINE' => 'btn-warning',
