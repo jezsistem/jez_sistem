@@ -92,8 +92,18 @@
         <script>
             document.getElementById('btnChangePhoto').addEventListener('click', function () {
                 const areaUploads = document.getElementById('area-uploads');
-                areaUploads.style.display = 'block'; // Show the div
-                console.log('Button clicked! Displaying upload area.');
+                const btnChangePhoto = document.getElementById('btnChangePhoto');
+
+                // Toggle the display property between 'none' and 'block'
+                if (areaUploads.style.display === 'none' || areaUploads.style.display === '') {
+                    areaUploads.style.display = 'block';  // Show the div
+                    btnChangePhoto.textContent = 'Cancel'; // Change button text to 'Cancel'
+                    console.log('Button clicked! Displaying upload area.');
+                } else {
+                    areaUploads.style.display = 'none';  // Hide the div
+                    btnChangePhoto.textContent = 'Change'; // Change button text to 'Change Photo'
+                    console.log('Button clicked! Hiding upload area.');
+                }
             });
 
             function handleDragOver(event) {
