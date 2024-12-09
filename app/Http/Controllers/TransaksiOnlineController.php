@@ -447,22 +447,28 @@ class TransaksiOnlineController extends Controller
 
 //                            if ($key <= $data->qty) {
 
+                            $price_before_discount = $data->original_price * $data->qty;
+
+                            $price_after_discount = $data->price_after_discount * $data->qty;
+
+
+
                             if (!$item_detail_checks) {
                                 $insert_details = PosTransactionDetail::create([
                                     'pt_id' => $trx_id_new,
                                     'pst_id' => $barcode_id,
                                     'pl_id' => $data->pl_id,
                                     'pos_td_qty' => $data->qty,
-                                    'pos_td_sell_price' => $data->original_price * $data->qty,
-                                    'pos_td_discount' => $data->total_discount * $data->qty,
-                                    'pos_td_discount_number' => 0,
+                                    'pos_td_sell_price' => $price_after_discount,
+                                    'pos_td_discount_number' => $price_before_discount - $price_after_discount,
+                                    'pos_td_discount' => NULL,
                                     'pos_td_discount_price' => $data->price_after_discount * $data->qty,
                                     'pos_td_marketplace_price' => 0,
                                     'pos_td_nameset_price' => 0,
                                     'pos_td_nameset' => 0,
                                     'pos_td_description' => '',
                                     'pos_td_price_item_discount' => 0,
-                                    'pos_td_total_price' => $data->price_after_discount * $data->qty,
+                                    'pos_td_total_price' => $price_before_discount,
                                     'created_at' => date('Y-m-d H:i:s')
                                 ]);
 
