@@ -131,7 +131,7 @@ class ArticleReportExport implements FromCollection, withHeadings
                         $b1g1 = '0';
                     }
 
-                    $export[] = [date('d/m/Y H:i:s', strtotime($row->ptd_created)), $row->st_name, $row->pos_invoice, $row->cross_order, $row->cust_name, $row->u_name, $row->dv_name, $row->stkt_name, $row->br_name, $row->ps_barcode, $row->p_name, $row->p_color, $row->sz_name, $row->pc_name, $row->psc_name, $row->pssc_name, $row->pos_td_qty, $bandrol, $purchase, $row->pos_td_sell_price, $row->pos_td_discount, $total_price, $total_price, $b1g1];
+                    $export[] = [date('d/m/Y H:i:s', strtotime($row->ptd_created)), $row->st_name, $row->pos_invoice, $row->cross_order, $row->cust_name, $row->u_name, $row->dv_name, $row->stkt_name, $row->br_name, $row->ps_barcode, $row->p_name, $row->p_color, $row->sz_name, $row->pc_name, $row->psc_name, $row->pssc_name, $row->pos_td_qty, $bandrol, $purchase, $row->pos_td_sell_price, $row->pos_td_sell_price - $row->pos_td_total_price,  $row->pos_td_total_price, $total_price, $b1g1];
                 }
             }
         }
