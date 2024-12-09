@@ -43,7 +43,7 @@ class ArticleReportExport implements FromCollection, withHeadings
         if ($this->type == 'article') {
             $data = DB::table('pos_transaction_details')->select('pos_transaction_details.id as ptd_id', 'st_name', 'pos_transaction_details.created_at as ptd_created', 'pos_transaction_details.pst_id as pst_id', 'pos_invoice', 'cross_order', 'u_name',
                 'dv_name', 'br_name', 'ps_barcode', 'pc_name', 'psc_name', 'pssc_name', 'cust_name', 'p_name', 'p_color', 'pos_td_sell_price', 'sz_name', 'pos_td_qty', 'stkt_name', 'p_purchase_price', 'p_price_tag', 'std_id', 'ps_sell_price', 'pos_td_discount_price',
-                'pos_td_discount_price', 'pos_td_marketplace_price', 'pos_status', 'pos_note', 'pos_refund', 'pt_id',
+                'pos_td_discount_price', 'pos_td_discount','pos_td_marketplace_price', 'pos_status', 'pos_note', 'pos_refund', 'pt_id',
                 'p_purchase_price', 'ps_purchase_price', DB::raw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase", 'poad_total_price', 'poad_qty'))
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                 ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
