@@ -1,4 +1,3 @@
-
 @extends('app.structure')
 @section('content')
     <!--begin::Content-->
@@ -18,7 +17,8 @@
                 </div>
                 <div class="row">
                     <div class="form-group" style="padding-top:22px;">
-                        <select class="form-control bg-primary text-white" id="st_id_filter" name="st_id_filter" required>
+                        <select class="form-control bg-primary text-white" id="st_id_filter" name="st_id_filter"
+                                required>
                             <option value="">- Storage -</option>
                             @foreach ($data['st_id'] as $key => $value)
                                 @if ($key == $data['user']->st_id)
@@ -117,46 +117,50 @@
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-2">
                                         <button style="white-space: nowrap;" type="button"
-                                            class="btn btn-primary font-weight-bolder mb-2" id="reset_btn"
-                                            aria-haspopup="true" aria-expanded="false">
+                                                class="btn btn-primary font-weight-bolder mb-2" id="reset_btn"
+                                                aria-haspopup="true" aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                                 <svg xmlns="http://www.w3.org/2000/svg"
-                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
-                                                    viewBox="0 0 24 24" version="1.1">
+                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
+                                                     height="24px"
+                                                     viewBox="0 0 24 24" version="1.1">
                                                     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                                        <rect x="0" y="0" width="24" height="24" />
+                                                        <rect x="0" y="0" width="24" height="24"/>
                                                         <path
-                                                            d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                            fill="#000000" opacity="0.3" />
+                                                                d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                                fill="#000000" opacity="0.3"/>
                                                         <path
-                                                            d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                            fill="#000000" />
+                                                                d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                                fill="#000000"/>
                                                     </g>
                                                 </svg>
                                                 <!--end::Svg Icon-->
-                                            </span>Reset</button>
+                                            </span>Reset
+                                        </button>
                                         {{--                                    @if (strtolower($data['user']->stt_name) == 'offline') --}}
                                         <button style="white-space: nowrap;" type="button"
-                                            class="btn btn-primary font-weight-bolder mb-2" id="pickup_list_btn"
-                                            aria-haspopup="true" aria-expanded="false">
+                                                class="btn btn-primary font-weight-bolder mb-2" id="pickup_list_btn"
+                                                aria-haspopup="true" aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                                 <svg xmlns="http://www.w3.org/2000/svg"
-                                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
-                                                    viewBox="0 0 24 24" version="1.1">
+                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
+                                                     height="24px"
+                                                     viewBox="0 0 24 24" version="1.1">
                                                     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                                        <rect x="0" y="0" width="24" height="24" />
+                                                        <rect x="0" y="0" width="24" height="24"/>
                                                         <path
-                                                            d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
-                                                            fill="#000000" opacity="0.3" />
+                                                                d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                                fill="#000000" opacity="0.3"/>
                                                         <path
-                                                            d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
-                                                            fill="#000000" />
+                                                                d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                                fill="#000000"/>
                                                     </g>
                                                 </svg>
                                                 <!--end::Svg Icon-->
-                                            </span>Pickup List</button>
+                                            </span>Pickup List
+                                        </button>
                                         {{--                                    @endif --}}
                                     </div>
                                     <!--end::Dropdown-->
@@ -169,8 +173,8 @@
                                     <div id="reader" class="rounded"></div>
                                     <div id="result"></div>
                                     <input type="text" class="form-control" id="stock_data_search"
-                                        placeholder="Ketik 3 huruf pertama Nama Produk atau Kode Artikel"
-                                        style="border:1px solid black; padding:20px; background:#efefef;" /><br />
+                                           placeholder="Ketik 3 huruf pertama Nama Produk atau Kode Artikel"
+                                           style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>
 
                                     <div class="mt-3">
@@ -178,19 +182,31 @@
                                             Semua Varian
                                         </button>
                                         <button type="button" class="btn btn-primary btn-sm" id="pickAvailableBtn">Stok
-                                            Tersedia</button>
+                                            Tersedia
+                                        </button>
                                         <input type="hidden" value="" id="is_zero">
                                     </div>
                                 </form>
+                                <h5>Keterangan</h5>
+                                <div class="mt-3">
+                                    <button class="btn btn-sm btn-info">•</button>
+                                    : Stok Toko |
+                                    <button class="btn btn-sm btn-success ml-2">•</button>
+                                    : Stok gudang |
+                                    <button class="btn btn-sm ml-2" style="background-color: green; color: white;">•</button>
+                                    : Stok Defect |
+                                    <button class="btn btn-sm btn-warning ml-2">•</button>
+                                    : Stok Special Sale
+                                </div>
 
 
                                 <table class="table table-hover table-checkable" id="StockDatatb">
                                     <thead class="bg-light text-dark">
-                                        <tr>
-                                            <th class="text-dark" style="width: 80%;">Available Stock
-                                            </th>
-                                            <th class="hidden"></th>
-                                        </tr>
+                                    <tr>
+                                        <th class="text-dark" style="width: 80%;">Available Stock
+                                        </th>
+                                        <th class="hidden"></th>
+                                    </tr>
                                     </thead>
                                     <tbody>
 
@@ -211,7 +227,7 @@
     @include('app.stock_data.stock_data_modal')
     @include('app._partials.js')
     @include('app.stock_data.stock_data_js')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 @endSection()
@@ -222,15 +238,18 @@
         white-space: nowrap;
         padding: 10px;
     }
+
     #StockDatatb th.hidden {
         width: 20%;
     }
+
     @media only screen and (max-width: 1080px) {
         .table tbody tr {
             display: block;
             width: 100%;
             margin-bottom: 15px;
         }
+
         .table tbody td {
             display: block;
             text-align: left;
@@ -238,6 +257,7 @@
             padding: 10px 5px;
             position: relative;
         }
+
         .table tbody td:before {
             content: attr(data-label);
             position: absolute;
