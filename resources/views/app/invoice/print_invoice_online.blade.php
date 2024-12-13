@@ -164,6 +164,7 @@
                             $nameset = 0;
                             $total_potongan = $data['invoice_data'][0]['$total_discount'];
                             $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
+                            $discount_platform = $data['invoice_data'][0]['$discount_platform'];
                             foreach ($row->subitem as $srow) {
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
                                 if (!array_key_exists($key, $groups)) {
@@ -193,10 +194,11 @@
 
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                                 $total_item += $srow->qty;
-                                $calculated_price = ($srow->original_price * $srow->qty)- $srow->discount_seller; // Calculate the effective price
+                                $calculated_price = ($srow->original_price * $srow->qty)- ($srow->discount_seller + $srow->discount_platform); // Calculate the effective price
                                 $total_price += $calculated_price; // Accumulate total price
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_potongan += $srow->total_discount;
+                                $discount_platform += $srow->discount_platform;
                             @endphp
 
                             <tr style="margin-bottom:15px;">
@@ -242,12 +244,26 @@
                         </tr>
                         <tr>
                             <td colspan="3" class="final-price">
-                                <span style="float:left;">DISKON</span>
+                                <span style="float:left;">DISKON SELLER</span>
                             </td>
                             <td class="final-price">
                         <span style="float:right;">
                              @if (!empty($total_potongan))
                                 {{ number_format($total_potongan) }}
+                            @else
+                                0
+                            @endif
+                        </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="final-price">
+                                <span style="float:left;">DISKON PLATFORM</span>
+                            </td>
+                            <td class="final-price">
+                        <span style="float:right;">
+                             @if (!empty($discount_platform))
+                                {{ number_format($discount_platform) }}
                             @else
                                 0
                             @endif
