@@ -215,7 +215,7 @@
                                         @endif
 
                                         @if(!empty($srow->total_discount))
-                                            <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->total_discount) }})</span>
+                                            <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->discount_seller + $srow->discount_platform) }})</span>
                                         @endif
                                     </td>
 
