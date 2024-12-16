@@ -824,6 +824,8 @@ class PointOfSaleController extends Controller
                             ]
                         ]);
 
+                        dd($response);
+
                         if ($response->getStatusCode() == 200) {
                             $responseData = json_decode($response->getBody()->getContents(), true);
                         }
