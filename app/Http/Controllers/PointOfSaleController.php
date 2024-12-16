@@ -815,6 +815,8 @@ class PointOfSaleController extends Controller
 
                 $st_code = $store->st_code;
 
+                dd($st_code);
+
                 if ($st_code != 'MALANG') {
                     try {
                         $response = $client->get('http://jezdb:3002/api', [
