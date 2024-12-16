@@ -815,18 +815,15 @@ class PointOfSaleController extends Controller
 
                 $st_code = $store->st_code;
 
-                dd($st_code);
-
                 if ($st_code != 'MALANG') {
                     try {
-                        $response = $client->get('http://jezdb:3002/api', [
+                        $response = $client->get('http://jezdb.com:3002/api', [
                             'query' => [
                                 'nohp' => $nohp,
                                 'pesan' => $pesan,
                             ]
                         ]);
 
-                        dd($response);
 
                         if ($response->getStatusCode() == 200) {
                             $responseData = json_decode($response->getBody()->getContents(), true);
@@ -837,7 +834,7 @@ class PointOfSaleController extends Controller
                     }
                 } else {
                     try {
-                        $response = $client->get('http://jezdb:3002/api', [
+                        $response = $client->get('http://jezdb.com:3002/api', [
                             'query' => [
                                 'nohp' => $nohp,
                                 'pesan' => $pesan,
