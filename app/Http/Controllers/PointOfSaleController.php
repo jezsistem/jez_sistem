@@ -817,7 +817,7 @@ class PointOfSaleController extends Controller
 
                 if ($st_code != 'MALANG') {
                     try {
-                        $response = $client->get('http://192.168.3.210:3001/api', [
+                        $response = $client->get('http://jezdb:3001/api', [
                             'query' => [
                                 'nohp' => $nohp,
                                 'pesan' => $pesan,
@@ -833,7 +833,7 @@ class PointOfSaleController extends Controller
                     }
                 } else {
                     try {
-                        $response = $client->get('http://192.168.3.210:3001/api', [
+                        $response = $client->get('http://jezdb:3001/api', [
                             'query' => [
                                 'nohp' => $nohp,
                                 'pesan' => $pesan,

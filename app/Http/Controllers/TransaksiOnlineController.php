@@ -774,7 +774,7 @@ class TransaksiOnlineController extends Controller
                 $province = $item[18];
 
                 $rowData = [
-                    'st_id' => $st_id,
+                    'st_id' => '20',
                     'order_number' => $order_number,
                     'order_status' => $order_status,
                     'reason_cancellation' => $reason_cancellation,
