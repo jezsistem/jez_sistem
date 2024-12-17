@@ -112,7 +112,7 @@
                                         <th class="text-dark">Artikel</th>
                                         <th class="text-dark">Warna</th>
                                         <th class="text-dark">Size</th>
-                                        <th class="text-dark">Qty</th>
+                                        <th class="text-dark">Qty Terima</th>
                                         <th class="text-dark">HB</th>
                                         <th class="text-dark">HJ</th>
                                         <th class="text-dark">Penerima</th>
