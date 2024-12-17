@@ -22,7 +22,7 @@ class StdExport implements FromCollection , withHeadings
 
     public function headings(): array
     {
-        return ["Tanggal Dibuat", "Tanggal Terima", "Kode", "Pengirim", "Store Asal", "Store Tujuan", "Penerima", "Brand", "SKU","Artikel", "Warna", "Size", "Qty Request", "Qty Terima", "HPP", "Harga Jual"];
+        return ["Tanggal Dibuat", "Tanggal Terima", "Kode", "Pengirim", "Store Asal", "Store Tujuan", "Penerima", "Brand", "SKU","Artikel", "Warna", "Size", "Qty Request", "Qty Terima", "HPP", "Harga Jual", "Status Transfer"];
     }
 
     public function collection()
@@ -74,13 +74,15 @@ class StdExport implements FromCollection , withHeadings
                 if (!empty($receiver)) {
                     $receiver = $receiver->u_name;
                     $date_receive = date("d/m/Y H:i:s", strtotime($row->created_at_receive));
+                    $status_transfer = 'Done';
                 } else {
                     $receiver = '-';
                     $date_receive = '-';
+                    $status_transfer = 'In Progress';
                 }
                 $store_sender = DB::table('stores')->select('st_name')->where('id', '=', $row->st_id_start)->get()->first()->st_name;
                 $store_receiver = DB::table('stores')->select('st_name')->where('id', '=', $row->st_id_end)->get()->first()->st_name;
-                $export[] = [date('d/m/Y H:i:s', strtotime($row->created_at)), $date_receive, $row->stf_code, $sender, $store_sender, $store_receiver, $receiver, $row->br_name, $row->ps_barcode ,$row->p_name, $row->p_color, $row->sz_name, $row->stfd_qty, $row->qty_receive, $row->ps_purchase_price, $hj];
+                $export[] = [date('d/m/Y H:i:s', strtotime($row->created_at)), $date_receive, $row->stf_code, $sender, $store_sender, $store_receiver, $receiver, $row->br_name, $row->ps_barcode ,$row->p_name, $row->p_color, $row->sz_name, $row->stfd_qty, $row->qty_receive, $row->ps_purchase_price, $hj, $status_transfer];
             }
         }
         return collect($export);
