@@ -238,7 +238,7 @@
                 { data: 'sz_name', name: 'sz_name' },
                 { data: 'psc_name', name: 'psc_name' },
                 { data: 'pls_qty', name: 'pls_qty' },
-                { data: 'purchase', name: 'purchase'},
+                { data: 'purchase', name: 'purchase_1'},
                 { data: 'sell', name: 'sell', orderable: false },
             ],
             columnDefs: [
@@ -387,8 +387,6 @@
             var id = $(this).val();
             var label = $('#bin_filter option:selected').text();
             pl_id.push(id);
-
-            console.log(id)
             $('#bin_filter_panel').append("<a class='btn-sm btn-success col-2 mt-1 text-center pl_label"+id+"' id='pl_label' data-id='"+id+"'>"+label+"</a>");
             stock_table.draw();
             loadLocation(st_id);

@@ -2,11 +2,13 @@
 
 namespace App\Imports;
 
+use App\Exports\EqualExport;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MassImport implements ToCollection, WithStartRow
 {
@@ -53,8 +55,8 @@ class MassImport implements ToCollection, WithStartRow
                 return null;
             }
             $pls_id = $r[0];
-            $qty_export = (int)$r[10];
-            $qty_so = (int)$r[11];
+            $qty_export = (int)$r[9];
+            $qty_so = (int)$r[10];
             $type = null;
             $diff = null;
             if ($qty_export > $qty_so) {
@@ -82,18 +84,37 @@ class MassImport implements ToCollection, WithStartRow
                 ]);
                 $this->ma_id_throw = $ma_id;
             }
-            $detail[] = [
-                'ma_id' => $ma_id,
-                'pls_id' => $pls_id,
-                'qty_export' => $qty_export,
-                'qty_so' => $qty_so,
-                'mad_type' => $type,
-                'mad_diff' => $diff,
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s')
-            ];
+
+            if ($type != '=') {
+                $detail[] = [
+                    'ma_id' => $ma_id,
+                    'pls_id' => $pls_id,
+                    'qty_export' => $qty_export,
+                    'qty_so' => $qty_so,
+                    'mad_type' => $type,
+                    'mad_diff' => $diff,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+            } else {
+                $equal[] = [
+                    'ma_id' => $ma_id,
+                    'pls_id' => $pls_id,
+                    'qty_export' => $qty_export,
+                    'qty_so' => $qty_so,
+                    'mad_type' => $type,
+                    'mad_diff' => $diff,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+            }
         }
         $insert = DB::table('mass_adjustment_details')->insert($detail);
+
+        if (!empty($equal)) {
+            // Use Laravel Excel to create and export the file
+            return Excel::download(new EqualExport($equal), 'equal_data.xlsx');
+        }
     }
 
     public function getRowCount(): array
