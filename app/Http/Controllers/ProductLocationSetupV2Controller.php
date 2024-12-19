@@ -315,7 +315,7 @@ class ProductLocationSetupV2Controller extends Controller
                                     ->orWhere('p_name', 'LIKE', "%$search%")
                                     ->orWhere('br_name', 'LIKE', "%$search%")
                                     ->orWhere('article_id', 'LIKE', "%$search%")
-                                    ->orWhere('ps_barcode', 'LIKE', "%$search%")
+                                    ->orWhere('ps_barcode', '=', "$search")
                                     ->orWhere('p_color', 'LIKE', "%$search%");
                             });
                         }
