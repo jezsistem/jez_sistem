@@ -226,7 +226,7 @@ class ProductLocationSetupV2Controller extends Controller
                     ->where(function ($w) use ($st_id, $st_city) {
                         $w->where('product_locations.pl_description', '=', $st_city->st_code);
                     })
-                    ->where('pls_qty', '>', '0')
+//                    ->where('pls_qty', '>', '0')
                     ->groupBy('products.id'))
                     ->editColumn('article', function ($data) {
                         $arr_name = array();
