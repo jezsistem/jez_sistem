@@ -45,6 +45,8 @@
                 </div>
                 <div class="modal-body">
                     <div class="card-body">
+                        <p><b>Pastikan Anda menggunakan template import yang hanya berisi dua kolom, yaitu kolom kode SKU dan Qty mutasi
+                            Format File wajib CSV</b></p>
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi data</label>
                             <span class="text-danger">*</span></label>
