@@ -204,7 +204,14 @@ class MassAdjustmentController extends Controller
                         return 'Selesai';
                     }
                 })
-                ->rawColumns(['ma_code_show'])
+                ->editColumn('action', function ($d) {
+                    if ($d->ma_status == '0') {
+                        return "<a class='btn btn-success' id='btn_cancel' data-id='".$d->id."'>Batalkan</a>";
+                    } else {
+                        return "<a class='btn btn-danger'>Done</a>";
+                    }
+                })
+                ->rawColumns(['ma_code_show', 'action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function($w) use($request){
@@ -499,6 +506,37 @@ class MassAdjustmentController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function cancelAdjustment(Request $request)
+    {
+        // Validate the incoming request
+        $request->validate([
+            'ma_id' => 'required|integer|exists:mass_adjustments,id', // Adjust table and column names
+        ]);
+
+        try {
+            // Find the record by ID
+            $massAdjustment = MassAdjustments::findOrFail($request->ma_id);
+
+            // Delete the record
+            $massAdjustment->delete();
+
+            // Return success response
+            return response()->json([
+                'status' => '200',
+                'message' => 'Data berhasil dihapus.'
+            ]);
+        } catch (\Exception $e) {
+            // Log the error if needed
+            \Log::error('Error deleting mass adjustment: '.$e->getMessage());
+
+            // Return error response
+            return response()->json([
+                'status' => '500',
+                'message' => 'Terjadi kesalahan saat menghapus data.'
+            ]);
+        }
     }
 
     public function execData(Request $req)

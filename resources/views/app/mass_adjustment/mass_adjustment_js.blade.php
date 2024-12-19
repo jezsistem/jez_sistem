@@ -277,6 +277,7 @@
                 { data: 'created_at', name: 'created_at'},
                 { data: 'updated_at', name: 'updated_at'},
                 { data: 'ma_status', name: 'ma_status'},
+                { data: 'action', name: 'action'},
             ],
             columnDefs: [
                 {
@@ -375,6 +376,47 @@
         $(document).delegate('#export_btn', 'click', function(e) {
             e.preventDefault();
             exportTable();
+        });
+
+        // sini
+        $(document).delegate('#btn_cancel', 'click', function(e) {
+            e.preventDefault();
+            var id = $(this).attr('data-id');
+
+            swal({
+                title: "Cancel..?",
+                text: "Yakin cancel?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Yakin'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {ma_id:$('#ma_code').attr('data-id')},
+                        dataType: 'json',
+                        url: "{{ url('mass_adjustment_cancel')}}",
+                        success: function(r) {
+                            if (r.status == '200'){
+                                swal("Berhasil", "Berhasil dihapus", "success");
+                                loadApproval();
+                                mass_adjustment_table.draw(false);
+                            } else {
+                                swal('Gagal', 'Gagal hapus data', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
         });
 
         $(document).delegate('#export_mad_btn', 'click', function(e) {

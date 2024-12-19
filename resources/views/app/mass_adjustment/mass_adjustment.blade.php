@@ -166,6 +166,7 @@
                                         <th class="text-dark">Dibuat</th>
                                         <th class="text-dark">Diupdate</th>
                                         <th class="text-dark">Status</th>
+                                        <th class="text-dark">Action</th>
                                     </tr>
                                     </thead>
                                     <tbody>

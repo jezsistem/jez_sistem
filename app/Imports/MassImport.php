@@ -107,14 +107,14 @@ class MassImport implements ToCollection, WithStartRow
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s')
                 ];
+
+//                if (!empty($equal)) {
+//                    // Use Laravel Excel to create and export the file
+//                    return Excel::download(new EqualExport($equal), 'equal_data.xlsx');
+//                }
             }
         }
         $insert = DB::table('mass_adjustment_details')->insert($detail);
-
-        if (!empty($equal)) {
-            // Use Laravel Excel to create and export the file
-            return Excel::download(new EqualExport($equal), 'equal_data.xlsx');
-        }
     }
 
     public function getRowCount(): array
