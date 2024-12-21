@@ -150,7 +150,7 @@ class PointOfSaleController extends Controller
             ->first();
 
         $startTimeStamp = $current_shift->start_time;
-        $endTime =  $current_shift->end_time;
+        $endTime = $current_shift->end_time;
 
         $startTime = $startTimeStamp = date('Y-m-d H:i:s', strtotime($startTimeStamp));
 
@@ -808,51 +808,53 @@ class PointOfSaleController extends Controller
                 $store_name = $store->name;
 
 
-                //                $client = new Client();
-                //                $nohp = $customer->cust_phone;
-                //                $receipt_url = url('/e_receipt/'.$invoice);
-                //                $pesan = "Struk belanja $store_name, \n\nTerima kasih telah melakukan pembelian dengan total pembelian Rp. $real_price. \nLihat detail & beri saran di $receipt_url \n\n[ABAIKAN BILA TIDAK MEMBELI]";
-                //
-                //                $st_code = $store->st_code;
-                //
-                //                if ($st_code != 'MALANG') {
-                //                    try {
-                //                        $response = $client->get('http://jezdb.com:3001/api', [
-                //                            'query' => [
-                //                                'nohp' => $nohp,
-                //                                'pesan' => $pesan,
-                //                            ]
-                //                        ]);
-                //
-                //                        if ($response->getStatusCode() == 200) {
-                //                            $responseData = json_decode($response->getBody()->getContents(), true);
-                //                        }
-                //                    } catch (\Exception $e) {
-                //                        $r['status'] = '500';
-                //                        $r['message'] = 'Error communicating with external API';
-                //                    }
-                //                } else {
-                //                    try {
-                //                        $response = $client->get('http://jezdb.com:3001/api', [
-                //                            'query' => [
-                //                                'nohp' => $nohp,
-                //                                'pesan' => $pesan,
-                //                            ]
-                //                        ]);
-                //
-                //                        if ($response->getStatusCode() == 200) {
-                //                            $responseData = json_decode($response->getBody()->getContents(), true);
-                //                        }
-                //                    } catch (\Exception $e) {
-                //                        $r['status'] = '500';
-                //                        $r['message'] = 'Error communicating with external API';
-                //                    }
-                //                }
+                $client = new Client();
+                $nohp = $customer->cust_phone;
+                $receipt_url = url('/e_receipt/' . $invoice);
+                $pesan = "Struk belanja $store_name, \n\nTerima kasih telah melakukan pembelian dengan total pembelian Rp. $real_price. \nLihat detail & beri saran di $receipt_url \n\n[ABAIKAN BILA TIDAK MEMBELI]";
+
+                $st_code = $store->st_code;
+
+                if ($st_code != 'MALANG') {
+                    try {
+                        $response = $client->get('http://jezdb.com:3002/api', [
+                            'query' => [
+                                'nohp' => $nohp,
+                                'pesan' => $pesan,
+                            ]
+                        ]);
+
+
+                        if ($response->getStatusCode() == 200) {
+                            $responseData = json_decode($response->getBody()->getContents(), true);
+                        }
+                    } catch (\Exception $e) {
+                        $r['status'] = '500';
+                        $r['message'] = 'Error communicating with external API';
+                    }
+                } else {
+                    try {
+                        $response = $client->get('http://jezdb.com:3002/api', [
+                            'query' => [
+                                'nohp' => $nohp,
+                                'pesan' => $pesan,
+                            ]
+                        ]);
+
+                        if ($response->getStatusCode() == 200) {
+                            $responseData = json_decode($response->getBody()->getContents(), true);
+                        }
+                    } catch (\Exception $e) {
+                        $r['status'] = '500';
+                        $r['message'] = 'Error communicating with external API';
+                    }
+                }
 
 
                 $r['status'] = '200';
                 $r['pt_id'] = $insert_get_id;
                 $r['invoice'] = $invoice;
+                $r['no_hp'] = $nohp;
             } else {
                 $r['status'] = '400';
             }
@@ -1333,7 +1335,7 @@ class PointOfSaleController extends Controller
             $date2_remain_po = date('Y-m-d H:i:s');
             $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
             if ($date1_remain_po > $date2_remain_po) {
-                $diff_remain_po = - ($diff_remain_po);
+                $diff_remain_po = -($diff_remain_po);
             }
             $days_remain_po = round($diff_remain_po / 86400);
         }
@@ -1342,7 +1344,7 @@ class PointOfSaleController extends Controller
             $date2_remain_tf = date('Y-m-d H:i:s');
             $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
             if ($date1_remain_tf > $date2_remain_tf) {
-                $diff_remain_tf = - ($diff_remain_tf);
+                $diff_remain_tf = -($diff_remain_tf);
             }
             $days_remain_tf = round($diff_remain_tf / 86400);
         }

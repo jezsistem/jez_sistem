@@ -286,9 +286,9 @@ class POReceiveApprovalController extends Controller
                     ->where('pl_id', '=', $bin)->first();
                 if (!empty($check_pl)) {
                     $pls_qty = $check_pl->pls_qty;
-                    if ($pls_qty < 0) {
-                        $pls_qty = 0;
-                    }
+//                    if ($pls_qty < 0) {
+//                        $pls_qty = 0;
+//                    }
                     $pl_id = $check_pl->pl_id;
                     $update_setup = DB::table('product_location_setups')->where('id', '=', $check_pl->id)->update([
                         'pls_qty' => ($pls_qty + $row->poads_qty)

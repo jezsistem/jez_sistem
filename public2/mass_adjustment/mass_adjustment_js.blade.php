@@ -238,7 +238,7 @@
                 { data: 'sz_name', name: 'sz_name' },
                 { data: 'psc_name', name: 'psc_name' },
                 { data: 'pls_qty', name: 'pls_qty' },
-                { data: 'purchase', name: 'purchase'},
+                { data: 'purchase', name: 'purchase_1'},
                 { data: 'sell', name: 'sell', orderable: false },
             ],
             columnDefs: [
@@ -277,7 +277,6 @@
                 { data: 'created_at', name: 'created_at'},
                 { data: 'updated_at', name: 'updated_at'},
                 { data: 'ma_status', name: 'ma_status'},
-                { data: 'action', name: 'action'},
             ],
             columnDefs: [
                 {
@@ -378,47 +377,6 @@
             exportTable();
         });
 
-        // sini
-        $(document).delegate('#btn_cancel', 'click', function(e) {
-            e.preventDefault();
-            var id = $(this).attr('data-id');
-
-            swal({
-                title: "Cancel..?",
-                text: "Yakin cancel?",
-                icon: "warning",
-                buttons: [
-                    'Batalkan',
-                    'Yakin'
-                ],
-                dangerMode: true,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        data: {ma_id:$('#ma_code').attr('data-id')},
-                        dataType: 'json',
-                        url: "{{ url('mass_adjustment_cancel')}}",
-                        success: function(r) {
-                            if (r.status == '200'){
-                                swal("Berhasil", "Berhasil dihapus", "success");
-                                loadApproval();
-                                mass_adjustment_table.draw(false);
-                            } else {
-                                swal('Gagal', 'Gagal hapus data', 'error');
-                            }
-                        }
-                    });
-                    return false;
-                }
-            })
-        });
-
         $(document).delegate('#export_mad_btn', 'click', function(e) {
             e.preventDefault();
             exportResult();
@@ -429,8 +387,6 @@
             var id = $(this).val();
             var label = $('#bin_filter option:selected').text();
             pl_id.push(id);
-
-            console.log(id)
             $('#bin_filter_panel').append("<a class='btn-sm btn-success col-2 mt-1 text-center pl_label"+id+"' id='pl_label' data-id='"+id+"'>"+label+"</a>");
             stock_table.draw();
             loadLocation(st_id);

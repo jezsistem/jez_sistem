@@ -226,7 +226,7 @@ class ProductLocationSetupV2Controller extends Controller
                     ->where(function ($w) use ($st_id, $st_city) {
                         $w->where('product_locations.pl_description', '=', $st_city->st_code);
                     })
-                    ->where('pls_qty', '>', '0')
+//                    ->where('pls_qty', '>', '0')
                     ->groupBy('products.id'))
                     ->editColumn('article', function ($data) {
                         $arr_name = array();
@@ -286,7 +286,7 @@ class ProductLocationSetupV2Controller extends Controller
                             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                             ->where('product_location_setups.pl_id', '=', $request->pl_id)
                             ->where('product_stocks.p_id', '=', $data->p_id)
-                            ->where('pls_qty', '>', 0)
+//                            ->where('pls_qty', '>', 0)
                             ->get();
 
                         if (!empty($check_pst)) {
@@ -315,7 +315,7 @@ class ProductLocationSetupV2Controller extends Controller
                                     ->orWhere('p_name', 'LIKE', "%$search%")
                                     ->orWhere('br_name', 'LIKE', "%$search%")
                                     ->orWhere('article_id', 'LIKE', "%$search%")
-                                    ->orWhere('ps_barcode', 'LIKE', "%$search%")
+                                    ->orWhere('ps_barcode', '=', "$search")
                                     ->orWhere('p_color', 'LIKE', "%$search%");
                             });
                         }
@@ -443,7 +443,7 @@ class ProductLocationSetupV2Controller extends Controller
 //                    $w->where('product_locations.st_id', '=', $st_id);
                     $w->where('product_locations.pl_description', '=', $st_city->st_code);
                 })
-                ->where('pls_qty', '>', '0')
+//                ->where('pls_qty', '>', '0')
                 ->groupBy('products.id'))
                 ->editColumn('article', function ($data) {
                     $arr_name = array();
@@ -479,7 +479,7 @@ class ProductLocationSetupV2Controller extends Controller
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->where('product_location_setups.pl_id', '=', $request->pl_id)
                         ->where('product_stocks.p_id', '=', $data->p_id)
-                        ->where('pls_qty', '>', 0)
+//                        ->where('pls_qty', '>', 0)
                         ->get();
                     if (!empty($check_pst)) {
                         $sz_name = '';
@@ -625,6 +625,7 @@ class ProductLocationSetupV2Controller extends Controller
         $pmt_qty = $request->_pmt_qty;
         $pl_id_end = $request->_pl_id_end;
 
+
         //Delete Temp Data
         TempMutasi::truncate();
 
@@ -638,9 +639,9 @@ class ProductLocationSetupV2Controller extends Controller
 
             $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->get()->first();
             $qty_destination = $data_destination->pls_qty;
-            if ($qty_destination < 0) {
-                $qty_destination = 0;
-            }
+//            if ($qty_destination < 0) {
+//                $qty_destination = 0;
+//            }
             $update_data_destination = [
                 'pls_qty' => $pmt_qty + $qty_destination
             ];

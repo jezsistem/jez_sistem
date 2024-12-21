@@ -232,7 +232,7 @@ class StockTransferDataController extends Controller
 
         if (request()->ajax()) {
             return datatables()->of(DB::table('stock_transfer_detail_statuses')
-                ->select('stock_transfer_detail_statuses.id', 'st_name', 'stf_code', 'st_id_start', 'br_name', 'ps_sell_price', 'p_sell_price', 'p_name', 'p_color', 'sz_name', 'stfds_qty', 'stock_transfer_details.pst_id', 'stock_transfer_detail_statuses.created_at', 'u_id_receive', 'stock_transfer_detail_statuses.u_id')
+                ->select('stock_transfer_detail_statuses.id', 'st_name', 'stf_code', 'st_id_start', 'br_name', 'ps_sell_price', 'p_sell_price', 'p_name', 'p_color', 'sz_name', 'stfds_qty', 'stock_transfer_details.pst_id', 'stock_transfer_detail_statuses.created_at', 'u_id_receive', 'stock_transfer_detail_statuses.u_id', 'ps_purchase_price')
                 ->leftJoin('stock_transfer_details', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
                 ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
@@ -274,23 +274,23 @@ class StockTransferDataController extends Controller
                     return date('d/m/Y H:i:s', strtotime($d->created_at));
                 })
                 ->editColumn('hb', function ($d) {
-                    $hpp = 0;
-                    $poads = DB::table('purchase_order_article_detail_statuses')
-                        ->select('poads_purchase_price', 'ps_purchase_price')
-                        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-                        ->where('product_stocks.id', '=', $d->pst_id)
-                        ->whereNotNull('purchase_order_article_detail_statuses.poad_id')
-                        ->orderByDesc('purchase_order_article_detail_statuses.id')
-                        ->groupBy('poads_purchase_price')
-                        ->get()->first();
-                    if (!empty($poads)) {
-                        if (!empty($poads->poads_purchase_price)) {
-                            $hpp = $poads->poads_purchase_price;
-                        } else {
-                            $hpp = $poads->ps_purchase_price;
-                        }
-                    }
+                    $hpp = $d->ps_purchase_price;
+//                    $poads = DB::table('purchase_order_article_detail_statuses')
+//                        ->select('poads_purchase_price', 'ps_purchase_price')
+//                        ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+//                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+//                        ->where('product_stocks.id', '=', $d->pst_id)
+//                        ->whereNotNull('purchase_order_article_detail_statuses.poad_id')
+//                        ->orderByDesc('purchase_order_article_detail_statuses.id')
+//                        ->groupBy('poads_purchase_price')
+//                        ->get()->first();
+//                    if (!empty($poads)) {
+//                        if (!empty($poads->poads_purchase_price)) {
+//                            $hpp = $poads->poads_purchase_price;
+//                        } else {
+//                            $hpp = $poads->ps_purchase_price;
+//                        }
+//                    }
                     return $hpp;
                 })
                 ->editColumn('hj', function ($d) {
