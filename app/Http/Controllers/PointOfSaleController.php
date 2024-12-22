@@ -815,40 +815,40 @@ class PointOfSaleController extends Controller
 
                 $st_code = $store->st_code;
 
-                if ($st_code != 'MALANG') {
-                    try {
-                        $response = $client->get('http://jezdb.com:3002/api', [
-                            'query' => [
-                                'nohp' => $nohp,
-                                'pesan' => $pesan,
-                            ]
-                        ]);
-
-
-                        if ($response->getStatusCode() == 200) {
-                            $responseData = json_decode($response->getBody()->getContents(), true);
-                        }
-                    } catch (\Exception $e) {
-                        $r['status'] = '500';
-                        $r['message'] = 'Error communicating with external API';
-                    }
-                } else {
-                    try {
-                        $response = $client->get('http://jezdb.com:3002/api', [
-                            'query' => [
-                                'nohp' => $nohp,
-                                'pesan' => $pesan,
-                            ]
-                        ]);
-
-                        if ($response->getStatusCode() == 200) {
-                            $responseData = json_decode($response->getBody()->getContents(), true);
-                        }
-                    } catch (\Exception $e) {
-                        $r['status'] = '500';
-                        $r['message'] = 'Error communicating with external API';
-                    }
-                }
+//                if ($st_code != 'MALANG') {
+//                    try {
+//                        $response = $client->get('http://jezdb.com:3002/api', [
+//                            'query' => [
+//                                'nohp' => $nohp,
+//                                'pesan' => $pesan,
+//                            ]
+//                        ]);
+//
+//
+//                        if ($response->getStatusCode() == 200) {
+//                            $responseData = json_decode($response->getBody()->getContents(), true);
+//                        }
+//                    } catch (\Exception $e) {
+//                        $r['status'] = '500';
+//                        $r['message'] = 'Error communicating with external API';
+//                    }
+//                } else {
+//                    try {
+//                        $response = $client->get('http://jezdb.com:3002/api', [
+//                            'query' => [
+//                                'nohp' => $nohp,
+//                                'pesan' => $pesan,
+//                            ]
+//                        ]);
+//
+//                        if ($response->getStatusCode() == 200) {
+//                            $responseData = json_decode($response->getBody()->getContents(), true);
+//                        }
+//                    } catch (\Exception $e) {
+//                        $r['status'] = '500';
+//                        $r['message'] = 'Error communicating with external API';
+//                    }
+//                }
 
 
                 $r['status'] = '200';
