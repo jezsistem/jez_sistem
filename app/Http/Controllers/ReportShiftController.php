@@ -255,9 +255,9 @@ class ReportShiftController extends Controller
                 ->editColumn('total_pos_real_price', function ($row) {
                     return 'Rp. ' . number_format($row->total_pos_real_price, 0, ',', '.');
                 })
-                    ->editColumn('laba_shift', function ($row) {
-                        return 'Rp. ' . number_format($row->laba_shift, 0, ',', '.');
-                    })
+//                    ->editColumn('laba_shift', function ($row) {
+//                        return 'Rp. ' . number_format($row->laba_shift, 0, ',', '.');
+//                    })
                 ->editColumn('difference', function ($row) {
                     return 'Rp. ' . number_format($row->total_pos_real_price - $row->total_pos_payment_price, 0, ',', '.');
                 })

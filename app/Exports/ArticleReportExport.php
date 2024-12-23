@@ -279,7 +279,7 @@ class ArticleReportExport implements FromCollection, withHeadings
                     if (!empty($row->cp_id_partial)) {
                         $cp_two = DB::table('card_providers')->select('cp_name')->where('id', '=', $row->cp_id_partial)->get()->first()->cp_name;
                     }
-                    $export[] = [date('d/m/Y H:i:s', strtotime($row->pos_created)), $row->st_name, $row->pos_invoice, $row->cust_name, $row->cross_order, $row->u_name, $row->dv_name, $item_qty, $item_value, $row->pos_shipping, $row->pos_unique_code, $row->pos_admin_cost, $row->pos_another_cost, $nameset, $value_admin, $row->pos_total_discount, $row->pos_real_price, $total, $pm_one . ' ' . $cp_one, $row->pos_payment, $row->pos_card_number, $row->pos_ref_number, $pm_two . ' ' . $cp_two, $row->pos_payment_partial, $row->pos_card_number_two, $row->pos_ref_number_two, $row->pos_paid_dp, $row->pos_paid_dp_date, $row->pos_status, $row->pos_note];
+                    $export[] = [date('d/m/Y H:i:s', strtotime($row->pos_created)), $row->st_name, $row->pos_invoice, $row->cust_name, $row->cross_order, $row->u_name, $row->dv_name, $item_qty, $item_value, $row->pos_shipping, $row->pos_unique_code, $row->pos_admin_cost, $row->pos_another_cost, $nameset, $value_admin, $row->pos_total_discount, $row->pos_real_price, $pm_one , $pm_one . ' ' . $cp_one, $row->pos_payment, $row->pos_card_number, $row->pos_ref_number, $pm_two . ' ' . $cp_two, $row->pos_payment_partial, $row->pos_card_number_two, $row->pos_ref_number_two, $row->pos_paid_dp, $row->pos_paid_dp_date, $row->pos_status, $row->pos_note];
                 }
             }
         }
