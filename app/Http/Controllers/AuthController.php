@@ -91,6 +91,7 @@ class AuthController extends Controller
         $old_password = $request->_old_password;
         $data = [
             'password' => Hash::make($password),
+            'updated_at' => date('Y-m-d H:i:s')
         ];
 
         if(!Hash::check($old_password, Auth::user()->password)){
