@@ -197,8 +197,8 @@
                     name: 'poads_qty'
                 },
                 {
-                    data: 'ps_qty',
-                    name: 'ps_qty'
+                    data: 'pls_qty_current',
+                    name: 'pls_qty_current'
                 },
                 {
                     data: 'poad_purchase_price',

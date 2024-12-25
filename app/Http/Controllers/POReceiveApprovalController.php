@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\MainColor;
+use App\Models\ProductLocation;
+use App\Models\ProductLocationSetup;
 use App\Models\ProductSupplier;
 use App\Models\Size;
 use App\Models\StockType;
@@ -233,10 +235,10 @@ class POReceiveApprovalController extends Controller
             return datatables()->of(DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
                     u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, 
-                    poad_purchase_price, ts_product_stocks.ps_barcode, ts_product_stocks.ps_qty,
+                    poad_purchase_price, ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty,
                     poad_total_price, ts_purchase_order_article_detail_statuses.created_at, 
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id") // Added stkt_id and tax_id
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.st_id as st_id") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
@@ -254,10 +256,21 @@ class POReceiveApprovalController extends Controller
                         return '';
                     }
                 })
+                ->editColumn('pls_qty_current', function ($d) {
+                    $location = ProductLocation::select('pl_description as city')->where('st_id', $d->st_id)->get()->first();
+
+                    $result = ProductLocationSetup::selectRaw('SUM(ts_product_location_setups.pls_qty) AS total_pls_qty')
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->where('pl_description', $location->city)
+                        ->where('pst_id', $d->pst_id)
+                        ->first();
+
+                    return $result ? $result->total_pls_qty : 0;
+                })
                 ->editColumn('created_at_show', function ($d) {
                     return date('d/m/Y H:i:s', strtotime($d->created_at));
                 })
-                ->rawColumns(['delete'])
+                ->rawColumns(['delete', 'pls_qty_current'])
                 ->addIndexColumn()
                 ->make(true);
         }
