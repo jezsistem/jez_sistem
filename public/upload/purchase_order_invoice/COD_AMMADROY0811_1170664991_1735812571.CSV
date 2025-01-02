@@ -1,0 +1,10 @@
+Account No.,=,'4480699195
+Name,=,MUHAMMAD ROYYAN ZA
+Currency,=,IDR
+
+Date,Description,Branch,Amount,,Balance
+'PEND,TRSF E-BANKING CR 0101/PYBCA/WS9505124020202          SISA BONUS 2024   ZONA KARYA NUSANTA,'0000,2775000.00,CR,5697908.23
+Starting Balance,=,2922908.23
+Credit,=,2775000.00
+Debet,=,
+Ending Balance,=,5697908.23

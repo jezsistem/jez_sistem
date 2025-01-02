@@ -165,17 +165,23 @@ class PurchaseOrderReceiveCODController extends Controller
         }
     }
 
-
     public function uploadImageInvoice(Request $request)
     {
 
         $po_id = $request->_po_id;
+        $mode = 'COD';
         $check = PurchaseOrder::where(['id' => $po_id])->exists();
         if ($check) {
             if ($request->hasFile('imageInvoices')) {
                 foreach ($request->file('imageInvoices') as $file) {
                     $image = $file;
-                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+
+                    if ($mode == 'COD') {
+                        $name = 'COD_' . pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    } else {
+                        $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+                    }
+
                     $destinationPath = public_path('/upload/purchase_order_invoice');
 
                     // save destination path
@@ -196,6 +202,69 @@ class PurchaseOrderReceiveCODController extends Controller
         }
         return json_encode($r);
     }
+
+    public function getImageInvoiceDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id) {
+                $images = PurchaseOrderInvoiceImage::select('id', 'invoice_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'))->where('invoice_image', 'LIKE', '%COD%');
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->invoice_image)) {
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
+                        } else {
+                            //                            return '<a href="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).' target=_blank>$row->invoice_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
+                        }
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="' . $row->id . '">Delete</a>';
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
+
+//    public function uploadImageInvoice(Request $request)
+//    {
+//
+//        $po_id = $request->_po_id;
+//        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+//        if ($check) {
+//            if ($request->hasFile('imageInvoices')) {
+//                foreach ($request->file('imageInvoices') as $file) {
+//                    $image = $file;
+//                    $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
+//                    $destinationPath = public_path('/upload/purchase_order_invoice');
+//
+//                    // save destination path
+//                    $image->move($destinationPath, $name);
+//
+//                    PurchaseOrderInvoiceImage::create([
+//                        'purchase_order_id' => $po_id,
+//                        'invoice_image' => $name,
+//                    ]);
+//                }
+//            }
+//        }
+//
+//        if (!empty($check)) {
+//            $r['status'] = '200';
+//        } else {
+//            $r['status'] = '400';
+//        }
+//        return json_encode($r);
+//    }
 
     // update Purchase Order Article Detail Status is_paid to true
     public function updateIsPaid(Request $request)

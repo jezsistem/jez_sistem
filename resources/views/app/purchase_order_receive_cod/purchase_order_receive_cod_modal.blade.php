@@ -231,9 +231,9 @@
 
 
 <!-- Modal-->
-<form id="f_upload_pembayaran_image" enctype="multipart/form-data">
+<form id="f_upload_invoice_image" enctype="multipart/form-data">
     @csrf
-    <div class="modal fade" id="PembayaranCodModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="UploadImageInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-light">

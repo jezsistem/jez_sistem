@@ -141,6 +141,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('pocdetail_datatables', [PurchaseOrderReceiveCODController::class, 'getDetailDatatables']);
     Route::get('po_pembayaran_image', [PurchaseOrderReceiveCODController::class, 'uploadImageInvoice']);
     Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
-
-
+    Route::post('po_invoice_image_cod', [PurchaseOrderReceiveCODController::class, 'uploadImageInvoice']);
+    Route::get('po_invoice_image_datatable_cod', [PurchaseOrderReceiveCODController::class, 'getImageInvoiceDatatables']);
 });

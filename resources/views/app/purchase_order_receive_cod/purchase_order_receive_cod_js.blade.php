@@ -87,51 +87,53 @@
         });
 
         $('#SuratJalanImageBtn').on('click', function() {
-            console.log('kontol');
+            // console.log('kontol');
         });
 
-        {{--$('#f_upload_pembayaran_image').on('submit', function(e) {--}}
-        {{--    e.preventDefault();--}}
-        {{--    $('#upload_image_invoice_btn').html('Proses...');--}}
-        {{--    $('#upload_image_invoice_btn').attr('disabled', true);--}}
-        {{--    var formData = new FormData(this);--}}
-        {{--    var po_id = $('#_po_id').val();--}}
+        $('#f_upload_invoice_image').on('submit', function(e) {
+            e.preventDefault();
+            $('#upload_image_invoice_btn').html('Proses...');
+            $('#upload_image_invoice_btn').attr('disabled', true);
+            var formData = new FormData(this);
+            var po_id = $('#_po_id').val();
 
-        {{--    formData.append('_po_id', po_id)--}}
-        {{--    $.ajax({--}}
-        {{--        type: 'POST',--}}
-        {{--        url: "{{ url('po_pembayaran_image') }}",--}}
-        {{--        data: formData,--}}
-        {{--        dataType: 'json',--}}
-        {{--        cache: false,--}}
-        {{--        contentType: false,--}}
-        {{--        processData: false,--}}
-        {{--        success: function(data) {--}}
-        {{--            $("#upload_image_invoice_btn").html('Upload');--}}
-        {{--            $("#upload_image_invoice_btn").attr("disabled", false);--}}
-        {{--            jQuery.noConflict();--}}
-        {{--            if (data.status == '200') {--}}
-        {{--                $("#ImportModal").modal('hide');--}}
-        {{--                swal('Berhasil', 'Data berhasil diimport', 'success');--}}
-        {{--                $('#f_upload_invoice_image')[0].reset();--}}
-        {{--                reloadArticleDetail(po_id)--}}
-        {{--            } else if (data.status == '400') {--}}
-        {{--                $("#UploadImageInvoiceModal").modal('hide');--}}
-        {{--                swal('File', 'File yang anda import kosong atau format tidak tepat',--}}
-        {{--                    'warning');--}}
-        {{--            } else {--}}
-        {{--                $("#UploadImageInvoiceModal").modal('hide');--}}
-        {{--                swal('Gagal',--}}
-        {{--                    'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',--}}
-        {{--                    'warning');--}}
-        {{--            }--}}
-        {{--        },--}}
-        {{--        error: function(data) {--}}
-        {{--            swal('Error', data, 'error');--}}
+            formData.append('_po_id', po_id);
+            // console.log('COD');
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('po_invoice_image_cod') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#upload_image_invoice_btn").html('Upload');
+                    $("#upload_image_invoice_btn").attr("disabled", false);
+                    jQuery.noConflict();
+                    $("#UploadImageInvoiceModal").modal('hide');
 
-        {{--        }--}}
-        {{--    });--}}
-        {{--});--}}
+                    if (data.status == '200') {
+                        toastr.success('Data berhasil diimport', 'Berhasil');
+                        $('#f_upload_invoice_image')[0].reset();
+                        reloadArticleDetail(po_id);
+                        purchaseOrderInvoiceTable.draw();
+                    } else if (data.status == '400') {
+                        toastr.warning(
+                            'File yang anda import kosong atau format tidak tepat',
+                            'File');
+                    } else {
+                        toastr.warning(
+                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                            'Gagal');
+                    }
+                },
+                error: function(data) {
+                    toastr.error('Terjadi kesalahan saat mengupload data', 'Error');
+                }
+            });
+        });
+
 
         var purchaseOrderInvoiceTable = $('#InvoiceImagesTb').DataTable({
             destroy: true,
@@ -140,7 +142,7 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             ajax: {
-                url: "{{ url('po_invoice_image_datatable') }}",
+                url: "{{ url('po_invoice_image_datatable_cod') }}",
                 data: function(d) {
                     d._po_id = $('#_po_id').val();
                 },
@@ -366,8 +368,6 @@
             $('#invoice_label').text(poads_invoice.replace("&amp;", "&"));
 
             apd_table.draw();
-
-
         });
 
 
@@ -380,54 +380,10 @@
 
         $(document).ready(function() {
             $("#pembayaranCodBtn").click(function() {
-                $("#PembayaranCodModal").modal("show");
+                $("#UploadImageInvoiceModal").modal("show");
             });
         });
 
-        $('#f_upload_pembayaran_image').on('submit', function(e) {
-            console.log('tempek');
-            {{--e.preventDefault();--}}
-            {{--$('#upload_image_invoice_btn').html('Proses...');--}}
-            {{--$('#upload_image_invoice_btn').attr('disabled', true);--}}
-            {{--var formData = new FormData(this);--}}
-            {{--var po_id = $('#_po_id').val();--}}
-
-            {{--formData.append('_po_id', po_id)--}}
-            {{--formData.append('_mode', 'COD')--}}
-            {{--$.ajax({--}}
-            {{--    type: 'POST',--}}
-            {{--    url: "{{ url('po_invoice_image') }}",--}}
-            {{--    data: formData,--}}
-            {{--    dataType: 'json',--}}
-            {{--    cache: false,--}}
-            {{--    contentType: false,--}}
-            {{--    processData: false,--}}
-            {{--    success: function(data) {--}}
-            {{--        $("#upload_image_invoice_btn").html('Upload');--}}
-            {{--        $("#upload_image_invoice_btn").attr("disabled", false);--}}
-            {{--        jQuery.noConflict();--}}
-            {{--        if (data.status == '200') {--}}
-            {{--            $("#ImportModal").modal('hide');--}}
-            {{--            swal('Berhasil', 'Data berhasil diimport', 'success');--}}
-            {{--            $('#f_upload_invoice_image')[0].reset();--}}
-            {{--            reloadArticleDetail(po_id)--}}
-            {{--        } else if (data.status == '400') {--}}
-            {{--            $("#UploadImageInvoiceModal").modal('hide');--}}
-            {{--            swal('File', 'File yang anda import kosong atau format tidak tepat',--}}
-            {{--                'warning');--}}
-            {{--        } else {--}}
-            {{--            $("#UploadImageInvoiceModal").modal('hide');--}}
-            {{--            swal('Gagal',--}}
-            {{--                'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',--}}
-            {{--                'warning');--}}
-            {{--        }--}}
-            {{--    },--}}
-            {{--    error: function(data) {--}}
-            {{--        swal('Error', data, 'error');--}}
-
-            {{--    }--}}
-            {{--});--}}
-        });
 
 
         $(document).delegate('#delete_poads', 'click', function(e) {

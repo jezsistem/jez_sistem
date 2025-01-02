@@ -488,7 +488,7 @@ class TrackingController extends Controller
                     $time = Carbon::parse($dateTime)->format('H:i:s'); // '14:13:46'
                     $real_stock = $data->pls_qty + 1;
                     return '
-                <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
+                <span class="btn btn-sm  7btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
                 <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/><span style="white-space: nowrap; font-weight:bold; font-size: 10px;">' . $time . ' </span><br/>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->plst_qty . '</span>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Stok : ' . $real_stock . '</span>
