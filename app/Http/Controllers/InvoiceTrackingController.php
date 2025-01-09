@@ -231,7 +231,7 @@ class InvoiceTrackingController extends Controller
                     if ($data->pos_status == 'IN PROGRESS') {
                         $btn = 'btn-primary';
                     }
-                    if ($data->pos_status == 'CANCEL' || $data->pos_status == 'UNPAID') {
+                    if ($data->pos_status == 'CANCEL' || $data->pos_status == 'UNPAID' || $data->pos_status == 'REJECTED') {
                         $btn = 'btn-danger';
                     }
                     if ($data->pos_status == 'SHIPPING NUMBER' || $data->pos_status == 'IN DELIVERY') {

@@ -59,6 +59,8 @@
                                 <option value="SHIPPING NUMBER">SHIPPING NUMBER</option>
                                 <option value="IN DELIVERY">IN DELIVERY</option>
                                 <option value="DP">DP</option>
+                                <option value="CANCEL">CANCEL</option>
+                                <option value="REJECTED">REJECTED</option>
                             </select>
                             {{-- <div class="col-sm-6 col-lg-4">
                             <a class="btn btn-sm btn-light font-weight-bold bg-inventory" id="kt_d ashboard_daterangepicker" 
@@ -121,7 +123,3 @@
     @include('app._partials.js')
     @include('app.invoice_tracking.invoice_tracking_js')
 @endSection()
-
-
-
-invoice_tracking.blade.php
