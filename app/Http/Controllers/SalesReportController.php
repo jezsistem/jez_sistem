@@ -144,6 +144,7 @@ class SalesReportController extends Controller
                 ->leftJoin('stock_types', 'purchase_order_article_detail_statuses.stkt_id', '=', 'stock_types.id')
                 ->groupBy('pos_transaction_details.id')
                 ->where('pos_transaction_details.pos_td_reject', '!=', '1')
+                ->where('pos_transactions.pos_status', '!=', 'REJECTED')
                 ->whereIn('plst_status', ['DONE', 'WAITING FOR PACKING', 'WAITING ONLINE', 'WAITING FOR NAMESET', 'INSTOCK']))
                 ->editColumn('pos_created', function ($data) {
                     return '<span style="white-space: nowrap;">' . date('d/m/Y H:i:s', strtotime($data->pos_created)) . '</span>';

@@ -458,6 +458,7 @@ class CrossOrderController extends Controller
               'pt_id' => $check->pt_id,
           ])->update([
               'plst_status' => 'INSTOCK',
+              'plst_type' => 'IN',
               'u_id_packer' => Auth::user()->id,
           ]);
         } else {
