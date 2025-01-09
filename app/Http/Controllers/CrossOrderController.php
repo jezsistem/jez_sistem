@@ -462,6 +462,7 @@ class CrossOrderController extends Controller
               'u_id_packer' => Auth::user()->id,
           ]);
         } else {
+            // ini reject
           $reject = '0';
           $update = ProductLocationSetupTransaction::where([
               'pls_id' => $pls_id,
