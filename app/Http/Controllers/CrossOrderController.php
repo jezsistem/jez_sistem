@@ -498,7 +498,7 @@ class CrossOrderController extends Controller
                     'plst_status' => 'INSTOCK'
                 ]);
             } else {
-                $pos = PosTransaction::where('id', '=', $pt_id)->whereIn('pos_status', ['REJECTED', 'CANCEL'])->update([
+                $pos = PosTransaction::where('id', '=', $pt_id)->where('pos_status', '!=', 'CANCEL')->update([
                     'pos_status' => 'SHIPPING NUMBER'
                 ]);
                 ProductLocationSetupTransaction::where('pt_id', '=', $pt_id)->where('plst_status', '=', 'WAITING ONLINE')->update([
