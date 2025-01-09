@@ -377,7 +377,7 @@ class StockDataController extends Controller
 
                                             } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
                                                 $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                            } else if ($lrow->pl_code == '03 - DEFECT') {
+                                            } else if ($lrow->pl_code == '03 - DEFECT' || $lrow->pl_code == '02 - DEFECT') {
 //                                                $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
                                                 $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
 
