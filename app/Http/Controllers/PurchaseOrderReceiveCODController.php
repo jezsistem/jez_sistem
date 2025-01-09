@@ -114,8 +114,11 @@ class PurchaseOrderReceiveCODController extends Controller
                     return date('d/m/Y H:i:s', strtotime($data->created_at));
                 })
                 ->editColumn('u_receive', function ($data) {
+                    $check_invoice_cod = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $data->po_id)->where('invoice_image', 'LIKE', '%COD%')->count();
                     if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
                         return 'Diterima, Belum Dibayar';
+                    } else if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0 && $check_invoice_cod > 0){
+                        return 'Diterima, Sudah Dibayar';
                     } else if (!empty($data->u_id_approve)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
                         return $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at));

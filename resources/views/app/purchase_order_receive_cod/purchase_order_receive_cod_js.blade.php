@@ -116,7 +116,6 @@
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_upload_invoice_image')[0].reset();
-                        reloadArticleDetail(po_id);
                         purchaseOrderInvoiceTable.draw();
                     } else if (data.status == '400') {
                         toastr.warning(

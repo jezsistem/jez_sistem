@@ -1729,7 +1729,7 @@
                                 $('#PurchaseOrderModal').modal('hide');
                                 purchase_order_table.draw(false);
                                 toastr.success('PO berhasil dibatalkan',
-                                'Sukses'); // Use toastr for success
+                                'Sukses'); // Use t oastr for success
                             } else {
                                 toastr.error('Gagal batalkan PO',
                                 'Error'); // Use toastr for error
@@ -1748,7 +1748,8 @@
 
         $(document).ready(function() {
             $("#InvoiceImagesBtn").click(function() {
-                $("#InvoiceImagesModal").modal("show");
+                    $("#InvoiceImagesModal").modal("show");
+                purchaseOrderInvoiceTable.reload();
             });
         });
 

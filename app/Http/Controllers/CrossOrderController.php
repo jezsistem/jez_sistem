@@ -202,6 +202,8 @@ class CrossOrderController extends Controller
                     $btn = 'btn-primary';
                 } else if ($data->pos_status == 'CANCEL') {
                     $btn = 'btn-danger';
+                } else if ($data->pos_status == 'REJECTED') {
+                    $btn = 'btn-danger';
                 }
                 if ($data->pos_status == 'SHIPPING NUMBER' || $data->pos_status == 'IN DELIVERY') {
                     return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-cust_id="'.$data->cust_id.'" class="btn btn-sm '.$btn.'" id="shipping_number_btn">'.$data->pos_status.' '.$ref_invoice.'</span>
@@ -375,7 +377,7 @@ class CrossOrderController extends Controller
             ]);
         } else {
             $update = PosTransaction::where('id', '=', $pt_id)->update([
-              'pos_status' => 'CANCEL',
+              'pos_status' => 'REJECTED',
               'u_id_cross' => Auth::user()->id
             ]);
         }
@@ -487,16 +489,16 @@ class CrossOrderController extends Controller
         if ($check) {
             $r['status'] = '400';
         } else {
-            $check_pos = PosTransaction::where('id', '=', $pt_id)->where('pos_status', '=', 'CANCEL')->exists();
+            $check_pos = PosTransaction::where('id', '=', $pt_id)->whereIn('pos_status', ['REJECTED', 'CANCEL'])->exists();
             if ($check_pos) {
-                $pos = PosTransaction::where('id', '=', $pt_id)->where('pos_status', '=', 'CANCEL')->update([
-                    'pos_status' => 'CANCEL'
+                $pos = PosTransaction::where('id', '=', $pt_id)->whereIn('pos_status', ['REJECTED', 'CANCEL'])->update([
+                    'pos_status' => 'REJECTED'
                 ]);
                 ProductLocationSetupTransaction::where('pt_id', '=', $pt_id)->where('plst_status', '=', 'WAITING ONLINE')->update([
                     'plst_status' => 'INSTOCK'
                 ]);
             } else {
-                $pos = PosTransaction::where('id', '=', $pt_id)->where('pos_status', '!=', 'CANCEL')->update([
+                $pos = PosTransaction::where('id', '=', $pt_id)->whereIn('pos_status', ['REJECTED', 'CANCEL'])->update([
                     'pos_status' => 'SHIPPING NUMBER'
                 ]);
                 ProductLocationSetupTransaction::where('pt_id', '=', $pt_id)->where('plst_status', '=', 'WAITING ONLINE')->update([
