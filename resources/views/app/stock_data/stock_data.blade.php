@@ -172,7 +172,13 @@
                                 <form id="f_search">
                                     <div id="reader" class="rounded"></div>
                                     <div id="result"></div>
-                                    <input type="text" class="form-control" id="stock_data_search"
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <b style="font-size: 16px">Request count:</b> <b style="font-size: 16px;" id="request_count">0</b>
+                                        </div>
+                                    </div>
+
+                                    <input type="text" class="form-control mt-3" id="stock_data_search"
                                            placeholder="Ketik 3 huruf pertama Nama Produk atau Kode Artikel"
                                            style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
                                     <p>Please don't click any buttons; just wait to get the data you want.</p>

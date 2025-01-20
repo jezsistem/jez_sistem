@@ -315,6 +315,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('stock_data_reload_sub_sub_category', [StockDataController::class, 'reloadSubSubCategory']);
     Route::post('stock_data_reload_brand', [StockDataController::class, 'reloadBrand']);
     Route::post('stock_data_reload_size', [StockDataController::class, 'reloadSize']);
+    Route::post('request_count_pickup', [StockDataController::class, 'requestCount']);
 
     // Stock Tracking
     Route::get('stock_tracking', [StockTrackingController::class, 'index'])->name('stock_tracking');

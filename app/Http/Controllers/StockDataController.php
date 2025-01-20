@@ -24,6 +24,9 @@ use App\Models\PurchaseOrderArticleDetailStatus;
 use App\Models\ExceptionLocation;
 use App\Models\BuyOneGetOne;
 
+use duncan3dc\Speaker\Providers\GoogleProvider;
+use duncan3dc\Speaker\TextToSpeech;
+
 class StockDataController extends Controller
 {
     protected function validateAccess()
@@ -1785,6 +1788,31 @@ class StockDataController extends Controller
         ];
         return view('app.stock_data._reload_size', compact('data'));
     }
+    
+    public function requestCount(Request $request){
+//        $google = new GoogleProvider();
+//        $tts = new TextToSpeech("Hello World", $google);
+//
+//        $path = public_path('music/F1.mp3');
+//        // Save the audio file
+//        file_put_contents("music/hello.mp3", $tts->getAudioData());
+//        echo "File saved at: $path";
+        $st_id = $request->_st_id;
+
+        $status = ['WAITING TO TAKE', 'INSTOCK APPROVAL'];
+
+        $count = ProductLocationSetupTransaction::leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->whereIn('plst_status', $status)
+            ->where('product_locations.st_id', '=', $st_id)->count();
+//            ->where('users.stt_id', '=', Auth::user()->stt_id);
+
+//        var_dump($count);
+//        dd($count)
+
+        return response()->json(['count' => $count]);
+    }
+
 
     public function getAgingDatatables(Request $request)
     {

@@ -218,7 +218,11 @@ class CrossOrderController extends Controller
                     } else {
                         return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$data->pos_status.'</span>';
                     }
-                } else {
+                }
+                if ($data->pos_status == 'REJECTED' || $data->pos_status == 'CANCEL') {
+                    return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-cust_id="'.$data->cust_id.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.' '.$ref_invoice.'</span>';
+                }
+                else {
                     if ($data->st_id_ref == Auth::user()->st_id) {
                       return '
                         <span style="white-space: nowrap;" title="'.$ref_invoice.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>
