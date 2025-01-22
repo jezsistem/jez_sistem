@@ -511,6 +511,7 @@
         jQuery('#orderList'+index).remove();
     }
 
+    // b1g1 progress
     jQuery(document).delegate('#add_to_item_list', 'click', function(e) {
         e.preventDefault();
         if (jQuery('#cust_id').val() == '') {
@@ -537,6 +538,7 @@
         jQuery('#total_row').val(total_row+1);
         var pos_item_list = jQuery('.pos_item_list'+pst_id).length;
         var cross = jQuery(this).attr('data-cross');
+        var b1g1 = jQuery(this).attr('data-b1g1');
         var ok = jQuery(this).attr('data-ok');
         if (cross == 'true') {
             jQuery('#cross_order').val('true');
@@ -1257,7 +1259,7 @@
                         }
                     });
                     jQuery.ajax({
-                        url:"{{  url('autocomplete') }}",
+                        url:"{{  url('autocomplete_amp') }}",
                         method:"POST",
                         data:{query:query, type:type, _std_id:std_id, _st_id:st_id},
                         success:function(data){

@@ -1521,6 +1521,148 @@ class PointOfSaleController extends Controller
         return json_encode($r);
     }
 
+    function fetchAmp(Request $request)
+    {
+
+        if ($request->get('query')) {
+            $exception = ExceptionLocation::select('pl_code')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
+
+            $query = $request->get('query');
+            $type = $request->get('type');
+            $std_id = $request->get('_std_id');
+            $st_id = $request->get('_st_id');
+            $b1g1_id = null;
+            $b1g1_price = null;
+            if (!empty($st_id)) {
+                $st_id = $st_id;
+            } else {
+                $st_id = Auth::user()->st_id;
+            }
+            if ($st_id != Auth::user()->st_id) {
+                $cross = 'true';
+            } else {
+                $cross = 'false';
+            }
+            $data = ProductStock::select('p_name', 'p_color', 'p_sell_price', 'p_price_tag', 'products.psc_id', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'pls_qty', 'ps_qty', 'br_name', 'product_stocks.id as pst_id')
+                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->join('brands', 'brands.id', '=', 'products.br_id')
+                ->join('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->where('product_locations.st_id', '=', $st_id)
+                //                    ->where('pls_qty', '>=', '0')
+                ->whereNotIn('pl_code', $exception)
+                ->whereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name," ", article_id) LIKE ?', "%$query%")
+                ->orWhere('ps_barcode', 'LIKE', "%$query%")
+                ->groupBy('product_stocks.id')
+                ->limit(13)
+                ->get();
+            $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
+            if (!empty($data)) {
+                foreach ($data as $row) {
+                    $check_setup = ProductLocationSetup::select('product_locations.id as pl_id', 'product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty')
+                        ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->where('product_locations.st_id', '=', $st_id)
+                        ->where('pst_id', $row->pst_id)
+                        //                    ->where('pls_qty', '>', '0')
+                        ->whereNotIn('pl_code', $exception)->get();
+                    $bin = '';
+                    $bin_list = '';
+                    $sell_price = 0;
+                    $sell_price_discount = 0;
+                    $bandrol = 0;
+                    if (!empty($row->ps_price_tag)) {
+                        $bandrol = $row->ps_price_tag;
+                    } else {
+                        $bandrol = $row->p_price_tag;
+                    }
+                    if ($type == 'RESELLER') {
+                        if (!empty($row->ps_price_tag)) {
+                            $sell_price = $row->ps_price_tag;
+                        } else {
+                            $sell_price = $row->p_price_tag;
+                        }
+                    } else {
+                        if (!empty($row->ps_sell_price)) {
+                            $sell_price = $row->ps_sell_price;
+                        } else {
+                            $sell_price = $row->p_sell_price;
+                        }
+                    }
+                    $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                        ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
+                        ->where('pst_id', '=', $row->pst_id)
+                        ->where('std_id', '=', $std_id)
+                        ->orderByDesc('product_discounts.created_at')
+                        ->where('product_discounts.pd_date', '>=', date('Y-m-d'))
+                        ->get()->first();
+                    if (!empty($set_discount)) {
+                        if (date('Y-m-d') <= $set_discount->pd_date) {
+                            if (empty($set_discount->st_id)) {
+                                if (!empty($row->ps_price_tag)) {
+                                    $price_tag = $row->ps_price_tag;
+                                } else {
+                                    $price_tag = $row->p_price_tag;
+                                }
+                                if ($set_discount->pd_type == 'percent') {
+                                    $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
+                                    $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
+                                } else if ($set_discount->pd_type == 'amount') {
+                                    $sell_price_discount = $set_discount->pd_value;
+                                    $sell_price = $price_tag - $set_discount->pd_value;
+                                } else {
+                                    $sell_price = $price_tag;
+                                    $b1g1_id = $row->pst_id;
+                                    $b1g1_price = $sell_price;
+                                }
+                            } else {
+                                if (Auth::user()->st_id == $set_discount->st_id) {
+                                    if (!empty($row->ps_price_tag)) {
+                                        $price_tag = $row->ps_price_tag;
+                                    } else {
+                                        $price_tag = $row->p_price_tag;
+                                    }
+                                    if ($set_discount->pd_type == 'percent') {
+                                        $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
+                                        $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
+                                    } else if ($set_discount->pd_type == 'amount') {
+                                        $sell_price_discount = $set_discount->pd_value;
+                                        $sell_price = $price_tag - $set_discount->pd_value;
+                                    } else {
+                                        $sell_price = $price_tag;
+                                        $b1g1_id = $row->pst_id;
+                                        $b1g1_price = $sell_price;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (!empty($check_setup)) {
+                        foreach ($check_setup as $brow) {
+                            $bin .= '<span class="btn-lg btn-info">[' . strtoupper($brow->pl_code) . '] (' . $brow->pls_qty . ')</span> ';
+                        }
+                        $bin_list .= '<select class="col-12 mr-5 text-white font-weight-bold" id="pl_id" style="background-color:#986923; border-radius:10px;">';
+                        foreach ($check_setup as $blrow) {
+                            $bin_list .= '<option class="col-12" data-pl_code="' . $blrow->pl_code . '" value="' . $blrow->pl_id . '">[' . strtoupper($blrow->pl_code) . '] [' . $blrow->pls_qty . ']</option>';
+                        }
+                        $bin_list .= '</select>';
+                    }
+                    $ok = $this->checkAging($st_id, $row->pst_id);
+                    if ($bin != '') {
+                        $output .= '
+                        <li><a class="btn btn-sm btn-inventory col-12" data-cross="' . $cross . '" data-ok="' . $ok . '" data-sell_price="' . $sell_price . '" data-sell_price_discount="' . $sell_price_discount . '" data-psc_id="' . $row->psc_id . '" data-bandrol="' . $bandrol . '" data-pls_qty="' . $row->pls_qty . '" data-ps_qty="' . $row->ps_qty . '" data-pst_id="' . $row->pst_id . '" data-bin="' . htmlspecialchars($bin_list) . '" data-p_name="[' . $row->br_name . '] ' . $row->article_id . ' ' . $row->p_name . ' ' . $row->p_color . ' ' . $row->sz_name . '" id="add_to_item_list"><span style="float-left;"><span class="btn-lg btn-primary">[' . strtoupper($row->br_name) . '] ' . strtoupper($row->p_name) . ' ' . strtoupper($row->p_color) . ' [' . strtoupper($row->sz_name) . ']</span> ' . $bin . '</span></a></li>
+                        ';
+                    }
+                }
+            } else {
+                $output .= '<li><a class="btn btn-sm btn-primary">Tidak ditemukan</a></li>';
+            }
+            $output .= '</ul>';
+            echo $output;
+        }
+    }
+
     function fetchWaiting(Request $request)
     {
         //return $request->all();

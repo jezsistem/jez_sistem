@@ -156,6 +156,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('save_transaction_detail', [PointOfSaleController::class, 'saveTransactionDetail']);
     Route::post('save_transaction_detail_offline', [PointOfSaleController::class, 'saveTransactionDetailOffline']);
     Route::post('autocomplete', [PointOfSaleController::class, 'fetch']);
+//    Route::post('autocomplete_amp', [PointOfSaleController::class, 'fetchAmp']);
     Route::post('autocomplete_by_waiting', [PointOfSaleController::class, 'fetchWaiting']);
     Route::post('autocomplete_invoice', [PointOfSaleController::class, 'fetchInvoice']);
     Route::post('autocomplete_invoice_offline', [PointOfSaleController::class, 'fetchInvoiceOffline']);

@@ -132,7 +132,7 @@
 
                     <table class="table table-hover to mt-3" id="Detailtb">
                         <div class="alert-danger running-text" style="padding: 25px; border-radius:10px; margin-top:10px; margin-bottom:10px;" role="alert">
-                            <h3> Important!! Harap perhatikan status pick sebelum cetak nota 🐣🐣</h3>
+                            <h3> Important!! Harap perhatikan status pick sebelum cetak nota 🐈🐈</h3>
                         </div>
 {{--                        <style>--}}
 {{--                            .running-text {--}}
