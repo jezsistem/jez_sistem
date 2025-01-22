@@ -754,7 +754,7 @@ class InvoiceEditorController extends Controller
                         if ($plst) {
                             foreach ($plst as $plr) {
                                 DB::table('product_location_setup_transactions')->where('id', '=', $plr->id)->update([
-                                    'plst_status' => 'Refund',
+                                    'plst_status' => 'REFUND',
                                     'updated_at' => date('Y-m-d H:i:s')
                                 ]);
                             }
