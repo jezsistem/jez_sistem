@@ -13,11 +13,11 @@
     var sell_price_voc = 0;
     var value_price_voc = 0;
 
-	function reloadRefund()
+    function reloadRefund()
     {
         jQuery.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
         });
         jQuery.ajax({
@@ -88,11 +88,11 @@
                 nameset += parseFloat(nameset_value);
             }
         });
-        
+
         jQuery('#total_price_side').text(addCommas(final_price));
         jQuery('#total_final_price_side').text(addCommas(final_price+parseFloat(replaceComma(shipping_cost_side))+nameset));
     }
-    
+
     function changeReturQty(row, pst_id, qty)
     {
         jQuery('#item_qty'+row).val(-Math.abs(jQuery('#item_qty'+row).val()));
@@ -142,7 +142,7 @@
                 nameset += parseFloat(nameset_value);
             }
         });
-        
+
         jQuery('#total_price_side').text(addCommas(final_price));
         jQuery('#total_final_price_side').text(addCommas(final_price+parseFloat(replaceComma(shipping_cost_side))+nameset));
     }
@@ -244,7 +244,7 @@
         jQuery('#total_final_price_side').text(addCommas(final_price+parseFloat(replaceComma(shipping_cost_side))+nameset));
     }
 
-	function namesetPrice(index)
+    function namesetPrice(index)
     {
         if (jQuery('#nameset_price'+index).val() < 0) {
             swal('Minus', 'nameset tidak boleh minus', 'warning');
@@ -325,7 +325,7 @@
     {
         jQuery.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
         });
         jQuery.ajax({
@@ -352,7 +352,7 @@
         //alert(type);
         jQuery.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
         });
         jQuery.ajax({
@@ -371,7 +371,7 @@
         //alert(type);
         jQuery.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
         });
         jQuery.ajax({
@@ -387,10 +387,10 @@
     function reloadComplaint()
     {
         jQuery.ajaxSetup({
-                headers: {
+            headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                }
-            });
+            }
+        });
         jQuery.ajax({
             type:'POST',
             url: "{{ url('check_complaint')}}",
@@ -440,7 +440,7 @@
         }
         jQuery.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
         });
         jQuery.ajax({
@@ -511,7 +511,6 @@
         jQuery('#orderList'+index).remove();
     }
 
-    // b1g1 progress
     jQuery(document).delegate('#add_to_item_list', 'click', function(e) {
         e.preventDefault();
         if (jQuery('#cust_id').val() == '') {
@@ -538,7 +537,6 @@
         jQuery('#total_row').val(total_row+1);
         var pos_item_list = jQuery('.pos_item_list'+pst_id).length;
         var cross = jQuery(this).attr('data-cross');
-        var b1g1 = jQuery(this).attr('data-b1g1');
         var ok = jQuery(this).attr('data-ok');
         if (cross == 'true') {
             jQuery('#cross_order').val('true');
@@ -598,36 +596,36 @@
     });
 
     var refund_retur_table = jQuery('#RefundReturtb').DataTable({
-            destroy: true,
-            processing: true,
-            serverSide: true,
-            responsive: false,
-            dom: 'Brt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
-            ajax: {
-                url : "{{ url('refund_retur_datatables') }}",
-                data : function (d) {
-                    d.pt_id = jQuery('#refund_retur_pt_id').val();
-                }
-            },
-            columns: [
+        destroy: true,
+        processing: true,
+        serverSide: true,
+        responsive: false,
+        dom: 'Brt<"text-right"ip>',
+        buttons: [
+            { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+        ],
+        ajax: {
+            url : "{{ url('refund_retur_datatables') }}",
+            data : function (d) {
+                d.pt_id = jQuery('#refund_retur_pt_id').val();
+            }
+        },
+        columns: [
             { data: 'DT_RowIndex', name: 'ptd_id', searchable: false},
             { data: 'article', name: 'article', orderable: false },
             { data: 'datetime', name: 'datetime', orderable: false },
             { data: 'qty', name: 'qty', orderable: false },
             { data: 'price', name: 'price', orderable: false },
             { data: 'action', name: 'action', orderable: false },
-            ],
-            columnDefs: [
+        ],
+        columnDefs: [
             {
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [[0, 'desc']],
-        });
+        order: [[0, 'desc']],
+    });
 
     jQuery(document).delegate('#pl_id', 'change', function() {
         var pl_code = jQuery("option:selected", this).attr('data-pl_code');
@@ -671,7 +669,7 @@
         jQuery('#payment-online-popup').on('hide.bs.modal', function() {
             //jQuery('#order_code').val('');
             jQuery('#unique_code').val('');
-			jQuery('#ref_number').val('');
+            jQuery('#ref_number').val('');
             jQuery('#final_total_unique_code').val('');
             jQuery('#admin_cost').val('');
             jQuery('#real_price').val('');
@@ -722,7 +720,7 @@
             });
         });
 
-		jQuery('#reload_refund_list').on('click', function() {
+        jQuery('#reload_refund_list').on('click', function() {
             reloadRefund();
         });
 
@@ -745,12 +743,12 @@
             jQuery('#cross_order').val('');
             jQuery('#discount_seller').val('');
         });
-        
-		function addRefundExchangeList(type, plst_id, pt_id)
+
+        function addRefundExchangeList(type, plst_id, pt_id)
         {
             jQuery.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
             jQuery.ajax({
@@ -828,7 +826,7 @@
             jQuery('#_id').val(cust_id);
             jQuery.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
             jQuery.ajax({
@@ -870,7 +868,7 @@
             jQuery('#_id').val(cust_id);
             jQuery.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
             jQuery.ajax({
@@ -913,7 +911,7 @@
             jQuery('#_id').val(cust_id);
             jQuery.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
             jQuery.ajax({
@@ -952,12 +950,12 @@
 
         jQuery('#product_barcode_input').focus();
         @if (strtolower($data['user']->stt_name) == 'offline')
-            jQuery('#posContent').show();
-            jQuery('.sidebarPOS').show();
-            jQuery('#product_barcode_input').focus();
+        jQuery('#posContent').show();
+        jQuery('.sidebarPOS').show();
+        jQuery('#product_barcode_input').focus();
         @else
-            jQuery('#posContent').hide();
-            jQuery('.sidebarPOS').hide();
+        jQuery('#posContent').hide();
+        jQuery('.sidebarPOS').hide();
         @endif
 
         jQuery('#filter_product_btn').on('click', function(e) {
@@ -1005,7 +1003,7 @@
             e.preventDefault();
             var label = jQuery('#pm_id option:selected').text();
             //alert(label);
-			if (label == 'DEBIT') {
+            if (label == 'DEBIT') {
                 jQuery('#ref_number_label').removeClass('d-none');
                 jQuery('#ref_number_label').addClass('d-flex');
             } else {
@@ -1016,7 +1014,7 @@
 
         jQuery('#save_transaction').on('click', function(e) {
             e.preventDefault();
-			var pt_id_complaint = jQuery('#_pt_id_complaint').val();
+            var pt_id_complaint = jQuery('#_pt_id_complaint').val();
             var pm_id = jQuery('#pm_id').val();
             var cp_id = jQuery('#cp_id').val();
             var std_id = jQuery('#std_id').val();
@@ -1062,7 +1060,7 @@
             }
             jQuery.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
             jQuery.ajax({
@@ -1100,61 +1098,61 @@
                             jQuery(row).find('.saveItem').trigger('click');
                         });
                         // if (finish == 'true') {
-                            jQuery('#shipping_courier_side').text('');
-                            jQuery('#shipping_cost_side').text('0');
-                            jQuery('#total_final_price_side').text('0');
-                            jQuery('#total_item_side').text('0');
-                            jQuery('#total_price_side').text('0');
-                            jQuery('#total_nameset_side').text('0');
-                            jQuery('#orderTable').find('tr:not(:has(th))').remove();
-                            jQuery('#cust_id').val('');
-                            jQuery('#cust_id_label').val('');
-                            jQuery('#sub_cust_id').val('');
-                            jQuery('#sub_cust_id_label').val('');
-                            jQuery('#check_sub_customer').attr('data-id', '');
-                            jQuery('#check_customer').attr('data-id', '');
-                            jQuery('#refund_invoice_label').val('');
-                            jQuery('#refund_retur_invoice_label').text('');
-                            jQuery('#refund_retur_pt_id').val('');
-                            jQuery('#note').val('');
-                            jQuery('#_pt_id').val('');
-                            jQuery('#unique_code').val('');
-                            jQuery('#ref_number').val('');
-                            jQuery('#final_total_unique_code').val('');
-                            jQuery('#admin_cost').val('');
-                            jQuery('#another_cost').val('');
-                            jQuery('#real_price').val('');
-                            jQuery('#courier').val('');
-                            jQuery('#_pt_id_complaint').val('');
-                            jQuery('#_exchange').val('');
-                            jQuery('#discount_seller').val('');
+                        jQuery('#shipping_courier_side').text('');
+                        jQuery('#shipping_cost_side').text('0');
+                        jQuery('#total_final_price_side').text('0');
+                        jQuery('#total_item_side').text('0');
+                        jQuery('#total_price_side').text('0');
+                        jQuery('#total_nameset_side').text('0');
+                        jQuery('#orderTable').find('tr:not(:has(th))').remove();
+                        jQuery('#cust_id').val('');
+                        jQuery('#cust_id_label').val('');
+                        jQuery('#sub_cust_id').val('');
+                        jQuery('#sub_cust_id_label').val('');
+                        jQuery('#check_sub_customer').attr('data-id', '');
+                        jQuery('#check_customer').attr('data-id', '');
+                        jQuery('#refund_invoice_label').val('');
+                        jQuery('#refund_retur_invoice_label').text('');
+                        jQuery('#refund_retur_pt_id').val('');
+                        jQuery('#note').val('');
+                        jQuery('#_pt_id').val('');
+                        jQuery('#unique_code').val('');
+                        jQuery('#ref_number').val('');
+                        jQuery('#final_total_unique_code').val('');
+                        jQuery('#admin_cost').val('');
+                        jQuery('#another_cost').val('');
+                        jQuery('#real_price').val('');
+                        jQuery('#courier').val('');
+                        jQuery('#_pt_id_complaint').val('');
+                        jQuery('#_exchange').val('');
+                        jQuery('#discount_seller').val('');
 
-                            jQuery('#_voc_pst_id').val('');
-                            jQuery('#_voc_value').val('');
-                            jQuery('#_voc_id').val('');
-                            jQuery('#voucher_code').val("");
-                            jQuery('#voucher_information').addClass("d-none");
-                            jQuery('#discount_seller').val('0');
-                            sell_price_voc = 0;
-                            value_price_voc = 0;
-                            shoes_voucher_temp = [];
+                        jQuery('#_voc_pst_id').val('');
+                        jQuery('#_voc_value').val('');
+                        jQuery('#_voc_id').val('');
+                        jQuery('#voucher_code').val("");
+                        jQuery('#voucher_information').addClass("d-none");
+                        jQuery('#discount_seller').val('0');
+                        sell_price_voc = 0;
+                        value_price_voc = 0;
+                        shoes_voucher_temp = [];
 
-                            jQuery('#total_discount_value_side').text('0');
-                            @php  session()->forget('voc_item') @endphp
-                            if (st_id == '4') {
-                                cross = 'false';
-                            }
-                            swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
-                            if (cross != 'true') {
-                                setTimeout(() => {
-                                    var win = window.open('{{ url('/') }}/print_invoice/'+r.invoice, '_blank');
-                                    if (win) {
-                                        win.focus();
-                                    } else {
-                                        alert('Please allow popups for this website');
-                                    }
-                                }, 2000);
-                            }
+                        jQuery('#total_discount_value_side').text('0');
+                        @php  session()->forget('voc_item') @endphp
+                        if (st_id == '4') {
+                            cross = 'false';
+                        }
+                        swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
+                        if (cross != 'true') {
+                            setTimeout(() => {
+                                var win = window.open('{{ url('/') }}/print_invoice/'+r.invoice, '_blank');
+                                if (win) {
+                                    win.focus();
+                                } else {
+                                    alert('Please allow popups for this website');
+                                }
+                            }, 2000);
+                        }
                         // }
                     } else if (r.status == '400') {
                         swal('Gagal', 'Gagal simpan transaksi', 'warning');
@@ -1182,7 +1180,7 @@
             //toast('Ditambah', 'Item berhasil ditambah', 'success');
             jQuery.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
             jQuery.ajax({
@@ -1255,11 +1253,11 @@
                 if (jQuery.trim(query).length > 2) {
                     jQuery.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     jQuery.ajax({
-                        url:"{{  url('autocomplete_amp') }}",
+                        url:"{{  url('autocomplete') }}",
                         method:"POST",
                         data:{query:query, type:type, _std_id:std_id, _st_id:st_id},
                         success:function(data){
@@ -1281,7 +1279,7 @@
                 if (jQuery.trim(query).length > 4) {
                     jQuery.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     jQuery.ajax({
@@ -1424,14 +1422,14 @@
             //alert(formData);
             jQuery.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
             jQuery.ajax({
                 type:'POST',
                 url: "{{ url('cust_save')}}",
                 data: formData,
-				dataType: 'json',
+                dataType: 'json',
                 cache:false,
                 contentType: false,
                 processData: false,
@@ -1521,33 +1519,33 @@
     });
 
     jQuery('#cust_phone').on('change', function() {
-            var cust_phone = jQuery(this).val();
-            jQuery.ajaxSetup({
-                headers: {
+        var cust_phone = jQuery(this).val();
+        jQuery.ajaxSetup({
+            headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            jQuery.ajax({
-                type: "POST",
-                data: {_cust_phone:cust_phone},
-                dataType: 'json',
-                url: "{{ url('check_exists_customer')}}",
-                success: function(r) {
-                    if (r.status == '200') {
-                        swal('No Telepon', 'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
-                        jQuery('#cust_phone').val('');
-                        return false;
-                    }
-                }
-            });
+            }
         });
+        jQuery.ajax({
+            type: "POST",
+            data: {_cust_phone:cust_phone},
+            dataType: 'json',
+            url: "{{ url('check_exists_customer')}}",
+            success: function(r) {
+                if (r.status == '200') {
+                    swal('No Telepon', 'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
+                    jQuery('#cust_phone').val('');
+                    return false;
+                }
+            }
+        });
+    });
 
     jQuery('#std_id').on('change', function() {
         var std_id = jQuery(this).val();
         jQuery('#orderTable').find('tr:not(:has(th))').remove();
         jQuery('#total_item_side').text('0');
         jQuery('#total_price_side').text('0');
-		jQuery('#total_nameset_side').text('0');
+        jQuery('#total_nameset_side').text('0');
         jQuery('#shipping_courier_side').text('');
         jQuery('#shipping_cost_side').text('0');
         jQuery('#total_final_price_side').text('0');
@@ -1575,7 +1573,7 @@
             if (jQuery.trim(query).length > 3) {
                 jQuery.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 jQuery.ajax({
@@ -1616,24 +1614,24 @@
     });
 
     jQuery(document).delegate('#add_new_customer', 'click', function () {
-            console.log(jQuery('#cust_id_label').val());
-            jQuery('#_mode').val('add');
-            var custIdLabelValue = jQuery('#cust_id_label').val();
-            jQuery('#choosecustomer').modal('show');
-            jQuery('#cust_phone').val(custIdLabelValue);
-        })
+        console.log(jQuery('#cust_id_label').val());
+        jQuery('#_mode').val('add');
+        var custIdLabelValue = jQuery('#cust_id_label').val();
+        jQuery('#choosecustomer').modal('show');
+        jQuery('#cust_phone').val(custIdLabelValue);
+    })
 
-    
-    
-    
-        jQuery('#sub_cust_id_label').on('keyup', function(){
+
+
+
+    jQuery('#sub_cust_id_label').on('keyup', function(){
         var query = jQuery(this).val();
         var type = 'sub_cust';
         if(jQuery.trim(query) != '' || jQuery.trim(query) != null) {
             if (jQuery.trim(query).length > 3) {
                 jQuery.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 jQuery.ajax({
@@ -1654,50 +1652,50 @@
     });
 
     jQuery(document).delegate('#check_customer', 'click', function () {
-            jQuery('#_mode').val('edit');
-            var cust_id = jQuery(this).attr('data-id');
-            jQuery('#_id').val(cust_id);
-            jQuery.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            jQuery.ajax({
-                type: 'POST',
-                url: "{{ url('check_customer') }}",
-                data: {
-                    _cust_id: cust_id
-                },
-                dataType: 'json',
-                success: function (r) {
-                    if (r.status == '200') {
-                        jQuery('#choosecustomer').modal('show');
-                        jQuery('#ct_id').val(r.ct_id);
-                        //jQuery("#ct_id option[value='" + r.ct_id + "']").prop("selected", true);
-                        jQuery('#cust_name').val(r.cust_name);
-                        jQuery('#cust_store').val(r.cust_store);
-                        jQuery('#cust_phone').val(r.cust_phone);
-                        jQuery('#cust_email').val(r.cust_email);
-                        jQuery('#cust_province').val(r.cust_province);
-                        jQuery('#cust_token_active').val(r.cust_token_active);
-                        reloadCity(r.cust_province);
-                        setTimeout(() => {
-                            jQuery('#cust_city').val(r.cust_city);
-                        }, 500);
-                        reloadSubdistrict(r.cust_city);
-                        setTimeout(() => {
-                            jQuery('#cust_subdistrict').val(r.cust_subdistrict);
-                        }, 1000);
-                        jQuery('#cust_address').val(r.cust_address);
-                    } else if (r.status == '400') {
-                        swal('Gagal', 'Gagal menampilkan detail', 'warning');
-                    }
-                },
-                error: function (data) {
-                    swal('Error', data, 'error');
-                }
-            });
+        jQuery('#_mode').val('edit');
+        var cust_id = jQuery(this).attr('data-id');
+        jQuery('#_id').val(cust_id);
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+            }
         });
+        jQuery.ajax({
+            type: 'POST',
+            url: "{{ url('check_customer') }}",
+            data: {
+                _cust_id: cust_id
+            },
+            dataType: 'json',
+            success: function (r) {
+                if (r.status == '200') {
+                    jQuery('#choosecustomer').modal('show');
+                    jQuery('#ct_id').val(r.ct_id);
+                    //jQuery("#ct_id option[value='" + r.ct_id + "']").prop("selected", true);
+                    jQuery('#cust_name').val(r.cust_name);
+                    jQuery('#cust_store').val(r.cust_store);
+                    jQuery('#cust_phone').val(r.cust_phone);
+                    jQuery('#cust_email').val(r.cust_email);
+                    jQuery('#cust_province').val(r.cust_province);
+                    jQuery('#cust_token_active').val(r.cust_token_active);
+                    reloadCity(r.cust_province);
+                    setTimeout(() => {
+                        jQuery('#cust_city').val(r.cust_city);
+                    }, 500);
+                    reloadSubdistrict(r.cust_city);
+                    setTimeout(() => {
+                        jQuery('#cust_subdistrict').val(r.cust_subdistrict);
+                    }, 1000);
+                    jQuery('#cust_address').val(r.cust_address);
+                } else if (r.status == '400') {
+                    swal('Gagal', 'Gagal menampilkan detail', 'warning');
+                }
+            },
+            error: function (data) {
+                swal('Error', data, 'error');
+            }
+        });
+    });
 
     jQuery(document).delegate('#add_to_item_list_sub_cust', 'click', function() {
         var cust_id = jQuery(this).attr('data-id');
@@ -1726,7 +1724,7 @@
             if (jQuery.trim(query).length > 5) {
                 jQuery.ajaxSetup({
                     headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                     }
                 });
                 jQuery.ajax({
@@ -1780,7 +1778,7 @@
         }
         jQuery.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
             }
         });
         jQuery.ajax({
