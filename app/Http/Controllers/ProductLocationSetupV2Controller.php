@@ -516,10 +516,12 @@ class ProductLocationSetupV2Controller extends Controller
     {
 
         if (request()->ajax()) {
-            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'st_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at')
+            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'ps_barcode','st_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_mutations.pl_id')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
-                ->leftJoin('users', 'users.id', '=', 'product_mutations.u_id'))
+                ->leftJoin('users', 'users.id', '=', 'product_mutations.u_id')
+                ->join('product_location_setups', 'product_mutations.pls_id','=',  'product_location_setups.id')
+                ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id'))
                 ->editColumn('article', function ($data) {
                     $article = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
                         ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')

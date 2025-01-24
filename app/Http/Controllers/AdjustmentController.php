@@ -121,7 +121,7 @@ class AdjustmentController extends Controller
     public function adjustmentHistoryDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'pls_id', 'st_name', 'pl_code', 'u_name', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.created_at as ba_created')
+            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.created_at as ba_created')
             ->leftJoin('users', 'users.id', '=', 'bin_adjustments.u_id')
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'bin_adjustments.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')

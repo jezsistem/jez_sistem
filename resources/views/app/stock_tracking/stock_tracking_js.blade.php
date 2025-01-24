@@ -12,7 +12,7 @@
             type: 'area',
             zoom: {
                 enabled: true
-            }
+            }   
         },
         dataLabels: {
             enabled: false
@@ -139,6 +139,7 @@
             columns: [
             { data: 'DT_RowIndex', name: 'plst_id', searchable: false},
             { data: 'datetime', name: 'plst_created', searchable: false },
+            { data: 'ps_barcode', name: 'ps_barcode', searchable: true },
             { data: 'article', name: 'p_name', searchable: false },
             { data: 'invoice', name: 'p_name', searchable: false },
             { data: 'cust_name', name: 'cust_name', searchable: false },

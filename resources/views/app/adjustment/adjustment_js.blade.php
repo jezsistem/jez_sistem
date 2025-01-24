@@ -114,6 +114,7 @@
             { data: 'u_name', name: 'u_name' },
             { data: 'br_name', name: 'br_name'},
             { data: 'p_name', name: 'p_name'},
+            { data: 'ps_barcode', name: 'ps_barcode'},
             { data: 'p_color', name: 'p_color'},
             { data: 'sz_name', name: 'sz_name'},
             { data: 'ba_created', name: 'ba_created', orderable: false },

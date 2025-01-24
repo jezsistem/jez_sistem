@@ -322,6 +322,11 @@
                     orderable: false
                 },
                 {
+                    data: 'ps_barcode',
+                    name: 'ps_barcode',
+                    orderable: false
+                },
+                {
                     data: 'st_name',
                     name: 'st_name'
                 },

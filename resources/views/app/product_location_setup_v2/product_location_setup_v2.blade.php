@@ -200,6 +200,7 @@
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">User</th>
                                             <th class="text-dark">Artikel</th>
+                                            <th class="text-dark">SKU</th>
                                             <th class="text-dark">Store</th>
                                             <th class="text-dark" style="white-space: nowrap;">BIN Awal</th>
                                             <th class="text-dark" style="white-space: nowrap;">QBIN Awal</th>

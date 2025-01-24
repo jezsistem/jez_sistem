@@ -102,6 +102,7 @@
                                 <tr>
                                     <th class="text-dark">No</th>
                                     <th class="text-dark">Tanggal <i><small>* pergerakan stock</small></i></th>
+                                    <th class="text-dark">SKU</th>
                                     <th class="text-dark">Artikel <i><small>* silahkan klik item dibawah untuk melihat detail user terlibat</small></i></th>
                                     <th class="text-dark">Invoice</th>
                                     <th class="text-dark">Cust</th>
