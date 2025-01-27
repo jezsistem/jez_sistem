@@ -142,6 +142,8 @@ class PointOfSaleController extends Controller
         $endTime = '2024-08-29 23:59:59';
         $storeId = Auth::user()->st_id;
 
+        $user_id_login = Auth::user()->id;
+
         $current_shift = UserShift::join('users', 'user_shifts.user_id', '=', 'users.id')
             ->join('stores', 'stores.id', '=', 'users.st_id')
             ->where('user_shifts.end_time', '=', NULL)
@@ -162,7 +164,7 @@ class PointOfSaleController extends Controller
             ->join('payment_methods', 'pos_transactions.pm_id', '=', 'payment_methods.id')
             ->join('stores', 'pos_transactions.st_id', '=', 'stores.id')
             ->where('pos_transactions.created_at', '>', $startTime)
-            ->where('pos_transactions.st_id', '=', $storeId)
+            ->where('pos_transactions.kasir_id', '=', $user_id_login)
             ->groupBy('stores.st_name', DB::raw('DATE(ts_pos_transactions.created_at)'), 'payment_methods.pm_name')
             //            ->orderBy('stores.st_name')
             ->orderBy('payment_methods.pm_name');
