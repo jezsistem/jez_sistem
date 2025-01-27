@@ -370,8 +370,9 @@
                             <th class="text-dark" style="white-space:nowrap;">Tanggal PO</th>
                             <th class="text-dark" style="white-space:nowrap;">Nomor PO</th>
                             <th class="text-dark">Store</th>
-                            <th class="text-dark">Brand</th>
+                            <th class="text-dark">SKU</th>
                             <th class="text-dark">Artikel</th>
+                            <th class="text-dark">Brand</th>
                             <th class="text-dark">Warna</th>
                             <th class="text-dark">Size</th>
                             <th class="text-dark">Order</th>

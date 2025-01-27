@@ -639,7 +639,7 @@ class PurchaseOrderReceiveController extends Controller
             }
         }
 
-        $get_po = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'po_invoice', 'st_name', 'purchase_orders.created_at as po_created', 'br_name', 'p_name', 'p_color', 'sz_name', 'poad_qty', 'poad_purchase_price')
+        $get_po = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'po_invoice', 'st_name', 'purchase_orders.created_at as po_created', 'br_name', 'p_name', 'p_color', 'sz_name', 'poad_qty', 'poad_purchase_price', 'ps_barcode')
             ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
             ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
             ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
@@ -667,8 +667,9 @@ class PurchaseOrderReceiveController extends Controller
                             'po_created' => date('d/m/Y H:i:s', strtotime($row->po_created)),
                             'po_invoice' => $row->po_invoice,
                             'store' => $row->st_name,
-                            'brand' => $row->br_name,
+                            'sku' => $row->ps_barcode,
                             'article' => $row->p_name,
+                            'brand' => $row->br_name,
                             'color' => $row->p_color,
                             'size' => $row->sz_name,
                             'order' => $row->poad_qty,
