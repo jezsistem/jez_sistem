@@ -213,7 +213,7 @@ class ReportShiftController extends Controller
         $st_id = $request->st_id;
 
         if ($request->ajax()) {
-            return datatables()->of(User::select(
+            $query = User::select(
                 'users.id',
                 'stores.id as st_id',
                 'users.u_name',
@@ -222,65 +222,51 @@ class ReportShiftController extends Controller
                 'user_shifts.date',
                 'stores.st_name',
                 'user_shifts.laba_shift',
-                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_users.st_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price'),
-                DB::raw('SUM(CASE WHEN ts_pos_transactions.st_id = ts_users.st_id AND ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_price'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_real_price ELSE 0 END) as total_pos_real_price'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.pos_refund = "0" THEN ts_pos_transactions.pos_payment ELSE 0 END) as total_pos_payment_price')
             )
                 ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
-                ->leftjoin('user_shifts', 'users.id', '=', 'user_shifts.user_id')
-                ->leftjoin('pos_transactions', function ($join) {
+                ->leftJoin('user_shifts', 'users.id', '=', 'user_shifts.user_id')
+                ->leftJoin('pos_transactions', function ($join) {
                     $join->on('users.id', '=', 'pos_transactions.kasir_id')
                         ->where('pos_transactions.pos_refund', '=', '0')
-                        ->whereBetween('pos_transactions.created_at', [DB::raw('ts_user_shifts.start_time'), DB::raw('ts_user_shifts.end_time')]);
+                        ->whereBetween('pos_transactions.created_at', [
+                            DB::raw('ts_user_shifts.start_time'),
+                            DB::raw('ts_user_shifts.end_time')
+                        ]);
                 })
-                ->havingRaw('total_pos_real_price IS NOT NULL AND total_pos_real_price != 0')
                 ->groupBy(
                     'users.id',
-                    'user_shifts.id',
+                    'stores.id',
                     'users.u_name',
                     'user_shifts.start_time',
-                    'user_shifts.date',
                     'user_shifts.end_time',
+                    'user_shifts.date',
                     'stores.st_name',
                     'user_shifts.laba_shift'
-                )->orderBy('user_shifts.id', 'DESC'))
-                ->editColumn('start_time', function ($row) {
-                    return date('H:i:s', strtotime($row->start_time));
-                })
-                ->editColumn('end_time', function ($row) {
-                    return date('H:i:s', strtotime($row->end_time));
-                })
-                ->editColumn('total_pos_payment_price', function ($row) {
-                    return 'Rp. ' . number_format($row->total_pos_payment_price, 0, ',', '.');
-                })
-                ->editColumn('total_pos_real_price', function ($row) {
-                    return 'Rp. ' . number_format($row->total_pos_real_price, 0, ',', '.');
-                })
-//                    ->editColumn('laba_shift', function ($row) {
-//                        return 'Rp. ' . number_format($row->laba_shift, 0, ',', '.');
-//                    })
-                ->editColumn('difference', function ($row) {
-                    return 'Rp. ' . number_format($row->total_pos_real_price - $row->total_pos_payment_price, 0, ',', '.');
-                })
-                ->editColumn('start_time_original', function ($row) {
-                    return $row->start_time;
-                })
-                ->editColumn('end_time_original', function ($row) {
-                    return $row->end_time;
-                })
-                ->rawColumns(['total_pos_payment_price', 'total_pos_real_price', 'laba_shift', 'difference'])
-                ->filter(function ($instance) use ($request) {
-                    if ($request->get('st_id') != null) {
-                        $instance->where('users.st_id', $request->get('st_id'));
-                    }
+                )
+                ->havingRaw('total_pos_real_price IS NOT NULL AND total_pos_real_price != 0')
+                ->orderByDesc('user_shifts.id');
 
-                    if ($request->get('search')) {
-                        $instance->where(function ($w) use ($request) {
-                            $search = $request->get('search');
-                            $w->orWhere('users.u_name', 'LIKE', "%$search%")
-                                ->orWhere('stores.st_name', 'LIKE', "%$search%");
-                        });
-                    }
-                })
+            if ($request->get('st_id')) {
+                $query->where('users.st_id', $request->get('st_id'));
+            }
+
+            if ($search = $request->get('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('users.u_name', 'LIKE', "%{$search}%")
+                        ->orWhere('stores.st_name', 'LIKE', "%{$search}%");
+                });
+            }
+
+            return datatables()
+                ->of($query)
+                ->editColumn('start_time', fn($row) => date('H:i:s', strtotime($row->start_time)))
+                ->editColumn('end_time', fn($row) => date('H:i:s', strtotime($row->end_time)))
+                ->editColumn('total_pos_payment_price', fn($row) => 'Rp. ' . number_format($row->total_pos_payment_price, 0, ',', '.'))
+                ->editColumn('total_pos_real_price', fn($row) => 'Rp. ' . number_format($row->total_pos_real_price, 0, ',', '.'))
+                ->editColumn('difference', fn($row) => 'Rp. ' . number_format($row->total_pos_real_price - $row->total_pos_payment_price, 0, ',', '.'))
+                ->rawColumns(['total_pos_payment_price', 'total_pos_real_price', 'difference'])
                 ->addIndexColumn()
                 ->make(true);
         }
