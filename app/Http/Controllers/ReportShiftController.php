@@ -238,11 +238,9 @@ class ReportShiftController extends Controller
                 ->groupBy(
                     'users.id',
                     'stores.id',
-                    'users.u_name',
                     'user_shifts.start_time',
                     'user_shifts.end_time',
                     'user_shifts.date',
-                    'stores.st_name',
                     'user_shifts.laba_shift'
                 )
                 ->havingRaw('total_pos_real_price IS NOT NULL AND total_pos_real_price != 0')
