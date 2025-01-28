@@ -577,11 +577,13 @@
             ],
         });
 
-        $('#stt_id, #datetime, #st_id_filter', '#dp_id').on('change', function() {
+        $('#stt_id, #datetime, #st_id_filter, #dp_id').on('change', function() {
             //sales_report_table.draw();
             invoice_report_table.draw();
             article_report_table.draw();
         });
+
+
 
         $('#article_report_search').on('keyup', function() {
             article_report_table.draw();
