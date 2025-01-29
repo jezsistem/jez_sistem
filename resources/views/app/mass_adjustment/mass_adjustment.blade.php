@@ -202,6 +202,7 @@
                                         <th class="text-dark">No</th>
                                         <th class="text-dark">BIN</th>
                                         <th class="text-dark">BRAND</th>
+                                        <th class="text-dark">SKU</th>
                                         <th class="text-dark">ARTIKEL</th>
                                         <th class="text-dark">WARNA</th>
                                         <th class="text-dark">SIZE</th>
