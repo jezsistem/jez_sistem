@@ -126,6 +126,10 @@
                     name: 'br_name'
                 },
                 {
+                    data: 'ps_barcode',
+                    name: 'ps_barcode'
+                },
+                {
                     data: 'p_name',
                     name: 'p_name'
                 },

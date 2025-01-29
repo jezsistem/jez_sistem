@@ -658,7 +658,7 @@ class SalesReportController extends Controller
                              avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase, 
                              avg(ts_purchase_order_article_details.poad_purchase_price) as purchase2, 
                              ps_purchase_price, p_purchase_price, ps_sell_price, p_sell_price, 
-                             p_price_tag, ps_price_tag")
+                             p_price_tag, ps_price_tag, ps_barcode")
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')

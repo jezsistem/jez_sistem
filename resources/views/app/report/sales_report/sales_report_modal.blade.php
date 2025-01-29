@@ -166,6 +166,7 @@
                         <tr>
                             <th class="text-dark">No</th>
                             <th class="text-dark">Brand</th>
+                            <th class="text-dark">SKU</th>
                             <th class="text-dark">Artikel</th>
                             <th class="text-dark">Warna</th>
                             <th class="text-dark">Size</th>
