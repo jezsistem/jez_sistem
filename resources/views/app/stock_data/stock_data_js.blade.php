@@ -998,50 +998,50 @@
         return false;
     }
 
-    function updateRequestCount() {
-        // Track the previous count
-        let previousCount = parseInt($('#request_count').text(), 10) || 0;
+    {{--function updateRequestCount() {--}}
+    {{--    // Track the previous count--}}
+    {{--    let previousCount = parseInt($('#request_count').text(), 10) || 0;--}}
 
-        // Setup CSRF token for Laravel
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+    {{--    // Setup CSRF token for Laravel--}}
+    {{--    $.ajaxSetup({--}}
+    {{--        headers: {--}}
+    {{--            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
+    {{--        }--}}
+    {{--    });--}}
 
-        // Make the AJAX request
-        $.ajax({
-            url: '{{ url('request_count_pickup') }}',
-            type: "POST",
-            data: {
-                _st_id: {{ \Illuminate\Support\Facades\Auth::user()->st_id }}
-            },
-            success: function (response) {
-                // Parse the new count from the response
-                const newCount = response.count;
+    {{--    // Make the AJAX request--}}
+    {{--    $.ajax({--}}
+    {{--        url: '{{ url('request_count_pickup') }}',--}}
+    {{--        type: "POST",--}}
+    {{--        data: {--}}
+    {{--            _st_id: {{ \Illuminate\Support\Facades\Auth::user()->st_id }}--}}
+    {{--        },--}}
+    {{--        success: function (response) {--}}
+    {{--            // Parse the new count from the response--}}
+    {{--            const newCount = response.count;--}}
 
-                // Update the HTML element with the new count
-                $('#request_count').text(newCount);
+    {{--            // Update the HTML element with the new count--}}
+    {{--            $('#request_count').text(newCount);--}}
 
-                // Check if the count decrease
-                if (newCount < previousCount) {
-                    // Play a notification sound
-                    const audio =  new Audio("{{ asset('music/lily.mp3') }}"); // Replace with your audio file path
-                    audio.play();
-                }
+    {{--            // Check if the count decrease--}}
+    {{--            if (newCount < previousCount) {--}}
+    {{--                // Play a notification sound--}}
+    {{--                const audio =  new Audio("{{ asset('music/lily.mp3') }}"); // Replace with your audio file path--}}
+    {{--                audio.play();--}}
+    {{--            }--}}
 
-                // Update the previous count variable
-                previousCount = newCount;
-            },
-            error: function () {
-                console.error('Failed to fetch request count.');
-            }
-        });
-    }
+    {{--            // Update the previous count variable--}}
+    {{--            previousCount = newCount;--}}
+    {{--        },--}}
+    {{--        error: function () {--}}
+    {{--            console.error('Failed to fetch request count.');--}}
+    {{--        }--}}
+    {{--    });--}}
+    {{--}--}}
 
-    // Call the function periodically (e.g., every 3 seconds)
-    setInterval(updateRequestCount, 3000);
+    {{--// Call the function periodically (e.g., every 3 seconds)--}}
+    {{--setInterval(updateRequestCount, 3000);--}}
 
-    // Optionally call it once immediately when the page loads
-    updateRequestCount();
+    {{--// Optionally call it once immediately when the page loads--}}
+    {{--updateRequestCount();--}}
 </script>

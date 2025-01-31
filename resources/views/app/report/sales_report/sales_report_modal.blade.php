@@ -162,7 +162,7 @@
             <div class="modal-body table-responsive">
                 <input type="search" class="form-control" id="hbhj_search" placeholder="Cari artikel"/>
                 <table class="table table-hover table-checkable" id="HBHJtb">
-                    <thead class="bg-light text-dark">
+                        <thead class="bg-light text-dark">
                         <tr>
                             <th class="text-dark">No</th>
                             <th class="text-dark">Brand</th>
