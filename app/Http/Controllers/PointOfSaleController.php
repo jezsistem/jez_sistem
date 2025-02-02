@@ -1679,7 +1679,7 @@ class PointOfSaleController extends Controller
                     $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
                         ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                         ->where('pst_id', '=', $row->pst_id)
-                        ->where('std_id', '=', $std_id)
+//                        ->where('std_id', '=', $std_id)
                         ->where('product_discounts.st_id', '=', Auth::user()->st_id)
                         ->where('pd_type', '=', 'b1g1')
                         ->where('pd_date', '>=', date('Y-m-d'))
