@@ -274,6 +274,7 @@
                 { data: 'executor', name: 'executor', orderable:false },
                 { data: 'editor', name: 'editor', orderable:false },
                 { data: 'note', name: 'note', orderable:false },
+                { data: 'tipe', name: 'tipe', orderable:false },
                 { data: 'created_at', name: 'created_at'},
                 { data: 'updated_at', name: 'updated_at'},
                 { data: 'ma_status', name: 'ma_status'},

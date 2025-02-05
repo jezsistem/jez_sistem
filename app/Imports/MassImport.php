@@ -26,7 +26,7 @@ class MassImport implements ToCollection, WithStartRow
     protected $qty_filter;
     protected $note;
 
-    function __construct($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note)
+    function __construct($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note, $tipe)
     {
         $this->st_id = $st_id;
         $this->psc_id = $psc_id;
@@ -34,6 +34,7 @@ class MassImport implements ToCollection, WithStartRow
         $this->pl_id = $pl_id;
         $this->qty_filter = $qty_filter;
         $this->note = $note;
+        $this->tipe = $tipe;
     }
 
     public function startRow(): int
@@ -79,6 +80,7 @@ class MassImport implements ToCollection, WithStartRow
                     'ma_executor' => null,
                     'ma_status' => '0',
                     'note_adjustment' => $this->note,
+                    'tipe_adjustment' => $this->tipe,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);

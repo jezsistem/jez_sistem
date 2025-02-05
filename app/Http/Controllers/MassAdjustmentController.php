@@ -164,7 +164,7 @@ class MassAdjustmentController extends Controller
     public function adjustmentDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note')
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
                 ->editColumn('ma_code_show', function ($d) {
@@ -459,9 +459,10 @@ class MassAdjustmentController extends Controller
         $pl_id = $req->post('pl_id');
         $qty_filter = $req->post('qty_filter');
         $note = $req->post('note_adjustment');
+        $tipe = $req->post('tipe_adjustment');
 
         if (request()->hasFile('template')) {
-            $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note);
+            $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note, $tipe);
             Excel::import($import, request()->file('template'));
             $r['ma_id'] = $import->getRowCount()['ma_id'];
             $r['ma_code'] = $import->getRowCount()['ma_code'];

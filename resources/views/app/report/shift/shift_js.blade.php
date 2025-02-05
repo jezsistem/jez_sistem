@@ -205,6 +205,15 @@
         var start = moment();
         var end = moment();
 
+
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
         function cb(start, end, label) {
             var title = '';
             var range = '';
@@ -226,10 +235,12 @@
             $('#sales_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
-            // online_transaction_table.draw();
-            // article_report_table.draw();
-        }
 
+            // refresh table
+            // invoice_report_table.draw();
+            // article_report_table.draw();
+            console.log($('#kt_dashboard_daterangepicker_date').text());
+        }
 
         picker.daterangepicker({
             direction: KTUtil.isRTL(),
@@ -249,6 +260,5 @@
             }
         }, cb);
         cb(start, end, '');
-
     });
 </script>

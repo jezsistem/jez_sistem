@@ -20,6 +20,18 @@
                         </div>
 
                         <div class="form-group">
+                            <label>Tipe Adjustment</label>
+                            <select class="form-control" name="tipe_adjustment" id="tipe_adjustment">
+                                <option value="">-- Pilih Tipe Adjustment --</option>
+                                <option value="KERUGIAN">KERUGIAN</option>
+                                <option value="BELUM TERBAYAR">BELUM TERBAYAR</option>
+                                <option value="TERBAYAR">TERBAYAR</option>
+                                <option value="BIAYA PROMOSI">BIAYA PROMOSI</option>
+                                <option value="BIAYA OPERASIONAL">BIAYA OPERASIONAL</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label><span class="text-danger">*</span>Note Adjustment</label>
                             <textarea class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;"></textarea>
                         </div>
@@ -59,7 +71,7 @@
                                 <option value='all'>- Semua Store -</option>
                                 @foreach ($data['st_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
-                                @endforeach
+                                 @endforeach
                             </select>
                             <select class="form-control mt-2 bg-primary text-white" id="br_filter">
                                 <option value='all'>- Semua Brand -</option>
