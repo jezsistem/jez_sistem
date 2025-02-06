@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 // use App\Models\Gender;
 use App\Models\MainColor;
+use App\Models\StoreType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -110,7 +111,7 @@ class StockDataController extends Controller
             ->get();
 
         return response()->json(['data' => $promoData]);
-    } 
+    }
 
     public function getDatatables(Request $request)
     {
@@ -282,12 +283,11 @@ class StockDataController extends Controller
                                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                                 ->where(function ($query) use ($text_search) {
                                     $query->where('product_stocks.ps_barcode', 'like', $text_search . '%')
-                                          ->orWhere('products.p_name', 'like', '%' . $text_search . '%');
-                                    })
-
+                                        ->orWhere('products.p_name', 'like', '%' . $text_search . '%');
+                                })
                                 ->get()
                                 ->first();
-                                
+
                             $style = ($row->article_id === $article_id_search->article_id) ? 'background-color: #FFA500 !important;' : '';
 
                             $item_list .= '<tr style="border:0px;' . $style . '" title="' . $text_search . '">';
@@ -369,23 +369,42 @@ class StockDataController extends Controller
 
                                     if (!empty($item_location)) {
                                         foreach ($item_location as $lrow) {
-                                            if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
+
+                                            $stt_id = Auth::user()->stt_id;
+
+                                            $stt_name = StoreType::where('id', $stt_id)->get()->first();
+
+                                            if ($stt_name != 'OFFLINE') {
+                                                if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
 //                                                if (stripos($st_name->st_name, 'ONLINE') === FALSE) {
 //                                                } else {
 //                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '">' . $lrow->pls_qty . '</span> ';
 //                                                }
 
-                                                $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
 
 
-                                            } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
-                                                $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                            } else if ($lrow->pl_code == '03 - DEFECT' || $lrow->pl_code == '02 - DEFECT' || $lrow->pl_code == 'DC - DEFECT') {
+                                                } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
+                                                    $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
+                                                } else if ($lrow->pl_code == '03 - DEFECT' || $lrow->pl_code == '02 - DEFECT' || $lrow->pl_code == 'DC - DEFECT') {
 //                                                $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                                $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                    $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
 
+                                                } else {
+                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                }
                                             } else {
-                                                $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
+                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
+                                                    $bin .= '<span class="btn-sm-custom btn-warning" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
+                                                } else if ($lrow->pl_code == '03 - DEFECT' || $lrow->pl_code == '02 - DEFECT' || $lrow->pl_code == 'DC - DEFECT') {
+//                                                $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
+                                                    $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+
+                                                } else {
+                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                }
                                             }
                                         }
                                     }
@@ -516,23 +535,23 @@ class StockDataController extends Controller
                             $search = $request->get('search');
                             $w->WhereRaw('ts_product_stocks.ps_barcode LIKE ?', "$search%")
                                 ->orWhereRaw('ts_products.article_id LIKE ?', "%$search%")
-                                ->orWhereRaw('ts_products.p_name LIKE ?' , "%$search%");
+                                ->orWhereRaw('ts_products.p_name LIKE ?', "%$search%");
                         });
                     }
 
-    // public function stockDataDatatables(Request $request) {
-    //     $searchQuery = $request->input('search');
-    
-    //     $products = Product::query();
-    
-    //     if (!empty($searchQuery)) {
-    //         // Search by article ID or product name
-    //         $products->where('article_id', 'LIKE', '%' . $searchQuery . '%')
-    //                  ->orWhere('p_name', 'LIKE', '%' . $searchQuery . '%');
-    //     }
-    
-    //     return Datatables::of($products)->make(true);
-    // }   
+                    // public function stockDataDatatables(Request $request) {
+                    //     $searchQuery = $request->input('search');
+
+                    //     $products = Product::query();
+
+                    //     if (!empty($searchQuery)) {
+                    //         // Search by article ID or product name
+                    //         $products->where('article_id', 'LIKE', '%' . $searchQuery . '%')
+                    //                  ->orWhere('p_name', 'LIKE', '%' . $searchQuery . '%');
+                    //     }
+
+                    //     return Datatables::of($products)->make(true);
+                    // }
                     if (!empty($request->get('search_scan'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search_scan');
@@ -1788,8 +1807,9 @@ class StockDataController extends Controller
         ];
         return view('app.stock_data._reload_size', compact('data'));
     }
-    
-    public function requestCount(Request $request){
+
+    public function requestCount(Request $request)
+    {
 //        $google = new GoogleProvider();
 //        $tts = new TextToSpeech("Hello World", $google);
 //
