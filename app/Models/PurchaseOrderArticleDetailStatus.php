@@ -13,6 +13,7 @@ class PurchaseOrderArticleDetailStatus extends Model
     protected $fillable = [
         'stkt_id',
         'tax_id',
+        'dp_id',
         'poad_id',
         'poads_qty',
         'poads_discount',

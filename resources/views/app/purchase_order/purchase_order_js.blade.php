@@ -872,6 +872,16 @@
             $(window).off(evt);
         });
 
+        $('#dp_id').select2({
+            width: "100%",
+            dropdownParent: $('#dp_id_parent')
+        });
+        $('#dp_id').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#acc_id').select2({
             width: "100%",
             dropdownParent: $('#acc_id_parent')
@@ -985,6 +995,7 @@
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
+                        jQuery('#dp_id').val(r.dp_id).trigger('change');
                         jQuery('#acc_id').val(r.acc_id).trigger('change');
                         reloadArticleDetail(po_id);
                     } else {
@@ -1027,6 +1038,7 @@
                         jQuery('#ps_id').val('').trigger('change');
                         jQuery('#stkt_id').val('').trigger('change');
                         jQuery('#tax_id').val('').trigger('change');
+                        jQuery('#dp_id').val('').trigger('change');
                         jQuery('#acc_id').val('').trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
@@ -1177,6 +1189,31 @@
                     _tax_id: tax_id
                 },
                 url: "{{ url('po_choose_tax') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#dp_id').on('change', function() {
+            var dp_id = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _dp_id: dp_id
+                },
+                url: "{{ url('po_choose_data_perusahaan') }}",
                 success: function(r) {
                     if (r.status == '200') {
 

@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_choose_supplier', [PurchaseOrderController::class, 'chooseSupplierPo']);
     Route::post('po_choose_stock_type', [PurchaseOrderController::class, 'chooseStockType']);
     Route::post('po_choose_tax', [PurchaseOrderController::class, 'chooseTaxPo']);
+    Route::post('po_choose_data_perusahaan', [PurchaseOrderController::class, 'chooseDataPerusahaan']);
     Route::post('po_choose_payment', [PurchaseOrderController::class, 'choosePaymentPo']);
     Route::post('po_description', [PurchaseOrderController::class, 'descriptionPo']);
     Route::post('po_shipping_cost', [PurchaseOrderController::class, 'shippingCostPo']);

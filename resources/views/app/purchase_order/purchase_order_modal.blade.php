@@ -184,6 +184,17 @@
                     </div>
 
                     <div class="col-4 mt-5">
+                        <label>Data Perusahaan</label>
+                        <select class="form-control" id="dp_id" name="dp_id" required>
+                            <option value="">- Data Perusahaan -</option>
+                            @foreach ($data['dp_id'] as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <div id="dp_id_parent"></div>
+                    </div>
+
+                    <div class="col-4 mt-5">
                         <label>Payment</label>
                         <select class="form-control" id="acc_id" name="acc_id" required>
                             <option value="">- Payment -</option>

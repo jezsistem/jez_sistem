@@ -109,6 +109,7 @@ class PurchaseOrderController extends Controller
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
             'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            'dp_id' => DataPerusahaan::orderByDesc('id')->pluck('dp_name', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
             'pro_id' => PreOrder::getAllDataPO(),
@@ -385,6 +386,17 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    public function chooseDataPerusahaan(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['dp_id' => $request->_dp_id]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
     public function choosePaymentPo(Request $request)
     {
         $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['acc_id' => $request->_acc_id]);
@@ -399,17 +411,6 @@ class PurchaseOrderController extends Controller
     public function chooseSupplierPo(Request $request)
     {
         $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['ps_id' => $request->_ps_id]);
-        if (!empty($check)) {
-            $r['status'] = '200';
-        } else {
-            $r['status'] = '400';
-        }
-        return json_encode($r);
-    }
-
-    public function chooseDataPerusahaan(Request $request)
-    {
-        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['ps_id' => $request->_dp_id]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {
@@ -633,6 +634,7 @@ class PurchaseOrderController extends Controller
             $r['st_id'] = $draft->st_id;
             $r['ps_id'] = $draft->ps_id;
             $r['tax_id'] = $draft->tax_id;
+            $r['dp_id'] = $draft->dp_id;
             $r['stkt_id'] = $draft->stkt_id;
             $r['po_description'] = $draft->po_description;
             $r['po_invoice'] = $draft->po_invoice;
