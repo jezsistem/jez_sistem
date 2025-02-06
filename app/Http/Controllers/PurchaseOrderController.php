@@ -32,6 +32,9 @@ use App\Models\UserActivity;
 use Intervention\Image\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
 
+use App\Models\DataPerusahaan;
+
+
 class PurchaseOrderController extends Controller
 {
     protected function validateAccess()
@@ -109,9 +112,7 @@ class PurchaseOrderController extends Controller
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
             'pro_id' => PreOrder::getAllDataPO(),
-            'segment' => request()->segment(1),
-        ];
-        //        dd($data['acc_id']);
+            'segment' => request()->segment(1),];
         return view('app.purchase_order.purchase_order', compact('data'));
     }
 
@@ -398,6 +399,17 @@ class PurchaseOrderController extends Controller
     public function chooseSupplierPo(Request $request)
     {
         $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['ps_id' => $request->_ps_id]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function chooseDataPerusahaan(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['ps_id' => $request->_dp_id]);
         if (!empty($check)) {
             $r['status'] = '200';
         } else {

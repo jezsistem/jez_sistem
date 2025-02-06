@@ -77,6 +77,7 @@ use App\Http\Controllers\SendNotificationController;
 
 use App\Http\Controllers\WebConfigController;
 
+use App\Http\Controllers\DataPerusahaanController;
 
 
 
@@ -630,6 +631,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('user_start_shift', [UserShiftController::class, 'startShift']);
     Route::post('user_end_shift', [UserShiftController::class, 'endShift']);
     Route::get('check_user_shift', [UserShiftController::class, 'checkUserShift']);
+
+    //Data Perusahaan
+    Route::get('data_perusahaan', [DataPerusahaanController::class, 'index'])->name('data_perusahaan');
+    Route::get('data_perusahaan_datatables', [DataPerusahaanController::class, 'getDatatables']);
+    Route::post('dp_save', [DataPerusahaanController::class, 'storeData']);
+    Route::post('dp_delete', [DataPerusahaanController::class, 'deleteData']);
+    Route::post('dp_import', [DataPerusahaanController::class, 'importData']);
+    Route::post('check_exists_data_perusahaan', [DataPerusahaanController::class, 'checkExistsDataPerusahaan']);
 });
 
 require __DIR__ . '/purchase_order.php';
