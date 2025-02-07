@@ -57,18 +57,36 @@ class SetupHistoryExport implements FromCollection , withHeadings
         if (!empty($data->first())) {
             foreach ($data as $row) {
                 $ar = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color', 'pl_code')
-                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->where('product_location_setups.id', $row->pls_id)
-                ->get()->first();
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                    ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->where('product_location_setups.id', $row->pls_id)
+                    ->first(); // get()->first() can be simplified to first()
+
+                if (!$ar) {
+                    // If no result is found, assign default values or skip
+                    $br_name = $p_name = $p_color = $sz_name = $pl_code = 'N/A';
+                } else {
+                    $br_name = $ar->br_name;
+                    $p_name = $ar->p_name;
+                    $p_color = $ar->p_color;
+                    $sz_name = $ar->sz_name;
+                    $pl_code = $ar->pl_code;
+                }
 
                 $date = date('d/m/Y H:i:s', strtotime($row->created_at));
-                $export[] = [$date, $row->st_name, $row->u_name, $ar->br_name, $ar->p_name, $ar->p_color, $ar->sz_name, $ar->pl_code, $row->pmt_old_qty, $row->pmt_qty, ($row->pmt_old_qty-$row->pmt_qty), $row->pl_code];
+                $export[] = [
+                    $date, $row->st_name, $row->u_name, $br_name,
+                    $p_name, $p_color, $sz_name, $pl_code,
+                    $row->pmt_old_qty, $row->pmt_qty,
+                    ($row->pmt_old_qty - $row->pmt_qty),
+                    $row->pl_code
+                ];
             }
         }
+
         return collect($export);
     }
 }
