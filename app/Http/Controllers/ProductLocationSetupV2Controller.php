@@ -609,8 +609,10 @@ class ProductLocationSetupV2Controller extends Controller
                             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                             ->where(function ($w) use ($request) {
                                 $search = $request->get('search');
-                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                                    ->orWhere('pl_code', 'LIKE', "%$search%");
+//                                $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+                                    $w->orWhere('pl_code', 'LIKE', "%$search%")
+                                    ->orWhere('article_id', 'LIKE', "%$search%")
+                                    ->orWhere('ps_barcode', 'LIKE', "%$search%");
                             });
                     }
                 })
