@@ -35,9 +35,11 @@ class DataPerusahaanExport implements FromCollection, withHeadings
             $data = DB::table('data_perusahaan')->select('dp_name', 'dp_npwp', 'dp_description')->get();
 
             if (!empty($data)) {
+
                 $no = 1;
                 foreach ($data as $row) {
-                    $export[] = [$no++, $row->dp_name, $row->dp_npwp, $row->dp_description];
+                    $npwp = preg_replace('/[^A-Za-z0-9\-]/', '', $row->dp_npwp); // Removes special chars.
+                    $export[] = [$no++, $row->dp_name, $npwp, $row->dp_description];
                 }
             }
         }
