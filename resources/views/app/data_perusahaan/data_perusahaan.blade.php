@@ -68,6 +68,10 @@
                                                         <span id="data_perusahaan_excel_btn"></span>
                                                     </a>
                                                 </li>
+                                                <a href="#" class="navi-link">
+                                                        <span class="navi-icon">
+                                                            <i class="la la-copy"></i>
+                                                <a class="btn btn-primary ml-auto mr-2" data-type="cross" id="export_btn">Export Excel</a><br/>                                     
                                             </ul>
                                             <!--end::Navigation-->
                                         </div>
@@ -103,6 +107,7 @@
                                         <tr>
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">Nama Perusahaan</th>
+                                            <th class="text-dark">NPWP</th>
                                             <th class="text-dark">Deskripsi</th>
                                         </tr>
                                     </thead>

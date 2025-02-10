@@ -17,6 +17,7 @@ class DataPerusahaan extends Migration
             $table->id();
             $table->string('dp_name');
             $table->string('dp_description');
+            $table->string('dp_npwp');
             $table->timestamps();
         });
     }

@@ -13,6 +13,7 @@ class DataPerusahaan extends Model
     protected $fillable = [
         'id',
         'dp_name',
+        'dp_npwp',
         'dp_description',
         'created_at',
         'updated_at'

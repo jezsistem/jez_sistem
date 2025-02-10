@@ -33,6 +33,10 @@
                     name: 'dp_name'
                 },
                 {
+                    data: 'dp_npwp',
+                    name: 'dp_npwp'
+                },
+                {
                     data: 'dp_description',
                     name: 'dp_description'
                 },
@@ -59,10 +63,12 @@
         $('#DataPerusahaantb tbody').on('click', 'tr', function() {
             var id = data_perusahaan_table.row(this).data().id;
             var dp_name = data_perusahaan_table.row(this).data().dp_name;
+            var dp_npwp = data_perusahaan_table.row(this).data().dp_npwp;
             var dp_description = data_perusahaan_table.row(this).data().dp_description;
             jQuery.noConflict();
             $('#DataPerusahaanModal').modal('show');
             $('#dp_name').val(dp_name);
+            $('#dp_npwp').val(dp_npwp);
             $('#dp_description').val(dp_description);
             $('#_id').val(id);
             $('#_mode').val('edit');
@@ -140,6 +146,16 @@
             });
         });
 
+        $(document).delegate('#export_btn', 'click', function(e) {
+            e.preventDefault();
+            var type = $(this).attr('data-type');
+            var dp_id = $('#dp_id').val();
+            var dp_name = $('#dp_name').val();
+            var dp_npwp = $('#dp_npw').val();
+            var dp_description = $('#dp_description').val();
+            window.location.href = "{{ url('data_perusahaan_export') }}?type=" + type + "&dp_id=" + dp_id +
+                "&dp_name=" + dp_name + "&dp_npwp=" + dp_npwp + "&dp_description=" + dp_description + "";
+        });
 
         $('#delete_data_perusahaan_btn').on('click', function() {
             swal({

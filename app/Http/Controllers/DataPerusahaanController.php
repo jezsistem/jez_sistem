@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\DataPerusahaan;
-use App\Models\UserActivity;
+use App\Models\UserActivity;use App\Exports\DataPerusahaanExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class DataPerusahaanController extends Controller
 // {
@@ -223,12 +225,13 @@ class DataPerusahaanController extends Controller
     public function getDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(DataPerusahaan::select('id', 'dp_name', 'dp_description'))
+            return datatables()->of(DataPerusahaan::select('id', 'dp_name', 'dp_npwp', 'dp_description'))
             ->filter(function ($instance) use ($request) {
                 if (!empty($request->get('search'))) {
                     $instance->where(function($w) use($request){
                         $search = $request->get('search');
                         $w->orWhere('dp_name', 'LIKE', "%$search%")
+                        ->orWhere('dp_npwp', 'LIKE', "%$search%")
                         ->orWhere('dp_description', 'LIKE', "%$search%");
                     });
                 }
@@ -238,6 +241,7 @@ class DataPerusahaanController extends Controller
         }
     }
 
+    
     public function storeData(Request $request)
     {
         $data_perusahaan = new DataPerusahaan;
@@ -246,6 +250,7 @@ class DataPerusahaanController extends Controller
 
         $data = [
             'dp_name' => ltrim($request->input('dp_name')),
+            'dp_npwp' => $request->input('dp_npwp'),
             'dp_description' => $request->input('dp_description'),
         ];
 
@@ -271,14 +276,51 @@ class DataPerusahaanController extends Controller
         return json_encode($r);
     }
 
-    public function checkExistsProductCategory(Request $request)
+    public function checkExistsDataPerusahaan(Request $request)
     {
-        $check = DataPerusahaan::where(['pc_name' => strtoupper($request->_pc_name)])->exists();
+        $check = DataPerusahaan::where(['dp_name' => strtoupper($request->_dp_name)])->exists();
         if ($check) {
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+
+    // public function exportdata(Request $request)
+    // {
+    //     $data = DataPerusahaan::select('dp_name', 'dp_npwp', 'dp_description')->get();
+    //     $data = $data->map(function ($item) {
+    //         $item->dp_npwp = preg_replace('/[.-]/', '', $item->dp_npwp);
+    //         return $item;
+    //     });
+    //     {
+    //         return Excel::download(new DataPerusahaanExport, 'data_perusahaan.xlsx');
+    //     }
+    // }
+    public function exportData(Request $request)
+    {
+        try {
+            $type = $request->get('type');
+            $date = $request->get('date');
+            $exp = explode('|', $date);
+            $start = null;
+            $end = null;
+            if (!empty($exp[1])) {
+                $start = $exp[0];
+                $end = $exp[1];
+            } else {
+                $start = $request->get('date');
+            }
+            $dp_id = $request->get('dp_id');
+            $dp_name = $request->get('dp_name');
+            $dp_npwp = $request->get('dp_npwp');
+            $dp_description = $request->get('dp_description');
+
+            return Excel::download(new DataPerusahaanExport($type, $start, $end, $stt_id, $st_id, $dp_id), $fileName);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
     }
 }
