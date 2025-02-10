@@ -25,7 +25,30 @@
 
             </div>
 
+            {{-- Finance --}}
             <div class="topbar-item">
+                <div class="btn btn-icon btn-icon-mobile w-auto d-flex align-items-center px-3 position-relative" style="margin-right: 15px">
+                    <a href="#" id="notification_btn" class="text-dark">
+                        <i class="fa fa-bell fa-lg"></i>
+                        <span class="badge badge-danger position-absolute top-0 start-100 translate-middle p-1"
+                              id="notification_count" style="font-size: 10px; border-radius: 50%;">3</span>
+                    </a>
+
+                    <!-- Notification Dropdown list -->
+                    <div id="notification_dropdown" class="dropdown-menu dropdown-menu-right shadow-lg p-2"
+                         style="width: 300px; display: none; position: absolute; top: 40px; right: 0px; z-index: 1000;">
+                        <h6 class="dropdown-header">Notifications</h6>
+                        <div id="notification_list">
+                            <a href="#" class="dropdown-item">📢 New Order Received</a>
+                            <a href="#" class="dropdown-item">🔔 Stock is Running Low</a>
+                            <a href="#" class="dropdown-item">⚠️ Server Maintenance Scheduled</a>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item text-center text-primary">View All</a>
+                    </div>
+                </div>
+
+
 
                 <div class="btn btn-icon btn-icon-mobile w-auto btn-clean d-flex align-items-center px-3"
                      id="kt_quick_user_toggle">
@@ -35,12 +58,32 @@
                         <span class="symbol-label font-size-h5 font-weight-bold">{{ substr($data['user']->u_name, 0, 1) }}</span>
                     </span>
                 </div>
+
                 <div class="btn btn-icon-mobile w-auto d-flex align-items-center pl-2 pr-0">
                     <a style="white-space:nowrap; font-weight:bold; background:#FF5D5D;"
                        href="{{ url('data_stok') }}" class="btn btn-danger" id="load_user_store">
                     </a>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#notification_btn").click(function (event) {
+            event.preventDefault();
+            $("#notification_dropdown").toggle();
+        });
+
+        // Close the dropdown when clicking outside
+        $(document).click(function (event) {
+            if (!$(event.target).closest("#notification_btn, #notification_dropdown").length) {
+                $("#notification_dropdown").hide();
+            }
+        });
+    });
+</script>

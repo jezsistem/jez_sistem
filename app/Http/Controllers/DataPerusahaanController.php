@@ -303,22 +303,10 @@ class DataPerusahaanController extends Controller
     {
         try {
             $type = $request->get('type');
-            $date = $request->get('date');
-            $exp = explode('|', $date);
-            $start = null;
-            $end = null;
-            if (!empty($exp[1])) {
-                $start = $exp[0];
-                $end = $exp[1];
-            } else {
-                $start = $request->get('date');
-            }
-            $dp_id = $request->get('dp_id');
-            $dp_name = $request->get('dp_name');
-            $dp_npwp = $request->get('dp_npwp');
-            $dp_description = $request->get('dp_description');
 
-            return Excel::download(new DataPerusahaanExport($type, $start, $end, $stt_id, $st_id, $dp_id), $fileName);
+            $fileName = 'Export_Laporan_' . date('Y-m-d') . '.xlsx';
+
+            return Excel::download(new DataPerusahaanExport($type), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }

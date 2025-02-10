@@ -148,13 +148,9 @@
 
         $(document).delegate('#export_btn', 'click', function(e) {
             e.preventDefault();
-            var type = $(this).attr('data-type');
-            var dp_id = $('#dp_id').val();
-            var dp_name = $('#dp_name').val();
-            var dp_npwp = $('#dp_npw').val();
-            var dp_description = $('#dp_description').val();
-            window.location.href = "{{ url('data_perusahaan_export') }}?type=" + type + "&dp_id=" + dp_id +
-                "&dp_name=" + dp_name + "&dp_npwp=" + dp_npwp + "&dp_description=" + dp_description + "";
+
+            var type = 'npwp';
+            window.location.href = "{{ url('export-perusahaan') }}?type=" + type + "";
         });
 
         $('#delete_data_perusahaan_btn').on('click', function() {
