@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
 use App\Models\Store;
+use App\Models\StoreType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -624,7 +626,7 @@ class InvoiceEditorController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
 
         if (request()->ajax()) {
-            return datatables()->of(DB::table('invoice_editors')
+            return datatables()->of(DB::table('`invoice_editors`')
                 ->select("invoice_editors.id", "pos_invoice", "u_name", "activity", "note", "invoice_editors.created_at", "invoice_editors.updated_at")
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'invoice_editors.pt_id')
                 ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id')
@@ -725,8 +727,8 @@ class InvoiceEditorController extends Controller
                         'pos_refund' => '1',
                         'st_id_ref' => $pos_trx_selected->st_id_ref,
                         'cross_order' => $pos_trx_selected->cross_order,
-                        'pos_status'   => $value,
-                        'pos_payment'   => -abs($pos_trx_selected->pos_payment)
+                        'pos_status' => $value,
+                        'pos_payment' => -abs($pos_trx_selected->pos_payment)
                     ]);
 
                     foreach ($pos_details as $detail) {
@@ -760,9 +762,36 @@ class InvoiceEditorController extends Controller
                             }
                         }
                     }
+
+                    if ($update) {
+                        // Retrieve city from the store
+                        $store = Store::select('st_description')->where('id', $pos_trx_selected->st_id)->first();
+
+                        if (!$store) {
+                            return response()->json(['error' => 'Store not found'], 404);
+                        }
+
+                        $city = $store->st_description;
+
+                        // Search for logistic division based on the city
+                        $logisticDivision = StoreType::where('stt_name', 'like', "%LOGISTIK " . $city . "%")->first();
+
+                        if (!$logisticDivision) {
+                            return response()->json(['error' => 'Logistic division not found'], 404);
+                        }
+
+                        // Prepare notification parameters
+                        $paramsNotif = [
+                            'stt_id' => $logisticDivision->id,
+                            'message' => "Refund on order number ". $pos_trx_selected->pos_invoice,
+                            'is_read' => false
+                        ];
+
+                        // Save the notification
+                        Notification::create($paramsNotif);
+                    }
                 }
-            }
-            else {
+            } else {
                 // Update the status in pos_transactions for other status updates
                 $update = DB::table('pos_transactions')->where('id', '=', $id)->update([
                     'pos_status' => $value,

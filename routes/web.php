@@ -640,6 +640,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('dp_import', [DataPerusahaanController::class, 'importData']);
     Route::post('check_exists_data_perusahaan', [DataPerusahaanController::class, 'checkExistsDataPerusahaan']);
     Route::get('export-perusahaan', [DataPerusahaanController::class, 'exportData']);
+
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'fetchNotifications']);
 });
 
 require __DIR__ . '/purchase_order.php';
