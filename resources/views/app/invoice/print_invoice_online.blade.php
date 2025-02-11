@@ -126,7 +126,7 @@
                      style="width:43%; padding:10px; background-color:#000;"/>
                 <div class="title" style="margin-top: 20px;">
                     <strong>Sneakerzone.id</strong><br/>
-                    Malang<br/>
+                    {{ ucwords(strtolower($data['st_name'])) }}<br/>
                     <br/><br/>
                     www.jez.co.id
                 </div>

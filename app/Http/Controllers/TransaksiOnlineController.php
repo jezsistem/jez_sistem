@@ -542,8 +542,12 @@ class TransaksiOnlineController extends Controller
             $check_transaction_detail = OnlineTransactionDetails::leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                ->leftjoin('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+//                ->leftjoin('stores', 'stores.id', '=', 'online_transactions.st_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->where(['to_id' => $trx->id])->get();
+
+
             if (!empty($check_transaction_detail)) {
                 $trx->subitem = $check_transaction_detail;
                 array_push($get_invoice, $trx);
@@ -552,6 +556,8 @@ class TransaksiOnlineController extends Controller
 
         $stores = Auth::user()->st_id;
 
+        $st_name = Store::where('id', $stores)->first()->st_name;
+
         $data_stores = Store::where('id', $stores)->get()->first();
 
         $stores_code = $data_stores->st_code;
@@ -559,6 +565,7 @@ class TransaksiOnlineController extends Controller
         $data = [
             'title' => 'Invoice ' . $orderNumber,
             'invoice' => $orderNumber,
+            'st_name' => $st_name,
             'invoice_data' => $get_invoice,
             'store_code' => $stores_code,
             'segment' => request()->segment(1)
