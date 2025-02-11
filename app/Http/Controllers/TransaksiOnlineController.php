@@ -305,8 +305,6 @@ class TransaksiOnlineController extends Controller
             foreach ($sku_current_print->get() as $ind => $data) {
 
 //                dd($data->qty);
-//
-//
 
                 $chk_pos_offline = PosTransaction::where('pos_invoice', $invoice)->count();
 
@@ -356,31 +354,31 @@ class TransaksiOnlineController extends Controller
 //
                     if (count($online_transactions) >= $sku_count) {
 
-                        if ($chk_pos_offline == 0) {
-                            $trx_id_new = DB::table('pos_transactions')->insertGetId([
-                                'u_id' => Auth::user()->id,
-                                'kasir_id' => Auth::user()->id,
-                                'st_id' => Auth::user()->st_id,
-                                'stt_id' => Auth::user()->stt_id,
-                                'pos_online_payment' => $cur_trx->payment_method,
-                                'std_id' => $platform,
-                                'cust_id' => 1,
-                                'pos_admin_cost' => 0,
-                                'pos_another_cost' => 0,
-                                'pos_real_price' => $cur_trx->total_payment,
-                                'pos_order_number' => $cur_trx->order_number,
-                                'pos_invoice' => $cur_trx->order_number,
-                                'pos_unique_code' => 0,
-                                'pos_shipping' => $cur_trx->shipping_fee,
-                                'pos_total_discount' => 0,
-                                'pos_discount_seller' => 0,
-                                'created_at' => date('Y-m-d H:i:s'),
-                                'pos_status' => 'DONE',
-                                'pos_payment' => $cur_trx->total_payment
-                            ]);
-                        } else {
-                            $trx_id_new = PosTransaction::where('pos_invoice', $invoice)->get()->first()->id;
-                        }
+//                        if ($chk_pos_offline == 0) {
+                        $trx_id_new = DB::table('pos_transactions')->insertGetId([
+                            'u_id' => Auth::user()->id,
+                            'kasir_id' => Auth::user()->id,
+                            'st_id' => Auth::user()->st_id,
+                            'stt_id' => Auth::user()->stt_id,
+                            'pos_online_payment' => $cur_trx->payment_method,
+                            'std_id' => $platform,
+                            'cust_id' => 1,
+                            'pos_admin_cost' => 0,
+                            'pos_another_cost' => 0,
+                            'pos_real_price' => $cur_trx->total_payment,
+                            'pos_order_number' => $cur_trx->order_number,
+                            'pos_invoice' => $cur_trx->order_number,
+                            'pos_unique_code' => 0,
+                            'pos_shipping' => $cur_trx->shipping_fee,
+                            'pos_total_discount' => 0,
+                            'pos_discount_seller' => 0,
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'pos_status' => 'DONE',
+                            'pos_payment' => $cur_trx->total_payment
+                        ]);
+//                        } else {
+//                            $trx_id_new = PosTransaction::where('pos_invoice', $invoice)->get()->first()->id;
+//                        }
 
                         $params = [
                             'online_print' => true,
@@ -450,7 +448,6 @@ class TransaksiOnlineController extends Controller
                             $price_before_discount = $data->original_price * $data->qty;
 
                             $price_after_discount = $data->price_after_discount * $data->qty;
-
 
 
                             if (!$item_detail_checks) {
