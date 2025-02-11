@@ -171,7 +171,7 @@ class InvoiceTrackingController extends Controller
                             }
                             return $return;
                         } else if (strtoupper($data->stt_name) == 'ONLINE' && substr(trim((string) $data->pos_invoice), 0, 3) !== 'INV') { // NOT INV
-                            return '<a class="text-white" href="' . url('/') . '/print_online_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
+                            return '<a class="text-white" href="' . url('/') . '/print_online_nota/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
                         } else {
                             return '<a class="text-white" href="' . url('/') . '/print_offline_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
                         }
