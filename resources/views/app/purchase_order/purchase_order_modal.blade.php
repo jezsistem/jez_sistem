@@ -277,7 +277,7 @@
                 <!--end::Row-->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-danger font-weight-bold" id="cancel_purchase_order_btn">Hapus PO</button>
+                <button type="button" class="btn btn-light-danger font-weight-bold" style="margin-right: 20px" id="cancel_purchase_order_btn">Hapus PO</button>
                 <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn">Tutup</button>
             </div>
             </form>
