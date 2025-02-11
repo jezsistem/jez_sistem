@@ -25,13 +25,34 @@
 
             </div>
 
-            {{-- Finance --}}
+            <style>
+                #notification_dropdown {
+                    width: 100%; /* Make it responsive */
+                    max-width: 320px; /* Limit max width */
+                    position: absolute;
+                    right: 0;
+                    top: 40px;
+                    z-index: 1000;
+                    background: #fff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                #notification_dropdown a.dropdown-item {
+                    white-space: normal; /* Allow text wrapping */
+                    word-break: break-word; /* Ensure long texts wrap properly */
+                }
+
+
+            </style>
+
+            {{-- Notification --}}
             <div class="topbar-item">
                 <div class="btn btn-icon btn-icon-mobile w-auto d-flex align-items-center px-3 position-relative" style="margin-right: 15px">
                     <a href="#" id="notification_btn" class="text-dark">
                         <i class="fa fa-bell fa-lg"></i>
                         <span class="badge badge-danger position-absolute top-0 start-100 translate-middle p-1"
-                              id="notification_count" style="font-size: 10px; border-radius: 50%;">3</span>
+                              id="notification_count" style="font-size: 10px; border-radius: 50%; display: none;">0</span>
                     </a>
 
                     <!-- Notification Dropdown list -->
@@ -39,9 +60,7 @@
                          style="width: 300px; display: none; position: absolute; top: 40px; right: 0px; z-index: 1000;">
                         <h6 class="dropdown-header">Notifications</h6>
                         <div id="notification_list">
-                            <a href="#" class="dropdown-item">📢 New Order Received</a>
-                            <a href="#" class="dropdown-item">🔔 Stock is Running Low</a>
-                            <a href="#" class="dropdown-item">⚠️ Server Maintenance Scheduled</a>
+                            <p class="dropdown-item text-muted">Loading...</p>
                         </div>
                         <div class="dropdown-divider"></div>
                         <a href="#" class="dropdown-item text-center text-primary">View All</a>
@@ -72,18 +91,52 @@
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $("#notification_btn").click(function (event) {
-            event.preventDefault();
-            $("#notification_dropdown").toggle();
-        });
 
-        // Close the dropdown when clicking outside
-        $(document).click(function (event) {
-            if (!$(event.target).closest("#notification_btn, #notification_dropdown").length) {
-                $("#notification_dropdown").hide();
+<script>
+    function fetchNotifications() {
+        $.ajax({
+            url: "/notifications",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                let notificationList = $("#notification_list");
+                let notificationCount = $("#notification_count");
+
+                notificationList.empty(); // Clear previous notifications
+
+                if (data.count === 0) {
+                    notificationList.append('<p class="dropdown-item text-muted">No new notifications</p>');
+                    notificationCount.hide(); // Hide count if no new notifications
+                } else {
+                    $.each(data.notifications, function (index, notif) {
+                        notificationList.append(`<a href="#" class="dropdown-item">📢 ${notif.message}</a>`);
+                    });
+
+                    notificationCount.text(data.count).show(); // Show updated count
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error fetching notifications:", error);
             }
         });
+    }
+
+    // Run fetchNotifications every 10 seconds
+    setInterval(fetchNotifications, 10000);
+    $(document).ready(fetchNotifications);
+
+    // Toggle dropdown and mark as read
+    $("#notification_btn").click(function () {
+        $("#notification_dropdown").toggle();
+
+        {{--// Mark notifications as read--}}
+        {{--$.ajax({--}}
+        {{--    url: "/notifications/mark-as-read",--}}
+        {{--    type: "POST",--}}
+        {{--    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },--}}
+        {{--    success: function () {--}}
+        {{--        $("#notification_count").hide(); // Hide count after marking as read--}}
+        {{--    }--}}
+        {{--});--}}
     });
 </script>
