@@ -21,6 +21,10 @@
                             <input type="text" class="form-control" id="dp_name" name="dp_name" required />
                         </div>
                         <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">NPWP</label>
+                            <input type="text" class="form-control" id="dp_npwp" name="dp_npwp" />
+                        </div>
+                        <div class="form-group mb-1 pb-1">
                             <label for="exampleTextarea">Deskripsi</label>
                             <input type="text" class="form-control" id="dp_description" name="dp_description" />
                         </div>

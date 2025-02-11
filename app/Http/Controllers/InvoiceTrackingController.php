@@ -155,7 +155,7 @@ class InvoiceTrackingController extends Controller
                     if (!empty($data->pt_id_ref)) {
                         $invoice = PosTransaction::select('pos_invoice')->where('id', $data->pt_id_ref)->get()->first()->pos_invoice;
 
-                        if (strtoupper($data->stt_name) == 'ONLINE') {
+                        if (strtoupper($data->stt_name) == 'ONLINE' && substr(trim((string) $data->pos_invoice), 0, 3) === 'INV') {
                             return '<a class="text-white" href="' . url('/') . '/print_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-warning" title="' . $invoice . '">' . $data->pos_invoice . '</span></a>';
                         } else {
                             return '<a class="text-white" href="' . url('/') . '/print_offline_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-warning" title="' . $invoice . '">' . $data->pos_invoice . '</span></a>';
@@ -163,7 +163,7 @@ class InvoiceTrackingController extends Controller
                     } else {
 
 
-                        if (strtoupper($data->stt_name) == 'ONLINE') {
+                        if (strtoupper($data->stt_name) == 'ONLINE' && substr(trim((string) $data->pos_invoice), 0, 3) === 'INV') {
                             if ($data->pos_status == 'DONE' || $data->pos_status == 'PAID') {
                                 $return = '<a class="text-white" href="' . url('/') . '/print_invoice/' . $data->pos_invoice . '" target="_blank"><span class="btn btn-sm btn-primary">' . $data->pos_invoice . '</span></a>';
                             } else {
