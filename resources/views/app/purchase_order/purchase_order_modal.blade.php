@@ -277,7 +277,7 @@
                 <!--end::Row-->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-danger font-weight-bold pull-left" style="margin-right: 20px" id="cancel_purchase_order_btn">Hapus PO</button>
+                <button type="button" class="btn btn-light-danger font-weight-bold" style="margin-right: 20px" id="cancel_purchase_order_btn">Hapus PO</button>
                 <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn">Tutup</button>
             </div>
             </form>
@@ -300,7 +300,7 @@
                             <select class="form-control" id="br_id_filter_item" name="br_id_filter_item" required>
                                 <option value="">- Brand/All -</option>
                                 @foreach ($data['br_id'] as $key => $value)
-                                    <option value="{{ $[PENERIMAAN] key }}">{{ $value }}</option>
+                                    <option value="{{ $key }}">{{ $value }}</option>
                                 @endforeach
                             </select>
                             <div id="br_id_filter_parent_item"></div>
