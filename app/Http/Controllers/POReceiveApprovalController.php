@@ -281,11 +281,13 @@ class POReceiveApprovalController extends Controller
     public function approveData(Request $request)
     {
         $invoice = $request->post('invoice');
-        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice')
+        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice', 'purchase_order_article_details.poad_purchase_price')
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
             ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
             ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
             ->where('poads_invoice', '=', $invoice)->get();
+
+
         if (!empty($poads->first())) {
             foreach ($poads as $row) {
                 $bin = DB::table('product_locations')->select('id')->where('st_id', '=', $row->st_id)->where('pl_default', '=', '1')->get()->first()->id;
@@ -297,18 +299,42 @@ class POReceiveApprovalController extends Controller
                 $check_pl = DB::table('product_location_setups')->select('id', 'pls_qty', 'pl_id')
                     ->where('pst_id', '=', $row->pst_id)
                     ->where('pl_id', '=', $bin)->first();
+
                 if (!empty($check_pl)) {
+                    // get old stok and old cogs
+                    $old_stock = $check_pl->pls_qty;
+                    $old_cogs = $check_product_stock->ps_purchase_price;
+
+                    // total old cogs
+                    $total_cogs_old = $old_cogs * $old_stock;
+
+                    //get new stok and old cogs
+                    $new_stock = $row->poads_qty;
+                    $new_price = ceil($row->poad_purchase_price);
+
+                    // total new cogs
+                    $total_cogs_new =  $new_price * $new_stock;
+
+                    $total_cost_merge = ceil($total_cogs_old + $total_cogs_new);
+                    $total_qty_merge = $old_stock + $new_stock;
+
+                    // new cogs
+                    $new_cogs = ceil($total_cost_merge / $total_qty_merge);
+
                     $pls_qty = $check_pl->pls_qty;
-//                    if ($pls_qty < 0) {
-//                        $pls_qty = 0;
-//                    }
                     $pl_id = $check_pl->pl_id;
                     $update_setup = DB::table('product_location_setups')->where('id', '=', $check_pl->id)->update([
-                        'pls_qty' => ($pls_qty + $row->poads_qty)
+                        'pls_qty' => ($pls_qty + $row->poads_qty),
+                        'updated_at' => date('Y-m-d H:i:s')
                     ]);
                     if (!empty($update_setup)) {
                         DB::table('purchase_order_article_detail_statuses')->where('id', '=', $row->id)->update([
                             'u_id_approve' => Auth::user()->id,
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+
+                        DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                            'ps_purchase_price' => $new_cogs,
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
                     }
