@@ -626,7 +626,7 @@ class InvoiceEditorController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
 
         if (request()->ajax()) {
-            return datatables()->of(DB::table('`invoice_editors`')
+            return datatables()->of(DB::table('invoice_editors')
                 ->select("invoice_editors.id", "pos_invoice", "u_name", "activity", "note", "invoice_editors.created_at", "invoice_editors.updated_at")
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'invoice_editors.pt_id')
                 ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id')
