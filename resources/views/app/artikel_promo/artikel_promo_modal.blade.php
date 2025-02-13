@@ -21,12 +21,12 @@
                         </div>
                         <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Store <span class="text-danger">*</span></label>
-                        <select class="form-control" id="st_id" name="st_id" required>
-                            <option value="">- Pilih -</option>
-                            @foreach ($data['st_id'] as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </select>
+{{--                        <select class="form-control" id="st_id" name="st_id" required>--}}
+{{--                            <option value="">- Pilih -</option>--}}
+{{--                            @foreach ($data['st_id'] as $key => $value)--}}
+{{--                                <option value="{{ $key }}">{{ $value }}</option>--}}
+{{--                            @endforeach--}}
+{{--                        </select>--}}
                         <div id="st_id_parent"></div>
                         </div>
                         <div class="form-group mb-1 pb-1">

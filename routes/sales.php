@@ -94,6 +94,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('all_waybill_tracking', [InvoiceTrackingController::class, 'allWaybillTracking']);
     Route::post('invoice_dp_repayment', [InvoiceTrackingController::class, 'invoiceDpRepayment']);
 
+    // Artikel Promo
+    Route::get('artikel_promo', [ArtikelPromoController::class, 'index']);
+    Route::get('artikel_promo_datatables', [ArtikelPromoController::class, 'getDatatables']);
+    Route::post('ap_save', [ArtikelPromoController::class, 'storeData']);
+    Route::post('ap_delete', [ArtikelPromoController::class, 'deleteData']);
+    Route::post('ap_import', [ArtikelPromoController::class, 'importData']);
+    Route::post('check_exists_data_perusahaan', [ArtikelPromoController::class, 'checkExistsDataPerusahaan']);
+    Route::get('export-artikel-promo', [ArtikelPromoController::class, 'exportData']);
+
     // Invoice 
     Route::post('search_invoice', [InvoiceController::class, 'searchInvoice']);
 
@@ -107,14 +116,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/bahanbaku', [BahanBakuPosV2Controller::class, 'bahan'])->name('posv2.masterdata.bahanbaku-posv2');
         Route::get('/produk', [ProdukPosV2Controller::class, 'produk'])->name('posv2.masterdata.produk-posv2');
 
-    // Artikel Promo
-    Route::get('artikel_promo', [ArtikelPromoController::class, 'index']);
-    Route::get('artikel_promo_datatables', [ArtikelPromoController::class, 'getDatatables']);
-    Route::post('ap_save', [ArtikelPromoController::class, 'storeData']);
-    Route::post('ap_delete', [ArtikelPromoController::class, 'deleteData']);
-    Route::post('ap_import', [ArtikelPromoController::class, 'importData']);
-    Route::post('check_exists_data_perusahaan', [ArtikelPromoController::class, 'checkExistsDataPerusahaan']);
-    Route::get('export-artikel-promo', [ArtikelPromoController::class, 'exportData']);
+
 
     });
 });

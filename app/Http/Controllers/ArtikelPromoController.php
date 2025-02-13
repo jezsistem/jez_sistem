@@ -9,7 +9,8 @@ use Illuminate\Support\Str;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\ArtikelPromo;
-use App\Models\UserActivity;use App\Exports\ArtikelPromoExport;
+use App\Models\UserActivity;
+//use App\Exports\ArtikelPromoExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ArtikelPromoController extends Controller
@@ -56,23 +57,23 @@ class ArtikelPromoController extends Controller
     
     public function index() 
     {
-        // $this->validateAccess();
-        // $user = new User;
-        // $select = ['*'];
-        // $where = [
-        //     'users.id' => Auth::user()->id
-        // ];
-        // $user_data = $user->checkJoinData($select, $where)->first();
-        // $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        // $data = [
-        //     'title' => $title,
-        //     'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
-        //     'sidebar' => $this->sidebar(),
-        //     'user' => $user_data,
-        //     'segment' => request()->segment(1),
-        // ];
-        // return view('app.artikel_promo.artikel_promo', compact('data'));\
-        echo 'aaaa';
+         $this->validateAccess();
+         $user = new User;
+         $select = ['*'];
+         $where = [
+             'users.id' => Auth::user()->id
+         ];
+         $user_data = $user->checkJoinData($select, $where)->first();
+         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+         $data = [
+             'title' => $title,
+             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+             'sidebar' => $this->sidebar(),
+             'user' => $user_data,
+             'segment' => request()->segment(1),
+         ];
+         return view('app.artikel_promo.artikel_promo', compact('data'));
+//        return 'aaaa';
     }
 
     public function getDatatables(Request $request)
