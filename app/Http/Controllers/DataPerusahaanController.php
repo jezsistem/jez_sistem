@@ -304,7 +304,7 @@ class DataPerusahaanController extends Controller
         try {
             $type = $request->get('type');
 
-            $fileName = 'Export_Laporan_' . date('Y-m-d') . '.xlsx';
+            $fileName = 'Export_Data_Perusahaan_' . date('Y-m-d') . '.xlsx';
 
             return Excel::download(new DataPerusahaanExport($type), $fileName);
         } catch (\Exception $e) {

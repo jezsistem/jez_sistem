@@ -16,10 +16,10 @@
                 </div>
                 <div class="modal-body">
                     <div class="card-body">
-                        <div class="form-group mb-1 pb-1">
-                            <label for="exampleTextarea">Periode</label>
-                            <input type="month" class="form-control" id="tr_date" name="tr_date" required />
-                        </div>
+                            <div class="form-group mb-1 pb-1">
+                                <label for="exampleTextarea">Periode</label>
+                                <input type="month" class="form-control" id="tr_date" name="tr_date" required />
+                            </div>
                     </div>
                 </div>
                 <div class="modal-footer">

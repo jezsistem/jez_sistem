@@ -9,12 +9,13 @@
                 <input type="hidden" name="_id" id="_id" value="" />
                 <input type="hidden" name="_mode" id="_mode" value="" />
                 <div class="modal-header bg-light">
-                    <h5 class="modal-title text-dark" id="exampleModalLabel">Data Perushaan</h5>
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Data Perusahaan</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div class="card-body">
                     <div class="card-body">
                         <div class="form-group mb-1 pb-1">
                             <label for="exampleTextarea">Nama Perushaan*</label>

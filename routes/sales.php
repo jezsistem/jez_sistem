@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PosV2Controller;
 use App\Http\Controllers\KategoriPosV2Controller;
 use App\Http\Controllers\ProdukPosV2Controller;
+use App\Http\Controllers\ArtikelPromoController;
 
 
 use App\Http\Controllers\SatuanPosV2Controller;
@@ -105,6 +106,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/satuan', [SatuanPosV2Controller::class, 'satuan'])->name('posv2.masterdata.satuan-posv2');
         Route::get('/bahanbaku', [BahanBakuPosV2Controller::class, 'bahan'])->name('posv2.masterdata.bahanbaku-posv2');
         Route::get('/produk', [ProdukPosV2Controller::class, 'produk'])->name('posv2.masterdata.produk-posv2');
+
+    // Artikel Promo
+    Route::get('artikel_promo', [ArtikelPromoController::class, 'index']);
+    Route::get('artikel_promo_datatables', [ArtikelPromoController::class, 'getDatatables']);
+    Route::post('ap_save', [ArtikelPromoController::class, 'storeData']);
+    Route::post('ap_delete', [ArtikelPromoController::class, 'deleteData']);
+    Route::post('ap_import', [ArtikelPromoController::class, 'importData']);
+    Route::post('check_exists_data_perusahaan', [ArtikelPromoController::class, 'checkExistsDataPerusahaan']);
+    Route::get('export-artikel-promo', [ArtikelPromoController::class, 'exportData']);
 
     });
 });
