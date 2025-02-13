@@ -101,6 +101,10 @@
                     name: 'article_id'
                 },
                 {
+                    data: 'ps_barcode',
+                    name: 'ps_barcode'
+                },
+                {
                     data: 'article',
                     name: 'p_name'
                 },
