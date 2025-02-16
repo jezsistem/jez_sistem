@@ -25,16 +25,21 @@
             },
             columns: [{
                     data: 'DT_RowIndex',
-                    name: 'id',
+                    name: 'a_id',
                     searchable: false
                 },
+
                 {
-                    data: 'p_id',
-                    name: 'p_id'
+                    data: 'st_code',
+                    name: 'st_code'
                 },
                 {
-                    data: 'st_id',
-                    name: 'st_id'
+                    data: 'article_id',
+                    name: 'article_id'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
                 },
                 {
                     data: 'date_start',
@@ -45,12 +50,16 @@
                     name: 'date_end'
                 },
                 {
-                    data: 'promo_cat',
-                    name: 'promo_cat'
+                    data: 'promo_disc',
+                    name: 'promo_disc'
                 },
                 {
-                    data: 'promo_price',
-                    name: 'promo_price'
+                    data: 'p_price_tag',
+                    name: 'p_price_tag'
+                },
+                {
+                    data: 'price_discount',
+                    name: 'price_discount'
                 },
                 {
                     data: 'promo_note',

@@ -8,15 +8,14 @@ use Illuminate\Support\Facades\DB;
 
 class ArtikelPromo extends Model
 {
-    use HasFactory;protected $table = 'artikel_promo';
+    use HasFactory;protected $table = 'articles_promo';
     protected $fillable = [
         'id',
         'p_id',
         'st_id',
         'date_start',
         'date_end',
-        'promo_cat',
-        'promo_price',
+        'promo_disc',
         'promo_note'
     ];
 

@@ -104,15 +104,18 @@
                                     placeholder="Cari nama perusahaan" /><br />
                                 <a class="btn btn-primary ml-auto mr-2" data-type="invoice" id="export_btn">Export
                                     Excel</a>
-                                <table class="table table-hover table-checkable" id="DataPerusahaantb">
+                                <table class="table table-hover table-checkable" id="ArtikelPromotb">
                                     <thead class="bg-light text-dark">
                                         <tr>
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">Outlet</th>
+                                            <th class="text-dark">Article ID</th>
+                                            <th class="text-dark">Article Name</th>
                                             <th class="text-dark">Start Date</th>
                                             <th class="text-dark">End Date</th>
-                                            <th class="text-dark">Promo Chategory</th>
-                                            <th class="text-dark">Harga Promo</th>
+                                            <th class="text-dark">Promo Disc (%)</th>
+                                            <th class="text-dark">Price Tag</th>
+                                            <th class="text-dark">Price Discount</th>
                                             <th class="text-dark">Note Promo</th>
                                         </tr>
                                     </thead>
