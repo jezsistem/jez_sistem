@@ -106,8 +106,13 @@ class StockDataController extends Controller
 
     public function getArticlesPromo($article_id)
     {
-        $promoData = DB::table('articles_promo')
-            ->where('article_id', $article_id)
+        $st_id = Auth::user()->st_id;
+        $st_code = Store::where('id', $st_id)->first()->st_code;
+        $p_id = Product::where('article_id', $article_id)->get()->first()->id;
+        $promoData = DB::table('articles_promo')->select('p_price_tag', 'promo_note', 'promo_disc')
+            ->join('products', 'products.id', '=', 'articles_promo.p_id')
+            ->where('p_id', $p_id)
+            ->where('st_code', $st_code)
             ->get();
 
         return response()->json(['data' => $promoData]);

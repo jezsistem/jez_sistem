@@ -88,10 +88,8 @@ class ArtikelPromoController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('p_id', 'LIKE', "%$search%")
-                                ->orWhere('st_id', 'LIKE', "%$search%")
                                 ->orWhere('date_start', 'LIKE', "%$search%")
                                 ->orWhere('date_end', 'LIKE', "%$search%")
-                                ->orWhere('promo_cat', 'LIKE', "%$search%")
                                 ->orWhere('promo_price', 'LIKE', "%$search%")
                                 ->orWhere('promo_note', 'LIKE', "%$search%");
                         });

@@ -512,20 +512,26 @@
                         // Prepare the content for swal based on response data
                         let promoInfo = '';
                         let promoPrice = '';
+                        let getTotalDiscountPrice = '';
 
                         if (response.data && response.data.length > 0) {
                             promoInfo = '';
                             promoPrice = '';
+
                             response.data.forEach(function (promo) {
-                                promoInfo += 'Promo: ' + promo.promo_note + '';
-                                promoPrice += 'Discount Price: ' + promo
-                                    .promo_price + '';
+                                let originalPrice = promo.p_price_tag; // Harga asli
+                                let discount = promo.promo_disc; // Persentase diskon
+
+                                // Hitung harga setelah diskon
+                                let discountedPrice = originalPrice - (originalPrice * (discount / 100));
+
+                                promoInfo += 'Promo: ' + discount + '% - ' + promo.promo_note + "";
+                                promoPrice += 'Discount Price: ' + discountedPrice.toLocaleString('id-ID') + "\n";
                             });
-                            promoInfo += '';
-                            promoPrice += '';
+
                         } else {
                             promoInfo = 'No promo available for this article.';
-                            promoPrice = 'Harga Normal guys!'
+                            promoPrice = 'Harga Normal guys!';
                         }
 
                         // Now show the swal with the promo data
@@ -556,16 +562,11 @@
                                     url: "{{ url('pickup_item') }}",
                                     success: function (r) {
                                         if (r.status == '200') {
-                                            toast("Berhasil",
-                                                "Item berhasil dipickup",
-                                                "success");
+                                            toast("Berhasil", "Item berhasil dipickup", "success");
                                             stock_data_table.draw();
-                                            pickup_list_table
-                                                .draw();
+                                            pickup_list_table.draw();
                                         } else {
-                                            toast('Gagal',
-                                                'Gagal pickup item',
-                                                'error');
+                                            toast('Gagal', 'Gagal pickup item', 'error');
                                         }
                                     }
                                 });
@@ -1026,7 +1027,7 @@
                 // Check if the count decrease
                 if (newCount < previousCount) {
                     // Play a notification sound
-                    const audio =  new Audio("{{ asset('music/lily.mp3') }}"); // Replace with your audio file path
+                    const audio = new Audio("{{ asset('music/lily.mp3') }}"); // Replace with your audio file path
                     audio.play();
                 }
 
