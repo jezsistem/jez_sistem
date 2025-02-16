@@ -113,6 +113,8 @@ class StockDataController extends Controller
             ->join('products', 'products.id', '=', 'articles_promo.p_id')
             ->where('p_id', $p_id)
             ->where('st_code', $st_code)
+            ->orderBy('articles_promo.id', 'desc')
+            ->limit(1)
             ->get();
 
         return response()->json(['data' => $promoData]);
