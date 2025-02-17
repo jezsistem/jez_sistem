@@ -72,7 +72,7 @@
                         type: "POST",
                         data: {_type:'finish_nameset', _ptd_id:ptd_id},
                         dataType: 'json',
-                        url: "{{ url('update_data') }}",
+                        url: "{{ url('update_data_nameset') }}",
                         success: function(r) {
                             if (r.status=='200') {
                                 nameset_table.draw();

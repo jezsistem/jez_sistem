@@ -193,6 +193,12 @@ class WebTransactionController extends Controller
         }
     }
 
+    public function updateData (Request $request)
+    {
+        dd($request);
+
+    }
+
     public function storeData(Request $request)
     {
         $mode = $request->input('_mode');

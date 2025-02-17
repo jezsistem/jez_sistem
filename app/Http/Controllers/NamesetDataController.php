@@ -111,7 +111,12 @@ class NameSetDataController extends Controller
                         }
                     })
                     ->editColumn('action', function ($data) {
-                        return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm btn-success" id="nameset_finish_btn">Selesai</span>';
+                        if ($data->pos_status == 'NAMESET') {
+                            return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm btn-success" id="nameset_finish_btn">Selesai</span>';
+                        } else {
+                            return '<span data-ptd_id="' . $data->ptd_id . '" class="btn btn-sm btn-success">Done Nameset</span>';
+                        }
+
                     })
                     ->rawColumns(['pos_invoice', 'stt_name', 'article', 'action', 'pos_created', 'pos_note'])
                     ->filter(function ($instance) use ($request) {
@@ -158,7 +163,7 @@ class NameSetDataController extends Controller
                 ->get()->first()->stt_name;
                 if (strtoupper($division) == 'ONLINE') {
                     if (Auth::user()->st_id == '2') {
-                        $status = 'WAITING FOR PACKING';
+                        $status = 'SHIPPING NUMBER';
                     } else {
                         $status = 'SHIPPING NUMBER';
                     }
