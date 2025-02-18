@@ -10,6 +10,7 @@ use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\ArtikelPromo;
 use App\Models\UserActivity;
+use App\Imports\ArtikelPromoImport;
 
 //use App\Exports\ArtikelPromoExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -163,6 +164,17 @@ class ArtikelPromoController extends Controller
     //     }
     //     return json_encode($r);
     // }
+
+    public function importData()
+    {
+        if (request()->hasFile('artikel_promo_template')) {
+            Excel::import(new ArtikelPromoImport, request()->file('artikel_promo_template')); 
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
 
     public function exportData(Request $request)
     {

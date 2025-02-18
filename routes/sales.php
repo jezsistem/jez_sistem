@@ -102,6 +102,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('ap_import', [ArtikelPromoController::class, 'importData']);
     Route::post('check_exists_data_perusahaan', [ArtikelPromoController::class, 'checkExistsDataPerusahaan']);
     Route::get('export-artikel-promo', [ArtikelPromoController::class, 'exportData']);
+    Route::post('artikel_promo_import', [ArtikelPromoController::class, 'importData']);
 
     // Invoice 
     Route::post('search_invoice', [InvoiceController::class, 'searchInvoice']);
