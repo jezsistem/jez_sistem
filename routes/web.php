@@ -178,7 +178,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ie_permission_save', [InvoiceEditorController::class, 'storePermissionData']);
     Route::post('ie_permission_delete', [InvoiceEditorController::class, 'deletePermissionData']);
     Route::post('ie_permission_invoice', [InvoiceEditorController::class, 'checkInvoice']);
-    Route::post('ie_permission_check_active_edit', [InvoiceEditorController::class, 'checkActiveEdit']);
+//    Route::post('ie_permission_check_active_edit', [InvoiceEditorController::class, 'checkActiveEdit']);
     Route::post('ie_permission_done_edit', [InvoiceEditorController::class, 'doneEdit']);
     Route::post('ie_permission_do_edit', [InvoiceEditorController::class, 'doEdit']);
     Route::post('ie_permission_cancel_item', [InvoiceEditorController::class, 'cancelItem']);
