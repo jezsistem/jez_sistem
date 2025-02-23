@@ -28,11 +28,6 @@
                     name: 'a_id',
                     searchable: false
                 },
-
-                {
-                    data: 'st_code',
-                    name: 'st_code'
-                },
                 {
                     data: 'article_id',
                     name: 'article_id'
@@ -42,12 +37,24 @@
                     name: 'p_name'
                 },
                 {
-                    data: 'date_start',
-                    name: 'date_start'
+                    data: 'st_code',
+                    name: 'st_code'
                 },
                 {
-                    data: 'date_end',
-                    name: 'date_end'
+                    data: 'promo_name',
+                    name: 'promo_name'
+                },
+                {
+                    data: 'start_date',
+                    name: 'start_date'
+                },
+                {
+                    data: 'end_date',
+                    name: 'end_date'
+                },
+                {
+                    data: 'promo_type',
+                    name: 'promo_type'
                 },
                 {
                     data: 'promo_disc',
@@ -62,8 +69,8 @@
                     name: 'price_discount'
                 },
                 {
-                    data: 'promo_note',
-                    name: 'promo_note'
+                    data: 'promo_notes',
+                    name: 'promo_notes'
                 },
             ],
             columnDefs: [{
@@ -89,19 +96,21 @@
             var id = artikel_promo_table.row(this).data().id;
             var p_id = artikel_promo_table.row(this).data().p_id;
             var st_id = artikel_promo_table.row(this).data().st_id;
-            var date_start = artikel_promo_table.row(this).data().date_start;
-            var date_end = artikel_promo_table.row(this).data().date_end;
-            var promo_cat = artikel_promo_table.row(this).data().promo_cat;
-            var promo_price = artikel_promo_table.row(this).data().promo_price;
+            var promo_name = artikel_promo_table.row(this).data().promo_name;
+            var start_date = artikel_promo_table.row(this).data().start_date;
+            var end_date = artikel_promo_table.row(this).data().end_date;
+            var promo_type = artikel_promo_table.row(this).data().promo_type;
+            var promo_disc = artikel_promo_table.row(this).data().promo_disc;
             var promo_note = artikel_promo_table.row(this).data().promo_note;
             jQuery.noConflict();
             $('#ArtikelPromoModal').modal('show');
             $('#p_id').val(p_id);
             $('#st_id').val(st_id);
-            $('#date_start').val(date_start);
-            $('#date_end').val(date_end);
-            $('#promo_cat').val(promo_cat);
-            $('#promo_price').val(promo_price);
+            $('#promo_name').val(promo_name);
+            $('#start_date').val(start_date);
+            $('#end_date').val(end_date);
+            $('#promo_type').val(promo_type);
+            $('#promo_disc').val(promo_disc);
             $('#promo_note').val(promo_note);
             $('#_id').val(id);
             $('#_mode').val('edit');

@@ -150,6 +150,14 @@
                                     <a class="btn btn-success mt-2" id="import_btn">Import Template</a>
                                     <input type="search" class="form-control form-control-sm col-6 mt-2" id="ma_search" placeholder="Cari kode"/>
                                 </div>
+                                <div class="col-6">
+                                        <select name="filter_status" id="filter_status" class="form-control col-6">
+                                            <option value="">-- Pilih Status Adjustment --</option>
+                                            <option value="1">Selesai</option>
+                                            <option value="0">Menunggu Eksekusi</option>
+                                        </select>
+                                        <div id="filter_status_parent"></div>
+                                    </div>
                             </div>
                             <div class="card-body table-responsive">
                                 <table class="table table-hover table-checkable" id="MassAdjustmenttb">
