@@ -112,11 +112,13 @@
                                     <thead class="bg-light text-dark">
                                         <tr>
                                             <th class="text-dark">No</th>
-                                            <th class="text-dark">Outlet</th>
                                             <th class="text-dark">Article ID</th>
                                             <th class="text-dark">Article Name</th>
+                                            <th class="text-dark">Store</th>
+                                            <th class="text-dark">Promo Name</th>
                                             <th class="text-dark">Start Date</th>
                                             <th class="text-dark">End Date</th>
+                                            <th class="text-dark">Promo Type</th>
                                             <th class="text-dark">Promo Disc (%)</th>
                                             <th class="text-dark">Price Tag</th>
                                             <th class="text-dark">Price Discount</th>

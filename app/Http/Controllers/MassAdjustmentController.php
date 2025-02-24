@@ -219,6 +219,12 @@ class MassAdjustmentController extends Controller
                             $w->orWhere('ma_code', 'LIKE', "%$search%");
                         });
                     }
+                    if (!empty($request->get('filter'))) {
+                        $instance->where(function($w) use($request){
+                            $filter = $request->get('filter');
+                            $w->orWhere('ma_status', '=', "$filter");
+                        });
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);

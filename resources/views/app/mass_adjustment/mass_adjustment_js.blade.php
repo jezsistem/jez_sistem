@@ -263,6 +263,7 @@
                 url : "{{ url('mass_adjustment_datatables') }}",
                 data : function (d) {
                     d.search = $('#ma_search').val();
+                    d.filter = $('#filter_status').val();
                 }
             },
             columns: [
@@ -373,6 +374,19 @@
             psc_id = $(this).val();
             loadAsset(st_id, psc_id, br_id);
             stock_table.draw();
+        });
+
+        // Initialize Select2 pada elemen select filter_status
+        // $('#filter_status').select2({
+        //     width: "200px",
+        //     dropdownParent: $('#filter_status_parent') // Menentukan parent untuk dropdown
+        //     console.log()
+        // });
+
+        // Event listener untuk perubahan pada filter_status
+        $('#filter_status').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            mass_adjustment_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 
         $(document).delegate('#export_btn', 'click', function(e) {
