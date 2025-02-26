@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\StdExport;
+use App\Exports\StdExportDraft;
 use App\Models\ProductStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -663,5 +665,11 @@ class StockTransferController extends Controller
             'processedData' => $processedData,
             'missingBarcode' => $missingBarcode
         ];
+    }
+
+    public function exportData(Request $request)
+    {
+        $tf_code = $request->stf_code;
+        return Excel::download(new StdExportDraft($tf_code), 'stock_transfer_draft_'. $tf_code .'.xlsx');
     }
 }

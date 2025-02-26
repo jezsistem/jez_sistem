@@ -116,10 +116,11 @@
                                     <div class="form-group mb-1 pb-1 col-4">
                                         <a class="btn btn-primary col-12" id="stf_code" style="white-space:nowrap;"></a>
                                     </div>
-                                    <div class="form-group mb-1 pb-1 col-6 row ml-auto">
-                                        <a class="btn btn-danger col-4" id="transfer_cancel_btn" style="white-space:nowrap;">DELETE</a>
-                                        <a class="btn btn-warning col-4" id="transfer_draft_btn" style="white-space:nowrap;">DRAFT</a>
-                                        <a class="btn btn-success col-4" id="transfer_done_btn" style="white-space:nowrap;">DONE</a>
+                                    <div class="form-group col-12 row justify-content-end" style="margin-top: 15px;">
+                                        <a class="btn btn-info col-2 mr-2" id="export_btn" style="white-space:nowrap;">EXPORT</a>
+                                        <a class="btn btn-danger btn-sm col-2 mr-2" id="transfer_cancel_btn" style="white-space:nowrap;">DELETE</a>
+                                        <a class="btn btn-warning btn-sm col-2 mr-2" id="transfer_draft_btn" style="white-space:nowrap;">DRAFT</a>
+                                        <a class="btn btn-success btn-sm col-2" id="transfer_done_btn" style="white-space:nowrap;">DONE</a>
                                     </div>
                                 </div>
                                 <!--end: Datatable-->
