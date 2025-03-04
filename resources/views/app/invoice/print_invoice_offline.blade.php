@@ -397,7 +397,7 @@
                         3. Penukaran barang tidak berlaku untuk barang yang diskon 25% keatas<br/>
                         4. Produk yang dapat ditukar yaitu belum pernah digunakan untuk beraktifitas dan masih ada tagsale yang sesuai dengan barang<br/>
                         5. Wajib menyertakan struk pembelanjaan saat proses penukaran barang<br/>
-                        6. Refund tidak bisa berupa pengembalian uang atau dengan harga yang lebih murah<br/>
+                        6. Refund tidak bisa berupa pengembalian uang atau dengan produk yang harganya lebih murah<br/>
                     </p>
                 </div>
                 <br><br><br><br><br>
