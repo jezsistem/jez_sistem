@@ -69,8 +69,8 @@
                     name: 'price_discount'
                 },
                 {
-                    data: 'promo_notes',
-                    name: 'promo_notes'
+                    data: 'promo_note',
+                    name: 'promo_note'
                 },
             ],
             columnDefs: [{
@@ -87,21 +87,21 @@
             ],
         });
 
-        artikel_promo_table.buttons().container().appendTo($('#artikel_promo_excel_btn'));
+        articles_promo_table.buttons().container().appendTo($('#artikel_promo_excel_btn'));
         $('#artikel_promo_search').on('keyup', function() {
-            artikel_promo_table.draw();
+            articles_promo_table.draw();
         });
 
         $('#ArtikelPromotb tbody').on('click', 'tr', function() {
-            var id = artikel_promo_table.row(this).data().id;
-            var p_id = artikel_promo_table.row(this).data().p_id;
-            var st_id = artikel_promo_table.row(this).data().st_id;
-            var promo_name = artikel_promo_table.row(this).data().promo_name;
-            var start_date = artikel_promo_table.row(this).data().start_date;
-            var end_date = artikel_promo_table.row(this).data().end_date;
-            var promo_type = artikel_promo_table.row(this).data().promo_type;
-            var promo_disc = artikel_promo_table.row(this).data().promo_disc;
-            var promo_note = artikel_promo_table.row(this).data().promo_note;
+            var id = articles_promo_table.row(this).data().id;
+            var p_id = articles_promo_table.row(this).data().p_id;
+            var st_id = articles_promo_table.row(this).data().st_id;
+            var promo_name = articles_promo_table.row(this).data().promo_name;
+            var start_date = articles_promo_table.row(this).data().start_date;
+            var end_date = articles_promo_table.row(this).data().end_date;
+            var promo_type = articles_promo_table.row(this).data().promo_type;
+            var promo_disc = articles_promo_table.row(this).data().promo_disc;
+            var promo_note = articles_promo_table.row(this).data().promo_note;
             jQuery.noConflict();
             $('#ArtikelPromoModal').modal('show');
             $('#p_id').val(p_id);
@@ -145,24 +145,77 @@
         //     });
         // });
 
-        $('#add_artikel_prommo_btn').on('click', function() {
+        $('#add_artikel_promo_btn').on('click', function() {
             jQuery.noConflict();
             $('#ArtikelPromoModal').modal('show');
             $('#_id').val('');
             $('#_mode').val('add');
-            $('#f_artikel_prommo')[0].reset();
-            $('#delete_artikel_prommo_btn').hide();
+            $('#f_artikel_promo')[0].reset();
+            $('#delete_artikel_promo_btn').hide();
         });
 
-        $('#f_artikel_prommo').on('submit', function(e) {
+        $('#f_import').on('submit', function(e) {
+    e.preventDefault();
+    $("#import_data_btn").html('Proses ..');
+    $("#import_data_btn").attr("disabled", true);
+
+    var p_id = $('#import_p_id').val();
+    var st_id = $('#import_st_id').val();
+
+    if (p_id == '') {
+        swal('Produk', 'Produk kosong, silahkan diisi dulu', 'warning');
+        $("#import_data_btn").html('Import').attr("disabled", false);
+        return false;
+    }
+    if (st_id == '') {
+        swal('Store', 'Store kosong, silahkan diisi dulu', 'warning');
+        $("#import_data_btn").html('Import').attr("disabled", false);
+        return false;
+    }
+
+    var formData = new FormData(this);
+    formData.append('_p_id', p_id);
+    formData.append('_st_id', st_id);
+
+    $.ajax({
+        type: 'POST',
+        url: "{{ url('artikel_promo_import') }}",
+        data: formData,
+        dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function(data) {
+            console.log(data);
+            $("#import_data_btn").html('Import').attr("disabled", false);
+            jQuery.noConflict();
+
+            if (data.status == '200') {
+                $("#ImportModal").modal('hide');
+                swal('Berhasil', 'Data berhasil diimport', 'success');
+                $('#f_import_artikelpromo')[0].reset();
+                articles_promo_table.ajax.reload();
+            } else if (data.status == '400') {
+                $("#ImportModal").modal('hide');
+                swal('Gagal', 'Data gagal diimport', 'warning');
+            }
+        },
+        error: function(xhr, status, error) {
+            swal('Error', 'Terjadi kesalahan: ' + xhr.responseText, 'error');
+            $("#import_data_btn").html('Import').attr("disabled", false);
+        }
+    });
+});
+
+        $('#f_artikel_promo').on('submit', function(e) {
             e.preventDefault();
-            $("#save_artikel_prommo_btn").html('Proses ..');
-            $("#save_artikel_prommo_btn").attr("disabled", true);
+            $("#save_artikel_promo_btn").html('Proses ..');
+            $("#save_artikel_promo_btn").attr("disabled", true);
             var formData = new FormData(this);
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('dp_save') }}",
+                url: "{{ url('ap_save') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -174,7 +227,7 @@
                     if (data.status == '200') {
                         $("#ArtikelPromoModal").modal('hide');
                         toastr.success('Data berhasil disimpan'); // Toastr success message
-                        data_perusahaan_table.ajax.reload();
+                        articles_promo_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ArtikelPromoModal").modal('hide');
                         toastr.warning('Data tidak tersimpan'); // Toastr warning message
@@ -191,7 +244,6 @@
         $(document).delegate('#export_btn', 'click', function(e) {
             e.preventDefault();
 
-            var type = 'npwp';
             window.location.href = "{{ url('export-artikel-promo') }}?type=" + type + "";
         });
 
@@ -216,16 +268,16 @@
                         type: "POST",
                         data: {
                             _id: $('#_id').val(),
-                            _item: $('#dp_name').val()
+                            _item: $('#ap_name').val()
                         },
                         dataType: 'json',
-                        url: "{{ url('dp_delete') }}",
+                        url: "{{ url('ap_delete') }}",
                         success: function(r) {
                             if (r.status == '200') {
                                 $('#artikel_promoModal').modal('hide');
                                 toastr.success(
                                 'Data berhasil dihapus'); // Change to Toastr success message
-                                artikel_promo_table.ajax.reload();
+                                articles_promo_table.ajax.reload();
                             } else {
                                 toastr.error(
                                 'Gagal hapus data'); // Change to Toastr error message
@@ -241,6 +293,12 @@
             });
         });
 
+        $(document).ready(function() {
+            // Open the second modal when the button is clicked
+            $("#ImportModalBtn").click(function() {
+                $("#ImportModal").modal("show");
+            });
+        });
 
     });
 </script>

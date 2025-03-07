@@ -81,7 +81,7 @@ class ArtikelPromoController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id','article_id', 'p_name', 'st_code', 'promo_name', 'start_date', 'end_date','promo_type', 'promo_disc', 'promo_notes', 'p_price_tag'  )
+            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id','article_id','p_name','st_code','promo_name','start_date','end_date','promo_type','promo_disc','p_price_tag','promo_note')
                 ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
                 ->join('products', 'products.id', '=', 'articles_promo.p_id'))
                 ->filter(function ($instance) use ($request) {
@@ -89,14 +89,21 @@ class ArtikelPromoController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('p_id', 'LIKE', "%$search%")
+                                ->orWhere('st_id', 'LIKE', "%$search%")
                                 ->orWhere('promo_name', 'LIKE', "%$search%")
                                 ->orWhere('start_date', 'LIKE', "%$search%")
                                 ->orWhere('end_date', 'LIKE', "%$search%")
                                 ->orWhere('promo_type', 'LIKE', "%$search%")
                                 ->orWhere('promo_disc', 'LIKE', "%$search%")
-                                ->orWhere('promo_notes', 'LIKE', "%$search%");
+                                ->orWhere('promo_note', 'LIKE', "%$search%");
                         });
                     }
+                })
+                ->addColumn('article_id', function ($row) {
+                    return $row->article_id;
+                })
+                ->addColumn('p_name', function ($row) {
+                    return $row->p_name;
                 })
                 ->addColumn('promo_disc', function ($row) {
                     return $row->promo_disc . '%';
@@ -132,7 +139,7 @@ class ArtikelPromoController extends Controller
             'end_date' => $request->input('end_date'),
             'promo_type' => $request->input('promo_type'),
             'promo_disc' => $request->input('promo_disc'),
-            'promo_notes' => $request->input('promo_notes'),
+            'promo_note' => $request->input('promo_note'),
         ];
 
         $save = $artikel_promo->storeData($mode, $id, $data);
@@ -168,16 +175,28 @@ class ArtikelPromoController extends Controller
     //     return json_encode($r);
     // }
 
-    public function importData()
+    public function saveArtikelPromoImport(Request $request)
     {
-        if (request()->hasFile('artikel_promo_template')) {
-            Excel::import(new ArtikelPromoImport, request()->file('artikel_promo_template')); 
-            $r['status'] = '200';
-        } else {
-            $r['status'] = '400';
+        try {
+            if ($request->hasFile('artikel_promo_template')) {
+                $file = $request->file('artikel_promo_template');
+                $nama_file = time() . '_' . $file->getClientOriginalName();
+                $file->move('excel', $nama_file);
+
+                $file_path = public_path('/excel/' . $nama_file);
+                Excel::import(new ArtikelPromoImport, $file_path);
+
+                unlink($file_path);
+
+                return response()->json(['status' => '200', 'message' => 'Import berhasil']);
+            } else {
+                return response()->json(['status' => '400', 'message' => 'File tidak ditemukan']);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['status' => '500', 'message' => $e->getMessage()]);
         }
-        return json_encode($r);
     }
+
 
     public function exportData(Request $request)
     {

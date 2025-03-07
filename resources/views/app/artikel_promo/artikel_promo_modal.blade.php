@@ -23,9 +23,9 @@
                         <div class="form-group">
                             <label>Pilih template yang sudah di download dan diisi
                                 <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="pc_template" id="pc_template" required />
+                            <input type="file" class="form-control" name="ap_template" id="ap_template" required="required" />
                         </div>
-                    </div>
+                </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold"
