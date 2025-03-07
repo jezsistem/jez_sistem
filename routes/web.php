@@ -95,6 +95,7 @@ use Illuminate\Support\Facades\DB;
 
 // Validation
 Route::get('', [AuthController::class, 'index'])->name('login');
+Route::get('login_amel', [AuthController::class, 'index_two'])->name('login_amel');
 Route::post('user_login', [AuthController::class, 'login']);
 
 Route::get('payment_check/88991703/show', [PaymentCheckController::class, 'checkData']);

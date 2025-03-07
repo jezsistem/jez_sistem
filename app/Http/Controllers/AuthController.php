@@ -58,6 +58,29 @@ class AuthController extends Controller
         }
     }
 
+    public function index_two()
+    {
+        $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $data = [
+            'title' => $title,
+            'segment' => request()->segment(1),
+            'pl_id' => ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
+                ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('pl_delete', '!=', '1')
+                ->orderByDesc('pl_code')->pluck('location', 'pl_id'),
+            'invoice' => PosTransaction::select('pos_invoice', 'plst_status')
+                ->leftJoin('product_location_setup_transactions', 'product_location_setup_transactions.pt_id', '=', 'pos_transactions.id')
+                ->whereIn('plst_status', ['WAITING ONLINE', 'WAITING FOR PACKING'])
+                ->groupBy('pos_invoice')
+                ->orderByDesc('pos_invoice')->pluck('pos_invoice', 'pos_invoice'),
+        ];
+        if (Auth::check()) {
+            return redirect()->route('redirect');
+        } else {
+            return view('auth.login_2', compact('data'));
+        }
+    }
+
     public function login(Request $request)
     {
         $user = new User;
