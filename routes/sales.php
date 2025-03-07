@@ -99,10 +99,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('artikel_promo_datatables', [ArtikelPromoController::class, 'getDatatables']);
     Route::post('ap_save', [ArtikelPromoController::class, 'storeData']);
     Route::post('ap_delete', [ArtikelPromoController::class, 'deleteData']);
-    Route::post('ap_import', [ArtikelPromoController::class, 'importData']);
-    Route::post('check_exists_data_perusahaan', [ArtikelPromoController::class, 'checkExistsDataPerusahaan']);
+    Route::post('check_exists_artikel_promo', [ArtikelPromoController::class, 'checkExistsArtikelPromo']);
     Route::get('export-artikel-promo', [ArtikelPromoController::class, 'exportData']);
-    Route::post('artikel_promo_import', [ArtikelPromoController::class, 'importData']);
+    Route::post('artikel_promo_import', [ArtikelPromoController::class, 'saveArtikelPromoImport']);
 
     // Invoice 
     Route::post('search_invoice', [InvoiceController::class, 'searchInvoice']);
