@@ -32,13 +32,15 @@
                             <div class="card-header flex-wrap py-3">
                                 <div class="card-toolbar">
                                     <!--begin::Dropdown-->
-                                    <div class="dropdown dropdown-inline mr-2">                                        <!--begin::Dropdown Menu-->
+                                    <div class="dropdown dropdown-inline mr-2">
+                                        <!--begin::Dropdown Menu-->
                                         <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
                                             <!--begin::Navigation-->
                                             <ul class="navi flex-column navi-hover py-2">
                                                 <li
-                                                    class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">
-                                                    Bentuk File :</li>
+                                                        class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">
+                                                    Bentuk File :
+                                                </li>
                                                 <li class="navi-item">
                                                     <a href="#" class="navi-link">
                                                         <span class="navi-icon">
@@ -50,7 +52,8 @@
                                                 <a href="#" class="navi-link">
                                                         <span class="navi-icon">
                                                             <i class="la la-copy"></i>
-                                                <a class="btn btn-primary ml-auto mr-2" data-type="cross" id="export_btn">Export Excel</a><br/>                                     
+                                                <a class="btn btn-primary ml-auto mr-2" data-type="cross"
+                                                   id="export_btn">Export Excel</a><br/>
                                             </ul>
                                             <!--end::Navigation-->
                                         </div>
@@ -62,22 +65,22 @@
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
-                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
-                                                viewBox="0 0 24 24" version="1.1">
+                                                 xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                                 viewBox="0 0 24 24" version="1.1">
                                                 <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                                    <rect x="0" y="0" width="24" height="24" />
-                                                    <circle fill="#000000" cx="9" cy="15" r="6" />
+                                                    <rect x="0" y="0" width="24" height="24"/>
+                                                    <circle fill="#000000" cx="9" cy="15" r="6"/>
                                                     <path
-                                                        d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z"
-                                                        fill="#000000" opacity="0.3" />
+                                                            d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z"
+                                                            fill="#000000" opacity="0.3"/>
                                                 </g>
                                             </svg>
                                             <!--end::Svg Icon-->
                                         </span>Data Baru</a>
 
-                                        <button type="button" class="btn btn-light-primary font-weight-bolder"
-                                                data-toggle="modal" data-target="#ImportModal" aria-haspopup="true"
-                                                aria-expanded="false" style="margin-left:10px;">
+                                    <button type="button" class="btn btn-light-primary font-weight-bolder"
+                                            data-toggle="modal" data-target="#ImportModal" aria-haspopup="true"
+                                            aria-expanded="false" style="margin-left:10px;">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                                 <svg xmlns="http://www.w3.org/2000/svg"
@@ -95,35 +98,35 @@
                                                     </g>
                                                 </svg>
                                             </span>Import
-                                        </button>
+                                    </button>
                                     <!--end::Button-->
                                 </div>
                                 <div class="card-header flex-wrap py-3">
-                                
-                            </div>
+
+                                </div>
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
                                 <input type="search" class="form-control  col-6" id="data_perusahaan_search"
-                                    placeholder="Cari Artikel Promo" /><br />
+                                       placeholder="Cari Artikel Promo"/><br/>
                                 <a class="btn btn-primary ml-auto mr-2" data-type="invoice" id="export_btn">Export
                                     Excel</a>
                                 <table class="table table-hover table-checkable" id="ArtikelPromotb">
                                     <thead class="bg-light text-dark">
-                                        <tr>
-                                            <th class="text-dark">No</th>
-                                            <th class="text-dark">Article ID</th>
-                                            <th class="text-dark">Article Name</th>
-                                            <th class="text-dark">Store</th>
-                                            <th class="text-dark">Promo Name</th>
-                                            <th class="text-dark">Start Date</th>
-                                            <th class="text-dark">End Date</th>
-                                            <th class="text-dark">Promo Type</th>
-                                            <th class="text-dark">Promo Disc (%)</th>
-                                            <th class="text-dark">Price Tag</th>
-                                            <th class="text-dark">Price Discount</th>
-                                            <th class="text-dark">Note Promo</th>
-                                        </tr>
+                                    <tr>
+                                        <th class="text-dark">No</th>
+                                        <th class="text-dark">Article ID</th>
+                                        <th class="text-dark">Article Name</th>
+                                        <th class="text-dark">Store</th>
+                                        <th class="text-dark">Promo Name</th>
+                                        <th class="text-dark">Start Date</th>
+                                        <th class="text-dark">End Date</th>
+                                        <th class="text-dark">Promo Type</th>
+                                        <th class="text-dark">Promo Disc (%)</th>
+                                        <th class="text-dark">Price Tag</th>
+                                        <th class="text-dark">Price Discount</th>
+                                        <th class="text-dark">Note Promo</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
 

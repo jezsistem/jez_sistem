@@ -1,5 +1,51 @@
 <script>
-    $(document).ready(function() {
+
+    $('#f_import').on('submit', function (e) {
+        console.log('jkasdaksjd');
+        e.preventDefault();
+        $('#import_data_btn').html('Proses...');
+        $('#import_data_btn').attr('disabled', true);
+        var formData = new FormData(this);
+
+        $.ajax({
+            type: 'POST',
+            url: "{{ url('artikel_promo_import') }}",
+            data: formData,
+            dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                $("#import_data_btn").html('Import');
+                $("#import_data_btn").attr("disabled", false);
+                jQuery.noConflict();
+
+                if (data.status == '200') {
+                    $("#ImportModal").modal('hide');
+                    toastr.success('Data berhasil diimport', 'Berhasil');
+                    $('#f_import')[0].reset();
+
+                    excelImportData = data.data['processedData'];
+                    start_bin_table.draw();
+
+                    checkMissingBarcode(data.data['missingBarcode']);
+
+                } else if (data.status == '400') {
+                    $("#ImportModal").modal('hide');
+                    toastr.warning('File yang anda import kosong atau format tidak tepat', 'File');
+                } else {
+                    $("#ImportModal").modal('hide');
+                    toastr.error('Terjadi kesalahan saat memproses file', 'Error');
+                }
+            },
+            error: function (data) {
+                toastr.error('An error occurred while processing your request', 'Error');
+            }
+        });
+    });
+
+
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -19,15 +65,15 @@
             }],
             ajax: {
                 url: "{{ url('artikel_promo_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#artikel_promo_search').val();
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'a_id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'a_id',
+                searchable: false
+            },
                 {
                     data: 'article_id',
                     name: 'article_id'
@@ -88,11 +134,12 @@
         });
 
         articles_promo_table.buttons().container().appendTo($('#artikel_promo_excel_btn'));
-        $('#artikel_promo_search').on('keyup', function() {
+        $('#artikel_promo_search').on('keyup', function () {
             articles_promo_table.draw();
         });
 
-        $('#ArtikelPromotb tbody').on('click', 'tr', function() {
+
+        $('#ArtikelPromotb tbody').on('click', 'tr', function () {
             var id = articles_promo_table.row(this).data().id;
             var p_id = articles_promo_table.row(this).data().p_id;
             var st_id = articles_promo_table.row(this).data().st_id;
@@ -115,7 +162,7 @@
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ($data['user']->delete_access == '1')
-                $('#delete_artikel_promo_btn').show();
+            $('#delete_artikel_promo_btn').show();
             @endif
         });
 
@@ -145,7 +192,7 @@
         //     });
         // });
 
-        $('#add_artikel_promo_btn').on('click', function() {
+        $('#add_artikel_promo_btn').on('click', function () {
             jQuery.noConflict();
             $('#ArtikelPromoModal').modal('show');
             $('#_id').val('');
@@ -154,100 +201,11 @@
             $('#delete_artikel_promo_btn').hide();
         });
 
-        $('#f_import').on('submit', function(e) {
-    e.preventDefault();
-    $("#import_data_btn").html('Proses ..');
-    $("#import_data_btn").attr("disabled", true);
 
-    var p_id = $('#import_p_id').val();
-    var st_id = $('#import_st_id').val();
+        //button import
 
-    if (p_id == '') {
-        swal('Produk', 'Produk kosong, silahkan diisi dulu', 'warning');
-        $("#import_data_btn").html('Import').attr("disabled", false);
-        return false;
-    }
-    if (st_id == '') {
-        swal('Store', 'Store kosong, silahkan diisi dulu', 'warning');
-        $("#import_data_btn").html('Import').attr("disabled", false);
-        return false;
-    }
 
-    var formData = new FormData(this);
-    formData.append('_p_id', p_id);
-    formData.append('_st_id', st_id);
-
-    $.ajax({
-        type: 'POST',
-        url: "{{ url('artikel_promo_import') }}",
-        data: formData,
-        dataType: 'json',
-        cache: false,
-        contentType: false,
-        processData: false,
-        success: function(data) {
-            console.log(data);
-            $("#import_data_btn").html('Import').attr("disabled", false);
-            jQuery.noConflict();
-
-            if (data.status == '200') {
-                $("#ImportModal").modal('hide');
-                swal('Berhasil', 'Data berhasil diimport', 'success');
-                $('#f_import_artikelpromo')[0].reset();
-                articles_promo_table.ajax.reload();
-            } else if (data.status == '400') {
-                $("#ImportModal").modal('hide');
-                swal('Gagal', 'Data gagal diimport', 'warning');
-            }
-        },
-        error: function(xhr, status, error) {
-            swal('Error', 'Terjadi kesalahan: ' + xhr.responseText, 'error');
-            $("#import_data_btn").html('Import').attr("disabled", false);
-        }
-    });
-});
-
-        $('#f_artikel_promo').on('submit', function(e) {
-            e.preventDefault();
-            $("#save_artikel_promo_btn").html('Proses ..');
-            $("#save_artikel_promo_btn").attr("disabled", true);
-            var formData = new FormData(this);
-
-            $.ajax({
-                type: 'POST',
-                url: "{{ url('ap_save') }}",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(data) {
-                    $("#save_artikel_promo_btn").html('Simpan');
-                    $("#save_artikel_promo_btn").attr("disabled", false);
-                    if (data.status == '200') {
-                        $("#ArtikelPromoModal").modal('hide');
-                        toastr.success('Data berhasil disimpan'); // Toastr success message
-                        articles_promo_table.ajax.reload();
-                    } else if (data.status == '400') {
-                        $("#ArtikelPromoModal").modal('hide');
-                        toastr.warning('Data tidak tersimpan'); // Toastr warning message
-                    }
-                },
-                error: function(data) {
-                    toastr.error(
-                        'Terjadi kesalahan saat menyimpan data'); // Toastr error message
-                        
-                }
-            });
-        });
-
-        $(document).delegate('#export_btn', 'click', function(e) {
-            e.preventDefault();
-
-            window.location.href = "{{ url('export-artikel-promo') }}?type=" + type + "";
-        });
-
-        $('#delete_artikel_promo_btn').on('click', function() {
+        $('#delete_artikel_promo_btn').on('click', function () {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini?",
@@ -257,7 +215,7 @@
                     'Hapus'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -272,20 +230,20 @@
                         },
                         dataType: 'json',
                         url: "{{ url('ap_delete') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 $('#artikel_promoModal').modal('hide');
                                 toastr.success(
-                                'Data berhasil dihapus'); // Change to Toastr success message
+                                    'Data berhasil dihapus'); // Change to Toastr success message
                                 articles_promo_table.ajax.reload();
                             } else {
                                 toastr.error(
-                                'Gagal hapus data'); // Change to Toastr error message
+                                    'Gagal hapus data'); // Change to Toastr error message
                             }
                         },
-                        error: function() {
+                        error: function () {
                             toastr.error(
-                            'Terjadi kesalahan saat menghapus data'); // Toastr error for AJAX error
+                                'Terjadi kesalahan saat menghapus data'); // Toastr error for AJAX error
                         }
                     });
                     return false;
@@ -293,9 +251,9 @@
             });
         });
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Open the second modal when the button is clicked
-            $("#ImportModalBtn").click(function() {
+            $("#ImportModalBtn").click(function () {
                 $("#ImportModal").modal("show");
             });
         });

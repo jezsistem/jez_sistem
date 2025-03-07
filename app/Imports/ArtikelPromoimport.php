@@ -19,10 +19,10 @@ class ArtikelPromoImport implements ToCollection, WithStartRow
             }
 
             // Mendapatkan ID produk berdasarkan article_id
-            $p_id = DB::table('ts_products')->where('article_id', $row[0])->value('id');
+            $p_id = DB::table('products')->where('article_id', $row[0])->value('id');
             
             // Mendapatkan ID store berdasarkan store code
-            $st_id = DB::table('ts_stores')->where('st_code', $row[1])->value('id');
+            $st_id = DB::table('stores')->where('st_name', $row[2])->value('id');
             
             if (!$p_id || !$st_id) {
                 continue; // Lewati jika tidak ditemukan
@@ -31,11 +31,10 @@ class ArtikelPromoImport implements ToCollection, WithStartRow
             $insert[] = [
                 'p_id' => $p_id,
                 'st_id' => $st_id,
-                'promo_name' => $row[2],
-                'start_date' => date('Y-m-d', strtotime($row[3])),
-                'end_date' => date('Y-m-d', strtotime($row[4])),
-                'promo_type' => $row[5],
-                'promo_disc' => (int) $row[6],
+                'promo_name' => $row[1],
+                'date_start' => date('Y-m-d', strtotime($row[3])),
+                'date_end' => date('Y-m-d', strtotime($row[4])),
+                'promo_disc' => (int) $row[5],
                 'promo_note' => $row[7],
                 'created_at' => now(),
             ];
