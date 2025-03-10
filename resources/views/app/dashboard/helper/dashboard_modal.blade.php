@@ -453,7 +453,12 @@
                     </div>
                 </div>
                 <br>
-
+                <div class="d-flex justify-content-center">
+                    <div>
+                        <div id="reader" class="rounded"></div>
+                        <div id="result"></div>
+                    </div>
+                </div>
                 <input type="search" class="form-control" id="scan_in_search" placeholder="Cari brand artikel"/>
                 <table class="table table-hover table-checkable table-striped" id="ScanIntb">
                     <thead class="bg-dark text-light">

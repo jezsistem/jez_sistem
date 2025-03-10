@@ -617,6 +617,41 @@
         }
     });
 
+    const scanner = new Html5QrcodeScanner('reader', {
+        // Scanner will be initialized in DOM inside element with id of 'reader'
+        qrbox: {
+            width: 250,
+            height: 250,
+        },
+        fps: 30,
+    });
+
+    scanner.render(success, error);
+
+    function success(result) {
+
+        var hasil = result;
+
+        if (hasil.startsWith(']C1')) {
+            hasil = hasil.replace(']C1', '');
+        }
+
+        alert(hasil);
+
+        $('#scan_in_search').val(hasil);
+        stock_data_table.draw();
+
+    }
+
+    function error(err) {
+        console.error(err);
+        // Prints any errors to the console
+    }
+
+    function console_log(result) {
+        console.log(result);
+    }
+
 
     $('#ScanIntb').on('draw.dt', function() {
         if (!scanInTbEnterPressed) {
