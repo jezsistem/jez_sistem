@@ -1,7 +1,7 @@
 <script>
 
     $('#f_import').on('submit', function (e) {
-        console.log('jkasdaksjd');
+        // console.log('jkasdaksjd');
         e.preventDefault();
         $('#import_data_btn').html('Proses...');
         $('#import_data_btn').attr('disabled', true);
@@ -91,16 +91,12 @@
                     name: 'promo_name'
                 },
                 {
-                    data: 'start_date',
-                    name: 'start_date'
+                    data: 'date_start',
+                    name: 'date_start'
                 },
                 {
-                    data: 'end_date',
-                    name: 'end_date'
-                },
-                {
-                    data: 'promo_type',
-                    name: 'promo_type'
+                    data: 'date_end',
+                    name: 'date_end'
                 },
                 {
                     data: 'promo_disc',
@@ -144,9 +140,8 @@
             var p_id = articles_promo_table.row(this).data().p_id;
             var st_id = articles_promo_table.row(this).data().st_id;
             var promo_name = articles_promo_table.row(this).data().promo_name;
-            var start_date = articles_promo_table.row(this).data().start_date;
-            var end_date = articles_promo_table.row(this).data().end_date;
-            var promo_type = articles_promo_table.row(this).data().promo_type;
+            var date_start = articles_promo_table.row(this).data().date_start;
+            var date_end = articles_promo_table.row(this).data().date_end;
             var promo_disc = articles_promo_table.row(this).data().promo_disc;
             var promo_note = articles_promo_table.row(this).data().promo_note;
             jQuery.noConflict();
@@ -154,9 +149,8 @@
             $('#p_id').val(p_id);
             $('#st_id').val(st_id);
             $('#promo_name').val(promo_name);
-            $('#start_date').val(start_date);
-            $('#end_date').val(end_date);
-            $('#promo_type').val(promo_type);
+            $('#date_start').val(date_start);
+            $('#date_end').val(date_end);
             $('#promo_disc').val(promo_disc);
             $('#promo_note').val(promo_note);
             $('#_id').val(id);

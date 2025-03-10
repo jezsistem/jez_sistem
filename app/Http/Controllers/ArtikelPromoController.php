@@ -81,7 +81,7 @@ class ArtikelPromoController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id','article_id','p_name','st_code','promo_name','start_date','end_date','promo_type','promo_disc','p_price_tag','promo_note')
+            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id','article_id','p_name','st_code','promo_name','date_start','date_end','promo_disc','p_price_tag','promo_note')
                 ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
                 ->join('products', 'products.id', '=', 'articles_promo.p_id'))
                 ->filter(function ($instance) use ($request) {
@@ -91,9 +91,8 @@ class ArtikelPromoController extends Controller
                             $w->orWhere('p_id', 'LIKE', "%$search%")
                                 ->orWhere('st_id', 'LIKE', "%$search%")
                                 ->orWhere('promo_name', 'LIKE', "%$search%")
-                                ->orWhere('start_date', 'LIKE', "%$search%")
-                                ->orWhere('end_date', 'LIKE', "%$search%")
-                                ->orWhere('promo_type', 'LIKE', "%$search%")
+                                ->orWhere('date_start', 'LIKE', "%$search%")
+                                ->orWhere('date_end', 'LIKE', "%$search%")
                                 ->orWhere('promo_disc', 'LIKE', "%$search%")
                                 ->orWhere('promo_note', 'LIKE', "%$search%");
                         });
@@ -135,9 +134,8 @@ class ArtikelPromoController extends Controller
             'p_id' => $request->input('p_id'),
             'st_id' => $request->input('st_id'),
             'promo_name' => $request->input('promo_name'),
-            'start_date' => $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
-            'promo_type' => $request->input('promo_type'),
+            'date_start' => $request->input('date_start'),
+            'date_end' => $request->input('date_end'),
             'promo_disc' => $request->input('promo_disc'),
             'promo_note' => $request->input('promo_note'),
         ];
