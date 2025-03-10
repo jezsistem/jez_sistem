@@ -121,7 +121,6 @@
                                         <th class="text-dark">Promo Name</th>
                                         <th class="text-dark">Start Date</th>
                                         <th class="text-dark">End Date</th>
-                                        <th class="text-dark">Promo Type</th>
                                         <th class="text-dark">Promo Disc (%)</th>
                                         <th class="text-dark">Price Tag</th>
                                         <th class="text-dark">Price Discount</th>
