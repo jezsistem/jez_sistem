@@ -639,7 +639,8 @@
         alert(hasil);
 
         $('#scan_in_search').val(hasil);
-        stock_data_table.draw();
+
+        scan_in_table.ajax.reload();
 
     }
 
