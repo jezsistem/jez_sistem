@@ -637,48 +637,68 @@
         if (rowsData.length > 0) {
             var rowData = rowsData[0];
 
+            console.log(rowData);
+
             scan_in_data.push({
                 _plst_id: rowData.plst_id,
                 _pls_id: rowData.pls_id,
                 _qty: rowData.plst_qty,
             });
 
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            swal({
+                title: rowData.pl_name + "..?",
+                text: "Yakin BIN Kembali sudah benar ?",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Yakin'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+
+                    var item = scan_in_data[0]; // Only process the first item
+
+                    $.ajax({
+                        url: "{{ url('save_in_activity') }}",
+                        type: "POST",
+                        data: {
+                            _plst_id: item._plst_id,
+                            _pls_id: item._pls_id,
+                            _qty: item._qty,
+                        },
+                        success: function(response) {
+                            var responseObject = JSON.parse(response);
+                            var status = responseObject.status;
+                            $('#scan_in_search').val('');
+                            scan_in_table.ajax.reload();
+
+                            if (status == 200) {
+                                toast('Dikeluarkan', ' berhasil dimasukkan', 'success');
+                            } else {
+                                swal('Gagal', 'Gagal masuk produk', 'error');
+                            }
+                        },
+                    });
                 }
-            });
+            })
 
-            var item = scan_in_data[0]; // Only process the first item
 
-            $.ajax({
-                url: "{{ url('save_in_activity') }}",
-                type: "POST",
-                data: {
-                    _plst_id: item._plst_id,
-                    _pls_id: item._pls_id,
-                    _qty: item._qty,
-                },
-                success: function(response) {
-                    var responseObject = JSON.parse(response);
-                    var status = responseObject.status;
-                    $('#scan_in_search').val('');
-                    scan_in_table.ajax.reload();
-
-                    if (status == 200) {
-                        toast('Dikeluarkan', ' berhasil dimasukkan', 'success');
-                    } else {
-                        swal('Gagal', 'Gagal masuk produk', 'error');
-                    }
-                },
-            });
         }
     });
 
+    // Disini
     $('#scan_in_search').on('keyup', function(event) {
         if (event.keyCode === 13 && this.value.trim() !== '') {
             scanInTbEnterPressed = true;
+
             scan_in_table.ajax.reload();
+            console.log('testing')
         }
 
         // check if the input is empty cannot enter
