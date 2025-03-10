@@ -1,48 +1,6 @@
 <script>
 
-    $('#f_import').on('submit', function (e) {
-        // console.log('jkasdaksjd');
-        e.preventDefault();
-        $('#import_data_btn').html('Proses...');
-        $('#import_data_btn').attr('disabled', true);
-        var formData = new FormData(this);
 
-        $.ajax({
-            type: 'POST',
-            url: "{{ url('artikel_promo_import') }}",
-            data: formData,
-            dataType: 'json',
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function (data) {
-                $("#import_data_btn").html('Import');
-                $("#import_data_btn").attr("disabled", false);
-                jQuery.noConflict();
-
-                if (data.status == '200') {
-                    $("#ImportModal").modal('hide');
-                    toastr.success('Data berhasil diimport', 'Berhasil');
-                    $('#f_import')[0].reset();
-
-                    excelImportData = data.data['processedData'];
-                    start_bin_table.draw();
-
-                    checkMissingBarcode(data.data['missingBarcode']);
-
-                } else if (data.status == '400') {
-                    $("#ImportModal").modal('hide');
-                    toastr.warning('File yang anda import kosong atau format tidak tepat', 'File');
-                } else {
-                    $("#ImportModal").modal('hide');
-                    toastr.error('Terjadi kesalahan saat memproses file', 'Error');
-                }
-            },
-            error: function (data) {
-                toastr.error('An error occurred while processing your request', 'Error');
-            }
-        });
-    });
 
 
     $(document).ready(function () {
@@ -52,7 +10,8 @@
             }
         });
 
-        var data_perusahaan_table = $('#ArtikelPromotb').DataTable({
+        var data_article_promo_tb = '';
+        data_article_promo_tb = $('#ArtikelPromotb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -129,9 +88,54 @@
             ],
         });
 
-        articles_promo_table.buttons().container().appendTo($('#artikel_promo_excel_btn'));
+        data_article_promo_tb.buttons().container().appendTo($('#artikel_promo_excel_btn'));
         $('#artikel_promo_search').on('keyup', function () {
             articles_promo_table.draw();
+        });
+
+        $('#f_import').on('submit', function (e) {
+            // console.log('jkasdaksjd');
+            e.preventDefault();
+            $('#import_data_btn').html('Proses...');
+            $('#import_data_btn').attr('disabled', true);
+            var formData = new FormData(this);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('artikel_promo_import') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    jQuery.noConflict();
+
+                    if (data.status == '200') {
+                        $("#ImportModal").modal('hide');
+                        toastr.success('Data berhasil diimport', 'Berhasil');
+                        $('#f_import')[0].reset();
+
+                        // start_bin_table.draw();
+                        data_article_promo_tb.ajax.reload();
+                        excelImportData = data.data['processedData'];
+
+                        checkMissingBarcode(data.data['missingBarcode']);
+
+                    } else if (data.status == '400') {
+                        $("#ImportModal").modal('hide');
+                        toastr.warning('File yang anda import kosong atau format tidak tepat', 'File');
+                    } else {
+                        $("#ImportModal").modal('hide');
+                        toastr.error('Terjadi kesalahan saat memproses file', 'Error');
+                    }
+                },
+                error: function (data) {
+                    toastr.error('An error occurred while processing your request', 'Error');
+                }
+            });
         });
 
 
