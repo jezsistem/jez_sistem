@@ -24,19 +24,19 @@
         // getBalance();
     })
 
-    function loadStore()
-    {
-        $.ajax({
-            type: "GET",
-            dataType: 'json',
-            url: "{{ url('load_user_store')}}",
-            success: function(r) {
-                if (r.status == '200') {
-                    $('#load_user_store').text(r.store);
-                }
-            }
-        });
-    }
+    {{--function loadStore()--}}
+    {{--{--}}
+    {{--    $.ajax({--}}
+    {{--        type: "GET",--}}
+    {{--        dataType: 'json',--}}
+    {{--        url: "{{ url('load_user_store')}}",--}}
+    {{--        success: function(r) {--}}
+    {{--            if (r.status == '200') {--}}
+    {{--                $('#load_user_store').text(r.store);--}}
+    {{--            }--}}
+    {{--        }--}}
+    {{--    });--}}
+    {{--}--}}
 
     function getBalance()
     {

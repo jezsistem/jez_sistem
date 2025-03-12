@@ -28,24 +28,24 @@ use App\Models\BuyOneGetOne;
 use duncan3dc\Speaker\Providers\GoogleProvider;
 use duncan3dc\Speaker\TextToSpeech;
 
-class StockDataController extends Controller
+class StockDataTwoController extends Controller
 {
-    protected function validateAccess()
-    {
-        $validate = DB::table('user_menu_accesses')
-            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-                'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
-            ])->exists();
-        if (!$validate) {
-            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
-        }
-    }
+//    protected function validateAccess()
+//    {
+//        $validate = DB::table('user_menu_accesses')
+//            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+//                'u_id' => 1,
+//                'ma_slug' => request()->segment(1)
+//            ])->exists();
+//        if (!$validate) {
+//            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+//        }
+//    }
 
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-            ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', 1)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -72,17 +72,17 @@ class StockDataController extends Controller
 
     public function index()
     {
-        $this->validateAccess();
+//        $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
-            'users.id' => Auth::user()->id
+            'users.id' => 1
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
+            'subtitle' => 'Testing',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
@@ -100,13 +100,13 @@ class StockDataController extends Controller
             'segment' => request()->segment(1),
         ];
 
-//        dd(Auth::user()->st_id);
-        return view('app.stock_data.stock_data', compact('data'));
+//        dd(2);
+        return view('app.stock_data_two.stock_data', compact('data'));
     }
 
     public function index_two()
     {
-        $this->validateAccess();
+//        $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -134,13 +134,13 @@ class StockDataController extends Controller
             'segment' => request()->segment(1),
         ];
 
-//        dd(Auth::user()->st_id);
+//        dd(2);
         return view('app.stock_data.stock_data_two', compact('data'));
     }
 
     public function getArticlesPromo($article_id)
     {
-        $st_id = Auth::user()->st_id;
+        $st_id = 40;
 
         $p_id = Product::where('article_id', $article_id)->get()->first()->id;
         $promoData = DB::table('articles_promo')->select('p_price_tag', 'promo_name', 'promo_disc')
@@ -163,7 +163,7 @@ class StockDataController extends Controller
         $b1g1_setup = BuyOneGetOne::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'buy_one_get_ones.pl_id')->get()->toArray();
 
-        $st_user = Auth::user()->st_id;
+        $st_user = 2;
 
         $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
 
@@ -172,7 +172,7 @@ class StockDataController extends Controller
         if (!empty($request->st_id)) {
             $st_id = $request->st_id;
         } else {
-            $st_id = Auth::user()->st_id;
+            $st_id = 40;
         }
 
         if (request()->ajax()) {
@@ -404,14 +404,14 @@ class StockDataController extends Controller
                                             ->where('pst_id', $srow->pst_id)->get();
                                     }
                                     $bin = '';
-                                    $st_user = Auth::user()->st_id;
+                                    $st_user = 2;
                                     $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
                                     $st_city = $st_name->st_code;
 
                                     if (!empty($item_location)) {
                                         foreach ($item_location as $lrow) {
 
-                                            $stt_id = Auth::user()->stt_id;
+                                            $stt_id = 2;
 
                                             $stt_name = StoreType::where('id', $stt_id)->get()->first();
 
@@ -1296,7 +1296,7 @@ class StockDataController extends Controller
         $exception = ExceptionLocation::select('pl_code')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
-        $st_id = Auth::user()->st_id;
+        $st_id = 40;
         $st_id_filter = $request->get('st_id');
         if (request()->ajax()) {
             return datatables()->of(Product::selectRaw("ts_products.id as pid, CONCAT(p_name,' (',br_name,')') as p_name_brand, p_name, br_name, ps_qty")
@@ -1866,7 +1866,7 @@ class StockDataController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->whereIn('plst_status', $status)
             ->where('product_locations.st_id', '=', $st_id)->count();
-//            ->where('users.stt_id', '=', Auth::user()->stt_id);
+//            ->where('users.stt_id', '=', 2);
 
 //        var_dump($count);
 //        dd($count)

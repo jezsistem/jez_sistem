@@ -6,6 +6,7 @@ use App\Http\Controllers\ExceptionLocationController;
 use App\Http\Controllers\InstockApprovalController;
 use App\Http\Controllers\InstockListController;
 use App\Http\Controllers\MassAdjustmentController;
+use App\Http\Controllers\StockDataTwoController;
 use App\Http\Controllers\ProductLocationController;
 use App\Http\Controllers\ProductLocationSetupController;
 use App\Http\Controllers\ProductLocationSetupV2Controller;
@@ -30,7 +31,8 @@ use App\Http\Controllers\AllstockController;
 
 Route::get('/allstock', [AllstockController::class, 'index']);
 
-
+Route::get('data_stok_two', [StockDataTwoController::class, 'index'])->name('stock_data_two');
+Route::get('stock_data_datatables_two', [StockDataTwoController::class, 'getDatatables']);
 
 Route::middleware(['auth'])->group(function () {
     // Product Location
