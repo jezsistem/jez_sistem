@@ -184,7 +184,7 @@ class ProductLocationSetupV2Controller extends Controller
                             $action = '';
                             foreach ($check_pst as $row) {
                                 //Cek data tempTable
-                                $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->first();
+                                $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->where('u_id', Auth::user()->id)->first();
                                 $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
 
                                 $this->table_row += 1;
@@ -380,6 +380,7 @@ class ProductLocationSetupV2Controller extends Controller
 
         $processedData = [];
         $missingBarcode = array();
+        $id_user = Auth::user()->id;
 
         foreach ($data as $item) {
             $barcode = $item[0];
@@ -397,6 +398,7 @@ class ProductLocationSetupV2Controller extends Controller
                 } else {
                     // If barcode doesn't exist, create a new entry
                     $rowData = [
+                        'u_id' => $id_user,
                         'product_stock_id' => $product_id->id,
                         'barcode' => $barcode,
                         'qty' => $qty,
@@ -404,6 +406,7 @@ class ProductLocationSetupV2Controller extends Controller
                     $processedData[] = $rowData;
 
                     $params = [
+                        'u_id' => $id_user,
                         'pls_id' => $product_id->id,
                         'ps_barcode' => $barcode,
                         'pls_qty' => $qty
