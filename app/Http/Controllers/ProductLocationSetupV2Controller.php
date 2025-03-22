@@ -398,7 +398,7 @@ class ProductLocationSetupV2Controller extends Controller
                 } else {
                     // If barcode doesn't exist, create a new entry
                     $rowData = [
-                        'u_id' => $id_user,
+                        'u_id' => Auth::user()->id,
                         'product_stock_id' => $product_id->id,
                         'barcode' => $barcode,
                         'qty' => $qty,
@@ -406,7 +406,7 @@ class ProductLocationSetupV2Controller extends Controller
                     $processedData[] = $rowData;
 
                     $params = [
-                        'u_id' => $id_user,
+                        'u_id' => Auth::user()->id,
                         'pls_id' => $product_id->id,
                         'ps_barcode' => $barcode,
                         'pls_qty' => $qty
