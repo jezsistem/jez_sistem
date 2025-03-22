@@ -635,7 +635,7 @@ class ProductLocationSetupV2Controller extends Controller
         $u_id = Auth::user()->id;
 
         // Delete Temp Data with where condition
-        TempMutasi::where('user_id', $u_id)->delete();
+        TempMutasi::where('u_id', $u_id)->delete();
 
         $check_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->exists();
         if ($check_destination) {
