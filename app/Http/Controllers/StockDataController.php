@@ -142,11 +142,15 @@ class StockDataController extends Controller
     {
         $st_id = Auth::user()->st_id;
 
+        $date_now = date('Y-m-d');
+
         $p_id = Product::where('article_id', $article_id)->get()->first()->id;
         $promoData = DB::table('articles_promo')->select('p_price_tag', 'promo_name', 'promo_disc')
             ->join('products', 'products.id', '=', 'articles_promo.p_id')
             ->where('p_id', $p_id)
             ->where('st_id', $st_id)
+            ->where('date_start', '<=', $date_now) // Promo sudah berjalan atau dimulai hari ini
+            ->where('date_end', '>=', $date_now)   // Promo masih berlaku
             ->orderBy('articles_promo.id', 'desc')
             ->limit(1)
             ->get();

@@ -31,7 +31,7 @@ use App\Http\Controllers\AllstockController;
 
 Route::get('/allstock', [AllstockController::class, 'index']);
 
-Route::get('data_stok_two', [StockDataTwoController::class, 'index'])->name('stock_data_two');
+//Route::get('data_stok_two', [StockDataTwoController::class, 'index'])->name('stock_data_two');
 Route::get('stock_data_datatables_two', [StockDataTwoController::class, 'getDatatables']);
 
 Route::middleware(['auth'])->group(function () {
