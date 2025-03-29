@@ -526,6 +526,7 @@
                                 let discountedPrice = originalPrice - (originalPrice * (discount / 100));
 
                                 promoInfo += 'Promo: ' + discount + '% - ' + promo.promo_name + "";
+                                promoPrice += 'Original Price: ' + originalPrice.toLocaleString('id-ID') + "\n";
                                 promoPrice += 'Discount Price: ' + discountedPrice.toLocaleString('id-ID') + "\n";
                             });
 
