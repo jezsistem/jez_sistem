@@ -144,6 +144,8 @@ class StockDataController extends Controller
 
         $date_now = date('Y-m-d');
 
+
+        // cek
         $p_id = Product::where('article_id', $article_id)->get()->first()->id;
         $promoData = DB::table('articles_promo')->select('p_price_tag', 'promo_name', 'promo_disc')
             ->join('products', 'products.id', '=', 'articles_promo.p_id')
