@@ -45,7 +45,7 @@ class ArtikelPromoImport implements ToCollection, WithStartRow
                 'date_start' => $dateStart,
                 'date_end' => $dateEnd,
                 'promo_disc' => $promoDisc,
-                'promo_note' => $row[7],
+                'promo_note' => $row[6],
                 'created_at' => now(),
             ];
         }
