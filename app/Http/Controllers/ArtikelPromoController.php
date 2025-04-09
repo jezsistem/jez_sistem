@@ -10,6 +10,8 @@ use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\ArtikelPromo;
 use App\Models\UserActivity;
+use App\Models\StoreTypeDivision;
+use App\Models\Store;
 use App\Imports\ArtikelPromoImport;
 
 //use App\Exports\ArtikelPromoExport;
@@ -72,6 +74,10 @@ class ArtikelPromoController extends Controller
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+            ->where('st_delete', '!=', '1')
+            ->orderByDesc('sid')->pluck('store', 'sid'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
             'segment' => request()->segment(1),
         ];
         return view('app.artikel_promo.artikel_promo', compact('data'));
@@ -122,8 +128,8 @@ class ArtikelPromoController extends Controller
                 ->make(true);
         }
     }
-
-
+      
+    
     public function storeData(Request $request)
     {
         $artikel_promo = new ArtikelPromo;
@@ -142,12 +148,18 @@ class ArtikelPromoController extends Controller
 
         $save = $artikel_promo->storeData($mode, $id, $data);
         if ($save) {
+            if ($save) {
+                if ($mode == 'add') {
+                    $this->UserActivity('menambah artikel promo '.strtoupper($request->input('promo_name')).' '.$request->input('promo_disc'));
+                } else {
+                    $this->UserActivity('mengubah data diskon '.strtoupper($request->input('promo_name')).' '.$request->input('promo_disc'));
+                }
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
         }
         return json_encode($r);
-    }
+    }}
 
     public function deleteData(Request $request)
     {
@@ -161,6 +173,7 @@ class ArtikelPromoController extends Controller
         }
         return json_encode($r);
     }
+
 
     // public function checkExistsArtikelPromo(Request $request)
     // {

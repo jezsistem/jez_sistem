@@ -46,7 +46,7 @@
                                                         <span class="navi-icon">
                                                             <i class="la la-copy"></i>
                                                         </span>
-                                                        <span id="data_perusahaan_excel_btn"></span>
+                                                        <span id="artikel_promo_excel_btn"></span>
                                                     </a>
                                                 </li>
                                                 <a href="#" class="navi-link">
@@ -61,7 +61,7 @@
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Button-->
-                                    <a href="#" class="btn btn-dark font-weight-bolder" id="add_data_perusahaan_btn">
+                                    <a href="#" class="btn btn-dark font-weight-bolder" id="add_artikel_promo_btn">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +107,7 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="data_perusahaan_search"
+                                <input type="search" class="form-control  col-6" id="artikel_promo_search"
                                        placeholder="Cari Artikel Promo"/><br/>
                                 <a class="btn btn-primary ml-auto mr-2" data-type="invoice" id="export_btn">Export
                                     Excel</a>
