@@ -668,7 +668,7 @@
                 url: "{{ url('product_item_datatables') }}",
                 data: function(d) {
                     d.search = $('#product_search').val();
-                    d.ps_id = $('#ps_id').val();
+                    // d.ps_id = $('#ps_id').val();
                     d.br_id_filter = $('#br_id_filter_item').val();
                     d.mc_id_filter = $('#mc_id_filter_item').val();
                     d.psc_id_filter = $('#psc_id_filter_item').val();
