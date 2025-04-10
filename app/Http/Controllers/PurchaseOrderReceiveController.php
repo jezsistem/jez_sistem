@@ -758,6 +758,9 @@ class PurchaseOrderReceiveController extends Controller
                             return '<a href="' . asset('upload/purchase_order_transfer/' . $row->transfer_image) . '" target="_blank">' . $row->transfer_image . '</a>';
                         }
                     })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-transfer" data-id="' . $row->id . '">Delete</a>';
+                    })
                     ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
                     ->make(true);

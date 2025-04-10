@@ -748,6 +748,126 @@
             ],
         });
 
+        var purchaseOrderBuktitfTable = $('#BuktitfImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_transfer_image_datatable') }}",
+                data: function (d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'image',
+                name: 'transfer_image',
+                searchable: false
+            },
+            {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": [0,1],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
+            var id = $(this).data('id');
+            
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+            
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('po_transfer_image_delete') }}",
+                        data: { id: id },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
+                                purchaseOrderBuktitfTable.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#InvoiceImagesTb tbody').on('click', '#delete-image-invoice', function() {
+            var id = $(this).data('id');
+            
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+            
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('po_invoice_image_delete') }}",
+                        data: { id: id },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
+                                purchaseOrderInvoiceTable.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                        }
+                    });
+                }
+            });
+        });
 
         $('#Producttb tbody').on('click', '#add_product_size_btn', function() {
             if ($(this).text().indexOf('Batal') >= 0) {
@@ -1009,6 +1129,14 @@
             $("#InvoiceImagesBtn").click(function () {
                 $("#InvoiceImagesModal").modal("show");
                 purchaseOrderInvoiceTable.draw();
+                console.log($('#po_id').val());
+            });
+        });
+
+        $(document).ready(function () {
+            $("#BuktitfImagesBtn").click(function () {
+                $("#BuktitfImagesModal").modal("show");
+                purchaseOrderBuktitfTable.draw();
                 console.log($('#po_id').val());
             });
         });

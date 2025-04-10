@@ -758,4 +758,17 @@ class PurchaseOrderController extends Controller
         $fileName = 'purchase_order_article_' . $timestamp . '.xlsx';
         return Excel::download($export, $fileName);
     }
+    
+    public function deleteImageTransfer(Request $request)
+    {
+        $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->first();
+
+        if ($delete) {
+            unlink(public_path('upload/purchase_order_transfer/' . $delete->transfer_image));
+            $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
+        return response()->json($response);
+    }
 }
