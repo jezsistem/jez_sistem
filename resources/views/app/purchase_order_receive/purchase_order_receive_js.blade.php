@@ -1147,15 +1147,9 @@
                 name: 'invoice_image',
                 searchable: false
             },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
-                },
             ],
             columnDefs: [{
-                "targets": [0, 1],
+                "targets": [0],
                 "className": "text-center",
                 "width": "0%"
             }],

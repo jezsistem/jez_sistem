@@ -181,7 +181,6 @@
                             <thead>
                             <tr>
                                 <th>Image</th>
-                                <th>Action</th>
                             </tr>
                             </thead>
                             <tbody>
