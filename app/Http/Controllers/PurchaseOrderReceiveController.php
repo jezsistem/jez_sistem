@@ -741,6 +741,34 @@ class PurchaseOrderReceiveController extends Controller
         }
     }
 
+    public function getImageTransferDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderTransferImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id) {
+                $images = PurchaseOrderTransferImage::select('id', 'transfer_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->transfer_image)) {
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
+                        } else {
+//                            return '<a href="'.asset('upload/purchase_order_transfer/'.$row->transfer_image).' target=_blank>$row->transfer_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_transfer/' . $row->transfer_image) . '" target="_blank">' . $row->transfer_image . '</a>';
+                        }
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
     public function getImageDeliveryOrdersDatatables(Request $request)
     {
         if ($request->ajax()) {

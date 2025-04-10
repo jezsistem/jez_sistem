@@ -68,6 +68,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('por_export', [PurchaseOrderReceiveController::class, 'exportData']);
     Route::post('por_import', [POPurchaseReceiveImportController::class, 'importExcel']);
     Route::get('po_invoice_image_datatable', [PurchaseOrderReceiveController::class, 'getImageInvoiceDatatables']);
+    Route::get('po_transfer_image_datatable', [PurchaseOrderReceiveController::class, 'getImageTransferDatatables']);
     Route::post('po_delivery_order_image', [PurchaseOrderReceiveController::class, 'uploadDeliveryOrdersImage']);
     Route::post('po_invoice_image_delete', [PurchaseOrderReceiveController::class, 'deleteImageInvoice']);
     Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);

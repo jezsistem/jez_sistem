@@ -133,6 +133,35 @@
             ],
         });
 
+        var purchaseOrderBuktitfTable = $('#BuktitfImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_transfer_image_datatable') }}",
+                data: function (d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'image',
+                name: 'transfer_image',
+                searchable: false
+            },
+            ],
+            columnDefs: [{
+                "targets": [0],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
 
         var apd_table = $('#APDtb').DataTable({
             destroy: true,
@@ -329,6 +358,7 @@
                     $('#tax_id').val(tax_id);
 
                     purchaseOrderInvoiceTable.draw();
+                    purchaseOrderBuktitfTable.draw();
                 }
             });
             $('#ApproveModal').modal('show');
@@ -342,6 +372,13 @@
         $(document).ready(function () {
             $("#InvoiceImagesBtn").click(function () {
                 $("#InvoiceImagesModal").modal("show");
+                console.log($('#po_id').val());
+            });
+        });
+
+        $(document).ready(function () {
+            $("#BuktitfImagesBtn").click(function () {
+                $("#BuktitfImagesModal").modal("show");
                 console.log($('#po_id').val());
             });
         });

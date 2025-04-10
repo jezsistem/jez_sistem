@@ -200,3 +200,40 @@
     </div>
 </div>
 <!-- /Modal-->
+
+<!-- Modal-->
+<div class="modal fade" id="BuktitfImagesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Bukti Transfer Image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <div class="container">
+                        <table id="BuktitfImagesTb" class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Image</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
+                        data-dismiss="modal">Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal-->
