@@ -216,6 +216,8 @@
                                 @else
                                     <td class="qty">{{ $srow->pos_td_qty }}x</td>
                                     <td class="sell-price">
+
+                                        {{-- disini --}}
                                         @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
                                             <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
                                             <br>

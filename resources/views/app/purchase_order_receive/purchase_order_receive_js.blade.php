@@ -3,7 +3,14 @@
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    $('#dispute').select2({
+        placeholder: 'Select Yes or No',
+        allowClear: true,
+        width: 'resolve' // or '100%' depending on setup
+    });
+
     Webcam.set({
         width: 490,
         height: 390,
@@ -199,6 +206,12 @@
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
         var shipping_cost = $('#shipping_cost').val();
+        var dispute = $('#dispute').val();
+
+        if (dispute == '' || dispute == null) {
+            swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
+            return false;
+        }
 
         if (receive_date == '') {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
@@ -311,6 +324,8 @@
             return false;
         }
 
+        var no_order = $('#po_invoice_label').text();
+
         var st_id = $('#st_id').val();
         var tax_id = $('#tax_id').val();
         var po_id = $('#_po_id').val();
@@ -322,6 +337,7 @@
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
         var shipping_cost = $('#shipping_cost').val();
+        var dispute = $('#dispute').val();
         var poads_cogs = replaceComma($('#cogs_' + poa_id + '_' + index).val());
 
 
@@ -340,6 +356,8 @@
         formData.append('_poads_purchase_price', poads_purchase_price);
         formData.append('_poads_cogs', poads_cogs);
         formData.append('shipping_cost', shipping_cost);
+        formData.append('dispute', dispute);
+        formData.append('no_order', no_order);
 
         $.ajaxSetup({
             headers: {
@@ -1238,7 +1256,19 @@
             width: "100%",
             dropdownParent: $('#tax_id_parent')
         });
+
         $('#tax_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#dispute').select2({
+            width: "100%",
+            dropdownParent: $('#dispute_parent')
+        });
+
+        $('#dispute').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);

@@ -135,6 +135,19 @@
                             <label class="badge badge-primary">Tanggal Invoice</label>
                             <input type="date" id="invoice_date" class="form-control" value="" />
                         </div>
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Is Dispute ?</label>
+                            <select class="form-control" id="dispute" name="dispute" required>
+                                <option value="">- Pilih Salah Satu -</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <div id="dispute_parent"></div>
+                        </div>
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Keterangan Dispute</label>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3"></textarea>
+                        </div>
 
 
                         <div class="col-4 mt-4 d-flex flex-column">
@@ -217,10 +230,8 @@
                             </div>
                         </div>
 
-
-                        
-                        <div class="col-4">
-                            <label>Ongkos Kirim</label>
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Ongkos Kirim</label>
                             <br />
                             <label> * diisi setelah mengisi kolom terima </label>
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
