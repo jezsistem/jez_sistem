@@ -64,6 +64,11 @@
                             <input type="date" id="receive_date" class="form-control" value=""/>
                         </div>
                         <div class="col-4 mt-3">
+                            <label>Dispute</label>
+                            <input type="text" id="dispute" class="form-control" name="dispute"
+                                   disabled/>
+                        </div>
+                        <div class="col-4 mt-3">
                             <label>Ongkos Kirim</label>
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                  disabled/>
@@ -120,6 +125,11 @@
                                     </label>
                                 </a>
                             </div>
+                        </div>
+                        <div class="col-4">
+                            <label>Keterangan Dispute</label>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description"
+                                      rows="3" disabled></textarea>
                         </div>
                     </div>
                     <br>

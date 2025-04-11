@@ -114,7 +114,9 @@ class POReceiveApprovalController extends Controller
                     ts_purchase_orders.stkt_id,
                     ts_purchase_orders.tax_id,
                     ts_stock_types.stkt_name,
-                    ts_taxes.tx_name
+                    ts_taxes.tx_name,
+                    ts_purchase_orders.dispute,
+                    ts_purchase_orders.dispute_description
                 ")
                 ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
@@ -128,109 +130,121 @@ class POReceiveApprovalController extends Controller
                 ->whereNotNull('poads_invoice')
                 ->groupBy('poads_invoice')
             )
-            ->editColumn('poads_invoice_show', function ($d) {
-                return "<a class='btn btn-primary'>" . $d->poads_invoice . "</a>";
-            })
-            ->editColumn('invoice_date_show', function ($data) {
-                return date('d/m/Y', strtotime($data->invoice_date));
-            })
-            ->editColumn('receive_date_show', function ($data) {
-                return date('d/m/Y H:i:s', strtotime($data->created_at));
-            })
-            ->editColumn('u_receive', function ($data) {
-                if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
-                    $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                    return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
-                } else if (!empty($data->u_id_approve)) {
-                    $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                    return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at)) . '</span>';
-                } else {
-                    return '<span class="badge badge-warning">Menunggu Approval</span>';
-                }
-            })
-            ->rawColumns(['poads_invoice_show', 'u_receive'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function ($w) use ($request) {
-                        $search = $request->get('search');
-                        $w->orWhere('poads_invoice', 'LIKE', "%$search%")
-                            ->orWhere('po_invoice', 'LIKE', "%$search%")
-                            ->orWhere('po_description', 'LIKE', "%$search%")
-                            ->orWhere('article_id', 'LIKE', "%$search%")
-                            ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
-                    });
-                }
-                if (!empty($request->get('filter_status'))) {
-                    if ($request->get('filter_status') == 'approve') {
-                        $instance->whereNotNull('u_id_approve');
+                ->addColumn('dispute', function ($row) {
+                    return $row->dispute;
+                })
+                ->editColumn('poads_invoice_show', function ($d) {
+                    return "<a class='btn btn-primary'>" . $d->poads_invoice . "</a>";
+                })
+                ->editColumn('invoice_date_show', function ($data) {
+                    return date('d/m/Y', strtotime($data->invoice_date));
+                })
+                ->editColumn('receive_date_show', function ($data) {
+                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                })
+                ->editColumn('u_receive', function ($data) {
+                    if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
+                        $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
+                        return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
+                    } else if (!empty($data->u_id_approve)) {
+                        $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
+                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at)) . '</span>';
+                    } else {
+                        return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
-    
-                    if ($request->get('filter_status') == 'wait') {
-                        $instance->whereNull('u_id_approve');
+                })
+                ->rawColumns(['poads_invoice_show', 'u_receive'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('poads_invoice', 'LIKE', "%$search%")
+                                ->orWhere('po_invoice', 'LIKE', "%$search%")
+                                ->orWhere('po_description', 'LIKE', "%$search%")
+                                ->orWhere('article_id', 'LIKE', "%$search%")
+                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
+                        });
                     }
-    
-                    if ($request->get('filter_status') == 'wait_cod') {
-                        $instance->where('acc_id', '=', 93)->where('is_paid', '=', 0);
+                    if (!empty($request->get('filter_status'))) {
+                        if ($request->get('filter_status') == 'approve') {
+                            $instance->whereNotNull('u_id_approve');
+                        }
+
+                        if ($request->get('filter_status') == 'wait') {
+                            $instance->whereNull('u_id_approve');
+                        }
+
+                        if ($request->get('filter_status') == 'wait_cod') {
+                            $instance->where('acc_id', '=', 93)->where('is_paid', '=', 0);
+                        }
                     }
-                }
-                if (!empty($request->get('filter_cabang'))) {
-                    if ($request->get('filter_cabang') == 'SURABAYA') {
-                        $instance->where('st_name', 'LIKE', '%SURABAYA%');
+                    if (!empty($request->get('filter_cabang'))) {
+                        if ($request->get('filter_cabang') == 'SURABAYA') {
+                            $instance->where('st_name', 'LIKE', '%SURABAYA%');
+                        }
+
+                        if ($request->get('filter_cabang') == 'MALANG') {
+                            $instance->where('st_name', 'LIKE', '%MALANG%');
+                        }
+
+                        if ($request->get('filter_cabang') == 'KEDIRI') {
+                            $instance->where('st_name', 'LIKE', '%KEDIRI%');
+                        }
+
+                        if ($request->get('filter_cabang') == 'JEMBER') {
+                            $instance->where('st_name', 'LIKE', '%JEMBER%');
+                        }
                     }
-    
-                    if ($request->get('filter_cabang') == 'MALANG') {
-                        $instance->where('st_name', 'LIKE', '%MALANG%');
+                    if ($request->has('filter_dispute')) {
+                        $filter = $request->get('filter_dispute');
+
+                        if ($filter === '1') {
+                            $instance->where('dispute', 1);
+                        } elseif ($filter === '0') {
+                            $instance->where('dispute', 0);
+                        }
                     }
-    
-                    if ($request->get('filter_cabang') == 'KEDIRI') {
-                        $instance->where('st_name', 'LIKE', '%KEDIRI%');
+                    if (!empty($request->get('date'))) {
+                        $dateParts = explode('|', $request->get('date'));
+
+                        if (count($dateParts) == 2) {
+                            // Date range provided
+                            $instance->whereBetween('purchase_order_article_detail_statuses.created_at', [$dateParts[0], $dateParts[1]]);
+                        } elseif (count($dateParts) == 1) {
+                            // Single date provided
+                            $instance->whereDate('purchase_order_article_detail_statuses.created_at', $dateParts[0]);
+                        }
                     }
-    
-                    if ($request->get('filter_cabang') == 'JEMBER') {
-                        $instance->where('st_name', 'LIKE', '%JEMBER%');
-                    }
-                }
-                if (!empty($request->get('date'))) {
-                    $dateParts = explode('|', $request->get('date'));
-    
-                    if (count($dateParts) == 2) {
-                        // Date range provided
-                        $instance->whereBetween('purchase_order_article_detail_statuses.created_at', [$dateParts[0], $dateParts[1]]);
-                    } elseif (count($dateParts) == 1) {
-                        // Single date provided
-                        $instance->whereDate('purchase_order_article_detail_statuses.created_at', $dateParts[0]);
-                    }
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
-    
 
-     public function poReceiveDetail(Request $request)
-     {
-         $po_id = $request->_po_id;
-         $check = PurchaseOrder::where(['id' => $po_id])->exists();
-         if ($check) {
-             $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
-             $r['status'] = '200';
-             $r['po_id'] = $draft->id;
-             $r['st_id'] = $draft->st_id;
-             $r['ps_id'] = $draft->ps_id;
-             $r['stkt_id'] = $draft->stkt_id;
-             $r['tax_id'] = $draft->tax_id;
-             $r['po_description'] = $draft->po_description;
-             $r['dispute_description'] = $draft->dispute_description;
+
+    public function poReceiveDetail(Request $request)
+    {
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
+            $r['status'] = '200';
+            $r['po_id'] = $draft->id;
+            $r['st_id'] = $draft->st_id;
+            $r['ps_id'] = $draft->ps_id;
+            $r['stkt_id'] = $draft->stkt_id;
+            $r['tax_id'] = $draft->tax_id;
+            $r['po_description'] = $draft->po_description;
+            $r['dispute_description'] = $draft->dispute_description;
 //             $r['dispute'] = $draft->dispute;
-             $r['dispute'] = (string) $draft->dispute;
-             $r['po_shipping_cost'] = $draft->po_shipping_cost;
-             $r['po_invoice'] = $draft->po_invoice;
-         } else {
-             $r['status'] = '400';
-         }
-         return json_encode($r);
-     }
+            $r['dispute'] = (string)$draft->dispute;
+            $r['po_shipping_cost'] = $draft->po_shipping_cost;
+            $r['po_invoice'] = $draft->po_invoice;
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
 
     public function getDetailDatatables(Request $request)
     {
@@ -241,7 +255,7 @@ class POReceiveApprovalController extends Controller
                     poad_purchase_price, ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty,
                     poad_total_price, ts_purchase_order_article_detail_statuses.created_at, 
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.st_id as st_id") // Added stkt_id and tax_id
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
@@ -280,7 +294,6 @@ class POReceiveApprovalController extends Controller
     }
 
 
-
     public function approveData(Request $request)
     {
         $invoice = $request->post('invoice');
@@ -316,7 +329,7 @@ class POReceiveApprovalController extends Controller
                     $new_price = ceil($row->poad_purchase_price);
 
                     // total new cogs
-                    $total_cogs_new =  $new_price * $new_stock;
+                    $total_cogs_new = $new_price * $new_stock;
 
                     $total_cost_merge = ceil($total_cogs_old + $total_cogs_new);
                     $total_qty_merge = $old_stock + $new_stock;
@@ -364,7 +377,7 @@ class POReceiveApprovalController extends Controller
 
     // create total poads_total_price by poads_invoice
     public function createTotalPrice(Request $request)
-    {   
+    {
         $total_price = DB::table('purchase_order_article_detail_statuses')->selectRaw('sum(poads_total_price) as total_price')
             ->where('poads_invoice', '=', $request->invoice)->get()->first()->total_price;
         return $total_price;

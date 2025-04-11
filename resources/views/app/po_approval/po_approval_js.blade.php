@@ -25,6 +25,7 @@
                     d.search = $('#po_approval_search').val();
                     d.filter_status = $('#filter_status').val();
                     d.filter_cabang = $('#filter_cabang').val();
+                    d.filter_dispute = $('#filter_dispute').val();
                     d.date = $('#po_date').val();
 
                 }
@@ -72,6 +73,12 @@
                 //     name: 'qty'
                 // },
             ],
+            rowCallback: function (row, data, index) {
+                console.log('Dispute:', data.dispute);
+                if (data.dispute == 1) {
+                    $(row).css('background-color', '#f8d7da'); // Bootstrap's light red alert bg
+                }
+            },
             columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
@@ -92,6 +99,11 @@
 
         $('#filter_cabang').on('change', function () {
             console.log($('#filter_cabang').val())
+            po_approval_table.draw();
+        });
+
+        $('#filter_dispute').on('change', function () {
+            console.log($('#filter_dispute').val())
             po_approval_table.draw();
         });
 
@@ -283,7 +295,7 @@
         });
 
         $('#APtb tbody').on('click', 'tr', function () {
-            
+
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
             var st_name = po_approval_table.row(this).data().st_name;
@@ -299,22 +311,35 @@
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
             var po_invoice = po_approval_table.row(this).data().po_invoice;
+            var dispute = po_approval_table.row(this).data().dispute;
+            var dispute_description = po_approval_table.row(this).data().dispute_description;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
 
+            let dispute_text = '';
+
+            if (dispute === 1) {
+                dispute_text = 'Yes';
+            } else if (dispute === 0) {
+                dispute_text = 'No';
+            } else {
+                dispute_text = 'Empty';
+            }
+
             console.log('STORES : ', tgl_terima);
             console.log('POADS ID :', poads_invoice);
+
             function formatRupiah(number) {
-            // Ensure the number is an integer
-            var numberString = Math.round(number).toString();
+                // Ensure the number is an integer
+                var numberString = Math.round(number).toString();
 
-            // Regular expression to add dots as thousand separators
-            var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                // Regular expression to add dots as thousand separators
+                var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-            $('#no_po').text(po_invoice);
-            
-            return "Rp. " + formatted;
-        }
+                $('#no_po').text(po_invoice);
+
+                return "Rp. " + formatted;
+            }
 
 
             // call ajax apd_total_price 
@@ -350,6 +375,8 @@
                     $('#total_approval_price').text(formatRupiah(r));
                     $('#stkt_id').val(stkt_name);
                     $('#tax_id').val(tax_id);
+                    $('#dispute').val(dispute_text);
+                    $('#dispute_description').val(dispute_description);
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
