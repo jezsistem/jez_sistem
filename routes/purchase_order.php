@@ -95,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Purchase Order Article Detail Status
     Route::post('poads_save', [PurchaseOrderArticleDetailStatusController::class, 'storeData']);
+    Route::post('dispute_save', [PurchaseOrderArticleDetailStatusController::class, 'disputeSave']);
+    Route::post('dispute_description_save', [PurchaseOrderArticleDetailStatusController::class, 'disputeDescSave']);
     Route::get('poads_datatables', [PurchaseOrderArticleDetailStatusController::class, 'getDatatables']);
     Route::post('sv_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'revisionData']);
     Route::post('dl_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'deleteData']);

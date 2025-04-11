@@ -139,8 +139,8 @@
                             <label class="badge badge-primary">Is Dispute ?</label>
                             <select class="form-control" id="dispute" name="dispute" required>
                                 <option value="">- Pilih Salah Satu -</option>
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
                             </select>
                             <div id="dispute_parent"></div>
                         </div>

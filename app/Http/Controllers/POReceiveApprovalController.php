@@ -221,6 +221,9 @@ class POReceiveApprovalController extends Controller
              $r['stkt_id'] = $draft->stkt_id;
              $r['tax_id'] = $draft->tax_id;
              $r['po_description'] = $draft->po_description;
+             $r['dispute_description'] = $draft->dispute_description;
+//             $r['dispute'] = $draft->dispute;
+             $r['dispute'] = (string) $draft->dispute;
              $r['po_shipping_cost'] = $draft->po_shipping_cost;
              $r['po_invoice'] = $draft->po_invoice;
          } else {

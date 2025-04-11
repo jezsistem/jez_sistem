@@ -192,4 +192,40 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         })->save($destinationPath . '/' . $input['fileName']);
         return $input['fileName'];
     }
+
+    public function disputeSave(Request $request)
+    {
+        $request->validate([
+            'po_invoice' => 'required|string',
+        ]);
+
+        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'Purchase order not found'], 404);
+        }
+
+        $po->dispute = $request->dispute;
+        $po->save();
+
+        return response()->json(['message' => 'Dispute status updated successfully']);
+    }
+
+    public function disputeDescSave(Request $request)
+    {
+        $request->validate([
+            'po_invoice' => 'required|string',
+        ]);
+
+        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'Purchase order not found'], 404);
+        }
+
+        $po->dispute_description = $request->dispute_description;
+        $po->save();
+
+        return response()->json(['message' => 'Dispute status updated successfully']);
+    }
 }

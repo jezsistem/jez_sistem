@@ -200,6 +200,73 @@
         XLSX.writeFile(workbook, "Barcode_NotFound.xlsx");
     }
 
+    //is Dispute Save
+    $(document).ready(function () {
+        $('#dispute').change(function () {
+            var no_order = $('#po_invoice_label').text();
+
+            const disputeValue = $(this).val();
+            const po_invoice = no_order
+
+            if (!po_invoice) {
+                alert("No PO Invoice provided!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('dispute_save') }}",
+                type: 'POST',
+                data: {
+                    dispute: disputeValue,
+                    po_invoice: po_invoice,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function (response) {
+                    console.log(response);
+                    toastr.success("Dispute selection berhasil disimpan", "Berhasil");
+                },
+                error: function (xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan data", "Gagal");
+                }
+            });
+        });
+    });
+
+    // dispute description save
+    $(document).ready(function () {
+        $('#dispute_description').on('blur', function () {
+
+            var no_order = $('#po_invoice_label').text();
+
+            const description = $(this).val();
+            const po_invoice = no_order;
+
+            if (!po_invoice) {
+                alert("No PO Invoice provided!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('dispute_description_save') }}",
+                type: 'POST',
+                data: {
+                    dispute_description: description,
+                    po_invoice: po_invoice,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function (response) {
+                    console.log(response);
+                    toastr.success("Dispute deskripsi berhasil disimpan", "Berhasil");
+                },
+                error: function (xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan data", "Gagal");
+                }
+            });
+        });
+    });
+
 
     function savePoads(poad_id, poa_id, index, pst_id) {
         var receive_date = $('#receive_date').val();
@@ -257,6 +324,9 @@
                 var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
                 var poads_cogs = replaceComma($('#cogs_' + poa_id + '_' + index).val());
                 var shipping_cost = $('#shipping_cost').val();
+                var dispute = $('#dispute').val();
+                var dispute_description = $('#dispute_description').val();
+
 
                 // create FormData object and append file data
                 var formData = new FormData();
@@ -274,6 +344,8 @@
                 formData.append('_poads_extra_discount', poads_extra_discount);
                 formData.append('_poads_purchase_price', poads_purchase_price);
                 formData.append('_poads_cogs', poads_cogs);
+                // formData.append('dispute', dispute);
+                // formData.append('dispute_description', dispute_description);
 
                 // appenda image file data
                 var invoiceImage = $('#invoiceImage')[0].files[0];
@@ -358,6 +430,8 @@
         formData.append('shipping_cost', shipping_cost);
         formData.append('dispute', dispute);
         formData.append('no_order', no_order);
+
+        console.log(formData);
 
         $.ajaxSetup({
             headers: {
@@ -1460,6 +1534,8 @@
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         $('#po_description').val(r.po_description);
+                        $('#dispute_parent').val(String(r.dispute ?? ''));
+                        $('#dispute_description').val(r.dispute_description);
                         // $('#shipping_cost').val(r.po_shipping_cost);
                         $('#shipping_cost').attr('placeholder', r.po_shipping_cost +
                             ' tetap diisi sesuai angka yang tertera');
@@ -1467,6 +1543,11 @@
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
+                        jQuery('#dispute').val(r.dispute).trigger('change');
+
+                        // let selectedDispute = r.dispute == 1 ? '1' : r.dispute == 0 ? '0' : '';
+                        // $('#dispute').val(selectedDispute).trigger('change');
+
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
