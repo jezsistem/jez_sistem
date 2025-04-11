@@ -204,7 +204,10 @@
                         </select>
                         <div id="acc_id_parent"></div>
                     </div>
-
+                    <div class="col-4 mt-5">
+                        <label>Dispute</label>
+                        <input type="text" class="form-control" name="dispute" id="dispute" disabled />
+                    </div>
                     <div class="col-4 mt-5">
                         <label>Pre Order</label>
                         <select class="form-control" id="pro_id" name="pro_id" required>
@@ -251,6 +254,10 @@
                                 </label>
                             </a>
                         </div>
+                    </div>
+                    <div class="col-4 mt-5">
+                        <label>Dispute</label>
+                        <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
                     </div>
                 </div>
                     

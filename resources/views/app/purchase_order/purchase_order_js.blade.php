@@ -1104,13 +1104,21 @@
                 success: function(r) {
                     if (r.status == '200') {
                         global_po_id = r.po_id;
+                        let dispute_text = '';
                         jQuery.noConflict();
+                        if (r.dispute == 1){
+                            dispute_text = 'Yes';
+                        } else {
+                            dispute_text = 'No';
+                        }
                         $('#f_po')[0].reset();
                         $('#PurchaseOrderModal').modal('show');
                         $('#po_invoice_label').text(r.po_invoice);
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         $('#po_description').val(r.po_description);
+                        $('#dispute').val(dispute_text);
+                        $('#dispute_description').val(r.po_dispute_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');

@@ -639,6 +639,8 @@ class PurchaseOrderController extends Controller
             $r['po_description'] = $draft->po_description;
             $r['po_invoice'] = $draft->po_invoice;
             $r['acc_id'] = $draft->acc_id;
+            $r['dispute'] = $draft->dispute;
+            $r['dispute_description'] = $draft->dispute_description;
         } else {
             $r['status'] = '400';
         }
