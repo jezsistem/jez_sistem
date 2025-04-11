@@ -126,15 +126,7 @@
                             <label>Tanggal Terima</label>
                             <input type="date" id="receive_date" class="form-control" value="" />
                         </div>
-                        <div class="col-4 mt-4">
-                            <label class="badge badge-primary">Invoice</label>
-                            <input type="text" id="receive_invoice" class="form-control" value=""
-                                placeholder="INVxx" />
-                        </div>
-                        <div class="col-4 mt-4">
-                            <label class="badge badge-primary">Tanggal Invoice</label>
-                            <input type="date" id="invoice_date" class="form-control" value="" />
-                        </div>
+
                         <div class="col-4 mt-4">
                             <label class="badge badge-primary">Is Dispute ?</label>
                             <select class="form-control" id="dispute" name="dispute" required>
@@ -143,6 +135,15 @@
                                 <option value="0">No</option>
                             </select>
                             <div id="dispute_parent"></div>
+                        </div>
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Tanggal Invoice</label>
+                            <input type="date" id="invoice_date" class="form-control" value="" />
+                        </div>
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Invoice</label>
+                            <input type="text" id="receive_invoice" class="form-control" value=""
+                                   placeholder="INVxx" />
                         </div>
                         <div class="col-4 mt-4">
                             <label class="badge badge-primary">Keterangan Dispute</label>
