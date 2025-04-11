@@ -107,7 +107,7 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="data_perusahaan_search"
+                                <input type="search" class="form-control  col-6" id="artikel_promo_search"
                                        placeholder="Cari Artikel Promo"/><br/>
                                 <a class="btn btn-primary ml-auto mr-2" data-type="invoice" id="export_btn">Export
                                     Excel</a>
