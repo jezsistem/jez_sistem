@@ -24,6 +24,8 @@ class PosTransaction extends Model
         'pos_draft',
         'pos_paid_dp',
         'pos_paid_dp_date',
+        'pos_resi',
+        'pos_resi_file',
         'created_at'
     ];
 

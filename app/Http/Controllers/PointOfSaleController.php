@@ -569,6 +569,7 @@ class PointOfSaleController extends Controller
         $shipping_cost = $request->_shipping_cost;
         $ref_number = $request->_ref_number;
         $pos_total_discount = $request->_total_discount_side;
+        $no_resi = $request->_no_resi;
 
         $rand = str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
         $cr_id = $request->_cr_id;
@@ -629,7 +630,21 @@ class PointOfSaleController extends Controller
             'pos_refund' => '0',
             'st_id_ref' => $st_id_ref,
             'cross_order' => $cross_order,
+            'pos_resi' => $no_resi,
         ]);
+
+        // insert file pdf
+        if ($request->hasFile('no_resi_upload')) {
+            $file = $request->file('no_resi_upload');
+            $filename = 'resi_' . $insert_get_id . '.' . $file->getClientOriginalExtension();
+
+            $file->move(public_path('upload/resi'), $filename);
+
+            DB::table('pos_transactions')->where('id', $insert_get_id)->update([
+                'pos_resi_file' =>  $filename
+            ]);
+        }
+
 
         if (!empty($insert_get_id)) {
             if (!empty($voc_pst_id)) {
