@@ -720,8 +720,38 @@
     }
 
     function updateCogs() {
+
         // Get the updated shipping cost value
         var shipping_cost = $('#shipping_cost').val();
+        console.log(shipping_cost);
+        
+
+        // Send updated shipping cost to the server
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('por_change_shipping_cost') }}",
+            data: {
+                shipping_cost: shipping_cost,
+                po_id: $('#_po_id').val()
+            },
+            success: function (r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+                    toastr.success("Shipping cost updated successfully", "Success");
+                } else {
+                    toastr.error("Failed to update shipping cost", "Error");
+                    console.log(response);
+                }
+            },
+            error: function (xhr, status, error) {
+                toastr.error("An error occurred while updating shipping cost", "Error");
+            }
+        });
 
         // Loop through all rows to update cogs for each row
         $('[id^="cogs_"]').each(function () {
@@ -1537,8 +1567,11 @@
                         $('#dispute_parent').val(String(r.dispute ?? ''));
                         $('#dispute_description').val(r.dispute_description);
                         // $('#shipping_cost').val(r.po_shipping_cost);
-                        $('#shipping_cost').attr('placeholder', r.po_shipping_cost +
-                            ' tetap diisi sesuai angka yang tertera');
+                        if (r.po_shipping_cost > 0) {
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', true);
+                        } else {
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', false);
+                        }
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');

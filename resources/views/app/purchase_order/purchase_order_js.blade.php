@@ -1117,6 +1117,7 @@
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         $('#po_description').val(r.po_description);
+                        $('#shipping_cost').val(r.shipping_cost);
                         $('#dispute').val(dispute_text);
                         $('#dispute_description').val(r.po_dispute_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');

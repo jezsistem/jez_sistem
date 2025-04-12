@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
 
         return Excel::download(new BartenderFormatExport($po_id), $fileName);
     });
+    Route::post('por_change_shipping_cost', [PurchaseOrderReceiveController::class, 'changeShippingCost']);
 
     // Purchase Order Article
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);

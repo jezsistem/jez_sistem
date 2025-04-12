@@ -867,4 +867,17 @@ class PurchaseOrderReceiveController extends Controller
 
         return json_encode($response);
     }
+
+    public function changeShippingCost(Request $request)
+    {
+        $po_id = $request->po_id;
+        $shipping_cost = $request->shipping_cost;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['po_shipping_cost' => $shipping_cost]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
 }
