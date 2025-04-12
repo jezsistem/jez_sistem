@@ -7,17 +7,19 @@
     var qty_filter = $('#qty_filter').val();
     var pl_id = [];
 
-    function loadLocation(st_id)
-    {
+    function loadLocation(st_id) {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('load_mass_adjustment_location') }}",
-            data: {st_id:st_id, pl_id:pl_id},
+            data: {
+                st_id: st_id,
+                pl_id: pl_id
+            },
             dataType: 'html',
             success: function(r) {
                 $('#bin_panel').html(r);
@@ -26,8 +28,7 @@
         });
     }
 
-    function addCommas(nStr)
-    {
+    function addCommas(nStr) {
         nStr += '';
         x = nStr.split('.');
         x1 = x[0];
@@ -39,17 +40,22 @@
         return x1 + x2;
     }
 
-    function loadAsset(st_id, psc_id, br_id)
-    {
+    function loadAsset(st_id, psc_id, br_id) {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('load_mass_asset') }}",
-            data: {st_id:st_id, psc_id:psc_id, br_id:br_id, pl_id:pl_id, qty_filter:qty_filter},
+            data: {
+                st_id: st_id,
+                psc_id: psc_id,
+                br_id: br_id,
+                pl_id: pl_id,
+                qty_filter: qty_filter
+            },
             dataType: 'json',
             success: function(r) {
                 if (r.status == '200') {
@@ -63,8 +69,7 @@
         });
     }
 
-    function loadApproval()
-    {
+    function loadApproval() {
         $('#approval_label').attr('data-id', '');
         $('#approval_label').val('');
         $('#mad_panel').addClass('d-none');
@@ -74,9 +79,11 @@
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('load_mass_approval') }}",
-            data: {ma_id:$('#ma_code').attr('data-id')},
+            data: {
+                ma_id: $('#ma_code').attr('data-id')
+            },
             dataType: 'json',
             success: function(r) {
                 if (r.status == '200') {
@@ -89,15 +96,15 @@
         });
     }
 
-    function exportTable()
-    {
+    function exportTable() {
         var data = new FormData();
         data.append('st_id', st_id);
         data.append('psc_id', psc_id);
         data.append('br_id', br_id);
         data.append('pl_id', pl_id);
         data.append('qty_filter', qty_filter);
-        window.location.href = "{{ url('export_mass_adjustment_template') }}?st_id="+st_id+"&psc_id="+psc_id+"&br_id="+br_id+"&pl_id="+pl_id+"&qty_filter="+qty_filter+"";
+        window.location.href = "{{ url('export_mass_adjustment_template') }}?st_id=" + st_id + "&psc_id=" + psc_id +
+            "&br_id=" + br_id + "&pl_id=" + pl_id + "&qty_filter=" + qty_filter + "";
 
         // $.ajaxSetup({
         //     headers: {
@@ -148,8 +155,7 @@
         // });
     }
 
-    function exportResult()
-    {
+    function exportResult() {
         var data = new FormData();
         data.append('ma_id', $('#ma_code').attr('data-id'));
         $.ajaxSetup({
@@ -158,10 +164,10 @@
             }
         });
         $.ajax({
-            type:'POST',
+            type: 'POST',
             url: "{{ url('export_mass_adjustment_result') }}",
             data: data,
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
             xhrFields: {
@@ -195,7 +201,9 @@
                     } else {
                         window.location.href = downloadUrl;
                     }
-                    setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 10000);
+                    setTimeout(function() {
+                        URL.revokeObjectURL(downloadUrl);
+                    }, 10000);
                 }
             },
         });
@@ -215,12 +223,14 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('mass_stock_datatables') }}",
-                data : function (d) {
+                url: "{{ url('mass_stock_datatables') }}",
+                data: function(d) {
                     d.search = $('#stock_search').val();
                     d.st_id = st_id;
                     d.psc_id = psc_id;
@@ -229,25 +239,57 @@
                     d.qty_filter = qty_filter;
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'id', searchable: false},
-                { data: 'pl_code', name: 'pl_code' },
-                { data: 'br_name', name: 'br_name' },
-                { data: 'p_name', name: 'p_name' },
-                { data: 'p_color', name: 'p_color' },
-                { data: 'sz_name', name: 'sz_name' },
-                { data: 'psc_name', name: 'psc_name' },
-                { data: 'pls_qty', name: 'pls_qty' },
-                { data: 'purchase', name: 'purchase'},
-                { data: 'sell', name: 'sell', orderable: false },
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            order: [[0, 'desc']],
+                    data: 'pl_code',
+                    name: 'pl_code'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'sz_name',
+                    name: 'sz_name'
+                },
+                {
+                    data: 'psc_name',
+                    name: 'psc_name'
+                },
+                {
+                    data: 'pls_qty',
+                    name: 'pls_qty'
+                },
+                {
+                    data: 'purchase',
+                    name: 'purchase'
+                },
+                {
+                    data: 'sell',
+                    name: 'sell',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var mass_adjustment_table = $('#MassAdjustmenttb').DataTable({
@@ -256,38 +298,85 @@
             serverSide: true,
             responsive: false,
             dom: 'rt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('mass_adjustment_datatables') }}",
-                data : function (d) {
+                url: "{{ url('mass_adjustment_datatables') }}",
+                data: function(d) {
                     d.search = $('#ma_search').val();
                     d.filter = $('#filter_status').val();
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'id', searchable: false},
-                { data: 'ma_code_show', name: 'ma_code' },
-                { data: 'st_name', name: 'st_name' },
-                { data: 'u_name', name: 'u_name'},
-                { data: 'approve', name: 'approve', orderable:false },
-                { data: 'executor', name: 'executor', orderable:false },
-                { data: 'editor', name: 'editor', orderable:false },
-                { data: 'note', name: 'note', orderable:false },
-                { data: 'tipe', name: 'tipe', orderable:false },
-                { data: 'created_at', name: 'created_at'},
-                { data: 'updated_at', name: 'updated_at'},
-                { data: 'ma_status', name: 'ma_status'},
-                { data: 'action', name: 'action'},
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            order: [[0, 'desc']],
+                    data: 'ma_code_show',
+                    name: 'ma_code'
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'approve',
+                    name: 'approve',
+                    orderable: false
+                },
+                {
+                    data: 'executor',
+                    name: 'executor',
+                    orderable: false
+                },
+                {
+                    data: 'editor',
+                    name: 'editor',
+                    orderable: false
+                },
+                {
+                    data: 'note',
+                    name: 'note',
+                    orderable: false
+                },
+                {
+                    data: 'tipe',
+                    name: 'tipe',
+                    orderable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'updated_at',
+                    name: 'updated_at'
+                },
+                {
+                    data: 'ma_status',
+                    name: 'ma_status'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         var mass_adjustment_detail_table = $('#MassAdjustmentDetailtb').DataTable({
@@ -296,43 +385,93 @@
             serverSide: true,
             responsive: false,
             dom: 'Blrt<"text-right"ip>',
-            buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            ],
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
-                url : "{{ url('mass_adjustment_detail_datatables') }}",
-                data : function (d) {
+                url: "{{ url('mass_adjustment_detail_datatables') }}",
+                data: function(d) {
                     d.search = $('#mad_search').val();
                     d.ma_id = $('#ma_code').attr('data-id');
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'id', searchable: false},
-                { data: 'pl_code', name: 'pl_code' },
-                { data: 'br_name', name: 'br_name' },
-                { data: 'ps_barcode', name: 'ps_barcode' },
-                { data: 'p_name', name: 'p_name' },
-                { data: 'p_color', name: 'p_color' },
-                { data: 'sz_name', name: 'sz_name' },
-                { data: 'psc_name', name: 'psc_name' },
-                { data: 'purchase', name: 'purchase_1', orderable: false },
-                { data: 'sell', name: 'sell', orderable: false },
-                { data: 'qty_export', name: 'qty_export' },
-                { data: 'qty_so', name: 'qty_so' },
-                { data: 'mad_type', name: 'mad_type' },
-                { data: 'mad_diff', name: 'mad_diff' },
-            ],
-            columnDefs: [
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "0%"
-                }],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                    data: 'pl_code',
+                    name: 'pl_code'
+                },
+                {
+                    data: 'br_name',
+                    name: 'br_name'
+                },
+                {
+                    data: 'ps_barcode',
+                    name: 'ps_barcode'
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name'
+                },
+                {
+                    data: 'p_color',
+                    name: 'p_color'
+                },
+                {
+                    data: 'sz_name',
+                    name: 'sz_name'
+                },
+                {
+                    data: 'psc_name',
+                    name: 'psc_name'
+                },
+                {
+                    data: 'purchase',
+                    name: 'purchase_1',
+                    orderable: false
+                },
+                {
+                    data: 'sell',
+                    name: 'sell',
+                    orderable: false
+                },
+                {
+                    data: 'qty_export',
+                    name: 'qty_export'
+                },
+                {
+                    data: 'qty_so',
+                    name: 'qty_so'
+                },
+                {
+                    data: 'mad_type',
+                    name: 'mad_type'
+                },
+                {
+                    data: 'mad_diff',
+                    name: 'mad_diff'
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [
+                [0, 'desc']
+            ],
         });
 
         $('#stock_search').on('keyup', function() {
@@ -417,11 +556,13 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {ma_id:$('#ma_code').attr('data-id')},
+                        data: {
+                            ma_id: $('#ma_code').attr('data-id')
+                        },
                         dataType: 'json',
-                        url: "{{ url('mass_adjustment_cancel')}}",
+                        url: "{{ url('mass_adjustment_cancel') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            if (r.status == '200') {
                                 swal("Berhasil", "Berhasil dihapus", "success");
                                 loadApproval();
                                 mass_adjustment_table.draw(false);
@@ -447,7 +588,9 @@
             pl_id.push(id);
 
             console.log(id)
-            $('#bin_filter_panel').append("<a class='btn-sm btn-success col-2 mt-1 text-center pl_label"+id+"' id='pl_label' data-id='"+id+"'>"+label+"</a>");
+            $('#bin_filter_panel').append(
+                "<a class='btn-sm btn-success col-2 mt-1 text-center pl_label" + id +
+                "' id='pl_label' data-id='" + id + "'>" + label + "</a>");
             stock_table.draw();
             loadLocation(st_id);
             loadAsset(st_id, psc_id, br_id);
@@ -459,7 +602,7 @@
             pl_id = $.grep(pl_id, function(value) {
                 return value != id;
             });
-            $('.pl_label'+id).remove();
+            $('.pl_label' + id).remove();
             stock_table.draw();
             loadLocation(st_id);
             loadAsset(st_id, psc_id, br_id);
@@ -513,11 +656,13 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {ma_id:$('#ma_code').attr('data-id')},
+                        data: {
+                            ma_id: $('#ma_code').attr('data-id')
+                        },
                         dataType: 'json',
-                        url: "{{ url('mass_adjustment_approval')}}",
+                        url: "{{ url('mass_adjustment_approval') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            if (r.status == '200') {
                                 swal("Berhasil", "Berhasil approval", "success");
                                 loadApproval();
                                 mass_adjustment_table.draw(false);
@@ -555,11 +700,13 @@
                     });
                     $.ajax({
                         type: "POST",
-                        data: {ma_id:$('#ma_code').attr('data-id')},
+                        data: {
+                            ma_id: $('#ma_code').attr('data-id')
+                        },
                         dataType: 'json',
-                        url: "{{ url('mass_adjustment_exec')}}",
+                        url: "{{ url('mass_adjustment_exec') }}",
                         success: function(r) {
-                            if (r.status == '200'){
+                            if (r.status == '200') {
                                 swal("Berhasil", "Berhasil eksekusi", "success");
                                 mass_adjustment_table.draw(false);
                             } else {
@@ -590,11 +737,11 @@
                 }
             });
             $.ajax({
-                type:'POST',
-                url: "{{ url('import_mass_adjustment_template')}}",
+                type: 'POST',
+                url: "{{ url('import_mass_adjustment_template') }}",
                 data: formData,
                 dataType: 'json',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 success: function(r) {
@@ -613,8 +760,169 @@
                         swal('Gagal', 'Adjustment gagal dicreate', 'warning');
                     }
                 },
-                error: function(data){
+                error: function(data) {
                     swal('Error', data, 'error');
+                }
+            });
+        });
+
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+
+            if ((end - start) < 100 || label == 'Today') {
+                title = 'Today:';
+                range = start.format('MMM D');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Yesterday') {
+                title = 'Yesterday:';
+                range = start.format('MMM D');
+                hidden_range = start.format('YYYY-MM-DD');
+            } else {
+                range = start.format('MMM D') + ' - ' + end.format('MMM D');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+
+            $('#ma_date').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
+            }
+        }, cb);
+
+        cb(start, end, '');
+
+        $(document).delegate('#export_by_date', 'click', function(e) {
+            e.preventDefault();
+            var dt = $('#ma_date').val();
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                data: {
+                    ma_date: dt
+                },
+                dataType: 'json',
+                url: "{{ url('export_mass_by_date') }}",
+                success: function(r) {
+                    $('#MassAdjustmentExportModal').modal('show');
+                    $('#MassAdjustmentDetailtb tbody').empty(); // Clear existing rows
+                    $(r.data).each(function(index, row) {
+                        $('#MassAdjustmentDetailtb tbody').append(
+                            "<tr><td>" + (index + 1) +
+                            "</td><td>" + row.ma_code +
+                            "</td><td>" + row.st_name +
+                            "</td><td>" + row.pl_code +
+                            "</td><td>" + row.br_name +
+                            "</td><td>" + row.ps_barcode +
+                            "</td><td>" + row.p_name +
+                            "</td><td>" + row.p_color +
+                            "</td><td>" + row.sz_name +
+                            "</td><td>" + row.psc_name +
+                            "</td><td>" + (addCommas(Math.round(row
+                                .purchase_1)) || addCommas(Math.round(row
+                                    .purchase_2)) || addCommas(Math.round(row
+                                    .ps_purchase_price)) || addCommas(Math
+                                    .round(row.p_purchase_price)) || '-') +
+                            "</td><td>" + (addCommas(row.ps_sell_price) ||
+                                addCommas(row.p_sell_price) || '-') +
+                            "</td><td>" + row.qty_export +
+                            "</td><td>" + row.qty_so +
+                            "</td><td>" + row.mad_type +
+                            "</td><td>" + row.mad_diff +
+                            "</td></tr>"
+                        );
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        });
+
+        $(document).delegate('#excel_report', 'click', function(e) {
+            e.preventDefault();
+            var dt = $('#ma_date').val();
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                data: {
+                    ma_date: dt
+                },
+                url: "{{ url('export_mass_by_date_excel') }}",
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(blob, status, xhr) {
+                    var filename = "exported_data.xlsx";
+                    var disposition = xhr.getResponseHeader('Content-Disposition');
+                    if (disposition && disposition.indexOf('attachment') !== -1) {
+                        var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                        var matches = filenameRegex.exec(disposition);
+                        if (matches != null && matches[1]) filename = matches[1].replace(
+                            /['"]/g, '');
+                    }
+
+                    if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                        window.navigator.msSaveBlob(blob, filename);
+                    } else {
+                        var URL = window.URL || window.webkitURL;
+                        var downloadUrl = URL.createObjectURL(blob);
+
+                        if (filename) {
+                            var a = document.createElement("a");
+                            if (typeof a.download === 'undefined') {
+                                window.location.href = downloadUrl;
+                            } else {
+                                a.href = downloadUrl;
+                                a.download = filename;
+                                document.body.appendChild(a);
+                                a.click();
+                            }
+                        } else {
+                            window.location.href = downloadUrl;
+                        }
+                        setTimeout(function() {
+                            URL.revokeObjectURL(downloadUrl);
+                        }, 10000);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error exporting data:', error);
                 }
             });
         });

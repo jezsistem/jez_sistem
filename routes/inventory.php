@@ -92,6 +92,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('mass_adjustment_datatables', [MassAdjustmentController::class, 'adjustmentDatatables']);
     Route::get('mass_adjustment_detail_datatables', [MassAdjustmentController::class, 'adjustmentDetailDatatables']);
     Route::post('export_mass_table', [MassAdjustmentController::class, 'exportTable']);
+    Route::post('export_mass_by_date', [MassAdjustmentController::class, 'exportMassByDate']);
+    Route::post('export_mass_by_date_excel', [MassAdjustmentController::class, 'exportMassByDateExcel']);
     Route::post('load_mass_asset', [MassAdjustmentController::class, 'loadAsset']);
     Route::post('load_mass_adjustment_location', [MassAdjustmentController::class, 'loadLocation']);
     Route::post('load_mass_approval', [MassAdjustmentController::class, 'loadApproval']);
