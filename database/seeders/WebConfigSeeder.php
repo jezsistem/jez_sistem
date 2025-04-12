@@ -16,7 +16,7 @@ class WebConfigSeeder extends Seeder
     {
         DB::table('web_configs')->insert([
             'config_name' => 'app_title',
-            'config_value' => 'Topscore Management System'
+            'config_value' => 'Jezpro Management System'
         ]);
 
         DB::table('web_configs')->insert([

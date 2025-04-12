@@ -1,8 +1,4 @@
 <script>
-
-
-
-
     $(document).ready(function () {
         $.ajaxSetup({
             headers: {
@@ -138,18 +134,12 @@
             });
         });
 
+        $('#ArtikelPromotb tbody').on('click', '.artikel-promo-row', function() {
+            var data = data_articles_promo_tb.row(this).data();
+            if (!data) return;
 
-        $('#ArtikelPromotb tbody').on('click', 'tr', function () {
-            var id = articles_promo_table.row(this).data().id;
-            var p_id = articles_promo_table.row(this).data().p_id;
-            var st_id = articles_promo_table.row(this).data().st_id;
-            var promo_name = articles_promo_table.row(this).data().promo_name;
-            var date_start = articles_promo_table.row(this).data().date_start;
-            var date_end = articles_promo_table.row(this).data().date_end;
-            var promo_disc = articles_promo_table.row(this).data().promo_disc;
-            var promo_note = articles_promo_table.row(this).data().promo_note;
             jQuery.noConflict();
-            $('#ArtikelPromoModal').modal('show');
+            $('#ArtikelPromo').modal('show');
             $('#p_id').val(p_id);
             $('#st_id').val(st_id);
             $('#promo_name').val(promo_name);
@@ -159,10 +149,12 @@
             $('#promo_note').val(promo_note);
             $('#_id').val(id);
             $('#_mode').val('edit');
+
             @if ($data['user']->delete_access == '1')
-            $('#delete_artikel_promo_btn').show();
+                $('#delete_artikel_promo_btn').show();
             @endif
         });
+
 
         // $('#dp_name').on('change', function() {
         //     var dp_name_name = $(this).val();
