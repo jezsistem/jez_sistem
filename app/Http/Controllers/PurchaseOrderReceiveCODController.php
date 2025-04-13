@@ -80,7 +80,7 @@ class PurchaseOrderReceiveCODController extends Controller
         if ($request->ajax()) {
             $query = DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
-                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost,
+                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost, pay_date, due_date,
                     ts_purchase_orders.stkt_id,
                     ts_purchase_orders.tax_id,
                     ts_stock_types.stkt_name,
@@ -282,5 +282,18 @@ class PurchaseOrderReceiveCODController extends Controller
         } else {
             $r['status'] = '400';
         }
+    }
+
+    public function changePayDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $pay_date = $request->pay_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
     }
 }

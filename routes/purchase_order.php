@@ -82,6 +82,8 @@ Route::middleware(['auth'])->group(function () {
         return Excel::download(new BartenderFormatExport($po_id), $fileName);
     });
     Route::post('por_change_shipping_cost', [PurchaseOrderReceiveController::class, 'changeShippingCost']);
+    Route::post('po_change_pay_date', [PurchaseOrderReceiveController::class, 'changePayDate']);
+    Route::post('po_change_due_date', [PurchaseOrderReceiveController::class, 'changeDueDate']);
 
     // Purchase Order Article
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);
@@ -149,4 +151,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('apd_total_price', [POReceiveApprovalController::class, 'createTotalPrice']);
     Route::post('po_invoice_image_cod', [PurchaseOrderReceiveCODController::class, 'uploadImageInvoice']);
     Route::get('po_invoice_image_datatable_cod', [PurchaseOrderReceiveCODController::class, 'getImageInvoiceDatatables']);
+    Route::post('poc_change_pay_date', [PurchaseOrderReceiveCODController::class, 'changePayDate']);
+
 });

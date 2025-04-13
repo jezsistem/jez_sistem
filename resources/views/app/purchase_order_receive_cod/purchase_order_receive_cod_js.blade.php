@@ -24,8 +24,8 @@
                 data: function(d) {
                     d.search = $('#po_approval_search').val();
                     d.filter_status = $('#filter_status').val();
-                    d.date = $('#po_date').val();                    
-                    
+                    d.date = $('#po_date').val();
+
                 }
             },
             columns: [{
@@ -148,10 +148,10 @@
             },
 
             columns: [{
-                data: 'image',
-                name: 'invoice_image',
-                searchable: false
-            },
+                    data: 'image',
+                    name: 'invoice_image',
+                    searchable: false
+                },
                 {
                     data: 'action',
                     name: 'action',
@@ -231,8 +231,7 @@
                 {
                     data: 'ps_qty',
                     name: 'ps_qty'
-                }
-                ,
+                },
                 {
                     data: 'poads_purchase_price',
                     name: 'poads_purchase_price',
@@ -268,13 +267,13 @@
                 [0, 'desc']
             ],
         });
-        
+
         function formatRupiah(data) {
             // Check if data is undefined or null, return 'Rp. 0' if true
             if (data === null || data === undefined || isNaN(data)) {
                 return 'Rp. 0';
             }
-            
+
             // Convert the data to integer and format
             var numberString = parseInt(data, 10).toString();
             var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -287,18 +286,18 @@
             po_approval_table.draw(false);
         });
 
-        $('#APtb tbody').on('click', 'tr', function () {
-            
+        $('#APtb tbody').on('click', 'tr', function() {
+
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
             var st_name = po_approval_table.row(this).data().st_name;
             var ps_name = po_approval_table.row(this).data().ps_name;
             // var full_date = po_approval_table.row(this).data().created_at;
             // var tgl_terima = full_date.split(' ')[0];
-            var stkt_id = po_approval_table.row(this).data().stkt_id;  // Access stkt_id
-            var tax_id = po_approval_table.row(this).data().tax_id;    // Access tax_id
+            var stkt_id = po_approval_table.row(this).data().stkt_id; // Access stkt_id
+            var tax_id = po_approval_table.row(this).data().tax_id; // Access tax_id
             var stkt_name = po_approval_table.row(this).data().stkt_name; // Access stkt_name
-            var tx_name = po_approval_table.row(this).data().tx_name;    // Access tx_name
+            var tx_name = po_approval_table.row(this).data().tx_name; // Access tx_name
             var today = new Date();
             var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
             var po_description = po_approval_table.row(this).data().po_description;
@@ -306,22 +305,25 @@
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
             var po_invoice = po_approval_table.row(this).data().po_invoice;
+            var pay_date = po_approval_table.row(this).data().pay_date;
+            var due_date = po_approval_table.row(this).data().due_date;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
 
             console.log('STORES : ', tgl_terima);
             console.log('POADS ID :', poads_invoice);
+
             function formatRupiah(number) {
-            // Ensure the number is an integer
-            var numberString = Math.round(number).toString();
+                // Ensure the number is an integer
+                var numberString = Math.round(number).toString();
 
-            // Regular expression to add dots as thousand separators
-            var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                // Regular expression to add dots as thousand separators
+                var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-            $('#no_po').text(po_invoice);
-            
-            return "Rp. " + formatted;
-        }
+                $('#no_po').text(po_invoice);
+
+                return "Rp. " + formatted;
+            }
 
 
             // call ajax apd_total_price 
@@ -332,7 +334,7 @@
                 },
                 dataType: 'json',
                 url: "{{ url('apd_total_price') }}",
-                success: function (r) {
+                success: function(r) {
                     console.log(r);
                     console.log(st_name);
                     // Convert 'r' to a number if it's not
@@ -357,8 +359,10 @@
                     $('#total_approval_price').text(formatRupiah(r));
                     $('#stkt_id').val(stkt_name);
                     $('#tax_id').val(tax_id);
-                    $('#stkt_name').val(stkt_name);  // Set stkt_name value
+                    $('#stkt_name').val(stkt_name); // Set stkt_name value
                     $('#tax_name').val(tx_name);
+                    $('#pay_date').val(pay_date);
+                    $('#due_date').val(due_date);
 
                     purchaseOrderInvoiceTable.draw();
                 }
@@ -470,6 +474,32 @@
             })
         });
 
+        $(document).delegate('#pay_date', 'change', function() {
+            var pay_date = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                url: "{{ url('po_change_pay_date') }}",
+                data: {
+                    pay_date: pay_date,
+                    po_id: $('#_po_id').val()
+                },
+                success: function(r) {
+                    let response = typeof r === "string" ? JSON.parse(r) : r;
+                    if (response.status == '200') {
+                    toastr.success("Tanggal bayar berhasil di Update", "Success");
+                } else {
+                    toastr.error("Gagal update tanggal bayar", "Error");
+                    console.log(response);
+                }
+                },
+            });
+        });
+
         jQuery.noConflict();
         var picker = $('#kt_dashboard_daterangepicker');
         if ($('#kt_dashboard_daterangepicker').length == 0) {
@@ -491,12 +521,10 @@
                 title = 'Yesterday:';
                 range = start.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD');
-            } 
-            else if(label == 'All Days') {
+            } else if (label == 'All Days') {
                 title = 'All Days';
                 hidden_range = '';
-            }
-            else {
+            } else {
                 range = start.format('MMM D') + ' - ' + end.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
@@ -504,7 +532,7 @@
             $('#po_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
-            
+
             po_approval_table.draw();
         }
 

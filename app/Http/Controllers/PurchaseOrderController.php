@@ -642,6 +642,8 @@ class PurchaseOrderController extends Controller
             $r['acc_id'] = $draft->acc_id;
             $r['dispute'] = $draft->dispute;
             $r['dispute_description'] = $draft->dispute_description;
+            $r['pay_date'] = $draft->pay_date;
+            $r['due_date'] = $draft->due_date;
         } else {
             $r['status'] = '400';
         }

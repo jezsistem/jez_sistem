@@ -219,6 +219,24 @@
                         <div id="pro_id_parent"></div>
                     </div>
                     <div class="col-4 mt-5">
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="pay_date">Tanggal Bayar</label>
+                                <input type="date" id="pay_date" class="form-control"/>
+                            </div>
+                            <div class="col-6">
+                                <label for="due_date">Tanggal Jatuh Tempo</label>
+                                <input type="date" id="due_date" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-4 mt-5">
+                        <label>Dispute</label>
+                        <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
+                    </div>
+                    <div class="col-4 mt-5"></div>
+                    <div class="col-4 mt-5">
                         <label class="badge badge-primary">Bukti Gambar Invoice dan Paket                               </label>
                         <div class="row justify-content-start">
                             <a class="input-group col-5" type="button" id="InvoiceImagesBtn" aria-haspopup="true" aria-expanded="false">
@@ -254,10 +272,6 @@
                                 </label>
                             </a>
                         </div>
-                    </div>
-                    <div class="col-4 mt-5">
-                        <label>Dispute</label>
-                        <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
                     </div>
                 </div>
                     

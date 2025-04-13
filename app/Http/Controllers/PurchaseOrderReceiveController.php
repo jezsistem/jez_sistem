@@ -880,4 +880,30 @@ class PurchaseOrderReceiveController extends Controller
         }
         return json_encode($r);
     }
+
+    public function changePayDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $pay_date = $request->pay_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function changeDueDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $due_date = $request->due_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
 }

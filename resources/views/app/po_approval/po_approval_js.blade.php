@@ -313,6 +313,8 @@
             var po_invoice = po_approval_table.row(this).data().po_invoice;
             var dispute = po_approval_table.row(this).data().dispute;
             var dispute_description = po_approval_table.row(this).data().dispute_description;
+            var pay_date = po_approval_table.row(this).data().pay_date;
+            var due_date = po_approval_table.row(this).data().due_date;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
 
@@ -377,6 +379,8 @@
                     $('#tax_id').val(tax_id);
                     $('#dispute').val(dispute_text);
                     $('#dispute_description').val(dispute_description);
+                    $('#pay_date').val(pay_date);
+                    $('#due_date').val(due_date);
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();

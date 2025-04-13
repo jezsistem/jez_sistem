@@ -70,7 +70,6 @@
 
                             <div class="col-4 mt-4 d-flex flex-column">
                                 <label class="badge badge-primary">Bukti Gambar Invoice dan Paket</label>
-                                <label class="badge badge-primary">Bukti Gambar Invoice dan Paket</label>
                                 <div class="row  justify-content-between">
                                     <a class="input-group col-5" type="button" id="InvoiceImagesBtn"
                                        aria-haspopup="true" aria-expanded="false">
@@ -145,6 +144,18 @@
                                                 Gambar Surat Jalan
                                             </label>
                                         </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mt-5">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="pay_date">Tanggal Bayar</label>
+                                        <input type="date" id="pay_date" class="form-control"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="due_date">Tanggal Jatuh Tempo</label>
+                                        <input type="date" id="due_date" class="form-control" disabled/>
                                     </div>
                                 </div>
                             </div>
