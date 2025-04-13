@@ -167,7 +167,19 @@ class MassAdjustmentController extends Controller
         if (request()->ajax()) {
             return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
-                ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
+                ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
+                ->where(function ($query) use ($request) {
+                    if ($request->has('st_id') && !empty($request->get('st_id')) && $request->get('st_id') != 'all') {
+                        $query->where('mass_adjustments.st_id', '=', $request->get('st_id'));
+                    }
+                })
+                ->where(function ($query) use ($request) {
+                    if ($request->has('filter') && $request->get('filter') !== null) {
+                        $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
+                    }
+                })
+                )
+                
                 ->editColumn('ma_code_show', function ($d) {
                     return "<a class='btn btn-primary' id='madj_btn' data-id='" . $d->id . "'>" . $d->ma_code . "</a>";
                 })
@@ -579,6 +591,8 @@ class MassAdjustmentController extends Controller
     public function exportMassByDate(Request $request)
     {
         $ma_date = $request->input('ma_date');
+        $st_id = $request->input('st_id'); // Get the store ID from the request
+        $filter = $request->input('filter'); // Get the filter from the request
         $data = array();
         $start = null;
         $end = null;
@@ -617,6 +631,12 @@ class MassAdjustmentController extends Controller
                     $w->whereDate('mass_adjustment_details.created_at', '=', $start);
                 }
             })
+            ->when(!empty($st_id) && $st_id != 'all', function ($query) use ($st_id) {
+                $query->where('mass_adjustments.st_id', '=', $st_id); // Apply filter by st_id
+            })
+            ->when($filter !== null, function ($query) use ($request) {
+                $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
+            })
             ->orderBy('mass_adjustment_details.created_at', 'desc')
             ->groupBy('mass_adjustment_details.id')
             ->get()
@@ -643,6 +663,8 @@ class MassAdjustmentController extends Controller
     public function exportMassByDateExcel(Request $request)
     {
         $ma_date = $request->input('ma_date');
+        $st_id = $request->input('st_id'); // Get the store ID from the request
+        $filter = $request->input('filter'); // Get the filter from the request
         $start = null;
         $end = null;
         $range = null;
@@ -681,6 +703,12 @@ class MassAdjustmentController extends Controller
                 } else {
                     $w->whereDate('mass_adjustment_details.created_at', '=', $start);
                 }
+            })
+            ->when(!empty($st_id) && $st_id != 'all', function ($query) use ($st_id) {
+                $query->where('mass_adjustments.st_id', '=', $st_id); // Apply filter by st_id
+            })
+            ->when($filter !== null, function ($query) use ($request) {
+                $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
             })
             ->orderBy('mass_adjustment_details.updated_at', 'desc')
             ->groupBy('mass_adjustment_details.id')

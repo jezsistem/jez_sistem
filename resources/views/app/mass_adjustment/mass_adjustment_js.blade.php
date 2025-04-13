@@ -299,83 +299,88 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             buttons: [{
-                "extend": 'excelHtml5',
-                "text": 'Excel',
-                "className": 'btn btn-primary btn-xs'
+            "extend": 'excelHtml5',
+            "text": 'Excel',
+            "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('mass_adjustment_datatables') }}",
-                data: function(d) {
-                    d.search = $('#ma_search').val();
-                    d.filter = $('#filter_status').val();
-                }
+            url: "{{ url('mass_adjustment_datatables') }}",
+            type: 'POST', // Added method POST
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for POST
+            },
+            data: function(d) {
+                d.search = $('#ma_search').val();
+                d.filter = $('#filter_status').val();
+                d.st_id = st_id; // Include st_id in the request
+            }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'id',
-                    searchable: false
-                },
-                {
-                    data: 'ma_code_show',
-                    name: 'ma_code'
-                },
-                {
-                    data: 'st_name',
-                    name: 'st_name'
-                },
-                {
-                    data: 'u_name',
-                    name: 'u_name'
-                },
-                {
-                    data: 'approve',
-                    name: 'approve',
-                    orderable: false
-                },
-                {
-                    data: 'executor',
-                    name: 'executor',
-                    orderable: false
-                },
-                {
-                    data: 'editor',
-                    name: 'editor',
-                    orderable: false
-                },
-                {
-                    data: 'note',
-                    name: 'note',
-                    orderable: false
-                },
-                {
-                    data: 'tipe',
-                    name: 'tipe',
-                    orderable: false
-                },
-                {
-                    data: 'created_at',
-                    name: 'created_at'
-                },
-                {
-                    data: 'updated_at',
-                    name: 'updated_at'
-                },
-                {
-                    data: 'ma_status',
-                    name: 'ma_status'
-                },
-                {
-                    data: 'action',
-                    name: 'action'
-                },
+                data: 'DT_RowIndex',
+                name: 'id',
+                searchable: false
+            },
+            {
+                data: 'ma_code_show',
+                name: 'ma_code'
+            },
+            {
+                data: 'st_name',
+                name: 'st_name'
+            },
+            {
+                data: 'u_name',
+                name: 'u_name'
+            },
+            {
+                data: 'approve',
+                name: 'approve',
+                orderable: false
+            },
+            {
+                data: 'executor',
+                name: 'executor',
+                orderable: false
+            },
+            {
+                data: 'editor',
+                name: 'editor',
+                orderable: false
+            },
+            {
+                data: 'note',
+                name: 'note',
+                orderable: false
+            },
+            {
+                data: 'tipe',
+                name: 'tipe',
+                orderable: false
+            },
+            {
+                data: 'created_at',
+                name: 'created_at'
+            },
+            {
+                data: 'updated_at',
+                name: 'updated_at'
+            },
+            {
+                data: 'ma_status',
+                name: 'ma_status'
+            },
+            {
+                data: 'action',
+                name: 'action'
+            },
             ],
             columnDefs: [{
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
+            "targets": 0,
+            "className": "text-center",
+            "width": "0%"
             }],
             order: [
-                [0, 'desc']
+            [0, 'desc']
             ],
         });
 
@@ -499,6 +504,7 @@
             loadLocation(st_id);
             loadAsset(st_id, psc_id, br_id);
             stock_table.draw();
+            mass_adjustment_table.draw();
         });
 
         $(document).delegate('#br_filter', 'change', function(e) {
@@ -829,7 +835,9 @@
             $.ajax({
                 type: "POST",
                 data: {
-                    ma_date: dt
+                    ma_date: dt,
+                    st_id: st_id,
+                    filter: $('#filter_status').val(),
                 },
                 dataType: 'json',
                 url: "{{ url('export_mass_by_date') }}",
@@ -883,7 +891,9 @@
             $.ajax({
                 type: "POST",
                 data: {
-                    ma_date: dt
+                    ma_date: dt,
+                    st_id: st_id,
+                    filter: $('#filter_status').val(),
                 },
                 url: "{{ url('export_mass_by_date_excel') }}",
                 xhrFields: {
