@@ -859,6 +859,8 @@
                             "</td><td>" + row.qty_so +
                             "</td><td>" + row.mad_type +
                             "</td><td>" + row.mad_diff +
+                            "</td><td>" + row.adjust_note +
+                            "</td><td>" + row.adjust_type +
                             "</td></tr>"
                         );
                     });
