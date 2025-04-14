@@ -110,9 +110,13 @@
         });
 
         // jQuery('#total_price_side').text(addCommas(final_price));
-        jQuery('#total_price_side').text(final_price);
-        jQuery('#total_coba').text(addCommas(discount_price));
-        jQuery('#total_final_price_side').text(addCommas(final_price + nameset));
+        // jQuery('#total_price_side').text(final_price);
+        // jQuery('#total_coba').text(addCommas(discount_price));
+        // jQuery('#total_final_price_side').text(addCommas(final_price + nameset));
+
+        updateTotalHarga();
+        updateTotalDiskon()
+        updateGrandTotal()
     }
 
     function changeReturQty(row, pst_id, qty) {
@@ -1483,6 +1487,7 @@
                     var highlight = '';
                     var b1g1_mode = '';
                     var total_discount = jQuery('#total_discount_value_side').text();
+                    var discount_normal = r.bandrol - r.sell_price;
 
                     if (psc_id == '1') {
                         shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
@@ -1554,6 +1559,7 @@
                             _item_type: item_type,
                             _plst_id: plst_id,
                             _sell_price: sell_price
+                            // _bandrol: bandrol
                         },
                         dataType: 'json',
                         success: function (r) {
@@ -1577,14 +1583,16 @@
                                         highlight + "' id='item_name" + (total_row +
                                             1) + "'>" + p_name + "</td>" +
                                         "<td>" + (pls_qty) + "</td> " +
-                                        "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
-                                        pst_id + " item_qty' id='item_qty" + (
-                                            total_row + 1) +
-                                        "' value='1' onchange='return changeQty(" +
-                                        (total_row + 1) + ", " + pst_id + ", " + (
-                                            pls_qty) + ")'></td> " +
-                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
-                                        pst_id +
+
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
+                                        "' value='1' onchange='return changeQty(" +(total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td> " +
+                                        "<td>" +
+                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(this)'>" +
+                                                "<option value='0'>Discount Extra</option>" +
+                                                "<option value='1'>Discount Promo</option>" +
+                                            "</select>" +
+                                        "</td>" +
+                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +pst_id +
                                         " discount_percentage' id='discount_percentage" +
                                         (total_row + 1) +
                                         "' value='0' onchange='return changeDiscountPercentage(" +
@@ -1592,18 +1600,15 @@
                                             pls_qty) + ")'></td>" +
                                         " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
                                         pst_id +
-                                        " discount_number' id='discount_number" + (
-                                            total_row + 1) +
-                                        "' value='' onchange='return changeDiscountNumber(" +
-                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                        " discount_number' id='discount_number" + ( total_row + 1) +"' value='' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
                                         "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                                         (total_row + 1) +
                                         "' onchange='return namesetPrice(" + (
                                             total_row + 1) + ")'/></td> " +
-                                        "<td><span class='sell_price_item' id='sell_price_item" +
-                                        (total_row + 1) + "'>" + addCommas(
-                                            sell_price) + "</span></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
                                         (total_row + 1) + "'>" + addCommas(
                                             sell_price) + "</span></td> " +
@@ -1628,12 +1633,17 @@
                                         highlight + "' id='item_name" + (total_row +
                                             1) + "'>" + p_name + "</td>" +
                                         "<td>" + (pls_qty) + "</td> " +
-                                        "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
-                                        pst_id + " item_qty' id='item_qty" + (
-                                            total_row + 1) +
+                                        
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
                                         "' value='1' onchange='return changeQty(" +
                                         (total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td> " +
+                                        "<td>" +
+                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                                                "<option value='0'>Discount Extra</option>" +
+                                                "<option value='1'>Discount Promo</option>" +
+                                            "</select>" +
+                                        "</td>" +
                                         "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
                                         pst_id +
                                         " discount_percentage' id='discount_percentage" +
@@ -1643,16 +1653,14 @@
                                             pls_qty) + ")'></td>" +
                                         " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
                                         pst_id +
-                                        " discount_number' id='discount_number" + (
-                                            total_row + 1) +
-                                        "' value='0' onchange='return changeDiscountNumber(" +
-                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                        " discount_number' id='discount_number" + (total_row + 1) +
+                                        "' value='0' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
                                         "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td> " +
                                         // "<td><input type='text' style='width: 13rem;' class='col-8 nameset_price namset-input' value='" + sell_price +"' id='item_price" + (total_row + 1) + "'/></td> " +
-                                        "<td><span class='sell_price_item' id='sell_price_item" +
-                                        (total_row + 1) + "'>" + addCommas(
-                                            sell_price) + "</span></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" +(total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" +(total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
                                         (total_row + 1) + "'>" + addCommas(
                                             sell_price) + "</span></td> " +
@@ -1680,6 +1688,10 @@
                                 jQuery('#total_final_price_side').text(
                                     addCommas(parseFloat(Number(total_price_side) + Number(total_nameset_side) - Number(total_discount_side)))
                                 );
+                                updateTotalDiskon();
+                                updateTotalHarga();
+                                updateGrandTotal();
+
                             } else if (r.status == '400') {
                                 console.log(r.barang);
                                 toast('Gagal', 'Item gagal ditambah', 'danger');
@@ -1706,9 +1718,97 @@
         });
         jQuery('#barcode_input').val('');
         jQuery('#barcode_input').focus();
-
-
     });
+
+    function handleSelectChange(row, selectElement) {
+        const selectedValue = selectElement.value;
+        const rowId = jQuery(selectElement).closest('tr').attr('id');
+        console.log('Changed value:', selectedValue, 'on row:', rowId);
+
+        // Original sell price from data attribute
+        const sellPrice = parseFloat(selectElement.dataset.sellprice);
+
+        // Quantity (if needed for future calc)
+        const qty = parseFloat(jQuery('#item_qty1' + row).val()) || 0;
+
+        // Bandrol price from DOM (with comma cleanup)
+        let harga_bandrol = jQuery('#price_tag_item' + row).text();
+        harga_bandrol = parseFloat(harga_bandrol.toString().replace(/,/g, ''));
+
+        let harga_jual = 0;
+
+        if (selectedValue == '1') {
+            // Use harga_bandrol as sell price
+            harga_jual = harga_bandrol;
+
+            jQuery('#sell_price_item' + row).text(addCommas(harga_jual));
+        } else {
+            // Use original sell price
+            harga_jual = sellPrice;
+
+            jQuery('#sell_price_item' + row).text(addCommas(harga_jual));
+        }
+
+        // Calculate discount
+        const discount_normal = harga_bandrol - harga_jual;
+
+        // Set discount and subtotal
+        jQuery('#discount_normal' + row).text(addCommas(discount_normal));
+        jQuery('#subtotal_item' + row).text(addCommas(harga_jual));
+
+        // Update total
+        updateTotalHarga();
+        updateTotalDiskon()
+        updateGrandTotal()
+    }
+
+
+    function updateTotalHarga() {
+        let total = 0;
+
+        jQuery('[id^="price_tag_item"]').each(function () {
+            let val = jQuery(this).text().replace(/,/g, '');
+            let num = parseFloat(val) || 0;
+            total += num;
+        });
+
+        jQuery('#total_price_side').text(addCommas(total));
+    }
+
+    function updateTotalDiskon() {
+        let total_disc_normal = 0;
+        let total_disc_field = 0;
+
+        jQuery('[id^="discount_normal"]').each(function () {
+            let val = jQuery(this).text().replace(/,/g, '');
+            let num = parseFloat(val) || 0;
+            total_disc_normal += num;
+        });
+
+        jQuery('[id^="discount_number"]').each(function () {
+            let val = jQuery(this).text().replace(/,/g, '');
+            let num = parseFloat(val) || 0;
+            total_disc_field += num;
+        });
+
+        jQuery('#total_discount_value_side').text(addCommas(total_disc_field + total_disc_normal));
+    }
+
+    function updateGrandTotal() {
+        let grand_total = 0;
+
+        // Get values and convert to numbers
+        let total = parseFloat(jQuery('#total_price_side').text().replace(/,/g, '')) || 0;
+        let total_nameset = parseFloat(jQuery('#total_nameset_side').text().replace(/,/g, '')) || 0;
+        let total_voucher = parseFloat(jQuery('#voucher_total_value_side').text().replace(/,/g, '')) || 0;
+        let total_discount = parseFloat(jQuery('#total_discount_value_side').text().replace(/,/g, '')) || 0;
+
+        // Grand total calculation
+        grand_total = total + total_nameset - total_voucher - total_discount;
+
+        // Set to DOM with comma formatting
+        jQuery('#total_final_price_side').text(addCommas(grand_total));
+    }
 
     var product = jQuery('#Ptb').DataTable({
         destroy: true,

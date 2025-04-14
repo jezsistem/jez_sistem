@@ -160,11 +160,13 @@
                                         <th>Produk</th>
                                         <th>Stok</th>
                                         <th>Qty</th>
+                                        <th>Discount Type</th>
                                         <th>Discount (%)</th>
                                         <th>Discount (Rp)</th>
                                         <th>Nameset</th>
-                                        {{--                                        <th>Harga Satuan</th>--}}
-                                        <th>Harga</th>
+                                        <th>Harga Bandrol</th>
+                                        <th>Harga Jual</th>
+                                        <th>Diskon Toko</th>
                                         <th>Subtotal</th>
                                     </tr>
                                     </thead>
