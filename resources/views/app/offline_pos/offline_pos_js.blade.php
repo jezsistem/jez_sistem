@@ -369,7 +369,7 @@
         var pt_id = jQuery('#_pt_id').val();
         var st_id = jQuery('#st_id').val();
         var cross = jQuery('#cross_order').val();
-        // alert(final_price);
+        // alert(sell_price_item);
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -868,7 +868,7 @@
 
         var total_disc_item = 0;
         jQuery('#orderTable tr').each(function (index, row) {
-            var disc_item = jQuery(row).find('.discount_number').val();
+            var disc_item = jQuery(row).find('#discount_number').val();
             if (typeof disc_item !== 'undefined' && disc_item !== 0) {
                 total_disc_item += parseFloat(disc_item);
             }
@@ -958,8 +958,9 @@
         console.log('TOTAL TEMP: ', temp_final, ' ',Number(temp_final) + Number(total_nameset_side));
 
 
-        jQuery('#total_final_price_side').text(addCommas((Number(temp_final) + Number(total_nameset_side)) - total_discount));
-
+        // jQuery('#total_final_price_side').text(addCommas((Number(temp_final) + Number(total_nameset_side)) - total_discount));
+        updateTotalDiskon();
+        updateGrandTotal();
     }
 
 
@@ -1063,7 +1064,10 @@
 
         // Mengupdate total harga di sisi layar
         // jQuery('#total_price_side').text(addCommas(final_price));
-        jQuery('#total_final_price_side').text(addCommas(final_price));
+        // jQuery('#total_final_price_side').text(addCommas(final_price));
+        updateTotalHarga();
+        updateTotalDiskon();
+        updateGrandTotal();
     }
 
     jQuery(document).delegate('#add_to_item_list', 'click', function (e) {
@@ -1763,13 +1767,40 @@
     }
 
 
+    // function updateTotalHarga(row) {
+    //     let total = 0;
+    //     var qty = parseFloat(jQuery('#item_qty' + row).val()) || 0;
+
+    //     console.log('row : ', ro);
+        
+
+    //     jQuery('[id^="price_tag_item"]').each(function () {
+    //         let val = jQuery(this).text().replace(/,/g, '');
+    //         let num = parseFloat(val) || 0;
+    //         total += num;
+    //     });
+
+    //     jQuery('#total_price_side').text(addCommas(total));
+    // }
+
     function updateTotalHarga() {
         let total = 0;
 
+        // Loop through each price row
         jQuery('[id^="price_tag_item"]').each(function () {
-            let val = jQuery(this).text().replace(/,/g, '');
-            let num = parseFloat(val) || 0;
-            total += num;
+            const rowId = jQuery(this).attr('id').replace('price_tag_item', '');
+
+            // Get price
+            let price = jQuery(this).text().replace(/,/g, '');
+            price = parseFloat(price) || 0;
+
+            // Get corresponding qty
+            let qty = parseFloat(jQuery('#item_qty' + rowId).val()) || 0;
+
+            console.log('Row:', rowId, '| Price:', price, '| Qty:', qty);
+
+            // Add to total
+            total += price * qty;
         });
 
         jQuery('#total_price_side').text(addCommas(total));
@@ -1786,10 +1817,12 @@
         });
 
         jQuery('[id^="discount_number"]').each(function () {
-            let val = jQuery(this).text().replace(/,/g, '');
+            let val = jQuery(this).val().replace(/,/g, '');
             let num = parseFloat(val) || 0;
             total_disc_field += num;
         });
+
+        console.log('Ini diskon diskonan : ',total_disc_normal, total_disc_field);
 
         jQuery('#total_discount_value_side').text(addCommas(total_disc_field + total_disc_normal));
     }

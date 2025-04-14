@@ -178,7 +178,7 @@
                             $total_item = 0;
                             $total_price = 0;
                             $nameset = 0;
-                            $total_discount = 0;
+                            $total_discount = $row->pos_total_discount;
                             $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
                             foreach ($row->subitem as $srow) {
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
@@ -205,7 +205,7 @@
                             @php
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                                 $total_item += $srow->pos_td_qty;
-                                $total_price += $srow->pos_td_discount_price;
+                                $total_price += $srow->ps_price_tag;
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
                             @endphp
@@ -218,14 +218,19 @@
                                     <td class="sell-price">
 
                                         {{-- disini --}}
-                                        @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
+                                        <!-- @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
+                                            <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
+                                            <br>
+                                        @endif -->
+
+                                        @if($srow->pos_td_sell_price != $srow->productStock->ps_price_tag)
                                             <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
                                             <br>
                                         @endif
 
 
                                             @if(!empty($srow->pos_td_discount_number))
-                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number) }})</span>
+                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number + $srow->pos_td_discount_price) }})</span>
                                             @endif
 
 
@@ -285,12 +290,13 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
+                                            {{ number_format($total_discount) }}
 
-                                        @if (!empty($total_discount))
-                                                {{ number_format($row->pos_total_discount) }}
+                                        <!-- @if (!empty($total_discount))
+                                                {{ number_format($total_discount) }}
                                             @else
                                                 0
-                                            @endif
+                                            @endif -->
 
                                         </span>
                             </td>
