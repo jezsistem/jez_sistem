@@ -169,6 +169,35 @@
             ],
         });
 
+        var purchaseOrderBuktitfTable = $('#BuktitfImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_transfer_image_datatable_cod') }}",
+                data: function (d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'image',
+                name: 'transfer_image',
+                searchable: false
+            },
+            ],
+            columnDefs: [{
+                "targets": [0],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
 
         var apd_table = $('#CODtb').DataTable({
             destroy: true,
@@ -365,6 +394,7 @@
                     $('#due_date').val(due_date);
 
                     purchaseOrderInvoiceTable.draw();
+                    purchaseOrderBuktitfTable.draw();
                 }
             });
             $('#ApproveModal').modal('show');
@@ -373,6 +403,12 @@
             apd_table.draw();
         });
 
+        $(document).ready(function () {
+            $("#BuktitfImagesBtn").click(function () {
+                $("#BuktitfImagesModal").modal("show");
+                console.log($('#po_id').val());
+            });
+        });
 
         $(document).ready(function() {
             $("#InvoiceImagesBtn").click(function() {

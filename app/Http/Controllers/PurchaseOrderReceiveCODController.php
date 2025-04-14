@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderInvoiceImage;
+use App\Models\PurchaseOrderTransferImage;
 use App\Models\User;
 use App\Models\Tax;
 use App\Models\WebConfig;
@@ -237,6 +238,34 @@ class PurchaseOrderReceiveCODController extends Controller
         }
     }
 
+    public function getImageTransferDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderTransferImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id) {
+                $images = PurchaseOrderTransferImage::select('id', 'transfer_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->transfer_image)) {
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
+                        } else {
+//                            return '<a href="'.asset('upload/purchase_order_transfer/'.$row->transfer_image).' target=_blank>$row->transfer_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_transfer/' . $row->transfer_image) . '" target="_blank">' . $row->transfer_image . '</a>';
+                        }
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
 
 //    public function uploadImageInvoice(Request $request)
 //    {
@@ -282,6 +311,8 @@ class PurchaseOrderReceiveCODController extends Controller
         } else {
             $r['status'] = '400';
         }
+
+        return json_encode($r);
     }
 
     public function changePayDate(Request $request)
