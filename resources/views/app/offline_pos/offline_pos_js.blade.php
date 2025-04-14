@@ -960,6 +960,7 @@
 
 
         jQuery('#total_final_price_side').text(addCommas((Number(temp_final) + Number(total_nameset_side)) - total_discount));
+
     }
 
 
@@ -1586,8 +1587,8 @@
 
                                         "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
                                         "' value='1' onchange='return changeQty(" +(total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td> " +
-                                        "<td>" +
-                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(this)'>" +
+                                       "<td>" +
+                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
                                                 "<option value='0'>Discount Extra</option>" +
                                                 "<option value='1'>Discount Promo</option>" +
                                             "</select>" +
