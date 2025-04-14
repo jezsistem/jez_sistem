@@ -166,7 +166,7 @@
                                         <th>Nameset</th>
                                         <th>Harga Bandrol</th>
                                         <th>Harga Jual</th>
-                                        <th>Diskon Toko</th>
+                                        <th>Diskon Toko / Pcs</th>
                                         <th>Subtotal</th>
                                     </tr>
                                     </thead>
