@@ -90,10 +90,10 @@
             // console.log('kontol');
         });
 
-        $('#f_upload_invoice_image').on('submit', function(e) {
+        $('#f_upload_transfer_image').on('submit', function(e) {
             e.preventDefault();
-            $('#upload_image_invoice_btn').html('Proses...');
-            $('#upload_image_invoice_btn').attr('disabled', true);
+            $('#upload_image_transfer_btn').html('Proses...');
+            $('#upload_image_transfer_btn').attr('disabled', true);
             var formData = new FormData(this);
             var po_id = $('#_po_id').val();
 
@@ -101,22 +101,22 @@
             // console.log('COD');
             $.ajax({
                 type: 'POST',
-                url: "{{ url('po_invoice_image_cod') }}",
+                url: "{{ url('po_transfer_image_cod') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
-                    $("#upload_image_invoice_btn").html('Upload');
-                    $("#upload_image_invoice_btn").attr("disabled", false);
+                    $("#upload_image_transfer_btn").html('Upload');
+                    $("#upload_image_transfer_btn").attr("disabled", false);
                     jQuery.noConflict();
-                    $("#UploadImageInvoiceModal").modal('hide');
-
+                    $("#UploadImageTransferModal").modal('hide');
+                    po_approval_table.draw();
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
-                        $('#f_upload_invoice_image')[0].reset();
-                        purchaseOrderInvoiceTable.draw();
+                        $('#f_upload_transfer_image')[0].reset();
+                        purchaseOrderBuktitfTable.draw();
                     } else if (data.status == '400') {
                         toastr.warning(
                             'File yang anda import kosong atau format tidak tepat',
@@ -152,15 +152,15 @@
                     name: 'invoice_image',
                     searchable: false
                 },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
-                },
+                // {
+                //     data: 'action',
+                //     name: 'action',
+                //     orderable: false,
+                //     searchable: false
+                // },
             ],
             columnDefs: [{
-                "targets": [0, 1],
+                "targets": [0],
                 "className": "text-center",
                 "width": "0%"
             }],
@@ -187,6 +187,12 @@
                 name: 'transfer_image',
                 searchable: false
             },
+            {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
             ],
             columnDefs: [{
                 "targets": [0],
@@ -196,6 +202,49 @@
             order: [
                 [0, 'desc']
             ],
+        });
+
+        $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
+            var id = $(this).data('id');
+            
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+            
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('po_transfer_image_delete') }}",
+                        data: { id: id },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
+                                purchaseOrderBuktitfTable.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                        }
+                    });
+                }
+            });
         });
 
 
@@ -419,7 +468,7 @@
 
         $(document).ready(function() {
             $("#pembayaranCodBtn").click(function() {
-                $("#UploadImageInvoiceModal").modal("show");
+                $("#UploadImageTransferModal").modal("show");
             });
         });
 

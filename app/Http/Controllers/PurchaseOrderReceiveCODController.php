@@ -169,15 +169,15 @@ class PurchaseOrderReceiveCODController extends Controller
         }
     }
 
-    public function uploadImageInvoice(Request $request)
+    public function uploadImageTransfer(Request $request)
     {
 
         $po_id = $request->_po_id;
         $mode = 'COD';
         $check = PurchaseOrder::where(['id' => $po_id])->exists();
         if ($check) {
-            if ($request->hasFile('imageInvoices')) {
-                foreach ($request->file('imageInvoices') as $file) {
+            if ($request->hasFile('imageTransfers')) {
+                foreach ($request->file('imageTransfers') as $file) {
                     $image = $file;
 
                     if ($mode == 'COD') {
@@ -186,14 +186,14 @@ class PurchaseOrderReceiveCODController extends Controller
                         $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
                     }
 
-                    $destinationPath = public_path('/upload/purchase_order_invoice');
+                    $destinationPath = public_path('/upload/purchase_order_transfer');
 
                     // save destination path
                     $image->move($destinationPath, $name);
 
-                    PurchaseOrderInvoiceImage::create([
+                    PurchaseOrderTransferImage::create([
                         'purchase_order_id' => $po_id,
-                        'invoice_image' => $name,
+                        'transfer_image' => $name,
                     ]);
                 }
             }
@@ -224,9 +224,9 @@ class PurchaseOrderReceiveCODController extends Controller
                             return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
                         }
                     })
-                    ->addColumn('action', function ($row) {
-                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="' . $row->id . '">Delete</a>';
-                    })
+                    // ->addColumn('action', function ($row) {
+                    //     return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="' . $row->id . '">Delete</a>';
+                    // })
                     ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
                     ->make(true);
@@ -254,6 +254,9 @@ class PurchaseOrderReceiveCODController extends Controller
 //                            return '<a href="'.asset('upload/purchase_order_transfer/'.$row->transfer_image).' target=_blank>$row->transfer_image</a>';
                             return '<a href="' . asset('upload/purchase_order_transfer/' . $row->transfer_image) . '" target="_blank">' . $row->transfer_image . '</a>';
                         }
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-transfer" data-id="' . $row->id . '">Delete</a>';
                     })
                     ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
@@ -326,5 +329,18 @@ class PurchaseOrderReceiveCODController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function deleteImageTransfer(Request $request)
+    {
+        $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->first();
+
+        if ($delete) {
+            unlink(public_path('upload/purchase_order_transfer/' . $delete->transfer_image));
+            $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
+        return response()->json($response);
     }
 }
