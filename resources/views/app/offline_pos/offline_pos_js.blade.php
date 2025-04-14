@@ -170,8 +170,7 @@
             }
         });
         jQuery('#total_nameset_side').text(addCommas(total_nameset));
-        jQuery('#total_final_price_side').text(addCommas(total_nameset + parseFloat(replaceComma(jQuery(
-            '#total_final_price_side').text()))));
+        updateGrandTotal();
     }
 
     function discPrice(index) {
