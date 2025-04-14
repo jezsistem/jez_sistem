@@ -1568,9 +1568,9 @@
                         $('#dispute_description').val(r.dispute_description);
                         // $('#shipping_cost').val(r.po_shipping_cost);
                         if (r.po_shipping_cost > 0) {
-                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', true);
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', true).attr('value', r.po_shipping_cost);
                         } else {
-                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', false);
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', false).attr('value', r.po_shipping_cost);
                         }
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
@@ -1760,39 +1760,42 @@
             var formData = new FormData(this);
             var po_id = $('#_po_id').val();
             $.ajax({
-                type: 'POST',
-                url: "{{ url('por_import') }}",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function (data) {
+            type: 'POST',
+            url: "{{ url('por_import') }}",
+            data: formData,
+            dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
 
-                    $("#import_data_btn").html('Import');
-                    $("#import_data_btn").attr("disabled", false);
-                    jQuery.noConflict();
-                    if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
+                $("#import_data_btn").html('Import');
+                $("#import_data_btn").attr("disabled", false);
+                jQuery.noConflict();
+                if (data.status == '200') {
+                $("#ImportModal").modal('hide');
 
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_import')[0].reset();
-                        checkBarcodeImport(po_id, data.data)
-                        reloadArticleDetail(po_id, data.data)
-                    } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
-                    } else {
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal',
-                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
-                    }
-                },
-                error: function (data) {
-                    swal('Error', data, 'error');
+                swal('Berhasil', 'Data berhasil diimport', 'success');
+                $('#f_import')[0].reset();
+                checkBarcodeImport(po_id, data.data)
+                reloadArticleDetail(po_id, data.data)
+                setTimeout(() => {
+                    updateCogs(); // Run updateCogs() at the end
+                }, 1000); // Delay of 1 second
+                } else if (data.status == '400') {
+                $("#ImportModal").modal('hide');
+                swal('File', 'File yang anda import kosong atau format tidak tepat',
+                    'warning');
+                } else {
+                $("#ImportModal").modal('hide');
+                swal('Gagal',
+                    'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                    'warning');
                 }
+            },
+            error: function (data) {
+                swal('Error', data, 'error');
+            }
             });
         });
 
