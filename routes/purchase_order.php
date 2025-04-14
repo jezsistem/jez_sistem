@@ -130,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('cancel_pre_order', [PreOrderController::class, 'cancelPreOrder']);
     Route::post('pre_order_save_draft', [PreOrderController::class, 'poSaveDraft']);
     Route::post('check_pre_order_purchase_order', [PreOrderController::class, 'checkPreOrderPurchaseOrder']);
+    Route::get('pre_order_article_export', [PreOrderController::class, 'exportPreOrderArticleData']);
 
     // Purchase Order Article
     Route::post('proa_delete', [PreOrderArticleController::class, 'deleteData']);
