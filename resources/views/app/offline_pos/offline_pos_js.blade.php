@@ -373,14 +373,24 @@
 
 
     function saveItem(row, pst_id, price, plst_id, pl_id) {
-        var sell_price_item = jQuery('#sell_price_item' + row).text();
+        // var sell_price_item = jQuery('#sell_price_item' + row).text();
+        var price = jQuery('#price_tag_item' + row).text().replace(/,/g, '');
         var nameset_price = jQuery('#nameset_price' + row).val();
         var subtotal_item = jQuery('#subtotal_item' + row).text();
         var item_qty = jQuery('#item_qty' + row).val();
-        var discount_number = jQuery('#discount_number' + row).val();
-        if (b1g1_temp.length > 0) {
-            price = replaceComma(sell_price_item);
+        
+        var selected_disc_type = jQuery('#discount_selection' + row).val();
+
+        if (selected_disc_type == 1) {
+            var discount_number = jQuery('#discount_number' + row).val();
+        } else {
+            var discount_number = jQuery('#discount_number' + row).val() + jQuery('#discount_normal' + row).text().replace(/,/g, '');
         }
+        
+        
+        // if (b1g1_temp.length > 0) {
+        //     price = replaceComma(sell_price_item);
+        // }
         var access_code = jQuery('#u_secret_code').val();
         var pt_id_complaint = jQuery('#_pt_id_complaint').val();
         var final_price = jQuery('#total_final_price_side').text();
@@ -412,7 +422,7 @@
                 _pst_id: pst_id,
                 _price: price,
                 _pl_id: pl_id,
-                _sell_price_item: replaceComma(sell_price_item),
+                _sell_price_item: replaceComma(price),
                 _subtotal_item: replaceComma(subtotal_item),
                 _nameset_price: nameset_price,
                 _discount_number: replaceComma(discount_number),
@@ -1585,7 +1595,7 @@
                             _mode: mode,
                             _item_type: item_type,
                             _plst_id: plst_id,
-                            _sell_price: sell_price
+                            _sell_price: bandrol
                             // _bandrol: bandrol
                         },
                         dataType: 'json',

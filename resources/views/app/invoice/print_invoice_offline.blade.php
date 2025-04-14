@@ -229,8 +229,8 @@
                                         @endif
 
 
-                                            @if(!empty($srow->pos_td_discount_number))
-                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number + $srow->pos_td_discount_price) }})</span>
+                                            @if($srow->pos_td_sell_price != $srow->productStock->ps_price_tag)
+                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag - $srow->pos_td_sell_price) }})</span>
                                             @endif
 
 

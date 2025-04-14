@@ -1227,10 +1227,12 @@ class PointOfSaleController extends Controller
                         $pos_td_description = "1 x " . $voc_value . "";
                     }
                 } else {
-                    $pos_td_discount_price = $item_qty * $price;
+                    $new_price = $price - $discount_number;
+                    $pos_td_discount_price = $item_qty * $new_price;
                 }
             } else {
-                $pos_td_discount_price = $item_qty * $price;
+                $new_price = $price - $discount_number;
+                $pos_td_discount_price = $item_qty * $new_price;
             }
 
             $create = PosTransactionDetail::create([
