@@ -29,7 +29,12 @@
     }
 
     function changeQty(row, pst_id, pls_qty) {
+        let new_dicount = 0;
         var item_qty = jQuery('#item_qty' + row).val();
+        var discount_normal = jQuery('#discount_normal' + row).text().replace(/,/g, '');;
+
+        console.log('discount_normal : ', discount_normal);
+        
 
         console.log(item_qty);
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
@@ -108,6 +113,10 @@
             }
 
         });
+
+        new_discount = discount_normal * item_qty;
+
+        jQuery('#discount_normal' + row).text(addCommas(new_discount));
 
         // jQuery('#total_price_side').text(addCommas(final_price));
         // jQuery('#total_price_side').text(final_price);
@@ -1811,10 +1820,17 @@
         let total_disc_field = 0;
 
         jQuery('[id^="discount_normal"]').each(function () {
+            const rowId = jQuery(this).attr('id').replace('discount_normal', '');
+            
             let val = jQuery(this).text().replace(/,/g, '');
             let num = parseFloat(val) || 0;
-            total_disc_normal += num;
+
+            // Get qty for this row
+            let qty = parseFloat(jQuery('#item_qty' + rowId).val()) || 0;
+
+            total_disc_normal += num * qty;
         });
+
 
         jQuery('[id^="discount_number"]').each(function () {
             let val = jQuery(this).val().replace(/,/g, '');
