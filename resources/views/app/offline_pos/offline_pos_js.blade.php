@@ -536,6 +536,8 @@
                     }
                     // console.log(shoes_voucher_temp);
                     jQuery('#orderList' + index).remove();
+                    updateTotalHarga();
+                    updateTotalDiskon()
                 } else if (r.status == '400') {
                     toast('Gagal',
                         'Item gagal dihapus, jika ingin menghapus, pilih terlebih dahulu LOKASI tempat barang diambil, coba kembali',
