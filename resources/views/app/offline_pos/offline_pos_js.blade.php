@@ -404,7 +404,7 @@
         var pt_id = jQuery('#_pt_id').val();
         var st_id = jQuery('#st_id').val();
         var cross = jQuery('#cross_order').val();
-        alert(disc_value, disc_text);
+        // alert(disc_value, disc_text);
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -1045,7 +1045,7 @@
                 item_qty = Math.ceil(item_qty / 2);
             }
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))
+        var subtotal = item_qty * parseFloat(sell_price_item)
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item' + row).text('-' + addCommas(subtotal));
         } else {
@@ -1084,7 +1084,7 @@
 
         var discount_item = jQuery('#discount_number' + row).val();
         var final_disc = parseFloat(current_discount) + parseFloat(discount_item)
-        jQuery('#total_discount_value_side').text(addCommas(final_disc));
+        // jQuery('#total_discount_value_side').text(addCommas(final_disc));
 
 
         // Menghitung total harga seluruh pesanan setelah diskon diterapkan ke baris saat ini
@@ -1099,9 +1099,6 @@
             }
         });
 
-        // Mengupdate total harga di sisi layar
-        // jQuery('#total_price_side').text(addCommas(final_price));
-        // jQuery('#total_final_price_side').text(addCommas(final_price));
         updateTotalHarga();
         updateTotalDiskon();
         updateGrandTotal();

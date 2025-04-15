@@ -178,7 +178,9 @@
                             $total_item = 0;
                             $total_price = 0;
                             $nameset = 0;
-                            $total_discount = 0;
+                            $total_final = 0;
+                            $discount_invoice = $row->pos_total_discount;
+                            $total_discount = $row->pos_total_discount;
                             $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
                             foreach ($row->subitem as $srow) {
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
@@ -208,6 +210,7 @@
                                 $total_price += $srow->ps_price_tag;
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
+                                $total_final += $srow->pos_td_sell_price * $srow->pos_td_qty;
                             @endphp
                             <tr style="margin-bottom:15px;">
                                 <td class="name">{{ $key }}<br></td>
@@ -290,10 +293,10 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
-                                            {{ number_format($total_discount) }}
+                                            {{ number_format($discount_invoice) }}
 
-                                        <!-- @if (!empty($total_discount))
-                                                {{ number_format($total_discount) }}
+                                        <!-- @if (!empty($discount_invoice))
+                                                {{ number_format($discount_invoice) }}
                                             @else
                                                 0
                                             @endif -->
@@ -311,16 +314,6 @@
                                         </span>
                             </td>
                         </tr>
-{{--                        <tr>--}}
-{{--                            <td colspan="3" class="final-price">--}}
-{{--                                <span style="float:left;">CHARGE (CC)</span>--}}
-{{--                            </td>--}}
-{{--                            <td class="final-price">--}}
-{{--                                        <span style="float:right; white-space: nowrap;">--}}
-{{--                                        {{ $row->pos_cc_charge }} % (+ {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset)/100*$row->pos_cc_charge) }})--}}
-{{--                                        </span>--}}
-{{--                            </td>--}}
-{{--                        </tr>--}}
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left;">BIAYA LAIN</span>
@@ -335,10 +328,10 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
-                                            @if (!empty($total_discount))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR((($total_price+$nameset) - ($row->pos_total_discount)) - $total_voucher) }}
+                                            @if (!empty($discount_invoice))
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final) }}
                                             @else
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) - $total_voucher) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final) }}
                                             @endif
                                         </span>
                             </td>
