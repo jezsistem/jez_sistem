@@ -179,6 +179,7 @@
                             $total_price = 0;
                             $nameset = 0;
                             $total_final = 0;
+                            $sub_total_final = 0;
                             $discount_invoice = $row->pos_total_discount;
                             $total_discount = $row->pos_total_discount;
                             $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
@@ -211,6 +212,7 @@
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
                                 $total_final += $srow->pos_td_sell_price * $srow->pos_td_qty;
+                                $sub_total_final += $srow->pos_td_sell_price * $srow->pos_td_qty;
                             @endphp
                             <tr style="margin-bottom:15px;">
                                 <td class="name">{{ $key }}<br></td>
@@ -283,7 +285,7 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
-                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}
+                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($sub_total_final) }}
                                         </span>
                             </td>
                         </tr>
@@ -359,7 +361,7 @@
                                         @if (!empty($row->pos_payment))
                                                 {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
 
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - (($total_price+$nameset) - ($row->pos_total_discount))) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - $total_final) }}
                                             @else
                                                 0
                                             @endif
