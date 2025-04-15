@@ -331,9 +331,9 @@
                             <td class="final-price">
                                         <span style="float:right;">
                                             @if (!empty($discount_invoice))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final + $nameset + $row->pos_another_cost) }}
                                             @else
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final + $nameset + $row->pos_another_cost) }}
                                             @endif
                                         </span>
                             </td>
