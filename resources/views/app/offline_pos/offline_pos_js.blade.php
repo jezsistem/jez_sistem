@@ -295,8 +295,7 @@
     }
 
     function replaceComma(str) {
-        var str_replace = str.replace(/,/g, '');
-        return str_replace;
+        return String(str || '').replace(/,/g, '');
     }
 
     function addCommas(nStr) {
@@ -379,15 +378,19 @@
         var nameset_price = jQuery('#nameset_price' + row).val();
         var subtotal_item = jQuery('#subtotal_item' + row).text();
         var item_qty = jQuery('#item_qty' + row).val();
-        
-        var selected_disc_type = jQuery('#discount_selection' + row).val();
+        var disc_value = parseFloat(jQuery('#discount_number' + row).val());
+        var raw_text = jQuery('#discount_normal' + row).text();
+        var safe_text = (typeof raw_text === 'string') ? raw_text : String(raw_text || '0');
+        var disc_text = parseFloat(replaceComma(safe_text));
+        // console.log("discount_normal text:", jQuery('#discount_normal' + row).text().replace(/,/g, ''));
+        var selected_disc_type = parseInt(jQuery('#discount_selection' + row).val(), 10);
 
-        if (selected_disc_type == 1) {
-            var discount_number = jQuery('#discount_number' + row).val();
+        var discount_number;
+        if (selected_disc_type === 1) {
+            discount_number = disc_value;
         } else {
-            var discount_number = jQuery('#discount_number' + row).val() + jQuery('#discount_normal' + row).text().replace(/,/g, '');
+            discount_number = disc_value + disc_text;
         }
-        
         
         // if (b1g1_temp.length > 0) {
         //     price = replaceComma(sell_price_item);
@@ -401,7 +404,7 @@
         var pt_id = jQuery('#_pt_id').val();
         var st_id = jQuery('#st_id').val();
         var cross = jQuery('#cross_order').val();
-        // alert(sell_price_item);
+        alert(disc_value, disc_text);
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
