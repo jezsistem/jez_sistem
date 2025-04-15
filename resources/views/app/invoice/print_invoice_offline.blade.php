@@ -361,7 +361,7 @@
                                         @if (!empty($row->pos_payment))
                                                 {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
 
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher + $nameset) - $total_final) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher + $nameset) - $total_final)}}
                                             @else
                                                 0
                                             @endif
