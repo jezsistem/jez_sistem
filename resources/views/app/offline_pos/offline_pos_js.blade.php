@@ -1838,6 +1838,9 @@
 
             // Add to total
             total += price * qty;
+
+            console.log('asdasd : ',total);
+            
         });
 
         jQuery('#total_price_side').text(addCommas(total));
@@ -1883,6 +1886,7 @@
         let total_nameset = parseFloat(jQuery('#total_nameset_side').text().replace(/,/g, '')) || 0;
         let total_voucher = parseFloat(jQuery('#voucher_total_value_side').text().replace(/,/g, '')) || 0;
         let total_discount = parseFloat(jQuery('#total_discount_value_side').text().replace(/,/g, '')) || 0;
+        // let qty = jQuery('#item_qty').val();
 
         // Grand total calculation
         grand_total = total + total_nameset - total_voucher - total_discount;

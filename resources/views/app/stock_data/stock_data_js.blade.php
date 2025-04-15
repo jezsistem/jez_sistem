@@ -525,7 +525,7 @@
                                 // Hitung harga setelah diskon
                                 let discountedPrice = originalPrice - (originalPrice * (discount / 100));
 
-                                promoInfo += 'Promo: ' + discount + '% - ' + promo.promo_note + "";
+                                promoInfo += 'Promo: ' + discount + '% - ' + promo.promo_name + "";
                                 promoPrice += 'Discount Price: ' + discountedPrice.toLocaleString('id-ID') + "\n";
                             });
 
