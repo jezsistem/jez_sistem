@@ -34,6 +34,7 @@
         var orginal_price = 0;
      
         var item_qty = jQuery('#item_qty' + row).val();
+
         var selected_discount = jQuery('#discount_selection' + row).val();
 
         var discount_normal = jQuery('#discount_normal' + row).text().replace(/,/g, '');
@@ -128,7 +129,7 @@
         console.log('Ini Log Baru : ', originalPrice, price_tag);
 
         jQuery('#discount_normal' + row).text(addCommas(new_discount));
-        jQuery('#sell_price_item' + row).text(addCommas(new_price));
+        jQuery('#sell_price_item' + row).text(addCommas(originalPrice));
 
         // jQuery('#total_price_side').text(addCommas(final_price));
         // jQuery('#total_price_side').text(final_price);
