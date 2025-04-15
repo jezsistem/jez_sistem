@@ -376,7 +376,7 @@
         // var sell_price_item = jQuery('#sell_price_item' + row).text();
         var price = jQuery('#price_tag_item' + row).text().replace(/,/g, '');
         var nameset_price = jQuery('#nameset_price' + row).val();
-        var subtotal_item = jQuery('#subtotal_item' + row).text();
+        var subtotal_item = jQuery('#subtotal_item' + row).text().replace(/,/g, '');
         var item_qty = jQuery('#item_qty' + row).val();
         var disc_value = parseFloat(jQuery('#discount_number' + row).val());
         var raw_text = jQuery('#discount_normal' + row).text();
@@ -384,6 +384,8 @@
         var disc_text = parseFloat(replaceComma(safe_text));
         // console.log("discount_normal text:", jQuery('#discount_normal' + row).text().replace(/,/g, ''));
         var selected_disc_type = parseInt(jQuery('#discount_selection' + row).val(), 10);
+
+        var td_sell_price = subtotal_item / item_qty;
 
         var discount_number;
         if (selected_disc_type === 1) {
@@ -403,8 +405,8 @@
         var voc_value = jQuery('#_voc_value').val();
         var pt_id = jQuery('#_pt_id').val();
         var st_id = jQuery('#st_id').val();
-        var cross = jQuery('#cross_order').val();
-        // alert(disc_value, disc_text);
+        var cross = jQuery('#cross_order').val()
+        // alert(td_sell_price);
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -427,7 +429,7 @@
                 _price: price,
                 _pl_id: pl_id,
                 _sell_price_item: replaceComma(price),
-                _subtotal_item: replaceComma(subtotal_item),
+                _subtotal_item: replaceComma(td_sell_price),
                 _nameset_price: nameset_price,
                 _discount_number: replaceComma(discount_number),
                 _st_id: st_id,
