@@ -429,7 +429,7 @@
                 _price: price,
                 _pl_id: pl_id,
                 _sell_price_item: replaceComma(price),
-                _subtotal_item: replaceComma(td_sell_price),
+                _subtotal_item: td_sell_price,
                 _nameset_price: nameset_price,
                 _discount_number: replaceComma(discount_number),
                 _st_id: st_id,
