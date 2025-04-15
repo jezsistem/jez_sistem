@@ -979,7 +979,10 @@
         // Memperoleh nilai diskon dari input dengan ID discount_number
         var discount = parseFloat(jQuery('#discount_number' + row).val()) || 0;
 
-        var percentage = (discount / sell_price_item) * 100;
+        var discount_with_qty = discount * item_qty;
+
+        var percentage = (discount_with_qty / sell_price_item) * 100;
+        jQuery('#discount_number' + row).val(discount_with_qty);
         jQuery('#discount_percentage' + row).val(percentage.toFixed(2));
         // Mengurangi diskon dari subtotal
         var subtotal = parseFloat(item_qty) * parseFloat(sell_price_item) - discount;
@@ -991,13 +994,7 @@
         }
 
         var temp_final = replaceComma(jQuery('#total_price_side').text());
-        console.log('TOTAL DISCOUNT: ', total_discount);
-        console.log('TOTAL NAMESET: ', nameset);
-        console.log('TOTAL FINAL: ', final_price);
-        console.log('TOTAL TEMP: ', temp_final, ' ',Number(temp_final) + Number(total_nameset_side));
 
-
-        // jQuery('#total_final_price_side').text(addCommas((Number(temp_final) + Number(total_nameset_side)) - total_discount));
         updateTotalDiskon();
         updateGrandTotal();
     }
