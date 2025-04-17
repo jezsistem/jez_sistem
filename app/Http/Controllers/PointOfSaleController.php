@@ -1242,7 +1242,7 @@ class PointOfSaleController extends Controller
                 'pos_td_qty' => $item_qty,
                 //                'pos_td_sell_price' => $final_price,
                 // 'pos_td_sell_price' => ($pos_td_discount_price + $nameset_price) - $discount_number,
-                'pos_td_sell_price' => $subtotal_item,
+                'pos_td_sell_price' => $subtotal_item * $item_qty,
                 'pos_td_discount' => $discount,
                 'pos_td_discount_number' => $discount_number,
                 'pos_td_discount_price' => $pos_td_discount_price,
