@@ -212,7 +212,7 @@
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
                                 $total_final += $srow->pos_td_sell_price * $srow->pos_td_qty;
-                                $sub_total_final += $srow->pos_td_sell_price * $srow->pos_td_qty;
+                                $sub_total_final += ($srow->pos_td_sell_price / $srow->ps_td_qty) * $srow->pos_td_qty;
                             @endphp
                             <tr style="margin-bottom:15px;">
                                 <td class="name">{{ $key }}<br></td>
@@ -235,7 +235,7 @@
 
 
                                             @if($srow->pos_td_sell_price != $srow->productStock->ps_price_tag)
-                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag - $srow->pos_td_sell_price) }})</span>
+                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag - ($srow->pos_td_sell_price / $srow->ps_td_qty)) }})</span>
                                             @endif
 
 
@@ -247,7 +247,7 @@
 
                                 @endif
                                 <td class="final-price">
-                                    {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_sell_price) }}
+                                    {{ \App\Libraries\CurrencyFormatter::formatToIDR(($srow->pos_td_sell_price / $srow->ps_td_qty)) }}
 
                                 </td>
                             </tr>
