@@ -3,7 +3,14 @@
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    $('#dispute').select2({
+        placeholder: 'Select Yes or No',
+        allowClear: true,
+        width: 'resolve' // or '100%' depending on setup
+    });
+
     Webcam.set({
         width: 490,
         height: 390,
@@ -193,12 +200,85 @@
         XLSX.writeFile(workbook, "Barcode_NotFound.xlsx");
     }
 
+    //is Dispute Save
+    $(document).ready(function () {
+        $('#dispute').change(function () {
+            var no_order = $('#po_invoice_label').text();
+
+            const disputeValue = $(this).val();
+            const po_invoice = no_order
+
+            if (!po_invoice) {
+                alert("No PO Invoice provided!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('dispute_save') }}",
+                type: 'POST',
+                data: {
+                    dispute: disputeValue,
+                    po_invoice: po_invoice,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function (response) {
+                    console.log(response);
+                    toastr.success("Dispute selection berhasil disimpan", "Berhasil");
+                },
+                error: function (xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan data", "Gagal");
+                }
+            });
+        });
+    });
+
+    // dispute description save
+    $(document).ready(function () {
+        $('#dispute_description').on('blur', function () {
+
+            var no_order = $('#po_invoice_label').text();
+
+            const description = $(this).val();
+            const po_invoice = no_order;
+
+            if (!po_invoice) {
+                alert("No PO Invoice provided!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ url('dispute_description_save') }}",
+                type: 'POST',
+                data: {
+                    dispute_description: description,
+                    po_invoice: po_invoice,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function (response) {
+                    console.log(response);
+                    toastr.success("Dispute deskripsi berhasil disimpan", "Berhasil");
+                },
+                error: function (xhr) {
+                    console.error(xhr);
+                    toastr.error("Gagal menyimpan data", "Gagal");
+                }
+            });
+        });
+    });
+
 
     function savePoads(poad_id, poa_id, index, pst_id) {
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
         var shipping_cost = $('#shipping_cost').val();
+        var dispute = $('#dispute').val();
+
+        if (dispute == '' || dispute == null) {
+            swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
+            return false;
+        }
 
         if (receive_date == '') {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
@@ -244,6 +324,9 @@
                 var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
                 var poads_cogs = replaceComma($('#cogs_' + poa_id + '_' + index).val());
                 var shipping_cost = $('#shipping_cost').val();
+                var dispute = $('#dispute').val();
+                var dispute_description = $('#dispute_description').val();
+
 
                 // create FormData object and append file data
                 var formData = new FormData();
@@ -261,6 +344,8 @@
                 formData.append('_poads_extra_discount', poads_extra_discount);
                 formData.append('_poads_purchase_price', poads_purchase_price);
                 formData.append('_poads_cogs', poads_cogs);
+                // formData.append('dispute', dispute);
+                // formData.append('dispute_description', dispute_description);
 
                 // appenda image file data
                 var invoiceImage = $('#invoiceImage')[0].files[0];
@@ -311,6 +396,8 @@
             return false;
         }
 
+        var no_order = $('#po_invoice_label').text();
+
         var st_id = $('#st_id').val();
         var tax_id = $('#tax_id').val();
         var po_id = $('#_po_id').val();
@@ -322,6 +409,7 @@
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
         var shipping_cost = $('#shipping_cost').val();
+        var dispute = $('#dispute').val();
         var poads_cogs = replaceComma($('#cogs_' + poa_id + '_' + index).val());
 
 
@@ -340,6 +428,10 @@
         formData.append('_poads_purchase_price', poads_purchase_price);
         formData.append('_poads_cogs', poads_cogs);
         formData.append('shipping_cost', shipping_cost);
+        formData.append('dispute', dispute);
+        formData.append('no_order', no_order);
+
+        console.log(formData);
 
         $.ajaxSetup({
             headers: {
@@ -628,8 +720,38 @@
     }
 
     function updateCogs() {
+
         // Get the updated shipping cost value
         var shipping_cost = $('#shipping_cost').val();
+        console.log(shipping_cost);
+        
+
+        // Send updated shipping cost to the server
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('por_change_shipping_cost') }}",
+            data: {
+                shipping_cost: shipping_cost,
+                po_id: $('#_po_id').val()
+            },
+            success: function (r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+                    toastr.success("Shipping cost updated successfully", "Success");
+                } else {
+                    toastr.error("Failed to update shipping cost", "Error");
+                    console.log(response);
+                }
+            },
+            error: function (xhr, status, error) {
+                toastr.error("An error occurred while updating shipping cost", "Error");
+            }
+        });
 
         // Loop through all rows to update cogs for each row
         $('[id^="cogs_"]').each(function () {
@@ -1147,15 +1269,9 @@
                 name: 'invoice_image',
                 searchable: false
             },
-                {
-                    data: 'action',
-                    name: 'action',
-                    orderable: false,
-                    searchable: false
-                },
             ],
             columnDefs: [{
-                "targets": [0, 1],
+                "targets": [0],
                 "className": "text-center",
                 "width": "0%"
             }],
@@ -1244,7 +1360,19 @@
             width: "100%",
             dropdownParent: $('#tax_id_parent')
         });
+
         $('#tax_id').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#dispute').select2({
+            width: "100%",
+            dropdownParent: $('#dispute_parent')
+        });
+
+        $('#dispute').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -1436,13 +1564,23 @@
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         $('#po_description').val(r.po_description);
+                        $('#dispute_parent').val(String(r.dispute ?? ''));
+                        $('#dispute_description').val(r.dispute_description);
                         // $('#shipping_cost').val(r.po_shipping_cost);
-                        $('#shipping_cost').attr('placeholder', r.po_shipping_cost +
-                            ' tetap diisi sesuai angka yang tertera');
+                        if (r.po_shipping_cost > 0) {
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', true).attr('value', r.po_shipping_cost);
+                        } else {
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', false).attr('value', r.po_shipping_cost);
+                        }
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
+                        jQuery('#dispute').val(r.dispute).trigger('change');
+
+                        // let selectedDispute = r.dispute == 1 ? '1' : r.dispute == 0 ? '0' : '';
+                        // $('#dispute').val(selectedDispute).trigger('change');
+
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -1622,39 +1760,42 @@
             var formData = new FormData(this);
             var po_id = $('#_po_id').val();
             $.ajax({
-                type: 'POST',
-                url: "{{ url('por_import') }}",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function (data) {
+            type: 'POST',
+            url: "{{ url('por_import') }}",
+            data: formData,
+            dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
 
-                    $("#import_data_btn").html('Import');
-                    $("#import_data_btn").attr("disabled", false);
-                    jQuery.noConflict();
-                    if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
+                $("#import_data_btn").html('Import');
+                $("#import_data_btn").attr("disabled", false);
+                jQuery.noConflict();
+                if (data.status == '200') {
+                $("#ImportModal").modal('hide');
 
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_import')[0].reset();
-                        checkBarcodeImport(po_id, data.data)
-                        reloadArticleDetail(po_id, data.data)
-                    } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
-                    } else {
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal',
-                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
-                    }
-                },
-                error: function (data) {
-                    swal('Error', data, 'error');
+                swal('Berhasil', 'Data berhasil diimport', 'success');
+                $('#f_import')[0].reset();
+                checkBarcodeImport(po_id, data.data)
+                reloadArticleDetail(po_id, data.data)
+                setTimeout(() => {
+                    updateCogs(); // Run updateCogs() at the end
+                }, 1000); // Delay of 1 second
+                } else if (data.status == '400') {
+                $("#ImportModal").modal('hide');
+                swal('File', 'File yang anda import kosong atau format tidak tepat',
+                    'warning');
+                } else {
+                $("#ImportModal").modal('hide');
+                swal('Gagal',
+                    'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                    'warning');
                 }
+            },
+            error: function (data) {
+                swal('Error', data, 'error');
+            }
             });
         });
 

@@ -637,8 +637,13 @@ class PurchaseOrderController extends Controller
             $r['dp_id'] = $draft->dp_id;
             $r['stkt_id'] = $draft->stkt_id;
             $r['po_description'] = $draft->po_description;
+            $r['shipping_cost'] = $draft->po_shipping_cost;
             $r['po_invoice'] = $draft->po_invoice;
             $r['acc_id'] = $draft->acc_id;
+            $r['dispute'] = $draft->dispute;
+            $r['dispute_description'] = $draft->dispute_description;
+            $r['pay_date'] = $draft->pay_date;
+            $r['due_date'] = $draft->due_date;
         } else {
             $r['status'] = '400';
         }
@@ -757,5 +762,18 @@ class PurchaseOrderController extends Controller
 
         $fileName = 'purchase_order_article_' . $timestamp . '.xlsx';
         return Excel::download($export, $fileName);
+    }
+    
+    public function deleteImageTransfer(Request $request)
+    {
+        $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->first();
+
+        if ($delete) {
+            unlink(public_path('upload/purchase_order_transfer/' . $delete->transfer_image));
+            $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
+        return response()->json($response);
     }
 }

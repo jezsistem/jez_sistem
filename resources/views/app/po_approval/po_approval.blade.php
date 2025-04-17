@@ -102,6 +102,15 @@
                                             <div id="st_id_filter_parent"></div>
                                         </div>
 
+                                        <div class="form-group ml-4" style="padding-top:22px;">
+                                            <select class="form-control" id="filter_dispute" name="filter_dispute">
+                                                <option value="">- Pilih Status Dispute -</option>
+                                                <option value="1">Yes</option>
+                                                <option value="0">No</option>
+                                            </select>
+                                            <div id="st_id_filter_parent"></div>
+                                        </div>
+
                                         <div class="col text-center">
                                             <div class="form-group ml-4" style="padding-top: 22px;">
                                                 <a href="#" class="btn btn-date-info font-weight-bold mr-2"
@@ -115,6 +124,7 @@
                                                 </a>
                                             </div>                                            
                                         </div>
+
                                     </div>
                                 </div>
                                 <table class="table table-hover table-checkable" id="APtb">

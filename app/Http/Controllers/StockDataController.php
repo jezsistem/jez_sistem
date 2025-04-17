@@ -147,7 +147,7 @@ class StockDataController extends Controller
 
         // cek
         $p_id = Product::where('article_id', $article_id)->get()->first()->id;
-        $promoData = DB::table('articles_promo')->select('p_price_tag', 'promo_name', 'promo_disc')
+        $promoData = DB::table('articles_promo')->select('promo_name','p_price_tag','promo_disc')
             ->join('products', 'products.id', '=', 'articles_promo.p_id')
             ->where('p_id', $p_id)
             ->where('st_id', $st_id)

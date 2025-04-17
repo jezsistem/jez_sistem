@@ -1,6 +1,5 @@
 <!-- Modal-->
-<div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+<div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -16,7 +15,7 @@
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi dari hasil export template
                                 <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="template" id="template" required/>
+                            <input type="file" class="form-control" name="template" id="template" required />
                         </div>
 
                         <div class="form-group">
@@ -48,7 +47,7 @@
 </div><!-- Modal-->
 
 <div class="modal fade" id="ImportScanModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -71,7 +70,7 @@
                                 <option value='all'>- Semua Store -</option>
                                 @foreach ($data['st_id'] as $key => $value)
                                     <option value="{{ $key }}">{{ $value }}</option>
-                                 @endforeach
+                                @endforeach
                             </select>
                             <select class="form-control mt-2 bg-primary text-white" id="br_filter">
                                 <option value='all'>- Semua Brand -</option>
@@ -90,7 +89,7 @@
                                 <option value='0'>- Termasuk yang Sudah Habis -</option>
                             </select>
                             <div id="bin_panel"></div>
-                            <br/>
+                            <br />
                             <div class="row" id="bin_filter_panel">
 
                             </div>
@@ -100,7 +99,7 @@
                             <!--end: List Widget 9-->
                             <label>Masukkan file csv data scan
                                 <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="template" id="template" required/>
+                            <input type="file" class="form-control" name="template" id="template" required />
                         </div>
                     </div>
                 </div>
@@ -117,7 +116,7 @@
 
 <!-- Modal Filter tanggal-->
 <div class="modal fade" id="TanggalModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -133,15 +132,16 @@
                         <div class="form-group">
                             <label>Pilih range tanggal
                                 <span class="text-danger">*</span></label>
-                            <input value="" name="tanggal" id="tanggalrange" type="text" class="form-control"
-                                   placeholder="Periode Tanggal">
+                            <input value="" name="tanggal" id="tanggalrange" type="text"
+                                class="form-control" placeholder="Periode Tanggal">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
                     </button>
-                    <button type="submit" class="btn btn-dark font-weight-bold" id="import_data_btn">Tampilkan</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold"
+                        id="import_data_btn">Tampilkan</button>
                 </div>
             </form>
         </div>
@@ -150,7 +150,7 @@
 
 <!-- Modal Export-->
 <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-     aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_export" enctype="multipart/form-data">
@@ -169,10 +169,10 @@
                         <div class="form-group">
                             <label>Pilih Range Tanggal
                                 <span class="text-danger">*</span></label>
-                            {{--                            <input type="file" class="form-control" name="template" id="template" required/>--}}
-                            {{--                            <input class="form-control form-control-solid" placeholder="Pick date rage" id="kt_daterangepicker_4"/>--}}
-                            <input value="" name="tanggal" id="tanggalrange" type="text" class="form-control"
-                                   placeholder="Periode Tanggal">
+                            {{--                            <input type="file" class="form-control" name="template" id="template" required/> --}}
+                            {{--                            <input class="form-control form-control-solid" placeholder="Pick date rage" id="kt_daterangepicker_4"/> --}}
+                            <input value="" name="tanggal" id="tanggalrange" type="text"
+                                class="form-control" placeholder="Periode Tanggal">
 
                         </div>
                     </div>
@@ -186,3 +186,51 @@
         </div>
     </div>
 </div>
+
+<!-- Modal-->
+<div class="modal fade" id="MassAdjustmentExportModal" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true" style="overflow-y: auto;">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Export SO Adjustment</h5>
+            </div>
+
+            <div class="modal-body table-responsive">
+                <a class="btn-sm btn-primary float-left" id="excel_report">Excel</a><br />
+                <table class="table table-hover" id="MassAdjustmentDetailtb" style="width: 100%;">
+                    <thead class="text-dark">
+                        <tr>
+                            <th class="text-dark">No</th>
+                            <th class="text-dark">Kode</th>
+                            <th class="text-dark">Store</th>
+                            <th class="text-dark">BIN</th>
+                            <th class="text-dark">BRAND</th>
+                            <th class="text-dark">SKU</th>
+                            <th class="text-dark">ARTIKEL</th>
+                            <th class="text-dark">WARNA</th>
+                            <th class="text-dark">SIZE</th>
+                            <th class="text-dark">Sub Kategori</th>
+                            <th class="text-dark">HB</th>
+                            <th class="text-dark">HJ</th>
+                            <th class="text-dark">Qty System</th>
+                            <th class="text-dark">Qty SO</th>
+                            <th class="text-dark">Type</th>
+                            <th class="text-dark">Diff</th>
+                            <th class="text-dark">Notes</th>
+                            <th class="text-dark">Tipe Adjustment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold"
+                    data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->

@@ -64,10 +64,34 @@
                             <input type="date" id="receive_date" class="form-control" value=""/>
                         </div>
                         <div class="col-4 mt-3">
+                            <label>Dispute</label>
+                            <input type="text" id="dispute" class="form-control" name="dispute"
+                                   disabled/>
+                        </div>
+                        <div class="col-4 mt-3">
                             <label>Ongkos Kirim</label>
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                  disabled/>
                         </div>
+                        <div class="col-4 mt-5">
+                            <div class="row">
+                                <div class="col-6">
+                                    <label for="pay_date">Tanggal Bayar</label>
+                                    <input type="date" id="pay_date" class="form-control" disabled />
+                                </div>
+                                <div class="col-6">
+                                    <label for="due_date">Tanggal Jatuh Tempo</label>
+                                    <input type="date" id="due_date" class="form-control" disabled />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-4">
+                            <label>Keterangan Dispute</label>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description"
+                                      rows="3" disabled></textarea>
+                        </div>
+                        <div class="col-4"></div>
                         <div class="col-4 mt-4 d-flex flex-column">
                             <label class="badge badge-primary">Bukti Gambar Invoice dan Paket</label>
                             <div class="row  justify-content-between">
@@ -181,7 +205,43 @@
                             <thead>
                             <tr>
                                 <th>Image</th>
-                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
+                        data-dismiss="modal">Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal-->
+
+<!-- Modal-->
+<div class="modal fade" id="BuktitfImagesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Bukti Transfer Image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <div class="container">
+                        <table id="BuktitfImagesTb" class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Image</th>
                             </tr>
                             </thead>
                             <tbody>

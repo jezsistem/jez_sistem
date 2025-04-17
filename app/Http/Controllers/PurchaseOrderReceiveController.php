@@ -741,6 +741,37 @@ class PurchaseOrderReceiveController extends Controller
         }
     }
 
+    public function getImageTransferDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderTransferImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id) {
+                $images = PurchaseOrderTransferImage::select('id', 'transfer_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->transfer_image)) {
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
+                        } else {
+//                            return '<a href="'.asset('upload/purchase_order_transfer/'.$row->transfer_image).' target=_blank>$row->transfer_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_transfer/' . $row->transfer_image) . '" target="_blank">' . $row->transfer_image . '</a>';
+                        }
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-transfer" data-id="' . $row->id . '">Delete</a>';
+                    })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
     public function getImageDeliveryOrdersDatatables(Request $request)
     {
         if ($request->ajax()) {
@@ -835,5 +866,44 @@ class PurchaseOrderReceiveController extends Controller
         $response = ['status' => $delete ? '200' : '400'];
 
         return json_encode($response);
+    }
+
+    public function changeShippingCost(Request $request)
+    {
+        $po_id = $request->po_id;
+        $shipping_cost = $request->shipping_cost;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['po_shipping_cost' => $shipping_cost]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function changePayDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $pay_date = $request->pay_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function changeDueDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $due_date = $request->due_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
     }
 }

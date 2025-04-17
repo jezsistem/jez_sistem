@@ -29,11 +29,25 @@
     }
 
     function changeQty(row, pst_id, pls_qty) {
+        let new_dicount = 0;
+        let new_price = 0;
+        var orginal_price = 0;
+     
         var item_qty = jQuery('#item_qty' + row).val();
 
-        console.log(item_qty);
+        var selected_discount = jQuery('#discount_selection' + row).val();
+
+        var discount_normal = jQuery('#discount_normal' + row).text().replace(/,/g, '');
+
+        var price_tag = jQuery('#price_tag_item' + row).text().replace(/,/g, '');
+       
+        if (selected_discount == 1) {
+            orginal_price = price_tag;
+        } else {
+            originalPrice = jQuery('#discount_selection' + row).data('sellprice');
+        }
+        
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
-        console.log(sell_price_item);
 
         var subtotal_item = replaceComma(jQuery('#subtotal_item' + row).text());
         var total_row = jQuery('tr[data-list-item]').length;
@@ -79,7 +93,7 @@
 
         } else {
             jQuery('#subtotal_item' + row).text(addCommas(subtotal));
-            jQuery('#sell_price_item' + row).text(addCommas(subtotal));
+            // jQuery('#sell_price_item' + row).text(addCommas(subtotal));
         }
         var final_price = 0;
         var discount_price = 0;
@@ -109,10 +123,22 @@
 
         });
 
+        new_price = originalPrice * item_qty;
+        new_discount =  price_tag - originalPrice;
+
+        console.log('Ini Log Baru : ', originalPrice, price_tag);
+
+        jQuery('#discount_normal' + row).text(addCommas(new_discount));
+        jQuery('#sell_price_item' + row).text(addCommas(originalPrice));
+
         // jQuery('#total_price_side').text(addCommas(final_price));
-        jQuery('#total_price_side').text(final_price);
-        jQuery('#total_coba').text(addCommas(discount_price));
-        jQuery('#total_final_price_side').text(addCommas(final_price + nameset));
+        // jQuery('#total_price_side').text(final_price);
+        // jQuery('#total_coba').text(addCommas(discount_price));
+        // jQuery('#total_final_price_side').text(addCommas(final_price + nameset));
+
+        updateTotalHarga();
+        updateTotalDiskon()
+        updateGrandTotal()
     }
 
     function changeReturQty(row, pst_id, qty) {
@@ -166,8 +192,7 @@
             }
         });
         jQuery('#total_nameset_side').text(addCommas(total_nameset));
-        jQuery('#total_final_price_side').text(addCommas(total_nameset + parseFloat(replaceComma(jQuery(
-            '#total_final_price_side').text()))));
+        updateGrandTotal();
     }
 
     function discPrice(index) {
@@ -270,8 +295,7 @@
     }
 
     function replaceComma(str) {
-        var str_replace = str.replace(/,/g, '');
-        return str_replace;
+        return String(str || '').replace(/,/g, '');
     }
 
     function addCommas(nStr) {
@@ -349,14 +373,30 @@
 
 
     function saveItem(row, pst_id, price, plst_id, pl_id) {
-        var sell_price_item = jQuery('#sell_price_item' + row).text();
+        // var sell_price_item = jQuery('#sell_price_item' + row).text();
+        var price = jQuery('#price_tag_item' + row).text().replace(/,/g, '');
         var nameset_price = jQuery('#nameset_price' + row).val();
-        var subtotal_item = jQuery('#subtotal_item' + row).text();
+        var subtotal_item = jQuery('#subtotal_item' + row).text().replace(/,/g, '');
         var item_qty = jQuery('#item_qty' + row).val();
-        var discount_number = jQuery('#discount_number' + row).val();
-        if (b1g1_temp.length > 0) {
-            price = replaceComma(sell_price_item);
+        var disc_value = parseFloat(jQuery('#discount_number' + row).val());
+        var raw_text = jQuery('#discount_normal' + row).text();
+        var safe_text = (typeof raw_text === 'string') ? raw_text : String(raw_text || '0');
+        var disc_text = parseFloat(replaceComma(safe_text));
+        // console.log("discount_normal text:", jQuery('#discount_normal' + row).text().replace(/,/g, ''));
+        var selected_disc_type = parseInt(jQuery('#discount_selection' + row).val(), 10);
+
+        var td_sell_price = subtotal_item / item_qty;
+
+        var discount_number;
+        if (selected_disc_type === 1) {
+            discount_number = disc_value;
+        } else {
+            discount_number = disc_value + disc_text;
         }
+        
+        // if (b1g1_temp.length > 0) {
+        //     price = replaceComma(sell_price_item);
+        // }
         var access_code = jQuery('#u_secret_code').val();
         var pt_id_complaint = jQuery('#_pt_id_complaint').val();
         var final_price = jQuery('#total_final_price_side').text();
@@ -365,8 +405,8 @@
         var voc_value = jQuery('#_voc_value').val();
         var pt_id = jQuery('#_pt_id').val();
         var st_id = jQuery('#st_id').val();
-        var cross = jQuery('#cross_order').val();
-        // alert(final_price);
+        var cross = jQuery('#cross_order').val()
+        // alert(subtotal_item);
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -388,8 +428,8 @@
                 _pst_id: pst_id,
                 _price: price,
                 _pl_id: pl_id,
-                _sell_price_item: replaceComma(sell_price_item),
-                _subtotal_item: replaceComma(subtotal_item),
+                _sell_price_item: replaceComma(price),
+                _subtotal_item: td_sell_price,
                 _nameset_price: nameset_price,
                 _discount_number: replaceComma(discount_number),
                 _st_id: st_id,
@@ -512,6 +552,8 @@
                     }
                     // console.log(shoes_voucher_temp);
                     jQuery('#orderList' + index).remove();
+                    updateTotalHarga();
+                    updateTotalDiskon()
                 } else if (r.status == '400') {
                     toast('Gagal',
                         'Item gagal dihapus, jika ingin menghapus, pilih terlebih dahulu LOKASI tempat barang diambil, coba kembali',
@@ -865,7 +907,7 @@
 
         var total_disc_item = 0;
         jQuery('#orderTable tr').each(function (index, row) {
-            var disc_item = jQuery(row).find('.discount_number').val();
+            var disc_item = jQuery(row).find('#discount_number').val();
             if (typeof disc_item !== 'undefined' && disc_item !== 0) {
                 total_disc_item += parseFloat(disc_item);
             }
@@ -937,7 +979,10 @@
         // Memperoleh nilai diskon dari input dengan ID discount_number
         var discount = parseFloat(jQuery('#discount_number' + row).val()) || 0;
 
+        // var discount_with_qty = discount * item_qty;
+
         var percentage = (discount / sell_price_item) * 100;
+        // jQuery('#discount_number' + row).val(discount_with_qty);
         jQuery('#discount_percentage' + row).val(percentage.toFixed(2));
         // Mengurangi diskon dari subtotal
         var subtotal = parseFloat(item_qty) * parseFloat(sell_price_item) - discount;
@@ -949,13 +994,9 @@
         }
 
         var temp_final = replaceComma(jQuery('#total_price_side').text());
-        console.log('TOTAL DISCOUNT: ', total_discount);
-        console.log('TOTAL NAMESET: ', nameset);
-        console.log('TOTAL FINAL: ', final_price);
-        console.log('TOTAL TEMP: ', temp_final, ' ',Number(temp_final) + Number(total_nameset_side));
 
-
-        jQuery('#total_final_price_side').text(addCommas((Number(temp_final) + Number(total_nameset_side)) - total_discount));
+        updateTotalDiskon();
+        updateGrandTotal();
     }
 
 
@@ -1003,7 +1044,7 @@
                 item_qty = Math.ceil(item_qty / 2);
             }
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))
+        var subtotal = item_qty * parseFloat(sell_price_item)
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item' + row).text('-' + addCommas(subtotal));
         } else {
@@ -1042,7 +1083,7 @@
 
         var discount_item = jQuery('#discount_number' + row).val();
         var final_disc = parseFloat(current_discount) + parseFloat(discount_item)
-        jQuery('#total_discount_value_side').text(addCommas(final_disc));
+        // jQuery('#total_discount_value_side').text(addCommas(final_disc));
 
 
         // Menghitung total harga seluruh pesanan setelah diskon diterapkan ke baris saat ini
@@ -1057,9 +1098,9 @@
             }
         });
 
-        // Mengupdate total harga di sisi layar
-        // jQuery('#total_price_side').text(addCommas(final_price));
-        jQuery('#total_final_price_side').text(addCommas(final_price));
+        updateTotalHarga();
+        updateTotalDiskon();
+        updateGrandTotal();
     }
 
     jQuery(document).delegate('#add_to_item_list', 'click', function (e) {
@@ -1483,6 +1524,7 @@
                     var highlight = '';
                     var b1g1_mode = '';
                     var total_discount = jQuery('#total_discount_value_side').text();
+                    var discount_normal = r.bandrol - r.sell_price;
 
                     if (psc_id == '1') {
                         shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
@@ -1553,7 +1595,8 @@
                             _mode: mode,
                             _item_type: item_type,
                             _plst_id: plst_id,
-                            _sell_price: sell_price
+                            _sell_price: bandrol
+                            // _bandrol: bandrol
                         },
                         dataType: 'json',
                         success: function (r) {
@@ -1577,14 +1620,16 @@
                                         highlight + "' id='item_name" + (total_row +
                                             1) + "'>" + p_name + "</td>" +
                                         "<td>" + (pls_qty) + "</td> " +
-                                        "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
-                                        pst_id + " item_qty' id='item_qty" + (
-                                            total_row + 1) +
-                                        "' value='1' onchange='return changeQty(" +
-                                        (total_row + 1) + ", " + pst_id + ", " + (
-                                            pls_qty) + ")'></td> " +
-                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
-                                        pst_id +
+
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
+                                        "' value='1' onchange='return changeQty(" +(total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td> " +
+                                       "<td>" +
+                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                                                "<option value='0'>Discount Extra</option>" +
+                                                "<option value='1'>Discount Promo</option>" +
+                                            "</select>" +
+                                        "</td>" +
+                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +pst_id +
                                         " discount_percentage' id='discount_percentage" +
                                         (total_row + 1) +
                                         "' value='0' onchange='return changeDiscountPercentage(" +
@@ -1592,18 +1637,15 @@
                                             pls_qty) + ")'></td>" +
                                         " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
                                         pst_id +
-                                        " discount_number' id='discount_number" + (
-                                            total_row + 1) +
-                                        "' value='' onchange='return changeDiscountNumber(" +
-                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                        " discount_number' id='discount_number" + ( total_row + 1) +"' value='' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
                                         "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                                         (total_row + 1) +
                                         "' onchange='return namesetPrice(" + (
                                             total_row + 1) + ")'/></td> " +
-                                        "<td><span class='sell_price_item' id='sell_price_item" +
-                                        (total_row + 1) + "'>" + addCommas(
-                                            sell_price) + "</span></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' style='width: 13rem;'  id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
                                         (total_row + 1) + "'>" + addCommas(
                                             sell_price) + "</span></td> " +
@@ -1628,12 +1670,17 @@
                                         highlight + "' id='item_name" + (total_row +
                                             1) + "'>" + p_name + "</td>" +
                                         "<td>" + (pls_qty) + "</td> " +
-                                        "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
-                                        pst_id + " item_qty' id='item_qty" + (
-                                            total_row + 1) +
+                                        
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
                                         "' value='1' onchange='return changeQty(" +
                                         (total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td> " +
+                                        "<td>" +
+                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                                                "<option value='0'>Discount Extra</option>" +
+                                                "<option value='1'>Discount Promo</option>" +
+                                            "</select>" +
+                                        "</td>" +
                                         "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
                                         pst_id +
                                         " discount_percentage' id='discount_percentage" +
@@ -1643,16 +1690,14 @@
                                             pls_qty) + ")'></td>" +
                                         " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
                                         pst_id +
-                                        " discount_number' id='discount_number" + (
-                                            total_row + 1) +
-                                        "' value='0' onchange='return changeDiscountNumber(" +
-                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                        " discount_number' id='discount_number" + (total_row + 1) +
+                                        "' value='0' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
                                         "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td> " +
                                         // "<td><input type='text' style='width: 13rem;' class='col-8 nameset_price namset-input' value='" + sell_price +"' id='item_price" + (total_row + 1) + "'/></td> " +
-                                        "<td><span class='sell_price_item' id='sell_price_item" +
-                                        (total_row + 1) + "'>" + addCommas(
-                                            sell_price) + "</span></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" +(total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" +(total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
                                         (total_row + 1) + "'>" + addCommas(
                                             sell_price) + "</span></td> " +
@@ -1680,6 +1725,10 @@
                                 jQuery('#total_final_price_side').text(
                                     addCommas(parseFloat(Number(total_price_side) + Number(total_nameset_side) - Number(total_discount_side)))
                                 );
+                                updateTotalDiskon();
+                                updateTotalHarga();
+                                updateGrandTotal();
+
                             } else if (r.status == '400') {
                                 console.log(r.barang);
                                 toast('Gagal', 'Item gagal ditambah', 'danger');
@@ -1706,9 +1755,145 @@
         });
         jQuery('#barcode_input').val('');
         jQuery('#barcode_input').focus();
-
-
     });
+
+    function handleSelectChange(row, selectElement) {
+        const selectedValue = selectElement.value;
+        const rowId = jQuery(selectElement).closest('tr').attr('id');
+        console.log('Changed value:', selectedValue, 'on row:', rowId);
+
+        // Original sell price from data attribute
+        const sellPrice = parseFloat(selectElement.dataset.sellprice);
+
+        // Quantity (if needed for future calc)
+        const qty = parseFloat(jQuery('#item_qty1' + row).val()) || 0;
+
+        // Bandrol price from DOM (with comma cleanup)
+        let harga_bandrol = jQuery('#price_tag_item' + row).text();
+        harga_bandrol = parseFloat(harga_bandrol.toString().replace(/,/g, ''));
+
+        let harga_jual = 0;
+
+        if (selectedValue == '1') {
+            // Use harga_bandrol as sell price
+            harga_jual = harga_bandrol;
+
+            jQuery('#sell_price_item' + row).text(addCommas(harga_jual));
+        } else {
+            // Use original sell price
+            harga_jual = sellPrice;
+
+            jQuery('#sell_price_item' + row).text(addCommas(harga_jual));
+        }
+
+        // Calculate discount
+        const discount_normal = harga_bandrol - harga_jual;
+
+        // Set discount and subtotal
+        jQuery('#discount_normal' + row).text(addCommas(discount_normal));
+        jQuery('#subtotal_item' + row).text(addCommas(harga_jual));
+
+        // Update total
+        updateTotalHarga();
+        updateTotalDiskon()
+        updateGrandTotal()
+    }
+
+
+    // function updateTotalHarga(row) {
+    //     let total = 0;
+    //     var qty = parseFloat(jQuery('#item_qty' + row).val()) || 0;
+
+    //     console.log('row : ', ro);
+        
+
+    //     jQuery('[id^="price_tag_item"]').each(function () {
+    //         let val = jQuery(this).text().replace(/,/g, '');
+    //         let num = parseFloat(val) || 0;
+    //         total += num;
+    //     });
+
+    //     jQuery('#total_price_side').text(addCommas(total));
+    // }
+
+    function updateTotalHarga() {
+        let total = 0;
+        
+        // get original sell price 
+        // let OriginalPrice = parseFloat(jQuery('#discount_selection' + row).data('sellPrice')) || 0;
+        // console.log('Sell price for row ' + row + ':', OriginalPrice);
+
+        // Loop through each price row
+        jQuery('[id^="price_tag_item"]').each(function () {
+            const rowId = jQuery(this).attr('id').replace('price_tag_item', '');
+
+            // Get price
+            let price = jQuery(this).text().replace(/,/g, '');
+            price = parseFloat(price) || 0;
+
+            // Get corresponding qty
+            let qty = parseFloat(jQuery('#item_qty' + rowId).val()) || 0;
+
+            console.log('Row:', rowId, '| Price:', price, '| Qty:', qty);
+
+            // Add to total
+            total += price * qty;
+
+            console.log('asdasd : ',total);
+            
+        });
+
+        jQuery('#total_price_side').text(addCommas(total));
+    }
+
+    function updateTotalDiskon() {
+        let total_disc_normal = 0;
+        let total_disc_field = 0;
+        
+        // get original sell price 
+        // let OriginalPrice = parseFloat(jQuery('#discount_selection' + row).data('sellPrice')) || 0;
+        // console.log('Sell price for row ' + row + ':', OriginalPrice);
+
+        jQuery('[id^="discount_normal"]').each(function () {
+            const rowId = jQuery(this).attr('id').replace('discount_normal', '');
+            
+            let val = jQuery(this).text().replace(/,/g, '');
+            let num = parseFloat(val) || 0;
+
+            // Get qty for this row
+            let qty = parseFloat(jQuery('#item_qty' + rowId).val()) || 0;
+
+            total_disc_normal += num * qty;
+        });
+
+
+        jQuery('[id^="discount_number"]').each(function () {
+            let val = jQuery(this).val().replace(/,/g, '');
+            let num = parseFloat(val) || 0;
+            total_disc_field += num;
+        });
+
+        console.log('Ini diskon diskonan : ',total_disc_normal, total_disc_field);
+
+        jQuery('#total_discount_value_side').text(addCommas(total_disc_field + total_disc_normal));
+    }
+
+    function updateGrandTotal() {
+        let grand_total = 0;
+
+        // Get values and convert to numbers
+        let total = parseFloat(jQuery('#total_price_side').text().replace(/,/g, '')) || 0;
+        let total_nameset = parseFloat(jQuery('#total_nameset_side').text().replace(/,/g, '')) || 0;
+        let total_voucher = parseFloat(jQuery('#voucher_total_value_side').text().replace(/,/g, '')) || 0;
+        let total_discount = parseFloat(jQuery('#total_discount_value_side').text().replace(/,/g, '')) || 0;
+        // let qty = jQuery('#item_qty').val();
+
+        // Grand total calculation
+        grand_total = total + total_nameset - total_voucher - total_discount;
+
+        // Set to DOM with comma formatting
+        jQuery('#total_final_price_side').text(addCommas(grand_total));
+    }
 
     var product = jQuery('#Ptb').DataTable({
         destroy: true,

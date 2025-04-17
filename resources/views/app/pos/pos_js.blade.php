@@ -8,10 +8,91 @@
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script src="{{ asset('cdn/select2.min.js') }}"></script>
 
+{{--<script>--}}
+{{--    let uploadFormInitialized = false;--}}
+
+{{--    $('#payment-online-popup').on('shown.bs.modal', function () {--}}
+{{--        if (!uploadFormInitialized) {--}}
+{{--            initUploadForm();--}}
+{{--            uploadFormInitialized = true;--}}
+{{--        }--}}
+{{--    });--}}
+
+{{--    function initUploadForm() {--}}
+{{--        const dropArea = document.getElementById('drop-area');--}}
+{{--        const fileInput = document.getElementById('no_resi_upload');--}}
+{{--        const uploadText = document.getElementById('upload-text');--}}
+
+{{--        dropArea.addEventListener('click', () => fileInput.click());--}}
+
+{{--        dropArea.addEventListener('dragover', (e) => {--}}
+{{--            e.preventDefault();--}}
+{{--            dropArea.classList.add('dragover');--}}
+{{--        });--}}
+
+{{--        dropArea.addEventListener('dragleave', () => {--}}
+{{--            dropArea.classList.remove('dragover');--}}
+{{--        });--}}
+
+{{--        dropArea.addEventListener('drop', (e) => {--}}
+{{--            e.preventDefault();--}}
+{{--            dropArea.classList.remove('dragover');--}}
+{{--            const file = e.dataTransfer.files[0];--}}
+{{--            if (file && file.type === "application/pdf") {--}}
+{{--                fileInput.files = e.dataTransfer.files;--}}
+{{--                uploadText.textContent = `Selected File: ${file.name}`;--}}
+{{--            } else {--}}
+{{--                alert("Please upload a PDF file only.");--}}
+{{--            }--}}
+{{--        });--}}
+
+{{--        fileInput.addEventListener('change', () => {--}}
+{{--            if (fileInput.files.length > 0) {--}}
+{{--                uploadText.textContent = `Selected File: ${fileInput.files[0].name}`;--}}
+{{--            }--}}
+{{--        });--}}
+{{--        // end form--}}
+{{--    }--}}
+{{--</script>--}}
+
 <script>
     var shoes_voucher_temp = [];
     var sell_price_voc = 0;
     var value_price_voc = 0;
+
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('no_resi_upload');
+    const uploadText = document.getElementById('upload-text');
+
+    dropArea.addEventListener('click', () => fileInput.click());
+
+    dropArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
+    });
+
+    dropArea.addEventListener('dragleave', () => {
+        dropArea.classList.remove('dragover');
+    });
+
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === "application/pdf") {
+            fileInput.files = e.dataTransfer.files;
+            uploadText.textContent = `Selected File: ${file.name}`;
+        } else {
+            alert("Please upload a PDF file only.");
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            uploadText.textContent = `Selected File: ${fileInput.files[0].name}`;
+        }
+    });
+
 
     function reloadRefund()
     {
@@ -1012,8 +1093,163 @@
             }
         });
 
+        {{--jQuery('#save_transaction').on('click', function(e) {--}}
+        {{--    e.preventDefault();--}}
+        {{--    var pt_id_complaint = jQuery('#_pt_id_complaint').val();--}}
+        {{--    var pm_id = jQuery('#pm_id').val();--}}
+        {{--    var cp_id = jQuery('#cp_id').val();--}}
+        {{--    var std_id = jQuery('#std_id').val();--}}
+        {{--    var type = jQuery('#std_id option:selected').text();--}}
+        {{--    var cust_id = jQuery('#cust_id').val();--}}
+        {{--    var sub_cust_id = jQuery('#sub_cust_id').val();--}}
+        {{--    var note = jQuery('#note').val();--}}
+        {{--    var unique_code = jQuery('#unique_code').val();--}}
+        {{--    var shipping_cost = jQuery('#shipping_cost').val();--}}
+        {{--    var cr_id = jQuery('#courier').val();--}}
+        {{--    var order_code = jQuery('#order_code').val();--}}
+        {{--    var ref_number = jQuery('#ref_number').val();--}}
+        {{--    var admin_cost = jQuery('#admin_cost').val();--}}
+        {{--    var another_cost = jQuery('#another_cost').val();--}}
+        {{--    var real_price = jQuery('#real_price').val();--}}
+        {{--    var total_row = jQuery('tr[data-list-item]').length;--}}
+        {{--    var exchange = jQuery('#_exchange').val();--}}
+        {{--    var cross = jQuery('#cross_order').val();--}}
+        {{--    var st_id = jQuery('#st_id').val();--}}
+        {{--    var voc_pst_id = jQuery('#_voc_pst_id').val();--}}
+        {{--    var voc_value = jQuery('#_voc_value').val();--}}
+        {{--    var voc_id = jQuery('#_voc_id').val();--}}
+        {{--    var total_discount_side = jQuery('#total_discount_value_side').text();--}}
+        {{--    var discount_seller = jQuery('#discount_seller').val();--}}
+        {{--    var resiFile = jQuery('#no_resi_upload')[0].files[0];--}}
+
+        {{--    if (std_id == '14' || std_id == '13') {--}}
+        {{--        if (pm_id == '2' && cp_id == '') {--}}
+        {{--            swal('Periksa Rek Tujuan Trf', 'Jika divisi adalah whatsapp / website', 'warning');--}}
+        {{--            return false;--}}
+        {{--        }--}}
+        {{--    }--}}
+
+        {{--    if (real_price == '') {--}}
+        {{--        swal('Periksa Kode Unik dan Biaya Admin', 'Jika memang tidak ada silahkan input 0', 'warning');--}}
+        {{--        return false;--}}
+        {{--    }--}}
+        {{--    if (type == 'DROPSHIPPER') {--}}
+        {{--        if (cust_id == '') {--}}
+        {{--            swal('Dropshipper', 'silahkan pilih dropshipper', 'warning');--}}
+        {{--        } else if (sub_cust_id == '') {--}}
+        {{--            swal('Customer', 'silahkan pilih customer', 'warning');--}}
+        {{--        }--}}
+        {{--    }--}}
+        {{--    jQuery.ajaxSetup({--}}
+        {{--        headers: {--}}
+        {{--            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--    jQuery.ajax({--}}
+        {{--        type:'POST',--}}
+        {{--        url: "{{ url('save_transaction')}}",--}}
+        {{--        data: {--}}
+        {{--            voc_id:voc_id,--}}
+        {{--            voc_pst_id:voc_pst_id,--}}
+        {{--            voc_value:value_price_voc,--}}
+        {{--            _cp_id:cp_id,--}}
+        {{--            _cross:cross,--}}
+        {{--            _st_id:st_id,--}}
+        {{--            _pt_id_complaint:pt_id_complaint,--}}
+        {{--            _exchange:exchange,--}}
+        {{--            _ref_number:ref_number,--}}
+        {{--            _type:type,--}}
+        {{--            _sub_cust_id:sub_cust_id,--}}
+        {{--            _real_price:replaceComma(real_price),--}}
+        {{--            _admin_cost:admin_cost,--}}
+        {{--            _another_cost:another_cost, _order_code:order_code,--}}
+        {{--            _pm_id:pm_id, _std_id:std_id, _cust_id:cust_id,--}}
+        {{--            _note:note, _unique_code:unique_code,--}}
+        {{--            _shipping_cost:shipping_cost, _cr_id:cr_id,--}}
+        {{--            _total_discount_side:replaceComma(total_discount_side),--}}
+        {{--            _discount_seller:replaceComma(discount_seller),--}}
+        {{--        },--}}
+        {{--        dataType: 'json',--}}
+        {{--        success: function(r) {--}}
+        {{--            jQuery.noConflict();--}}
+        {{--            jQuery("#payment-online-popup").modal('hide');--}}
+        {{--            if (r.status == '200') {--}}
+        {{--                var finish = '';--}}
+        {{--                jQuery('#_pt_id').val(r.pt_id);--}}
+        {{--                jQuery('#orderTable tr').each(function(index, row) {--}}
+        {{--                    jQuery(row).find('.saveItem').trigger('click');--}}
+        {{--                });--}}
+        {{--                // if (finish == 'true') {--}}
+        {{--                jQuery('#shipping_courier_side').text('');--}}
+        {{--                jQuery('#shipping_cost_side').text('0');--}}
+        {{--                jQuery('#total_final_price_side').text('0');--}}
+        {{--                jQuery('#total_item_side').text('0');--}}
+        {{--                jQuery('#total_price_side').text('0');--}}
+        {{--                jQuery('#total_nameset_side').text('0');--}}
+        {{--                jQuery('#orderTable').find('tr:not(:has(th))').remove();--}}
+        {{--                jQuery('#cust_id').val('');--}}
+        {{--                jQuery('#cust_id_label').val('');--}}
+        {{--                jQuery('#sub_cust_id').val('');--}}
+        {{--                jQuery('#sub_cust_id_label').val('');--}}
+        {{--                jQuery('#check_sub_customer').attr('data-id', '');--}}
+        {{--                jQuery('#check_customer').attr('data-id', '');--}}
+        {{--                jQuery('#refund_invoice_label').val('');--}}
+        {{--                jQuery('#refund_retur_invoice_label').text('');--}}
+        {{--                jQuery('#refund_retur_pt_id').val('');--}}
+        {{--                jQuery('#note').val('');--}}
+        {{--                jQuery('#_pt_id').val('');--}}
+        {{--                jQuery('#unique_code').val('');--}}
+        {{--                jQuery('#ref_number').val('');--}}
+        {{--                jQuery('#final_total_unique_code').val('');--}}
+        {{--                jQuery('#admin_cost').val('');--}}
+        {{--                jQuery('#another_cost').val('');--}}
+        {{--                jQuery('#real_price').val('');--}}
+        {{--                jQuery('#courier').val('');--}}
+        {{--                jQuery('#_pt_id_complaint').val('');--}}
+        {{--                jQuery('#_exchange').val('');--}}
+        {{--                jQuery('#discount_seller').val('');--}}
+
+        {{--                jQuery('#_voc_pst_id').val('');--}}
+        {{--                jQuery('#_voc_value').val('');--}}
+        {{--                jQuery('#_voc_id').val('');--}}
+        {{--                jQuery('#voucher_code').val("");--}}
+        {{--                jQuery('#voucher_information').addClass("d-none");--}}
+        {{--                jQuery('#discount_seller').val('0');--}}
+        {{--                sell_price_voc = 0;--}}
+        {{--                value_price_voc = 0;--}}
+        {{--                shoes_voucher_temp = [];--}}
+
+
+        {{--                jQuery('#total_discount_value_side').text('0');--}}
+        {{--                @php  session()->forget('voc_item') @endphp--}}
+        {{--                if (st_id == '4') {--}}
+        {{--                    cross = 'false';--}}
+        {{--                }--}}
+        {{--                swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');--}}
+        {{--                if (cross != 'true') {--}}
+        {{--                    setTimeout(() => {--}}
+        {{--                        var win = window.open('{{ url('/') }}/print_invoice/'+r.invoice, '_blank');--}}
+        {{--                        if (win) {--}}
+        {{--                            win.focus();--}}
+        {{--                        } else {--}}
+        {{--                            alert('Please allow popups for this website');--}}
+        {{--                        }--}}
+        {{--                    }, 2000);--}}
+        {{--                }--}}
+        {{--                // }--}}
+        {{--            } else if (r.status == '400') {--}}
+        {{--                swal('Gagal', 'Gagal simpan transaksi', 'warning');--}}
+        {{--            }--}}
+        {{--        },--}}
+        {{--        error: function(data){--}}
+        {{--            swal('Error', data, 'error');--}}
+        {{--        }--}}
+        {{--    });--}}
+        {{--});--}}
+
         jQuery('#save_transaction').on('click', function(e) {
             e.preventDefault();
+
             var pt_id_complaint = jQuery('#_pt_id_complaint').val();
             var pm_id = jQuery('#pm_id').val();
             var cp_id = jQuery('#cp_id').val();
@@ -1030,7 +1266,6 @@
             var admin_cost = jQuery('#admin_cost').val();
             var another_cost = jQuery('#another_cost').val();
             var real_price = jQuery('#real_price').val();
-            var total_row = jQuery('tr[data-list-item]').length;
             var exchange = jQuery('#_exchange').val();
             var cross = jQuery('#cross_order').val();
             var st_id = jQuery('#st_id').val();
@@ -1039,6 +1274,7 @@
             var voc_id = jQuery('#_voc_id').val();
             var total_discount_side = jQuery('#total_discount_value_side').text();
             var discount_seller = jQuery('#discount_seller').val();
+            var no_resi = jQuery('#no_resi').val();
 
             if (std_id == '14' || std_id == '13') {
                 if (pm_id == '2' && cp_id == '') {
@@ -1051,98 +1287,100 @@
                 swal('Periksa Kode Unik dan Biaya Admin', 'Jika memang tidak ada silahkan input 0', 'warning');
                 return false;
             }
+
             if (type == 'DROPSHIPPER') {
                 if (cust_id == '') {
                     swal('Dropshipper', 'silahkan pilih dropshipper', 'warning');
+                    return;
                 } else if (sub_cust_id == '') {
                     swal('Customer', 'silahkan pilih customer', 'warning');
+                    return;
                 }
             }
+
+            var formData = new FormData();
+
+            formData.append('voc_id', voc_id);
+            formData.append('voc_pst_id', voc_pst_id);
+            formData.append('voc_value', voc_value);
+            formData.append('_cp_id', cp_id);
+            formData.append('_cross', cross);
+            formData.append('_st_id', st_id);
+            formData.append('_pt_id_complaint', pt_id_complaint);
+            formData.append('_exchange', exchange);
+            formData.append('_ref_number', ref_number);
+            formData.append('_type', type);
+            formData.append('_sub_cust_id', sub_cust_id);
+            formData.append('_real_price', replaceComma(real_price));
+            formData.append('_admin_cost', admin_cost);
+            formData.append('_another_cost', another_cost);
+            formData.append('_order_code', order_code);
+            formData.append('_pm_id', pm_id);
+            formData.append('_std_id', std_id);
+            formData.append('_cust_id', cust_id);
+            formData.append('_note', note);
+            formData.append('_unique_code', unique_code);
+            formData.append('_shipping_cost', shipping_cost);
+            formData.append('_cr_id', cr_id);
+            formData.append('_total_discount_side', replaceComma(total_discount_side));
+            formData.append('_discount_seller', replaceComma(discount_seller));
+            formData.append('_no_resi', replaceComma(no_resi));
+
+            // File input for resi_pdf
+            var fileInput = jQuery('#no_resi_upload')[0];
+            // console.log(fileInput);
+            if (fileInput && fileInput.files.length > 0) {
+                formData.append('no_resi_upload', fileInput.files[0]);
+            }
+
             jQuery.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
                 }
             });
+
             jQuery.ajax({
-                type:'POST',
-                url: "{{ url('save_transaction')}}",
-                data: {
-                    voc_id:voc_id,
-                    voc_pst_id:voc_pst_id,
-                    voc_value:value_price_voc,
-                    _cp_id:cp_id,
-                    _cross:cross,
-                    _st_id:st_id,
-                    _pt_id_complaint:pt_id_complaint,
-                    _exchange:exchange,
-                    _ref_number:ref_number,
-                    _type:type,
-                    _sub_cust_id:sub_cust_id,
-                    _real_price:replaceComma(real_price),
-                    _admin_cost:admin_cost,
-                    _another_cost:another_cost, _order_code:order_code,
-                    _pm_id:pm_id, _std_id:std_id, _cust_id:cust_id,
-                    _note:note, _unique_code:unique_code,
-                    _shipping_cost:shipping_cost, _cr_id:cr_id,
-                    _total_discount_side:replaceComma(total_discount_side),
-                    _discount_seller:replaceComma(discount_seller),
-                },
+                type: 'POST',
+                url: "{{ url('save_transaction') }}",
+                data: formData,
+                processData: false,
+                contentType: false,
                 dataType: 'json',
                 success: function(r) {
                     jQuery.noConflict();
                     jQuery("#payment-online-popup").modal('hide');
                     if (r.status == '200') {
-                        var finish = '';
+                        swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
+
                         jQuery('#_pt_id').val(r.pt_id);
                         jQuery('#orderTable tr').each(function(index, row) {
                             jQuery(row).find('.saveItem').trigger('click');
                         });
-                        // if (finish == 'true') {
-                        jQuery('#shipping_courier_side').text('');
-                        jQuery('#shipping_cost_side').text('0');
-                        jQuery('#total_final_price_side').text('0');
-                        jQuery('#total_item_side').text('0');
-                        jQuery('#total_price_side').text('0');
-                        jQuery('#total_nameset_side').text('0');
-                        jQuery('#orderTable').find('tr:not(:has(th))').remove();
-                        jQuery('#cust_id').val('');
-                        jQuery('#cust_id_label').val('');
-                        jQuery('#sub_cust_id').val('');
-                        jQuery('#sub_cust_id_label').val('');
-                        jQuery('#check_sub_customer').attr('data-id', '');
-                        jQuery('#check_customer').attr('data-id', '');
-                        jQuery('#refund_invoice_label').val('');
-                        jQuery('#refund_retur_invoice_label').text('');
-                        jQuery('#refund_retur_pt_id').val('');
-                        jQuery('#note').val('');
-                        jQuery('#_pt_id').val('');
-                        jQuery('#unique_code').val('');
-                        jQuery('#ref_number').val('');
-                        jQuery('#final_total_unique_code').val('');
-                        jQuery('#admin_cost').val('');
-                        jQuery('#another_cost').val('');
-                        jQuery('#real_price').val('');
-                        jQuery('#courier').val('');
-                        jQuery('#_pt_id_complaint').val('');
-                        jQuery('#_exchange').val('');
-                        jQuery('#discount_seller').val('');
 
-                        jQuery('#_voc_pst_id').val('');
-                        jQuery('#_voc_value').val('');
-                        jQuery('#_voc_id').val('');
-                        jQuery('#voucher_code').val("");
+                        // jQuery('#orderTable tr').each(function(index, row) {
+                        //     jQuery(row).find('.saveItem').trigger('click');
+                        // });
+
+                        // Reset form (as in your original)
+                        jQuery('#shipping_courier_side, #total_discount_value_side').text('0');
+                        jQuery('#order_code').val('');
+                        jQuery('#no_resi').val('');
+
+                        jQuery('#no_resi_upload').val('');
+                        jQuery('#upload-text').text('Drag & drop PDF or click to upload');
+                        jQuery('#total_final_price_side, #total_item_side, #total_price_side, #total_nameset_side').text('0');
+                        jQuery('#orderTable').find('tr:not(:has(th))').remove();
+                        jQuery('#cust_id, #cust_id_label, #sub_cust_id, #sub_cust_id_label, #note, #_pt_id, #unique_code, #ref_number, #final_total_unique_code, #admin_cost, #another_cost, #real_price, #courier, #_pt_id_complaint, #_exchange, #discount_seller, #_voc_pst_id, #_voc_value, #_voc_id, #voucher_code, #refund_invoice_label, #refund_retur_invoice_label, #refund_retur_pt_id').val('');
                         jQuery('#voucher_information').addClass("d-none");
-                        jQuery('#discount_seller').val('0');
+                        jQuery('#check_sub_customer, #check_customer').attr('data-id', '');
                         sell_price_voc = 0;
                         value_price_voc = 0;
                         shoes_voucher_temp = [];
 
-                        jQuery('#total_discount_value_side').text('0');
-                        @php  session()->forget('voc_item') @endphp
                         if (st_id == '4') {
                             cross = 'false';
                         }
-                        swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
+
                         if (cross != 'true') {
                             setTimeout(() => {
                                 var win = window.open('{{ url('/') }}/print_invoice/'+r.invoice, '_blank');
@@ -1153,16 +1391,17 @@
                                 }
                             }, 2000);
                         }
-                        // }
-                    } else if (r.status == '400') {
+
+                    } else {
                         swal('Gagal', 'Gagal simpan transaksi', 'warning');
                     }
                 },
-                error: function(data){
-                    swal('Error', data, 'error');
+                error: function(data) {
+                    swal('Error', 'Terjadi kesalahan saat menyimpan data', 'error');
                 }
             });
         });
+
 
         jQuery('#product_barcode_input').on('change', function() {
             jQuery('#_exchange').val('true');

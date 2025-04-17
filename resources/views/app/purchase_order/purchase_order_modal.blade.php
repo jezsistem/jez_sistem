@@ -204,7 +204,10 @@
                         </select>
                         <div id="acc_id_parent"></div>
                     </div>
-
+                    <div class="col-4 mt-5">
+                        <label>Dispute</label>
+                        <input type="text" class="form-control" name="dispute" id="dispute" disabled />
+                    </div>
                     <div class="col-4 mt-5">
                         <label>Pre Order</label>
                         <select class="form-control" id="pro_id" name="pro_id" required>
@@ -215,6 +218,24 @@
                         </select>
                         <div id="pro_id_parent"></div>
                     </div>
+                    <div class="col-4 mt-5">
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="pay_date">Tanggal Bayar</label>
+                                <input type="date" id="pay_date" class="form-control"/>
+                            </div>
+                            <div class="col-6">
+                                <label for="due_date">Tanggal Jatuh Tempo</label>
+                                <input type="date" id="due_date" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-4 mt-5">
+                        <label>Dispute</label>
+                        <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
+                    </div>
+                    <div class="col-4 mt-5"></div>
                     <div class="col-4 mt-5">
                         <label class="badge badge-primary">Bukti Gambar Invoice dan Paket                               </label>
                         <div class="row justify-content-start">
@@ -497,3 +518,41 @@
     </div>
 </div>
 <!-- /Modal-->
+
+<!-- Modal Bukti TF-->
+<div class="modal fade" id="BuktitfImagesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Bukti Transfer Image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <div class="container">
+                        <table id="BuktitfImagesTb" class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
+                        data-dismiss="modal">Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal Bukti TF-->

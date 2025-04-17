@@ -86,7 +86,7 @@
 
         data_article_promo_tb.buttons().container().appendTo($('#artikel_promo_excel_btn'));
         $('#artikel_promo_search').on('keyup', function () {
-            articles_promo_table.draw();
+            data_article_promo_tb.draw();
         });
 
         $('#f_import').on('submit', function (e) {

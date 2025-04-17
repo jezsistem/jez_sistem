@@ -571,6 +571,56 @@
         });
     });
 
+    $(document).delegate('#pay_date', 'change', function() {
+        var pay_date = $(this).val();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('po_change_pay_date') }}",
+            data: {
+                pay_date: pay_date,
+                po_id: $('#_po_id').val()
+            },
+            success: function (r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+                   
+                } else {
+                    
+                }
+            },
+        });
+    });
+
+    $(document).delegate('#due_date', 'change', function() {
+        var due_date = $(this).val();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('po_change_due_date') }}",
+            data: {
+                due_date: due_date,
+                po_id: $('#_po_id').val()
+            },
+            success: function (r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+                    
+                } else {
+
+                }
+            },
+        });
+    });
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -668,7 +718,7 @@
                 url: "{{ url('product_item_datatables') }}",
                 data: function(d) {
                     d.search = $('#product_search').val();
-                    d.ps_id = $('#ps_id').val();
+                    // d.ps_id = $('#ps_id').val();
                     d.br_id_filter = $('#br_id_filter_item').val();
                     d.mc_id_filter = $('#mc_id_filter_item').val();
                     d.psc_id_filter = $('#psc_id_filter_item').val();
@@ -748,6 +798,126 @@
             ],
         });
 
+        var purchaseOrderBuktitfTable = $('#BuktitfImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_transfer_image_datatable') }}",
+                data: function (d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'image',
+                name: 'transfer_image',
+                searchable: false
+            },
+            {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": [0,1],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
+            var id = $(this).data('id');
+            
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+            
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('po_transfer_image_delete') }}",
+                        data: { id: id },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
+                                purchaseOrderBuktitfTable.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#InvoiceImagesTb tbody').on('click', '#delete-image-invoice', function() {
+            var id = $(this).data('id');
+            
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+            
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('po_invoice_image_delete') }}",
+                        data: { id: id },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
+                                purchaseOrderInvoiceTable.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                        }
+                    });
+                }
+            });
+        });
 
         $('#Producttb tbody').on('click', '#add_product_size_btn', function() {
             if ($(this).text().indexOf('Batal') >= 0) {
@@ -984,16 +1154,27 @@
                 success: function(r) {
                     if (r.status == '200') {
                         global_po_id = r.po_id;
+                        let dispute_text = '';
                         jQuery.noConflict();
+                        if (r.dispute == 1){
+                            dispute_text = 'Yes';
+                        } else {
+                            dispute_text = 'No';
+                        }
                         $('#f_po')[0].reset();
                         $('#PurchaseOrderModal').modal('show');
                         $('#po_invoice_label').text(r.po_invoice);
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
                         $('#po_description').val(r.po_description);
+                        $('#shipping_cost').val(r.shipping_cost);
+                        $('#dispute').val(dispute_text);
+                        $('#dispute_description').val(r.po_dispute_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
+                        jQuery('#pay_date').val(r.pay_date).trigger('change');
+                        jQuery('#due_date').val(r.due_date).trigger('change');
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
                         jQuery('#dp_id').val(r.dp_id).trigger('change');
                         jQuery('#acc_id').val(r.acc_id).trigger('change');
@@ -1009,6 +1190,14 @@
             $("#InvoiceImagesBtn").click(function () {
                 $("#InvoiceImagesModal").modal("show");
                 purchaseOrderInvoiceTable.draw();
+                console.log($('#po_id').val());
+            });
+        });
+
+        $(document).ready(function () {
+            $("#BuktitfImagesBtn").click(function () {
+                $("#BuktitfImagesModal").modal("show");
+                purchaseOrderBuktitfTable.draw();
                 console.log($('#po_id').val());
             });
         });

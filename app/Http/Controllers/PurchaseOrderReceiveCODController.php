@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderInvoiceImage;
+use App\Models\PurchaseOrderTransferImage;
 use App\Models\User;
 use App\Models\Tax;
 use App\Models\WebConfig;
@@ -80,7 +81,7 @@ class PurchaseOrderReceiveCODController extends Controller
         if ($request->ajax()) {
             $query = DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
-                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost,
+                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost, pay_date, due_date,
                     ts_purchase_orders.stkt_id,
                     ts_purchase_orders.tax_id,
                     ts_stock_types.stkt_name,
@@ -168,15 +169,15 @@ class PurchaseOrderReceiveCODController extends Controller
         }
     }
 
-    public function uploadImageInvoice(Request $request)
+    public function uploadImageTransfer(Request $request)
     {
 
         $po_id = $request->_po_id;
         $mode = 'COD';
         $check = PurchaseOrder::where(['id' => $po_id])->exists();
         if ($check) {
-            if ($request->hasFile('imageInvoices')) {
-                foreach ($request->file('imageInvoices') as $file) {
+            if ($request->hasFile('imageTransfers')) {
+                foreach ($request->file('imageTransfers') as $file) {
                     $image = $file;
 
                     if ($mode == 'COD') {
@@ -185,14 +186,14 @@ class PurchaseOrderReceiveCODController extends Controller
                         $name = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $image->getClientOriginalExtension();
                     }
 
-                    $destinationPath = public_path('/upload/purchase_order_invoice');
+                    $destinationPath = public_path('/upload/purchase_order_transfer');
 
                     // save destination path
                     $image->move($destinationPath, $name);
 
-                    PurchaseOrderInvoiceImage::create([
+                    PurchaseOrderTransferImage::create([
                         'purchase_order_id' => $po_id,
-                        'invoice_image' => $name,
+                        'transfer_image' => $name,
                     ]);
                 }
             }
@@ -223,8 +224,39 @@ class PurchaseOrderReceiveCODController extends Controller
                             return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
                         }
                     })
+                    // ->addColumn('action', function ($row) {
+                    //     return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="' . $row->id . '">Delete</a>';
+                    // })
+                    ->rawColumns(['image', 'action'])
+                    ->addIndexColumn()
+                    ->make(true);
+            } else {
+                return datatables()->of([])
+                    ->addIndexColumn()
+                    ->make(true);
+            }
+        }
+    }
+
+    public function getImageTransferDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = PurchaseOrderTransferImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
+            if ($po_id) {
+                $images = PurchaseOrderTransferImage::select('id', 'transfer_image')
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
+
+                return datatables()->of($images)
+                    ->addColumn('image', function ($row) {
+                        if (empty($row->transfer_image)) {
+                            return '<img src="' . asset('upload/image/no_image.png') . '"/>';
+                        } else {
+//                            return '<a href="'.asset('upload/purchase_order_transfer/'.$row->transfer_image).' target=_blank>$row->transfer_image</a>';
+                            return '<a href="' . asset('upload/purchase_order_transfer/' . $row->transfer_image) . '" target="_blank">' . $row->transfer_image . '</a>';
+                        }
+                    })
                     ->addColumn('action', function ($row) {
-                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-invoice" data-id="' . $row->id . '">Delete</a>';
+                        return '<a href="#" class="btn btn-danger btn-sm " id="delete-image-transfer" data-id="' . $row->id . '">Delete</a>';
                     })
                     ->rawColumns(['image', 'action'])
                     ->addIndexColumn()
@@ -282,5 +314,33 @@ class PurchaseOrderReceiveCODController extends Controller
         } else {
             $r['status'] = '400';
         }
+
+        return json_encode($r);
+    }
+
+    public function changePayDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $pay_date = $request->pay_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function deleteImageTransfer(Request $request)
+    {
+        $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->first();
+
+        if ($delete) {
+            unlink(public_path('upload/purchase_order_transfer/' . $delete->transfer_image));
+            $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->delete();
+        }
+
+        $response = ['status' => $delete ? '200' : '400'];
+        return response()->json($response);
     }
 }

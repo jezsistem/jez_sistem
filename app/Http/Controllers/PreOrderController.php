@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PreOrderArticleExport;
 use App\Models\Account;
 use App\Models\Brand;
 use App\Models\MainColor;
@@ -26,6 +27,7 @@ use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PreOrderController extends Controller
 {
@@ -293,7 +295,7 @@ class PreOrderController extends Controller
                 $po_id = $draft->id;
                 $po_st_id = $draft->st_id;
 
-                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color')
+                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder')
                     ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->where(['po_id' => $po_id])->get();
@@ -605,5 +607,20 @@ class PreOrderController extends Controller
     private function poInvoiceExists($number): bool
     {
         return PreOrder::where(['pre_order_code' => $number])->exists();
+    }
+
+    public function exportPreOrderArticleData(Request $request)
+    {
+        $po_id = $request->get('po_id');
+        $st_id = $request->get('st_id');
+
+        $timestamp = date('Ymd_Hi');
+
+        $export = new PreOrderArticleExport($po_id, $st_id);
+
+        // Get current date and time (format: YYYYMMDD_HHmm)
+
+        $fileName = 'pre_order_article_' . $timestamp . '.xlsx';
+        return Excel::download($export, $fileName);
     }
 }

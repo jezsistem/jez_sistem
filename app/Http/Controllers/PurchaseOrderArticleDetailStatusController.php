@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,16 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $invoice_date = $request->invoice_date;
         $shipping_cost = $request->shipping_cost ?? 0;
         $invoice_note = $request->invoice_note;
+        $dispute = $request->dispute;
+        $dispute_description = $request->dispute_description;
+        $no_order = $request->no_order;
 
+        $po_id = PurchaseOrder::where('po_invoice', $no_order)->first()->id;
+
+        $params_edit = PurchaseOrder::where('po_invoice', $no_order)->update([
+            'dispute' => $dispute,
+            'dispute_description' => $dispute_description,
+        ]);
 
         $check = DB::table('purchase_order_article_detail_statuses')->insertGetId([
             'stkt_id' => $stkt_id,
@@ -181,5 +191,41 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             $constraint->aspectRatio();
         })->save($destinationPath . '/' . $input['fileName']);
         return $input['fileName'];
+    }
+
+    public function disputeSave(Request $request)
+    {
+        $request->validate([
+            'po_invoice' => 'required|string',
+        ]);
+
+        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'Purchase order not found'], 404);
+        }
+
+        $po->dispute = $request->dispute;
+        $po->save();
+
+        return response()->json(['message' => 'Dispute status updated successfully']);
+    }
+
+    public function disputeDescSave(Request $request)
+    {
+        $request->validate([
+            'po_invoice' => 'required|string',
+        ]);
+
+        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'Purchase order not found'], 404);
+        }
+
+        $po->dispute_description = $request->dispute_description;
+        $po->save();
+
+        return response()->json(['message' => 'Dispute status updated successfully']);
     }
 }
