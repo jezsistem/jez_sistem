@@ -213,7 +213,7 @@ class PurchaseOrderReceiveCODController extends Controller
             $po_id = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $request->get('_po_id'))->exists();
             if ($po_id) {
                 $images = PurchaseOrderInvoiceImage::select('id', 'invoice_image')
-                    ->where('purchase_order_id', '=', $request->get('_po_id'))->where('invoice_image', 'LIKE', '%COD%');
+                    ->where('purchase_order_id', '=', $request->get('_po_id'));
 
                 return datatables()->of($images)
                     ->addColumn('image', function ($row) {
