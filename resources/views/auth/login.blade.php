@@ -3,7 +3,7 @@
 @include('auth._partials.head')
 <style>
     #kt_login {
-        background: url('{{ url('/') === 'https://jezpro.id' ? asset('media/misc/bg-login.jpg') : asset('media/misc/login_jezpro.jpg') }}');
+        background: url('{{ url('/') === 'https://jezpro.id' ? asset('app/assets/media/misc/bg-login.jpg') : asset('app/assets/media/misc/login_jezpro.jpg') }}');
         background-repeat: no-repeat;
         background-size: cover;
         background-position: center;
