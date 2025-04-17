@@ -406,7 +406,7 @@
         var pt_id = jQuery('#_pt_id').val();
         var st_id = jQuery('#st_id').val();
         var cross = jQuery('#cross_order').val()
-        // alert(td_sell_price);
+        // alert(subtotal_item);
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -979,10 +979,10 @@
         // Memperoleh nilai diskon dari input dengan ID discount_number
         var discount = parseFloat(jQuery('#discount_number' + row).val()) || 0;
 
-        var discount_with_qty = discount * item_qty;
+        // var discount_with_qty = discount * item_qty;
 
-        var percentage = (discount_with_qty / sell_price_item) * 100;
-        jQuery('#discount_number' + row).val(discount_with_qty);
+        var percentage = (discount / sell_price_item) * 100;
+        // jQuery('#discount_number' + row).val(discount_with_qty);
         jQuery('#discount_percentage' + row).val(percentage.toFixed(2));
         // Mengurangi diskon dari subtotal
         var subtotal = parseFloat(item_qty) * parseFloat(sell_price_item) - discount;
