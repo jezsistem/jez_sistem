@@ -211,7 +211,7 @@
                                 $total_price += $srow->ps_price_tag;
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
-                                $total_final += $srow->pos_td_sell_price * $srow->pos_td_qty;
+                                $total_final += ($srow->pos_td_sell_price / $srow->pos_td_qty) * $srow->pos_td_qty;
                                 $sub_total_final += ($srow->pos_td_sell_price / $srow->pos_td_qty) * $srow->pos_td_qty;
                             @endphp
                             <tr style="margin-bottom:15px;">
