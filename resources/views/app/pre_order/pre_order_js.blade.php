@@ -1177,11 +1177,24 @@
             $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
             var po_invoice_label = $('#po_invoice_label').text();
+            var po_id = $('#_po_id').val();
 
             formData.append('_po_invoice_label', po_invoice_label)
+            formData.append('po_id', po_id)
+
+            var importFile = document.getElementById('importFile');
+            if (!importFile || !importFile.files.length) {
+                swal('Error', 'File input is missing or no file selected', 'error');
+                $('#import_data_btn').html('Import');
+                $('#import_data_btn').attr('disabled', false);
+                return;
+            }
+
+            formData.append('file', importFile.files[0]); // Append the file to FormData
+
             $.ajax({
                 type: 'POST',
-                url: "{{ url('po_import') }}",
+                url: "{{ url('pre_order_import') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -1196,7 +1209,7 @@
                         $("#ImportModal").modal('hide');
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
-                        reloadArticleDetail(data.po_id)
+                        reloadArticleDetail(po_id);
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
                         swal('File', 'File yang anda import kosong atau format tidak tepat',
@@ -1207,13 +1220,14 @@
                             'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
                             'warning');
                     }
+
                 },
                 error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
         });
-
+        
         $('#f_upload_invoice_image').on('submit', function(e) {
             e.preventDefault();
             $('#upload_image_invoice_btn').html('Proses...');

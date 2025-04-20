@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PreOrderArticleExport;
+use App\Imports\PreOrderExcelImport;
 use App\Models\Account;
 use App\Models\Brand;
 use App\Models\MainColor;
@@ -127,7 +128,7 @@ class PreOrderController extends Controller
                 ->leftJoin('pre_order_articles', 'pre_order_articles.po_id', '=', 'pre_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                 ->join('stores', 'stores.id', '=', 'pre_orders.st_id')
-                ->join('product_suppliers', 'product_suppliers.id', '=', 'pre_orders.ps_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'pre_orders.ps_id') // Changed to leftJoin
                 ->where('po_delete', '!=', '1')
                 ->where(function ($w) use ($user_data, $st_id) {
                     if ($user_data->g_name != 'administrator') {
@@ -622,5 +623,34 @@ class PreOrderController extends Controller
 
         $fileName = 'pre_order_article_' . $timestamp . '.xlsx';
         return Excel::download($export, $fileName);
+    }
+
+    public function importPreOrderExcel(Request $request)
+    {
+        $file = $request->file('file');
+        $po_id = $request->get('po_id');
+
+        if ($file) {
+            $path = $file->getRealPath();
+            $data = Excel::toArray([], $path);
+
+            if (!empty($data) && isset($data[0][0])) {
+                $firstRow = $data[0][0];
+                if (strtolower($firstRow[0]) === 'sku' && strtolower($firstRow[1]) === 'quantity') {
+                    Excel::import(new PreOrderExcelImport($po_id), $file);
+                    $r['status'] = '200';
+                } else {
+                    $r['status'] = '400';
+                    $r['message'] = 'The first row must have "SKU" as the first field and "Quantity" as the second field.';
+                }
+            } else {
+                $r['status'] = '400';
+                $r['message'] = 'The file is empty or invalid.';
+            }
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'No file was uploaded.';
+        }
+        return json_encode($r);
     }
 }
