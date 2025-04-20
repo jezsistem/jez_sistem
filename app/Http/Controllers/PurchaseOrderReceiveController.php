@@ -400,7 +400,7 @@ class PurchaseOrderReceiveController extends Controller
                 'p_name',
                 'p_color',
                 'poa_discount',
-                'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid')
+                'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid', 'products.created_at as item_added')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();

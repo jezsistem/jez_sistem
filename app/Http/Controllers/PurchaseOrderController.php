@@ -31,6 +31,7 @@ use App\Models\Tax;
 use App\Models\UserActivity;
 use Intervention\Image\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 use App\Models\DataPerusahaan;
 
@@ -498,9 +499,11 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    //disini
     public function checkPoDetail(Request $request)
     {
         $po_id = $request->_po_id;
+        $date_now = Carbon::now();
         if (!empty($po_id)) {
             $check = PurchaseOrder::where(['id' => $po_id])->exists();
         } else {
@@ -515,17 +518,19 @@ class PurchaseOrderController extends Controller
             $po_id = $draft->id;
             $po_st_id = $draft->st_id;
 
-            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder', 'article_id', 'article_id')
+            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder', 'article_id', 'article_id', 'products.created_at as item_added')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 //                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();
+
+
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
                     $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-                        //                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where(['poa_id' => $poa->poa_id])->get();
 

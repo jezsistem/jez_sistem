@@ -1,3 +1,4 @@
+@php use Carbon\Carbon; @endphp
 @if (!empty($data['product']))
     <div class="table-responsive">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -32,9 +33,16 @@
                                 id="poa_reminder{{ $row->poa_id }}" class="form-control" placeholder="Reminder"
                                 value="{{ $row->poa_reminder }}" onchange="return reminder( {{ $row->poa_id }} )" />
                             {{--                <input style="width:155px;" type="text" name="poa_reminder" id="poa_reminder{{ $row->poa_id }}" class="form-control" placeholder="Stok All" value="{{ $row->poa_reminder }}" onchange="return reminder( {{ $row->poa_id }} )"/> --}}
+                            @php
+                                $createdAt = Carbon::parse($row->item_added);
+                                $now = Carbon::now();
+                            @endphp
+
+                            @if($createdAt->diffInDays($now) < 21)
+                                <span style="color: red; margin-left: 5px; margin-top:10px;">NEW ARRIVAL</span>
+                            @endif
                         </td>
                         <td>
-                            {{--                {{dd($data['all_stok'])}} --}}
                             <input type="text" style="width:65px;" value="" readonly />
                         </td>
                         <td style="white-space: nowrap;">
