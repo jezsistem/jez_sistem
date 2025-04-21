@@ -235,7 +235,7 @@
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi data</label>
                             <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="importFile" id="importFile" accept=".xlsx" required/>
+                            <input type="file" class="form-control" name="importFile" id="importFile" required/>
                         </div>
                     </div>
                 </div>

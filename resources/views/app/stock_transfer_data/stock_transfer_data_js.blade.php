@@ -259,17 +259,6 @@
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
-            var fileInput = $('#file_input_id'); // Replace with your file input ID
-            var fileName = fileInput.val();
-            var validExtensions = ['xls', 'xlsx']; // Add valid extensions
-            var fileExtension = fileName.split('.').pop().toLowerCase();
-            
-            if (!validExtensions.includes(fileExtension)) {
-                swal('Error', 'Invalid file type. Please upload an Excel file.', 'error');
-                $('#import_data_btn').html('Import');
-                $('#import_data_btn').attr('disabled', false);
-                return false;
-            }
             var stf_id = $('#stf_id').val();
 
             $.ajax({
