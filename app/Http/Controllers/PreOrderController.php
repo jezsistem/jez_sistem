@@ -11,6 +11,7 @@ use App\Models\PreOrder;
 use App\Models\PreOrderArticle;
 use App\Models\PreOrderArticleDetails;
 use App\Models\ProductLocationSetup;
+use App\Models\ProductStock;
 use App\Models\ProductSubCategory;
 use App\Models\ProductSupplier;
 use App\Models\PurchaseOrder;
@@ -632,35 +633,100 @@ class PreOrderController extends Controller
         $r = array();
 
         if ($file) {
-            $path = $file->getRealPath();
-            $data = Excel::toArray([], $path);
+            try {
+                // Store the uploaded file temporarily
+                $filePath = $file->store('upload/temp');
 
-            if (!empty($data) && isset($data[0][0])) {
-                $firstRow = $data[0][0];
-                if (strtolower($firstRow[0]) === 'sku' && strtolower($firstRow[1]) === 'quantity') {
-                    $import = new PreOrderExcelImport($po_id);
-                    Excel::import($import, $file);
+                // Open the file for reading
+                $fileHandle = fopen(storage_path('app/' . $filePath), 'r');
+                $headerSkipped = false;
 
-                    $importErrors = $import->getData(); // Use getData() to retrieve errors
-                    if (!empty($importErrors)) {
-                        $r['status'] = '404';
-                        $r['message'] = 'Data Invalid';
-                        $r['errors'] = $importErrors; // Return the list of SKUs not found
-                    } else {
-                        $r['status'] = '200';
+                while (($line = fgetcsv($fileHandle, 0, ';')) !== false) { // Changed length to 0 for unlimited length
+                    if (!$headerSkipped) {
+                        $headerSkipped = true;
+                        continue; // Skip the header row
                     }
-                } else {
-                    $r['status'] = '400';
-                    $r['message'] = 'The first row must have "SKU" as the first field and "Quantity" as the second field.';
+
+                    $sku = ltrim($line[0]); // Assuming SKU is in the first column
+                    $qty = isset($line[1]) ? $line[1] : null; // Check if the second column exists
+                    if ($qty === null) {
+                        $r['status'] = '400';
+                        $r['message'] = 'Quantity column is missing for SKU ' . $sku . '.';
+                        fclose($fileHandle);
+                        return json_encode($r);
+                    }
+
+                    if (!is_numeric($qty)) {
+                        $r['status'] = '400';
+                        $r['message'] = 'Quantity for SKU ' . $sku . ' is not a valid number.';
+                        fclose($fileHandle);
+                        return json_encode($r);
+                    }
+
+                    $productStock = ProductStock::where('ps_barcode', $sku)->first();
+
+                    if (!$productStock) {
+                        $r['status'] = '400';
+                        $r['message'] = 'Data for SKU ' . $sku . ' not found.';
+                        fclose($fileHandle);
+                        return json_encode($r);
+                    }
+
+                    $prid = $productStock->p_id;
+                    $psid = $productStock->id;
+                    $price = $productStock->ps_price_tag;
+
+                    $check_poa = PreOrderArticle::where(['po_id' => $po_id, 'pr_id' => $prid])->exists();
+
+                    if (!$check_poa) {
+                        $poa_id = PreOrderArticle::insertGetId([
+                            'po_id' => $po_id,
+                            'pr_id' => $prid,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        $poa_id = PreOrderArticle::where(['po_id' => $po_id, 'pr_id' => $prid])
+                            ->value('id');
+                    }
+
+                    $check_poad = PreOrderArticleDetails::where(['poa_id' => $poa_id, 'pst_id' => $psid])->exists();
+
+                    $total_price = $qty * $price;
+
+                    if (!$check_poad) {
+                        PreOrderArticleDetails::insert([
+                            'poa_id' => $poa_id,
+                            'pst_id' => $psid,
+                            'poad_qty' => $qty,
+                            'poad_total_price' => $total_price,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        PreOrderArticleDetails::where(['poa_id' => $poa_id, 'pst_id' => $psid])
+                            ->increment('poad_qty', $qty);
+
+                        PreOrderArticleDetails::where(['poa_id' => $poa_id, 'pst_id' => $psid])
+                            ->increment('poad_total_price', $total_price);
+                    }
                 }
-            } else {
+
+                fclose($fileHandle);
+
+                // Delete the temporary file
+                unlink(storage_path('app/' . $filePath));
+
+                $r['status'] = '200';
+            } catch (\Exception $e) {
                 $r['status'] = '400';
-                $r['message'] = 'The file is empty or invalid.';
+                $r['message'] = $e->getMessage();
             }
         } else {
             $r['status'] = '400';
             $r['message'] = 'No file was uploaded.';
         }
+
         return json_encode($r);
     }
 }
