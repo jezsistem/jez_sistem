@@ -1216,9 +1216,8 @@
                         swal('File', 'The file you imported is empty or the format is incorrect',
                             'warning');
                     } else if (data.status == '404') {
-                        $("#UploadImageInvoiceModal").modal('hide');
-                        let errorMessages = data.errors.error_message;
-                        swal('Gagal', errorMessages, 'error');
+                        $("#ImportModal").modal('hide');
+                        swal('Gagal', data.message, 'error');
                     } else {
                         $("#ImportModal").modal('hide');
                         swal('Failed',
