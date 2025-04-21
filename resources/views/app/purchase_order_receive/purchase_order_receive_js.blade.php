@@ -236,10 +236,10 @@
     //is Dispute new Save
     $(document).ready(function () {
         var previousDisputeValue = $('#dispute').val();
-        var isInitialized = false; // Flag untuk menandai inisialisasi awal
+        var isInitialized = false;
 
         $('#dispute').change(function () {
-            // Jika ini adalah trigger pertama (inicialisasi), set flag dan update nilai tanpa melakukan AJAX
+
             if (!isInitialized) {
                 isInitialized = true;
                 previousDisputeValue = $(this).val();
@@ -248,7 +248,7 @@
 
             var currentDisputeValue = $(this).val();
 
-            // Cek apakah nilai berubah secara aktual
+           
             if (currentDisputeValue === previousDisputeValue) {
                 return;
             }

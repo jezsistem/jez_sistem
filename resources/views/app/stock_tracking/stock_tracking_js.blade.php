@@ -122,7 +122,7 @@
             responsive: false,
             dom: 'B<"text-right"l>rt<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                // { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
             ],
             ajax: {
                 url : "{{ url('stock_tracking_datatables') }}",
@@ -283,6 +283,24 @@
                     return false;
                 }
             })
+        });
+
+        document.getElementById('export_stock_tracking').addEventListener('click', function () {
+            const br_id = document.getElementById('br_id').value;
+            const psc_id = document.getElementById('psc_id').value;
+            const std_id = document.getElementById('std_id').value;
+            const status = document.getElementById('status_filter').value;
+
+            // You can include more filters if needed
+            const queryParams = new URLSearchParams({
+                br_id,
+                psc_id,
+                std_id,
+                status
+            });
+
+            // Redirect to backend export route with query params
+            window.location.href = `/export-stock-tracking?${queryParams.toString()}`;
         });
 
         jQuery.noConflict();
