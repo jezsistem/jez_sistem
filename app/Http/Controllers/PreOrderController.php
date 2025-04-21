@@ -629,6 +629,7 @@ class PreOrderController extends Controller
     {
         $file = $request->file('file');
         $po_id = $request->get('po_id');
+        $r = array();
 
         if ($file) {
             $path = $file->getRealPath();
@@ -637,8 +638,17 @@ class PreOrderController extends Controller
             if (!empty($data) && isset($data[0][0])) {
                 $firstRow = $data[0][0];
                 if (strtolower($firstRow[0]) === 'sku' && strtolower($firstRow[1]) === 'quantity') {
-                    Excel::import(new PreOrderExcelImport($po_id), $file);
-                    $r['status'] = '200';
+                    $import = new PreOrderExcelImport($po_id);
+                    Excel::import($import, $file);
+
+                    $importErrors = $import->getData(); // Use getData() to retrieve errors
+                    if (!empty($importErrors)) {
+                        $r['status'] = '404';
+                        $r['message'] = 'Data Invalid';
+                        $r['errors'] = $importErrors; // Return the list of SKUs not found
+                    } else {
+                        $r['status'] = '200';
+                    }
                 } else {
                     $r['status'] = '400';
                     $r['message'] = 'The first row must have "SKU" as the first field and "Quantity" as the second field.';

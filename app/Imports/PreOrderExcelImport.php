@@ -12,12 +12,13 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 class PreOrderExcelImport implements ToCollection, WithStartRow
 {
     private $rows = 0;
-    private $data = [];
+    private $data;
     private $po_id; // Add a property to store the po_id
 
     public function __construct($po_id)
     {
         $this->po_id = $po_id; // Initialize po_id in the constructor
+        $this->data = new \stdClass(); // Initialize data as an object
     }
 
     /**
@@ -45,10 +46,17 @@ class PreOrderExcelImport implements ToCollection, WithStartRow
             $sku = ltrim($value[0]); // Assuming SKU is in the first column
             $qty = $value[1]; // Assuming quantity is in the second column
 
+            // Check if quantity is not a number
+            if (!is_numeric($qty)) {
+                $this->data->error_message = 'Quantity ' . $sku. ' is not a valid number';
+                break; // Stop the process if quantity is not a number
+            }
+
             $productStock = ProductStock::where('ps_barcode', $sku)->first();
 
             if (!$productStock) {
-                continue;
+                $this->data->error_message = 'Data ' . $sku . ' not found';
+                break; // Stop the process if SKU not found
             }
 
             $poid = $this->po_id;
@@ -98,6 +106,6 @@ class PreOrderExcelImport implements ToCollection, WithStartRow
 
     public function getData(): array
     {
-        return $this->data;
+        return (array) $this->data;
     }
 }

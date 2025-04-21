@@ -1212,12 +1212,16 @@
                         reloadArticleDetail(po_id);
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
+                        swal('File', 'The file you imported is empty or the format is incorrect',
                             'warning');
+                    } else if (data.status == '404') {
+                        $("#UploadImageInvoiceModal").modal('hide');
+                        let errorMessages = data.errors.error_message;
+                        swal('Gagal', errorMessages, 'error');
                     } else {
                         $("#ImportModal").modal('hide');
-                        swal('Gagal',
-                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                        swal('Failed',
+                            'Please check the input format in your template, ensure the blue columns are filled according to the system',
                             'warning');
                     }
 
