@@ -201,14 +201,62 @@
     }
 
     //is Dispute Save
+    {{--$(document).ready(function () {--}}
+    {{--    $('#dispute').change(function () {--}}
+    {{--        var no_order = $('#po_invoice_label').text();--}}
+
+    {{--        const disputeValue = $(this).val();--}}
+    {{--        const po_invoice = no_order--}}
+
+    {{--        if (!po_invoice) {--}}
+    {{--            alert("No PO Invoice provided!");--}}
+    {{--            return;--}}
+    {{--        }--}}
+
+    {{--        $.ajax({--}}
+    {{--            url: "{{ url('dispute_save') }}",--}}
+    {{--            type: 'POST',--}}
+    {{--            data: {--}}
+    {{--                dispute: disputeValue,--}}
+    {{--                po_invoice: po_invoice,--}}
+    {{--                _token: '{{ csrf_token() }}'--}}
+    {{--            },--}}
+    {{--            success: function (response) {--}}
+    {{--                console.log(response);--}}
+    {{--                toastr.success("Dispute selection berhasil disimpan", "Berhasil");--}}
+    {{--            },--}}
+    {{--            error: function (xhr) {--}}
+    {{--                console.error(xhr);--}}
+    {{--                toastr.error("Gagal menyimpan data", "Gagal");--}}
+    {{--            }--}}
+    {{--        });--}}
+    {{--    });--}}
+    {{--});--}}
+
+    //is Dispute new Save
     $(document).ready(function () {
+        var previousDisputeValue = $('#dispute').val();
+        var isInitialized = false; // Flag untuk menandai inisialisasi awal
+
         $('#dispute').change(function () {
+            // Jika ini adalah trigger pertama (inicialisasi), set flag dan update nilai tanpa melakukan AJAX
+            if (!isInitialized) {
+                isInitialized = true;
+                previousDisputeValue = $(this).val();
+                return;
+            }
+
+            var currentDisputeValue = $(this).val();
+
+            // Cek apakah nilai berubah secara aktual
+            if (currentDisputeValue === previousDisputeValue) {
+                return;
+            }
+            previousDisputeValue = currentDisputeValue;
+
             var no_order = $('#po_invoice_label').text();
 
-            const disputeValue = $(this).val();
-            const po_invoice = no_order
-
-            if (!po_invoice) {
+            if (!no_order) {
                 alert("No PO Invoice provided!");
                 return;
             }
@@ -217,8 +265,8 @@
                 url: "{{ url('dispute_save') }}",
                 type: 'POST',
                 data: {
-                    dispute: disputeValue,
-                    po_invoice: po_invoice,
+                    dispute: currentDisputeValue,
+                    po_invoice: no_order,
                     _token: '{{ csrf_token() }}'
                 },
                 success: function (response) {
@@ -232,6 +280,8 @@
             });
         });
     });
+
+
 
     // dispute description save
     $(document).ready(function () {
