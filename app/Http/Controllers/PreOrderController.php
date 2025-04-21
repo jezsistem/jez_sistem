@@ -631,6 +631,17 @@ class PreOrderController extends Controller
         $file = $request->file('file');
         $po_id = $request->get('po_id');
         $r = array();
+        $delimiter = null;
+        $sampleLine = fgets(fopen($file->getRealPath(), 'r'));
+        if (strpos($sampleLine, ",") !== false) {
+            $delimiter = ",";
+        } elseif (strpos($sampleLine, ";") !== false) {
+            $delimiter = ";";
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'Unable to determine the file delimiter.';
+            return json_encode($r);
+        }
 
         if ($file) {
             try {
@@ -641,7 +652,7 @@ class PreOrderController extends Controller
                 $fileHandle = fopen(storage_path('app/' . $filePath), 'r');
                 $headerSkipped = false;
 
-                while (($line = fgetcsv($fileHandle, 0, ';')) !== false) { // Changed length to 0 for unlimited length
+                while (($line = fgetcsv($fileHandle, 0, $delimiter)) !== false) { // Changed delimiter to tab ("\t")
                     if (!$headerSkipped) {
                         $headerSkipped = true;
                         continue; // Skip the header row
@@ -649,15 +660,9 @@ class PreOrderController extends Controller
 
                     $sku = ltrim($line[0]); // Assuming SKU is in the first column
                     $qty = isset($line[1]) ? $line[1] : null; // Check if the second column exists
-                    if ($qty === null) {
-                        $r['status'] = '400';
-                        $r['message'] = 'Quantity column is missing for SKU ' . $sku . '.';
-                        fclose($fileHandle);
-                        return json_encode($r);
-                    }
 
                     if (!is_numeric($qty)) {
-                        $r['status'] = '400';
+                        $r['status'] = '404';
                         $r['message'] = 'Quantity for SKU ' . $sku . ' is not a valid number.';
                         fclose($fileHandle);
                         return json_encode($r);
@@ -666,7 +671,7 @@ class PreOrderController extends Controller
                     $productStock = ProductStock::where('ps_barcode', $sku)->first();
 
                     if (!$productStock) {
-                        $r['status'] = '400';
+                        $r['status'] = '404';
                         $r['message'] = 'Data for SKU ' . $sku . ' not found.';
                         fclose($fileHandle);
                         return json_encode($r);
