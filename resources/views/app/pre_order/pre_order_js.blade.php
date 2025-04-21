@@ -1200,6 +1200,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
+                enctype: 'multipart/form-data',
                 success: function(data) {
 
                     $("#import_data_btn").html('Import');
