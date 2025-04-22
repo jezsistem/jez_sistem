@@ -17,10 +17,10 @@ class ProductLocationController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -29,7 +29,7 @@ class ProductLocationController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -42,9 +42,9 @@ class ProductLocationController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -53,7 +53,7 @@ class ProductLocationController extends Controller
         }
         return $sidebar;
     }
-    
+
     protected function UserActivity($activity)
     {
         UserActivity::create([
@@ -62,8 +62,8 @@ class ProductLocationController extends Controller
             'created_at' => date('Y-m-d H:i:s')
         ]);
     }
-    
-    public function index() 
+
+    public function index()
     {
         $this->validateAccess();
         $user = new User;
@@ -80,38 +80,45 @@ class ProductLocationController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1),
             'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
-            ->where('st_delete', '!=', '1')
-            ->orderByDesc('sid')->pluck('store', 'sid'),
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
         ];
         return view('app.product_location.product_location', compact('data'));
     }
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
-            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default')
-            ->join('stores', 'stores.id', '=','product_locations.st_id')
-            ->where('pl_delete', '!=', '1')
-            ->where('st_id', '=', $request->st_id))
-            ->editColumn('pl_default_show', function($data){ 
-                if ($data->pl_default == '1') {
-                    return 'Ya';
-                } else {
-                    return '-';
-                }
-            })
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('pl_name', 'LIKE', "%$search%")
-                        ->orWhere('pl_code', 'LIKE', "%$search%")
-                        ->orWhere('pl_description', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+        if (request()->ajax()) {
+            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default', 'pl_freeze')
+                ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('pl_delete', '!=', '1')
+                ->where('st_id', '=', $request->st_id))
+                ->editColumn('pl_default_show', function ($data) {
+                    if ($data->pl_default == '1') {
+                        return 'Yes';
+                    } else {
+                        return 'No';
+                    }
+                })
+                ->editColumn('pl_freeze', function ($data) {
+                    if ($data->pl_freeze == '1') {
+                        return 'Yes';
+                    } else {
+                        return 'No';
+                    }
+                })
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('pl_name', 'LIKE', "%$search%")
+                                ->orWhere('pl_code', 'LIKE', "%$search%")
+                                ->orWhere('pl_description', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -120,12 +127,19 @@ class ProductLocationController extends Controller
         $product_location = new ProductLocation;
         $mode = $request->input('_mode');
         $id = $request->input('_id');
+        $pl_freeze = $request->input('pl_freeze');
 
         if ($request->input('pl_default') == '1') {
             ProductLocation::where('st_id', '=', $request->input('st_id'))->update([
                 'pl_default' => '0'
             ]);
         }
+
+//        if ($request->input('pl_freeze') == '1') {
+//            ProductLocation::where('st_id', '=', $request->input('st_id'))->update([
+//                'pl_freeze' => '1'
+//            ]);
+//        }
 
         $data = [
             'st_id' => $request->input('st_id'),
@@ -134,14 +148,15 @@ class ProductLocationController extends Controller
             'pl_description' => $request->input('pl_description'),
             'pl_default' => $request->input('pl_default'),
             'pl_delete' => '0',
+            'pl_freeze' => $pl_freeze,
         ];
 
         $save = $product_location->storeData($mode, $id, $data);
         if ($save) {
-            $this->UserActivity('menambah data lokasi '.strtoupper($request->input('pl_code')));
+            $this->UserActivity('menambah data lokasi ' . strtoupper($request->input('pl_code')));
             $r['status'] = '200';
         } else {
-            $this->UserActivity('mengubah data lokasi '.strtoupper($request->input('pl_code')));
+            $this->UserActivity('mengubah data lokasi ' . strtoupper($request->input('pl_code')));
             $r['status'] = '400';
         }
         return json_encode($r);

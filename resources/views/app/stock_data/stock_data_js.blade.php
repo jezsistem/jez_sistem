@@ -488,144 +488,153 @@
             var p_name = $(this).attr('data-p_name');
             var pl_code = $(this).attr('data-pl_code');
             var bin = $(this).attr('data-bin');
-            var st_id = {{ \Illuminate\Support\Facades\Auth::user()->st_id }}
+            var freeze = $(this).attr('data-freeze');
+            var st_id = {{ \Illuminate\Support\Facades\Auth::user()->st_id }};
 
-            @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
-            if(st_id == {{ $data['user']->st_id }})
-            {
-                // Fetch the articles_promo data first
-                let article_id = $(this).data('p_article');
-                let p_name = $(this).data('p_name');
-                let bin = $(this).data('bin');
-
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
+            if (freeze == 1) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Bin Under Maintenance',
+                    text: 'This bin is now under maintenance. Please contact the logistics team.',
+                    confirmButtonText: 'OK'
                 });
+            } else {
+                @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
+                if (st_id == {{ $data['user']->st_id }}) {
+                    // Fetch the articles_promo data first
+                    let article_id = $(this).data('p_article');
+                    let p_name = $(this).data('p_name');
+                    let bin = $(this).data('bin');
 
-                $.ajax({
-                    type: "GET",
-                    url: "{{ url('get_articles_promo') }}/" +
-                        article_id, // Send article_id to your controller route
-                    success: function (response) {
-                        // Prepare the content for swal based on response data
-                        let promoInfo = '';
-                        let promoPrice = '';
-                        let getTotalDiscountPrice = '';
-
-                        if (response.data && response.data.length > 0) {
-                            promoInfo = '';
-                            promoPrice = '';
-
-                            response.data.forEach(function (promo) {
-                                let originalPrice = promo.p_price_tag; // Harga asli
-                                let discount = promo.promo_disc; // Persentase diskon
-
-                                // Hitung harga setelah diskon
-                                let discountedPrice = originalPrice - (originalPrice * (discount / 100));
-
-                                promoInfo += 'Promo: ' + discount + '% - ' + promo.promo_name + "";
-                                promoPrice += 'Discount Price: ' + discountedPrice.toLocaleString('id-ID') + "\n";
-                            });
-
-                        } else {
-                            promoInfo = 'No promo available for this article.';
-                            promoPrice = 'Harga Normal guys!';
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
+                    });
 
-                        // Now show the swal with the promo data
-                        swal({
-                            title: bin,
-                            text: "Yakin pickup item " + p_name + " dari bin " +
-                                bin + " ?\n\nPromotions:\n" + promoInfo + "\n" +
-                                promoPrice,
-                            icon: "warning",
-                            buttons: [
-                                'Batal',
-                                'Yakin'
-                            ],
-                            dangerMode: false,
-                        }).then(function (isConfirm) {
-                            if (isConfirm) {
-                                // Proceed with the existing POST request to pickup the item
-                                $.ajax({
-                                    type: "POST",
-                                    data: {
-                                        _pls_id: pls_id,
-                                        _pst_id: pst_id,
-                                        _pl_id: pl_id,
-                                        _pl_code: pl_code,
-                                        _st_id: st_id
-                                    },
-                                    dataType: 'json',
-                                    url: "{{ url('pickup_item') }}",
-                                    success: function (r) {
-                                        if (r.status == '200') {
-                                            toast("Berhasil", "Item berhasil dipickup", "success");
-                                            stock_data_table.draw();
-                                            pickup_list_table.draw();
-                                        } else {
-                                            toast('Gagal', 'Gagal pickup item', 'error');
-                                        }
-                                    }
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ url('get_articles_promo') }}/" +
+                            article_id, // Send article_id to your controller route
+                        success: function (response) {
+                            // Prepare the content for swal based on response data
+                            let promoInfo = '';
+                            let promoPrice = '';
+                            let getTotalDiscountPrice = '';
+
+                            if (response.data && response.data.length > 0) {
+                                promoInfo = '';
+                                promoPrice = '';
+
+                                response.data.forEach(function (promo) {
+                                    let originalPrice = promo.p_price_tag; // Harga asli
+                                    let discount = promo.promo_disc; // Persentase diskon
+
+                                    // Hitung harga setelah diskon
+                                    let discountedPrice = originalPrice - (originalPrice * (discount / 100));
+
+                                    promoInfo += 'Promo: ' + discount + '% - ' + promo.promo_name + "";
+                                    promoPrice += 'Discount Price: ' + discountedPrice.toLocaleString('id-ID') + "\n";
                                 });
-                                return false;
+
+                            } else {
+                                promoInfo = 'No promo available for this article.';
+                                promoPrice = 'Harga Normal guys!';
                             }
-                        });
-                    },
-                    error: function () {
-                        // Handle error
-                        swal('Error', 'Failed to fetch promo data', 'error');
-                    }
-                });
-            }
-        else
-            {
-                swal({
-                    title: "Pickup..?",
-                    text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
-                    icon: "warning",
-                    buttons: [
-                        'Batal',
-                        'Yakin'
-                    ],
-                    dangerMode: false,
-                }).then(function (isConfirm) {
-                    if (isConfirm) {
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
-                                    'content')
-                            }
-                        });
-                        $.ajax({
-                            type: "POST",
-                            data: {
-                                _pls_id: pls_id,
-                                _pst_id: pst_id,
-                                _pl_id: pl_id,
-                                _pl_code: pl_code
-                            },
-                            dataType: 'json',
-                            url: "{{ url('pickup_item') }}",
-                            success: function (r) {
-                                if (r.status == '200') {
-                                    toast("Berhasil", "Item berhasil dipickup",
-                                        "success");
-                                    stock_data_table.draw();
-                                    pickup_list_table.draw();
-                                } else {
-                                    toast('Gagal', 'Gagal pickup item',
-                                        'error');
+
+                            // Now show the swal with the promo data
+                            swal({
+                                title: bin,
+                                text: "Yakin pickup item " + p_name + " dari bin " +
+                                    bin + " ?\n\nPromotions:\n" + promoInfo + "\n" +
+                                    promoPrice,
+                                icon: "warning",
+                                buttons: [
+                                    'Batal',
+                                    'Yakin'
+                                ],
+                                dangerMode: false,
+                            }).then(function (isConfirm) {
+                                if (isConfirm) {
+                                    // Proceed with the existing POST request to pickup the item
+                                    $.ajax({
+                                        type: "POST",
+                                        data: {
+                                            _pls_id: pls_id,
+                                            _pst_id: pst_id,
+                                            _pl_id: pl_id,
+                                            _pl_code: pl_code,
+                                            _st_id: st_id
+                                        },
+                                        dataType: 'json',
+                                        url: "{{ url('pickup_item') }}",
+                                        success: function (r) {
+                                            if (r.status == '200') {
+                                                toast("Berhasil", "Item berhasil dipickup", "success");
+                                                stock_data_table.draw();
+                                                pickup_list_table.draw();
+                                            } else {
+                                                toast('Gagal', 'Gagal pickup item', 'error');
+                                            }
+                                        }
+                                    });
+                                    return false;
                                 }
-                            }
-                        });
-                        return false;
-                    }
-                })
+                            });
+                        },
+                        error: function () {
+                            // Handle error
+                            swal('Error', 'Failed to fetch promo data', 'error');
+                        }
+                    });
+                } else {
+                    swal({
+                        title: "Pickup..?",
+                        text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
+                        icon: "warning",
+                        buttons: [
+                            'Batal',
+                            'Yakin'
+                        ],
+                        dangerMode: false,
+                    }).then(function (isConfirm) {
+                        if (isConfirm) {
+                            $.ajaxSetup({
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
+                                        'content')
+                                }
+                            });
+                            $.ajax({
+                                type: "POST",
+                                data: {
+                                    _pls_id: pls_id,
+                                    _pst_id: pst_id,
+                                    _pl_id: pl_id,
+                                    _pl_code: pl_code
+                                },
+                                dataType: 'json',
+                                url: "{{ url('pickup_item') }}",
+                                success: function (r) {
+                                    if (r.status == '200') {
+                                        toast("Berhasil", "Item berhasil dipickup",
+                                            "success");
+                                        stock_data_table.draw();
+                                        pickup_list_table.draw();
+                                    } else {
+                                        toast('Gagal', 'Gagal pickup item',
+                                            'error');
+                                    }
+                                }
+                            });
+                            return false;
+                        }
+                    })
+                }
+                @endif
             }
-            @endif
+
+
         });
 
         $(document).delegate('#pickup_approval_item', 'click', function (e) {

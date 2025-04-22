@@ -15,6 +15,7 @@ class ProductLocation extends Model
         'pl_name',
         'pl_description',
         'pl_delete',
+        'pl_freeze',
     ];
 
     public function checkData($select, $where)

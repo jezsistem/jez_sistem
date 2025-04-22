@@ -49,6 +49,10 @@
                     data: 'pl_default_show',
                     name: 'pl_default'
                 },
+                {
+                    data: 'pl_freeze',
+                    name: 'pl_freeze'
+                },
             ],
             columnDefs: [{
                 "targets": 0,
@@ -209,12 +213,12 @@
                     if (data.status == '200') {
                         $("#ProductCategoryModal").modal('hide');
                         toastr.success('Data berhasil disimpan',
-                            'Berhasil'); // Use toastr for success
+                            'Berhasil');
                         product_location_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#ProductCategoryModal").modal('hide');
                         toastr.warning('Data tidak tersimpan',
-                            'Gagal'); // Use toastr for warning
+                            'Gagal');
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
