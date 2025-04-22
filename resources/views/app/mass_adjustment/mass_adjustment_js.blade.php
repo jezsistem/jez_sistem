@@ -436,8 +436,8 @@
                     name: 'psc_name'
                 },
                 {
-                    data: 'purchase',
-                    name: 'purchase_1',
+                    data: 'p_purchase_price',
+                    name: 'p_purchase_price',
                     orderable: false
                 },
                 {

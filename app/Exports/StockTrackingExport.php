@@ -48,7 +48,8 @@ class StockTrackingExport implements FromCollection, WithHeadings
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id');
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->where('product_location_setup_transactions.st_id' , $this->filters['st_id']);
 
         // Apply filters
         if (!empty($this->filters['br_id'])) {

@@ -639,7 +639,7 @@ class TrackingController extends Controller
     }
 
     public function exportExcel(Request $request){
-        $filters = $request->only(['br_id', 'psc_id', 'std_id', 'status']);
+        $filters = $request->only(['st_id','br_id', 'psc_id', 'std_id', 'status']);
 
         return Excel::download(new StockTrackingExport($filters), 'stock_tracking.xlsx');
     }

@@ -286,6 +286,7 @@
         });
 
         document.getElementById('export_stock_tracking').addEventListener('click', function () {
+            const st_id = document.getElementById('st_id_filter').value;
             const br_id = document.getElementById('br_id').value;
             const psc_id = document.getElementById('psc_id').value;
             const std_id = document.getElementById('std_id').value;
@@ -293,6 +294,7 @@
 
             // You can include more filters if needed
             const queryParams = new URLSearchParams({
+                st_id,
                 br_id,
                 psc_id,
                 std_id,
