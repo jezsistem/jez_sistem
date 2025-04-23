@@ -4,7 +4,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form id="f_pd">
+            <form id="ArtikelPromoform">
             @csrf
             <input type="hidden" name="_id" id="_id" value="" />
             <input type="hidden" name="_mode" id="_mode" value="" />
@@ -23,7 +23,7 @@
                     <div class="form-group mb-1 pb-1">
                         <label>Store <span class="text-danger">*</span></label>
                         <select class="form-control" id="st_id" name="st_id">
-                            <option value="">- Semua -</option>
+                            <option value="">- Pilih Store -</option>
                             @foreach ($data['st_id'] as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach
@@ -42,8 +42,8 @@
                         <input type="date" class="form-control" id="date_end" name="date_end" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="pd_value">Promo Disc</label>
-                        <input type="number" class="form-control" id="promo_disc" name="promo_disc" required />
+                        <label for="promo_disc">Promo Disc</label>
+                        <input type="text" class="form-control" id="promo_disc" name="promo_disc" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Note</label>

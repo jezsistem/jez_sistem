@@ -52,8 +52,7 @@
                                                 <a href="#" class="navi-link">
                                                         <span class="navi-icon">
                                                             <i class="la la-copy"></i>
-                                                <a class="btn btn-primary ml-auto mr-2" data-type="cross"
-                                                   id="export_btn">Export Excel</a><br/>
+                                                <br/>
                                             </ul>
                                             <!--end::Navigation-->
                                         </div>
@@ -109,7 +108,7 @@
                                 <!--begin: Datatable-->
                                 <input type="search" class="form-control  col-6" id="artikel_promo_search"
                                        placeholder="Cari Artikel Promo"/><br/>
-                                <a class="btn btn-primary ml-auto mr-2" data-type="invoice" id="export_btn">Export
+                                <a class="btn btn-primary ml-auto mr-2" id="export_btn">Export
                                     Excel</a>
                                 <table class="table table-hover table-checkable" id="ArtikelPromotb">
                                     <thead class="bg-light text-dark">
