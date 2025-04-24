@@ -1,5 +1,5 @@
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -20,15 +20,15 @@
             }],
             ajax: {
                 url: "{{ url('artikel_promo_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#artikel_promo_search').val();
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'a_id',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'a_id',
+                    searchable: false
+                },
                 {
                     data: 'article_id',
                     name: 'article_id'
@@ -85,12 +85,94 @@
         });
 
         data_article_promo_tb.buttons().container().appendTo($('#artikel_promo_excel_btn'));
-        $('#artikel_promo_search').on('keyup', function () {
+        $('#artikel_promo_search').on('keyup', function() {
             data_article_promo_tb.draw();
         });
 
-        $('#f_import').on('submit', function (e) {
-            // console.log('jkasdaksjd');
+
+        $('#ArtikelPromotb tbody').on('click', 'tr td:not(:nth-child(12))', function() {
+            var row = data_article_promo_tb.row(this).data();
+            var id = row.a_id;
+            var article_id = row.article_id;
+            var st_id = row.st_id;
+            var st_code = row.st_code; // Added to retrieve st_code
+            var promo_name = row.promo_name;
+            var date_start = row.date_start;
+            var date_end = row.date_end;
+            var promo_disc = row.promo_disc;
+            var promo_note = row.promo_note;
+            jQuery.noConflict();
+            $('#ArtikelPromoModal').modal('show');
+            $('#_id').val(id);
+            $('#article_id').val(article_id);
+            $('#st_id').val(st_id);
+            $('#st_code').val(st_code); // Added to display st_code
+            $('#promo_name').val(promo_name);
+            $('#date_start').val(date_start);
+            $('#date_end').val(date_end);
+            $('#promo_disc').val(promo_disc);
+            $('#promo_note').val(promo_note);
+            $('#_mode').val('edit');
+            if ("{{ $data['user']->delete_access }}" == '1') {
+                $('#delete_artikel_promo_btn').show();
+            } else {
+                $('#delete_artikel_promo_btn').hide();
+            }
+        });
+
+        $('#add_artikel_promo_btn').on('click', function() {
+            jQuery.noConflict();
+            $('#ArtikelPromoModal').modal('show');
+            $('#_id').val('');
+            $('#_mode').val('add');
+            $('#ArtikelPromoModal form')[0].reset();
+            $('#delete_artikel_promo_btn').hide();
+        });
+
+        $('#ArtikelPromoModal form').on('submit', function(e) {
+            e.preventDefault();
+            $("#save_artikel_promo_btn").html('Proses ..');
+            $("#save_artikel_promo_btn").attr("disabled", true);
+            var formData = new FormData(this);
+            var isEdit = $('#_mode').val() === 'edit'; // Check if it's edit mode
+            var currentId = $('#_id').val(); // Get the current ID
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('artikel_promo_save') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#save_artikel_promo_btn").html('Simpan');
+                    $("#save_artikel_promo_btn").attr("disabled", false);
+
+                    if (data.status == '200') {
+                        $("#ArtikelPromoModal").modal('hide');
+                        toastr.success("Data saved successfully Jez", "Success");
+
+                        if (isEdit) {
+                            // Update the row in the DataTable
+                            data_article_promo_tb.ajax.reload(null, false);
+                        } else {
+                            // Add new data: reload the DataTable
+                            data_article_promo_tb.ajax.reload(null, false);
+                        }
+                    } else if (data.status == '400') {
+                        toastr.warning("Data not saved Jez", "Failed");
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    $("#save_artikel_promo_btn").html('Simpan').attr("disabled", false);
+                    toastr.error("Terjadi kesalahan saat memproses", "Error");
+                }
+            });
+        });
+
+        $('#f_import').on('submit', function(e) {
             e.preventDefault();
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
@@ -104,7 +186,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (data) {
+                success: function(data) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
@@ -128,84 +210,30 @@
                         toastr.error('Terjadi kesalahan saat memproses file', 'Error');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     toastr.error('An error occurred while processing your request', 'Error');
                 }
             });
         });
 
-        $('#ArtikelPromotb tbody').on('click', '.artikel-promo-row', function() {
-            var data = data_articles_promo_tb.row(this).data();
-            if (!data) return;
-
-            jQuery.noConflict();
-            $('#ArtikelPromo').modal('show');
-            $('#p_id').val(p_id);
-            $('#st_id').val(st_id);
-            $('#promo_name').val(promo_name);
-            $('#date_start').val(date_start);
-            $('#date_end').val(date_end);
-            $('#promo_disc').val(promo_disc);
-            $('#promo_note').val(promo_note);
-            $('#_id').val(id);
-            $('#_mode').val('edit');
-
-            @if ($data['user']->delete_access == '1')
-                $('#delete_artikel_promo_btn').show();
-            @endif
+        $('#export_btn').on('click', function(e) {
+            e.preventDefault();
+            
+            window.location.href = "{{ url('export_artikel_promo') }}";
         });
 
 
-        // $('#dp_name').on('change', function() {
-        //     var dp_name_name = $(this).val();
-        //     $.ajaxSetup({
-        //         headers: {
-        //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        //         }
-        //     });
-        //     $.ajax({
-        //         type: "POST",
-        //         data: {
-        //             _dp_name: dp_name
-        //         },
-        //         dataType: 'json',
-        //         url: "{{ url('check_exists_data_perusahaan') }}",
-        //         success: function(r) {
-        //             if (r.status == '200') {
-        //                 swal('Perusahaan',
-        //                     'Data Perusahaan sudah ada disistem, silahkan ganti dengan yang lain',
-        //                     'warning');
-        //                 $('#dp_name').val('');
-        //                 return false;
-        //             }
-        //         }
-        //     });
-        // });
-
-        $('#add_artikel_promo_btn').on('click', function () {
-            jQuery.noConflict();
-            $('#ArtikelPromoModal').modal('show');
-            $('#_id').val('');
-            $('#_mode').val('add');
-            $('#f_artikel_promo')[0].reset();
-            $('#delete_artikel_promo_btn').hide();
-        });
-
-
-        //button import
-
-
-        $('#delete_artikel_promo_btn').on('click', function () {
+        $('#delete_artikel_promo_btn').on('click', function() {
             swal({
                 title: "Hapus..?",
-                text: "Yakin hapus data ini?",
+                text: "Yakin hapus data ini ?",
                 icon: "warning",
                 buttons: [
                     'Batalkan',
                     'Hapus'
                 ],
                 dangerMode: true,
-            }).then(function (isConfirm) {
+            }).then(function(isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -215,25 +243,23 @@
                     $.ajax({
                         type: "POST",
                         data: {
-                            _id: $('#_id').val(),
-                            _item: $('#ap_name').val()
+                            _id: $('#_id').val()
                         },
                         dataType: 'json',
-                        url: "{{ url('ap_delete') }}",
-                        success: function (r) {
+                        url: "{{ url('artikel_promo_delete') }}",
+                        success: function(r) {
                             if (r.status == '200') {
-                                $('#artikel_promoModal').modal('hide');
-                                toastr.success(
-                                    'Data berhasil dihapus'); // Change to Toastr success message
-                                articles_promo_table.ajax.reload();
+                                toastr.success("Data successfully deleted Jez", "Success");
+                                $('#ArtikelPromoModal').modal('hide');
+                                data_article_promo_tb.ajax.reload();
                             } else {
-                                toastr.error(
-                                    'Gagal hapus data'); // Change to Toastr error message
+                                toastr.error("Failed to delete data Jez", "Failed");
                             }
                         },
-                        error: function () {
+                        error: function() {
                             toastr.error(
-                                'Terjadi kesalahan saat menghapus data'); // Toastr error for AJAX error
+                                "Terjadi kesalahan saat memproses permintaan",
+                                "Error");
                         }
                     });
                     return false;
@@ -241,9 +267,9 @@
             });
         });
 
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Open the second modal when the button is clicked
-            $("#ImportModalBtn").click(function () {
+            $("#ImportModalBtn").click(function() {
                 $("#ImportModal").modal("show");
             });
         });

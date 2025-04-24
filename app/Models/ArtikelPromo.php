@@ -14,8 +14,8 @@ class ArtikelPromo extends Model
         'p_id',
         'st_id',
         'promo_name',
-        'start_date',
-        'end_date',
+        'date_start',
+        'date_end',
         'promo_type',
         'promo_disc',
         'promo_note'
