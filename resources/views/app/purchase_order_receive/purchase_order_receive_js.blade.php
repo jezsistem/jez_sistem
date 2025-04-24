@@ -1151,6 +1151,11 @@
                     name: 'po_status',
                     orderable: false
                 },
+                {
+                    data: 'u_receive',
+                    name: 'u_receive',
+                    orderable: false
+                },
             ],
             columnDefs: [{
                 "targets": 0,
