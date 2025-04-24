@@ -274,5 +274,73 @@
             });
         });
 
+        jQuery.noConflict();
+        var picker = $('#kt_dashboard_daterangepicker');
+        if ($('#kt_dashboard_daterangepicker').length == 0) {
+            return;
+        }
+        var start = moment();
+        var end = moment();
+
+        function cb(start, end, label) {
+            var title = '';
+            var range = '';
+            var hidden_range = '';
+
+            if ((end - start) < 100 || label == 'Today') {
+            title = 'Today:';
+            range = start.format('MMM D');
+            hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'Yesterday') {
+            title = 'Yesterday:';
+            range = start.format('MMM D');
+            hidden_range = start.format('YYYY-MM-DD');
+            }
+            else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = ''; }
+            else {
+            range = start.format('MMM D') + ' - ' + end.format('MMM D');
+            hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            }
+
+            $('#artikel_promo_date_start').val(hidden_range);
+            $('#kt_dashboard_daterangepicker_date').html(range);
+            $('#kt_dashboard_daterangepicker_title').html(title);
+
+            // Trigger DataTable reload with date range filter
+            data_article_promo_tb.ajax.reload();
+        }
+
+        picker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+            'All Days': [null, null],
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+
+        cb(start, end, '');
+
+        // Update DataTable AJAX request to include date range filter
+        data_article_promo_tb.on('preXhr.dt', function(e, settings, data) {
+            var dateRange = $('#artikel_promo_date_start').val();
+            if (dateRange) {
+            var dates = dateRange.split('|');
+            data.date_start = dates[0];
+            data.date_end = dates[1];
+            }
+        });
+
     });
 </script>

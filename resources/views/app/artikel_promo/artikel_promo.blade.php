@@ -106,8 +106,18 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="artikel_promo_search"
-                                       placeholder="Cari Artikel Promo"/><br/>
+                                <div class="d-flex align-items-center">
+                                    <input type="search" class="form-control col-6" id="artikel_promo_search"
+                                           placeholder="Cari Artikel Promo"/>
+                                    <a href="#" class="btn btn-date-info font-weight-bold ml-2" id="kt_dashboard_daterangepicker" 
+                                       data-toggle="tooltip" title="Article Promo Start Date" data-placement="left">
+                                        <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
+                                        <span class="font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
+                                        <input type="hidden" id="artikel_promo_date_start"/>
+                                        <input type="hidden" id="artikel_promo_end_date"/>
+                                    </a>
+                                </div>
+                                <br/>
                                 <a class="btn btn-primary ml-auto mr-2" id="export_btn">Export
                                     Excel</a>
                                 <table class="table table-hover table-checkable" id="ArtikelPromotb">

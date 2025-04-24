@@ -137,6 +137,29 @@ class ArtikelPromoController extends Controller
 
                     return number_format($discountedPrice);
                 })
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('date_start'))) {
+                        // $params_date = explode('|', $request->get('date_start'));
+
+                        // $instance->where('date_start', '>=', $request->get('date_start'));
+
+                        $range = $request->get('date_start');
+                        $exp = explode('|', $range);
+                        if (count($exp) > 1) {
+                            $start = $exp[0];
+                            $end = $exp[1];
+                        } else {
+                            $start = $request->get('date_start');
+                            $end = $request->get('date_start');
+                        }
+                        if ($start != $end) {
+                            $instance->whereDate('date_start', '>=', $exp[0])
+                                ->whereDate('date_start', '<=', $exp[1]);
+                        } else {
+                            $instance->whereDate('date_start', $start);
+                        }
+                    }
+                })
                 ->addIndexColumn()
                 ->make(true);
         }
