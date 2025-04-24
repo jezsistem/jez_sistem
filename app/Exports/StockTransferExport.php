@@ -28,6 +28,7 @@ class StockTransferExport implements FromCollection
             ->select('product_stocks.ps_barcode', 'stock_transfer_details.stfd_qty',  DB::raw('SUM(ts_stock_transfer_detail_statuses.stfds_qty) as qty_transfer'))
             ->where('stock_transfers.stf_code', $this->po_id)
             ->groupBy('product_stocks.ps_barcode', 'stock_transfer_details.stfd_qty')
+            ->orderBy('stock_transfer_details.stfd_qty', 'desc')
             ->get();
     }
 

@@ -169,12 +169,28 @@ class StockTransferDataController extends Controller
     public function getAcceptDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'pst_id', 'pl_id', 'st_id_start', 'st_id_end', 'stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'stfd_status')
+            return datatables()->of(StockTransferDetail::select(
+                'stock_transfer_details.id as stfd_id',
+                'pst_id',
+                'pl_id',
+                'st_id_start',
+                'st_id_end',
+                'stf_code',
+                'br_name',
+                'p_name',
+                'p_color',
+                'sz_name',
+                'stfd_qty',
+                'stfd_status',
+                'temp_stock_transfer_receive.stfds_qty as temp_stfds_qty',
+                'temp_stock_transfer_receive.created_at as temp_created_at'
+            )
                 ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('temp_stock_transfer_receive', 'temp_stock_transfer_receive.stfd_id', '=', 'stock_transfer_details.id')
                 ->where('stf_code', '=', $request->stf_code))
                 ->editColumn('article', function ($data) {
                     return '<span class="btn-sm btn-primary" style="white-space:nowrap;">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
@@ -187,7 +203,8 @@ class StockTransferDataController extends Controller
                     $accept_qty = StockTransferDetailStatus::where('stfd_id', '=', $data->stfd_id)->sum('stfds_qty');
                     if ($accept_qty < $data->stfd_qty) {
                         $current_qty_accept = $data->stfd_qty - $accept_qty;
-                        return '<input class="form-control accept_qty" data-stfd_id="' . $data->stfd_id . '" data-pst_id="' . $data->pst_id . '" data-pl_id="' . $data->pl_id . '" data-stfd_qty="' . $current_qty_accept . '" id="accept_qty" type="number">';
+                        $temp_quantity = !empty($data->temp_stfds_qty) ? $data->temp_stfds_qty : '';
+                        return '<input class="form-control accept_qty" data-stfd_id="' . $data->stfd_id . '" data-pst_id="' . $data->pst_id . '" data-pl_id="' . $data->pl_id . '" data-stfd_qty="' . $current_qty_accept . '" value="' . $temp_quantity . '" id="accept_qty" type="number">';
                     } else {
                         return '<span class="btn btn-success">Full</span>';
                     }
@@ -447,5 +464,39 @@ class StockTransferDataController extends Controller
         }
 
         return $processedData;
+    }
+
+    public function tempChangeStockTransferAccept(){
+        $data = request()->_arr;
+        $stfd_id = request()->_stfd_id;
+        $u_id = Auth::user()->id;
+        $stf_id = request()->_stf_id;
+
+        if (!empty($data)) {
+            $check = DB::table('temp_stock_transfer_receive')->where('stfd_id', '=', $stfd_id)->exists();
+            try {
+                if ($check) {
+                    DB::table('temp_stock_transfer_receive')->where('stfd_id', '=', $stfd_id)->update([
+                        'stfds_qty' => $data[0]['qty'],
+                        'u_id' => $u_id,
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                } else {
+                    DB::table('temp_stock_transfer_receive')->insert([
+                        'stf_id' => $stf_id,
+                        'stfd_id' => $stfd_id,
+                        'stfds_qty' => $data[0]['qty'],
+                        'u_id' => $u_id,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
+            } catch (\Exception $e) {
+                return json_encode(['status' => 500, 'error' => $e->getMessage()]);
+            }
+            return json_encode(['status' => 200]);
+        } else {
+            return json_encode(['status' => 400]);
+        }
     }
 }

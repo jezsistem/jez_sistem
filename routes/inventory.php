@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Route;
 
 /* new 25-09-2024*/
 use App\Http\Controllers\AllstockController;
+use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/allstock', [AllstockController::class, 'index']);
 
@@ -254,6 +255,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('transfer_data_accept_datatables', [StockTransferDataController::class, 'getAcceptDatatables']);
     Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
+    Route::post('temp_change_stock_transfer_accept', [StockTransferDataController::class, 'tempChangeStockTransferAccept']);
     Route::get('std_export', [StockTransferDataController::class, 'exportData']);
     Route::post('std_receive_transfer_data_import', [StockTransferDataController::class, 'importReceiveTransferData']);
 //    Route::get('/export-stock-transfer', [StockTransferDataController::class, 'exportStockTransfer'])->name('export.stock.transfer');
