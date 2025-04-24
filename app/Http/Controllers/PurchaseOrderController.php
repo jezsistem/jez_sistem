@@ -136,10 +136,13 @@ class PurchaseOrderController extends Controller
                 'po_invoice',
                 'po_description',
                 'po_draft',
-                'purchase_orders.created_at as po_created_at'
+                'purchase_order_article_detail_statuses.u_id_approve',
+                'purchase_order_article_detail_statuses.created_at as status_created_at'
             )
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                 ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
                 ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->where('po_delete', '!=', '1')
@@ -204,7 +207,18 @@ class PurchaseOrderController extends Controller
                         }
                     }
                 })
-                ->rawColumns(['po_status'])
+                ->editColumn('u_receive', function ($data) {
+                    if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
+                        $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
+                        return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
+                    } else if (!empty($data->u_id_approve)) {
+                        $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
+                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->status_created_at)) . '</span>';
+                    } else {
+                        return '<span class="badge badge-warning">Menunggu Approval</span>';
+                    }
+                })
+                ->rawColumns(['po_status', 'u_receive'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
