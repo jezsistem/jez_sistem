@@ -137,7 +137,8 @@ class PurchaseOrderController extends Controller
                 'po_description',
                 'po_draft',
                 'purchase_order_article_detail_statuses.u_id_approve',
-                'purchase_order_article_detail_statuses.created_at as status_created_at'
+                'purchase_order_article_detail_statuses.created_at as status_created_at',
+                'purchase_orders.created_at as po_created_at',
             )
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
