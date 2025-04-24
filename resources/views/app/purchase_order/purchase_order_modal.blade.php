@@ -401,7 +401,7 @@
                         <div class="form-group">
                             <label>Download Template
                                 <span class="text-danger">*</span></label>
-                            <a href="{{ asset('upload/template/po_pembelian.csv') }}" class="btn btn-xs btn-primary">Download</a>
+                            <a href="{{ asset('upload/template/po_pembelian_template.xlsx') }}" class="btn btn-xs btn-primary">Download</a>
                         </div>
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi data</label>
