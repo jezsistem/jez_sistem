@@ -400,7 +400,7 @@ class PurchaseOrderReceiveController extends Controller
                 'p_name',
                 'p_color',
                 'poa_discount',
-                'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid')
+                'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid', 'products.created_at as item_added')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();
@@ -873,6 +873,32 @@ class PurchaseOrderReceiveController extends Controller
         $po_id = $request->po_id;
         $shipping_cost = $request->shipping_cost;
         $check = PurchaseOrder::where(['id' => $po_id])->update(['po_shipping_cost' => $shipping_cost]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function changePayDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $pay_date = $request->pay_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function changeDueDate(Request $request)
+    {
+        $po_id = $request->po_id;
+        $due_date = $request->due_date;
+        $check = PurchaseOrder::where(['id' => $po_id])->update(['due_date' => $due_date]);
         if ($check) {
             $r['status'] = '200';
         } else {

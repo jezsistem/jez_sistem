@@ -10,9 +10,10 @@ use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\ArtikelPromo;
 use App\Models\UserActivity;
+use App\Models\StoreTypeDivision;
+use App\Models\Store;
 use App\Imports\ArtikelPromoImport;
-
-//use App\Exports\ArtikelPromoExport;
+use App\Exports\ArtikelPromoExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ArtikelPromoController extends Controller
@@ -57,6 +58,15 @@ class ArtikelPromoController extends Controller
         return $sidebar;
     }
 
+    protected function UserActivity($activity)
+    {
+        UserActivity::create([
+            'user_id' => Auth::user()->id,
+            'ua_description' => $activity,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
     public function index()
     {
         $this->validateAccess();
@@ -72,24 +82,31 @@ class ArtikelPromoController extends Controller
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'st_id' => Store::selectRaw('ts_stores.id as sid, CONCAT(st_name) as store')
+                ->where('st_delete', '!=', '1')
+                ->orderByDesc('sid')->pluck('store', 'sid'),
+            'std_id' => StoreTypeDivision::where('dv_delete', '!=', '1')->orderByDesc('id')->pluck('dv_name', 'id'),
             'segment' => request()->segment(1),
         ];
         return view('app.artikel_promo.artikel_promo', compact('data'));
-//        return 'aaaa';
+        //        return 'aaaa';
     }
 
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id','article_id','p_name','st_code','promo_name','date_start','date_end','promo_disc','p_price_tag','promo_note')
+            return datatables()->of(ArtikelPromo::select('articles_promo.id as a_id', 'article_id', 'p_name','st_id','stores.st_code as st_code', 'promo_name', 'date_start', 'date_end', 'promo_disc', 'p_price_tag', 'promo_note')
                 ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
                 ->join('products', 'products.id', '=', 'articles_promo.p_id'))
                 ->filter(function ($instance) use ($request) {
-                    if (!empty($request->get('search'))) {
-                        $instance->where(function ($w) use ($request) {
-                            $search = $request->get('search');
-                            $w->orWhere('p_id', 'LIKE', "%$search%")
-                                ->orWhere('st_id', 'LIKE', "%$search%")
+                    $search = $request->get('search');
+                    $dateRange = $request->get('date_start');
+                    if (!empty($search)) {
+                        $instance->where(function ($query) use ($search) {
+                            $query->orWhere('p_id', 'LIKE', "%$search%")
+                                ->orWhere('article_id', 'LIKE', "%$search%")
+                                ->orWhere('p_name', 'LIKE', "%$search%")
+                                ->orWhere('st_code', 'LIKE', "%$search%")
                                 ->orWhere('promo_name', 'LIKE', "%$search%")
                                 ->orWhere('date_start', 'LIKE', "%$search%")
                                 ->orWhere('date_end', 'LIKE', "%$search%")
@@ -97,12 +114,23 @@ class ArtikelPromoController extends Controller
                                 ->orWhere('promo_note', 'LIKE', "%$search%");
                         });
                     }
+                    if (!empty($dateRange)) {
+                        $dates = explode('|', $dateRange);
+                        if (count($dates) === 2) {
+                            $instance->whereBetween('date_start', [$dates[0], $dates[1]]);
+                        } else {
+                            $instance->whereDate('date_start', $dates[0]);
+                        }
+                    }
                 })
                 ->addColumn('article_id', function ($row) {
                     return $row->article_id;
                 })
                 ->addColumn('p_name', function ($row) {
                     return $row->p_name;
+                })
+                ->addColumn('st_code', function ($row) {
+                    return $row->st_code;
                 })
                 ->addColumn('promo_disc', function ($row) {
                     return $row->promo_disc . '%';
@@ -123,11 +151,40 @@ class ArtikelPromoController extends Controller
         }
     }
 
+    public function getArtikelPromoDetails(Request $request)
+    {
+        if ($request->ajax()) {
+            $id = $request->input('id');
+            $artikelPromo = ArtikelPromo::select('articles_promo.id as a_id', 'articles_promo.article_id', 'articles_promo.st_id', 'articles_promo.promo_name', 'articles_promo.date_start', 'articles_promo.date_end', 'articles_promo.promo_disc', 'articles_promo.promo_note')
+                ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
+                ->join('products', 'products.id', '=', 'articles_promo.p_id')
+                ->where('articles_promo.id', $id)
+                ->first();
+
+            if ($artikelPromo) {
+                return response()->json([
+                    'status' => '200',
+                    'data' => [
+                        'id' => $artikelPromo->a_id,
+                        'article_id' => $artikelPromo->article_id,
+                        'st_id' => $artikelPromo->st_id,
+                        'promo_name' => $artikelPromo->promo_name,
+                        'start_date' => $artikelPromo->date_start,
+                        'end_date' => $artikelPromo->date_end,
+                        'promo_disc' => $artikelPromo->promo_disc,
+                        'promo_note' => $artikelPromo->promo_note,
+                    ]
+                ]);
+            } else {
+                return response()->json(['status' => '404', 'message' => 'Data not found']);
+            }
+        }
+    }
+
 
     public function storeData(Request $request)
     {
-        $artikel_promo = new ArtikelPromo;
-        $mode = $request->input('_mode');
+        $mode = $request->input('_mode'); // 'add' or 'edit'
         $id = $request->input('_id');
 
         $data = [
@@ -140,27 +197,69 @@ class ArtikelPromoController extends Controller
             'promo_note' => $request->input('promo_note'),
         ];
 
-        $save = $artikel_promo->storeData($mode, $id, $data);
-        if ($save) {
-            $r['status'] = '200';
-        } else {
-            $r['status'] = '400';
+        $article_id = $request->input('article_id');
+        $product = DB::table('products')->where('article_id', $article_id)->first();
+
+        if (!$product) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Product not found for article_id: ' . $article_id
+            ]);
         }
-        return json_encode($r);
+
+        $data['p_id'] = $product->id;
+
+        if ($mode === 'add') {
+            $artikelPromo = new ArtikelPromo();
+            $artikelPromo->timestamps = false; // Disable timestamps
+            $artikelPromo->fill($data);
+            if ($artikelPromo->save()) {
+                $this->UserActivity('menambah artikel promo ' . strtoupper($request->input('promo_name')) . ' ' . $request->input('promo_disc'));
+                return response()->json(['status' => '200', 'message' => 'Data Successfully Added JEZ']);
+            } else {
+                return response()->json(['status' => '400', 'message' => 'Failed to add data JEZ']);
+            }
+        } elseif ($mode === 'edit') {
+            $artikelPromo = ArtikelPromo::find($id);
+            if ($artikelPromo) {
+                $artikelPromo->timestamps = false; // Disable timestamps
+                $artikelPromo->fill($data);
+                if ($artikelPromo->save()) {
+                    $this->UserActivity('mengubah data diskon ' . strtoupper($request->input('promo_name')) . ' ' . $request->input('promo_disc'));
+                    return response()->json(['status' => '200', 'message' => 'Data successfully updated JEZ']);
+                } else {
+                    return response()->json(['status' => '400', 'message' => 'Failed to update data JEZ']);
+                }
+            } else {
+                return response()->json(['status' => '404', 'message' => 'Data tidak ditemukan']);
+            }
+        } else {
+            return response()->json(['status' => '400', 'message' => 'Mode tidak valid']);
+        }
     }
+
 
     public function deleteData(Request $request)
     {
-        $artikel_promo = new ArtikelPromo;
         $id = $request->input('_id');
-        $save = $artikel_promo->deleteData($id);
-        if ($save) {
-            $r['status'] = '200';
+        $artikelPromo = ArtikelPromo::find($id);
+
+        if ($artikelPromo) {
+            $delete = $artikelPromo->delete();
+            if ($delete) {
+                // $this->UserActivity('menghapus artikel promo dengan ID ' . $id);
+                $r['status'] = '200';
+            } else {
+                $r['status'] = '400';
+            }
         } else {
-            $r['status'] = '400';
+            $r['status'] = '404';
+            $r['message'] = 'Data tidak ditemukan';
         }
+
         return json_encode($r);
     }
+
 
     // public function checkExistsArtikelPromo(Request $request)
     // {
@@ -194,7 +293,6 @@ class ArtikelPromoController extends Controller
             return response()->json(['status' => '500', 'message' => $e->getMessage()]);
         }
     }
-
 
     public function exportData(Request $request)
     {

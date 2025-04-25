@@ -33,7 +33,9 @@ class MassExportByDate implements FromCollection, WithHeadings
             "Qty System",
             "Qty SO",
             "Type",
-            "Diff"
+            "Diff",
+            "Note",
+            "Tipe Adjustment",
         ];
     }
 
@@ -44,8 +46,8 @@ class MassExportByDate implements FromCollection, WithHeadings
             $export[] = [
                 $index + 1,
                 $row->ma_code,
-                $row->pl_code,
                 $row->st_name,
+                $row->pl_code,
                 $row->br_name,
                 $row->ps_barcode,
                 $row->p_name,
@@ -58,6 +60,8 @@ class MassExportByDate implements FromCollection, WithHeadings
                 $row->qty_so,
                 $row->mad_type,
                 $row->mad_diff,
+                $row->adjust_note,
+                $row->adjust_type
             ];
         }
         return collect($export);

@@ -12,7 +12,7 @@ class PreOrderArticleDetailController extends Controller
     {
         $poad = new PreOrderArticleDetails();
         $id = $request->input('_id');
-        $delete = $poad->deleteData($id);
+        $delete = $poad->destroy($id);
         if ($delete) {
             $r['status'] = '200';
         } else {

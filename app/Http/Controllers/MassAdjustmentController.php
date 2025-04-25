@@ -167,7 +167,19 @@ class MassAdjustmentController extends Controller
         if (request()->ajax()) {
             return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
-                ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id'))
+                ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
+                ->where(function ($query) use ($request) {
+                    if ($request->has('st_id') && !empty($request->get('st_id')) && $request->get('st_id') != 'all') {
+                        $query->where('mass_adjustments.st_id', '=', $request->get('st_id'));
+                    }
+                })
+                ->where(function ($query) use ($request) {
+                    if ($request->has('filter') && $request->get('filter') !== null) {
+                        $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
+                    }
+                })
+                )
+                
                 ->editColumn('ma_code_show', function ($d) {
                     return "<a class='btn btn-primary' id='madj_btn' data-id='" . $d->id . "'>" . $d->ma_code . "</a>";
                 })
@@ -579,6 +591,8 @@ class MassAdjustmentController extends Controller
     public function exportMassByDate(Request $request)
     {
         $ma_date = $request->input('ma_date');
+        $st_id = $request->input('st_id'); // Get the store ID from the request
+        $filter = $request->input('filter'); // Get the filter from the request
         $data = array();
         $start = null;
         $end = null;
@@ -597,7 +611,7 @@ class MassAdjustmentController extends Controller
         }
         $data = DB::table('mass_adjustment_details')
             ->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
-        avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code, ts_stores.st_name")
+        avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code, ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_stores.st_name")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -616,6 +630,12 @@ class MassAdjustmentController extends Controller
                 } else {
                     $w->whereDate('mass_adjustment_details.created_at', '=', $start);
                 }
+            })
+            ->when(!empty($st_id) && $st_id != 'all', function ($query) use ($st_id) {
+                $query->where('mass_adjustments.st_id', '=', $st_id); // Apply filter by st_id
+            })
+            ->when($filter !== null, function ($query) use ($request) {
+                $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
             })
             ->orderBy('mass_adjustment_details.created_at', 'desc')
             ->groupBy('mass_adjustment_details.id')
@@ -643,6 +663,8 @@ class MassAdjustmentController extends Controller
     public function exportMassByDateExcel(Request $request)
     {
         $ma_date = $request->input('ma_date');
+        $st_id = $request->input('st_id'); // Get the store ID from the request
+        $filter = $request->input('filter'); // Get the filter from the request
         $start = null;
         $end = null;
         $range = null;
@@ -662,7 +684,7 @@ class MassAdjustmentController extends Controller
 
         $data = DB::table('mass_adjustment_details')
             ->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
-    avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code, ts_stores.st_name")
+    avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code,ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_stores.st_name")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -681,6 +703,12 @@ class MassAdjustmentController extends Controller
                 } else {
                     $w->whereDate('mass_adjustment_details.created_at', '=', $start);
                 }
+            })
+            ->when(!empty($st_id) && $st_id != 'all', function ($query) use ($st_id) {
+                $query->where('mass_adjustments.st_id', '=', $st_id); // Apply filter by st_id
+            })
+            ->when($filter !== null, function ($query) use ($request) {
+                $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
             })
             ->orderBy('mass_adjustment_details.updated_at', 'desc')
             ->groupBy('mass_adjustment_details.id')

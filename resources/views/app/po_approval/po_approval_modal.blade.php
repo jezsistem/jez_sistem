@@ -73,6 +73,25 @@
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                  disabled/>
                         </div>
+                        <div class="col-4 mt-5">
+                            <div class="row">
+                                <div class="col-6">
+                                    <label for="pay_date">Tanggal Bayar</label>
+                                    <input type="date" id="pay_date" class="form-control" disabled />
+                                </div>
+                                <div class="col-6">
+                                    <label for="due_date">Tanggal Jatuh Tempo</label>
+                                    <input type="date" id="due_date" class="form-control" disabled />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-4">
+                            <label>Keterangan Dispute</label>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description"
+                                      rows="3" disabled></textarea>
+                        </div>
+                        <div class="col-4"></div>
                         <div class="col-4 mt-4 d-flex flex-column">
                             <label class="badge badge-primary">Bukti Gambar Invoice dan Paket</label>
                             <div class="row  justify-content-between">
@@ -125,11 +144,6 @@
                                     </label>
                                 </a>
                             </div>
-                        </div>
-                        <div class="col-4">
-                            <label>Keterangan Dispute</label>
-                            <textarea class="form-control" name="dispute_description" id="dispute_description"
-                                      rows="3" disabled></textarea>
                         </div>
                     </div>
                     <br>

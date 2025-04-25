@@ -217,6 +217,8 @@
                             <th class="text-dark">Qty SO</th>
                             <th class="text-dark">Type</th>
                             <th class="text-dark">Diff</th>
+                            <th class="text-dark">Notes</th>
+                            <th class="text-dark">Tipe Adjustment</th>
                         </tr>
                     </thead>
                     <tbody>

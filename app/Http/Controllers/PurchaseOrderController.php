@@ -31,6 +31,7 @@ use App\Models\Tax;
 use App\Models\UserActivity;
 use Intervention\Image\Facades\Image;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 use App\Models\DataPerusahaan;
 
@@ -135,10 +136,14 @@ class PurchaseOrderController extends Controller
                 'po_invoice',
                 'po_description',
                 'po_draft',
-                'purchase_orders.created_at as po_created_at'
+                'purchase_order_article_detail_statuses.u_id_approve',
+                'purchase_order_article_detail_statuses.created_at as status_created_at',
+                'purchase_orders.created_at as po_created_at',
             )
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.poa_id', '=', 'purchase_order_articles.id')
+                ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                 ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
                 ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
                 ->where('po_delete', '!=', '1')
@@ -203,7 +208,18 @@ class PurchaseOrderController extends Controller
                         }
                     }
                 })
-                ->rawColumns(['po_status'])
+                ->editColumn('u_receive', function ($data) {
+                    if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
+                        $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
+                        return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
+                    } else if (!empty($data->u_id_approve)) {
+                        $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
+                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->status_created_at)) . '</span>';
+                    } else {
+                        return '<span class="badge badge-warning">Menunggu Approval</span>';
+                    }
+                })
+                ->rawColumns(['po_status', 'u_receive'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -498,9 +514,11 @@ class PurchaseOrderController extends Controller
         return json_encode($r);
     }
 
+    //disini
     public function checkPoDetail(Request $request)
     {
         $po_id = $request->_po_id;
+        $date_now = Carbon::now();
         if (!empty($po_id)) {
             $check = PurchaseOrder::where(['id' => $po_id])->exists();
         } else {
@@ -515,17 +533,19 @@ class PurchaseOrderController extends Controller
             $po_id = $draft->id;
             $po_st_id = $draft->st_id;
 
-            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder', 'article_id', 'article_id')
+            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder', 'article_id', 'article_id', 'products.created_at as item_added')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 //                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();
+
+
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
                     $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-                        //                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where(['poa_id' => $poa->poa_id])->get();
 
@@ -642,6 +662,8 @@ class PurchaseOrderController extends Controller
             $r['acc_id'] = $draft->acc_id;
             $r['dispute'] = $draft->dispute;
             $r['dispute_description'] = $draft->dispute_description;
+            $r['pay_date'] = $draft->pay_date;
+            $r['due_date'] = $draft->due_date;
         } else {
             $r['status'] = '400';
         }

@@ -178,7 +178,10 @@
                             $total_item = 0;
                             $total_price = 0;
                             $nameset = 0;
-                            $total_discount = 0;
+                            $total_final = 0;
+                            $sub_total_final = 0;
+                            $discount_invoice = $row->pos_total_discount;
+                            $total_discount = $row->pos_total_discount;
                             $total_voucher = $data['invoice_data'][0]['pos_total_vouchers'];
                             foreach ($row->subitem as $srow) {
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.' '.$srow->sz_name;
@@ -205,9 +208,11 @@
                             @php
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                                 $total_item += $srow->pos_td_qty;
-                                $total_price += $srow->pos_td_discount_price;
+                                $total_price += $srow->ps_price_tag;
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
+                                $total_final += ($srow->pos_td_sell_price / $srow->pos_td_qty) * $srow->pos_td_qty;
+                                $sub_total_final += ($srow->pos_td_sell_price / $srow->pos_td_qty) * $srow->pos_td_qty;
                             @endphp
                             <tr style="margin-bottom:15px;">
                                 <td class="name">{{ $key }}<br></td>
@@ -218,14 +223,19 @@
                                     <td class="sell-price">
 
                                         {{-- disini --}}
-                                        @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
+                                        <!-- @if(!empty($srow->pos_td_discount_number) || $srow->pos_td_discount_number != 0)
+                                            <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
+                                            <br>
+                                        @endif -->
+
+                                        @if($srow->pos_td_sell_price != $srow->productStock->ps_price_tag)
                                             <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
                                             <br>
                                         @endif
 
 
-                                            @if(!empty($srow->pos_td_discount_number))
-                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_discount_number) }})</span>
+                                            @if($srow->pos_td_sell_price != $srow->productStock->ps_price_tag)
+                                                <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag - ($srow->pos_td_sell_price / $srow->pos_td_qty)) }})</span>
                                             @endif
 
 
@@ -237,7 +247,7 @@
 
                                 @endif
                                 <td class="final-price">
-                                    {{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->pos_td_sell_price) }}
+                                    {{ \App\Libraries\CurrencyFormatter::formatToIDR(($srow->pos_td_sell_price / $srow->pos_td_qty)) }}
 
                                 </td>
                             </tr>
@@ -275,7 +285,7 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
-                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}
+                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($sub_total_final) }}
                                         </span>
                             </td>
                         </tr>
@@ -285,12 +295,13 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
+                                            {{ number_format($discount_invoice) }}
 
-                                        @if (!empty($total_discount))
-                                                {{ number_format($row->pos_total_discount) }}
+                                        <!-- @if (!empty($discount_invoice))
+                                                {{ number_format($discount_invoice) }}
                                             @else
                                                 0
-                                            @endif
+                                            @endif -->
 
                                         </span>
                             </td>
@@ -305,16 +316,6 @@
                                         </span>
                             </td>
                         </tr>
-{{--                        <tr>--}}
-{{--                            <td colspan="3" class="final-price">--}}
-{{--                                <span style="float:left;">CHARGE (CC)</span>--}}
-{{--                            </td>--}}
-{{--                            <td class="final-price">--}}
-{{--                                        <span style="float:right; white-space: nowrap;">--}}
-{{--                                        {{ $row->pos_cc_charge }} % (+ {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset)/100*$row->pos_cc_charge) }})--}}
-{{--                                        </span>--}}
-{{--                            </td>--}}
-{{--                        </tr>--}}
                         <tr>
                             <td colspan="3" class="final-price">
                                 <span style="float:left;">BIAYA LAIN</span>
@@ -329,10 +330,10 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
-                                            @if (!empty($total_discount))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR((($total_price+$nameset) - ($row->pos_total_discount)) - $total_voucher) }}
+                                            @if (!empty($discount_invoice))
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final + $nameset + $row->pos_another_cost) }}
                                             @else
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge+$row->pos_another_cost) - $total_voucher) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final + $nameset + $row->pos_another_cost) }}
                                             @endif
                                         </span>
                             </td>
@@ -360,7 +361,7 @@
                                         @if (!empty($row->pos_payment))
                                                 {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
 
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - (($total_price+$nameset) - ($row->pos_total_discount))) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - ($total_final + $nameset))}}
                                             @else
                                                 0
                                             @endif

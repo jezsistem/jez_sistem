@@ -11,11 +11,11 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 
 class PurchaseOrderExcelImport implements ToCollection, WithStartRow
 {
-    private $rows = 0;
+    private $rows = 0; // Awalnya nol
     private $data = [];
 
     /**
-     * @return int
+     * Mulai pembacaan dari baris ke-2 (karena baris pertama adalah header)
      */
     public function startRow(): int
     {
@@ -23,7 +23,7 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
     }
 
     /**
-     * @return int
+     * Mengembalikan jumlah baris yang berhasil diproses
      */
     public function getRowCount(): int
     {
@@ -31,40 +31,53 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
     }
 
     /**
-     * @param Collection $row
+     * Mengembalikan data hasil parsing
      */
-    public function  collection(Collection $row)
+    public function getData(): array
+    {
+        return $this->data;
+    }
+
+    /**
+     * Fungsi utama import excel
+     */
+    public function collection(Collection $rows)
     {
         $productStocks = [];
         $sizes = [];
 
-        // Pre-fetch product stocks and sizes
-        foreach ($row as $value) {
-            $sku = ltrim($value[2]);
-            $variantName = ltrim($value[1]);
-            $variantDesc = ltrim($value[6]);
+        // Prefetch: Mengambil dulu semua size & stok yang mungkin digunakan
+        foreach ($rows as $value) {
+            $sku = ltrim($value[0]); // barcode
+//            $variantName = ltrim($value[1]); // size name
+//            $variantDesc = ltrim($value[6]); // size schema
 
-            $productStocks[$sku] = ProductStock::where('ps_barcode', $sku)->exists();
-            $sizes[$variantName . $variantDesc] = Size::where('sz_name', $variantName)
-                ->where('sz_schema', $variantDesc)
-                ->first();
+            if (!isset($productStocks[$sku])) {
+                $productStocks[$sku] = ProductStock::where('ps_barcode', $sku)->exists();
+            }
+
+//            $sizeKey = $variantName . $variantDesc;
+//            if (!isset($sizes[$sizeKey])) {
+//                $sizes[$sizeKey] = Size::where('sz_name', $variantName)
+//                    ->where('sz_schema', $variantDesc)
+//                    ->first();
+//            }
         }
 
-        // Process rows
-            foreach ($row as $value) {
-            $sku = ltrim($value[2]);
-            $variantName = ltrim($value[1]);
-            $variantDesc = ltrim($value[6]);
-            $qty = $value[3];
-            $poad_purchase_price = $value[4];
+        // Proses setiap baris
+        foreach ($rows as $value) {
+            $sku = ltrim($value[0]);
+            $disc = ltrim($value[1]);
+            $ex_disc = ltrim($value[2]);
+            $sub_disc = ltrim($value[3]);
+            $qty = ltrim($value[4]);
 
             if (!$productStocks[$sku]) continue;
 
-            $size = $sizes[$variantName . $variantDesc];
-            if (!$size) continue;
+//            $size = $sizes[$variantName . $variantDesc];
+//            if (!$size) continue;
 
             $productStock = ProductStock::where('ps_barcode', $sku)
-                ->where('sz_id', $size->id)
                 ->first();
 
             if (!$productStock) continue;
@@ -72,17 +85,13 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
             $this->data[] = [
                 'p_id' => $productStock->p_id,
                 'pst_id' => $productStock->id,
-                'poad_qty' => $qty,
-                'poad_purchase_price' => $poad_purchase_price,
-                'poad_total_price' => $qty * $poad_purchase_price,
+                'disc' => $disc,
+                'ex_disc' => $ex_disc,
+                'sub_disc' => $sub_disc,
+                'poad_qty' => $qty
             ];
+
+            $this->rows++;
         }
-
-    }
-
-    public function getData(): array
-    {
-        return $this->data;
     }
 }
-

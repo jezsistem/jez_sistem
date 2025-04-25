@@ -1,3 +1,4 @@
+@php use Carbon\Carbon; @endphp
 @if (!empty($data['product']))
 <div class="table-responsive">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -23,6 +24,15 @@
             <td style="white-space: nowrap;">[{{ $row->br_name }}]<br/>{{ $row->p_name }}<br/>{{ $row->p_color }}<br/>
                 @if ($row->poa_reminder != '' || $row->poa_reminder != 0000-00-00)
                 {{ date('M Y', strtotime($row->poa_reminder)) }}
+                @endif
+                <br>
+                @php
+                    $createdAt = Carbon::parse($row->item_added);
+                    $now = Carbon::now();
+                @endphp
+
+                @if($createdAt->diffInDays($now) < 21)
+                    <span style="color: red; margin-left: 5px; margin-top:10px;">NEW ARRIVAL</span>
                 @endif
             </td>
             <td style="white-space: nowrap;">

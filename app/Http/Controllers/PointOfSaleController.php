@@ -940,7 +940,7 @@ class PointOfSaleController extends Controller
             'pst_id' => $pst_id,
             'pl_id' => $pl_id,
             'pos_td_qty' => $item_qty,
-            'pos_td_sell_price' => $price,
+            'pos_td_sell_price' => $subtotal_item,
             'pos_td_discount' => $discount,
             'pos_td_discount_number' => $discount_number,
             'pos_td_discount_price' => $pos_td_discount_price,
@@ -1227,10 +1227,12 @@ class PointOfSaleController extends Controller
                         $pos_td_description = "1 x " . $voc_value . "";
                     }
                 } else {
-                    $pos_td_discount_price = $item_qty * $price;
+                    $new_price = $price - $discount_number;
+                    $pos_td_discount_price = $item_qty * $new_price;
                 }
             } else {
-                $pos_td_discount_price = $item_qty * $price;
+                $new_price = $price - $discount_number;
+                $pos_td_discount_price = $item_qty * $new_price;
             }
 
             $create = PosTransactionDetail::create([
@@ -1239,7 +1241,8 @@ class PointOfSaleController extends Controller
                 'pl_id' => $pl_id,
                 'pos_td_qty' => $item_qty,
                 //                'pos_td_sell_price' => $final_price,
-                'pos_td_sell_price' => ($pos_td_discount_price + $nameset_price) - $discount_number,
+                // 'pos_td_sell_price' => ($pos_td_discount_price + $nameset_price) - $discount_number,
+                'pos_td_sell_price' => $subtotal_item * $item_qty,
                 'pos_td_discount' => $discount,
                 'pos_td_discount_number' => $discount_number,
                 'pos_td_discount_price' => $pos_td_discount_price,

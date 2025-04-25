@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\StockTrackingExport;
 use App\Models\Customer;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ use App\Models\PosTransactionDetail;
 use App\Models\UserActivity;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TrackingController extends Controller
 {
@@ -153,7 +155,8 @@ class TrackingController extends Controller
                 'u_id_helper' => $u_id,
                 'plst_type' => 'IN',
                 'plst_status' => $status,
-                'updated_at' => date('Y-m-d H:i:s')
+                'updated_at' => date('Y-m-d H:i:s'),
+                'in_stock_time' => date('Y-m-d H:i:s'),
             ]);
         if (!empty($update_plst)) {
             $pls = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_id)->get()->first();
@@ -189,7 +192,8 @@ class TrackingController extends Controller
                 'u_id_helper' => $u_id,
                 'plst_type' => 'OUT',
                 'plst_status' => 'WAITING OFFLINE',
-                'updated_at' => date('Y-m-d H:i:s')
+                'updated_at' => date('Y-m-d H:i:s'),
+                'move_store_time' => date('Y-m-d H:i:s')
             ]);
         if (!empty($update)) {
             $pls = ProductLocationSetup::select('pst_id', 'pl_id')->where('id', $pls_id)->get()->first();
@@ -632,6 +636,12 @@ class TrackingController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
+    }
+
+    public function exportExcel(Request $request){
+        $filters = $request->only(['st_id','br_id', 'psc_id', 'std_id', 'status']);
+
+        return Excel::download(new StockTrackingExport($filters), 'stock_tracking.xlsx');
     }
 
 

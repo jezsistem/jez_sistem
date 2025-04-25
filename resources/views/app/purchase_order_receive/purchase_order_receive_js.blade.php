@@ -201,14 +201,62 @@
     }
 
     //is Dispute Save
+    {{--$(document).ready(function () {--}}
+    {{--    $('#dispute').change(function () {--}}
+    {{--        var no_order = $('#po_invoice_label').text();--}}
+
+    {{--        const disputeValue = $(this).val();--}}
+    {{--        const po_invoice = no_order--}}
+
+    {{--        if (!po_invoice) {--}}
+    {{--            alert("No PO Invoice provided!");--}}
+    {{--            return;--}}
+    {{--        }--}}
+
+    {{--        $.ajax({--}}
+    {{--            url: "{{ url('dispute_save') }}",--}}
+    {{--            type: 'POST',--}}
+    {{--            data: {--}}
+    {{--                dispute: disputeValue,--}}
+    {{--                po_invoice: po_invoice,--}}
+    {{--                _token: '{{ csrf_token() }}'--}}
+    {{--            },--}}
+    {{--            success: function (response) {--}}
+    {{--                console.log(response);--}}
+    {{--                toastr.success("Dispute selection berhasil disimpan", "Berhasil");--}}
+    {{--            },--}}
+    {{--            error: function (xhr) {--}}
+    {{--                console.error(xhr);--}}
+    {{--                toastr.error("Gagal menyimpan data", "Gagal");--}}
+    {{--            }--}}
+    {{--        });--}}
+    {{--    });--}}
+    {{--});--}}
+
+    //is Dispute new Save
     $(document).ready(function () {
+        var previousDisputeValue = $('#dispute').val();
+        var isInitialized = false;
+
         $('#dispute').change(function () {
+
+            if (!isInitialized) {
+                isInitialized = true;
+                previousDisputeValue = $(this).val();
+                return;
+            }
+
+            var currentDisputeValue = $(this).val();
+
+           
+            if (currentDisputeValue === previousDisputeValue) {
+                return;
+            }
+            previousDisputeValue = currentDisputeValue;
+
             var no_order = $('#po_invoice_label').text();
 
-            const disputeValue = $(this).val();
-            const po_invoice = no_order
-
-            if (!po_invoice) {
+            if (!no_order) {
                 alert("No PO Invoice provided!");
                 return;
             }
@@ -217,8 +265,8 @@
                 url: "{{ url('dispute_save') }}",
                 type: 'POST',
                 data: {
-                    dispute: disputeValue,
-                    po_invoice: po_invoice,
+                    dispute: currentDisputeValue,
+                    po_invoice: no_order,
                     _token: '{{ csrf_token() }}'
                 },
                 success: function (response) {
@@ -232,6 +280,8 @@
             });
         });
     });
+
+
 
     // dispute description save
     $(document).ready(function () {
@@ -1101,6 +1151,11 @@
                     name: 'po_status',
                     orderable: false
                 },
+                {
+                    data: 'u_receive',
+                    name: 'u_receive',
+                    orderable: false
+                },
             ],
             columnDefs: [{
                 "targets": 0,
@@ -1568,9 +1623,9 @@
                         $('#dispute_description').val(r.dispute_description);
                         // $('#shipping_cost').val(r.po_shipping_cost);
                         if (r.po_shipping_cost > 0) {
-                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', true);
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', true).attr('value', r.po_shipping_cost);
                         } else {
-                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', false);
+                            $('#shipping_cost').val(r.po_shipping_cost).prop('disabled', false).attr('value', r.po_shipping_cost);
                         }
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
@@ -1760,39 +1815,42 @@
             var formData = new FormData(this);
             var po_id = $('#_po_id').val();
             $.ajax({
-                type: 'POST',
-                url: "{{ url('por_import') }}",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function (data) {
+            type: 'POST',
+            url: "{{ url('por_import') }}",
+            data: formData,
+            dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
 
-                    $("#import_data_btn").html('Import');
-                    $("#import_data_btn").attr("disabled", false);
-                    jQuery.noConflict();
-                    if (data.status == '200') {
-                        $("#ImportModal").modal('hide');
+                $("#import_data_btn").html('Import');
+                $("#import_data_btn").attr("disabled", false);
+                jQuery.noConflict();
+                if (data.status == '200') {
+                $("#ImportModal").modal('hide');
 
-                        swal('Berhasil', 'Data berhasil diimport', 'success');
-                        $('#f_import')[0].reset();
-                        checkBarcodeImport(po_id, data.data)
-                        reloadArticleDetail(po_id, data.data)
-                    } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
-                    } else {
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal',
-                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
-                    }
-                },
-                error: function (data) {
-                    swal('Error', data, 'error');
+                swal('Berhasil', 'Data berhasil diimport', 'success');
+                $('#f_import')[0].reset();
+                checkBarcodeImport(po_id, data.data)
+                reloadArticleDetail(po_id, data.data)
+                setTimeout(() => {
+                    updateCogs(); // Run updateCogs() at the end
+                }, 1000); // Delay of 1 second
+                } else if (data.status == '400') {
+                $("#ImportModal").modal('hide');
+                swal('File', 'File yang anda import kosong atau format tidak tepat',
+                    'warning');
+                } else {
+                $("#ImportModal").modal('hide');
+                swal('Gagal',
+                    'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
+                    'warning');
                 }
+            },
+            error: function (data) {
+                swal('Error', data, 'error');
+            }
             });
         });
 

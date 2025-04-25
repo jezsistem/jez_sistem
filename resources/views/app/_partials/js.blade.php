@@ -1,4 +1,63 @@
-<script>var KTAppSettings = { "breakpoints": { "sm": 576, "md": 768, "lg": 992, "xl": 1200, "xxl": 1400 }, "colors": { "theme": { "base": { "white": "#ffffff", "primary": "#3699FF", "secondary": "#E5EAEE", "success": "#1BC5BD", "info": "#8950FC", "warning": "#FFA800", "danger": "#F64E60", "light": "#E4E6EF", "dark": "#181C32" }, "light": { "white": "#ffffff", "primary": "#E1F0FF", "secondary": "#EBEDF3", "success": "#C9F7F5", "info": "#EEE5FF", "warning": "#FFF4DE", "danger": "#FFE2E5", "light": "#F3F6F9", "dark": "#D6D6E0" }, "inverse": { "white": "#ffffff", "primary": "#ffffff", "secondary": "#3F4254", "success": "#ffffff", "info": "#ffffff", "warning": "#ffffff", "danger": "#ffffff", "light": "#464E5F", "dark": "#ffffff" } }, "gray": { "gray-100": "#F3F6F9", "gray-200": "#EBEDF3", "gray-300": "#E4E6EF", "gray-400": "#D1D3E0", "gray-500": "#B5B5C3", "gray-600": "#7E8299", "gray-700": "#5E6278", "gray-800": "#3F4254", "gray-900": "#181C32" } }, "font-family": "Poppins" };</script>
+<script>
+    var KTAppSettings = {
+        "breakpoints": {
+            "sm": 576,
+            "md": 768,
+            "lg": 992,
+            "xl": 1200,
+            "xxl": 1400
+        },
+        "colors": {
+            "theme": {
+                "base": {
+                    "white": "#ffffff",
+                    "primary": "#3699FF",
+                    "secondary": "#E5EAEE",
+                    "success": "#1BC5BD",
+                    "info": "#8950FC",
+                    "warning": "#FFA800",
+                    "danger": "#F64E60",
+                    "light": "#E4E6EF",
+                    "dark": "#181C32"
+                },
+                "light": {
+                    "white": "#ffffff",
+                    "primary": "#E1F0FF",
+                    "secondary": "#EBEDF3",
+                    "success": "#C9F7F5",
+                    "info": "#EEE5FF",
+                    "warning": "#FFF4DE",
+                    "danger": "#FFE2E5",
+                    "light": "#F3F6F9",
+                    "dark": "#D6D6E0"
+                },
+                "inverse": {
+                    "white": "#ffffff",
+                    "primary": "#ffffff",
+                    "secondary": "#3F4254",
+                    "success": "#ffffff",
+                    "info": "#ffffff",
+                    "warning": "#ffffff",
+                    "danger": "#ffffff",
+                    "light": "#464E5F",
+                    "dark": "#ffffff"
+                }
+            },
+            "gray": {
+                "gray-100": "#F3F6F9",
+                "gray-200": "#EBEDF3",
+                "gray-300": "#E4E6EF",
+                "gray-400": "#D1D3E0",
+                "gray-500": "#B5B5C3",
+                "gray-600": "#7E8299",
+                "gray-700": "#5E6278",
+                "gray-800": "#3F4254",
+                "gray-900": "#181C32"
+            }
+        },
+        "font-family": "Poppins"
+    };
+</script>
 <script src="{{ asset('app') }}/assets/plugins/global/plugins.bundle.js"></script>
 <script src="{{ asset('app') }}/assets/js/scripts.bundle.js?v1"></script>
 <script src="{{ asset('app') }}/assets/plugins/custom/datatables/datatables.bundle.js"></script>
@@ -8,10 +67,10 @@
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script>
     const current = window.location.href;
-    document.querySelectorAll("#kt_aside_menu a").forEach(function(elem){ 
-    if(elem.href === current){
-      elem.classList.add("active");
-    }
+    document.querySelectorAll("#kt_aside_menu a").forEach(function(elem) {
+        if (elem.href === current) {
+            elem.classList.add("active");
+        }
     });
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -24,37 +83,36 @@
         // getBalance();
     })
 
-    {{--function loadStore()--}}
-    {{--{--}}
-    {{--    $.ajax({--}}
-    {{--        type: "GET",--}}
-    {{--        dataType: 'json',--}}
-    {{--        url: "{{ url('load_user_store')}}",--}}
-    {{--        success: function(r) {--}}
-    {{--            if (r.status == '200') {--}}
-    {{--                $('#load_user_store').text(r.store);--}}
-    {{--            }--}}
-    {{--        }--}}
-    {{--    });--}}
-    {{--}--}}
-
-    function getBalance()
+    function loadStore()
     {
         $.ajax({
             type: "GET",
             dataType: 'json',
+            url: "{{ url('load_user_store')}}",
+            success: function(r) {
+                if (r.status == '200') {
+                    $('#load_user_store').text(r.store);
+                }
+            }
+        });
+    }
+
+    function getBalance() {
+        $.ajax({
+            type: "GET",
+            dataType: 'json',
             url: "{{ url('get_upcloud_balance')}}",
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
             success: function(r) {
                 if (r.status == '200') {
-                    $('#upcloud_info_btn').text('$ '+r.balance);
+                    $('#upcloud_info_btn').text('$ ' + r.balance);
                     if (r.balance < 5.92) {
                         jQuery.noConflict();
                         $('#BalanceNotifModal').modal('show');
                         setTimeout(() => {
-                            $('#BalanceNotifModal').modal('hide'); 
+                            $('#BalanceNotifModal').modal('hide');
                         }, 5000);
                     }
                 }
@@ -62,8 +120,7 @@
         });
     }
 
-    function infoBtn(str)
-    {
+    function infoBtn(str) {
         if (str == 'date') {
             swal('Tanggal', 'Tanggal pada hari ini', 'info');
         }
@@ -74,22 +131,26 @@
 
     function clockUpdate() {
         var date = new Date();
-        $('.digital-clock').css({'color': '#fff', 'text-shadow': '0 0 6px #ff0'});
+        $('.digital-clock').css({
+            'color': '#fff',
+            'text-shadow': '0 0 6px #ff0'
+        });
+
         function addZero(x) {
             if (x < 10) {
-            return x = '0' + x;
+                return x = '0' + x;
             } else {
-            return x;
+                return x;
             }
         }
 
         function twelveHour(x) {
             if (x > 12) {
-            return x = x - 12;
+                return x = x - 12;
             } else if (x == 0) {
-            return x = 12;
+                return x = 12;
             } else {
-            return x;
+                return x;
             }
         }
 
@@ -100,104 +161,98 @@
 
         $('.date').text(strDate);
     }
-    
-    function toast(title, subtitle, type)
-    {
+
+    function toast(title, subtitle, type) {
         jQuery.toast({
             heading: title,
             text: subtitle,
             icon: type,
-            loader: true,        
-            loaderBg: '#072544',  
+            loader: true,
+            loaderBg: '#072544',
             position: 'top-right',
             stack: false,
             hideAfter: 1000
         });
     }
-    
-    function paidToast(title, subtitle, type)
-    {
+
+    function paidToast(title, subtitle, type) {
         jQuery.toast({
             heading: title,
             text: subtitle,
             icon: type,
-            loader: true,        
-            loaderBg: '#072544',  
+            loader: true,
+            loaderBg: '#072544',
             position: 'top-left',
             stack: false,
             hideAfter: 120000,
             onClick: function() {
-                window.location.href="{{ url('website_transaction') }}";
+                window.location.href = "{{ url('website_transaction') }}";
             }
         });
     }
 
-    function confirmationToast(title, subtitle, type)
-    {
+    function confirmationToast(title, subtitle, type) {
         jQuery.toast({
             heading: title,
             text: subtitle,
             icon: type,
-            loader: true,        
-            loaderBg: '#072544',  
+            loader: true,
+            loaderBg: '#072544',
             position: 'bottom-left',
             stack: false,
             hideAfter: 120000,
             onClick: function() {
-                window.location.href="{{ url('konfirmasi') }}";
+                window.location.href = "{{ url('konfirmasi') }}";
             }
         });
     }
-    
-    function crossOrderToast(title, subtitle, type)
-    {
+
+    function crossOrderToast(title, subtitle, type) {
         jQuery.toast({
             heading: title,
             text: subtitle,
             icon: type,
-            loader: true,        
-            loaderBg: '#072544',  
+            loader: true,
+            loaderBg: '#072544',
             position: 'bottom-left',
             stack: false,
             hideAfter: 20000,
             onClick: function() {
-                window.location.href="{{ url('cross_order') }}";
+                window.location.href = "{{ url('cross_order') }}";
             }
         });
     }
-    
-    function checkConfirmation()
-    {
+
+    function checkConfirmation() {
         $.ajax({
             type: "GET",
             dataType: 'json',
             url: "{{ url('check_web_confirmation')}}",
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
             success: function(r) {
                 if (r.status == '200') {
                     if (r.total > 0) {
-                        confirmationToast('Check Konfirmasi', 'Ada '+r.total+' konfirmasi menunggu', 'warning');
+                        confirmationToast('Check Konfirmasi', 'Ada ' + r.total + ' konfirmasi menunggu', 'warning');
                     }
                 }
             }
         });
     }
 
-    function checkPaid()
-    {
+    function checkPaid() {
         $.ajax({
             type: "GET",
             dataType: 'json',
             url: "{{ url('check_web_paid')}}",
-            cache:false,
+            cache: false,
             contentType: false,
             processData: false,
             success: function(r) {
                 if (r.status == '200') {
                     if (r.total > 0) {
-                        paidToast('Check Web Transaksi', 'Ada '+r.total+' invoice menunggu diprint', 'info');
+                        paidToast('Check Web Transaksi', 'Ada ' + r.total + ' invoice menunggu diprint', 'info');
                     }
                 }
             }
@@ -215,25 +270,24 @@
         }
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         $.ajax({
             type: "POST",
             data: {
-                _password:password,
-                _old_password:old_password,
+                _password: password,
+                _old_password: old_password,
             },
             dataType: 'json',
             url: "{{ url('change_password')}}",
             success: function(r) {
                 jQuery.noConflict();
-                if (r.status == '200'){
+                if (r.status == '200') {
                     $('#ChangePasswordModal').modal('hide');
                     $('#f_password')[0].reset();
                     swal('Berhasil', r.message, 'success');
-                }
-                else {
+                } else {
                     swal('Gagal', r.message, 'warning');
                 }
             }

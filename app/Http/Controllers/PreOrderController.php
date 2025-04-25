@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PreOrderArticleExport;
+use App\Imports\PreOrderExcelImport;
 use App\Models\Account;
 use App\Models\Brand;
 use App\Models\MainColor;
@@ -9,6 +11,7 @@ use App\Models\PreOrder;
 use App\Models\PreOrderArticle;
 use App\Models\PreOrderArticleDetails;
 use App\Models\ProductLocationSetup;
+use App\Models\ProductStock;
 use App\Models\ProductSubCategory;
 use App\Models\ProductSupplier;
 use App\Models\PurchaseOrder;
@@ -26,6 +29,7 @@ use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PreOrderController extends Controller
 {
@@ -125,7 +129,7 @@ class PreOrderController extends Controller
                 ->leftJoin('pre_order_articles', 'pre_order_articles.po_id', '=', 'pre_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                 ->join('stores', 'stores.id', '=', 'pre_orders.st_id')
-                ->join('product_suppliers', 'product_suppliers.id', '=', 'pre_orders.ps_id')
+                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'pre_orders.ps_id') // Changed to leftJoin
                 ->where('po_delete', '!=', '1')
                 ->where(function ($w) use ($user_data, $st_id) {
                     if ($user_data->g_name != 'administrator') {
@@ -293,7 +297,7 @@ class PreOrderController extends Controller
                 $po_id = $draft->id;
                 $po_st_id = $draft->st_id;
 
-                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color')
+                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder')
                     ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->where(['po_id' => $po_id])->get();
@@ -605,5 +609,129 @@ class PreOrderController extends Controller
     private function poInvoiceExists($number): bool
     {
         return PreOrder::where(['pre_order_code' => $number])->exists();
+    }
+
+    public function exportPreOrderArticleData(Request $request)
+    {
+        $po_id = $request->get('po_id');
+        $st_id = $request->get('st_id');
+
+        $timestamp = date('Ymd_Hi');
+
+        $export = new PreOrderArticleExport($po_id, $st_id);
+
+        // Get current date and time (format: YYYYMMDD_HHmm)
+
+        $fileName = 'pre_order_article_' . $timestamp . '.xlsx';
+        return Excel::download($export, $fileName);
+    }
+
+    public function importPreOrderExcel(Request $request)
+    {
+        $file = $request->file('file');
+        $po_id = $request->get('po_id');
+        $r = array();
+        $delimiter = null;
+        $sampleLine = fgets(fopen($file->getRealPath(), 'r'));
+        if (strpos($sampleLine, ",") !== false) {
+            $delimiter = ",";
+        } elseif (strpos($sampleLine, ";") !== false) {
+            $delimiter = ";";
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'Unable to determine the file delimiter.';
+            return json_encode($r);
+        }
+
+        if ($file) {
+            try {
+                // Store the uploaded file temporarily
+                $filePath = $file->store('upload/temp');
+
+                // Open the file for reading
+                $fileHandle = fopen(storage_path('app/' . $filePath), 'r');
+                $headerSkipped = false;
+
+                while (($line = fgetcsv($fileHandle, 0, $delimiter)) !== false) { // Changed delimiter to tab ("\t")
+                    if (!$headerSkipped) {
+                        $headerSkipped = true;
+                        continue; // Skip the header row
+                    }
+
+                    $sku = ltrim($line[0]); // Assuming SKU is in the first column
+                    $qty = isset($line[1]) ? $line[1] : null; // Check if the second column exists
+
+                    if (!is_numeric($qty)) {
+                        $r['status'] = '404';
+                        $r['message'] = 'Quantity for SKU ' . $sku . ' is not a valid number.';
+                        fclose($fileHandle);
+                        return json_encode($r);
+                    }
+
+                    $productStock = ProductStock::where('ps_barcode', $sku)->first();
+
+                    if (!$productStock) {
+                        $r['status'] = '404';
+                        $r['message'] = 'Data for SKU ' . $sku . ' not found.';
+                        fclose($fileHandle);
+                        return json_encode($r);
+                    }
+
+                    $prid = $productStock->p_id;
+                    $psid = $productStock->id;
+                    $price = $productStock->ps_price_tag;
+
+                    $check_poa = PreOrderArticle::where(['po_id' => $po_id, 'pr_id' => $prid])->exists();
+
+                    if (!$check_poa) {
+                        $poa_id = PreOrderArticle::insertGetId([
+                            'po_id' => $po_id,
+                            'pr_id' => $prid,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        $poa_id = PreOrderArticle::where(['po_id' => $po_id, 'pr_id' => $prid])
+                            ->value('id');
+                    }
+
+                    $check_poad = PreOrderArticleDetails::where(['poa_id' => $poa_id, 'pst_id' => $psid])->exists();
+
+                    $total_price = $qty * $price;
+
+                    if (!$check_poad) {
+                        PreOrderArticleDetails::insert([
+                            'poa_id' => $poa_id,
+                            'pst_id' => $psid,
+                            'poad_qty' => $qty,
+                            'poad_total_price' => $total_price,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        PreOrderArticleDetails::where(['poa_id' => $poa_id, 'pst_id' => $psid])
+                            ->increment('poad_qty', $qty);
+
+                        PreOrderArticleDetails::where(['poa_id' => $poa_id, 'pst_id' => $psid])
+                            ->increment('poad_total_price', $total_price);
+                    }
+                }
+
+                fclose($fileHandle);
+
+                // Delete the temporary file
+                unlink(storage_path('app/' . $filePath));
+
+                $r['status'] = '200';
+            } catch (\Exception $e) {
+                $r['status'] = '400';
+                $r['message'] = $e->getMessage();
+            }
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'No file was uploaded.';
+        }
+
+        return json_encode($r);
     }
 }

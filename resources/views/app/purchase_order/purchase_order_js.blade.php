@@ -571,6 +571,56 @@
         });
     });
 
+    $(document).delegate('#pay_date', 'change', function() {
+        var pay_date = $(this).val();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('po_change_pay_date') }}",
+            data: {
+                pay_date: pay_date,
+                po_id: $('#_po_id').val()
+            },
+            success: function (r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+                   
+                } else {
+                    
+                }
+            },
+        });
+    });
+
+    $(document).delegate('#due_date', 'change', function() {
+        var due_date = $(this).val();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('po_change_due_date') }}",
+            data: {
+                due_date: due_date,
+                po_id: $('#_po_id').val()
+            },
+            success: function (r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+                    
+                } else {
+
+                }
+            },
+        });
+    });
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -1123,6 +1173,8 @@
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
+                        jQuery('#pay_date').val(r.pay_date).trigger('change');
+                        jQuery('#due_date').val(r.due_date).trigger('change');
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
                         jQuery('#dp_id').val(r.dp_id).trigger('change');
                         jQuery('#acc_id').val(r.acc_id).trigger('change');

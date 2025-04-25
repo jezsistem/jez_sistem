@@ -186,7 +186,13 @@ class CrossOrderController extends Controller
                     } else {
                         $btn = 'btn-success';
                     }
-                } else if ($data->pos_status == 'REFUND') {
+                    return '
+            <span style="white-space: nowrap;" class="btn btn-sm '.$btn.'">'.$data->pos_status.' '.$ref_invoice.'</span>
+            <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print</span>
+            
+            <span style="white-space: nowrap;" class="btn btn-sm btn-info" data-pt_id="'.$data->pt_id.'" id="print_resi_btn">Print Resi</span>';
+    }
+                if ($data->pos_status == 'REFUND') {
                     $btn = 'btn-danger';
                 } else if ($data->pos_status == 'EXCHANGE') {
                     $btn = 'btn-danger';

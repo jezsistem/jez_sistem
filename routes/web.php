@@ -139,6 +139,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('scan_product_online_datatables', [TrackingController::class, 'scanOnlineDatatables']);
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
+    Route::get('export-stock-tracking', [TrackingController::class, 'exportExcel']);
 
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');

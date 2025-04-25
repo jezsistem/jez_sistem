@@ -26,10 +26,12 @@ class PurchaseOrderImportExcelController extends Controller
                 $file->move('excel', $nama_file);
                 $import = new PurchaseOrderExcelImport;
                 Excel::import($import, public_path('excel/' . $nama_file));
-
+//                dd($import);
                 unlink(public_path('excel/' . $nama_file));
                 if ($import->getRowCount() >= 0) {
                     $processData = $this->processImportData($import->getData(), $po_id);
+
+//                    dd($processData);
 
                     $r['data'] = $import;
                     $r['status'] = '200';
@@ -48,38 +50,9 @@ class PurchaseOrderImportExcelController extends Controller
         }
     }
 
-    private function processImportData(array $data, $po_id)
+    public function processImportData(array $data, $po_id)
     {
-        // Todo : ID Purchase Orders : 4138
-        /** Todo
-         *  1.  Looping data
-         *  2.  Ambil array ke 2 ( data SKU )
-         *  3.  lakukan pengecekan apakah sku ada pada table ts_product_stocks ( ps_barcode )
-         *  4.  Ambil array ke 1 ( size )
-         *  5.  lakukan pengecekan pada table ts_product_stocks relasi sz_id apakah  data ada
-         *  6.  Ambil array ke 3 ( order )
-         *  7.  lakukan pengecekan pada table ts_product_stocks ( ps_qty ) //WARNING : ragu-ragu
-         *  8.  Ambil id produk dari table ts_product_stocks setelah data semua cocok ( p_id )
-         *  9.  Insert Data kedalam table purchase_order_articles (po_id and p_id), Get Id nya juga
-         *  10. Insert Data kedalam table purchase_order_article_details
-         *      => poa_id didapatkan dari insert data ke table  purchase_order_articles sebelumnya
-         *      => pst_id didapatkan dari table ts_product_stocks p_id yang sudah didapatkan sebelumnya
-         *      => poad_qty didapatkan dari array ke 3 ( order )
-         *      => poad_purchase_price didapatkan dari array ke 4 ( harga brandol )
-         *      => poad_total_price didapatkan dari poad_qty * poad_purchase_price
-         *      => poad_draft value 1
-         */
-
-        /**
-         * Example Array
-         * array:5 [▼
-                "p_id" => 6813
-                "pst_id" => 41154
-                "poad_qty" => 1
-                "poad_purchase_price" => 429000
-                "poad_total_price" => 429000
-            ]
-         */
+//        dd($data);
         try {
             DB::beginTransaction();
             $poid = $po_id;
@@ -92,6 +65,9 @@ class PurchaseOrderImportExcelController extends Controller
                     $poa_id = DB::table('purchase_order_articles')->insertGetId([
                         'po_id' => $poid,
                         'p_id' => $value['p_id'],
+                        'poa_discount' => $value['disc'],
+                        'poa_extra_discount' => $value['ex_disc'],
+                        'poa_sub_discount' => $value['sub_disc'],
                     ]);
                 } else {
                     $poa_id = DB::table('purchase_order_articles')->select('id')->where([
@@ -105,13 +81,19 @@ class PurchaseOrderImportExcelController extends Controller
                     'pst_id' => $value['pst_id'],
                 ])->exists();
 
+                $price_tag = ProductStock::where('id', $value['pst_id'])->first()->ps_price_tag;
+                $total_disc = (float)$value['disc'] + (float)$value['ex_disc'] + (float)$value['sub_disc'];
+                $disc_value = ($total_disc / 100) * $price_tag;
+                $new_cogs = $price_tag - $disc_value;
+                $total_cogs = $new_cogs *  (float)$value['poad_qty'];
+
                 if (!$check_poad) {
                     DB::table('purchase_order_article_details')->insert([
                         'poa_id' => $poa_id,
                         'pst_id' => $value['pst_id'],
                         'poad_qty' => $value['poad_qty'],
-                        'poad_purchase_price' => $value['poad_purchase_price'],
-                        'poad_total_price' => $value['poad_total_price'],
+                        'poad_purchase_price' => $new_cogs,
+                        'poad_total_price' => $total_cogs,
                         'poad_draft' => 1,
                     ]);
                 }

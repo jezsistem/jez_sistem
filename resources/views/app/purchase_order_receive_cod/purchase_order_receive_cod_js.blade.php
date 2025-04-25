@@ -24,8 +24,8 @@
                 data: function(d) {
                     d.search = $('#po_approval_search').val();
                     d.filter_status = $('#filter_status').val();
-                    d.date = $('#po_date').val();                    
-                    
+                    d.date = $('#po_date').val();
+
                 }
             },
             columns: [{
@@ -90,10 +90,10 @@
             // console.log('kontol');
         });
 
-        $('#f_upload_invoice_image').on('submit', function(e) {
+        $('#f_upload_transfer_image').on('submit', function(e) {
             e.preventDefault();
-            $('#upload_image_invoice_btn').html('Proses...');
-            $('#upload_image_invoice_btn').attr('disabled', true);
+            $('#upload_image_transfer_btn').html('Proses...');
+            $('#upload_image_transfer_btn').attr('disabled', true);
             var formData = new FormData(this);
             var po_id = $('#_po_id').val();
 
@@ -101,22 +101,22 @@
             // console.log('COD');
             $.ajax({
                 type: 'POST',
-                url: "{{ url('po_invoice_image_cod') }}",
+                url: "{{ url('po_transfer_image_cod') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
-                    $("#upload_image_invoice_btn").html('Upload');
-                    $("#upload_image_invoice_btn").attr("disabled", false);
+                    $("#upload_image_transfer_btn").html('Upload');
+                    $("#upload_image_transfer_btn").attr("disabled", false);
                     jQuery.noConflict();
-                    $("#UploadImageInvoiceModal").modal('hide');
-
+                    $("#UploadImageTransferModal").modal('hide');
+                    po_approval_table.draw();
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
-                        $('#f_upload_invoice_image')[0].reset();
-                        purchaseOrderInvoiceTable.draw();
+                        $('#f_upload_transfer_image')[0].reset();
+                        purchaseOrderBuktitfTable.draw();
                     } else if (data.status == '400') {
                         toastr.warning(
                             'File yang anda import kosong atau format tidak tepat',
@@ -148,11 +148,46 @@
             },
 
             columns: [{
+                    data: 'image',
+                    name: 'invoice_image',
+                    searchable: false
+                },
+                // {
+                //     data: 'action',
+                //     name: 'action',
+                //     orderable: false,
+                //     searchable: false
+                // },
+            ],
+            columnDefs: [{
+                "targets": [0],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        var purchaseOrderBuktitfTable = $('#BuktitfImagesTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_transfer_image_datatable_cod') }}",
+                data: function (d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
                 data: 'image',
-                name: 'invoice_image',
+                name: 'transfer_image',
                 searchable: false
             },
-                {
+            {
                     data: 'action',
                     name: 'action',
                     orderable: false,
@@ -160,13 +195,56 @@
                 },
             ],
             columnDefs: [{
-                "targets": [0, 1],
+                "targets": [0],
                 "className": "text-center",
                 "width": "0%"
             }],
             order: [
                 [0, 'desc']
             ],
+        });
+
+        $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
+            var id = $(this).data('id');
+            
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+            
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('po_transfer_image_delete') }}",
+                        data: { id: id },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("Data berhasil dihapus", "Berhasil");
+                                purchaseOrderBuktitfTable.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                        }
+                    });
+                }
+            });
         });
 
 
@@ -231,8 +309,7 @@
                 {
                     data: 'ps_qty',
                     name: 'ps_qty'
-                }
-                ,
+                },
                 {
                     data: 'poads_purchase_price',
                     name: 'poads_purchase_price',
@@ -268,13 +345,13 @@
                 [0, 'desc']
             ],
         });
-        
+
         function formatRupiah(data) {
             // Check if data is undefined or null, return 'Rp. 0' if true
             if (data === null || data === undefined || isNaN(data)) {
                 return 'Rp. 0';
             }
-            
+
             // Convert the data to integer and format
             var numberString = parseInt(data, 10).toString();
             var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -287,18 +364,18 @@
             po_approval_table.draw(false);
         });
 
-        $('#APtb tbody').on('click', 'tr', function () {
-            
+        $('#APtb tbody').on('click', 'tr', function() {
+
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
             var st_name = po_approval_table.row(this).data().st_name;
             var ps_name = po_approval_table.row(this).data().ps_name;
             // var full_date = po_approval_table.row(this).data().created_at;
             // var tgl_terima = full_date.split(' ')[0];
-            var stkt_id = po_approval_table.row(this).data().stkt_id;  // Access stkt_id
-            var tax_id = po_approval_table.row(this).data().tax_id;    // Access tax_id
+            var stkt_id = po_approval_table.row(this).data().stkt_id; // Access stkt_id
+            var tax_id = po_approval_table.row(this).data().tax_id; // Access tax_id
             var stkt_name = po_approval_table.row(this).data().stkt_name; // Access stkt_name
-            var tx_name = po_approval_table.row(this).data().tx_name;    // Access tx_name
+            var tx_name = po_approval_table.row(this).data().tx_name; // Access tx_name
             var today = new Date();
             var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
             var po_description = po_approval_table.row(this).data().po_description;
@@ -306,22 +383,25 @@
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
             var po_invoice = po_approval_table.row(this).data().po_invoice;
+            var pay_date = po_approval_table.row(this).data().pay_date;
+            var due_date = po_approval_table.row(this).data().due_date;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
 
             console.log('STORES : ', tgl_terima);
             console.log('POADS ID :', poads_invoice);
+
             function formatRupiah(number) {
-            // Ensure the number is an integer
-            var numberString = Math.round(number).toString();
+                // Ensure the number is an integer
+                var numberString = Math.round(number).toString();
 
-            // Regular expression to add dots as thousand separators
-            var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                // Regular expression to add dots as thousand separators
+                var formatted = numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-            $('#no_po').text(po_invoice);
-            
-            return "Rp. " + formatted;
-        }
+                $('#no_po').text(po_invoice);
+
+                return "Rp. " + formatted;
+            }
 
 
             // call ajax apd_total_price 
@@ -332,7 +412,7 @@
                 },
                 dataType: 'json',
                 url: "{{ url('apd_total_price') }}",
-                success: function (r) {
+                success: function(r) {
                     console.log(r);
                     console.log(st_name);
                     // Convert 'r' to a number if it's not
@@ -357,10 +437,13 @@
                     $('#total_approval_price').text(formatRupiah(r));
                     $('#stkt_id').val(stkt_name);
                     $('#tax_id').val(tax_id);
-                    $('#stkt_name').val(stkt_name);  // Set stkt_name value
+                    $('#stkt_name').val(stkt_name); // Set stkt_name value
                     $('#tax_name').val(tx_name);
+                    $('#pay_date').val(pay_date);
+                    $('#due_date').val(due_date);
 
                     purchaseOrderInvoiceTable.draw();
+                    purchaseOrderBuktitfTable.draw();
                 }
             });
             $('#ApproveModal').modal('show');
@@ -369,6 +452,12 @@
             apd_table.draw();
         });
 
+        $(document).ready(function () {
+            $("#BuktitfImagesBtn").click(function () {
+                $("#BuktitfImagesModal").modal("show");
+                console.log($('#po_id').val());
+            });
+        });
 
         $(document).ready(function() {
             $("#InvoiceImagesBtn").click(function() {
@@ -379,7 +468,7 @@
 
         $(document).ready(function() {
             $("#pembayaranCodBtn").click(function() {
-                $("#UploadImageInvoiceModal").modal("show");
+                $("#UploadImageTransferModal").modal("show");
             });
         });
 
@@ -470,6 +559,32 @@
             })
         });
 
+        $(document).delegate('#pay_date', 'change', function() {
+            var pay_date = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                url: "{{ url('po_change_pay_date') }}",
+                data: {
+                    pay_date: pay_date,
+                    po_id: $('#_po_id').val()
+                },
+                success: function(r) {
+                    let response = typeof r === "string" ? JSON.parse(r) : r;
+                    if (response.status == '200') {
+                    toastr.success("Tanggal bayar berhasil di Update", "Success");
+                } else {
+                    toastr.error("Gagal update tanggal bayar", "Error");
+                    console.log(response);
+                }
+                },
+            });
+        });
+
         jQuery.noConflict();
         var picker = $('#kt_dashboard_daterangepicker');
         if ($('#kt_dashboard_daterangepicker').length == 0) {
@@ -491,12 +606,10 @@
                 title = 'Yesterday:';
                 range = start.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD');
-            } 
-            else if(label == 'All Days') {
+            } else if (label == 'All Days') {
                 title = 'All Days';
                 hidden_range = '';
-            }
-            else {
+            } else {
                 range = start.format('MMM D') + ' - ' + end.format('MMM D');
                 hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
@@ -504,7 +617,7 @@
             $('#po_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
-            
+
             po_approval_table.draw();
         }
 

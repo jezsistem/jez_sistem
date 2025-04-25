@@ -28,10 +28,11 @@ use Illuminate\Support\Facades\Route;
 
 /* new 25-09-2024*/
 use App\Http\Controllers\AllstockController;
+use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/allstock', [AllstockController::class, 'index']);
 
-Route::get('data_stok_two', [StockDataTwoController::class, 'index'])->name('stock_data_two');
+//Route::get('data_stok_two', [StockDataTwoController::class, 'index'])->name('stock_data_two');
 Route::get('stock_data_datatables_two', [StockDataTwoController::class, 'getDatatables']);
 
 Route::middleware(['auth'])->group(function () {
@@ -89,7 +90,7 @@ Route::middleware(['auth'])->group(function () {
     // mass adjusmtnet
     Route::get('mass_adjustment', [MassAdjustmentController::class, 'index']);
     Route::get('mass_stock_datatables', [MassAdjustmentController::class, 'stockDatatables']);
-    Route::get('mass_adjustment_datatables', [MassAdjustmentController::class, 'adjustmentDatatables']);
+    Route::post('mass_adjustment_datatables', [MassAdjustmentController::class, 'adjustmentDatatables']);
     Route::get('mass_adjustment_detail_datatables', [MassAdjustmentController::class, 'adjustmentDetailDatatables']);
     Route::post('export_mass_table', [MassAdjustmentController::class, 'exportTable']);
     Route::post('export_mass_by_date', [MassAdjustmentController::class, 'exportMassByDate']);
@@ -248,35 +249,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('export_transfer_draft', [StockTransferController::class, 'exportData']);
 //    Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
 
-
-    // Stock Transfer
-//    Route::get('transfer_stok', [StockTransferController::class, 'index'])->name('stock_transfer');
-//    Route::get('start_transfer_datatables', [StockTransferController::class, 'startTransferDatatables']);
-//    Route::get('end_transfer_datatables', [StockTransferController::class, 'endTransferDatatables']);
-//    Route::get('transfer_history_datatables', [StockTransferController::class, 'transferHistoryDatatables']);
-//    Route::get('stock_transfer_list_datatables', [StockTransferController::class, 'transferListDatatables']);
-//    Route::get('reload_transfer_bin', [StockTransferController::class, 'reloadTransferBin']);
-//    Route::get('transfer_bin_datatables', [StockTransferController::class, 'transferBinDatatables']);
-//    Route::get('in_transfer_bin_datatables', [StockTransferController::class, 'inTransferBinDatatables']);
-//    Route::get('get_pending_stf_code', [StockTransferController::class, 'getPendingStfCode']);
-//    Route::get('reload_transfer_invoice', [StockTransferController::class, 'reloadTransferInvoice']);
-//    Route::get('reload_scan_transfer_invoice', [StockTransferController::class, 'reloadScanTransferInvoice']);
-//    Route::get('reload_transfer_invoice_check', [StockTransferController::class, 'reloadTransferInvoiceCheck']);
-//    Route::get('reload_order_invoice', [StockTransferController::class, 'reloadOrderInvoice']);
-//    Route::post('stock_transfer_exec', [StockTransferController::class, 'stockTransferExec']);
-//    Route::post('stock_transfer_draft', [StockTransferController::class, 'stockTransferDraft']);
-//    Route::post('stock_transfer_cancel', [StockTransferController::class, 'stockTransferCancel']);
-//    Route::post('stock_transfer_confirm', [StockTransferController::class, 'stockTransferConfirm']);
-//    Route::post('get_transfer_item', [StockTransferController::class, 'getTransferItem']);
-//    Route::post('cancel_transfer_item', [StockTransferController::class, 'cancelTransferItem']);
-//    Route::post('stock_transfer_done', [StockTransferController::class, 'stockTransferDone']);
-//    Route::post('stock_transfer_import', [StockTransferController::class, 'importData']);
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
     Route::get('transfer_data_datatables', [StockTransferDataController::class, 'getDatatables']);
     Route::get('transfer_data_accept_datatables', [StockTransferDataController::class, 'getAcceptDatatables']);
     Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
     Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
+    Route::post('temp_change_stock_transfer_accept', [StockTransferDataController::class, 'tempChangeStockTransferAccept']);
     Route::get('std_export', [StockTransferDataController::class, 'exportData']);
     Route::post('std_receive_transfer_data_import', [StockTransferDataController::class, 'importReceiveTransferData']);
 //    Route::get('/export-stock-transfer', [StockTransferDataController::class, 'exportStockTransfer'])->name('export.stock.transfer');
@@ -285,15 +264,6 @@ Route::middleware(['auth'])->group(function () {
         $fileName = 'stock_transfer_' . $timestamp . '.xlsx';
         return Excel::download(new \App\Exports\StockTransferExport($stf_code), $fileName);
     });
-
-
-    // Stock Transfer Data
-//    Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
-//    Route::get('transfer_data_datatables', [StockTransferDataController::class, 'getDatatables']);
-//    Route::get('transfer_data_accept_datatables', [StockTransferDataController::class, 'getAcceptDatatables']);
-//    Route::get('transfer_data_history_datatables', [StockTransferDataController::class, 'getHistoryDatatables']);
-//    Route::post('stock_transfer_accept', [StockTransferDataController::class, 'acceptTransfer']);
-//    Route::get('std_export', [StockTransferDataController::class, 'exportData']);
     Route::post('std_receive_transfer_data_import', [StockTransferDataController::class, 'importReceiveTransferData']);
 
     // Marketplace Manager

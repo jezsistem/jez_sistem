@@ -13,6 +13,7 @@ class TempMutasi extends Model
     protected $table = 'temp_mutasi';
 
     protected $fillable = [
+        'u_id',
         'pls_id',
         'pls_qty',
         'ps_barcode',

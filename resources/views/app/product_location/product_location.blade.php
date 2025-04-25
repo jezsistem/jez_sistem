@@ -136,6 +136,7 @@
                                             <th style="white-space: nowrap;" class="text-light">Nama Lokasi</th>
                                             <th class="text-dark">Deskripsi</th>
                                             <th class="text-dark">Default</th>
+                                            <th class="text-dark">BIN Freeze</th>
                                         </tr>
                                     </thead>
                                     <tbody>

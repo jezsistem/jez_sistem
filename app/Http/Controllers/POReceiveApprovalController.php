@@ -116,7 +116,9 @@ class POReceiveApprovalController extends Controller
                     ts_stock_types.stkt_name,
                     ts_taxes.tx_name,
                     ts_purchase_orders.dispute,
-                    ts_purchase_orders.dispute_description
+                    ts_purchase_orders.dispute_description,
+                    ts_purchase_orders.pay_date,
+                    ts_purchase_orders.due_date
                 ")
                 ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
@@ -253,7 +255,7 @@ class POReceiveApprovalController extends Controller
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id, poads_invoice, 
                     u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, 
                     poad_purchase_price, ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty,
-                    poad_total_price, ts_purchase_order_article_detail_statuses.created_at, 
+                    poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.pay_date,
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, 
                     ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')

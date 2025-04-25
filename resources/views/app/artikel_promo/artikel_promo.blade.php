@@ -46,14 +46,13 @@
                                                         <span class="navi-icon">
                                                             <i class="la la-copy"></i>
                                                         </span>
-                                                        <span id="data_perusahaan_excel_btn"></span>
+                                                        <span id="artikel_promo_excel_btn"></span>
                                                     </a>
                                                 </li>
                                                 <a href="#" class="navi-link">
                                                         <span class="navi-icon">
                                                             <i class="la la-copy"></i>
-                                                <a class="btn btn-primary ml-auto mr-2" data-type="cross"
-                                                   id="export_btn">Export Excel</a><br/>
+                                                <br/>
                                             </ul>
                                             <!--end::Navigation-->
                                         </div>
@@ -61,7 +60,7 @@
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Button-->
-                                    <a href="#" class="btn btn-dark font-weight-bolder" id="add_data_perusahaan_btn">
+                                    <a href="#" class="btn btn-dark font-weight-bolder" id="add_artikel_promo_btn">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -107,9 +106,19 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <!--begin: Datatable-->
-                                <input type="search" class="form-control  col-6" id="data_perusahaan_search"
-                                       placeholder="Cari Artikel Promo"/><br/>
-                                <a class="btn btn-primary ml-auto mr-2" data-type="invoice" id="export_btn">Export
+                                <div class="d-flex align-items-center">
+                                    <input type="search" class="form-control col-6" id="artikel_promo_search"
+                                           placeholder="Cari Artikel Promo"/>
+                                    <a href="#" class="btn btn-date-info font-weight-bold ml-2" id="kt_dashboard_daterangepicker" 
+                                       data-toggle="tooltip" title="Article Promo Start Date" data-placement="left">
+                                        <span class="font-size-base" id="kt_dashboard_daterangepicker_title">All Days</span>
+                                        <span class="font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
+                                        <input type="hidden" id="artikel_promo_date_start"/>
+                                        <input type="hidden" id="artikel_promo_end_date"/>
+                                    </a>
+                                </div>
+                                <br/>
+                                <a class="btn btn-primary ml-auto mr-2" id="export_btn">Export
                                     Excel</a>
                                 <table class="table table-hover table-checkable" id="ArtikelPromotb">
                                     <thead class="bg-light text-dark">
