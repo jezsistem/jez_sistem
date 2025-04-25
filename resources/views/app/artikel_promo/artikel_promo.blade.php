@@ -111,7 +111,7 @@
                                            placeholder="Cari Artikel Promo"/>
                                     <a href="#" class="btn btn-date-info font-weight-bold ml-2" id="kt_dashboard_daterangepicker" 
                                        data-toggle="tooltip" title="Article Promo Start Date" data-placement="left">
-                                        <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
+                                        <span class="font-size-base" id="kt_dashboard_daterangepicker_title">All Days</span>
                                         <span class="font-size-base font-weight-bolder" id="kt_dashboard_daterangepicker_date"></span>
                                         <input type="hidden" id="artikel_promo_date_start"/>
                                         <input type="hidden" id="artikel_promo_end_date"/>

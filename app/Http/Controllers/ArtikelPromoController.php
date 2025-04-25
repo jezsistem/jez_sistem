@@ -99,10 +99,11 @@ class ArtikelPromoController extends Controller
                 ->join('stores', 'stores.id', '=', 'articles_promo.st_id')
                 ->join('products', 'products.id', '=', 'articles_promo.p_id'))
                 ->filter(function ($instance) use ($request) {
-                    if (!empty($request->get('search'))) {
-                        $instance->where(function ($w) use ($request) {
-                            $search = $request->get('search');
-                            $w->orWhere('p_id', 'LIKE', "%$search%")
+                    $search = $request->get('search');
+                    $dateRange = $request->get('date_start');
+                    if (!empty($search)) {
+                        $instance->where(function ($query) use ($search) {
+                            $query->orWhere('p_id', 'LIKE', "%$search%")
                                 ->orWhere('article_id', 'LIKE', "%$search%")
                                 ->orWhere('p_name', 'LIKE', "%$search%")
                                 ->orWhere('st_code', 'LIKE', "%$search%")
@@ -112,6 +113,14 @@ class ArtikelPromoController extends Controller
                                 ->orWhere('promo_disc', 'LIKE', "%$search%")
                                 ->orWhere('promo_note', 'LIKE', "%$search%");
                         });
+                    }
+                    if (!empty($dateRange)) {
+                        $dates = explode('|', $dateRange);
+                        if (count($dates) === 2) {
+                            $instance->whereBetween('date_start', [$dates[0], $dates[1]]);
+                        } else {
+                            $instance->whereDate('date_start', $dates[0]);
+                        }
                     }
                 })
                 ->addColumn('article_id', function ($row) {
@@ -136,29 +145,6 @@ class ArtikelPromoController extends Controller
                     $discountedPrice = $originalPrice - ($originalPrice * ($discount / 100));
 
                     return number_format($discountedPrice);
-                })
-                ->filter(function ($instance) use ($request) {
-                    if (!empty($request->get('date_start'))) {
-                        // $params_date = explode('|', $request->get('date_start'));
-
-                        // $instance->where('date_start', '>=', $request->get('date_start'));
-
-                        $range = $request->get('date_start');
-                        $exp = explode('|', $range);
-                        if (count($exp) > 1) {
-                            $start = $exp[0];
-                            $end = $exp[1];
-                        } else {
-                            $start = $request->get('date_start');
-                            $end = $request->get('date_start');
-                        }
-                        if ($start != $end) {
-                            $instance->whereDate('date_start', '>=', $exp[0])
-                                ->whereDate('date_start', '<=', $exp[1]);
-                        } else {
-                            $instance->whereDate('date_start', $start);
-                        }
-                    }
                 })
                 ->addIndexColumn()
                 ->make(true);

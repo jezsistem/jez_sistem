@@ -22,6 +22,7 @@
                 url: "{{ url('artikel_promo_datatables') }}",
                 data: function(d) {
                     d.search = $('#artikel_promo_search').val();
+                    d.date_start = $('#artikelpromo_date').val();
                 }
             },
             columns: [{
@@ -279,15 +280,19 @@
         if ($('#kt_dashboard_daterangepicker').length == 0) {
             return;
         }
-        var start = moment();
-        var end = moment();
+        var start = moment().subtract(null, null); // Default start date
+        var end = moment(); // Default end date
 
         function cb(start, end, label) {
             var title = '';
             var range = '';
             var hidden_range = '';
 
-            if ((end - start) < 100 || label == 'Today') {
+            if (label == 'All Days' || !label) {
+            title = '';
+            range = 'All Days';
+            hidden_range = '';
+            } else if ((end - start) < 100 || label == 'Today') {
             title = 'Today:';
             range = start.format('MMM D');
             hidden_range = start.format('YYYY-MM-DD');
@@ -295,11 +300,7 @@
             title = 'Yesterday:';
             range = start.format('MMM D');
             hidden_range = start.format('YYYY-MM-DD');
-            }
-            else if (label == 'All Days') {
-                title = 'All Days';
-                hidden_range = ''; }
-            else {
+            } else {
             range = start.format('MMM D') + ' - ' + end.format('MMM D');
             hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
@@ -330,7 +331,7 @@
             }
         }, cb);
 
-        cb(start, end, '');
+        // cb(start, end, 'All Days'); // Set default to "All Days"
 
         // Update DataTable AJAX request to include date range filter
         data_article_promo_tb.on('preXhr.dt', function(e, settings, data) {
