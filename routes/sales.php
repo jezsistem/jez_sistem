@@ -85,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('print_cross_invoice', [CrossOrderController::class, 'checkPrint']);
     Route::post('reload_cross_order_invoice', [CrossOrderController::class, 'reloadCrossOrderInvoice']);
     Route::post('get_cross_item_status', [CrossOrderController::class, 'getCrossItem']);
+    Route::post('get_resi_pdf', [CrossOrderController::class, 'getPdf']);
 
     // Invoice Tracking
     Route::get('invoice_tracking', [InvoiceTrackingController::class, 'index'])->name('invoice_tracking');

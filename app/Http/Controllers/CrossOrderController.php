@@ -113,7 +113,7 @@ class CrossOrderController extends Controller
             $st_id = Auth::user()->st_id;
         }
         if(request()->ajax()) {
-            return datatables()->of(PosTransaction::select('pos_transactions.id as pt_id', 'u_name', 'u_id_cross', 'cust_name', 'pos_invoice', 'cust_id', 'st_id_ref', 'std_id', 'stt_name', 'dv_name', 'cr_id', 'pt_id_ref', 'pos_shipping_number', 'psi_description', 'pos_transactions.created_at as pos_created', 'pos_status')
+            return datatables()->of(PosTransaction::select('pos_transactions.id as pt_id', 'u_name', 'u_id_cross', 'cust_name', 'pos_invoice', 'cust_id', 'st_id_ref', 'std_id', 'stt_name', 'dv_name', 'cr_id', 'pt_id_ref', 'pos_shipping_number', 'psi_description', 'pos_resi', 'pos_resi_file','pos_transactions.created_at as pos_created', 'pos_status')
             ->leftJoin('store_types', 'store_types.id', '=', 'pos_transactions.stt_id')
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
             ->leftJoin('pos_shipping_information', 'pos_shipping_information.pt_id', '=', 'pos_transactions.id')
@@ -213,10 +213,12 @@ class CrossOrderController extends Controller
                         if (strtolower(Auth::user()->u_name) == 'aufa kenshi') {
                           return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$data->pos_status.'</span>';
                         } else {
-                          return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>';
+                          return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>
+                                  <span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-resi="'.$data->pos_resi_file.'" class="btn btn-sm btn-info check_resi" id="check_resi"> Check Resi</span>';
                         }
                     } else {
-                        return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$data->pos_status.'</span>';
+                        return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$data->pos_status.'</span>
+                                <span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-resi="'.$data->pos_resi_file.'" class="btn btn-sm btn-info check_resi" id="check_resi"> Check Resi</span>';
                     }
                 }
                 if ($data->pos_status == 'REJECTED' || $data->pos_status == 'CANCEL') {
@@ -229,7 +231,8 @@ class CrossOrderController extends Controller
                         <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print</span>';
                     } else {
                       return '
-                        <span style="white-space: nowrap;" title="'.$ref_invoice.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>';
+                        <span style="white-space: nowrap;" title="'.$ref_invoice.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>
+                        ';
                     }
                 }
             })
@@ -433,6 +436,20 @@ class CrossOrderController extends Controller
           $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function getPdf(Request $request)
+    {
+        $filename = $request->input('resi');
+        $path = public_path("upload/resi/" . $filename);
+
+        if (!file_exists($path)) {
+            abort(404, 'File not found');
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     public function getCrossItem(Request $request)

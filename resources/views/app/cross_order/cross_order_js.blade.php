@@ -128,6 +128,31 @@
             order: [[0, 'desc']],
         });
 
+        $(document).on('click', '.check_resi', function () {
+            const resiFile = $(this).data('resi');
+            console.log('halo');
+
+            $.ajax({
+                url: "{{ url('get_resi_pdf') }}",
+                type: 'POST',
+                data: {
+                    resi: resiFile,
+                    _token: '{{ csrf_token() }}' // Laravel CSRF protection
+                },
+                xhrFields: {
+                    responseType: 'blob' // this tells jQuery to expect binary data
+                },
+                success: function (blob) {
+                    const url = URL.createObjectURL(blob);
+                    $('#resiPdfIframe').attr('src', url);
+                    $('#resiModal').modal('show');
+                },
+                error: function () {
+                    alert('Failed to load resi PDF.');
+                }
+            });
+        });
+
         $('#status_filter').on('change', function() {
             cross_order_table.draw(false);
         });
