@@ -6,25 +6,15 @@ use App\Models\UserShift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
 
 class UserShiftController extends Controller
 {
     public function startShift(Request $request)
     {
         $user = Auth::user();
-
-        // check if user has already started shift
-//        $shift = UserShift::where('user_id', $user->id)
-//            ->where('date', now()->format('Y-m-d'))
-//            ->whereNull('end_time')
-//            ->first();
-//
-//        if ($shift) {
-//            return response()->json([
-//                'status' => '400',
-//                'message' => 'Shift already started',
-//            ], 400);
-//        }
 
         //create shift
         UserShift::insert([
@@ -57,6 +47,9 @@ class UserShiftController extends Controller
                     'laba_shift'    => $laba
                 ]);
 
+            // After update success, broadcast to all bot users
+            $this->broadcastShiftEnd('🚨 Shift has ended! New laba: ' . number_format($laba, 0, ',', '.'));
+
             return response()->json([
                 'status' => '200',
                 'message' => 'Shift ended',
@@ -66,6 +59,29 @@ class UserShiftController extends Controller
                 'status' => '404',
                 'message' => $e->getMessage(),
             ], 404);
+        }
+    }
+
+    public function broadcastShiftEnd($message)
+    {
+        $token = '7237510272:AAFThytZvx6iXPbeWMX-MoUK6C6hD96c8nI';
+
+        $chatIds = DB::table('telegram_users')->pluck('chat_id');
+
+        foreach ($chatIds as $chatId) {
+            $url = "https://api.telegram.org/bot$token/sendMessage";
+
+            $response = Http::post($url, [
+                'chat_id' => $chatId,
+                'text'    => $message,
+                'parse_mode' => 'Markdown',
+            ]);
+
+            if ($response->successful()) {
+                Log::info("✅ Message sent successfully to chat_id: {$chatId}");
+            } else {
+                Log::error("❌ Failed to send message to chat_id: {$chatId}. Response: " . $response->body());
+            }
         }
     }
 
