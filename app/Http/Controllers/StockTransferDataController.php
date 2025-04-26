@@ -369,6 +369,10 @@ class StockTransferDataController extends Controller
                     'pls_qty' => $row[2]
                 ]);
             }
+
+            DB::table('temp_stock_transfer_receive')
+                ->where('stfd_id', $row[0])
+                ->delete();
         }
         if (!empty($save)) {
             $saveTransfer = StockTransferDetailStatus::insert($insert);
@@ -394,6 +398,40 @@ class StockTransferDataController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function tempChangeStockTransferAccept(){
+        $data = request()->_arr;
+        $stfd_id = request()->_stfd_id;
+        $u_id = Auth::user()->id;
+        $stf_id = request()->_stf_id;
+
+        if (!empty($data)) {
+            $check = DB::table('temp_stock_transfer_receive')->where('stfd_id', '=', $stfd_id)->exists();
+            try {
+                if ($check) {
+                    DB::table('temp_stock_transfer_receive')->where('stfd_id', '=', $stfd_id)->update([
+                        'stfds_qty' => $data[0]['qty'],
+                        'u_id' => $u_id,
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                } else {
+                    DB::table('temp_stock_transfer_receive')->insert([
+                        'stf_id' => $stf_id,
+                        'stfd_id' => $stfd_id,
+                        'stfds_qty' => $data[0]['qty'],
+                        'u_id' => $u_id,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
+            } catch (\Exception $e) {
+                return json_encode(['status' => 500, 'error' => $e->getMessage()]);
+            }
+            return json_encode(['status' => 200]);
+        } else {
+            return json_encode(['status' => 400]);
+        }
     }
 
     public function exportData(Request $request)
@@ -466,37 +504,5 @@ class StockTransferDataController extends Controller
         return $processedData;
     }
 
-    public function tempChangeStockTransferAccept(){
-        $data = request()->_arr;
-        $stfd_id = request()->_stfd_id;
-        $u_id = Auth::user()->id;
-        $stf_id = request()->_stf_id;
 
-        if (!empty($data)) {
-            $check = DB::table('temp_stock_transfer_receive')->where('stfd_id', '=', $stfd_id)->exists();
-            try {
-                if ($check) {
-                    DB::table('temp_stock_transfer_receive')->where('stfd_id', '=', $stfd_id)->update([
-                        'stfds_qty' => $data[0]['qty'],
-                        'u_id' => $u_id,
-                        'updated_at' => date('Y-m-d H:i:s')
-                    ]);
-                } else {
-                    DB::table('temp_stock_transfer_receive')->insert([
-                        'stf_id' => $stf_id,
-                        'stfd_id' => $stfd_id,
-                        'stfds_qty' => $data[0]['qty'],
-                        'u_id' => $u_id,
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'updated_at' => date('Y-m-d H:i:s')
-                    ]);
-                }
-            } catch (\Exception $e) {
-                return json_encode(['status' => 500, 'error' => $e->getMessage()]);
-            }
-            return json_encode(['status' => 200]);
-        } else {
-            return json_encode(['status' => 400]);
-        }
-    }
 }

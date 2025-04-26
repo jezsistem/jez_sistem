@@ -135,6 +135,7 @@
                 "className": "text-center",
                 "width": "0%"
             }],
+            pageLength: -1,
             lengthMenu: [
                 [10, 25, 50, 100, -1],
                 [10, 25, 50, 100, "Semua"]
