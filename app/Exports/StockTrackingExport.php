@@ -9,8 +9,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 class StockTrackingExport implements FromCollection, WithHeadings
 {
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return \Illuminate\Support\Collection
+     */
     protected $filters;
 
     public function __construct($filters = [])
@@ -20,6 +20,27 @@ class StockTrackingExport implements FromCollection, WithHeadings
 
     public function collection()
     {
+
+        $date = $this->filters['range'] ?? null;
+        $start_date = null;
+        $end_date = null;
+        $exp = explode('|', $date);
+        $total = count($exp);
+        if ($total > 1) {
+            if ($exp[0] != $exp[1]) {
+                $start_date = $exp[0];
+                $end_date = $exp[1];
+            } else {
+                $start_date = $exp[0];
+            }
+        } else {
+            if (!empty($date)) {
+                $start_date = $date;
+            } else {
+                $start_date = date('Y-m-d');
+            }
+        }
+
         $query = DB::table('product_location_setup_transactions')
             ->select(
                 'pos_invoice',
@@ -49,7 +70,7 @@ class StockTrackingExport implements FromCollection, WithHeadings
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->where('product_location_setup_transactions.st_id' , $this->filters['st_id']);
+            ->where('product_locations.st_id', '=', $this->filters['st_id']);
 
         // Apply filters
         if (!empty($this->filters['br_id'])) {
@@ -68,7 +89,16 @@ class StockTrackingExport implements FromCollection, WithHeadings
             $query->where('plst_status', $this->filters['status']);
         }
 
-        // You can also add date range filters here if needed
+        if (!empty($this->filters['range'])) {
+            $query->where(function ($w) use ($start_date, $end_date) {
+                if (!empty($end_date)) {
+                    $w->whereDate('product_location_setup_transactions.created_at', '>=', $start_date)
+                        ->whereDate('product_location_setup_transactions.created_at', '<=', $end_date);
+                } else {
+                    $w->whereDate('product_location_setup_transactions.created_at', '=', $start_date);
+                }
+            });
+        }
 
         return $query->get();
     }
@@ -76,10 +106,22 @@ class StockTrackingExport implements FromCollection, WithHeadings
     public function headings(): array
     {
         return [
-            'Invoice', 'Barcode',
-            'Brand', 'Product Name', 'Color',
-            'Size', 'Location Code', 'Location Name', 'Location Desc',
-            'Status', 'Qty', 'Created / Req Time', 'Move Time', 'Instock Time', 'Lead time Move Store', 'Lead Time Instock'
+            'Invoice',
+            'Barcode',
+            'Brand',
+            'Product Name',
+            'Color',
+            'Size',
+            'Location Code',
+            'Location Name',
+            'Location Desc',
+            'Status',
+            'Qty',
+            'Created / Req Time',
+            'Move Time',
+            'Instock Time',
+            'Lead time Move Store',
+            'Lead Time Instock'
         ];
     }
 }

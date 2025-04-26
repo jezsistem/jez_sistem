@@ -290,14 +290,16 @@
             const br_id = document.getElementById('br_id').value;
             const psc_id = document.getElementById('psc_id').value;
             const std_id = document.getElementById('std_id').value;
+            const range = date;
             const status = document.getElementById('status_filter').value;
-
+            
             // You can include more filters if needed
             const queryParams = new URLSearchParams({
                 st_id,
                 br_id,
                 psc_id,
                 std_id,
+                range,
                 status
             });
 
