@@ -175,11 +175,7 @@
             serverSide: true,
             responsive: true,
             dom: 'Brtl<"text-right"ip>',
-            buttons: [{
-                "extend": 'excelHtml5',
-                "text": 'Excel',
-                "className": 'btn btn-primary btn-xs'
-            }],
+            buttons: [],
             ajax: {
                 url: "{{ url('apd_datatables') }}",
                 data: function (d) {
@@ -392,6 +388,12 @@
             apd_table.draw();
 
 
+        });
+
+        $(document).delegate('#ExportApprovalBtn', 'click', function () {
+            var no_po = $('#no_po').text();
+            var ps_name = $('#ps_name').val();
+            window.location.href = "{{ url('apd_export') }}?no_po=" + no_po + "&ps_name=" + ps_name + "";
         });
 
         $(document).ready(function () {

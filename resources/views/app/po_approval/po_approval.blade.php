@@ -78,7 +78,7 @@
                                     <div class="row">
                                         <div class="form-group col-3" style="padding-top:22px;">
                                             <input type="search" class="form-control" id="po_approval_search"
-                                                placeholder="Cari po/invoice" /><br />
+                                                placeholder="Cari po/invoice/supplier" /><br />
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">
