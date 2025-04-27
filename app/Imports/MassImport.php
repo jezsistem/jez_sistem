@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Exports\EqualExport;
+use App\Models\ProductLocationSetup;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,7 @@ class MassImport implements ToCollection, WithStartRow
     protected $pl_id;
     protected $qty_filter;
     protected $note;
-
+    public $invalidPlsIds = [];
     function __construct($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note, $tipe)
     {
         $this->st_id = $st_id;
@@ -43,6 +44,12 @@ class MassImport implements ToCollection, WithStartRow
     }
 
 
+    public function getInvalidPlsIds()
+    {
+        return $this->invalidPlsIds;
+    }
+
+
     public function collection(Collection $collection)
     {
         ++$this->rows;
@@ -51,25 +58,59 @@ class MassImport implements ToCollection, WithStartRow
         $st_id = $this->st_id;
         $ma_id = null;
         $detail = array();
+
         foreach ($collection as $r) {
             if ($r[0] == null) {
-                return null;
+                continue; // skip baris kosong
             }
+
+            $pls_id = $r[0];
+            $qty_export = (int)$r[9];
+
+            // Ambil qty dari database
+            $productLocation = ProductLocationSetup::find($pls_id);
+            if (!$productLocation) {
+                $this->invalidPlsIds[] = $pls_id;
+                continue;
+            }
+            $qty_pls = $productLocation->pls_qty;
+
+            if ($qty_export != $qty_pls) {
+                $this->invalidPlsIds[] = [
+                    'sku' => $r[2],
+                    'qty_export' => $qty_export,
+                    'qty_system' => $qty_pls
+                ];
+            }
+        }
+
+//        dd($this->invalid_skus);
+
+        if (!empty($this->invalidPlsIds)) {
+            $this->isValid = false;
+            return;
+        }
+
+        foreach ($collection as $r) {
+            if ($r[0] == null) {
+                continue;
+            }
+
             $pls_id = $r[0];
             $qty_export = (int)$r[9];
             $qty_so = (int)$r[10];
-            $type = null;
-            $diff = null;
+
             if ($qty_export > $qty_so) {
                 $type = '-';
                 $diff = $qty_export - $qty_so;
-            } else if ($qty_export < $qty_so) {
+            } elseif ($qty_export < $qty_so) {
                 $type = '+';
                 $diff = $qty_so - $qty_export;
             } else {
                 $type = '=';
                 $diff = 0;
             }
+
             if (empty($ma_id)) {
                 $ma_id = DB::table('mass_adjustments')->insertGetId([
                     'st_id' => $st_id,
@@ -81,8 +122,8 @@ class MassImport implements ToCollection, WithStartRow
                     'ma_status' => '0',
                     'note_adjustment' => $this->note,
                     'tipe_adjustment' => $this->tipe,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s')
+                    'created_at' => now(),
+                    'updated_at' => now()
                 ]);
                 $this->ma_id_throw = $ma_id;
             }
@@ -95,29 +136,17 @@ class MassImport implements ToCollection, WithStartRow
                     'qty_so' => $qty_so,
                     'mad_type' => $type,
                     'mad_diff' => $diff,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s')
+                    'created_at' => now(),
+                    'updated_at' => now()
                 ];
-            } else {
-                $equal[] = [
-                    'ma_id' => $ma_id,
-                    'pls_id' => $pls_id,
-                    'qty_export' => $qty_export,
-                    'qty_so' => $qty_so,
-                    'mad_type' => $type,
-                    'mad_diff' => $diff,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s')
-                ];
-
-//                if (!empty($equal)) {
-//                    // Use Laravel Excel to create and export the file
-//                    return Excel::download(new EqualExport($equal), 'equal_data.xlsx');
-//                }
             }
         }
-        $insert = DB::table('mass_adjustment_details')->insert($detail);
+
+        if (!empty($detail)) {
+            DB::table('mass_adjustment_details')->insert($detail);
+        }
     }
+
 
     public function getRowCount(): array
     {

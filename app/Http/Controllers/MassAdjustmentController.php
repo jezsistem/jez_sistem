@@ -213,6 +213,8 @@ class MassAdjustmentController extends Controller
                 ->editColumn('ma_status', function ($d) {
                     if ($d->ma_status == '0') {
                         return 'Menunggu Eksekusi';
+                    } else If($d->ma_status == '2'){
+                        return 'Cancel';
                     } else {
                         return 'Selesai';
                     }
@@ -220,6 +222,8 @@ class MassAdjustmentController extends Controller
                 ->editColumn('action', function ($d) {
                     if ($d->ma_status == '0') {
                         return "<a class='btn btn-success' id='btn_cancel' data-id='" . $d->id . "'>Batalkan</a>";
+                    } else if($d->ma_status == '2'){
+                        return "<a class='btn btn-primary'>Cancel</a>";
                     } else {
                         return "<a class='btn btn-danger'>Done</a>";
                     }
@@ -481,12 +485,25 @@ class MassAdjustmentController extends Controller
         $note = $req->post('note_adjustment');
         $tipe = $req->post('tipe_adjustment');
 
+
         if (request()->hasFile('template')) {
-            $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note, $tipe);
-            Excel::import($import, request()->file('template'));
-            $r['ma_id'] = $import->getRowCount()['ma_id'];
-            $r['ma_code'] = $import->getRowCount()['ma_code'];
-            $r['status'] = '200';
+            try {
+                $import = new MassImport($st_id, $psc_id, $br_id, $pl_id, $qty_filter, $note, $tipe);
+                Excel::import($import, request()->file('template'));;
+                if (!empty($import->invalidPlsIds)) {
+                    // Kalau ada data tidak valid
+                    $r['status'] = '500';
+                    $r['invalid_skus'] = $import->invalidPlsIds;
+                } else {
+                    // Kalau tidak ada error, sukses
+                    $r['status'] = '200';
+                    $r['ma_id'] = $import->getRowCount()['ma_id'];
+                    $r['ma_code'] = $import->getRowCount()['ma_code'];
+                }
+            } catch (\Exception $e) {
+                $r['status'] = '500';
+                $r['message'] = $e->getMessage();
+            }
         } else {
             $r['status'] = '500';
         }
@@ -532,15 +549,12 @@ class MassAdjustmentController extends Controller
     {
         // Validate the incoming request
         $request->validate([
-            'ma_id' => 'required|integer|exists:mass_adjustments,id', // Adjust table and column names
+            'ma_id' => 'required|integer|exists:mass_adjustments,id',
         ]);
 
         try {
             // Find the record by ID
-            $massAdjustment = MassAdjustments::findOrFail($request->ma_id);
-
-            // Delete the record
-            $massAdjustment->delete();
+             DB::table('mass_adjustments')->where('id', '=', $request->ma_id)->update(['ma_status' => 2]);
 
             // Return success response
             return response()->json([

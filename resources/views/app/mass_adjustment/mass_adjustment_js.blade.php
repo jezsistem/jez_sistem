@@ -555,6 +555,7 @@
                 dangerMode: true,
             }).then(function(isConfirm) {
                 if (isConfirm) {
+
                     $.ajaxSetup({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -563,13 +564,13 @@
                     $.ajax({
                         type: "POST",
                         data: {
-                            ma_id: $('#ma_code').attr('data-id')
+                            ma_id: id
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_cancel') }}",
                         success: function(r) {
                             if (r.status == '200') {
-                                swal("Berhasil", "Berhasil dihapus", "success");
+                                swal("Berhasil", "Berhasil dibatalkan", "success");
                                 loadApproval();
                                 mass_adjustment_table.draw(false);
                             } else {
@@ -762,6 +763,40 @@
                         $('#ImportModal').modal('hide');
                         $('#f_import')[0].reset();
                         swal('Berhasil', 'Adjustment berhasil dicreate', 'success');
+                    } else if (r.status == '500') {
+                        Swal.fire({
+                            title: 'Perhatian!',
+                            html: `
+                                <div style="overflow-x:auto;">
+                                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                                        <thead>
+                                            <tr>
+                                                <th style="border: 1px solid #ccc; padding: 8px;">SKU / ID</th>
+                                                <th style="border: 1px solid #ccc; padding: 8px;">Qty Export</th>
+                                                <th style="border: 1px solid #ccc; padding: 8px;">Qty Sistem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sku-table-body">
+                                            <!-- Data -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `,
+                                                    icon: 'info',
+                                                    confirmButtonText: 'Oke, Mengerti',
+                                                    didOpen: () => {
+                                                        let tbody = document.getElementById('sku-table-body');
+                                                        r.invalid_skus.forEach(function(item) {
+                                                            let row = document.createElement('tr');
+                                                            row.innerHTML = `
+                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.sku}</td>
+                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_export}</td>
+                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_system}</td>
+                                    `;
+                                    tbody.appendChild(row);
+                                });
+                            }
+                        });
                     } else {
                         swal('Gagal', 'Adjustment gagal dicreate', 'warning');
                     }
