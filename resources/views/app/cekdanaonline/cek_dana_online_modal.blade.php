@@ -6,7 +6,7 @@
             <form id="f_import" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header bg-light">
-                    <h5 class="modal-title text-dark" id="exampleModalLabel">Import Data</h5>
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Import Template</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
@@ -14,47 +14,24 @@
                 <div class="modal-body">
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Download Template
-                                <span class="text-danger">*</span></label>
-                            {{--                            <a href="{{ asset('upload/template/data_supplier_template.xlsx') }}" class="btn btn-xs btn-primary">Download</a>--}}
-                            <div class="dropdown dropdown-inline mr-2">
-                                <button type="button"
-                                        class="btn btn-light-danger font-weight-bolder dropdown-toggle"
-                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="svg-icon svg-icon-md">
-                                    </span>Download
-                                </button>
-                                <!--begin::Dropdown Menu-->
-                                <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
-                                    <!--begin::Navigation-->
-                                    <ul class="navi flex-column navi-hover py-2">
-                                        <li class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">
-                                            Template File :
-                                        </li>
-                                        <li class="navi-item" id="download_template_shopee">
-                                            <a class="navi-link">
-                                                    <span class="navi-icon">
-                                                        <i class="la la-download"></i>
-                                                    </span>
-                                                <span>Shopee</span>
-                                            </a>
-                                        </li>
-                                        <li class="navi-item">
-                                            <a class="navi-link" id="download_template_tiktok">
-                                                    <span class="navi-icon">
-                                                        <i class="la la-download"></i>
-                                                    </span>
-                                                <span>Tiktok</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                    <!--end::Navigation-->
-                                </div>
-                                <!--end::Dropdown Menu-->
-                            </div>
+                            <label>Store<span class="text-danger">*</span></label>
+                            <select name="st_id" id="st_id" class="form-control">
+                                <option value="">-- Pilih Store --</option>
+                                @foreach ($data['st_id'] as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Pilih template yang sudah di download dan diisi
+                            <label>Platform<span class="text-danger">*</span></label>
+                            <select name="platform_name" id="platform_name" class="form-control">
+                                <option value="">-- Pilih Platform --</option>
+                                <option value="Tiktok">TikTok</option>
+                                <option value="Shopee">Shopee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Pilih template
                                 <span class="text-danger">*</span></label>
                             <input type="hidden" class="form-control" value="{{ \Illuminate\Support\Facades\Auth::user()->st_id }}" name="st_id_form" id="st_id_form" disabled>
                             <input type="file" class="form-control" name="importFile" id="importFile" required/>
@@ -144,7 +121,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                            <td>{{ $transaksiOnlineDetail->formatted_amount }}</td>
+
                         </tbody>
                     </table>
                     <!--end: Datatable-->

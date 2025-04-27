@@ -85,6 +85,8 @@ class CekDanaOnlineController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+
+//        $store_onl = Store::where('st_name', 'like', '%ONLINE%')->get();
         $data = [
             'title' => $title,
             'subtitle' => 'Cek Dana Online',
