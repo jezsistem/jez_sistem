@@ -556,7 +556,7 @@ class PurchaseOrderReceiveController extends Controller
 
                         // Add all barcodes to missingBarcode initially
                         if (!in_array($excelBarcode, $missingBarcode)) {
-                            $missingBarcode[] = $excelBarcode;
+                            $missingBarcode[] = ['barcode' => $excelBarcode, 'qty' => $excel_row['qty']];
                         }
 
                         // Check if the barcode exists in $poad_data_indexed
@@ -565,9 +565,11 @@ class PurchaseOrderReceiveController extends Controller
                             $poad_data_indexed[$excelBarcode]->qty_import = $excel_row['qty'];
 
                             // Remove the barcode from $missingBarcode if it exists
-                            $key = array_search($excelBarcode, $missingBarcode);
-                            if ($key !== false) {
-                                unset($missingBarcode[$key]);
+                            foreach ($missingBarcode as $index => $missing) {
+                                if ($missing['barcode'] === $excelBarcode) {
+                                    unset($missingBarcode[$index]);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -579,8 +581,7 @@ class PurchaseOrderReceiveController extends Controller
             $get_product = null;
         }
 
-
-        return json_encode($missingBarcode);
+        return json_encode(array_values($missingBarcode));
     }
 
     public function poSaveDraft(Request $request)

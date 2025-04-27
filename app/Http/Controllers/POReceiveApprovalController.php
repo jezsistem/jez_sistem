@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ApprovalPOExport;
 use App\Models\Brand;
 use App\Models\MainColor;
 use App\Models\ProductLocation;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\PurchaseOrder;
+use Maatwebsite\Excel\Facades\Excel;
 
 class POReceiveApprovalController extends Controller
 {
@@ -93,8 +95,9 @@ class POReceiveApprovalController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(DB::table('purchase_order_article_detail_statuses')
-                ->selectRaw("
+            return datatables()->of(
+                DB::table('purchase_order_article_detail_statuses')
+                    ->selectRaw("
                     ts_purchase_order_article_detail_statuses.id as id,
                     st_name,
                     po_invoice,
@@ -120,17 +123,17 @@ class POReceiveApprovalController extends Controller
                     ts_purchase_orders.pay_date,
                     ts_purchase_orders.due_date
                 ")
-                ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
-                ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
-                ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
-                ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-                ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
-                ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
-                ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
-                ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id') // Join for stkt_id
-                ->leftJoin('taxes', 'taxes.id', '=', 'purchase_orders.tax_id') // Join for tax_id
-                ->whereNotNull('poads_invoice')
-                ->groupBy('poads_invoice')
+                    ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
+                    ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+                    ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+                    ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+                    ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                    ->leftJoin('stores', 'stores.id', '=', 'purchase_orders.st_id')
+                    ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
+                    ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id') // Join for stkt_id
+                    ->leftJoin('taxes', 'taxes.id', '=', 'purchase_orders.tax_id') // Join for tax_id
+                    ->whereNotNull('poads_invoice')
+                    ->groupBy('poads_invoice')
             )
                 ->addColumn('dispute', function ($row) {
                     return $row->dispute;
@@ -164,7 +167,8 @@ class POReceiveApprovalController extends Controller
                                 ->orWhere('po_invoice', 'LIKE', "%$search%")
                                 ->orWhere('po_description', 'LIKE', "%$search%")
                                 ->orWhere('article_id', 'LIKE', "%$search%")
-                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
+                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%")
+                                ->orWhere('ps_name', 'LIKE', "%$search%"); // Added condition for supplier name
                         });
                     }
                     if (!empty($request->get('filter_status'))) {
@@ -238,7 +242,7 @@ class POReceiveApprovalController extends Controller
             $r['tax_id'] = $draft->tax_id;
             $r['po_description'] = $draft->po_description;
             $r['dispute_description'] = $draft->dispute_description;
-//             $r['dispute'] = $draft->dispute;
+            //             $r['dispute'] = $draft->dispute;
             $r['dispute'] = (string)$draft->dispute;
             $r['po_shipping_cost'] = $draft->po_shipping_cost;
             $r['po_invoice'] = $draft->po_invoice;
@@ -383,5 +387,57 @@ class POReceiveApprovalController extends Controller
         $total_price = DB::table('purchase_order_article_detail_statuses')->selectRaw('sum(poads_total_price) as total_price')
             ->where('poads_invoice', '=', $request->invoice)->get()->first()->total_price;
         return $total_price;
+    }
+
+    public function exportData(Request $request)
+    {
+        $no_po = $request->get('no_po');
+        $ps_name = $request->get('ps_name');
+        $data = DB::table('purchase_order_article_detail_statuses')
+            ->selectRaw("ts_purchase_order_article_detail_statuses.id,
+                ts_purchase_order_article_detail_statuses.created_at as tanggal_terima,
+                poads_invoice as invoice,
+                ts_product_stocks.ps_barcode as sku,
+                br_name as brand,
+                p_name as artikel,
+                p_color as warna,
+                sz_name as size,
+                ts_stock_types.stkt_name as tipe,
+                poads_qty as qty_terima,
+                ts_product_stocks.ps_qty as current_stock,
+                poad_purchase_price as harga_beli,
+                poad_total_price as total")
+            ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+            ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
+            ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id')
+            ->where('purchase_orders.po_invoice', '=', $no_po)
+            ->get();
+        $result = [];
+        $no = 1;
+        foreach ($data as $row) {
+            $result[] = [
+                'No' => $no++,
+                'Tanggal Terima' => date('d/m/Y', strtotime($row->tanggal_terima)),
+                'Invoice' => $row->invoice,
+                'SKU' => $row->sku,
+                'Brand' => $row->brand,
+                'Artikel' => $row->artikel,
+                'Warna' => $row->warna,
+                'Size' => $row->size,
+                'Tipe' => $row->tipe,
+                'Qty Terima' => $row->qty_terima,
+                'Current Stock' => $row->current_stock,
+                'Harga Beli' => $row->harga_beli,
+                'Total' => $row->total,
+            ];
+        }
+
+        $filename = "export_approval_{$no_po}_{$ps_name}.xlsx";
+        return Excel::download(new ApprovalPOExport($result), $filename);
     }
 }

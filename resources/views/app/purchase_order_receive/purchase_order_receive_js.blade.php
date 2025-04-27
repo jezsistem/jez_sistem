@@ -124,29 +124,29 @@
                     parsedResponse = JSON.parse(response);
                 } catch (e) {
                     console.error("Failed to parse JSON response:", e);
-                    parsedResponse = {}; // or handle the error accordingly
+                    parsedResponse = []; // Default to an empty array
                 }
 
-                if (parsedResponse && typeof parsedResponse === 'object') {
+                if (Array.isArray(parsedResponse) && parsedResponse.length > 0) {
                     // Format data into a table structure
                     let tableContent = `
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
-                                <th style="border: 1px solid #dddddd; padding: 8px;">Qty</th>
                                 <th style="border: 1px solid #dddddd; padding: 8px;">SKU</th>
+                                <th style="border: 1px solid #dddddd; padding: 8px;">Qty</th>
                             </tr>
                         </thead>
                         <tbody>`;
 
-                    // Iterate over the response object to build rows for the table
-                    for (let [qty, sku] of Object.entries(parsedResponse)) {
+                    // Iterate over the response array to build rows for the table
+                    parsedResponse.forEach(item => {
                         tableContent += `
                         <tr>
-                            <td style="border: 1px solid #dddddd; padding: 8px;">${qty}</td>
-                            <td style="border: 1px solid #dddddd; padding: 8px;">${sku}</td>
+                            <td style="border: 1px solid #dddddd; padding: 8px;">${item.barcode}</td>
+                            <td style="border: 1px solid #dddddd; padding: 8px;">${item.qty}</td>
                         </tr>`;
-                    }
+                    });
 
                     tableContent += `</tbody></table>`;
 
@@ -189,10 +189,11 @@
 
     // Function to export the data to Excel
     function exportToExcel(data) {
-        let worksheet = XLSX.utils.json_to_sheet(Object.entries(data).map(([qty, sku]) => ({
-            Qty: qty,
-            SKU: sku
-        })));
+        let formattedData = data.map(item => ({
+            SKU: item.barcode,
+            Qty: item.qty
+        }));
+        let worksheet = XLSX.utils.json_to_sheet(formattedData);
         let workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "NotFoundBarcodes");
 
