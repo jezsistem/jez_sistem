@@ -1,4 +1,5 @@
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     var dashboard_date = '';
     var st_id = $('#st_filter').val();
@@ -21,7 +22,7 @@
                 pl_id: pl_id
             },
             dataType: 'html',
-            success: function(r) {
+            success: function (r) {
                 $('#bin_panel').html(r);
             },
 
@@ -57,7 +58,7 @@
                 qty_filter: qty_filter
             },
             dataType: 'json',
-            success: function(r) {
+            success: function (r) {
                 if (r.status == '200') {
                     $('#cc_qty').text(r.cc_qty);
                     $('#c_qty').text(r.c_qty);
@@ -85,7 +86,7 @@
                 ma_id: $('#ma_code').attr('data-id')
             },
             dataType: 'json',
-            success: function(r) {
+            success: function (r) {
                 if (r.status == '200') {
                     $('#mad_panel').removeClass('d-none');
                     $('#approval_label').attr('data-id', r.approval);
@@ -173,7 +174,7 @@
             xhrFields: {
                 responseType: 'blob'
             },
-            success: function(blob, status, xhr) {
+            success: function (blob, status, xhr) {
                 var filename = "";
                 var disposition = xhr.getResponseHeader('Content-Disposition');
                 if (disposition && disposition.indexOf('attachment') !== -1) {
@@ -201,7 +202,7 @@
                     } else {
                         window.location.href = downloadUrl;
                     }
-                    setTimeout(function() {
+                    setTimeout(function () {
                         URL.revokeObjectURL(downloadUrl);
                     }, 10000);
                 }
@@ -209,7 +210,7 @@
         });
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         loadAsset(st_id, psc_id, br_id);
         $.ajaxSetup({
             headers: {
@@ -230,7 +231,7 @@
             }],
             ajax: {
                 url: "{{ url('mass_stock_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#stock_search').val();
                     d.st_id = st_id;
                     d.psc_id = psc_id;
@@ -240,10 +241,10 @@
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'id',
+                searchable: false
+            },
                 {
                     data: 'pl_code',
                     name: 'pl_code'
@@ -299,88 +300,88 @@
             responsive: false,
             dom: 'rt<"text-right"ip>',
             buttons: [{
-            "extend": 'excelHtml5',
-            "text": 'Excel',
-            "className": 'btn btn-primary btn-xs'
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-            url: "{{ url('mass_adjustment_datatables') }}",
-            type: 'POST', // Added method POST
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for POST
-            },
-            data: function(d) {
-                d.search = $('#ma_search').val();
-                d.filter = $('#filter_status').val();
-                d.st_id = st_id; // Include st_id in the request
-            }
+                url: "{{ url('mass_adjustment_datatables') }}",
+                type: 'POST', // Added method POST
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for POST
+                },
+                data: function (d) {
+                    d.search = $('#ma_search').val();
+                    d.filter = $('#filter_status').val();
+                    d.st_id = st_id; // Include st_id in the request
+                }
             },
             columns: [{
                 data: 'DT_RowIndex',
                 name: 'id',
                 searchable: false
             },
-            {
-                data: 'ma_code_show',
-                name: 'ma_code'
-            },
-            {
-                data: 'st_name',
-                name: 'st_name'
-            },
-            {
-                data: 'u_name',
-                name: 'u_name'
-            },
-            {
-                data: 'approve',
-                name: 'approve',
-                orderable: false
-            },
-            {
-                data: 'executor',
-                name: 'executor',
-                orderable: false
-            },
-            {
-                data: 'editor',
-                name: 'editor',
-                orderable: false
-            },
-            {
-                data: 'note',
-                name: 'note',
-                orderable: false
-            },
-            {
-                data: 'tipe',
-                name: 'tipe',
-                orderable: false
-            },
-            {
-                data: 'created_at',
-                name: 'created_at'
-            },
-            {
-                data: 'updated_at',
-                name: 'updated_at'
-            },
-            {
-                data: 'ma_status',
-                name: 'ma_status'
-            },
-            {
-                data: 'action',
-                name: 'action'
-            },
+                {
+                    data: 'ma_code_show',
+                    name: 'ma_code'
+                },
+                {
+                    data: 'st_name',
+                    name: 'st_name'
+                },
+                {
+                    data: 'u_name',
+                    name: 'u_name'
+                },
+                {
+                    data: 'approve',
+                    name: 'approve',
+                    orderable: false
+                },
+                {
+                    data: 'executor',
+                    name: 'executor',
+                    orderable: false
+                },
+                {
+                    data: 'editor',
+                    name: 'editor',
+                    orderable: false
+                },
+                {
+                    data: 'note',
+                    name: 'note',
+                    orderable: false
+                },
+                {
+                    data: 'tipe',
+                    name: 'tipe',
+                    orderable: false
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'updated_at',
+                    name: 'updated_at'
+                },
+                {
+                    data: 'ma_status',
+                    name: 'ma_status'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
+                },
             ],
             columnDefs: [{
-            "targets": 0,
-            "className": "text-center",
-            "width": "0%"
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
             }],
             order: [
-            [0, 'desc']
+                [0, 'desc']
             ],
         });
 
@@ -397,16 +398,16 @@
             }],
             ajax: {
                 url: "{{ url('mass_adjustment_detail_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#mad_search').val();
                     d.ma_id = $('#ma_code').attr('data-id');
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'id',
+                searchable: false
+            },
                 {
                     data: 'pl_code',
                     name: 'pl_code'
@@ -479,26 +480,26 @@
             ],
         });
 
-        $('#stock_search').on('keyup', function() {
+        $('#stock_search').on('keyup', function () {
             stock_table.draw();
         });
 
-        $('#ma_search').on('keyup', function() {
+        $('#ma_search').on('keyup', function () {
             mass_adjustment_table.draw();
         });
 
-        $('#mad_search').on('keyup', function() {
+        $('#mad_search').on('keyup', function () {
             mass_adjustment_detail_table.draw();
         });
 
-        $(document).delegate('#qty_filter', 'change', function(e) {
+        $(document).delegate('#qty_filter', 'change', function (e) {
             e.preventDefault();
             qty_filter = $(this).val();
             loadAsset(st_id, psc_id, br_id);
             stock_table.draw();
         });
 
-        $(document).delegate('#st_filter', 'change', function(e) {
+        $(document).delegate('#st_filter', 'change', function (e) {
             e.preventDefault();
             st_id = $(this).val();
             loadLocation(st_id);
@@ -507,14 +508,14 @@
             mass_adjustment_table.draw();
         });
 
-        $(document).delegate('#br_filter', 'change', function(e) {
+        $(document).delegate('#br_filter', 'change', function (e) {
             e.preventDefault();
             br_id = $(this).val();
             loadAsset(st_id, psc_id, br_id);
             stock_table.draw();
         });
 
-        $(document).delegate('#psc_filter', 'change', function(e) {
+        $(document).delegate('#psc_filter', 'change', function (e) {
             e.preventDefault();
             psc_id = $(this).val();
             loadAsset(st_id, psc_id, br_id);
@@ -529,18 +530,18 @@
         // });
 
         // Event listener untuk perubahan pada filter_status
-        $('#filter_status').on('change', function() {
+        $('#filter_status').on('change', function () {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             mass_adjustment_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 
-        $(document).delegate('#export_btn', 'click', function(e) {
+        $(document).delegate('#export_btn', 'click', function (e) {
             e.preventDefault();
             exportTable();
         });
 
         // sini
-        $(document).delegate('#btn_cancel', 'click', function(e) {
+        $(document).delegate('#btn_cancel', 'click', function (e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
 
@@ -553,7 +554,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
 
                     $.ajaxSetup({
@@ -568,7 +569,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_cancel') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil dibatalkan", "success");
                                 loadApproval();
@@ -583,12 +584,12 @@
             })
         });
 
-        $(document).delegate('#export_mad_btn', 'click', function(e) {
+        $(document).delegate('#export_mad_btn', 'click', function (e) {
             e.preventDefault();
             exportResult();
         });
 
-        $(document).delegate('#bin_filter', 'change', function(e) {
+        $(document).delegate('#bin_filter', 'change', function (e) {
             e.preventDefault();
             var id = $(this).val();
             var label = $('#bin_filter option:selected').text();
@@ -603,10 +604,10 @@
             loadAsset(st_id, psc_id, br_id);
         });
 
-        $(document).delegate('#pl_label', 'click', function(e) {
+        $(document).delegate('#pl_label', 'click', function (e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
-            pl_id = $.grep(pl_id, function(value) {
+            pl_id = $.grep(pl_id, function (value) {
                 return value != id;
             });
             $('.pl_label' + id).remove();
@@ -615,13 +616,13 @@
             loadAsset(st_id, psc_id, br_id);
         });
 
-        $(document).delegate('#import_btn', 'click', function(e) {
+        $(document).delegate('#import_btn', 'click', function (e) {
             e.preventDefault();
             jQuery.noConflict();
             $('#ImportModal').modal('show');
         });
 
-        $(document).delegate('#madj_btn', 'click', function(e) {
+        $(document).delegate('#madj_btn', 'click', function (e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
             var code = $(this).text();
@@ -631,7 +632,7 @@
             mass_adjustment_detail_table.draw(false);
         });
 
-        $(document).delegate('#ma_code', 'click', function(e) {
+        $(document).delegate('#ma_code', 'click', function (e) {
             e.preventDefault();
             $('#ma_code').attr('data-id', '');
             $('#ma_code').text('');
@@ -639,7 +640,7 @@
             mass_adjustment_detail_table.draw(false);
         });
 
-        $(document).delegate('#approval_btn', 'click', function(e) {
+        $(document).delegate('#approval_btn', 'click', function (e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') != '') {
                 swal('Sudah Approve', 'Approval sudah disetujui', 'warning');
@@ -654,7 +655,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -668,7 +669,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_approval') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil approval", "success");
                                 loadApproval();
@@ -683,7 +684,7 @@
             })
         });
 
-        $(document).delegate('#execution_btn', 'click', function(e) {
+        $(document).delegate('#execution_btn', 'click', function (e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') == '') {
                 swal('Approval', 'Approval masih kosong', 'warning');
@@ -698,7 +699,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -712,7 +713,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_exec') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil eksekusi", "success");
                                 mass_adjustment_table.draw(false);
@@ -726,7 +727,7 @@
             })
         });
 
-        $('#f_import').on('submit', function(e) {
+        $('#f_import').on('submit', function (e) {
             e.preventDefault();
             if (st_id == 'all') {
                 swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
@@ -751,7 +752,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function(r) {
+                success: function (r) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     if (r.status == '200') {
@@ -764,48 +765,100 @@
                         $('#f_import')[0].reset();
                         swal('Berhasil', 'Adjustment berhasil dicreate', 'success');
                     } else if (r.status == '500') {
-                        Swal.fire({
-                            title: 'Perhatian!',
-                            html: `
-                                <div style="overflow-x:auto;">
-                                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
-                                        <thead>
-                                            <tr>
-                                                <th style="border: 1px solid #ccc; padding: 8px;">SKU / ID</th>
-                                                <th style="border: 1px solid #ccc; padding: 8px;">Qty Export</th>
-                                                <th style="border: 1px solid #ccc; padding: 8px;">Qty Sistem</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="sku-table-body">
-                                            <!-- Data -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            `,
+                        if (r.invalid_skus && r.invalid_skus.length > 0) {
+                            Swal.fire({
+                                title: 'Perhatian!',
+                                html: `
+                                    <div style="overflow-x:auto;">
+                                        <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="border: 1px solid #ccc; padding: 8px;">SKU / ID</th>
+                                                    <th style="border: 1px solid #ccc; padding: 8px;">Qty Export</th>
+                                                    <th style="border: 1px solid #ccc; padding: 8px;">Qty Sistem</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="sku-table-body">
+                                                <!-- Data masuk sini -->
+                                            </tbody>
+                                        </table>
+                                        <br/>
+                                        <div style="text-align: center;">
+                                            <button id="export_excel" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                                            <button id="close_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                                        </div>
+                                    </div>
+                                `,
                                                     icon: 'info',
-                                                    confirmButtonText: 'Oke, Mengerti',
+                                                    showConfirmButton: false,
                                                     didOpen: () => {
                                                         let tbody = document.getElementById('sku-table-body');
                                                         r.invalid_skus.forEach(function(item) {
                                                             let row = document.createElement('tr');
                                                             row.innerHTML = `
-                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.sku}</td>
-                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_export}</td>
-                                        <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_system}</td>
-                                    `;
-                                    tbody.appendChild(row);
-                                });
-                            }
-                        });
+                                            <td style="border: 1px solid #ccc; padding: 8px;">${item.sku}</td>
+                                            <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_export}</td>
+                                            <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_system}</td>
+                                        `;
+                                        tbody.appendChild(row);
+                                    });
+
+                                    // Tombol Export Excel
+                                    document.getElementById('export_excel').addEventListener('click', function () {
+                                        let wb = XLSX.utils.book_new();
+                                        let ws_data = [
+                                            ["SKU / ID", "Qty Export", "Qty Sistem"], // Header
+                                            ...r.invalid_skus.map(item => [item.sku, item.qty_export, item.qty_system])
+                                        ];
+                                        let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                        XLSX.utils.book_append_sheet(wb, ws, "Invalid SKUs");
+                                        XLSX.writeFile(wb, "Invalid_SKUs.xlsx");
+                                    });
+
+                                    // Tombol Tutup
+                                    document.getElementById('close_alert').addEventListener('click', function () {
+                                        Swal.close();
+                                    });
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Perhatian!',
+                                text: 'Tidak ada SKU yang tidak valid.',
+                                icon: 'info',
+                                confirmButtonText: 'Oke'
+                            });
+                        }
                     } else {
                         swal('Gagal', 'Adjustment gagal dicreate', 'warning');
                     }
                 },
-                error: function(data) {
+                error: function (data) {
                     swal('Error', data, 'error');
                 }
             });
         });
+
+
+        // Fungsi Export to CSV
+        function exportToCSV(data) {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "SKU / ID,Qty Export,Qty Sistem\n"; // header
+
+            data.forEach(function (item) {
+                let row = `${item.sku},${item.qty_export},${item.qty_system}`;
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "invalid_skus.xlsx");
+            document.body.appendChild(link);
+
+            link.click();
+            document.body.removeChild(link);
+        }
 
         jQuery.noConflict();
         var picker = $('#kt_dashboard_daterangepicker');
@@ -858,7 +911,7 @@
 
         cb(start, end, '');
 
-        $(document).delegate('#export_by_date', 'click', function(e) {
+        $(document).delegate('#export_by_date', 'click', function (e) {
             e.preventDefault();
             var dt = $('#ma_date').val();
 
@@ -876,10 +929,10 @@
                 },
                 dataType: 'json',
                 url: "{{ url('export_mass_by_date') }}",
-                success: function(r) {
+                success: function (r) {
                     $('#MassAdjustmentExportModal').modal('show');
                     $('#MassAdjustmentDetailtb tbody').empty(); // Clear existing rows
-                    $(r.data).each(function(index, row) {
+                    $(r.data).each(function (index, row) {
                         $('#MassAdjustmentDetailtb tbody').append(
                             "<tr><td>" + (index + 1) +
                             "</td><td>" + row.ma_code +
@@ -893,9 +946,9 @@
                             "</td><td>" + row.psc_name +
                             "</td><td>" + (addCommas(Math.round(row
                                 .purchase_1)) || addCommas(Math.round(row
-                                    .purchase_2)) || addCommas(Math.round(row
-                                    .ps_purchase_price)) || addCommas(Math
-                                    .round(row.p_purchase_price)) || '-') +
+                                .purchase_2)) || addCommas(Math.round(row
+                                .ps_purchase_price)) || addCommas(Math
+                                .round(row.p_purchase_price)) || '-') +
                             "</td><td>" + (addCommas(row.ps_sell_price) ||
                                 addCommas(row.p_sell_price) || '-') +
                             "</td><td>" + row.qty_export +
@@ -908,13 +961,13 @@
                         );
                     });
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error fetching data:', error);
                 }
             });
         });
 
-        $(document).delegate('#excel_report', 'click', function(e) {
+        $(document).delegate('#excel_report', 'click', function (e) {
             e.preventDefault();
             var dt = $('#ma_date').val();
 
@@ -934,7 +987,7 @@
                 xhrFields: {
                     responseType: 'blob'
                 },
-                success: function(blob, status, xhr) {
+                success: function (blob, status, xhr) {
                     var filename = "exported_data.xlsx";
                     var disposition = xhr.getResponseHeader('Content-Disposition');
                     if (disposition && disposition.indexOf('attachment') !== -1) {
@@ -963,12 +1016,12 @@
                         } else {
                             window.location.href = downloadUrl;
                         }
-                        setTimeout(function() {
+                        setTimeout(function () {
                             URL.revokeObjectURL(downloadUrl);
                         }, 10000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error exporting data:', error);
                 }
             });
