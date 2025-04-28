@@ -36,8 +36,8 @@
                 @endif
             </td>
             <td style="white-space: nowrap;">
-                <input type="text" style="width:65px;" value="Disc" readonly/><input type="text" name="poa_discount" id="poa_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_discount }}" onchange="return discount( {{ $row->poa_id }} )"/><br/>
-                <input type="text" style="width:65px;" value="Ex. Disc" readonly/><input type="text" name="poa_extra_discount" id="poa_extra_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_extra_discount }}" onchange="return extraDiscount( {{ $row->poa_id }} )"/><br/>
+                <input type="text" style="width:65px;" value="Disc" readonly/><input type="text" name="poa_discount" id="poa_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_discount }}" onchange="return discount( {{ $row->poa_id }} )" readonly/><br/>
+                <input type="text" style="width:65px;" value="Ex. Disc" readonly/><input type="text" name="poa_extra_discount" id="poa_extra_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_extra_discount }}" onchange="return extraDiscount( {{ $row->poa_id }} )" readonly/><br/>
                 <input type="text" disabled style="width:65px;" value="Sub. Disc" readonly/><input disabled type="text" name="poa_sub_discount" id="poa_sub_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_sub_discount }}" onchange="return subDiscount( {{ $row->poa_id }} )"/>
             </td>
             <td style="white-space: nowrap;">
@@ -49,7 +49,7 @@
                     <input type="text" class="bg-primary text-white" style="width:62px;" value="InStock" readonly/>
                     <input type="text" style="width:80px;" value="Harga Bnd" readonly/>
                     <input type="text" style="width:80px;" value="Harga Beli" readonly/>
-                    <input type="text" style="width:80px;" value="COGS" readonly/>
+                    <input type="hidden" style="width:80px;" value="COGS" readonly/>
                     <input type="text" style="width:80px;" value="Total" readonly/>
                     <input type="text" style="width:90px;" value="Total Terima" readonly/>
                     <br/>
@@ -73,22 +73,22 @@
                         @else
                         <input type="text" style="width:80px;" id="price_tag_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->ps_price_tag) }}" readonly/>
                         @endif
-                        @if($srow->qty_import != null || $srow->qty_import != 0)
+                        {{-- @if($srow->qty_import != null || $srow->qty_import != 0)
                             @if ($srow->ps_price_tag == null || $srow->ps_price_tag == 0)
                                 <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value="{{ number_format($srow->qty_import * $row->p_price_tag) }}"/>
                             @else
                                 <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value="{{ number_format($srow->qty_import * $srow->ps_price_tag) }}"/>
                             @endif
-                        @else
-                        <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value=""/>
-                        @endif
-                        <input type="text" style="width:80px;" id="cogs_{{ $row->poa_id }}_{{ $i }}" value="" readonly/>
+                        @else --}}
+                        <input type="text" style="width:80px;" data-poad-id="{{ $srow->poad_id }}" id="poad_purchase_price_{{ $row->poa_id }}_{{ $i }}" onchange="return receivePurchasePrice( {{ $row->poa_id }}, {{ $i }} )" value="{{number_format($srow->poad_purchase_price)}}" readonly/>
+                        {{-- @endif --}}
+                        <input type="hidden" style="width:80px;" id="cogs_{{ $row->poa_id }}_{{ $i }}" value="" readonly/>
                         <input type="text" style="width:80px;" id="total_purchase_price_{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->poad_total_price) }}" readonly/>
-                        @if($srow->qty_import != null)
+                        {{-- @if($srow->qty_import != null)
                             <input type="text" style="width:90px;" id="total_purchase_price_receive{{ $row->poa_id }}_{{ $i }}" value="{{ number_format($srow->qty_import *  $srow->poad_total_price) }}" readonly/> <img data-img-poads id="savePoads{{ $a }}" onclick="return savePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}" ondblclick="return bulkSavePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}"/>
-                        @else
+                        @else --}}
                         <input type="text" style="width:90px;" id="total_purchase_price_receive{{ $row->poa_id }}_{{ $i }}" value="" readonly/> <img data-img-poads id="savePoads{{ $a }}" onclick="return savePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}" ondblclick="return bulkSavePoads( {{ $srow->poad_id }}, {{ $row->poa_id }}, {{ $i }}, {{ $srow->pst_id }} )" src="{{ asset('cdn/details_open.png') }}"/>
-                        @endif
+                        {{-- @endif --}}
                         <i class="fa fa-eye" data-p_name="[{{ $row->br_name }}] {{ $row->p_name }} {{ $row->p_color }} [{{ $srow->sz_name }}]" data-poad_id="{{ $srow->poad_id }}" id="receive_history"> </i>
                         <br/>
                         @php $i ++; $a++; $total_poad_price += $srow->poad_total_price; $total_poads_price += $srow->poads_total_price; @endphp

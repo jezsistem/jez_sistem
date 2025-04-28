@@ -774,35 +774,6 @@
 
         // Get the updated shipping cost value
         var shipping_cost = $('#shipping_cost').val();
-        console.log(shipping_cost);
-        
-
-        // Send updated shipping cost to the server
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-        $.ajax({
-            type: "POST",
-            url: "{{ url('por_change_shipping_cost') }}",
-            data: {
-                shipping_cost: shipping_cost,
-                po_id: $('#_po_id').val()
-            },
-            success: function (r) {
-                let response = typeof r === "string" ? JSON.parse(r) : r;
-                if (response.status == '200') {
-                    toastr.success("Shipping cost updated successfully", "Success");
-                } else {
-                    toastr.error("Failed to update shipping cost", "Error");
-                    console.log(response);
-                }
-            },
-            error: function (xhr, status, error) {
-                toastr.error("An error occurred while updating shipping cost", "Error");
-            }
-        });
 
         // Loop through all rows to update cogs for each row
         $('[id^="cogs_"]').each(function () {
@@ -831,11 +802,11 @@
                 if (!isNaN(total_purchase_price) && !isNaN(shipping_cost_pcs)) {
                     var total_cogs = total_purchase_price + parseFloat(shipping_cost_pcs);
                     $('#cogs_' + id + '_' + index).val(addCommas(total_cogs));
-                    $('#poad_purchase_price_' + id + '_' + index).val(addCommas(total_cogs));
+                    // $('#poad_purchase_price_' + id + '_' + index).val(addCommas(total_cogs));
 
                     //calculate total_purchase_price_receive
                     var qty = $('#poads_qty_' + id + '_' + index).val();
-                    var total_purchase_price_receive = total_cogs * qty;
+                    var total_purchase_price_receive = total_purchase_price * qty;
                     $('#total_purchase_price_receive' + id + '_' + index).val(addCommas(
                         total_purchase_price_receive));
                 }
@@ -844,7 +815,7 @@
     }
 
 
-    function receiveQty(id, index) {
+    function receiveQty(id, index) {        
         var po_id = $('#_po_id').val();
         var order_qty = $('#poads_qty_remain_' + id + '_' + index).val();
         var qty = $('#poads_qty_' + id + '_' + index).val();
@@ -867,12 +838,13 @@
         if (price_tag == '' || price_tag == 0) {
             price_tag = replaceComma(total_purchase_price) / order_qty;
         }
-        purchase_price = price_tag - (price_tag / 100 * discount);
+        // purchase_price = price_tag - (price_tag / 100 * discount);
         //alert(purchase_price +' '+price_tag+' '+discount);
-        $('#poad_purchase_price_' + id + '_' + index).val(addCommas(purchase_price));
+        // $('#poad_purchase_price_' + id + '_' + index).val(addCommas(purchase_price));
         if (qty == '') {
             qty = 0;
         }
+        purchase_price = replaceComma(purchase_price);
         total = parseFloat(qty) * parseFloat(purchase_price);
 
         if (parseInt(qty) > parseInt(order_qty)) {
@@ -907,9 +879,10 @@
     }
 
     function receiveQtyImport(id, index, importQty) {
+        
         var po_id = $('#_po_id').val();
         var order_qty = $('#poads_qty_remain_' + id + '_' + index).val();
-        var qty = importQty;
+        var qty = $('#poads_qty_' + id + '_' + index).val();
         var purchase_price = $('#poad_purchase_price_' + id + '_' + index).val();
         var price_tag = $('#price_tag_' + id + '_' + index).val();
         var total_purchase_price = $('#total_purchase_price_' + id + '_' + index).val();
@@ -927,9 +900,11 @@
         if (price_tag == '' || price_tag == 0) {
             price_tag = replaceComma(total_purchase_price) / order_qty;
         }
-        purchase_price = price_tag - (price_tag / 100 * discount);
-        //alert(purchase_price +' '+price_tag+' '+discount);
-        $('#poad_purchase_price_' + id + '_' + index).val(addCommas(purchase_price));
+        purchase_price = replaceComma(purchase_price);
+
+        // purchase_price = price_tag - (price_tag / 100 * discount);
+        // //alert(purchase_price +' '+price_tag+' '+discount);
+        // $('#poad_purchase_price_' + id + '_' + index).val(addCommas(purchase_price));
         if (qty == '') {
             qty = 0;
         }
@@ -1031,6 +1006,41 @@
                 }
             });
     }
+
+    $(document).delegate('#shipping_cost', 'change', function () {
+        // Get the updated shipping cost value
+        var shipping_cost = $('#shipping_cost').val();
+
+        // Send updated shipping cost to the server
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('por_change_shipping_cost') }}",
+            data: {
+                shipping_cost: shipping_cost,
+                po_id: $('#_po_id').val()
+            },
+            success: function (r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+                    toastr.success("Shipping cost updated successfully", "Success");
+                } else {
+                    toastr.error("Failed to update shipping cost", "Error");
+                    console.log(response);
+                }
+                setTimeout(() => {
+                    updateCogs(); // Run updateCogs() at the end
+                }, 1000);
+            },
+            error: function (xhr, status, error) {
+                toastr.error("An error occurred while updating shipping cost", "Error");
+            }
+        });
+    });
 
     // CALCULATION
 
