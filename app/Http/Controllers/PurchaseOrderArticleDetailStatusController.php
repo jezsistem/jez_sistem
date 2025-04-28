@@ -63,6 +63,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             'notes' => $invoice_note,
             'COGS' => $poads_cogs,
             'shipping_cost' => $shipping_cost,
+            'received_date' => $receive_date,
             'created_at' => $receive_date . ' ' . date('H:i:s'),
             'updated_at' => $receive_date . ' ' . date('H:i:s'),
         ]);

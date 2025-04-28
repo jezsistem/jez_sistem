@@ -121,7 +121,8 @@ class POReceiveApprovalController extends Controller
                     ts_purchase_orders.dispute,
                     ts_purchase_orders.dispute_description,
                     ts_purchase_orders.pay_date,
-                    ts_purchase_orders.due_date
+                    ts_purchase_orders.due_date,
+                    received_date
                 ")
                     ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
                     ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
@@ -145,7 +146,12 @@ class POReceiveApprovalController extends Controller
                     return date('d/m/Y', strtotime($data->invoice_date));
                 })
                 ->editColumn('receive_date_show', function ($data) {
-                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                    if (empty($data->received_date)) {
+                        return date('d/m/Y', strtotime($data->created_at));
+
+                    }
+                    return date('d/m/Y', strtotime($data->received_date));
+
                 })
                 ->editColumn('u_receive', function ($data) {
                     if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
@@ -392,6 +398,7 @@ class POReceiveApprovalController extends Controller
     public function exportData(Request $request)
     {
         $no_po = $request->get('no_po');
+        $no_invoice = $request->get('no_invoice');
         $ps_name = $request->get('ps_name');
         $data = DB::table('purchase_order_article_detail_statuses')
             ->selectRaw("ts_purchase_order_article_detail_statuses.id,
@@ -404,7 +411,8 @@ class POReceiveApprovalController extends Controller
                 sz_name as size,
                 ts_stock_types.stkt_name as tipe,
                 poads_qty as qty_terima,
-                ts_product_stocks.ps_qty as current_stock,
+                ts_product_stocks.id as pst_id,
+                ts_purchase_orders.st_id as st_id,
                 poad_purchase_price as harga_beli,
                 poad_total_price as total")
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
@@ -416,10 +424,20 @@ class POReceiveApprovalController extends Controller
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
             ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id')
             ->where('purchase_orders.po_invoice', '=', $no_po)
+            ->where('purchase_order_article_detail_statuses.poads_invoice', '=', $no_invoice)
             ->get();
+
         $result = [];
         $no = 1;
         foreach ($data as $row) {
+            $location = ProductLocation::select('pl_description as city')->where('st_id', $row->st_id)->get()->first();
+
+            $current_stock = ProductLocationSetup::selectRaw('SUM(ts_product_location_setups.pls_qty) AS total_pls_qty')
+                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->where('pl_description', $location->city)
+                ->where('pst_id', $row->pst_id)
+                ->first();
+
             $result[] = [
                 'No' => $no++,
                 'Tanggal Terima' => date('d/m/Y', strtotime($row->tanggal_terima)),
@@ -431,7 +449,7 @@ class POReceiveApprovalController extends Controller
                 'Size' => $row->size,
                 'Tipe' => $row->tipe,
                 'Qty Terima' => $row->qty_terima,
-                'Current Stock' => $row->current_stock,
+                'Current Stock' => $current_stock ? $current_stock->total_pls_qty : 0,
                 'Harga Beli' => $row->harga_beli,
                 'Total' => $row->total,
             ];

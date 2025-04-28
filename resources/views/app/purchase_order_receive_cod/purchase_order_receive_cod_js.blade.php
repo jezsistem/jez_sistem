@@ -56,7 +56,7 @@
                 },
                 {
                     data: 'receive_date_show',
-                    name: 'created_at'
+                    name: 'received_date'
                 },
                 {
                     data: 'u_name',
@@ -376,8 +376,7 @@
             var tax_id = po_approval_table.row(this).data().tax_id; // Access tax_id
             var stkt_name = po_approval_table.row(this).data().stkt_name; // Access stkt_name
             var tx_name = po_approval_table.row(this).data().tx_name; // Access tx_name
-            var today = new Date();
-            var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table.row(this).data().created_at.split(' ')[0];
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;

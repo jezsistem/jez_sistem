@@ -57,7 +57,7 @@
                 },
                 {
                     data: 'receive_date_show',
-                    name: 'created_at'
+                    name: 'received_date'
                 },
                 {
                     data: 'u_name',
@@ -300,8 +300,7 @@
             // var tgl_terima = full_date.split(' ')[0];
             var stkt_name = po_approval_table.row(this).data().stkt_name;
             var tax_id = po_approval_table.row(this).data().tax_id;
-            var today = new Date();
-            var tgl_terima = today.toISOString().split('T')[0]; // Format YYYY-MM-DD
+            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table.row(this).data().created_at.split(' ')[0];
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
@@ -392,8 +391,9 @@
 
         $(document).delegate('#ExportApprovalBtn', 'click', function () {
             var no_po = $('#no_po').text();
+            var no_invoice = $('#invoice_label').text();
             var ps_name = $('#ps_name').val();
-            window.location.href = "{{ url('apd_export') }}?no_po=" + no_po + "&ps_name=" + ps_name + "";
+            window.location.href = "{{ url('apd_export') }}?no_po=" + no_po + "&ps_name=" + ps_name + "&no_invoice=" + no_invoice + "";
         });
 
         $(document).ready(function () {

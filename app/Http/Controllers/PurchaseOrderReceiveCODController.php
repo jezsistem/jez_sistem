@@ -80,7 +80,7 @@ class PurchaseOrderReceiveCODController extends Controller
     {
         if ($request->ajax()) {
             $query = DB::table('purchase_order_article_detail_statuses')
-                ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve,
+                ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve, ts_purchase_order_article_detail_statuses.received_date,
                 sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost, pay_date, due_date,
                     ts_purchase_orders.stkt_id,
                     ts_purchase_orders.tax_id,
@@ -112,7 +112,12 @@ class PurchaseOrderReceiveCODController extends Controller
                     return date('d/m/Y', strtotime($data->invoice_date));
                 })
                 ->editColumn('receive_date_show', function ($data) {
-                    return date('d/m/Y H:i:s', strtotime($data->created_at));
+                    if (empty($data->received_date)) {
+                        return date('d/m/Y', strtotime($data->created_at));
+
+                    }
+                    return date('d/m/Y', strtotime($data->received_date));
+
                 })
                 ->editColumn('u_receive', function ($data) {
                     $check_invoice_cod = PurchaseOrderInvoiceImage::where('purchase_order_id', '=', $data->po_id)->where('invoice_image', 'LIKE', '%COD%')->count();
