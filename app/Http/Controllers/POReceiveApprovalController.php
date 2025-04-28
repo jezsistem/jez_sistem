@@ -299,11 +299,15 @@ class POReceiveApprovalController extends Controller
     public function approveData(Request $request)
     {
         $invoice = $request->post('invoice');
-        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice', 'purchase_order_article_details.poad_purchase_price')
+        $poads = DB::table('purchase_order_article_detail_statuses')->select('purchase_order_article_detail_statuses.id as id', 'poads_qty', 'pst_id', 'st_id', 'poads_invoice', 'purchase_order_article_details.poad_purchase_price', 'poad_id', 'ps_barcode')
             ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
             ->leftJoin('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
             ->leftJoin('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
-            ->where('poads_invoice', '=', $invoice)->get();
+            ->leftjoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
+            ->where('poads_invoice', '=', $invoice)
+            ->whereNotNull('st_id')
+            ->get();
+
 
 
         if (!empty($poads->first())) {
