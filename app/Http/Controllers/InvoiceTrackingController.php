@@ -276,37 +276,37 @@ class InvoiceTrackingController extends Controller
         $pt_id = $request->_id;
         $cust_id = $request->_cust_id;
         $courier = $request->courier;
-        $image = '';
+        // $image = '';
 
         $update = PosTransaction::where('id', $pt_id)->update([
             'pos_shipping_number' => str_replace(' ', '', $shipping_number)
         ]);
 
-        if ($request->hasFile('image')) {
-            $request->validate([
-                'image' => 'required|file|mimes:jpg,jpeg,png',
-            ]);
-            $image = $request->file('image');
-            $input['fileName'] = time() . '.' . $image->extension();
+        // if ($request->hasFile('image')) {
+        //     $request->validate([
+        //         'image' => 'required|file|mimes:jpg,jpeg,png',
+        //     ]);
+        //     $image = $request->file('image');
+        //     $input['fileName'] = time() . '.' . $image->extension();
 
-            $destinationPath = public_path('/upload/shipping_img/600x600');
-            $img = Image::make($image->path());
-            $img->resize(600, 600, function ($constraint) {
-                $constraint->aspectRatio();
-            })->save($destinationPath . '/' . $input['fileName']);
-            $image = $input['fileName'];
-            $check_img = DB::table('pos_images')->where('pt_id', '=', $pt_id)->exists();
-            if ($check_img) {
-                DB::table('pos_images')->where('pt_id', '=', $pt_id)->update([
-                    'image' => $image
-                ]);
-            } else {
-                DB::table('pos_images')->insert([
-                    'pt_id' => $pt_id,
-                    'image' => $image
-                ]);
-            }
-        }
+        //     $destinationPath = public_path('/upload/shipping_img/600x600');
+        //     $img = Image::make($image->path());
+        //     $img->resize(600, 600, function ($constraint) {
+        //         $constraint->aspectRatio();
+        //     })->save($destinationPath . '/' . $input['fileName']);
+        //     $image = $input['fileName'];
+        //     $check_img = DB::table('pos_images')->where('pt_id', '=', $pt_id)->exists();
+        //     if ($check_img) {
+        //         DB::table('pos_images')->where('pt_id', '=', $pt_id)->update([
+        //             'image' => $image
+        //         ]);
+        //     } else {
+        //         DB::table('pos_images')->insert([
+        //             'pt_id' => $pt_id,
+        //             'image' => $image
+        //         ]);
+        //     }
+        // }
 
         if (!empty($update)) {
             $check = PosShippingInformation::where('pt_id', $pt_id)->exists();

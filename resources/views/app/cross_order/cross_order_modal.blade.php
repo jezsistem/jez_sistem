@@ -85,11 +85,11 @@
                         <label for="exampleTextarea">No Resi</label>
                         <input type="text" class="form-control" id="pos_shipping_number" name="pos_shipping_number" required />
                     </div>
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                             <label>Upload File Resi</label>
                             <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="imageResi[]" id="imageResi" multiple required/>
-                        </div>
+                        </div> --}}
                 </div>
             </div>
             <div class="modal-footer">

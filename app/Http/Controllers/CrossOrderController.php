@@ -219,12 +219,10 @@ class CrossOrderController extends Controller
                         if (strtolower(Auth::user()->u_name) == 'aufa kenshi') {
                           return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$data->pos_status.'</span>';
                         } else {
-                          return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>
-                                  <span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-resi="'.$data->pos_resi_file.'" class="btn btn-sm btn-info check_resi" id="check_resi"> Check Resi</span>';
+                          return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>';
                         }
                     } else {
-                        return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$data->pos_status.'</span>
-                                <span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-resi="'.$data->pos_resi_file.'" class="btn btn-sm btn-info check_resi" id="check_resi"> Check Resi</span>';
+                        return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" class="btn btn-sm '.$btn.'" id="confirmation_btn">'.$data->pos_status.'</span>';
                     }
                 }
                 if ($data->pos_status == 'REJECTED' || $data->pos_status == 'CANCEL') {
@@ -276,12 +274,13 @@ class CrossOrderController extends Controller
     public function confirmationDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name', 'pl_code', 'p_color', 'sz_name', 'pos_td_qty', 'pos_td_description', 'pos_td_reject')
+            return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name', 'pl_code', 'p_color', 'sz_name', 'pos_td_qty', 'pos_td_description', 'pos_td_reject', 'pos_transactions.pos_note as note')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'pos_transaction_details.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('pos_transactions','pos_transaction_details.pt_id', '=', 'pos_transactions.id')
             ->where('pt_id', '=', $request->pt_id))
             ->editColumn('article', function($data){
               return '<span class="btn btn-primary">['.$data->br_name.'] '.$data->p_name.' '.$data->p_color.' ['.$data->sz_name.']</span>';
@@ -296,7 +295,7 @@ class CrossOrderController extends Controller
             ->editColumn('note', function($data){
               return '
                 <textarea class="form-control" data-ptd_id="'.$data->ptd_id.'" id="note">
-                  '.$data->pos_td_description.'
+                  '.$data->note.'
                 </textarea>';
             })
             ->rawColumns(['article', 'ready', 'note'])
@@ -308,12 +307,13 @@ class CrossOrderController extends Controller
     public function detailDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name', 'pl_code', 'p_color', 'sz_name', 'pos_td_qty', 'pos_td_description', 'pos_td_reject')
+            return datatables()->of(PosTransactionDetail::select('pos_transaction_details.id as ptd_id', 'p_name', 'br_name', 'pl_code', 'p_color', 'sz_name', 'pos_td_qty', 'pos_td_description', 'pos_td_reject', 'pos_transactions.pos_note as note')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'pos_transaction_details.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('pos_transactions','pos_transaction_details.pt_id', '=', 'pos_transactions.id')
             ->where('pt_id', '=', $request->pt_id))
             ->editColumn('article', function($data){
               return '<span class="btn btn-primary">['.$data->br_name.'] '.$data->p_name.' '.$data->p_color.' ['.$data->sz_name.']</span>';
@@ -328,7 +328,7 @@ class CrossOrderController extends Controller
             ->editColumn('note', function($data){
               return '
                 <textarea class="form-control" data-ptd_id="'.$data->ptd_id.'" id="note" readonly>
-                  '.$data->pos_td_description.'
+                  '.$data->note.'
                 </textarea>';
             })
             ->rawColumns(['article', 'ready', 'note'])
@@ -539,6 +539,24 @@ class CrossOrderController extends Controller
             $r['status'] = '200';
         }
         return json_encode($r);
+    }
+
+    public function printResi(Request $request)
+    {
+        $pt_id = $request->_pt_id;
+        $transaction = PosTransaction::select('pos_resi_file')->where('id', $pt_id)->first();
+
+        if (!$transaction || empty($transaction->pos_resi_file)) {
+            return response()->json(['status' => '404', 'message' => 'Resi file not found']);
+        }
+
+        $filePath = public_path("upload/resi/" . $transaction->pos_resi_file);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['status' => '404', 'message' => 'File not found']);
+        }
+
+        return response()->json(['status' => '200', 'resi_id' => $transaction->pos_resi_file]);
     }
 
     public function printInvoice(Request $request)

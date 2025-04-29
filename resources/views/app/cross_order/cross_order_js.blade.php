@@ -316,27 +316,31 @@
         $(document).delegate('#print_resi_btn', 'click', function() {
             var pt_id = $(this).attr('data-pt_id');
             $.ajaxSetup({
-                headers: {
+            headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
+            }
             });
             $.ajax({
-                type: "POST",
-                data: {_pt_id:pt_id},
-                dataType: 'json',
-                url: "{{ url('print_resi') }}",
-                success: function(r) {
-                    if (r.status == '200'){
-                        var win = window.open('{{ url('/') }}/print_resi/'+r.resi_id, '_blank');
-                        if (win) {
-                            win.focus();
-                        } else {
-                            alert('Please allow popups for this website');
-                        }
-                    } else {
-                        swal('Gagal', 'Gagal cetak resi', 'error');
-                    }
+            type: "POST",
+            data: {_pt_id: pt_id},
+            dataType: 'json',
+            url: "{{ url('print_resi') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                var win = window.open('{{ url('/') }}/upload/resi/' + r.resi_id, '_blank');
+                if (win) {
+                    win.focus();
+                    win.print(); // Automatically trigger the print dialog
+                } else {
+                    alert('Please allow popups for this website');
                 }
+                } else {
+                swal('Error', r.message, 'error');
+                }
+            },
+            error: function() {
+                swal('Error', 'Failed to process the request', 'error');
+            }
             });
         });
 
