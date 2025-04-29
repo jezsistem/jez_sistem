@@ -606,6 +606,7 @@ class PurchaseOrderController extends Controller
 
     public function reloadPoDetail(Request $request)
     {
+        $r = array();
         $po_id = $request->_po_id;
         $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id')
             ->where(['po_id' => $po_id])->get();

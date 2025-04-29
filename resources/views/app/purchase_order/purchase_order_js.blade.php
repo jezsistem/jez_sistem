@@ -219,6 +219,8 @@
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
         var total_row = $('span[data-poa-' + id + ']').length;
+        var poad_total_price = 0;
+        var po_id = $('#_po_id').val();
 
         // Reset discount if empty or 0
         if (discount == '' || discount == 0) {
@@ -243,9 +245,14 @@
             var total_purchase_price = total * parseFloat(qty);
             $('#total_purchase_price_' + id + '_' + i).val(addCommas(total_purchase_price));
 
+            poad_total_price += total_purchase_price;
+
             // Update total for this row
             poadPurchasePrice(id, i, total);
         }
+
+        $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
+        reloadPoTotalPrice(po_id)
 
         // Send updated discount information via AJAX
         $.ajaxSetup({
@@ -277,6 +284,8 @@
         var extra_discount = $('#poa_extra_discount' + id).val();
         var total_row = $('span[data-poa-' + id + ']').length;
         var total = 0;
+        var poad_total_price = 0;
+        var po_id = $('#_po_id').val();
 
         if (discount == 0 || discount == null) {
             swal('Diskon', 'Diskon kosong, silahkan isi terlebih dahulu', 'warning');
@@ -287,13 +296,17 @@
             }
             for (let i = 0; i < total_row; ++i) {
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
-                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount))
-                var total = subtotal - (subtotal / 100 * parseFloat(extra_discount))
+                var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
+                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
+                var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
                 $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
-                $('#poad_qty_' + id + '_' + i).val('');
-                $('#total_purchase_price_' + id + '_' + i).val('');
+                $('#total_purchase_price_' + id + '_' + i).val(addCommas(total * qty));
+                poad_total_price += total * qty;
                 poadPurchasePrice(id, i, total);
             }
+
+            $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
+            reloadPoTotalPrice(po_id)
         }
 
         $.ajaxSetup({

@@ -83,7 +83,7 @@
                                             class="order_po_qty order_po_qty_row{{ $a }}"
                                             onchange="return orderQty( {{ $row->poa_id }}, {{ $i }}, {{ $srow->poad_id }} )"
                                             required />
-                                        <input type="text" style="width:70px;"
+                                        <input type="text" style="width:80px;"
                                             value="{{ $srow['total_pls_qty'] ?? '' }}"
                                             class="order_po_qty order_po_qty_row{{ $a }} bg-light"
                                             readonly />
