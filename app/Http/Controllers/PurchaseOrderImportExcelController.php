@@ -82,9 +82,19 @@ class PurchaseOrderImportExcelController extends Controller
                 ])->exists();
 
                 $price_tag = ProductStock::where('id', $value['pst_id'])->first()->ps_price_tag;
-                $total_disc = (float)$value['disc'] + (float)$value['ex_disc'] + (float)$value['sub_disc'];
-                $disc_value = ($total_disc / 100) * $price_tag;
-                $new_cogs = $price_tag - $disc_value;
+                $new_price = $price_tag;
+                if ($value['disc']) {
+                    $new_price = $new_price - ($new_price * ((float)$value['disc'] / 100));
+                }
+
+                if ($value['ex_disc']) {
+                    $new_price = $new_price - ($new_price * ((float)$value['ex_disc'] / 100));
+                }
+
+                if ($value['sub_disc']) {
+                    $new_price = $new_price - ($new_price * ((float)$value['sub_disc'] / 100));
+                }
+                $new_cogs = $new_price;
                 $total_cogs = $new_cogs *  (float)$value['poad_qty'];
 
                 if (!$check_poad) {
