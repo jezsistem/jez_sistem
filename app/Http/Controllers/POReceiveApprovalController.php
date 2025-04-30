@@ -159,7 +159,7 @@ class POReceiveApprovalController extends Controller
                         return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
                     } else if (!empty($data->u_id_approve)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->created_at)) . '</span>';
+                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->updated_at)) . '</span>';
                     } else {
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
