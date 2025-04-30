@@ -72,7 +72,30 @@
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <input type="search" class="form-control  col-6" id="stock_transfer_search" placeholder="Cari user / artikel"/><br/>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <input type="search" class="form-control col-6" id="stock_transfer_search" placeholder="Cari user / artikel"/>
+                                <div class="col-4">
+                                    <select class="form-control" id="st_id" name="st_id" required>
+                                        <option value="">- Pilih Store Awal -</option>
+                                        @foreach ($data['st_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="st_id_parent"></div>
+                                </div>
+                                <div class="form-group ml-4">
+                                    <a href="#" class="btn btn-date-info font-weight-bold"
+                                        id="kt_dashboard_daterangepicker" data-toggle="tooltip"
+                                        title="Tanggal Invoice" data-placement="left">
+                                        <span class="font-size-base"
+                                            id="kt_dashboard_daterangepicker_title">Today</span>
+                                        <span class="font-size-base font-weight-bolder"
+                                            id="kt_dashboard_daterangepicker_date"></span>
+                                        <input type="hidden" id="transfer_receive_date" />
+                                    </a>
+                                </div>
+                            </div>
+                            
                             <table class="table table-hover table-checkable" id="StockTransferDatatb">
                                 <thead class="bg-light text-dark">
                                     <tr>

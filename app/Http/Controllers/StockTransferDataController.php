@@ -160,6 +160,24 @@ class StockTransferDataController extends Controller
                                 ->orWhereRaw('CONCAT(br_name," ", p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
                         });
                     }
+                    if (!empty($request->get('transfer_receive_date'))) {
+                        $dateParts = explode('|', $request->get('transfer_receive_date'));
+
+                        if (count($dateParts) == 2) {
+                            // Date range provided
+                            $instance->whereBetween('stock_transfers.created_at', [$dateParts[0], $dateParts[1]]);
+                        } elseif (count($dateParts) == 1) {
+                            // Single date provided
+                            $instance->whereDate('stock_transfers.created_at', $dateParts[0]);
+                        }
+                    }
+                    if (!empty($request->get('st_id_start'))) {
+                        if (!empty($request->get('st_id_start'))) {
+                            $instance->where('stock_transfers.st_id_start', '=', $request->get('st_id_start'));
+                        } else {
+                            $instance->where('stock_transfers.st_id_start', '=', -1); // Handle not found case
+                        }
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
