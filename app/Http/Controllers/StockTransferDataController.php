@@ -177,6 +177,7 @@ class StockTransferDataController extends Controller
                 'st_id_end',
                 'stf_code',
                 'br_name',
+                'ps_barcode',
                 'p_name',
                 'p_color',
                 'sz_name',
@@ -214,7 +215,8 @@ class StockTransferDataController extends Controller
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            $w->orWhereRaw('CONCAT(br_name," ", p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
+                            $w->orWhere('ps_barcode', 'LIKE', "%$search%")
+                            ->orWhereRaw('CONCAT(br_name," ", p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
                         });
                     }
                 })
