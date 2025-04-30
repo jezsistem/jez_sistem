@@ -104,6 +104,7 @@ class POReceiveApprovalController extends Controller
                     poads_invoice,
                     invoice_date,
                     ts_purchase_order_article_detail_statuses.created_at,
+                    ts_purchase_order_article_detail_statuses.updated_at,
                     u_name,
                     u_id_approve,
                     sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty,
