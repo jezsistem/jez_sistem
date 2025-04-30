@@ -116,7 +116,7 @@ data-backdrop="static" data-keyboard="false" style="overflow-y: auto;">
                                                 </svg>
                                                 <!--end::Svg Icon-->
                                             </span>
-                                            Payment COD
+                                            Upload Payment
                                         </label>
                                     </a>
                                 </div>
