@@ -99,9 +99,15 @@ class PurchaseOrderReceiveCODController extends Controller
                 ->where('is_paid', 0)
                 ->groupBy('poads_invoice');
 
-            // Apply search filter for `po_invoice`
+            // Apply search filter for `po_invoice` and `st_code`
             if (!empty($request->search)) {
-                $query->where('po_invoice', 'like', '%' . $request->search . '%');
+                $search = $request->search;
+                $query->where(function ($instance) use ($search) {
+                    $instance->orWhere('po_invoice', 'LIKE', "%$search%")
+                        ->orWhere('st_name', 'LIKE', "%$search%")
+                        ->orWhere('ps_name', 'LIKE', "%$search%")
+                        ->orWhere('poads_invoice', 'LIKE', "%$search%");
+                });
             }
 
             return datatables()->of($query)
