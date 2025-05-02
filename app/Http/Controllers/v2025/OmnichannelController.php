@@ -13,7 +13,7 @@ class OmnichannelController extends Controller
 
   public function index()
   {
-      $this->validateAccess();
+      validateAccess();
       $user = new User;
       $select = ['*'];
       $where = [
@@ -28,7 +28,7 @@ class OmnichannelController extends Controller
       $data = [
           'title' => $title,
           'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
-          'sidebar' => $this->sidebar(),
+          'sidebar' => sidebar(),
           'path' => $path,
           'user' => $user_data,
           'segment' => request()->segment(1),
