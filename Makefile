@@ -1,3 +1,5 @@
+up:
+	docker-compose up --build -d
 exportsql:
 	docker exec mysql sh -c 'exec mysqldump jez_erp_1 -uroot -p"99Xpro88"' > /home/ghalyfadhillah/Documents/jez_erp_1.sql
 importsql: 

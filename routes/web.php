@@ -1027,3 +1027,5 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('perp_delete', [WebConfigController::class, 'deleteData']);
     Route::post('reset_erp', [WebConfigController::class, 'resetERP']);
 });
+
+require __DIR__ . '/omnichannel.php';
