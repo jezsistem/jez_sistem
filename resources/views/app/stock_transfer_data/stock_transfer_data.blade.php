@@ -73,15 +73,24 @@
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <input type="search" class="form-control col-6" id="stock_transfer_search" placeholder="Cari user / artikel"/>
-                                <div class="col-4">
-                                    <select class="form-control" id="st_id" name="st_id" required>
+                                <input type="search" class="form-control col-6" id="stock_transfer_search" placeholder="Cari user / Artikel id / Kode Transfer"/>
+                                <div class="col-2">
+                                    <select class="form-control" id="st_id_start" name="st_id_start" required>
                                         <option value="">- Pilih Store Awal -</option>
                                         @foreach ($data['st_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
                                         @endforeach
                                     </select>
-                                    <div id="st_id_parent"></div>
+                                    <div id="st_id_start_parent"></div>
+                                </div>
+                                <div class="col-2">
+                                    <select class="form-control" id="st_id_end" name="st_id_end" required>
+                                        <option value="">- Pilih Store Tujuan -</option>
+                                        @foreach ($data['st_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="st_id_end_parent"></div>
                                 </div>
                                 <div class="form-group ml-4">
                                     <a href="#" class="btn btn-date-info font-weight-bold"

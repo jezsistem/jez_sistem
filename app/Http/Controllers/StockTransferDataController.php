@@ -157,6 +157,7 @@ class StockTransferDataController extends Controller
                             $search = $request->get('search');
                             $w->orWhere('u_name', 'LIKE', "%$search%")
                                 ->orWhere('stf_code', 'LIKE', "%$search%")
+                                ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(br_name," ", p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
                         });
                     }
@@ -172,12 +173,16 @@ class StockTransferDataController extends Controller
                         }
                     }
                     if (!empty($request->get('st_id_start'))) {
-                        if (!empty($request->get('st_id_start'))) {
-                            $instance->where('stock_transfers.st_id_start', '=', $request->get('st_id_start'));
-                        } else {
-                            $instance->where('stock_transfers.st_id_start', '=', -1); // Handle not found case
-                        }
+                        $instance->where('stock_transfers.st_id_start', '=', $request->get('st_id_start'));
+                    } else {
+                        $instance->where('stock_transfers.st_id_start', '=', -1); // Handle not found case
                     }
+                    
+                    if (!empty($request->get('st_id_end'))) {
+                        $instance->where('stock_transfers.st_id_end', '=', $request->get('st_id_end'));
+                    } else {
+                        $instance->where('stock_transfers.st_id_end', '=', -1); // Handle not found case
+                    }                    
                 })
                 ->addIndexColumn()
                 ->make(true);

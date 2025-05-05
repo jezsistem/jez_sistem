@@ -22,7 +22,8 @@
                 data: function(d) {
                     d.search = $('#stock_transfer_search').val();
                     d.transfer_receive_date = $('#transfer_receive_date').val();
-                    d.st_id_start = $('#st_id').val();
+                    d.st_id_start = $('#st_id_start').val();
+                    d.st_id_end = $('#st_id_end').val();
                 }
             },
             columns: [{
@@ -518,17 +519,31 @@
             });
         });
 
-        $('#st_id').select2({
+        $('#st_id_start').select2({
             width: "100%",
-            dropdownParent: $('#st_id_parent')
+            dropdownParent: $('#st_id_start_parent')
         });
-        $('#st_id').on('select2:open', function(e) {
+        $('#st_id_start').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#st_id').on('change', function() {
+        $('#st_id_end').select2({
+            width: "100%",
+            dropdownParent: $('#st_id_end_parent')
+        });
+        $('#st_id_end').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#st_id_start').on('change', function() {
+            stock_transfer_data_table.draw();
+        });
+
+        $('#st_id_end').on('change', function() {
             stock_transfer_data_table.draw();
         });
 
