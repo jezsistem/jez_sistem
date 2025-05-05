@@ -285,7 +285,7 @@
                             </td>
                             <td class="final-price">
                                         <span style="float:right;">
-                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($sub_total_final) }}
+                                        {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price) }}
                                         </span>
                             </td>
                         </tr>
@@ -331,9 +331,9 @@
                             <td class="final-price">
                                         <span style="float:right;">
                                             @if (!empty($discount_invoice))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final + $nameset + $row->pos_another_cost - $discount_invoice) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price + $nameset + $row->pos_another_cost - $discount_invoice) }}
                                             @else
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_final + $nameset + $row->pos_another_cost) }}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR($total_price + $nameset + $row->pos_another_cost) }}
                                             @endif
                                         </span>
                             </td>
@@ -361,7 +361,7 @@
                                         @if (!empty($row->pos_payment))
                                                 {{--                                            {{ number_format(($row->pos_payment + $row->pos_payment_partial) - ($total_price+$nameset+($total_price+$nameset)/100*$row->pos_cc_charge) - $row->pos_another_cost) }}--}}
                                                 @if (!empty($discount_invoice))
-                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - ($total_final + $nameset - $discount_invoice))}}
+                                                {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - ($total_price + $nameset - $discount_invoice))}}
                                                 @else
                                                 {{ \App\Libraries\CurrencyFormatter::formatToIDR(($row->pos_payment + $row->pos_payment_partial + $total_voucher) - ($total_final + $nameset))}}
                                                 @endif
