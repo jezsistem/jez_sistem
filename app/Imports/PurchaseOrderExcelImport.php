@@ -72,15 +72,33 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
             $sub_disc = ltrim($value[3]);
             $qty = ltrim($value[4]);
 
-            if (!$productStocks[$sku]) continue;
+            if (!$productStocks[$sku]) {
+                $this->data[] = [
+                    'sku' => $sku,
+                    'status' => 'Not Found',
+                    'disc' => $disc,
+                    'ex_disc' => $ex_disc,
+                    'sub_disc' => $sub_disc,
+                    'poad_qty' => $qty
+                ];
+                $this->rows++;
+                continue;
+            }
 
-//            $size = $sizes[$variantName . $variantDesc];
-//            if (!$size) continue;
+            $productStock = ProductStock::where('ps_barcode', $sku)->first();
 
-            $productStock = ProductStock::where('ps_barcode', $sku)
-                ->first();
-
-            if (!$productStock) continue;
+            if (!$productStock) {
+                $this->data[] = [
+                    'sku' => $sku,
+                    'status' => 'Not Found',
+                    'disc' => $disc,
+                    'ex_disc' => $ex_disc,
+                    'sub_disc' => $sub_disc,
+                    'poad_qty' => $qty
+                ];
+                $this->rows++;
+                continue;
+            }
 
             $this->data[] = [
                 'p_id' => $productStock->p_id,
@@ -88,7 +106,9 @@ class PurchaseOrderExcelImport implements ToCollection, WithStartRow
                 'disc' => $disc,
                 'ex_disc' => $ex_disc,
                 'sub_disc' => $sub_disc,
-                'poad_qty' => $qty
+                'poad_qty' => $qty,
+                'sku' => $sku,
+                'status' => 'Found'
             ];
 
             $this->rows++;

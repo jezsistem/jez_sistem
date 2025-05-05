@@ -31,7 +31,19 @@ class PurchaseOrderImportExcelController extends Controller
                 if ($import->getRowCount() >= 0) {
                     $processData = $this->processImportData($import->getData(), $po_id);
 
-//                    dd($processData);
+                    $r['process_data'] = $processData;
+                    
+                    if (isset($processData['status']) && $processData['status'] === 'error') {
+                        $r['status'] = '404';
+                        $r['not_found'] = $processData['not_found'];
+                        return json_encode($r);
+                    }
+
+                    if (isset($processData['status']) && $processData['status'] === 'duplicate') {
+                        $r['status'] = '403';
+                        $r['duplicate_items'] = $processData['duplicate_items'];
+                        return json_encode($r);
+                    }
 
                     $r['data'] = $import;
                     $r['status'] = '200';
@@ -53,6 +65,39 @@ class PurchaseOrderImportExcelController extends Controller
     public function processImportData(array $data, $po_id)
     {
 //        dd($data);
+        $notFoundItems = array_filter($data, fn($value) => $value['status'] === 'Not Found');
+        if (!empty($notFoundItems)) {
+            return [
+            'status' => 'error',
+            'not_found' => array_map(fn($item) => [
+                'sku' => $item['sku'],
+                'qty' => $item['poad_qty'],
+            ], $notFoundItems),
+            ];
+        }
+
+        $duplicateItems = array_filter($data, function ($value) use ($po_id) {
+            $poa_id = PurchaseOrderArticle::where([
+            'po_id' => $po_id,
+            'p_id' => $value['p_id'],
+            ])->value('id');
+
+            return PurchaseOrderArticleDetail::where([
+            'poa_id' => $poa_id,
+            'pst_id' => $value['pst_id'],
+            ])->exists();
+        });
+
+        if (!empty($duplicateItems)) {
+            return [
+            'status' => 'duplicate',
+            'duplicate_items' => array_map(fn($item) => [
+                'sku' => $item['sku'],
+                'qty' => $item['poad_qty'],
+            ], $duplicateItems),
+            ];
+        }
+
         try {
             DB::beginTransaction();
             $poid = $po_id;

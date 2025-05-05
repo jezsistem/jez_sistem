@@ -1,5 +1,7 @@
 <!-- DATERANGE -->
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
+<script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
@@ -56,7 +58,7 @@
             },
             url: "{{ url('check_po_detail') }}",
             success: function(r) {
-                console.log(r);
+                // console.log(r);
                 $('#purchase_order_detail_content').html(r);
             }
         });
@@ -601,9 +603,9 @@
             success: function (r) {
                 let response = typeof r === "string" ? JSON.parse(r) : r;
                 if (response.status == '200') {
-                   
+
                 } else {
-                    
+
                 }
             },
         });
@@ -626,7 +628,7 @@
             success: function (r) {
                 let response = typeof r === "string" ? JSON.parse(r) : r;
                 if (response.status == '200') {
-                    
+
                 } else {
 
                 }
@@ -783,17 +785,17 @@
             dom: 'rt<"text-right"ip>',
             ajax: {
                 url: "{{ url('po_invoice_image_datatable') }}",
-                data: function (d) {
-                    console.log(d); 
+                data: function(d) {
+                    // console.log(d); 
                     d._po_id = $('#_po_id').val();
                 },
             },
 
             columns: [{
-                data: 'image',
-                name: 'invoice_image',
-                searchable: false
-            },
+                    data: 'image',
+                    name: 'invoice_image',
+                    searchable: false
+                },
                 {
                     data: 'action',
                     name: 'action',
@@ -825,11 +827,11 @@
             },
 
             columns: [{
-                data: 'image',
-                name: 'transfer_image',
-                searchable: false
-            },
-            {
+                    data: 'image',
+                    name: 'transfer_image',
+                    searchable: false
+                },
+                {
                     data: 'action',
                     name: 'action',
                     orderable: false,
@@ -848,12 +850,12 @@
 
         $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
             var id = $(this).data('id');
-            
+
             if (!id) {
                 toastr.error('ID tidak ditemukan', 'Error');
                 return;
             }
-            
+
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini?",
@@ -868,7 +870,9 @@
                     $.ajax({
                         type: "POST",
                         url: "{{ url('po_transfer_image_delete') }}",
-                        data: { id: id },
+                        data: {
+                            id: id
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -878,11 +882,13 @@
                                 toastr.success("Data berhasil dihapus", "Berhasil");
                                 purchaseOrderBuktitfTable.draw();
                             } else {
-                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                                toastr.error(r.message || 'Gagal hapus data',
+                                    'Gagal');
                             }
                         },
                         error: function(xhr, status, error) {
-                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' +
+                                error, 'Error');
                         }
                     });
                 }
@@ -891,12 +897,12 @@
 
         $('#InvoiceImagesTb tbody').on('click', '#delete-image-invoice', function() {
             var id = $(this).data('id');
-            
+
             if (!id) {
                 toastr.error('ID tidak ditemukan', 'Error');
                 return;
             }
-            
+
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini?",
@@ -911,7 +917,9 @@
                     $.ajax({
                         type: "POST",
                         url: "{{ url('po_invoice_image_delete') }}",
-                        data: { id: id },
+                        data: {
+                            id: id
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -921,11 +929,13 @@
                                 toastr.success("Data berhasil dihapus", "Berhasil");
                                 purchaseOrderInvoiceTable.draw();
                             } else {
-                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                                toastr.error(r.message || 'Gagal hapus data',
+                                    'Gagal');
                             }
                         },
                         error: function(xhr, status, error) {
-                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' +
+                                error, 'Error');
                         }
                     });
                 }
@@ -1536,7 +1546,7 @@
                         },
                         url: "{{ url('check_pre_order_purchase_order') }}",
                         success: function(r) {
-                            console.log(r);
+                            // console.log(r);
                             if (r.status == '200') {
                                 swal("Berhasil!", "Data berhasil diubah.",
                                     "success");
@@ -1623,6 +1633,7 @@
             $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
             var po_invoice_label = $('#po_invoice_label').text();
+            var po_id = $('#_po_id').val();
 
             formData.append('_po_invoice_label', po_invoice_label);
 
@@ -1643,11 +1654,16 @@
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_import')[0].reset();
+
                         reloadArticleDetail(data.po_id);
                     } else if (data.status == '400') {
                         toastr.warning(
                             'File yang anda import kosong atau format tidak tepat',
                             'File');
+                    } else if (data.status == '404') {
+                        checkBarcodeImport(po_id, data.process_data.not_found,'not_found');
+                    } else if (data.status == '403') {
+                        checkBarcodeImport(po_id, data.process_data.duplicate_items, 'duplicate_items');
                     } else {
                         toastr.warning(
                             'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
@@ -1660,6 +1676,82 @@
             });
         });
 
+        function checkBarcodeImport(id, excelData, title) {
+            if (title == 'duplicate_items') {
+                swal_title = 'Duplicate Barcode';
+
+            } else if (title == 'not_found') {
+                swal_title = 'Barcode Not Found';
+            }
+
+            // Check if excelData is not empty and is an array
+            if (excelData && Array.isArray(excelData) && excelData.length > 0) {
+                // Format data into a table structure
+                let tableContent = `
+            <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                <th style="border: 1px solid #dddddd; padding: 8px;">SKU</th>
+                <th style="border: 1px solid #dddddd; padding: 8px;">Qty</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+                // Iterate over the excelData array to build rows for the table
+                excelData.forEach(item => {
+                    tableContent += `
+            <tr>
+                <td style="border: 1px solid #dddddd; padding: 8px;">${item.sku}</td>
+                <td style="border: 1px solid #dddddd; padding: 8px;">${item.qty}</td>
+            </tr>`;
+                });
+
+                tableContent += `</tbody></table>`;
+
+                swal({
+                    title: swal_title,
+                    content: {
+                        element: "div",
+                        attributes: {
+                            innerHTML: tableContent
+                        },
+                    },
+                    icon: "warning",
+                    buttons: {
+                        export: {
+                            text: "Export to Excel",
+                            value: "export",
+                        },
+                        ok: {
+                            text: "OK",
+                            value: true,
+                        }
+                    }
+                }).then((value) => {
+                    if (value === "export") {
+                        exportToExcel(excelData, swal_title); // Call function to export data to Excel
+                    }
+                });
+            }
+        }
+
+        // Function to export the data to Excel
+        function exportToExcel(data, title) {
+            var po_invoice_label = $('#po_invoice_label').text();
+            let formattedData = data.map(item => ({
+            SKU: item.sku,
+            Quantity: item.qty
+            }));
+
+            console.log(formattedData);
+            
+            let worksheet = XLSX.utils.json_to_sheet(formattedData);
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, title);
+
+            // Trigger download
+            XLSX.writeFile(workbook, `${title}_${po_invoice_label}.xlsx`);
+        }
 
         $('#f_upload_invoice_image').on('submit', function(e) {
             e.preventDefault();
