@@ -107,66 +107,39 @@ class CekDanaOnlineController extends Controller
             $st_id = Auth::user()->st_id;
             }
 
-            if (request()->ajax()) {
-                return DataTables::of(
-                    CekDanaOnline::select([
-                        'online_transactions.id as to_id',
-                        'online_transactions.order_number as to_order_number',
-                        'no_resi',
-                        'platform_name',
-                        'order_date_created',
-                        'order_status',
-                        'online_print',
-                        DB::raw('SUM(online_transaction_details.original_price - online_transaction_details.discount_seller) as ns_before_admin'),
-                        DB::raw("COUNT(online_transaction_details.id) as total_item")
-                    ])
-                        ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-                        ->where('no_resi', '!=', '')
-                        ->where('st_id', '=', $st_id)
-                        ->orderBy('online_transactions.created_at', 'DESC')
-                        ->groupBy('to_id')
-                )
-                ->addColumn('ns_before_admin', function ($data) {
-                    return $data->ns_before_admin;
-                })
-                ->editColumn('order_number', function ($data) {
-                    return '<a class="text-white" href="#" data-to_id="' . $data->to_id . '" data-status="' . $data->order_status . '" data-num_order="' . $data->to_order_number . '" id="detail_btn"><span class="btn btn-sm btn-primary" >' . $data->to_order_number . '</span></a><br>';
-                })
-                ->editColumn('no_resi', function ($data) {
-                    return $data->no_resi . '<br>' . ($data->online_print ? '<span style="color: red;" class="text-center">SUDAH CETAK</span>' : '');
-                })
-                ->editColumn('total_item', function ($data) {
-                    return $data->total_item ? $data->total_item : '-';
-                })
-                ->editColumn('order_status', function ($data) {
-                    return '<a class="text-white" href="#" data-pt_id="' . $data->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $data->order_status . '</span></a>';
-                })
-                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status'])
-                ->filter(function ($instance) use ($request) {
-                    if (!empty($request->get('search'))) {
-                        $instance->where(function ($w) use ($request) {
-                            $search = $request->get('search');
-                            $w->orWhere('no_resi', 'LIKE', "%$search%")
-                                ->orWhere('online_transactions.order_number', 'LIKE', "%$search%");
-                        });
-                    }
-                    
-                    if (!empty($request->get('status'))) {
-                        $instance->where(function ($w) use ($request) {
-                            $status = $request->get('status');
+            $data = DB::table('online_funds')
+                ->select('online_funds.order_number as order_number', 'stores.st_name', 'platform_name', 'total_disburshed_amount', 'seller_voucher_discount', 'affiliate_cut', 'marketplace_commision_fee', 'service_fee', 'voucher_xtra_service_fee', 'cashback_service_fee', 'cashout_date', 'final_price', 'transaction_date')
+                ->leftJoin('pos_transactions', 'online_funds.order_number', '=', 'pos_transactions.pos_order_number')
+                ->leftJoin('stores', 'pos_transactions.st_id', '=', 'stores.id')
+                ->union(
+                    DB::table('online_funds')
+                        ->select('pos_transactions.pos_order_number as order_number', 'stores.st_name', 'platform_name', 'total_disburshed_amount', 'seller_voucher_discount', 'affiliate_cut', 'marketplace_commision_fee', 'service_fee', 'voucher_xtra_service_fee', 'cashback_service_fee', 'cashout_date', 'final_price', 'transaction_date')
+                        ->rightJoin('pos_transactions', 'online_funds.order_number', '=', 'pos_transactions.pos_order_number')
+                        ->leftJoin('stores', 'pos_transactions.st_id', '=', 'stores.id')
+                );
 
-                            if ($status == 0) {
-                                $w->orWhere('online_print', '=', "0");
-                            } else if ($status == 1) {
-                                $w->orWhere('online_print', '=', "1");
-                            }
-                        });
+            // dd($data->first());
+            return DataTables::of($data)
+                ->addColumn('admin_persentage', function ($data) {
+                    if ($data->final_price && $data->marketplace_commision_fee) {
+                        return ($data->marketplace_commision_fee / $data->final_price * 100).'%';
                     }
                 })
+                ->addColumn('gox_persentage', function ($data) {
+                    if ($data->final_price && $data->voucher_xtra_service_fee) {
+                        return ($data->voucher_xtra_service_fee / $data->final_price * 100).'%';
+                    }
+                })
+                ->addColumn('status', function ($data) {
+                    return null;
+                })
+                ->rawColumns(['status'])
                 ->addIndexColumn()
                 ->make(true);
-            }
-        }
+    }
+            
+            
+
 
     
 
@@ -197,32 +170,28 @@ class CekDanaOnlineController extends Controller
 //         }
 //     }
 
-//     // public function detailDatatables(Request $request)
-//     // {
-//     //     if (request()->ajax()) {
-//     //         return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller', 'platform_name')
-//     //             ->Join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
-//     //             ->Join('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-//     //             ->Join('products', 'products.id', '=', 'product_stocks.p_id')
-//     //             ->Join('brands', 'brands.id', '=', 'products.br_id')
-//     //             ->Join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//     //             ->where('online_transactions.id', '=', $request->to_id))
-//     //             ->editColumn('article', function ($data) {
-//     //                 return '<span class="btn btn-primary">[' . $data->br_name . '] ' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
-//     //             })
-//     //             ->editColumn('gap_price', function ($data) {
-//     //                 return $data->jez_price - $data->shopee_price;
-//     //             })
+    public function getDetailDatatables(Request $request)
+    {
+        if (request()->ajax()) {
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_sell_price as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller', 'platform_name')
+                ->join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                ->join('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
+                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->join('brands', 'brands.id', '=', 'products.br_id')
+                ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where('online_transactions.id', '=', $request->to_id))
+                ->editColumn('gap_price', function ($data) {
+                    return $data->jez_price - $data->shopee_price;
+                })
 
-//     //             ->editColumn('ns_before_admin', function ($data) {
-//     //                 return $data->shopee_price - $data->discount_seller;
+                ->editColumn('ns_before_admin', function ($data) {
+                    return $data->shopee_price - $data->discount_seller;
     
-//     //             })
-//     //             ->rawColumns(['article'])
-//     //             ->addIndexColumn()
-//     //             ->make(true);
-//     //     }
-//     // }
+                })
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
 
 //     public function cetak_invoice(Request $request)
 //     {

@@ -9,22 +9,22 @@ class CekDanaOnline extends Model
 {
     use HasFactory;
 
-    protected $table = 'online_transactions';
+    protected $table = 'online_funds';
 
     protected $fillable = [
-        'id',
-        'order_number',
-        'order_status',
-        'reason_cancellation',
+        'st_id',
         'platform_name',
-        'no_resi',
-        'shipping_method',
-        'shipping_fee',
-        'order_date_created',
-        'payment_date',
-        'payment_method',
-        'total_payment',
-        'city',
-        'province'
+        'order_number',
+        'total_disburshed_amount',
+        'final_price',
+        'total_online_cut',
+        'seller_voucher_discount',
+        'affiliate_cut',
+        'marketplace_commision_fee',
+        'service_fee',
+        'voucher_xtra_service_fee',
+        'cashback_service_fee',
+        'cashout_date',
+        'transaction_date'
     ];
 }

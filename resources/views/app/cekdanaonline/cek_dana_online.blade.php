@@ -64,21 +64,47 @@
                                     </div>
                                 </div>
                             </div>
-
-
                             <div class="container mt-6">
                                 <div class="row">
-                                    <div class="col-6">
+                                    <div class="col-3">
                                         <input type="search" class="form-control" id="cek_dana_online_search"
                                                placeholder="Cari No Order / No resi"/>
                                     </div>
-                                    <div class="col-6">
-                                        <select name="filter_status" id="filter_status" class="form-control col-6">
+                                    <div class="col-2">
+                                        <select class="form-control border" id="st_id" name="st_id">
+                                            <option value="">- Pilih Store -</option>
+                                            @foreach ($data['st_id'] as $key => $value)
+                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="st_id_parent"></div>
+                                    </div>
+                                    <div class="col-2">
+                                        <select name="filter_platform" id="filter_platform" class="form-control">
+                                            <option value="">-- Pilih Platform --</option>
+                                            <option value="tiktok">Tiktok</option>
+                                            <option value="shopee">Shopee</option>
+                                        </select>
+                                        <div id="filter_platform_parent"></div>
+                                    </div>
+                                    <div class="col-2">
+                                        <select name="filter_status" id="filter_status" class="form-control">
                                             <option value="">-- Pilih Status Cetak --</option>
-                                            <option value="0">Belum di Cetak</option>
-                                            <option value="1">Sudah di Cetak</option>
+                                            <option value="false">Belum di Cetak</option>
+                                            <option value="true">Sudah di Cetak</option>
                                         </select>
                                         <div id="filter_status_parent"></div>
+                                    </div>
+                                    <div class="col-2">
+                                        <a href="#" class="btn btn-date-info font-weight-bold mr-2"
+                                            id="kt_dashboard_daterangepicker" data-toggle="tooltip"
+                                            title="Tanggal Invoice" data-placement="left">
+                                            <span class="font-size-base"
+                                                id="kt_dashboard_daterangepicker_title">Today</span>
+                                            <span class="font-size-base font-weight-bolder"
+                                                id="kt_dashboard_daterangepicker_date"></span>
+                                            <input type="hidden" id="cek_dana_date" />
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -87,12 +113,24 @@
                                     <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-                                        <th class="text-dark">Nomer Order</th>
+
+                                        {{-- Data from DB --}}
+                                        <th class="text-dark">Store</th>
                                         <th class="text-dark">Platform Name</th>
-                                        <th class="text-dark">Done Trx Date</th>
-                                        <th class="text-dark">Jezpro Value</th>
-                                        <th class="text-dark">Excel Value</th>
-                                        <th class="text-dark">Presentase</th>
+                                        <th class="text-dark">No Order</th>
+                                        <th class="text-dark">Dana Cair</th>
+                                        <th class="text-dark">Diskon Ditanggung Penjual</th>
+                                        <th class="text-dark">Potongan Afiliasi</th>
+                                        <th class="text-dark">Biaya Komisi Platform</th>
+                                        <th class="text-dark">Biaya Layanan</th>
+                                        <th class="text-dark">Biaya Voucher Xtra</th>
+                                        <th class="text-dark">Biaya Cashback</th>
+                                        <th class="text-dark">Tgl Dana Cair</th>
+                                        <th class="text-dark">Tanggal Transaksi</th>
+
+                                        {{-- Data from system calc --}}
+                                        <th class="text-dark">Presentase Admin</th>
+                                        <th class="text-dark">Presentase GOX</th>
                                         <th class="text-dark">Status</th>
                                     </tr>
                                     </thead>

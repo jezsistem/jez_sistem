@@ -57,6 +57,7 @@
    
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
+            <input type="hidden" id="to_id" value=""/>
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Detail Item Pesanan #<span
                             id="num_order"></span></h5>
@@ -107,7 +108,6 @@
                         <thead class="bg-light text-dark">
                         <tr>
                             <th class="text-dark">No</th>
-                            <th class="text-dark">Artikel</th>
                             <th class="text-dark">SKU</th>
                             <th class="text-dark">SKU MP</th>
                             <th class="text-dark">Qty</th>
