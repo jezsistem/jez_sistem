@@ -12,7 +12,8 @@
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: true,
+            responsive: false, // nonaktifkan fitur responsive bawaan DataTables
+            scrollX: true,
             dom: '<"text-right"l>rt<"text-right"ip>',
             buttons: [{
                 "extend": 'excelHtml5',
@@ -50,8 +51,8 @@
                     name: 'order_number',
                 },
                 {
-                    data: 'total_disburshed_amount',
-                    name: 'total_disburshed_amount',
+                    data: 'final_price',
+                    name: 'final_price',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
@@ -147,9 +148,15 @@
                     name: 'admin_persentage',
                     defaultContent: '-'
                 },
+
                 {
                     data: 'gox_persentage',
                     name: 'gox_persentage',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'status',
+                    name: 'status',
                     defaultContent: '-'
                 },
             ],
@@ -388,11 +395,13 @@
             var st_id_form_value = $('#st_id_form').val(); // Get the value of the disabled input
             formData.append('st_id_form', st_id_form_value); // Append it to the FormData
 
-            console.log(formData);
+            // formData.forEach((value, key) => {
+            //     console.log(key + ': ' + value);
+            // });
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('transaksi_online_import') }}",
+                url: "{{ url('cek_dana_online_import') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,

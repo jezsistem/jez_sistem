@@ -108,13 +108,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-responsive">
-                                <table class="table table-hover table-checkable" id="CekDanaOnlinetb">
+                            <div class="card-body" style="overflow-x: auto; width: 100%;">
+                                <table class="table table-hover table-checkable" id="CekDanaOnlinetb" style="min-width: 1500px;">
                                     <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-
-                                        {{-- Data from DB --}}
                                         <th class="text-dark">Store</th>
                                         <th class="text-dark">Platform Name</th>
                                         <th class="text-dark">No Order</th>
@@ -127,18 +125,13 @@
                                         <th class="text-dark">Biaya Cashback</th>
                                         <th class="text-dark">Tgl Dana Cair</th>
                                         <th class="text-dark">Tanggal Transaksi</th>
-
-                                        {{-- Data from system calc --}}
                                         <th class="text-dark">Presentase Admin</th>
                                         <th class="text-dark">Presentase GOX</th>
                                         <th class="text-dark">Status</th>
                                     </tr>
                                     </thead>
-                                    <tbody>
-
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
-                                <!--end: Datatable-->
                             </div>
 
 

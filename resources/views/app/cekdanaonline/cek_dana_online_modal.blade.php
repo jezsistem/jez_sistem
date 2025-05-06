@@ -15,7 +15,7 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label>Store<span class="text-danger">*</span></label>
-                            <select name="st_id" id="st_id" class="form-control">
+                            <select name="st_id" id="st_id_form" class="form-control">
                                 <option value="">-- Pilih Store --</option>
                                 @foreach ($data['st_id'] as $id => $name)
                                     <option value="{{ $id }}">{{ $name }}</option>
@@ -24,7 +24,7 @@
                         </div>
                         <div class="form-group">
                             <label>Platform<span class="text-danger">*</span></label>
-                            <select name="platform_name" id="platform_name" class="form-control">
+                            <select name="platform_name" id="platform_name_form" class="form-control">
                                 <option value="">-- Pilih Platform --</option>
                                 <option value="Tiktok">TikTok</option>
                                 <option value="Shopee">Shopee</option>
@@ -33,7 +33,6 @@
                         <div class="form-group">
                             <label>Pilih template
                                 <span class="text-danger">*</span></label>
-                            <input type="hidden" class="form-control" value="{{ \Illuminate\Support\Facades\Auth::user()->st_id }}" name="st_id_form" id="st_id_form" disabled>
                             <input type="file" class="form-control" name="importFile" id="importFile" required/>
                         </div>
                     </div>
