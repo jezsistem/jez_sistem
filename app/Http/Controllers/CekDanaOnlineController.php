@@ -207,6 +207,10 @@ class CekDanaOnlineController extends Controller
 
                 if (count($data) >= 0) {
                     $processData = $this->processImportData($data[0], $original_name, $st_id_form);
+
+                    // Unlink (delete) the file after successful import
+                    unlink(public_path('online/' . $nama_file));
+
                     $r['data'] = $file->getClientOriginalName();
                     $r['status'] = '200';
 
@@ -230,7 +234,7 @@ class CekDanaOnlineController extends Controller
     private function processImportData($data, $original_name, $st_id_form)
     {
         $processedData = [];
-        $type = strpos($original_name, 'Shopee') !== false ? 'Shopee' : 'TikTok';
+        $type = strpos($original_name, 'SHOPEE') !== false ? 'SHOPEE' : 'TIKTOK';
         $platform = $type;
 
         $st_id = $st_id_form;
