@@ -1650,7 +1650,8 @@
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
                     $("#ImportModal").modal('hide');
-
+                    console.log(data.status);
+                    
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_import')[0].reset();
@@ -1677,6 +1678,8 @@
         });
 
         function checkBarcodeImport(id, excelData, title) {
+            excelData = Array.isArray(excelData) ? excelData : Object.values(excelData);
+            
             if (title == 'duplicate_items') {
                 swal_title = 'Duplicate Barcode';
 
