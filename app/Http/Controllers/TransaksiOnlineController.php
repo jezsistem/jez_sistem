@@ -624,7 +624,6 @@ class TransaksiOnlineController extends Controller
         $type = strpos($original_name, 'Shopee') !== false ? 'Shopee' : 'TikTok';
         $platform = $type;
 
-//        dd($st_id_form);
         $st_id = $st_id_form;
 
         if ($type === 'Shopee') {
