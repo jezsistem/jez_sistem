@@ -576,6 +576,36 @@ class MassAdjustmentController extends Controller
     public function execData(Request $req)
     {
         $ma_id = $req->post('ma_id');
+
+        $data = DB::table('mass_adjustment_details')
+        ->join('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+        ->where('ma_id', '=', $ma_id);
+
+        $differences = [];
+
+        foreach ($data->get() as $row) {
+            $productLocation = DB::table('product_location_setups')
+            ->select('pls_qty', 'pst_id','ps_barcode')
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->where('product_location_setups.id', '=', $row->pls_id)
+            ->first();
+
+            if ($productLocation && $row->qty_export != $productLocation->pls_qty) {
+
+            $differences[] = [
+                'sku' => $productLocation->ps_barcode,
+                'qty_export' => $row->qty_export,
+                'pls_qty' => $productLocation->pls_qty,
+            ];
+            }
+        }
+
+        if (!empty($differences)) {
+            $r['status'] = '500';
+            $r['differences'] = $differences;
+            return json_encode($r);
+        }
+
         $check = DB::table('mass_adjustments')->where('id', '=', $ma_id)
             ->whereNotNull('ma_approve')
             ->where('ma_status', '=', '0')->exists();

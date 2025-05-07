@@ -717,7 +717,67 @@
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil eksekusi", "success");
                                 mass_adjustment_table.draw(false);
-                            } else {
+                            
+                        } else if (r.status == '500') {
+                        if (r.differences && r.differences.length > 0) {
+                            Swal.fire({
+                                title: 'Perhatian ada Quantity yang berbeda!',
+                                html: `
+                                    <div style="overflow-x:auto;">
+                                        <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="border: 1px solid #ccc; padding: 8px;">SKU / ID</th>
+                                                    <th style="border: 1px solid #ccc; padding: 8px;">Qty Sistem Eksekusi</th>
+                                                    <th style="border: 1px solid #ccc; padding: 8px;">Qty Sistem Real</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="sku-table-body">
+                                                <!-- Data masuk sini -->
+                                            </tbody>
+                                        </table>
+                                        <br/>
+                                        <div style="text-align: center;">
+                                            <button id="export_excel" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                                            <button id="close_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                                        </div>
+                                    </div>
+                                `,
+                                                    icon: 'info',
+                                                    showConfirmButton: false,
+                                                    didOpen: () => {
+                                                        let tbody = document.getElementById('sku-table-body');
+                                                        r.differences.forEach(function(item) {
+                                                            let row = document.createElement('tr');
+                                                            row.innerHTML = `
+                                            <td style="border: 1px solid #ccc; padding: 8px;">${item.sku}</td>
+                                            <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_export}</td>
+                                            <td style="border: 1px solid #ccc; padding: 8px;">${item.pls_qty}</td>
+                                        `;
+                                        tbody.appendChild(row);
+                                    });
+
+                                    // Tombol Export Excel
+                                    document.getElementById('export_excel').addEventListener('click', function () {
+                                        let wb = XLSX.utils.book_new();
+                                        let ws_data = [
+                                            ["SKU / ID", "Qty Sistem Eksekusi", "Qty Sistem Real"], // Header
+                                            ...r.differences.map(item => [item.sku, item.qty_export, item.pls_qty])
+                                        ];
+                                        let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                        XLSX.utils.book_append_sheet(wb, ws, "Invalid SKUs Sistem Quantity");
+                                        XLSX.writeFile(wb, "Invalid_SKUs_Sistem_Quantity.xlsx");
+                                    });
+
+                                    // Tombol Tutup
+                                    document.getElementById('close_alert').addEventListener('click', function () {
+                                        Swal.close();
+                                    });
+                                }
+                            });
+                            }
+                        }
+                            else {
                                 swal('Gagal', 'Gagal eksekusi', 'error');
                             }
                         }
