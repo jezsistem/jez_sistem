@@ -47,8 +47,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'order_number',
-                    name: 'order_number',
+                    data: 'import_trx_order_number',
+                    name: 'import_trx_order_number',
                 },
                 {
                     data: 'cashout_date',

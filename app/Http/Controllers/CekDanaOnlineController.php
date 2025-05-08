@@ -112,12 +112,13 @@ class CekDanaOnlineController extends Controller
 
 
 
-        $data = DB::table('online_funds')
-            ->select('pos_transactions.pos_invoice as order_number','online_funds.order_number as online_order_number', 'pos_transactions.pos_real_price', 'stores.st_name', 'online_funds.platform_name', 'online_funds.final_price', 'online_funds.total_online_cut' ,'online_funds.seller_voucher_discount', 'online_funds.affiliate_cut', 'online_funds.marketplace_commision_fee', 'online_funds.service_fee', 'online_funds.voucher_xtra_service_fee', 'online_funds.cashback_service_fee', 'online_funds.cashout_date', 'online_funds.final_price', 'pos_transactions.created_at', 'online_funds.total_disburshed_amount','pos_transaction_details.created_at as jezpro_transaction_date')
-            ->leftJoin('pos_transactions', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
-            ->join('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+        $data = DB::table('pos_transactions')
+            ->select('pos_transactions.pos_invoice as order_number','online_funds.order_number as online_order_number', 'online_transactions.order_number as import_trx_order_number','pos_transactions.pos_real_price', 'stores.st_name', 'online_funds.platform_name', 'online_funds.final_price', 'online_funds.total_online_cut' ,'online_funds.seller_voucher_discount', 'online_funds.affiliate_cut', 'online_funds.marketplace_commision_fee', 'online_funds.service_fee', 'online_funds.voucher_xtra_service_fee', 'online_funds.cashback_service_fee', 'online_funds.cashout_date', 'online_funds.final_price', 'pos_transactions.created_at', 'online_funds.total_disburshed_amount','pos_transaction_details.created_at as jezpro_transaction_date', 'online_transactions.online_print')
+            ->leftJoin('online_funds', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
+            ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
             ->leftJoin('stores', 'pos_transactions.st_id', '=', 'stores.id')
-            ->where('pos_transactions.st_id', $st_id);
+            ->leftJoin('online_transactions', 'online_transactions.order_number',  '=', 'pos_transactions.pos_invoice');
+            // ->where('pos_transactions.id', NULL);
 
         $d = $request->all();
         if (!empty($d['cek_dana_online_search'])) {
@@ -155,16 +156,26 @@ class CekDanaOnlineController extends Controller
                 return $data->pos_real_price - $data->final_price;
             })
             ->addColumn('status', function ($data) {
-                if ($data->order_number&&$data->online_order_number&&($data->order_number==$data->online_order_number)) {
+                if (
+                    $data->order_number &&
+                    $data->online_order_number &&
+                    $data->import_trx_order_number &&
+                    $data->order_number == $data->online_order_number &&
+                    $data->order_number == $data->import_trx_order_number &&
+                    $data->online_print != 0
+                ) {
                     return '<button class="btn btn-sm btn-success">Done</button>';
                 }
 
-                if (!$data->order_number && $data->online_order_number) {
-                    return '<button class="btn btn-sm btn-danger">Belum di Trx</button>';
-                }
+                // if (!$data->order_number && $data->online_order_number) {
+                //     return '<button class="btn btn-sm btn-danger">Belum di Trx</button>';
+                // }
 
                 if ($data->order_number && !$data->online_order_number) {
                     return '<button class="btn btn-sm btn-warning">Belum Cair</button>';
+                }
+                if ($data->online_print == 0) {
+                    return '<button class="btn btn-sm btn-warning">Belum Trx</button>';
                 }
                 return '<button class="btn btn-sm btn-secondary">Unknown</button>';
             })
