@@ -116,17 +116,16 @@
                                         <th class="text-dark">Store</th>
                                         <th class="text-dark">Platform Name</th>
                                         <th class="text-dark">No Order</th>
-                                        <th class="text-dark">Dana Cair</th>
-                                        <th class="text-dark">Diskon Ditanggung Penjual</th>
-                                        <th class="text-dark">Potongan Afiliasi</th>
-                                        <th class="text-dark">Biaya Komisi Platform</th>
-                                        <th class="text-dark">Biaya Layanan</th>
-                                        <th class="text-dark">Biaya Voucher Xtra</th>
-                                        <th class="text-dark">Biaya Cashback</th>
-                                        <th class="text-dark">Tgl Dana Cair</th>
+                                        <th class="text-dark">Order Date Settlement</th>
+                                        <th class="text-dark">Total Revenue</th>
+                                        <th class="text-dark">Total Settlement Amount</th>
+                                        <th class="text-dark">Seller voucher discount</th>
+                                        <th class="text-dark">Total Fees</th>
+                                        <th class="text-dark">Presentase Fee</th>
+                                        <th class="text-dark">Presentase Seller Voucher</th>
                                         <th class="text-dark">Tanggal Transaksi</th>
-                                        <th class="text-dark">Presentase Admin</th>
-                                        <th class="text-dark">Presentase GOX</th>
+                                        <th class="text-dark">Net Sales Jezpro</th>
+                                        <th class="text-dark">Diff Jezpro - MP</th>
                                         <th class="text-dark">Status</th>
                                     </tr>
                                     </thead>

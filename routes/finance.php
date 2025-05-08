@@ -95,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
     //Cek Dana Online Finance
     Route::get('cek_dana_online', [CekDanaOnlineController::class, 'index'])->name('cek_dana_online');
     Route::get('cek_dana_online_datatables', [CekDanaOnlineController::class, 'getDatatables'])->name('cek_dana_online_datatables');
-    Route::get('cek_dana_detail_datatables', [CekDanaOnlineController::class, 'getDetailDatatables']);
+    Route::get('cek_dana_detail/{order_number}', [CekDanaOnlineController::class, 'getDetail'])->name('cek_dana_detail');
 //    Route::get('cek_dana_detail_datatables', [CekDanaOnlineController::class, 'getDetailDatatables']);
     Route::post('cek_dana_online_import', [CekDanaOnlineController::class, 'importData']);
 });

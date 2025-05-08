@@ -51,8 +51,32 @@
                     name: 'order_number',
                 },
                 {
+                    data: 'cashout_date',
+                    name: 'cashout_date',
+                    render: function(data, type, row) {
+                        if (!data) {
+                            return '-';
+                        }
+                        var date = new Date(data);
+                        var day = String(date.getDate()).padStart(2, '0');
+                        var month = String(date.getMonth() + 1).padStart(2, '0');
+                        var year = date.getFullYear();
+                        return day + '/' + month + '/' + year;
+                    },
+                    defaultContent: '-'
+                },
+                {
                     data: 'final_price',
                     name: 'final_price',
+                    render: function(data, type, row) {
+                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
+                        data));
+                    },
+                    defaultContent: '-'
+                },
+                {
+                    data: 'total_disburshed_amount',
+                    name: 'total_disburshed_amount',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
@@ -69,89 +93,57 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'affiliate_cut',
-                    name: 'affiliate_cut',
+                    data: 'total_online_cut',
+                    name: 'total_online_cut',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
                     },
                     defaultContent: '-'
                 },
+               
                 {
-                    data: 'marketplace_commision_fee',
-                    name: 'marketplace_commision_fee',
-                    render: function(data, type, row) {
-                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
-                        data));
-                    },
-                    defaultContent: '-'
-                },
-                {
-                    data: 'service_fee',
-                    name: 'service_fee',
-                    render: function(data, type, row) {
-                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
-                        data));
-                    },
-                    defaultContent: '-'
-                },
-                {
-                    data: 'voucher_xtra_service_fee',
-                    name: 'voucher_xtra_service_fee',
-                    render: function(data, type, row) {
-                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
-                        data));
-                    },
-                    defaultContent: '-'
-                },
-                {
-                    data: 'cashback_service_fee',
-                    name: 'cashback_service_fee',
-                    render: function(data, type, row) {
-                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
-                        data));
-                    },
-                    defaultContent: '-'
-                },
-                {
-                    data: 'cashout_date',
-                    name: 'cashout_date',
-                    render: function(data, type, row) {
-                        if (!data) {
-                            return '-';
-                        }
-                        var date = new Date(data);
-                        var day = String(date.getDate()).padStart(2, '0');
-                        var month = String(date.getMonth() + 1).padStart(2, '0');
-                        var year = date.getFullYear();
-                        return day + '/' + month + '/' + year;
-                    },
-                    defaultContent: '-'
-                },
-                {
-                    data: 'transaction_date',
-                    name: 'transaction_date',
-                    render: function(data, type, row) {
-                        if (!data) {
-                            return '-';
-                        }
-                        var date = new Date(data);
-                        var day = String(date.getDate()).padStart(2, '0');
-                        var month = String(date.getMonth() + 1).padStart(2, '0');
-                        var year = date.getFullYear();
-                        return day + '/' + month + '/' + year;
-                    },
-                    defaultContent: '-'
-                },
-                {
-                    data: 'admin_persentage',
-                    name: 'admin_persentage',
+                    data: 'fee_persentage',
+                    name: 'fee_persentage',
                     defaultContent: '-'
                 },
 
                 {
-                    data: 'gox_persentage',
-                    name: 'gox_persentage',
+                    data: 'seller_voucher_persentage',
+                    name: 'seller_voucher_persentage',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'jezpro_transaction_date',
+                    name: 'jezpro_transaction_date',
+                    render: function(data, type, row) {
+                        if (!data) {
+                            return '-';
+                        }
+                        var date = new Date(data);
+                        var day = String(date.getDate()).padStart(2, '0');
+                        var month = String(date.getMonth() + 1).padStart(2, '0');
+                        var year = date.getFullYear();
+                        return day + '/' + month + '/' + year;
+                    },
+                    defaultContent: '-'
+                },
+                {
+                    data: 'pos_real_price',
+                    name: 'pos_real_price',
+                    render: function(data, type, row) {
+                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
+                        data));
+                    },
+                    defaultContent: '-'
+                },
+                {
+                    data: 'diff_jezpro_mp',
+                    name: 'diff_jezpro_mp',
+                    render: function(data, type, row) {
+                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
+                        data));
+                    },
                     defaultContent: '-'
                 },
                 {
@@ -170,67 +162,48 @@
             }
         });
 
-        var detail_table = $('#Detailtb').DataTable({
-            destroy: true,
-            processing: true,
-            serverSide: true,
-            responsive: true,
-            ajax: {
-                url: "{{ url('cek_dana_detail_datatables') }}",
-                data: function(d) {
-                    d.to_id = $('#to_id').val(); // Pass the order_id to the server
+        $('#CekDanaOnlinetb tbody').on('click', 'tr', function() {
+            var data = cek_dana_online_table.row(this).data();
+            if (data) {
+            var to_id = $('#to_id').val(data.to_id);
+            var st_id = $('#st_id_form').val(data.st_id);
+            var order_number = $('#order_number').val(data.order_number);
+            
+
+            // Fetch data from cek_dana_detail based on to_id
+            $.ajax({
+                url: "{{ url('cek_dana_detail') }}/" + data.order_number,
+                type: "GET",
+                success: function(response) {
+                if (response) {
+                    // Update modal content with the fetched data
+                    var modalBody = $('#DetailModal .modal-body tbody');
+                    modalBody.find('tr').eq(0).find('td').eq(1).text(response.st_name || '-');
+                    modalBody.find('tr').eq(1).find('td').eq(1).text(response.platform_name || '-');
+                    modalBody.find('tr').eq(2).find('td').eq(1).text(response.order_number || '-');
+                    modalBody.find('tr').eq(3).find('td').eq(1).text(response.jezpro_transaction_date ? new Date(response.jezpro_transaction_date).toLocaleDateString('id-ID') : '-');
+                    modalBody.find('tr').eq(4).find('td').eq(1).text(response.cashout_date || '-');
+                    modalBody.find('tr').eq(5).find('td').eq(1).text(response.pos_real_price ? 'Rp ' + formatRupiah(response.pos_real_price) : 'Rp 0');
+                    modalBody.find('tr').eq(6).find('td').eq(1).text(response.final_price ? 'Rp ' + formatRupiah(response.final_price) : 'Rp 0');
+                    modalBody.find('tr').eq(7).find('td').eq(1).text(response.diff ? 'Rp ' + formatRupiah(response.diff) : 'Rp 0');
+                    modalBody.find('tr').eq(8).find('td').eq(1).text(response.seller_voucher_discount ? 'Rp ' + formatRupiah(response.seller_voucher_discount) : 'Rp 0');
+                    modalBody.find('tr').eq(9).find('td').eq(1).text(response.seller_voucher_persentage || '0%');
+                    modalBody.find('tr').eq(10).find('td').eq(1).text(response.affiliate_commission ? 'Rp ' + formatRupiah(response.affiliate_commission) : 'Rp 0');
+                    modalBody.find('tr').eq(11).find('td').eq(1).text(response.marketplace_commission_fee ? 'Rp ' + formatRupiah(response.marketplace_commission_fee) : 'Rp 0');
+                    modalBody.find('tr').eq(12).find('td').eq(1).text(response.service_fee ? 'Rp ' + formatRupiah(response.service_fee) : 'Rp 0');
+                    modalBody.find('tr').eq(13).find('td').eq(1).text(response.voucher_xtra_service_fee ? 'Rp ' + formatRupiah(response.voucher_xtra_service_fee) : 'Rp 0');
+                    modalBody.find('tr').eq(14).find('td').eq(1).text(response.cashback_service_fee ? 'Rp ' + formatRupiah(response.cashback_service_fee) : 'Rp 0');
+                    modalBody.find('tr').eq(15).find('td').eq(1).text(response.total_online_cut ? 'Rp ' + formatRupiah(response.total_online_cut) : 'Rp 0');
+                    modalBody.find('tr').eq(16).find('td').eq(1).text(response.fee_persentage || '-');
+                    modalBody.find('tr').eq(17).find('td').eq(1).text(response.total_disburshed_amount ? 'Rp ' + formatRupiah(response.total_disburshed_amount) : 'Rp 0');
                 }
-            },
-            columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'DT_RowIndex',
-                    searchable: false,
-                    orderable: false
                 },
-                {
-                    data: 'ps_barcode',
-                    name: 'ps_barcode'
-                },
-                {
-                    data: 'sku',
-                    name: 'sku'
-                },
-                {
-                    data: 'to_qty',
-                    name: 'to_qty'
-                },
-                {
-                    data: 'shopee_price',
-                    name: 'shopee_price'
-                },
-                {
-                    data: 'jez_price',
-                    name: 'jez_price'
-                },
-                {
-                    data: 'gap_price',
-                    name: 'gap_price'
-                },
-                {
-                    data: 'total_discount',
-                    name: 'total_discount'
-                },
-                {
-                    data: 'ns_before_admin',
-                    name: 'ns_before_admin'
-                },
-                {
-                    data: 'final_price',
-                    name: 'final_price'
-                },
-            ],
-            columnDefs: [{
-                "targets": 0,
-                "className": "text-center",
-                "width": "5%"
-            }],
-            language: {
-                "lengthMenu": "_MENU_",
+                error: function() {
+                console.error("Failed to fetch detail data.");
+                }
+            });
+
+            $('#DetailModal').modal('show');
             }
         });
 
