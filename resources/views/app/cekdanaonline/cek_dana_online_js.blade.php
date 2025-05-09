@@ -26,7 +26,8 @@
                     d.search = $('#cek_dana_online_search').val();
                     d.st_id = $('#st_id').val();
                     d.status = $('#filter_status').val();
-                    d.date_filter = $('#cek_dana_date').val();
+                    d.filter_trx_date = $('#trx_date').val();
+                    d.filter_cash_out_date = $('#cash_out_date').val();
                     d.platform = $('#filter_platform').val();
                 }
             },
@@ -475,41 +476,28 @@
 
 
         jQuery.noConflict();
-        var picker = $('#kt_dashboard_daterangepicker');
-        if ($('#kt_dashboard_daterangepicker').length == 0) {
-            return;
-        }
-        var start = moment();
-        var end = moment();
 
-        function cb(start, end, label) {
-            var title = '';
-            var range = '';
-            var hidden_range = '';
+        // Initialize the first date picker for trx_date
+        var trxPicker = $('#trx_date_picker');
+        if (trxPicker.length > 0) {
+            var trxStart = moment();
+            var trxEnd = moment();
 
-            if ((end - start) < 100 || label == 'Hari Ini') {
-                title = 'Hari Ini:';
-                range = start.format('DD MMM YYYY');
-                hidden_range = start.format('YYYY-MM-DD');
-            } else if (label == 'Kemarin') {
-                title = 'Kemarin:';
-                range = start.format('DD MMM YYYY');
-                hidden_range = start.format('YYYY-MM-DD');
-            } else {
-                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
-                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
-            }
-            $('#cek_dana_date').val(hidden_range);
-            $('#kt_dashboard_daterangepicker_date').html(range);
-            $('#kt_dashboard_daterangepicker_title').html(title);
+            function trxCb(start, end, label) {
+            var startDate = start.format('DD MMM YYYY');
+            var endDate = end.format('DD MMM YYYY');
+            var range = startDate === endDate ? startDate : startDate + ' - ' + endDate;
+            var hiddenRange = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            $('#trx_date').val(hiddenRange);
+            $('#trx_date_picker_title').html(label + ' : ' || 'Hari Ini');
+            $('#trx_date_picker_date').html(range);
             cek_dana_online_table.draw();
-            // article_report_table.draw();
-        }
+            }
 
-        picker.daterangepicker({
+            trxPicker.daterangepicker({
             direction: KTUtil.isRTL(),
-            startDate: start,
-            endDate: end,
+            startDate: trxStart,
+            endDate: trxEnd,
             opens: 'center',
             applyClass: 'btn-primary',
             cancelClass: 'btn-light-primary',
@@ -519,11 +507,48 @@
                 '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
                 '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
                 'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
-                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
-                    'month').endOf('month')]
+                'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
             }
-        }, cb);
-        cb(start, end, '');
+            }, trxCb);
+            trxCb(trxStart, trxEnd, 'Hari Ini');
+        }
+
+        // Initialize the second date picker for cash_out_date
+        var cashOutPicker = $('#cash_out_date_picker');
+        if (cashOutPicker.length > 0) {
+            var cashOutStart = moment();
+            var cashOutEnd = moment();
+
+            function cashOutCb(start, end, label) {
+            
+            var startDate = start.format('DD MMM YYYY');
+            var endDate = end.format('DD MMM YYYY');
+            var range = startDate === endDate ? startDate : startDate + ' - ' + endDate;
+            var hiddenRange = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+            $('#cash_out_date').val(hiddenRange);
+            $('#cash_out_date_picker_title').html(label + ' : ' || 'Hari Ini');
+            $('#cash_out_date_picker_date').html(range);
+            cek_dana_online_table.draw();
+            }
+
+            cashOutPicker.daterangepicker({
+            direction: KTUtil.isRTL(),
+            startDate: cashOutStart,
+            endDate: cashOutEnd,
+            opens: 'center',
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-light-primary',
+            ranges: {
+            'Hari Ini': [moment(), moment()],
+            'Kemarin': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            '7 Hari Terakhir': [moment().subtract(6, 'days'), moment()],
+            '30 Hari Terakhir': [moment().subtract(29, 'days'), moment()],
+            'Bulan Ini': [moment().startOf('month'), moment().endOf('month')],
+            'Bulan Kemarin': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+            }, cashOutCb);
+            cashOutCb(cashOutStart, cashOutEnd, 'Hari Ini');
+        }
 
     });
 </script>

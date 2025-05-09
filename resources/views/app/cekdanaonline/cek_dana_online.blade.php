@@ -95,15 +95,30 @@
                                         </select>
                                         <div id="filter_status_parent"></div>
                                     </div>
-                                    <div class="col-2">
+                                </div>
+                                <div class="row mt-8 ml-1">
+                                    <div class="col-4">
+                                        <label for="trx_date_picker" class="font-weight-bold">Tanggal Transaksi:</label>
                                         <a href="#" class="btn btn-date-info font-weight-bold mr-2"
-                                            id="kt_dashboard_daterangepicker" data-toggle="tooltip"
-                                            title="Tanggal Invoice" data-placement="left">
+                                            id="trx_date_picker" data-toggle="tooltip"
+                                            title="Tanggal Transaksi" data-placement="left">
                                             <span class="font-size-base"
-                                                id="kt_dashboard_daterangepicker_title">Today</span>
+                                                id="trx_date_picker_title">Today</span>
                                             <span class="font-size-base font-weight-bolder"
-                                                id="kt_dashboard_daterangepicker_date"></span>
-                                            <input type="hidden" id="cek_dana_date" />
+                                                id="trx_date_picker_date"></span>
+                                            <input type="hidden" id="trx_date" />
+                                        </a>
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="cash_out_date_picker" class="font-weight-bold">Tanggal Cash Out:</label>
+                                        <a href="#" class="btn btn-date-info font-weight-bold mr-2"
+                                            id="cash_out_date_picker" data-toggle="tooltip"
+                                            title="Tanggal Cash Out" data-placement="left">
+                                            <span class="font-size-base"
+                                                id="cash_out_date_picker_title">Today</span>
+                                            <span class="font-size-base font-weight-bolder"
+                                                id="cash_out_date_picker_date"></span>
+                                            <input type="hidden" id="cash_out_date" />
                                         </a>
                                     </div>
                                 </div>

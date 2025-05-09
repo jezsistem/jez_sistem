@@ -134,7 +134,7 @@ class CekDanaOnlineController extends Controller
             )
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
             ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_invoice')
-            ->rightJoin('online_funds', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
+            ->leftJoin('online_funds', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
             ->leftJoin('stores', function ($join) {
             $join->on('pos_transactions.st_id', '=', 'stores.id')
                  ->orOn('online_funds.st_id', '=', 'stores.id');
@@ -146,7 +146,9 @@ class CekDanaOnlineController extends Controller
                           $query->whereNotNull('online_funds.st_id')
                                 ->where('online_funds.st_id', $st_id);
                       });
-            });
+            })
+            ->orderBy('pos_transactions.created_at', 'desc')
+            ->groupBy('pos_transactions.pos_invoice');
 
         $d = $request->all();
         if (!empty($d['search'])) {
@@ -156,20 +158,31 @@ class CekDanaOnlineController extends Controller
             });
         }
         if (!empty($d['status'])) {
-            $data->where('pos_transactions.pos_status', $d['status']);
-        }
-        if (!empty($d['date_filter'])) {
-            $dateRange = explode('|', $d['date_filter']);
-            if (count($dateRange) == 2) {
-            $data->whereBetween('pos_transactions.created_at', [$dateRange[0], $dateRange[1]])
-                 ->orWhereBetween('online_funds.transaction_date', [$dateRange[0], $dateRange[1]]);
+            if ($d['status'] === 'false') {
+                $data->where('online_transactions.online_print', 0)->orWhereNull('online_transactions.online_print');
             } else {
-                $data->whereDate('pos_transactions.created_at', $d['date_filter'])
-                     ->orWhereDate('online_funds.transaction_date', $d['date_filter']);
+                $data->where('online_transactions.online_print', 1);
             }
+            
         }
         if (!empty($d['platform'])) {
             $data->where('online_funds.platform_name', $d['platform']);
+        }
+        if (!empty($d['filter_trx_date'])) {
+            $trxDateRange = explode('|', $d['filter_trx_date']);
+            if (count($trxDateRange) == 2) {
+                $data->whereBetween('pos_transaction_details.created_at', [$trxDateRange[0], $trxDateRange[1]]);
+            } else {
+                $data->whereDate('pos_transaction_details.created_at', $d['filter_trx_date']);
+            }
+        }
+        if (!empty($d['filter_cash_out_date'])) {
+            $cashOutDateRange = explode('|', $d['filter_cash_out_date']);
+            if (count($cashOutDateRange) == 2) {
+                $data->whereBetween('online_funds.cashout_date', [$cashOutDateRange[0], $cashOutDateRange[1]]);
+            } else {
+                $data->whereDate('online_funds.cashout_date', $d['filter_cash_out_date']);
+            }
         }
 
         $data = $data->union(
@@ -195,7 +208,7 @@ class CekDanaOnlineController extends Controller
                 'pos_transaction_details.created_at as jezpro_transaction_date',
                 'online_transactions.online_print'
             )
-            ->rightJoin('pos_transactions', 'online_funds.order_number', '=', 'pos_transactions.pos_invoice')
+            ->leftJoin('pos_transactions', 'online_funds.order_number', '=', 'pos_transactions.pos_invoice')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
             ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_invoice')
             ->leftJoin('stores', function ($join) {
@@ -217,18 +230,37 @@ class CekDanaOnlineController extends Controller
                 });
             })
             ->when(!empty($d['status']), function ($query) use ($d) {
-                $query->where('pos_transactions.pos_status', $d['status']);
-            })
-            ->when(!empty($d['date_filter']), function ($query) use ($d) {
-                $dateRange = explode('|', $d['date_filter']);
-                if (count($dateRange) == 2) {
-                $query->whereBetween('pos_transactions.created_at', [$dateRange[0], $dateRange[1]])
-                      ->orWhereBetween('online_funds.transaction_date', [$dateRange[0], $dateRange[1]]);
-                }
+                $query->where('online_transactions.online_print', $d['status']);
             })
             ->when(!empty($d['platform']), function ($query) use ($d) {
                 $query->where('online_funds.platform_name', $d['platform']);
             })
+            ->when(!empty($d['filter_trx_date']), function ($query) use ($d) {
+                $dateRange = explode('|', $d['filter_trx_date']);
+                if (count($dateRange) == 2) {
+                $query->whereBetween('pos_transaction_details.created_at', [$dateRange[0], $dateRange[1]]);
+                } else {
+                    $query->whereDate('pos_transaction_details.created_at', $d['filter_trx_date']);
+                }
+            })
+            ->when(!empty($d['filter_cash_out_date']), function ($query) use ($d) {
+                $dateRange = explode('|', $d['filter_cash_out_date']);
+                if (count($dateRange) == 2) {
+                $query->whereBetween('online_funds.cashout_date', [$dateRange[0], $dateRange[1]]);
+                } else {
+                    $query->whereDate('online_funds.cashout_date', $d['filter_cash_out_date']);
+                }
+            })
+            ->when(!empty($d['status']), function ($query) use ($d) {
+                if ($d['status'] === 'false') {
+                    $query->where('online_transactions.online_print', 0)->orWhereNull('online_transactions.online_print');
+                } else {
+                    $query->where('online_transactions.online_print', 1);
+                }
+                
+            })
+            ->orderBy('pos_transactions.created_at', 'desc')
+            ->groupBy('pos_transactions.pos_invoice')
         );
 
         // dd($data->first());
