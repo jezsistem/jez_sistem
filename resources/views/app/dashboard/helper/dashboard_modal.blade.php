@@ -481,6 +481,54 @@
 
 
 <!-- Modal-->
+<div class="modal fade" id="ScanInRefundModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-dark">
+                <h5 class="modal-title text-light" id="exampleModalLabel">Scan Barang Masuk Refund</h5>
+            </div>
+            <div class="modal-body table-responsive">
+                <div class="row">
+                    <div class="col-md-9">
+                        <select class="form-control form-control-sm bg-info text-white" id="waiting_refund_filter">
+                            <option value='REFUND'>Refund</option>
+                        </select>
+                        <input type="hidden" id="filter_status" value="">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary btn-sm" id="btn_filter">Submit</button>
+                    </div>
+                </div>
+                <br>
+                <div class="d-flex justify-content-center">
+                    <div>
+                        <div id="reader" class="rounded"></div>
+                        <div id="result"></div>
+                    </div>
+                </div>
+                <input type="search" class="form-control" id="scan_in_refund_search" placeholder="Cari brand artikel"/>
+                <table class="table table-hover table-checkable table-striped" id="ScanInRefundtb">
+                    <thead class="bg-dark text-light">
+                    <tr>
+                        <th class="text-dark">Artikel</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_in_modal_finish">Selesai</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->
+
+
+<!-- Modal-->
 <div class="modal fade" id="KeepOnModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
      aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-scrollable" role="document">

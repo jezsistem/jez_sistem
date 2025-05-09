@@ -181,6 +181,102 @@ class TrackingController extends Controller
         return json_encode($r);
     }
 
+    public function saveInRefundActivity(Request $request)
+    {
+        $plst_id = $request->_plst_id;
+        $pls_id = $request->_pls_id;
+        $secret_code = $request->_secret_code;
+        $qty = $request->_qty;
+        $u_id = Auth::user()->id;
+
+        $status = 'INSTOCK';
+
+        $update_plst = DB::table('product_location_setup_transactions')
+            ->where('id', $plst_id)->where('pls_id', $pls_id)
+            ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'EXCHANGE', 'REFUND', 'WAITING FOR CHECKOUT'])->update([
+                'u_id_helper' => $u_id,
+                'plst_type' => 'IN',
+                'plst_status' => $status,
+                'updated_at' => date('Y-m-d H:i:s'),
+                'in_stock_time' => date('Y-m-d H:i:s'),
+            ]);
+
+        $get_product_stocks = DB::table('product_location_setup_transactions')
+            ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->where('product_location_setup_transactions.id', $plst_id)->get()->first();
+
+//        dd($get_product_stocks->st_id);
+
+        $bin_refund = DB::table('product_locations')->where('st_id', '=', $get_product_stocks->st_id)->where('pl_default_refund', '=','1')->get()->first()->id;
+
+        $pls_refund = DB::table('product_location_setups')->where('pst_id', '=', $get_product_stocks->pst_id)
+            ->where('pl_id', '=', $bin_refund)->get()->first();
+
+
+        if (empty($pls_refund)) {
+            $params_new = [
+                'pst_id'    => $get_product_stocks->pst_id,
+                'pl_id'     => $bin_refund,
+                'pls_qty'   => $qty,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+            $insert_pls = DB::table('product_location_setups')->insert($params_new);
+
+            if ($insert_pls) {
+                $r['status'] = '200';
+            } else {
+                $r['status'] = '400';
+            }
+        } else {
+            $pls = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_refund->id)->where('pst_id', $get_product_stocks->pst_id)->get()->first();
+            $update = DB::table('product_location_setups')->where('id', $pls_refund->id)->update([
+                'pls_qty' => ($pls_refund->pls_qty + $qty),
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+            if ($update) {
+                $pls = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_id)->get()->first();
+                $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where('product_stocks.id', $pls->pst_id)
+                    ->get()->first();
+                $pl_code = ProductLocation::select('pl_code')->where('id', $pls->pl_id)->get()->first()->pl_code;
+                $this->UserActivity($u_id, 'memasukkan artikel [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
+                $r['status'] = '200';
+            } else {
+                $r['status'] = '400';
+            }
+        }
+
+
+//        if (!empty($update_plst)) {
+//            $pls = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_id)->get()->first();
+//            if ($status == 'INSTOCK') {
+//                $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
+//                    'pls_qty' => ($pls->pls_qty + $qty),
+//                    'updated_at' => date('Y-m-d H:i:s')
+//                ]);
+//            }
+//            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+//                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                ->where('product_stocks.id', $pls->pst_id)
+//                ->get()->first();
+//            $pl_code = ProductLocation::select('pl_code')->where('id', $pls->pl_id)->get()->first()->pl_code;
+//            $this->UserActivity($u_id, 'memasukkan artikel [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
+//            $r['status'] = '200';
+//        } else {
+//            $r['status'] = '400';
+//        }
+        return json_encode($r);
+    }
+
     public function saveOutActivity(Request $request)
     {
         $pls_id = $request->_pls_id;
@@ -594,7 +690,7 @@ class TrackingController extends Controller
                 ->where(function ($w) {
                     $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
                 })
-                ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'REJECT', 'EXCHANGE', 'REFUND', 'WAITING FOR CHECKOUT']))
+                ->whereIn('plst_status', ['WAITING OFFLINE', 'WAITING ONLINE', 'REJECT', 'EXCHANGE', 'WAITING FOR CHECKOUT']))
                 ->editColumn('article', function ($data) {
                     $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
 
@@ -617,6 +713,79 @@ class TrackingController extends Controller
                     <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
                     <a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
+
+                })
+                ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->where('product_stocks.ps_barcode', $search);
+                        });
+                    }
+                    if (!empty($request->get('waiting'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $w->where('plst_status', '=', $request->get('waiting'));
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
+    public function scanInRefundDatatables(Request $request)
+    {
+        if (request()->ajax()) {
+            return datatables()->of(ProductLocationSetupTransaction::select(
+                'product_location_setup_transactions.id as plst_id',
+                'pls_id',
+                'plst_qty',
+                'plst_status',
+                'p_name',
+                'br_name',
+                'p_color',
+                'pl_code',
+                'pl_name',
+                'sz_name',
+                'product_locations.st_id as stores_id',
+                'product_location_setup_transactions.created_at as TanggalTrx' // Ensure the alias is here
+            )
+                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->where(function ($w) {
+                    $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+                })
+                ->whereIn('plst_status', ['Refund']))
+                ->editColumn('article', function ($data) {
+                    $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
+
+                    // Determine button class based on status
+                    $btn = match ($data->plst_status) {
+                        'WAITING OFFLINE' => 'btn-warning',
+                        'WAITING ONLINE' => 'btn-light-warning',
+                        'WAITING FOR CHECKOUT', 'WAITING TO TAKE' => 'btn-info',
+                        'REJECT', 'EXCHANGE', 'REFUND' => 'btn-danger',
+                        default => 'btn-secondary',
+                    };
+
+                    // Format the date
+                    $dateTime = $data->TanggalTrx;
+                    $time = $dateTime ? Carbon::parse($dateTime, 'Asia/Jakarta')->format('d-F-Y H:i:s') : 'N/A';
+
+                    $bin_refund = DB::table('product_locations')->where('st_id', '=', $data->stores_id)->where('pl_default_refund', '=','1')->get()->first();
+
+//                    dd($bin_refund);
+                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
+                    <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
+                    <span style="white-space: nowrap; font-weight:bold;">' . $time . '</span><br/>
+                    <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
+                    <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
+                    <a class="btn btn-sm btn-success" data-bin="' . $bin_refund->pl_code . ' ' . $bin_refund->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_refund_btn" style="font-weight:bold;">Masuk</a>';
 
                 })
                 ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])

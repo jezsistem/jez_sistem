@@ -731,6 +731,8 @@ class InvoiceEditorController extends Controller
                         'pos_payment' => -abs($pos_trx_selected->pos_payment)
                     ]);
 
+//                    $bin_refund = DB::table('product_locations')->where('st_id', '=', $pos_trx_selected->st_id)->where('pl_default_refund', 1)->get()->first()->id;
+
                     foreach ($pos_details as $detail) {
 
                         $plst = DB::table('product_location_setup_transactions')->where('pt_id', '=', $detail->pt_id)->get();

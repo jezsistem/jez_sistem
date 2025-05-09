@@ -128,6 +128,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('packing_list_by_invoice', [PointOfSaleController::class, 'packingListByInvoice']);
     Route::post('save_out_activity', [TrackingController::class, 'saveOutActivity']);
     Route::post('save_in_activity', [TrackingController::class, 'saveInActivity']);
+    Route::post('save_in_refund_activity', [TrackingController::class, 'saveInRefundActivity']);
     Route::post('save_tracking_activity', [TrackingController::class, 'saveTrackingActivity']);
     Route::post('cancel_tracking_activity', [TrackingController::class, 'cancelTrackingActivity']);
     Route::post('save_packing_activity', [TrackingController::class, 'savePackingActivity']);
@@ -136,6 +137,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('product_out_datatables', [TrackingController::class, 'outDatatables']);
     Route::get('scan_product_out_datatables', [TrackingController::class, 'scanOutDatatables']);
     Route::get('scan_product_in_datatables', [TrackingController::class, 'scanInDatatables']);
+    Route::get('scan_product_in_refund_datatables', [TrackingController::class, 'scanInRefundDatatables']);
     Route::get('scan_product_online_datatables', [TrackingController::class, 'scanOnlineDatatables']);
     Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
     Route::post('check_article', [ArticleController::class, 'checkArticle']);

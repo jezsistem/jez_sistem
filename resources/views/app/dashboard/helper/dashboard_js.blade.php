@@ -617,16 +617,16 @@
         }
     });
 
-    const scanner = new Html5QrcodeScanner('reader', {
-        // Scanner will be initialized in DOM inside element with id of 'reader'
-        qrbox: {
-            width: 250,
-            height: 250,
-        },
-        fps: 30,
-    });
+    // const scanner = new Html5QrcodeScanner('reader', {
+    //     // Scanner will be initialized in DOM inside element with id of 'reader'
+    //     qrbox: {
+    //         width: 250,
+    //         height: 250,
+    //     },
+    //     fps: 30,
+    // });
 
-    scanner.render(success, error);
+    // scanner.render(success, error);
 
     function success(result) {
 
@@ -727,6 +727,161 @@
 
         }
     });
+
+
+    //Refund
+    var scanInRefundTbEnterPressed = false;
+
+    var scan_in_refund_table = $('#ScanInRefundtb').DataTable({
+        destroy: true,
+        processing: false,
+        serverSide: true,
+        responsive: false,
+        dom: 'rt<"text-right"ip>',
+        ajax: {
+            url: "{{ url('scan_product_in_refund_datatables') }}",
+            data: function(d) {
+                d.search = $('#scan_in_refund_search').val();
+                d.st_id = $('#st_id').val();
+                d.waiting = $('#waiting_refund_filter').val();
+            }
+        },
+        columns: [{
+            data: 'article',
+            name: 'article',
+            sortable: false
+        }],
+        columnDefs: [{
+            "targets": 0,
+            "className": "text-left",
+            "width": "0%"
+        }],
+        order: [
+            [0, 'desc']
+        ],
+        drawCallback: function(settings) {
+            var api = this.api();
+            $('#scan_out_search').off('keyup').on('keyup', function(event) {
+                if (event.keyCode === 13) {
+                    scanInRefundTbEnterPressed = true;
+                    api.search(this.value).draw();
+                }
+            });
+        }
+    });
+
+    const scanner = new Html5QrcodeScanner('reader', {
+        // Scanner will be initialized in DOM inside element with id of 'reader'
+        qrbox: {
+            width: 250,
+            height: 250,
+        },
+        fps: 30,
+    });
+
+    scanner.render(success, error);
+
+    function success(result) {
+
+        var hasil = result;
+
+        if (hasil.startsWith(']C1')) {
+            hasil = hasil.replace(']C1', '');
+        }
+
+        alert(hasil);
+
+        $('#scan_in_search').val(hasil);
+
+        scan_in_refund_table.ajax.reload();
+
+    }
+
+    function error(err) {
+        console.error(err);
+        // Prints any errors to the console
+    }
+
+    function console_log(result) {
+        console.log(result);
+    }
+
+
+    $('#ScanIntb').on('draw.dt', function() {
+        if (!scanInRefundTbEnterPressed) {
+            return;
+        }
+
+        if ($('#scan_in_search').val().trim() === '') {
+            return;
+        }
+
+        scanInRefundTbEnterPressed = false;
+
+        var rowsData = scan_in_refund_table.rows({
+            page: 'current'
+        }).data();
+        var scan_in_data = [];
+
+        if (rowsData.length > 0) {
+            var rowData = rowsData[0];
+
+            console.log(rowData);
+
+            scan_in_data.push({
+                _plst_id: rowData.plst_id,
+                _pls_id: rowData.pls_id,
+                _qty: rowData.plst_qty,
+            });
+
+            swal({
+                title: rowData.pl_name + "..?",
+                text: "Yakin BIN Kembali sudah benar ?",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Yakin'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+
+                    var item = scan_in_data[0]; // Only process the first item
+
+                    $.ajax({
+                        url: "{{ url('save_in_activity') }}",
+                        type: "POST",
+                        data: {
+                            _plst_id: item._plst_id,
+                            _pls_id: item._pls_id,
+                            _qty: item._qty,
+                        },
+                        success: function(response) {
+                            var responseObject = JSON.parse(response);
+                            var status = responseObject.status;
+                            $('#scan_in_search').val('');
+                            scan_in_refund_table.ajax.reload();
+
+                            if (status == 200) {
+                                toast('Dikeluarkan', ' berhasil dimasukkan', 'success');
+                            } else {
+                                swal('Gagal', 'Gagal masuk produk', 'error');
+                            }
+                        },
+                    });
+                }
+            })
+
+
+        }
+    });
+
+    //End Refund
 
     // Disini
     $('#scan_in_search').on('keyup', function(event) {
@@ -1277,6 +1432,64 @@
     });
 
 
+    $(document).delegate('#scan_get_in_refund_btn', 'click', function() {
+        var plst_id = $(this).attr('data-plst_id');
+        var pls_id = $(this).attr('data-pls_id');
+        var plst_qty = $(this).attr('data-plst_qty');
+        var p_name = $(this).attr('data-p_name');
+        var bin = $(this).attr('data-bin');
+        var current_qty = $(this).attr('data-qty');
+        var secret_code = $('#u_secret_code').val();
+        //alert(plst_id+' '+pls_id+' '+p_name+' '+bin+' '+current_qty+' '+secret_code);
+        if (current_qty != 0) {
+            swal({
+                title: "Masuk..?",
+                text: "Yakin sudah masukin produk " + p_name + " ke BIN " + bin + " ?",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Yakin'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $(this).prop('disabled', true);
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "POST",
+                        data: {
+                            _qty: current_qty,
+                            _plst_qty: plst_qty,
+                            _pls_id: pls_id,
+                            _plst_id: plst_id,
+                            _secret_code: secret_code
+                        },
+                        dataType: 'json',
+                        url: "{{ url('save_in_refund_activity') }}",
+                        success: function(r) {
+                            if (r.status == '200') {
+                                scan_in_refund_table.draw();
+                                scan_keep_table.draw();
+                                $(this).prop('disabled', false);
+                                toast('Dimasukkan', p_name + ' berhasil dimasukkan',
+                                    'success');
+                            } else {
+                                $(this).prop('disabled', false);
+                                swal('Gagal', 'Gagal masukin produk', 'error');
+                            }
+                        }
+                    });
+                    return false;
+                }
+            })
+        }
+    });
+
+
     $(document).delegate('#get_transfer_item', 'click', function() {
         var stfd_id = $(this).attr('data-stfd_id');
         var p_name = $(this).attr('data-p_name');
@@ -1683,6 +1896,13 @@
         e.preventDefault();
         $('#st_id').val('');
         $('#ScanInModal').modal('show');
+        scan_in_table.draw();
+    });
+
+    $('#scan_in_refund_btn').on('click', function(e) {
+        e.preventDefault();
+        $('#st_id').val('');
+        $('#ScanInRefundModal').modal('show');
         scan_in_table.draw();
     });
 
