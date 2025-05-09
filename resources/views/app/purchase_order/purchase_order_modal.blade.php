@@ -222,7 +222,7 @@
                         <div class="row">
                             <div class="col-6">
                                 <label for="pay_date">Tanggal Bayar</label>
-                                <input type="date" id="pay_date" class="form-control"/>
+                                <input type="date" id="pay_date" class="form-control" max="{{ date('Y-m-d') }}"/>
                             </div>
                             <div class="col-6">
                                 <label for="due_date">Tanggal Jatuh Tempo</label>

@@ -518,6 +518,20 @@
         var invoice_date = $('#invoice_date').val();
         var shipping_cost = $('#shipping_cost').val();
 
+        var today = new Date();
+        var receiveDateObj = new Date(receive_date);
+        var invoiceDateObj = new Date(invoice_date);
+
+        if (receiveDateObj > today) {
+            swal("Tanggal Terima", "Tanggal terima tidak boleh lebih dari hari ini", "warning");
+            return false;
+        }
+
+        if (invoiceDateObj > today) {
+            swal("Tanggal Invoice", "Tanggal invoice tidak boleh lebih dari hari ini", "warning");
+            return false;
+        }
+
         if (receive_date == '') {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
             return false;

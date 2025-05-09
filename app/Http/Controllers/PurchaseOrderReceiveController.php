@@ -886,6 +886,13 @@ class PurchaseOrderReceiveController extends Controller
     {
         $po_id = $request->po_id;
         $pay_date = $request->pay_date;
+
+        if ($pay_date > today()) {
+            $r['status'] = '500';
+            $r['message'] = 'Tanggal tidak boleh lebih dari hari ini';
+            return json_encode($r);
+        }
+
         $check = PurchaseOrder::where(['id' => $po_id])->update(['pay_date' => $pay_date]);
         if ($check) {
             $r['status'] = '200';

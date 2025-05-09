@@ -124,7 +124,7 @@
                         </div>
                         <div class="col-4">
                             <label>Tanggal Terima</label>
-                            <input type="date" id="receive_date" class="form-control" value="" />
+                            <input type="date" id="receive_date" class="form-control" value="" max="{{ date('Y-m-d') }}" />
                         </div>
 
                         <div class="col-4 mt-4">
@@ -138,7 +138,7 @@
                         </div>
                         <div class="col-4 mt-4">
                             <label class="badge badge-primary">Tanggal Invoice</label>
-                            <input type="date" id="invoice_date" class="form-control" value="" />
+                            <input type="date" id="invoice_date" class="form-control" value="" max="{{ date('Y-m-d') }}"/>
                         </div>
                         <div class="col-4 mt-4">
                             <label class="badge badge-primary">Invoice</label>
