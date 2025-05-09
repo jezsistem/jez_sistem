@@ -63,7 +63,7 @@
                             <input type="text" class="form-control" id="pl_name" name="pl_name" required />
                         </div>
                         <div class="form-group mb-1 pb-1">
-                            <label for="exampleTextarea">Deskripsi</label>
+                            <label for="exampleTextarea">Nama Kota (eg: MALANG)</label>
                             <input type="text" class="form-control" id="pl_description" name="pl_description" />
                         </div>
                         <div class="form-group mb-1 pb-1">
