@@ -605,7 +605,7 @@
                 if (response.status == '200') {
 
                 } else {
-
+                    swal('Error', response.message || 'Terjadi kesalahan', 'error');
                 }
             },
         });
