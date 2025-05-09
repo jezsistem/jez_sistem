@@ -47,8 +47,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'import_trx_order_number',
-                    name: 'import_trx_order_number',
+                    data: 'order_number',
+                    name: 'order_number',
                 },
                 {
                     data: 'cashout_date',
@@ -182,7 +182,7 @@
                     modalBody.find('tr').eq(1).find('td').eq(1).text(response.platform_name || '-');
                     modalBody.find('tr').eq(2).find('td').eq(1).text(response.order_number || '-');
                     modalBody.find('tr').eq(3).find('td').eq(1).text(response.jezpro_transaction_date ? new Date(response.jezpro_transaction_date).toLocaleDateString('id-ID') : '-');
-                    modalBody.find('tr').eq(4).find('td').eq(1).text(response.cashout_date || '-');
+                    modalBody.find('tr').eq(4).find('td').eq(1).text(response.cashout_date ? new Date(response.cashout_date).toLocaleDateString('id-ID') : '-');
                     modalBody.find('tr').eq(5).find('td').eq(1).text(response.pos_real_price ? 'Rp ' + formatRupiah(response.pos_real_price) : 'Rp 0');
                     modalBody.find('tr').eq(6).find('td').eq(1).text(response.final_price ? 'Rp ' + formatRupiah(response.final_price) : 'Rp 0');
                     modalBody.find('tr').eq(7).find('td').eq(1).text(response.diff ? 'Rp ' + formatRupiah(response.diff) : 'Rp 0');
