@@ -50,6 +50,10 @@
                     name: 'pl_default'
                 },
                 {
+                    data: 'pl_refund',
+                    name: 'pl_refund'
+                },
+                {
                     data: 'pl_freeze',
                     name: 'pl_freeze'
                 },
@@ -101,12 +105,14 @@
             var pl_name = product_location_table.row(this).data().pl_name;
             var pl_description = product_location_table.row(this).data().pl_description;
             var pl_default = product_location_table.row(this).data().pl_default;
+            var pl_default_refund = product_location_table.row(this).data().pl_default_refund;
             jQuery.noConflict();
             $('#ProductCategoryModal').modal('show');
             $('#pl_code').val(pl_code);
             $('#pl_name').val(pl_name);
             $('#pl_description').val(pl_description);
             $('#pl_default').val(pl_default);
+            $('#pl_default_refund').val(pl_default_refund);
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ($data['user']->delete_access == '1')

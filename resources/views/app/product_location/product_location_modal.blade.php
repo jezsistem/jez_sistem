@@ -74,6 +74,13 @@
                             </select>
                         </div>
                         <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">Default Refund</label>
+                            <select class="form-control" id="pl_default_refund" name="pl_default_refund">
+                                <option value="0" selected>No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-1 pb-1">
                             <label for="exampleTextarea">BIN Freeze</label>
                             <select class="form-control" id="pl_freeze" name="pl_freeze">
                                 <option value="0" selected>No</option>

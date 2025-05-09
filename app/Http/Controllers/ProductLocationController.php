@@ -89,12 +89,19 @@ class ProductLocationController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default', 'pl_freeze')
+            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default', 'pl_default_refund','pl_freeze')
                 ->join('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->where('pl_delete', '!=', '1')
                 ->where('st_id', '=', $request->st_id))
                 ->editColumn('pl_default_show', function ($data) {
                     if ($data->pl_default == '1') {
+                        return 'Yes';
+                    } else {
+                        return 'No';
+                    }
+                })
+                ->editColumn('pl_refund', function ($data) {
+                    if ($data->pl_default_refund == '1') {
                         return 'Yes';
                     } else {
                         return 'No';
@@ -135,18 +142,13 @@ class ProductLocationController extends Controller
             ]);
         }
 
-//        if ($request->input('pl_freeze') == '1') {
-//            ProductLocation::where('st_id', '=', $request->input('st_id'))->update([
-//                'pl_freeze' => '1'
-//            ]);
-//        }
-
         $data = [
             'st_id' => $request->input('st_id'),
             'pl_code' => strtoupper($request->input('pl_code')),
             'pl_name' => $request->input('pl_name'),
             'pl_description' => $request->input('pl_description'),
             'pl_default' => $request->input('pl_default'),
+            'pl_default_refund' => $request->input('pl_default_refund'),
             'pl_delete' => '0',
             'pl_freeze' => $pl_freeze,
         ];

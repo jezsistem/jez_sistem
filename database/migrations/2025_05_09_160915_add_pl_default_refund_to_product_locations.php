@@ -14,7 +14,10 @@ class AddPlDefaultRefundToProductLocations extends Migration
     public function up()
     {
         Schema::table('product_locations', function (Blueprint $table) {
-            $table->int('pl_default_refund')->after('pl_default');
+            $table->enum('pl_default_refund', ['0', '1'])
+                ->default('0')
+                ->after('pl_default')
+                ->comment('0 = No Refund, 1 = Default Refund');
         });
     }
 
