@@ -1260,7 +1260,7 @@
             var note = jQuery('#note').val();
             var unique_code = jQuery('#unique_code').val();
             var shipping_cost = jQuery('#shipping_cost').val();
-            var cr_id = jQuery('#courier').val();
+            var cr_id = jQuery('#courier').val() || jQuery('#courier_bayar').val();
             var order_code = jQuery('#order_code').val();
             var ref_number = jQuery('#ref_number').val();
             var admin_cost = jQuery('#admin_cost').val();

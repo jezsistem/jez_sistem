@@ -56,40 +56,14 @@
                 <div class="card-body">
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Kurir</label>
-                        <select class="form-control" id="courier" name="courier" required>
+                        <select name="courier" id="courier" class="form-control">
                             <option value="">- Pilih -</option>
-                            <option value="jne">JNE</option>
-                            <option value="pos">POS Indonesia</option>
-                            <option value="jnt">JNT</option>
-                            <option value="sicepat">SiCepat</option>
-                            <option value="tiki">TIKI</option>
-                            <option value="anteraja">Anter Aja</option>
-                            <option value="wahana">WAHANA</option>
-                            <option value="ninja">Ninja</option>
-                            <option value="lion">Lion Parcel</option>
-                            <option value="pcp">PCP</option>
-                            <option value="jet">JET</option>
-                            <option value="rex">REX Express</option>
-                            <option value="sap">SAP Express</option>
-                            <option value="jxe">JX Express</option>
-                            <option value="rpx">RPX Express</option>
-                            <option value="first">First Logistics</option>
-                            <option value="ide">ID Express</option>
-                            <option value="spx">Shopee Express</option>
-                            <option value="kgx">KGX Express</option>
-                            <option value="kgx">Grab Express (Instan)</option>
-                            <option value="kgx">Gosend Express (Instan)</option>
                         </select>
                     </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">No Resi</label>
                         <input type="text" class="form-control" id="pos_shipping_number" name="pos_shipping_number" required />
                     </div>
-                    {{-- <div class="form-group">
-                            <label>Upload File Resi</label>
-                            <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="imageResi[]" id="imageResi" multiple required/>
-                        </div> --}}
                 </div>
             </div>
             <div class="modal-footer">

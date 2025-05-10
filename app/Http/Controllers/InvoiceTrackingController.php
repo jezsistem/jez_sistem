@@ -279,41 +279,17 @@ class InvoiceTrackingController extends Controller
         // $image = '';
 
         $update = PosTransaction::where('id', $pt_id)->update([
-            'pos_shipping_number' => str_replace(' ', '', $shipping_number)
+            'pos_shipping_number' => str_replace(' ', '', $shipping_number),
+            'pos_resi' => str_replace(' ', '', $shipping_number),
+            'cr_id' => $courier,
         ]);
 
-        // if ($request->hasFile('image')) {
-        //     $request->validate([
-        //         'image' => 'required|file|mimes:jpg,jpeg,png',
-        //     ]);
-        //     $image = $request->file('image');
-        //     $input['fileName'] = time() . '.' . $image->extension();
-
-        //     $destinationPath = public_path('/upload/shipping_img/600x600');
-        //     $img = Image::make($image->path());
-        //     $img->resize(600, 600, function ($constraint) {
-        //         $constraint->aspectRatio();
-        //     })->save($destinationPath . '/' . $input['fileName']);
-        //     $image = $input['fileName'];
-        //     $check_img = DB::table('pos_images')->where('pt_id', '=', $pt_id)->exists();
-        //     if ($check_img) {
-        //         DB::table('pos_images')->where('pt_id', '=', $pt_id)->update([
-        //             'image' => $image
-        //         ]);
-        //     } else {
-        //         DB::table('pos_images')->insert([
-        //             'pt_id' => $pt_id,
-        //             'image' => $image
-        //         ]);
-        //     }
-        // }
-
         if (!empty($update)) {
-            $check = PosShippingInformation::where('pt_id', $pt_id)->exists();
-            PosTransaction::where('id', $pt_id)
-                ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
-                    'pos_status' => 'DONE'
-                ]);
+            // $check = PosShippingInformation::where('pt_id', $pt_id)->exists();
+            // PosTransaction::where('id', $pt_id)
+            //     ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
+            //         'pos_status' => 'DONE'
+            //     ]);
             $r['status'] = '200';
             $cs = DB::table('customers')->select('cust_name', 'cust_phone')->where('id', '=', $cust_id)->get()->first();
             $invoice = PosTransaction::select('pos_invoice')->where('id', '=', $pt_id)->get()->first()->pos_invoice;

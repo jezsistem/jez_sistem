@@ -264,6 +264,19 @@
                             <input type="text" placeholder="2504xxx / 5772xxxx" id="no_resi" class="bg-light-primary"/>
                         </td>
                     </tr>
+                    <tr class="d-flex align-items-center justify-content-between" id="courier_content">
+                        <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
+                            Kurir
+                        </th>
+                        <td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
+                            <select name="courier_bayar" id="courier_bayar" class="form-control">
+                                <option value="">- Pilih -</option>
+                                @foreach ($data['courier'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
                 <div class="form-group row">

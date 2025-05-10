@@ -213,7 +213,7 @@ class CrossOrderController extends Controller
                 }
                 if ($data->pos_status == 'SHIPPING NUMBER' || $data->pos_status == 'IN DELIVERY') {
                     return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-cust_id="'.$data->cust_id.'" class="btn btn-sm '.$btn.'" id="shipping_number_btn">'.$data->pos_status.' '.$ref_invoice.'</span>
-                            <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print</span>';
+                        <span style="white-space: nowrap;" class="btn btn-sm btn-info" data-pt_id="'.$data->pt_id.'" id="print_resi_btn">Print Resi</span>';
                 } if ($data->pos_status == 'WAITING FOR CONFIRMATION') {
                     if ($data->st_id_ref != Auth::user()->st_id) {
                         if (strtolower(Auth::user()->u_name) == 'aufa kenshi') {
@@ -556,6 +556,11 @@ class CrossOrderController extends Controller
             return response()->json(['status' => '404', 'message' => 'File not found']);
         }
 
+        PosTransaction::where('id', $pt_id)
+            ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
+                'pos_status' => 'DONE'
+            ]);
+
         return response()->json(['status' => '200', 'resi_id' => $transaction->pos_resi_file]);
     }
 
@@ -760,6 +765,22 @@ class CrossOrderController extends Controller
             echo $trace;
         } else {
             echo "Terjadi error, atau resi kurir belum support";
+        }
+    }
+
+    public function getResiDetail($id){
+        $couriers = Courier::select('id', 'cr_name')->get();
+        $transaction = PosTransaction::select('pos_resi', 'cr_id')->where('id', $id)->get()->first();
+        if (!empty($transaction)) {
+            $shipping_number = $transaction->pos_resi;
+            $cr_id = $transaction->cr_id;
+            if (!empty($shipping_number)) {
+            return response()->json(['status' => '200', 'shipping_number' => $shipping_number, 'cr_id' => $cr_id, 'couriers' => $couriers]);
+            } else {
+            return response()->json(['status' => '400', 'couriers' => $couriers]);
+            }
+        } else {
+            return response()->json(['status' => '400', 'couriers' => $couriers]);
         }
     }
 
