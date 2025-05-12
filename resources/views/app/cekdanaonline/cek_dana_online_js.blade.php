@@ -247,9 +247,13 @@
             $('#ImportModal').modal('show');
         });
 
+        let searchTimeout;
         $('#cek_dana_online_search').on('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
             cek_dana_online_table.draw(false);
-            console.log($('#cek_dana_online_search').val())
+            console.log($('#cek_dana_online_search').val());
+            }, 1000); // Wait for 1 second
         });
 
         {{-- $('#f_import').on('submit' , function (e) { --}}
