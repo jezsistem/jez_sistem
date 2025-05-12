@@ -1,6 +1,5 @@
 <!-- Modal-->
-<div class="modal fade" id="ApproveModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+<div class="modal fade" id="ApproveModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="overflow-y: auto;">
     <div class="modal-dialog modal-xl" role="document" style="width: 100%; max-width: 1300px;">
         <div class="modal-content">
             <div class="modal-header bg-light">
