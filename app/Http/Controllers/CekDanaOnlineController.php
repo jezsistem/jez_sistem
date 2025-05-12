@@ -285,7 +285,7 @@ class CekDanaOnlineController extends Controller
                 ->groupBy('pos_transactions.pos_invoice')
         );
 
-        dd($d['search']);
+//        dd($d['search']);
         return DataTables::of($data)
             ->addColumn('fee_persentage', function ($data) {
                 if ($data->final_price && $data->total_online_cut && $data->total_online_cut != 0) {
