@@ -1135,6 +1135,7 @@
         var b1g1_price = jQuery(this).attr('data-b1g1_price');
         var highlight = '';
         var b1g1_mode = '';
+        var bandrol = jQuery(this).attr('data-bandrol');
 
 
         console.log(b1g1_id);
@@ -1153,7 +1154,6 @@
         console.log('cross: ', cross);
 
         if (psc_id == '1') {
-            var bandrol = jQuery(this).attr('data-bandrol');
             shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
             // console.log(shoes_voucher_temp);
         }
@@ -1222,6 +1222,7 @@
             success: function (r) {
                 jQuery.noConflict();
                 if (r.status == '200') {
+                    var discount_normal = bandrol - sell_price;
                     toast('Ditambah', 'Item berhasil ditambah', 'success');
                     jQuery('#total_item_side').text(parseInt(total_item) + 1);
                     jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(
@@ -1235,29 +1236,32 @@
                             " <td style='white-space: nowrap; font-size:14px; " + highlight +
                             "' id='item_name" + (total_row + 1) + "'>" + p_name + "</td>" +
                             " <td>" + (pls_qty) + "</td> " +
-                            " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
+                            "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
                             pst_id + " item_qty' id='item_qty" + (total_row + 1) +
                             "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
-                            pst_id + ", " + (pls_qty) + ")' readonly></td>" +
+                            pst_id + ", " + (pls_qty) + ")'></td> " +
                             "<td>" +
                             "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
                             "<option value='0'>Discount Extra</option>" +
                             "<option value='1'>Discount Promo</option>" +
                             "</select>" +
                             "</td>" +
-                            " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
+                            "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
                             pst_id + " discount_percentage' id='discount_percentage" + (
                                 total_row + 1) +
                             "' value='0' onchange='return changeDiscountPercentage(" + (
                                 total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
-                            " <td><input type='text' class='form-control border-dark col-8 basicInput2" +
+                            " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
                             pst_id + " discount_number' id='discount_number" + (total_row + 1) +
                             "' value='0' onchange='return changeDiscountNumber(" + (total_row +
                                 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td>" +
-                            " <td><input type='number' class='col-8 nameset_price' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td>" +
-                            " <td><input type='number' class='col-8 nameset_price' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td>" +
+                            "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
+                            (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
+                                1) + ")'/></td> " +
+                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
                             " <td><span class='sell_price_item' id='sell_price_item" + (
                                 total_row + 1) + "'>" + addCommas(sell_price) + "</span></td>" +
+                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                             " <td><span class='subtotal_item' id='subtotal_item" + (total_row +
                                 1) + "'>" + addCommas(sell_price) + "</span></td>" +
                             " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
@@ -1298,9 +1302,11 @@
                             "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                             (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
                                 1) + ")'/></td> " +
+                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
                             "<td><span class='sell_price_item' id='sell_price_item" + (
                                 total_row + 1) + "'>" + addCommas(sell_price) +
                             "</span></td> " +
+                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                             "<td><span class='subtotal_item' id='subtotal_item" + (total_row +
                                 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                             "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
