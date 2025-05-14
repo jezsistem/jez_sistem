@@ -42,7 +42,7 @@
                                     </div>
                                     <div class="dropdown dropdown-inline mr-2">
                                         <button type="button" class="btn btn-primary font-weight-bolder"
-                                                aria-expanded="false">
+                                                aria-expanded="false" id="export_btn">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
                                                 <svg xmlns="http://www.w3.org/2000/svg"

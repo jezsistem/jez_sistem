@@ -247,6 +247,21 @@
             $('#ImportModal').modal('show');
         });
 
+        $(document).delegate('#export_btn', 'click', function() {
+            let params = {
+                search: $('#cek_dana_online_search').val(),
+                st_id: $('#st_id').val(),
+                platform: $('#filter_platform').val(),
+                status: $('#filter_status').val(),
+                filter_trx_date: $('#trx_date').val(),
+                filter_cash_out_date: $('#cash_out_date').val()
+            };
+
+            let query = $.param(params);
+
+            window.location.href = "/export_transaction_settle?" + query;
+        });
+
         let searchTimeout;
         $('#cek_dana_online_search').on('keyup', function() {
             clearTimeout(searchTimeout);

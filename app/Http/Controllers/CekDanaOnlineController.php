@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\ArticleReportExport;
 use App\Exports\OnlineReportExport;
+use App\Exports\TransactionOnlineSettleExport;
 use App\Imports\CekDanaOnlineImport;
 use App\Imports\PurchaseOrderExcelImport;
 use App\Imports\StockLocationImport;
@@ -330,6 +331,115 @@ class CekDanaOnlineController extends Controller
             ->addIndexColumn()
             ->make(true);
     }
+
+    public function exportExcel(Request $request)
+    {
+//        $filters = $request->all();
+//        return Excel::download(new TransactionOnlineSettleExport($filters), 'transactions.xlsx');
+
+        $query = $this->getQueryForExport($request);
+        $data = $query->get();
+
+//        dd($data);
+
+        if ($data->isEmpty()) {
+            return back()->with('error', 'Data kosong untuk diekspor');
+        }
+
+        return Excel::download(new TransactionOnlineSettleExport($request->all()), 'cek_dana_online.xlsx');
+    }
+
+    public function getQueryForExport(Request $request)
+    {
+        $d = $request->all();
+//        dd($d, 'asd');
+        $st_id = !empty($request->st_id) ? $request->st_id : -1;
+
+        $baseQuery = DB::table('pos_transactions')
+            ->select(
+                DB::raw('COALESCE(ts_pos_transactions.pos_invoice, ts_online_funds.order_number) as order_number'),
+                'online_funds.order_number as online_order_number',
+                'online_transactions.order_number as import_trx_order_number',
+                'pos_transactions.pos_real_price',
+                'stores.st_name',
+                'online_funds.platform_name',
+                'online_funds.final_price',
+                'online_funds.total_online_cut',
+                'online_funds.seller_voucher_discount',
+                'online_funds.affiliate_cut',
+                'online_funds.marketplace_commision_fee',
+                'online_funds.service_fee',
+                'online_funds.voucher_xtra_service_fee',
+                'online_funds.cashback_service_fee',
+                'online_funds.cashout_date',
+                'pos_transactions.created_at',
+                'online_funds.total_disburshed_amount',
+                'pos_transaction_details.created_at as jezpro_transaction_date',
+                'online_transactions.online_print'
+            )
+            ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
+            ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_invoice')
+            ->leftJoin('online_funds', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
+            ->leftJoin('stores', function ($join) {
+                $join->on('pos_transactions.st_id', '=', 'stores.id')
+                    ->orOn('online_funds.st_id', '=', 'stores.id');
+            })
+            ->where(function ($query) use ($st_id) {
+                $query->whereNotNull('pos_transactions.st_id')->where('pos_transactions.st_id', $st_id)
+                    ->orWhere(function ($query) use ($st_id) {
+                        $query->whereNotNull('online_funds.st_id')->where('online_funds.st_id', $st_id);
+                    });
+            });
+
+        // Filter dinamis
+        if (!empty($d['status'])) {
+            if ($d['status'] === 'false') {
+                $baseQuery->where('online_transactions.online_print', 0)
+                    ->orWhereNull('online_transactions.online_print');
+            } else {
+                $baseQuery->where('online_transactions.online_print', 1);
+            }
+        }
+
+        if (!empty($d['platform'])) {
+            $baseQuery->where('online_funds.platform_name', $d['platform']);
+        }
+
+        if (!empty($d['filter_trx_date'])) {
+            $range = explode('|', $d['filter_trx_date']);
+            if (count($range) === 2) {
+                $baseQuery->whereBetween('pos_transaction_details.created_at', [
+                    $range[0] . ' 00:00:00', $range[1] . ' 23:59:59'
+                ]);
+            } elseif ($range[0] == $range[1]) {
+                $baseQuery->whereBetween('pos_transaction_details.created_at', [
+                    $range[0] . ' 00:00:00', $range[0] . ' 23:59:59'
+                ]);
+            }
+        }
+
+        if (!empty($d['filter_cash_out_date'])) {
+            $range = explode('|', $d['filter_cash_out_date']);
+            if (count($range) === 2) {
+                $baseQuery->whereBetween('online_funds.cashout_date', [$range[0], $range[1]]);
+            } elseif ($range[0] == $range[1]) {
+                $baseQuery->whereBetween('online_funds.cashout_date', [
+                    $range[0] . ' 00:00:00', $range[1] . ' 23:59:59'
+                ]);
+            }
+        }
+
+        if (!empty($d['search'])) {
+            $baseQuery->where(function ($query) use ($d) {
+                $query->where('pos_transactions.pos_invoice', 'like', '%' . $d['search'] . '%')
+                    ->orWhere('online_funds.order_number', 'like', '%' . $d['search'] . '%');
+            });
+        }
+
+        return $baseQuery->orderBy('pos_transactions.created_at', 'desc');
+    }
+
+
     //     public function exportDataOnline(Request $request)
     //     {
     //         try {
