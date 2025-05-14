@@ -7,3 +7,4 @@
 </select>
 <div id="bin_filter_parent"></div>
 </div>
+@include('app.mass_adjustment.mass_adjustment_js')
