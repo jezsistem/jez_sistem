@@ -208,7 +208,7 @@
                             @php
                                 $key = ' '.$srow->p_name.' '.$srow->p_color.'  @'.$srow->sz_name;
                                 $total_item += $srow->pos_td_qty;
-                                $total_price += $srow->ps_price_tag * $srow->pos_td_qty;
+                                $total_price = (($srow->pos_td_sell_price+$srow->pos_td_discount_number) / $srow->pos_td_qty) * $srow->pos_td_qty;
                                 $nameset += $srow->pos_td_nameset_price;
                                 $total_discount += $srow->pos_td_discount_number;
                                 $total_final += ($srow->pos_td_sell_price / $srow->pos_td_qty) * $srow->pos_td_qty;
@@ -227,14 +227,14 @@
                                             <br>
                                         @endif -->
 
-                                        @if($srow->productStock->ps_price_tag*$srow->pos_td_qty > $srow->pos_td_sell_price)
-                                            <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
+                                        @if((($srow->pos_td_sell_price + $srow->pos_td_discount_number)) > $srow->pos_td_sell_price)
+                                            <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR((($srow->pos_td_sell_price+$srow->pos_td_discount_number) / $srow->pos_td_qty)) }}</s>
                                             <br>
                                         @endif
 
 
-                                        @if($srow->productStock->ps_price_tag*$srow->pos_td_qty > $srow->pos_td_sell_price)
-                                             <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag - ($srow->pos_td_sell_price / $srow->pos_td_qty)) }})</span>
+                                        @if((($srow->pos_td_sell_price+$srow->pos_td_discount_number)) > $srow->pos_td_sell_price)
+                                             <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR((($srow->pos_td_sell_price+$srow->pos_td_discount_number) / $srow->pos_td_qty) - ($srow->pos_td_sell_price / $srow->pos_td_qty)) }})</span>
                                         @endif
 
 
