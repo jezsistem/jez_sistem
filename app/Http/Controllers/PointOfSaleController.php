@@ -1588,7 +1588,7 @@ class PointOfSaleController extends Controller
                     ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                     ->join('products', 'products.id', '=', 'product_stocks.p_id')
                     ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                    ->join('bra nds', 'brands.id', '=', 'products.br_id')
+                    ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->where('pls_qty', '>=', '0')
                     ->whereNotIn('pl_code', $exception)
                     ->where('product_locations.st_id', '=', $st_id)
@@ -1598,6 +1598,7 @@ class PointOfSaleController extends Controller
                     ->orWhereRaw('ts_product_stocks.ps_barcode LIKE ?', "%$query%")
                     ->orWhereRaw('ts_products.p_name LIKE ?', "%$query%")
                     ->orWhereRaw('ts_brands.br_name LIKE ?', "%$query%")
+                    ->orderBy('product_location_setup_transactions.id', 'DESC')
                     ->limit(13)
                     ->get();
             } else if ($item_type == 'b1g1') {
@@ -1641,7 +1642,7 @@ class PointOfSaleController extends Controller
                 //                    ->groupBy('product_stocks.id')
                 ////                    ->limit(13)
                 //                    ->get();
-                $data = ProductLocationSetup::select(
+                $data = ProductLocationSetupTransaction::select(
                     'pl_id',
                     'products.psc_id',
                     'products.p_name',
@@ -1655,12 +1656,15 @@ class PointOfSaleController extends Controller
                     'product_location_setups.pls_qty',
                     'brands.br_name',
                     'product_stocks.id as pst_id',
-                    'products.article_id as article_id'
+                    'products.article_id as article_id',
+                    'product_location_setup_transactions.id as plst_id'
                 )
+                    ->join('product_location_setups', 'product_location_setup_transactions.pls_id','=','product_location_setups.id')
                     ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->join('products', 'product_stocks.p_id', '=', 'products.id')
                     ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
                     ->join('brands', 'products.br_id', '=', 'brands.id')
+                    ->groupBy('products.article_id')
                     ->where('product_location_setups.pl_id', $location_store->id)
                     ->where('product_stocks.ps_barcode', 'LIKE', "%$query%")
                     //                    ->whereRaw('ts_products.article_id LIKE ?', "%$query%")

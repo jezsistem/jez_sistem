@@ -227,14 +227,13 @@
                                             <br>
                                         @endif -->
 
-
-                                        @if($srow->productStock->ps_price_tag > $srow->pos_td_sell_price)
+                                        @if($srow->productStock->ps_price_tag*$srow->pos_td_qty > $srow->pos_td_sell_price)
                                             <s>{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag) }}</s>
                                             <br>
                                         @endif
 
 
-                                        @if($srow->productStock->ps_price_tag > $srow->pos_td_sell_price)
+                                        @if($srow->productStock->ps_price_tag*$srow->pos_td_qty > $srow->pos_td_sell_price)
                                              <span>(-{{ \App\Libraries\CurrencyFormatter::formatToIDR($srow->productStock->ps_price_tag - ($srow->pos_td_sell_price / $srow->pos_td_qty)) }})</span>
                                         @endif
 
