@@ -36,44 +36,48 @@
                             </div>
                             <!--end::Header-->
                             <!--begin::Body-->
-                            <div>
-                            <div class="mb-2">
-                                <select class="form-control mt-2 bg-primary text-white" id="st_filter">
-                                    <option value='all'>- Semua Store -</option>
-                                    @foreach ($data['st_id'] as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
-                                </select>
-                                <div id="st_filter_parent"></div>
-                            </div> 
-                            <div class="mb-2">
-                                <select class="form-control mt-2 bg-primary text-white" id="br_filter">
-                                    <option value='all'>- Semua Brand -</option>
-                                    @foreach ($data['br_id'] as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
-                                </select>
-                                <div id="br_filter_parent"></div>
-                            </div>
-                            <div class="mb-2">
-                                <select class="form-control mt-2 bg-primary text-white" id="psc_filter">
-                                    <option value='all'>- Semua Sub Kategori -</option>
-                                    @foreach ($data['psc_id'] as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
-                                </select>
-                                <div id="psc_filter_parent"></div>
-                            </div>
-                            <div class="mb-2">
-                                <select class="form-control mt-2 bg-primary text-white" id="qty_filter">
-                                    <option value='1'>- Hanya yang Ada Stok -</option>
-                                    <option value='0'>- Termasuk yang Sudah Habis -</option>
-                                </select>
-                                <div id="qty_filter_parent"></div>
-                            </div>
-                                <div id="bin_panel"></div><br />
-                                <div class="row" id="bin_filter_panel">
+                            <div class="card-body pt-4 gap-2">
+                                <div class="mb-2">
+                                    <select class="form-control mt-2 bg-primary text-white" id="st_filter">
+                                        <option value='all'>- Semua Store -</option>
+                                        @foreach ($data['st_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="st_filter_parent"></div>
                                 </div>
+                                <div class="mt-2 mb-2">
+                                    <select class="form-control mt-2 bg-primary text-white" id="br_filter">
+                                        <option value='all'>- Semua Brand -</option>
+                                        @foreach ($data['br_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="br_filter_parent"></div>
+                                </div>
+                                <div class="mt-2 mb-2">
+                                    <select class="form-control mt-2 bg-primary text-white" id="psc_filter">
+                                        <option value='all'>- Semua Sub Kategori -</option>
+                                        @foreach ($data['psc_id'] as $key => $value)
+                                            <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div id="psc_filter_parent"></div>
+                                </div>
+                                <div class="mt-2 mb-2">
+                                    <select class="form-control mt-2 bg-primary text-white" id="qty_filter">
+                                        <option value='1'>- Hanya yang Ada Stok -</option>
+                                        <option value='0'>- Termasuk yang Sudah Habis -</option>
+                                    </select>
+                                    <div id="qty_filter_parent"></div>
+                                </div>
+                                <div class="mt-2 mb-2">
+                                    <select class="form-control mt-2 bg-primary text-white" id="bin_filter">
+                                        <option value=''>- Pilih Store Terlebih Dahulu -</option>
+                                    </select>
+                                    <div id="bin_filter_parent"></div>
+                                </div>
+                                <div id="bin_filter_panel" class="mt-4"></div><br />
                                 <!--end::Timeline-->
                             </div>
                             <!--end: Card Body-->
