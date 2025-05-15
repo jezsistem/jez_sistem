@@ -431,7 +431,7 @@ class CekDanaOnlineController extends Controller
 
         if (!empty($d['search'])) {
             $baseQuery->where(function ($query) use ($d) {
-                $query->where('pos_transactions.pos_invoice', 'like', '%' . $d['search'] . '%')
+                $query->where('pos_transactiodns.pos_invoice', 'like', '%' . $d['search'] . '%')
                     ->orWhere('online_funds.order_number', 'like', '%' . $d['search'] . '%');
             });
         }

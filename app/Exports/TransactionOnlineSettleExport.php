@@ -34,7 +34,7 @@ class TransactionOnlineSettleExport implements FromQuery, WithHeadings, WithMapp
         return [
             'Order Number', 'Platform', 'Store', 'Final Price', 'Total Cut', 'Voucher Discount', 'Affiliate Cut',
             'Commission Fee', 'Service Fee', 'Xtra Voucher Fee', 'Cashback Fee', 'Cashout Date', 'Created At',
-            'Disbursed', 'Jezpro Date', 'Online Print', 'Fee %', 'Seller Voucher %', 'Diff Jezpro & MP'
+            'Total Settlement', 'Jezpro Date', 'Online Print', 'Fee %', 'Seller Voucher %', 'Diff Jezpro & MP'
         ];
     }
 
