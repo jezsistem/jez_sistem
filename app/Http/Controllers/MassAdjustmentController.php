@@ -447,16 +447,18 @@ class MassAdjustmentController extends Controller
     {
         $st_id = $req->post('st_id');
         $pl_id = $req->post('pl_id');
-        $data = [
-            'pl_id' => DB::table('product_locations')->where('st_id', '=', $st_id)
-                ->where('pl_delete', '!=', '1')
-                ->where(function ($w) use ($pl_id) {
-                    if (!empty($pl_id)) {
-                        $w->whereNotIn('id', $pl_id);
-                    }
-                })->orderBy('pl_code')->pluck('pl_code', 'id')
-        ];
-        return view('app.mass_adjustment._load_bin', compact('data'));
+        $data = DB::table('product_locations')->where('st_id', '=', $st_id)
+            ->where('pl_delete', '!=', '1')
+            ->where(function ($w) use ($pl_id) {
+                if (!empty($pl_id)) {
+                    $w->whereNotIn('id', $pl_id);
+                }
+            })->orderBy('pl_code')->pluck('pl_code', 'id');
+
+        return response()->json([
+            'status' => '200',
+            'data' => $data
+        ]);
     }
 
     public function exportData(Request $req)

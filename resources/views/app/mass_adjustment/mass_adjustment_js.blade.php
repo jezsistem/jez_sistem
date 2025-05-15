@@ -21,66 +21,29 @@
                 st_id: st_id,
                 pl_id: pl_id
             },
-            dataType: 'html',
-            success: function (r) {
-                $('#bin_panel').html(r);
-                $('#bin_filter').select2({
-                    dropdownParent: $('#bin_filter_parent')
-                });
-                $('#bin_filter').on('select2:open', function (e) {
-                    const evt = "scroll.select2";
-                    $(e.target).parents().off(evt);
-                    $(window).off(evt);
-                });
+            dataType: 'json',
+            success: function(response) {
 
+                if (response.data && Object.keys(response.data).length > 0) {
+                    $('#bin_filter').empty(); // Clear existing options
+                    $('#bin_filter').append('<option value="">- Pilih Lokasi -</option>');
+                    Object.entries(response.data).forEach(function([key, value]) {
+                        $('#bin_filter').append('<option value="' + key + '">' + value +
+                            '</option>');
+                    });
 
+                } else {
+                    $('#bin_filter').empty();
+                    $('#bin_filter').append('<option value="">- Tidak Ada Lokasi Tersedia -</option>');
+
+                }
             },
+            error: function() {
+                $('#bin_filter').empty();
+                $('#bin_filter').append('<option value="">- Gagal Memuat Lokasi -</option>');
+            }
         });
     }
-
-    $(document).delegate('#bin_filter', 'change', function (e) {
-        e.preventDefault();
-        var id = $(this).val();
-        var label = $('#bin_filter option:selected').text();
-        pl_id.push(id);
-
-        console.log(id)
-        $('#bin_filter_panel').append(
-            "<a class='btn-sm btn-success col-2 mt-1 text-center pl_label" + id +
-            "' id='pl_label' data-id='" + id + "'>" + label + "</a>");
-        stock_table.draw();
-
-        loadLocation(st_id);
-        loadAsset(st_id, psc_id, br_id);
-    });
-
-
-    // Delegasi event pada #bin_filter
-    // $(document).on('change', '#bin_filter', function (e) {
-    //     e.preventDefault();
-    //
-    //     var id = $(this).val();
-    //     var label = $('#bin_filter option:selected').text();
-    //
-    //     if (!pl_id.includes(id)) {
-    //         pl_id.push(id);
-    //
-    //         console.log("Selected ID:", id);
-    //         console.log("pl_id array:", pl_id);
-    //
-    //         $('#bin_filter_panel').append(
-    //             "<a class='btn-sm btn-success col-2 mt-1 text-center pl_label" + id +
-    //             "' id='pl_label_" + id + "' data-id='" + id + "'>" + label + "</a>"
-    //         );
-    //
-    //         if (typeof stock_table !== 'undefined') {
-    //             stock_table.draw();
-    //         }
-    //
-    //         loadLocation(st_id);
-    //         loadAsset(st_id, psc_id, br_id);
-    //     }
-    // });
 
     function addCommas(nStr) {
         nStr += '';
@@ -111,7 +74,7 @@
                 qty_filter: qty_filter
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     $('#cc_qty').text(r.cc_qty);
                     $('#c_qty').text(r.c_qty);
@@ -139,7 +102,7 @@
                 ma_id: $('#ma_code').attr('data-id')
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     $('#mad_panel').removeClass('d-none');
                     $('#approval_label').attr('data-id', r.approval);
@@ -227,7 +190,7 @@
             xhrFields: {
                 responseType: 'blob'
             },
-            success: function (blob, status, xhr) {
+            success: function(blob, status, xhr) {
                 var filename = "";
                 var disposition = xhr.getResponseHeader('Content-Disposition');
                 if (disposition && disposition.indexOf('attachment') !== -1) {
@@ -255,7 +218,7 @@
                     } else {
                         window.location.href = downloadUrl;
                     }
-                    setTimeout(function () {
+                    setTimeout(function() {
                         URL.revokeObjectURL(downloadUrl);
                     }, 10000);
                 }
@@ -263,7 +226,7 @@
         });
     }
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         loadAsset(st_id, psc_id, br_id);
         $.ajaxSetup({
             headers: {
@@ -284,7 +247,7 @@
             }],
             ajax: {
                 url: "{{ url('mass_stock_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#stock_search').val();
                     d.st_id = st_id;
                     d.psc_id = psc_id;
@@ -294,10 +257,10 @@
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'id',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
                     data: 'pl_code',
                     name: 'pl_code'
@@ -363,17 +326,17 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for POST
                 },
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#ma_search').val();
                     d.filter = $('#filter_status').val();
                     d.st_id = st_id; // Include st_id in the request
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'id',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
                     data: 'ma_code_show',
                     name: 'ma_code'
@@ -451,16 +414,16 @@
             }],
             ajax: {
                 url: "{{ url('mass_adjustment_detail_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#mad_search').val();
                     d.ma_id = $('#ma_code').attr('data-id');
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'id',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'id',
+                    searchable: false
+                },
                 {
                     data: 'pl_code',
                     name: 'pl_code'
@@ -533,35 +496,53 @@
             ],
         });
 
-        $('#stock_search').on('keyup', function () {
+        $('#stock_search').on('keyup', function() {
             stock_table.draw();
         });
 
-        $('#ma_search').on('keyup', function () {
+        $('#ma_search').on('keyup', function() {
             mass_adjustment_table.draw();
         });
 
-        $('#mad_search').on('keyup', function () {
+        $('#mad_search').on('keyup', function() {
             mass_adjustment_detail_table.draw();
         });
 
-        $('#st_filter').select2({
-            dropdownParent: $('#st_filter_parent')
+
+        // Initialize Select2 pada elemen select qty_filter
+        $('#qty_filter').select2({
+            dropdownParent: $('#qty_filter_parent')
         });
-        $('#st_filter').on('select2:open', function (e) {
+        $('#qty_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
+        $('#qty_filter').on('change', function(e) {
+            e.preventDefault();
+            qty_filter = $(this).val();
+            loadAsset(st_id, psc_id, br_id);
+            stock_table.draw();
+        });
 
-        $('#st_filter').on('change', function () {
+        // Initialize Select2 pada elemen select st_filter
+        $('#st_filter').select2({
+            dropdownParent: $('#st_filter_parent')
+        });
+        $('#st_filter').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#st_filter').on('change', function() {
             mass_adjustment_table.draw();
             var id = $(this).val();
             console.log(id)
         });
 
-        $(document).delegate('#st_filter', 'change', function (e) {
+        $(document).delegate('#st_filter', 'change', function(e) {
             e.preventDefault();
             st_id = $(this).val();
             loadLocation(st_id);
@@ -570,64 +551,48 @@
             mass_adjustment_table.draw();
         });
 
-        $('#qty_filter').select2({
-            dropdownParent: $('#qty_filter_parent')
-        });
-        $('#qty_filter').on('select2:open', function (e) {
-            const evt = "scroll.select2";
-            $(e.target).parents().off(evt);
-            $(window).off(evt);
-        });
-
-        $('#qty_filter').on('change', function () {
-            stock_table.draw();
-        });
-
-        $(document).delegate('#qty_filter', 'change', function (e) {
-            e.preventDefault();
-            qty_filter = $(this).val();
-            loadAsset(st_id, psc_id, br_id);
-            stock_table.draw();
-        });
-
+        // Initialize Select2 pada elemen select psc_filter
         $('#br_filter').select2({
             dropdownParent: $('#br_filter_parent')
         });
-        $('#br_filter').on('select2:open', function (e) {
+        $('#br_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#br_filter').on('change', function () {
-            stock_table.draw();
-        });
-
-        $(document).delegate('#br_filter', 'change', function (e) {
+        $('#br_filter').on('change', function(e) {
             e.preventDefault();
             br_id = $(this).val();
             loadAsset(st_id, psc_id, br_id);
             stock_table.draw();
         });
 
+        // Initialize Select2 pada elemen select psc_filter
         $('#psc_filter').select2({
             dropdownParent: $('#psc_filter_parent')
         });
-        $('#psc_filter').on('select2:open', function (e) {
+        $('#psc_filter').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#psc_filter').on('change', function () {
-            stock_table.draw();
-        });
-
-        $(document).delegate('#psc_filter', 'change', function (e) {
+        $('#psc_filter').on('change', function(e) {
             e.preventDefault();
             psc_id = $(this).val();
             loadAsset(st_id, psc_id, br_id);
             stock_table.draw();
+        });
+
+        // Initialize Select2 pada elemen select psc_filter
+        $('#bin_filter').select2({
+            dropdownParent: $('#bin_filter_parent')
+        });
+        $('#bin_filter').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
         });
 
         // Initialize Select2 pada elemen select filter_status
@@ -638,18 +603,18 @@
         // });
 
         // Event listener untuk perubahan pada filter_status
-        $('#filter_status').on('change', function () {
+        $('#filter_status').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             mass_adjustment_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 
-        $(document).delegate('#export_btn', 'click', function (e) {
+        $(document).delegate('#export_btn', 'click', function(e) {
             e.preventDefault();
             exportTable();
         });
 
         // sini
-        $(document).delegate('#btn_cancel', 'click', function (e) {
+        $(document).delegate('#btn_cancel', 'click', function(e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
 
@@ -662,7 +627,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function (isConfirm) {
+            }).then(function(isConfirm) {
                 if (isConfirm) {
 
                     $.ajaxSetup({
@@ -677,7 +642,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_cancel') }}",
-                        success: function (r) {
+                        success: function(r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil dibatalkan", "success");
                                 loadApproval();
@@ -692,16 +657,30 @@
             })
         });
 
-        $(document).delegate('#export_mad_btn', 'click', function (e) {
+        $(document).delegate('#export_mad_btn', 'click', function(e) {
             e.preventDefault();
             exportResult();
         });
 
+        $(document).delegate('#bin_filter', 'change', function(e) {
+            e.preventDefault();
+            var id = $(this).val();
+            var label = $('#bin_filter option:selected').text();
+            pl_id.push(id);
 
-        $(document).delegate('#pl_label', 'click', function (e) {
+            console.log(id)
+            $('#bin_filter_panel').append(
+                "<a class='btn-sm btn-success col-2 mt-1 ml-2 text-center pl_label" + id +
+                "' id='pl_label' data-id='" + id + "'>" + label + "</a>");
+            stock_table.draw();
+            loadLocation(st_id);
+            loadAsset(st_id, psc_id, br_id);
+        });
+
+        $(document).delegate('#pl_label', 'click', function(e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
-            pl_id = $.grep(pl_id, function (value) {
+            pl_id = $.grep(pl_id, function(value) {
                 return value != id;
             });
             $('.pl_label' + id).remove();
@@ -710,13 +689,13 @@
             loadAsset(st_id, psc_id, br_id);
         });
 
-        $(document).delegate('#import_btn', 'click', function (e) {
+        $(document).delegate('#import_btn', 'click', function(e) {
             e.preventDefault();
             jQuery.noConflict();
             $('#ImportModal').modal('show');
         });
 
-        $(document).delegate('#madj_btn', 'click', function (e) {
+        $(document).delegate('#madj_btn', 'click', function(e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
             var code = $(this).text();
@@ -726,7 +705,7 @@
             mass_adjustment_detail_table.draw(false);
         });
 
-        $(document).delegate('#ma_code', 'click', function (e) {
+        $(document).delegate('#ma_code', 'click', function(e) {
             e.preventDefault();
             $('#ma_code').attr('data-id', '');
             $('#ma_code').text('');
@@ -734,7 +713,7 @@
             mass_adjustment_detail_table.draw(false);
         });
 
-        $(document).delegate('#approval_btn', 'click', function (e) {
+        $(document).delegate('#approval_btn', 'click', function(e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') != '') {
                 swal('Sudah Approve', 'Approval sudah disetujui', 'warning');
@@ -749,7 +728,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function (isConfirm) {
+            }).then(function(isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -763,7 +742,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_approval') }}",
-                        success: function (r) {
+                        success: function(r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil approval", "success");
                                 loadApproval();
@@ -778,7 +757,7 @@
             })
         });
 
-        $(document).delegate('#execution_btn', 'click', function (e) {
+        $(document).delegate('#execution_btn', 'click', function(e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') == '') {
                 swal('Approval', 'Approval masih kosong', 'warning');
@@ -793,7 +772,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function (isConfirm) {
+            }).then(function(isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -807,7 +786,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_exec') }}",
-                        success: function (r) {
+                        success: function(r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil eksekusi", "success");
                                 mass_adjustment_table.draw(false);
@@ -840,53 +819,73 @@
                                         icon: 'info',
                                         showConfirmButton: false,
                                         didOpen: () => {
-                                            let tbody = document.getElementById(
-                                                'sku-table-body');
-                                            r.differences.forEach(function (item) {
-                                                let row = document
-                                                    .createElement('tr');
-                                                row.innerHTML = `
+                                            let tbody = document
+                                                .getElementById(
+                                                    'sku-table-body');
+                                            r.differences.forEach(
+                                                function(item) {
+                                                    let row =
+                                                        document
+                                                        .createElement(
+                                                            'tr');
+                                                    row.innerHTML = `
                                             <td style="border: 1px solid #ccc; padding: 8px;">${item.sku}</td>
                                             <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_export}</td>
                                             <td style="border: 1px solid #ccc; padding: 8px;">${item.pls_qty}</td>
                                         `;
-                                                tbody.appendChild(row);
-                                            });
+                                                    tbody
+                                                        .appendChild(
+                                                            row);
+                                                });
 
                                             // Tombol Export Excel
-                                            document.getElementById('export_excel')
-                                                .addEventListener('click',
-                                                    function () {
-                                                        let wb = XLSX.utils
+                                            document.getElementById(
+                                                    'export_excel')
+                                                .addEventListener(
+                                                    'click',
+                                                    function() {
+                                                        let wb = XLSX
+                                                            .utils
                                                             .book_new();
                                                         let ws_data = [
                                                             ["SKU / ID",
                                                                 "Qty Sistem Eksekusi",
                                                                 "Qty Sistem Real"
                                                             ], // Header
-                                                            ...r.differences
-                                                                .map(item => [item
-                                                                    .sku, item
+                                                            ...r
+                                                            .differences
+                                                            .map(
+                                                                item => [
+                                                                    item
+                                                                    .sku,
+                                                                    item
                                                                     .qty_export,
-                                                                    item.pls_qty
+                                                                    item
+                                                                    .pls_qty
                                                                 ])
                                                         ];
-                                                        let ws = XLSX.utils
-                                                            .aoa_to_sheet(ws_data);
+                                                        let ws = XLSX
+                                                            .utils
+                                                            .aoa_to_sheet(
+                                                                ws_data
+                                                                );
                                                         XLSX.utils
-                                                            .book_append_sheet(wb,
-                                                                ws,
+                                                            .book_append_sheet(
+                                                                wb, ws,
                                                                 "Invalid SKUs Sistem Quantity"
-                                                            );
-                                                        XLSX.writeFile(wb,
+                                                                );
+                                                        XLSX.writeFile(
+                                                            wb,
                                                             "Invalid_SKUs_Sistem_Quantity.xlsx"
-                                                        );
+                                                            );
                                                     });
 
                                             // Tombol Tutup
-                                            document.getElementById('close_alert')
-                                                .addEventListener('click',
-                                                    function () {
+                                            document.getElementById(
+                                                    'close_alert')
+                                                .addEventListener(
+                                                    'click',
+                                                    function() {
                                                         Swal.close();
                                                     });
                                         }
@@ -902,7 +901,7 @@
             })
         });
 
-        $('#f_import').on('submit', function (e) {
+        $('#f_import').on('submit', function(e) {
             e.preventDefault();
             if (st_id == 'all') {
                 swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
@@ -927,7 +926,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (r) {
+                success: function(r) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     if (r.status == '200') {
@@ -967,9 +966,11 @@
                                 icon: 'info',
                                 showConfirmButton: false,
                                 didOpen: () => {
-                                    let tbody = document.getElementById('sku-table-body');
-                                    r.invalid_skus.forEach(function (item) {
-                                        let row = document.createElement('tr');
+                                    let tbody = document.getElementById(
+                                        'sku-table-body');
+                                    r.invalid_skus.forEach(function(item) {
+                                        let row = document
+                                            .createElement('tr');
                                         row.innerHTML = `
                                             <td style="border: 1px solid #ccc; padding: 8px;">${item.sku}</td>
                                             <td style="border: 1px solid #ccc; padding: 8px;">${item.qty_export}</td>
@@ -980,27 +981,30 @@
 
                                     // Tombol Export Excel
                                     document.getElementById('export_excel')
-                                        .addEventListener('click', function () {
+                                        .addEventListener('click', function() {
                                             let wb = XLSX.utils.book_new();
                                             let ws_data = [
-                                                ["SKU / ID", "Qty Export",
+                                                ["SKU / ID",
+                                                    "Qty Export",
                                                     "Qty Sistem"
                                                 ], // Header
-                                                ...r.invalid_skus.map(item => [item
-                                                    .sku, item.qty_export, item
-                                                    .qty_system
-                                                ])
+                                                ...r.invalid_skus.map(
+                                                    item => [item.sku,
+                                                        item.qty_export,
+                                                        item.qty_system
+                                                    ])
                                             ];
-                                            let ws = XLSX.utils.aoa_to_sheet(ws_data);
-                                            XLSX.utils.book_append_sheet(wb, ws,
-                                                "Invalid SKUs");
-                                            XLSX.writeFile(wb, "Invalid_SKUs.xlsx");
+                                            let ws = XLSX.utils
+                                                .aoa_to_sheet(ws_data);
+                                            XLSX.utils.book_append_sheet(wb,
+                                                ws, "Invalid SKUs");
+                                            XLSX.writeFile(wb,
+                                                "Invalid_SKUs.xlsx");
                                         });
 
                                     // Tombol Tutup
-                                    document.getElementById('close_alert').addEventListener(
-                                        'click',
-                                        function () {
+                                    document.getElementById('close_alert')
+                                        .addEventListener('click', function() {
                                             Swal.close();
                                         });
                                 }
@@ -1017,7 +1021,7 @@
                         swal('Gagal', 'Adjustment gagal dicreate', 'warning');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -1029,7 +1033,7 @@
             let csvContent = "data:text/csv;charset=utf-8,";
             csvContent += "SKU / ID,Qty Export,Qty Sistem\n"; // header
 
-            data.forEach(function (item) {
+            data.forEach(function(item) {
                 let row = `${item.sku},${item.qty_export},${item.qty_system}`;
                 csvContent += row + "\n";
             });
@@ -1095,7 +1099,7 @@
 
         cb(start, end, '');
 
-        $(document).delegate('#export_by_date', 'click', function (e) {
+        $(document).delegate('#export_by_date', 'click', function(e) {
             e.preventDefault();
             var dt = $('#ma_date').val();
 
@@ -1113,10 +1117,10 @@
                 },
                 dataType: 'json',
                 url: "{{ url('export_mass_by_date') }}",
-                success: function (r) {
+                success: function(r) {
                     $('#MassAdjustmentExportModal').modal('show');
                     $('#MassAdjustmentDetailtb tbody').empty(); // Clear existing rows
-                    $(r.data).each(function (index, row) {
+                    $(r.data).each(function(index, row) {
                         $('#MassAdjustmentDetailtb tbody').append(
                             "<tr><td>" + (index + 1) +
                             "</td><td>" + row.ma_code +
@@ -1145,13 +1149,13 @@
                         );
                     });
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.error('Error fetching data:', error);
                 }
             });
         });
 
-        $(document).delegate('#excel_report', 'click', function (e) {
+        $(document).delegate('#excel_report', 'click', function(e) {
             e.preventDefault();
             var dt = $('#ma_date').val();
 
@@ -1171,7 +1175,7 @@
                 xhrFields: {
                     responseType: 'blob'
                 },
-                success: function (blob, status, xhr) {
+                success: function(blob, status, xhr) {
                     var filename = "exported_data.xlsx";
                     var disposition = xhr.getResponseHeader('Content-Disposition');
                     if (disposition && disposition.indexOf('attachment') !== -1) {
@@ -1200,12 +1204,12 @@
                         } else {
                             window.location.href = downloadUrl;
                         }
-                        setTimeout(function () {
+                        setTimeout(function() {
                             URL.revokeObjectURL(downloadUrl);
                         }, 10000);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.error('Error exporting data:', error);
                 }
             });
