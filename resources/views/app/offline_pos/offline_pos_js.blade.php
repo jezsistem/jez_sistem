@@ -1342,13 +1342,12 @@
         e.preventDefault();
         var pt_id = '';
         var st_id = "{{ $data['user']->st_id }}";
-        var p_name = 'Custom Amount'; //sinii
+        var p_name = 'Custom Amount';
         var sell_price = document.getElementsByTagName('p')[0].innerHTML;
         var mode = 'add';
         var pst_id = document.getElementById('pst_custom').value;
         var pl_id = document.getElementById('pl_custom').value;
         var psc_id = document.getElementById('psc_custom').value;
-        ;
         var plst_id = jQuery(this).attr('data-plst_id');
         var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
         var item_type = jQuery('#item_type option:selected').val();
@@ -1357,6 +1356,7 @@
         var highlight = '';
         var b1g1_mode = '';
         var total_row = parseFloat(jQuery('#total_row').val());
+        jQuery('#total_row').val(total_row + 1);
         var total_item = jQuery('#total_item_side').text();
         var total_price = jQuery('#total_price_side').text();
         var total_final_price = jQuery('#total_final_price_side').text();
@@ -1412,7 +1412,7 @@
                             " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
                             pst_id + " item_qty' id='item_qty" + (total_row + 1) +
                             "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
-                            pst_id + ", " + (1) + ")' readonly></td>" +
+                            pst_id + ", " + (1) + ")'></td>" +
                             " <td><input type='number' class='form-control border-dark col-5 basicInput2" +
                             pst_id + " discount_percentage' id='discount_percentage" + (
                                 total_row + 1) +
@@ -1431,24 +1431,30 @@
                                 1) + "'>" + addCommas(sell_price) + "</span></td>" +
                             " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                             (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
-                            ", " + pst_id + ", " + sell_price + ", " + plst_id + ", " + pl_id +
+                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " + pl_id +
                             ")'>" +
                             " <i class='fa fa-eye' style='display:none;'></i></a> " +
                             " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
                             pst_id + ", " + sell_price + ", " + (total_row + 1) + ", " + pl_id +
-                            ", " + plst_id +
+                            ", " + r.plst_id +
                             ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                     } else {
                         jQuery('#orderTable tr:last').after("" +
                             "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
                             b1g1_mode + "' id='orderList" + (total_row + 1) + "'>" +
-                            "<td style='white-space: nowrap; font-size:14px;' id='item_name" + (
-                                total_row + 1) + "'>" + p_name + "</td>" +
-                            "<td>" + (1) + "</td> " +
+                            " <td style='white-space: nowrap; font-size:14px; " + highlight +
+                            "' id='item_name" + (total_row + 1) + "'>" + p_name + "</td>" +
+                            " <td>" + (1) + "</td> " +
                             "<td><input type='number' min='0' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
                             pst_id + " item_qty' id='item_qty" + (total_row + 1) +
                             "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
                             pst_id + ", " + (1) + ")'></td> " +
+                            "<td>" +
+                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                            "<option value='0'>Discount Extra</option>" +
+                            "<option value='1'>Discount Promo</option>" +
+                            "</select>" +
+                            "</td>" +
                             "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
                             pst_id + " discount_percentage' id='discount_percentage" + (
                                 total_row + 1) +
@@ -1461,21 +1467,22 @@
                             "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                             (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
                                 1) + ")'/></td> " +
-                            "<td><span class='sell_price_item' id='sell_price_item" + (
-                                total_row + 1) + "'>" + addCommas(sell_price) +
-                            "</span></td> " +
-                            "<td><span class='subtotal_item' id='subtotal_item" + (total_row +
-                                1) + "'>" + addCommas(sell_price) + "</span></td> " +
-                            "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
+                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                            " <td><span class='sell_price_item' id='sell_price_item" + (
+                                total_row + 1) + "'>" + addCommas(sell_price) + "</span></td>" +
+                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + 0 + "</span></td> " +
+                            " <td><span class='subtotal_item' id='subtotal_item" + (total_row +
+                                1) + "'>" + addCommas(sell_price) + "</span></td>" +
+                            " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                             (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
-                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " +
-                            pl_id + ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
-                            "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
+                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " + pl_id +
+                            ")'>" +
+                            " <i class='fa fa-eye' style='display:none;'></i></a> " +
+                            " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
                             pst_id + ", " + sell_price + ", " + (total_row + 1) + ", " + pl_id +
-                            ", " + r.plst_id +
+                            ", " + r.plst_id + ", " + sell_price +
                             ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>");
                     }
-                    // console.log(b1g1_temp);
                 } else if (r.status == '400') {
                     toast('Gagal', 'Item gagal ditambah', 'danger');
                 }

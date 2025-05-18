@@ -394,7 +394,8 @@ class InvoiceController extends Controller
             ->first();
 
             $check_transaction_detail = PosTransactionDetail::
-            leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+            select('pos_transaction_details.*','product_stocks.*','products.*','brands.*','sizes.*', DB::raw("CASE WHEN ts_product_stocks.ps_barcode = 'CUSTOM' THEN true ELSE false END as is_custom"))
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
