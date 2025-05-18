@@ -131,7 +131,7 @@ class StockTrackingController extends Controller
             }
         }
         if (request()->ajax()) {
-            return datatables()->of(DB::table('product_location_setup_transactions')->select('product_location_setup_transactions.id as plst_id', 'pos_invoice', 'ps_barcode','rt_id', 'pt_id', 'pt_id_ref', 'pos_transactions.stt_id', 'pos_note', 'is_website', 'pos_transactions.u_id as pos_user', 'product_location_setup_transactions.u_id as u_id', 'cross_order', 'u_id_helper', 'u_id_packer', 'u_id_refund', 'p_price_tag', 'ps_price_tag', 'p_sell_price', 'ps_sell_price', 'pt_id', 'br_name', 'cust_name', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'plst_status', 'plst_qty', 'product_location_setup_transactions.created_at as plst_created', 'product_location_setup_transactions.updated_at as plst_updated')
+            return datatables()->of(DB::table('product_location_setup_transactions')->select('product_location_setup_transactions.id as plst_id', 'pos_invoice', 'ps_barcode', 'rt_id', 'pt_id', 'pt_id_ref', 'pos_transactions.stt_id', 'pos_note', 'is_website', 'pos_transactions.u_id as pos_user', 'product_location_setup_transactions.u_id as u_id', 'cross_order', 'u_id_helper', 'u_id_packer', 'u_id_refund', 'p_price_tag', 'ps_price_tag', 'p_sell_price', 'ps_sell_price', 'pt_id', 'br_name', 'cust_name', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'plst_status', 'plst_qty', 'product_location_setup_transactions.created_at as plst_created', 'product_location_setup_transactions.updated_at as plst_updated')
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'product_location_setup_transactions.pt_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -537,34 +537,52 @@ class StockTrackingController extends Controller
             return json_encode($r);
         }
 
-        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->first();
         $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
             'pls_qty' => ($pls->pls_qty + 1),
-            'updated_at' => date('Y-m-d H:i:s')
+            'updated_at' => now()
         ]);
-        if (!empty($update)) {
-            $update_plst = DB::table('product_location_setup_transactions')
-                ->where('id', $plst_id)->where('pls_id', $pls_id)
-                ->whereIn('plst_status', ['WAITING TO TAKE', 'WAITING ONLINE', 'WAITING OFFLINE', 'EXCHANGE', 'REFUND'])->update([
-                    'u_id' => Auth::user()->id,
-                    'plst_type' => 'IN',
-                    'plst_status' => 'INSTOCK',
-                    'updated_at' => date('Y-m-d H:i:s')
-                ]);
 
+        if (!empty($update)) {
+            // Ambil data transaksi sebelum update
+            $plst = DB::table('product_location_setup_transactions')->where('id', $plst_id)->first();
+
+            // Default update data
+            $updateData = [
+                'u_id' => Auth::user()->id,
+                'plst_type' => 'IN',
+                'plst_status' => 'INSTOCK',
+                'updated_at' => now()
+            ];
+
+            // Tambahkan cancel_pickup_time jika status sebelumnya adalah WAITING TO TAKE
+            if ($plst->plst_status === 'WAITING TO TAKE') {
+                $updateData['cancel_pickup_time'] = now();
+            }
+
+            $update_plst = DB::table('product_location_setup_transactions')
+                ->where('id', $plst_id)
+                ->where('pls_id', $pls_id)
+                ->whereIn('plst_status', ['WAITING TO TAKE', 'WAITING ONLINE', 'WAITING OFFLINE', 'EXCHANGE', 'REFUND'])
+                ->update($updateData);
+
+            // Logging
             $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->where('product_stocks.id', $pst_id)
-                ->get()->first();
+                ->first();
+
             $this->UserActivity('membatalkan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
         }
+
         return json_encode($r);
     }
+
 
     public function getNotice(Request $request)
     {
