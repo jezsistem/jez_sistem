@@ -23,7 +23,6 @@ class TransactionOnlineSettleExport implements FromQuery, WithHeadings, WithMapp
     {
         $request = new Request($this->filters);
 
-        // Paste dan modifikasi logika query yang sama dari getDatatables()
         $query = app('App\Http\Controllers\CekDanaOnlineController')->getQueryForExport($request);
 
         return $query;
@@ -32,9 +31,9 @@ class TransactionOnlineSettleExport implements FromQuery, WithHeadings, WithMapp
     public function headings(): array
     {
         return [
-            'Order Number', 'Platform', 'Store', 'Final Price', 'Total Cut', 'Voucher Discount', 'Affiliate Cut',
+            'Order Number', 'Platform', 'Store', 'Final Price', 'Total Fee', 'Voucher Discount', 'Affiliate Cut',
             'Commission Fee', 'Service Fee', 'Xtra Voucher Fee', 'Cashback Fee', 'Cashout Date', 'Created At',
-            'Total Settlement', 'Jezpro Date', 'Online Print', 'Fee %', 'Seller Voucher %', 'Diff Jezpro & MP'
+            'Total Settlement', 'Jezpro Date', 'Online Print', 'Fee %', 'Seller Voucher %', 'Net Sales Jezpro','Diff Jezpro & MP'
         ];
     }
 
