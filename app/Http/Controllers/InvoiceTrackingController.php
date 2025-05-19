@@ -278,24 +278,35 @@ class InvoiceTrackingController extends Controller
         $courier = $request->courier;
         // $image = '';
 
-        $update = PosTransaction::where('id', $pt_id)->update([
-            'pos_shipping_number' => str_replace(' ', '', $shipping_number),
-            'pos_resi' => str_replace(' ', '', $shipping_number),
-            'cr_id' => $courier,
-        ]);
+        try {
+            $update = PosTransaction::where('id', $pt_id)->update([
+                'pos_shipping_number' => str_replace(' ', '', $shipping_number),
+                'pos_resi' => str_replace(' ', '', $shipping_number),
+                'cr_id' => $courier,
+            ]);
 
-        if (!empty($update)) {
-            // $check = PosShippingInformation::where('pt_id', $pt_id)->exists();
-            // PosTransaction::where('id', $pt_id)
-            //     ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
-            //         'pos_status' => 'DONE'
-            //     ]);
-            $r['status'] = '200';
-            $cs = DB::table('customers')->select('cust_name', 'cust_phone')->where('id', '=', $cust_id)->get()->first();
-            $invoice = PosTransaction::select('pos_invoice')->where('id', '=', $pt_id)->get()->first()->pos_invoice;
-            $this->waSend($cs->cust_phone, $cs->cust_name, $invoice, strtoupper($courier), $shipping_number);
-        } else {
-            $r['status'] = '400';
+            if ($request->hasFile('imageResi')) {
+                $file = $request->file('imageResi');
+                $filename = 'resi_' .  $pt_id . '.' . $file->getClientOriginalExtension();
+
+                $file->move(public_path('upload/resi'), $filename);
+
+                DB::table('pos_transactions')->where('id',  $pt_id)->update([
+                    'pos_resi_file' =>  $filename
+                ]);
+            }
+
+            if (!empty($update)) {
+                $r['status'] = '200';
+                $cs = DB::table('customers')->select('cust_name', 'cust_phone')->where('id', '=', $cust_id)->get()->first();
+                $invoice = PosTransaction::select('pos_invoice')->where('id', '=', $pt_id)->get()->first()->pos_invoice;
+                $this->waSend($cs->cust_phone, $cs->cust_name, $invoice, strtoupper($courier), $shipping_number);
+            } else {
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            $r['status'] = '500';
+            $r['error'] = $e->getMessage();
         }
         return json_encode($r);
     }
@@ -329,7 +340,9 @@ Balas pesan ini jika butuh bantuan :)";
             'phone' => $phone,
             'message' => $message,
         ];
-        curl_setopt($curl, CURLOPT_HTTPHEADER,
+        curl_setopt(
+            $curl,
+            CURLOPT_HTTPHEADER,
             array(
                 "Authorization: $wablas_api",
             )
@@ -466,7 +479,8 @@ Balas pesan ini jika butuh bantuan :)";
                 CURLOPT_MAXREDIRS => 10,
                 CURLOPT_TIMEOUT => 30,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "GET"));
+                CURLOPT_CUSTOMREQUEST => "GET"
+            ));
             $response = curl_exec($curl);
             $err = curl_error($curl);
             curl_close($curl);
@@ -488,7 +502,8 @@ Balas pesan ini jika butuh bantuan :)";
                     CURLOPT_MAXREDIRS => 10,
                     CURLOPT_TIMEOUT => 30,
                     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => "GET"));
+                    CURLOPT_CUSTOMREQUEST => "GET"
+                ));
                 $response = curl_exec($curl);
                 $err = curl_error($curl);
                 curl_close($curl);

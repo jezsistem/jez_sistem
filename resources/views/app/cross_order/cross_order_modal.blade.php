@@ -54,6 +54,10 @@
             </div>
             <div class="modal-body">
                 <div class="card-body">
+                    <div class="form-group d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-info font-weight-bold" id="check_resi_btn">Cek Resi</button>
+                        <span class="text-muted small">Pastikan data resi sudah benar sebelum melanjutkan.</span>
+                    </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Kurir</label>
                         <select name="courier" id="courier" class="form-control">
@@ -64,6 +68,12 @@
                         <label for="exampleTextarea">No Resi</label>
                         <input type="text" class="form-control" id="pos_shipping_number" name="pos_shipping_number" required />
                     </div>
+                    <div class="form-group">
+                        <label>Upload File Resi</label>
+                        <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="imageResi" id="imageResi"/>
+                    </div>
+                    
                 </div>
             </div>
             <div class="modal-footer">
