@@ -490,6 +490,43 @@
             });
         });
 
+        $(document).delegate('#check_resi_btn', 'click', function() {
+            var pt_id = $('#_id').val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                data: {
+                    _pt_id: pt_id
+                },
+                dataType: 'json',
+                url: "{{ url('check_resi') }}",
+                success: function(r) {
+                    console.log(r.resi_id);
+                    
+                    if (r.status == '200') {
+                        var win = window.open('{{ url('/') }}/upload/resi/' + r
+                            .resi_id, '_blank');
+                        if (win) {
+                            win.focus();
+                        } else {
+                            alert('Please allow popups for this website');
+                        }
+                    } else {
+                        swal('Error', r.message, 'error');
+                    }
+                },
+                error: function() {
+                    swal('Error', 'Failed to process the request', 'error');
+                }
+            });
+        });
+
+        
+
 
 
         $(document).delegate('#confirmation_btn', 'click', function() {

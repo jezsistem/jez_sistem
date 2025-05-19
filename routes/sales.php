@@ -84,6 +84,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('sv_cross_note', [CrossOrderController::class, 'saveNote']);
     Route::post('print_cross_invoice', [CrossOrderController::class, 'checkPrint']);
     Route::post('print_resi', [CrossOrderController::class, 'printResi']);
+    Route::post('check_resi', [CrossOrderController::class, 'checkResi']);
     Route::post('reload_cross_order_invoice', [CrossOrderController::class, 'reloadCrossOrderInvoice']);
     Route::post('get_cross_item_status', [CrossOrderController::class, 'getCrossItem']);
     Route::post('get_resi_pdf', [CrossOrderController::class, 'getPdf']);

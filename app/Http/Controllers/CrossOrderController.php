@@ -544,10 +544,23 @@ class CrossOrderController extends Controller
     public function printResi(Request $request)
     {
         $pt_id = $request->_pt_id;
-        $transaction = PosTransaction::select('pos_resi_file')->where('id', $pt_id)->first();
+        $transaction = PosTransaction::select('pos_resi_file','cr_id','pos_resi')->where('id', $pt_id)->first();
 
-        if (!$transaction || empty($transaction->pos_resi_file)) {
-            return response()->json(['status' => '404', 'message' => 'Resi file not found']);
+        if (!$transaction || empty($transaction->pos_resi_file) || empty($transaction->pos_resi) || empty($transaction->cr_id)) {
+            $message = [];
+            if (empty($transaction)) {
+                $message[] = 'Transaction not found';
+            }
+            if (empty($transaction->pos_resi_file)) {
+                $message[] = 'File not found';
+            }
+            if (empty($transaction->pos_resi)) {
+                $message[] = 'Resi number not found';
+            }
+            if (empty($transaction->cr_id)) {
+                $message[] = 'Courier not found';
+            }
+            return response()->json(['status' => '404', 'message' => implode(', ', $message)]);
         }
 
         $filePath = public_path("upload/resi/" . $transaction->pos_resi_file);
@@ -560,6 +573,24 @@ class CrossOrderController extends Controller
             ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
                 'pos_status' => 'DONE'
             ]);
+
+        return response()->json(['status' => '200', 'resi_id' => $transaction->pos_resi_file]);
+    }
+
+    public function checkResi(Request $request)
+    {
+        $pt_id = $request->_pt_id;
+        $transaction = PosTransaction::select('pos_resi_file')->where('id', $pt_id)->first();
+
+        if (!$transaction || empty($transaction->pos_resi_file)) {
+            return response()->json(['status' => '404', 'message' => 'Resi file not found']);
+        }
+
+        $filePath = public_path("upload/resi/" . $transaction->pos_resi_file);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['status' => '404', 'message' => 'File not found']);
+        }
 
         return response()->json(['status' => '200', 'resi_id' => $transaction->pos_resi_file]);
     }
