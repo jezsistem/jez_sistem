@@ -188,17 +188,20 @@ class StockTrackingController extends Controller
                     }
                     // kasir
                     if (!empty($data->pos_user)) {
-                        $cashier = strtoupper(User::select('u_name')->where('id', $data->pos_user)->get()->first()->u_name);
+                        $cashierData = User::select('u_name')->where('id', $data->pos_user)->get()->first();
+                        $cashier = $cashierData ? strtoupper($cashierData->u_name) : 'N/A';
                     }
                     // customer
                     $customer = strtoupper($data->cust_name);
                     // helper
                     if (!empty($data->u_id_helper)) {
-                        $helper = strtoupper(User::select('u_name')->where('id', $data->u_id_helper)->get()->first()->u_name);
+                        $helperData = User::select('u_name')->where('id', $data->u_id_helper)->get()->first();
+                        $helper = $helperData ? strtoupper($helperData->u_name) : 'N/A';
                     }
                     // packer
                     if (!empty($data->u_id_packer)) {
-                        $packer = strtoupper(User::select('u_name')->where('id', $data->u_id_packer)->get()->first()->u_name);
+                        $packerData = User::select('u_name')->where('id', $data->u_id_packer)->get()->first();
+                        $packer = $packerData ? strtoupper($packerData->u_name) : 'N/A';
                     }
                     if (!empty($data->u_id_refund)) {
                         $u_name = User::select('u_name')->where('id', $data->u_id_refund)->get()->first();
