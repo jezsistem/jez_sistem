@@ -253,27 +253,6 @@ class TrackingController extends Controller
             }
         }
 
-
-//        if (!empty($update_plst)) {
-//            $pls = ProductLocationSetup::select('pst_id', 'pls_qty', 'pl_id')->where('id', $pls_id)->get()->first();
-//            if ($status == 'INSTOCK') {
-//                $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
-//                    'pls_qty' => ($pls->pls_qty + $qty),
-//                    'updated_at' => date('Y-m-d H:i:s')
-//                ]);
-//            }
-//            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
-//                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-//                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-//                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                ->where('product_stocks.id', $pls->pst_id)
-//                ->get()->first();
-//            $pl_code = ProductLocation::select('pl_code')->where('id', $pls->pl_id)->get()->first()->pl_code;
-//            $this->UserActivity($u_id, 'memasukkan artikel [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
-//            $r['status'] = '200';
-//        } else {
-//            $r['status'] = '400';
-//        }
         return json_encode($r);
     }
 
@@ -791,10 +770,8 @@ class TrackingController extends Controller
                 ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
-                        $instance->where(function ($w) use ($request) {
-                            $search = $request->get('search');
-                            $w->where('product_stocks.ps_barcode', $search);
-                        });
+                        $search = $request->get('search');
+                        $instance->where('product_stocks.ps_barcode', 'LIKE', '%' . $search . '%');
                     }
                     if (!empty($request->get('waiting'))) {
                         $instance->where(function ($w) use ($request) {

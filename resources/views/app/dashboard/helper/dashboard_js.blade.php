@@ -791,7 +791,7 @@
 
         alert(hasil);
 
-        $('#scan_in_search').val(hasil);
+        $('#scan_in_refund_search').val(hasil);
 
         scan_in_refund_table.ajax.reload();
 
@@ -812,7 +812,7 @@
             return;
         }
 
-        if ($('#scan_in_search').val().trim() === '') {
+        if ($('#scan_in_refund_search').val().trim() === '') {
             return;
         }
 
@@ -864,7 +864,7 @@
                         success: function(response) {
                             var responseObject = JSON.parse(response);
                             var status = responseObject.status;
-                            $('#scan_in_search').val('');
+                            $('#scan_in_refund_search').val('');
                             scan_in_refund_table.ajax.reload();
 
                             if (status == 200) {
@@ -898,6 +898,23 @@
         }
 
         scan_in_table.ajax.reload();
+    });
+
+    // Disini
+    $('#scan_in_refund_search').on('keyup', function(event) {
+        if (event.keyCode === 13 && this.value.trim() !== '') {
+            scanInTbEnterPressed = true;
+
+            scan_in_table.ajax.reload();
+            console.log('testing')
+        }
+
+        // check if the input is empty cannot enter
+        if (this.value.trim() === '') {
+            scanInTbEnterPressed = false;
+        }
+
+        scan_in_refund_table.ajax.reload();
     });
 
     $('#scan_out_search').on('keyup', function(event) {
@@ -1531,7 +1548,7 @@
         })
     });
 
-    $('#out_modal_finish, #in_modal_finish, #transfer_modal_finish, #transfer_detail_modal_finish, #scan_out_modal_finish, #scan_in_modal_finish, #scan_transfer_modal_finish')
+    $('#out_modal_finish, #in_modal_finish, #transfer_modal_finish, #transfer_detail_modal_finish, #scan_out_modal_finish, #scan_in_modal_finish, #scan_transfer_modal_finish, #scan_in_refund_modal_finish')
         .on('click', function(e) {
             $('#OutModal').modal('hide');
             $('#ScanOutModal').modal('hide');
@@ -1539,6 +1556,7 @@
             $('#InModal').modal('hide');
             $('#ScanInModal').modal('hide');
             $('#TrackingTypeModal').modal('hide');
+            $('#ScanInRefundModal').modal('hide');
             $('#InputCodeModal').modal('hide');
             $('#TransferModal').modal('hide');
             $('#ScanTransferModal').modal('hide');
