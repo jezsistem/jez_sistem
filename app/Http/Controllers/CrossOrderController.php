@@ -188,7 +188,7 @@ class CrossOrderController extends Controller
                     }
                     return '
             <span style="white-space: nowrap;" class="btn btn-sm '.$btn.'">'.$data->pos_status.' '.$ref_invoice.'</span>
-            <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print</span>
+            <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print Nota</span>
             
             <span style="white-space: nowrap;" class="btn btn-sm btn-info" data-pt_id="'.$data->pt_id.'" id="print_resi_btn">Print Resi</span>';
     }
@@ -213,6 +213,7 @@ class CrossOrderController extends Controller
                 }
                 if ($data->pos_status == 'SHIPPING NUMBER' || $data->pos_status == 'IN DELIVERY') {
                     return '<span style="white-space: nowrap;" data-pt_id="'.$data->pt_id.'" data-cust_id="'.$data->cust_id.'" class="btn btn-sm '.$btn.'" id="shipping_number_btn">'.$data->pos_status.' '.$ref_invoice.'</span>
+                    <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print Nota</span>
                         <span style="white-space: nowrap;" class="btn btn-sm btn-info" data-pt_id="'.$data->pt_id.'" id="print_resi_btn">Print Resi</span>';
                 } if ($data->pos_status == 'WAITING FOR CONFIRMATION') {
                     if ($data->st_id_ref != Auth::user()->st_id) {
@@ -232,7 +233,7 @@ class CrossOrderController extends Controller
                     if ($data->st_id_ref == Auth::user()->st_id) {
                       return '
                         <span style="white-space: nowrap;" title="'.$ref_invoice.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>
-                        <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print</span>';
+                        <span style="white-space: nowrap;" class="btn btn-sm btn-success" data-pt_id="'.$data->pt_id.'" id="print_btn">Print Nota</span>';
                     } else {
                       return '
                         <span style="white-space: nowrap;" title="'.$ref_invoice.'" class="btn btn-sm '.$btn.'">'.$data->pos_status.'</span>

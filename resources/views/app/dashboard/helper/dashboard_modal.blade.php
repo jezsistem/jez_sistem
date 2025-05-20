@@ -503,8 +503,8 @@
                 <br>
                 <div class="d-flex justify-content-center">
                     <div>
-                        <div id="reader" class="rounded"></div>
-                        <div id="result"></div>
+                        <div id="reader_refund" class="rounded"></div>
+                        <div id="result_refund"></div>
                     </div>
                 </div>
                 <input type="search" class="form-control" id="scan_in_refund_search" placeholder="Cari brand artikel"/>
@@ -520,7 +520,7 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dark font-weight-bold" id="scan_in_modal_finish">Selesai</button>
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_in_refund_modal_finish">Selesai</button>
             </div>
         </div>
     </div>
