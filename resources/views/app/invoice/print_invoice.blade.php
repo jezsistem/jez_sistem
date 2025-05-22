@@ -153,7 +153,7 @@
                                 <td class="sell-price">
                                     @if($srow->productStock->ps_price_tag*$srow->pos_td_qty > $srow->pos_td_sell_price)
                                         <s>{{ number_format($srow->productStock->ps_price_tag) }}</s>
-                                        <br/>{{ number_format((($srow->productStock->ps_price_tag - ($srow->pos_td_sell_price / $srow->pos_td_qty)) / $srow->productStock->ps_price_tag) * 100, 2) }}%
+                                        {{-- <br/>{{ number_format((($srow->productStock->ps_price_tag - ($srow->pos_td_sell_price / $srow->pos_td_qty)) / $srow->productStock->ps_price_tag) * 100, 2) }}% --}}
                                         <br>
                                     @endif
                                     @if($srow->productStock->ps_price_tag*$srow->pos_td_qty > $srow->pos_td_sell_price)
