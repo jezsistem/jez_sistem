@@ -480,6 +480,30 @@
         }
     });
 
+    const scanner_out = new Html5QrcodeScanner('reader_out', {
+        qrbox: {
+            width: 250,
+            height: 250,
+        },
+        fps: 30,
+    });
+
+    scanner_out.render(success_out, error);
+
+    function success_out(result_out) {
+        var hasil_out = result_out;
+
+        if (hasil_out.startsWith(']C1')) {
+            hasil_out = hasil_out.replace(']C1', '');
+        }
+
+        alert(hasil_out);
+
+        $('#scan_out_search').val(hasil_out);
+
+        scan_out_table.ajax.reload();
+    }
+
     function refreshScanOutTable() {
         scan_out_table.ajax.reload(null, false);
     }
