@@ -644,14 +644,14 @@
     //
     // }
 
-    function error(err) {
-        console.error(err);
-        // Prints any errors to the console
-    }
+    // function error(err) {
+    //     console.error(err);
+    //     // Prints any errors to the console
+    // }
 
-    function console_log(result) {
-        console.log(result);
-    }
+    // function console_log(result) {
+    //     console.log(result);
+    // }
 
 
     $('#ScanIntb').on('draw.dt', function() {
@@ -779,18 +779,19 @@
         fps: 30,
     });
     //
-    // const scanner_refund = new Html5QrcodeScanner('reader_refund', {
-    //     // Scanner will be initialized in DOM inside element with id of 'reader'
-    //     qrbox: {
-    //         width: 250,
-    //         height: 250,
-    //     },
-    //     fps: 30,
-    // });
+    const scanner_refund = new Html5QrcodeScanner('reader_refund', {
+        // Scanner will be initialized in DOM inside element with id of 'reader'
+        qrbox: {
+            width: 250,
+            height: 250,
+        },
+        fps: 30,
+    });
 
     // scanner_refund.render(success_refund, error);
 
     scanner.render(success, error);
+    scanner_refund.render(success_refund, error);
 
     function success_refund(result_refund) {
 
@@ -820,7 +821,7 @@
 
         $('#scan_in_search').val(hasil);
 
-        scan_in_refund_table.ajax.reload();
+        scan_in_table.ajax.reload();
 
     }
 
@@ -829,9 +830,9 @@
         // Prints any errors to the console
     }
     //
-    // function console_log(result) {
-    //     console.log(result);
-    // }
+    function console_log(result) {
+        console.log(result);
+    }
 
 
     $('#ScanIntb').on('draw.dt', function() {
