@@ -8,65 +8,69 @@
     var br_id = '';
     var exception = 'noexcept';
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
         var article_table = $('#article_table').DataTable({
+
             destroy: true,
             processing: true,
             serverSide: true,
             responsive: false,
             dom: 'rtl<"text-right"ip>',
             buttons: [
-                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
             ],
             ajax: {
-                url : "{{ url('stc_article_datatables') }}",
-                data : function (d) {
-                    d.search = $('#article_search').val();
-                    d.st_id = st_id;
-                    d.br_id = br_id;
-                    d.exception = exception;
-                    d.date = dashboard_date;
+                url: "{{ url('stc_article_datatables') }}",
+                data: function (d) {
+                    d.search = $('#article_search').val(),
+                        d.st_id = st_id,
+                        d.br_id = br_id,
+                        d.exception = exception,
+                        d.date = dashboard_date
                 }
             },
             columns: [
-            { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'brand', name: 'brand' },
-            { data: 'article', name: 'article' },
-            { data: 'color', name: 'color' },
-            { data: 'size', name: 'size' },
-            { data: 'beginning_stock', name: 'beginning_stock', orderable: false },
-            { data: 'purchase', name: 'purchase', orderable: false },
-            { data: 'trans_in', name: 'trans_in', orderable: false },
-            { data: 'trans_out', name: 'trans_out', orderable: false },
-            { data: 'sales', name: 'sales', orderable: false },
-            { data: 'refund', name: 'refund', orderable: false },
-            { data: 'adj_min', name: 'adj_min', orderable: false },
-            { data: 'adj_plus', name: 'adj_plus', orderable: false },
-            { data: 'madj_min', name: 'madj_min', orderable: false },
-            { data: 'madj_plus', name: 'madj_plus', orderable: false },
-            { data: 'sadj_min', name: 'sadj_min', orderable: false },
-            { data: 'sadj_plus', name: 'sadj_plus', orderable: false },
-            { data: 'waiting', name: 'waiting', orderable: false },
-            { data: 'cross_setup_in', name: 'cross_setup_in', orderable: false },
-            { data: 'cross_setup_out', name: 'cross_setup_out', orderable: false },
-            { data: 'ending_stock', name: 'stock'},
-            { data: 'today_exception', name: 'today_exception', orderable: false},
-            { data: 'today_stock', name: 'today_stock'},
-            { data: 'hb', name: 'hb', orderable: false },
-            { data: 'hj', name: 'hj', orderable: false },
+                {data: 'DT_RowIndex', name: 'id', searchable: false},
+                {data: 'article_id', name: 'article_id'},
+                {data: 'item_name', name: 'item_name'},
+                {data: 'ps_barcode', name: 'ps_barcode'},
+                {data: 'size', name: 'size'},
+                {data: 'brand', name: 'brand'},
+                {data: 'begin_stocks', name: 'begin_stocks', orderable: false},
+                {data: 'purchase', name: 'purchase', orderable: false},
+                {data: 'tf_in', name: 'tf_in', orderable: false},
+                {data: 'tf_out', name: 'tf_out', orderable: false},
+                {data: 'sales', name: 'sales', orderable: false},
+                {data: 'SO_adjustment_plus', name: 'SO_adjustment_plus', orderable: false},
+                {data: 'SO_adjustment_minus', name: 'SO_adjustment_minus', orderable: false},
+                {data: 'SO_adjustment_diff', name: 'SO_adjustment_diff', orderable: false},
+                // {data: 'ending_stocks', name: 'ending_stocks', orderable: false},
+                {data: 'today_stocks', name: 'today_stocks', orderable: false},
+                // { data: 'madj_min', name: 'madj_min', orderable: false },
+                // { data: 'madj_plus', name: 'madj_plus', orderable: false },
+                // { data: 'sadj_min', name: 'sadj_min', orderable: false },
+                // { data: 'sadj_plus', name: 'sadj_plus', orderable: false },
+                // { data: 'waiting', name: 'waiting', orderable: false },
+                // { data: 'cross_setup_in', name: 'cross_setup_in', orderable: false },
+                // { data: 'cross_setup_out', name: 'cross_setup_out', orderable: false },
+                // { data: 'ending_stock', name: 'stock'},
+                // { data: 'today_exception', name: 'today_exception', orderable: false},
+                // { data: 'today_stock', name: 'today_stock'},
+                // { data: 'hb', name: 'hb', orderable: false },
+                // { data: 'hj', name: 'hj', orderable: false },
             ],
             columnDefs: [
-            {
-                "targets": 0,
-                "className": "text-center",
-                "width": "0%"
-            }],
+                {
+                    "targets": 0,
+                    "className": "text-center",
+                    "width": "0%"
+                }],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
                 "lengthMenu": "_MENU_",
@@ -74,52 +78,50 @@
             order: [[0, 'desc']],
         });
 
-        $('#article_search').on('keyup', function() {
+        $('#article_search').on('keyup', function () {
             article_table.draw();
         });
 
-        $(document).delegate('#store_filter', 'change', function(e) {
+        $(document).delegate('#store_filter', 'change', function (e) {
             e.preventDefault();
             st_id = $(this).val();
         });
 
-        $(document).delegate('#brand_filter', 'change', function(e) {
+        $(document).delegate('#brand_filter', 'change', function (e) {
             e.preventDefault();
             br_id = $(this).val();
         });
 
-        $(document).delegate('#exception_filter', 'change', function(e) {
+        $(document).delegate('#exception_filter', 'change', function (e) {
             e.preventDefault();
             exception = $(this).val();
         });
 
         function getBeginning() {
-            
+
         }
 
-        $(document).delegate('#exec_btn', 'click', function(e) {
+        $(document).delegate('#exec_btn', 'click', function (e) {
             e.preventDefault();
-            if (st_id == '') {
-                swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
-                return false;
-            }
             $('#article_panel').removeClass('d-none');
             article_table.draw();
+
+            console.log(dashboard_date);
         });
 
         function getExport() {
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
                 url: "{{ url('stock_report_export') }}",
                 xhrFields: {
-                    responseType: 'blob' 
+                    responseType: 'blob'
                 },
-                success: function(blob, status, xhr) {
+                success: function (blob, status, xhr) {
                     $('#export_btn').text('Download Excel');
                     var filename = "";
                     var disposition = xhr.getResponseHeader('Content-Disposition');
@@ -151,7 +153,9 @@
                             window.location.href = downloadUrl;
                         }
 
-                        setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 10000); // cleanup
+                        setTimeout(function () {
+                            URL.revokeObjectURL(downloadUrl);
+                        }, 10000); // cleanup
                     }
                     $('#export_btn').text('Download Excel');
                 }
@@ -163,15 +167,15 @@
             $('#export_btn').text('Mohon tunggu, memasuki kalkulasi fase 2 ...');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {st_id:st_id, br_id:br_id, date:dashboard_date, exception:exception},
+                data: {st_id: st_id, br_id: br_id, date: dashboard_date, exception: exception},
                 dataType: "json",
                 url: "{{ url('stock_report_phase2') }}",
-                success: function(r) {
+                success: function (r) {
                     if (r.status == '200') {
                         phase3();
                     }
@@ -184,15 +188,15 @@
             $('#export_btn').text('Mohon tunggu, memasuki kalkulasi fase terakhir, menyiapkan file anda ...');
             $.ajaxSetup({
                 headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {st_id:st_id, br_id:br_id, date:dashboard_date, exception:exception},
+                data: {st_id: st_id, br_id: br_id, date: dashboard_date, exception: exception},
                 dataType: "json",
                 url: "{{ url('stock_report_phase3') }}",
-                success: function(r) {
+                success: function (r) {
                     if (r.status == '200') {
                         getExport();
                     }
@@ -201,7 +205,7 @@
             return false;
         }
 
-        $(document).delegate('#export_btn', 'click', function(e){
+        $(document).delegate('#export_btn', 'click', function (e) {
             e.preventDefault();
             swal({
                 title: "Download Excel..?",
@@ -212,20 +216,20 @@
                     'Download'
                 ],
                 dangerMode: false,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $('#export_btn').text('Mohon tunggu, kalkulasi fase 1 ...');
                     $.ajaxSetup({
                         headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {st_id:st_id, br_id:br_id, date:dashboard_date, exception:exception},
+                        data: {st_id: st_id, br_id: br_id, date: dashboard_date, exception: exception},
                         dataType: "json",
                         url: "{{ url('stock_report_fill_data') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 phase2();
                             }

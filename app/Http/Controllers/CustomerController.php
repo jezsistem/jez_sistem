@@ -803,7 +803,7 @@ class CustomerController extends Controller
                       ';
                     } else {
                         $output .= '
-                      <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->cust_id . '" id="add_to_item_list_sub_cust">HALOOOO</a></li>
+                      <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->cust_id . '" id="add_to_item_list_sub_cust">'. $cust_name .'</a></li>
                       ';
                     }
                 }

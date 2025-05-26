@@ -728,7 +728,8 @@ class TrackingController extends Controller
                 'pl_name',
                 'sz_name',
                 'product_locations.st_id as stores_id',
-                'product_location_setup_transactions.created_at as TanggalTrx' // Ensure the alias is here
+                'product_location_setup_transactions.created_at as TanggalTrx',
+                'invoice_editors.note'
             )
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -736,6 +737,7 @@ class TrackingController extends Controller
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('invoice_editors', 'invoice_editors.pt_id', '=', 'product_location_setup_transactions.pt_id')
                 ->where(function ($w) {
                     $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
                 })
@@ -757,11 +759,25 @@ class TrackingController extends Controller
                     $time = $dateTime ? Carbon::parse($dateTime, 'Asia/Jakarta')->format('d-F-Y H:i:s') : 'N/A';
 
                     $bin_refund = DB::table('product_locations')->where('st_id', '=', $data->stores_id)->where('pl_default_refund', '=','1')->get()->first();
+ 
+                    $note = $data->note;
 
-//                    dd($bin_refund);
+                    if ($note == null) {
+                        $new_note = "-";
+                    } else {
+                        $exp = explode("-",$note);
+                        $new_note = $exp[1];
+                    }
+
+                   
+
+                    // dd($exp[1]);
+
+                //    dd($bin_refund);
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
                     <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
                     <span style="white-space: nowrap; font-weight:bold;">' . $time . '</span><br/>
+                    <span style="white-space: nowrap; font-weight:bold; color: green;">' . $new_note . '</span><br/>
                     <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
                     <a class="btn btn-sm btn-success" data-bin="' . $bin_refund->pl_code . ' ' . $bin_refund->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_refund_btn" style="font-weight:bold;">Masuk</a>';
