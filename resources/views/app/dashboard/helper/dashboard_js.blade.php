@@ -1,7 +1,5 @@
-<script type="text/javascript" src="{{ asset('scanner') }}/js/qrcodelib.js"></script>
-<script type="text/javascript" src="{{ asset('scanner') }}/js/webcodecamjs.js"></script>
-<script type="text/javascript" src="{{ asset('scanner') }}/js/main.js"></script>
 <script>
+    modal_opened = null;
     function reloadOrderList() {
         var qr = $('#invoice_number').text();
         $.ajaxSetup({
@@ -480,30 +478,6 @@
         }
     });
 
-    const scanner_out = new Html5QrcodeScanner('reader_out', {
-        qrbox: {
-            width: 250,
-            height: 250,
-        },
-        fps: 30,
-    });
-
-    scanner_out.render(success_out, error);
-
-    function success_out(result_out) {
-        var hasil_out = result_out;
-
-        if (hasil_out.startsWith(']C1')) {
-            hasil_out = hasil_out.replace(']C1', '');
-        }
-
-        alert(hasil_out);
-
-        $('#scan_out_search').val(hasil_out);
-
-        scan_out_table.ajax.reload();
-    }
-
     function refreshScanOutTable() {
         scan_out_table.ajax.reload(null, false);
     }
@@ -794,58 +768,57 @@
         }
     });
 
-    const scanner = new Html5QrcodeScanner('reader', {
-        // Scanner will be initialized in DOM inside element with id of 'reader'
-        qrbox: {
-            width: 250,
-            height: 250,
-        },
-        fps: 30,
-    });
+    function initializeScanner(elementId) {
+        return new Html5QrcodeScanner(elementId, {
+            // Scanner will be initialized in DOM inside the element with the given id
+            qrbox: {
+                width: 250,
+                height: 250,
+            },
+            fps: 30,
+        });
+    }
+
+    // Example usage for multiple modals
+    let scanner_scan_out = initializeScanner('reader_scan_out');
+    let scanner_scan_in = initializeScanner('reader_scan_in');
+    let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
+
     //
-    const scanner_refund = new Html5QrcodeScanner('reader_refund', {
-        // Scanner will be initialized in DOM inside element with id of 'reader'
-        qrbox: {
-            width: 250,
-            height: 250,
-        },
-        fps: 30,
-    });
+    // const scanner_refund = new Html5QrcodeScanner('reader_refund', {
+    //     // Scanner will be initialized in DOM inside element with id of 'reader'
+    //     qrbox: {
+    //         width: 250,
+    //         height: 250,
+    //     },
+    //     fps: 30,
+    // });
 
     // scanner_refund.render(success_refund, error);
 
-    scanner.render(success, error);
-    scanner_refund.render(success_refund, error);
-
-    function success_refund(result_refund) {
-
-        var hasil_refund = result_refund;
-
-        if (hasil_refund.startsWith(']C1')) {
-            hasil_refund = hasil_refund.replace(']C1', '');
-        }
-
-        alert(hasil_refund);
-
-        $('#scan_in_refund_search').val(hasil_refund);
-
-        scan_in_refund_table.ajax.reload();
-
-    }
 
     function success(result) {
-
+        
         var hasil = result;
-
+        
         if (hasil.startsWith(']C1')) {
             hasil = hasil.replace(']C1', '');
         }
-
+        
         alert(hasil);
 
-        $('#scan_in_search').val(hasil);
+        if (modal_opened == 'ScanOutModal') {
+            $('#scan_out_search').val(hasil);
+            scan_out_table.ajax.reload();
+            
+        } else if (modal_opened == 'ScanInModal') {
+            $('#scan_in_search').val(hasil);
+            scan_in_table.ajax.reload();
 
-        scan_in_table.ajax.reload();
+        } else if (modal_opened == 'ScanInRefundModal') {
+            $('#scan_in_refund_search').val(hasil);
+            scan_in_refund_table.ajax.reload();
+        }
 
     }
 
@@ -854,9 +827,9 @@
         // Prints any errors to the console
     }
     //
-    function console_log(result) {
-        console.log(result);
-    }
+    // function console_log(result) {
+    //     console.log(result);
+    // }
 
 
     $('#ScanIntb').on('draw.dt', function() {
@@ -1941,10 +1914,15 @@
     jQuery.noConflict();
     $('#out_btn').on('click', function(e) {
         e.preventDefault();
+        modal_opened = 'ScanOutModal';
         $('#st_id').val('');
-        // $('#OutModal').modal('show');
         $('#ScanOutModal').modal('show');
         out_table.draw();
+        scanner_scan_out.render(success, error);
+    });
+
+    $('#ScanOutModal').on('hide.bs.modal', function() {
+        scanner_scan_out.clear();
     });
 
     jQuery.noConflict();
@@ -1964,16 +1942,28 @@
 
     $('#scan_in_btn').on('click', function(e) {
         e.preventDefault();
+        modal_opened = 'ScanInModal';
         $('#st_id').val('');
         $('#ScanInModal').modal('show');
         scan_in_table.draw();
+        scanner_scan_in.render(success, error);
+    });
+
+    $('#ScanInModal').on('hide.bs.modal', function() {
+        scanner_scan_in.clear();
     });
 
     $('#scan_in_refund_btn').on('click', function(e) {
         e.preventDefault();
+        modal_opened = 'ScanInRefundModal';
         $('#st_id').val('');
         $('#ScanInRefundModal').modal('show');
         scan_in_table.draw();
+        scanner_scan_in_refund.render(success, error);
+    });
+
+    $('#ScanInRefundModal').on('hide.bs.modal', function() {
+        scanner_scan_in_refund.clear();
     });
 
     $('#scan_keep_btn').on('click', function(e) {

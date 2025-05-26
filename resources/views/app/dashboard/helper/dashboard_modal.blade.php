@@ -406,14 +406,13 @@
             <div class="modal-header bg-dark">
                 <h5 class="modal-title text-light" id="exampleModalLabel">Barang Keluar</h5>
             </div>
-            
             <div class="modal-body table-responsive">
                 <div id="pl_id_out_parent"></div>
                 <br>
                 <div class="d-flex justify-content-center">
                     <div>
-                        <div id="reader_out" class="rounded"></div>
-                        <div id="result_out"></div>
+                        <div id="reader_scan_out" class="rounded"></div>
+                        <div id="result"></div>
                     </div>
                 </div>
                 <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
@@ -463,7 +462,7 @@
                 <br>
                 <div class="d-flex justify-content-center">
                     <div>
-                        <div id="reader" class="rounded"></div>
+                        <div id="reader_scan_in" class="rounded"></div>
                         <div id="result"></div>
                     </div>
                 </div>
@@ -511,8 +510,8 @@
                 <br>
                 <div class="d-flex justify-content-center">
                     <div>
-                        <div id="reader_refund" class="rounded" ></div>
-                        <div id="result_refund"></div>
+                        <div id="reader_scan_in_refund" class="rounded"></div>
+                        <div id="result"></div>
                     </div>
                 </div>
                 <input type="search" class="form-control" id="scan_in_refund_search" placeholder="Cari brand artikel"/>
