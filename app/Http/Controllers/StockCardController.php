@@ -498,18 +498,14 @@ class StockCardController extends Controller
                  ->addColumn('adj_plus', fn ($row) => $row->SO_adjustment_plus)
                  ->addColumn('ending_stock', fn ($row) => $row->ending_stocks)
                  ->addColumn('today_stock', fn ($row) => $row->today_stocks)
-                 // kolom kosong karena belum tersedia di prosedur
-//                 ->addColumn('refund', fn () => 0)
-//                 ->addColumn('madj_min', fn () => 0)
-//                 ->addColumn('madj_plus', fn () => 0)
-//                 ->addColumn('sadj_min', fn () => 0)
-//                 ->addColumn('sadj_plus', fn () => 0)
-//                 ->addColumn('waiting', fn () => 0)
-//                 ->addColumn('cross_setup_in', fn () => 0)
-//                 ->addColumn('cross_setup_out', fn () => 0)
-//                 ->addColumn('today_exception', fn () => 0)
-//                 ->addColumn('hb', fn () => 0)
-//                 ->addColumn('hj', fn () => 0)
+                 ->editColumn('ending_stocks', function ($data) {
+                        $ending =  fn ($row) => $row->today_stocks;
+                        if ($ending == NULL || $ending == '') {
+                            return 0;
+                        } else {
+                            return $ending;
+                        }
+                 })
                  ->rawColumns(['article'])
                  ->make(true);
          }
