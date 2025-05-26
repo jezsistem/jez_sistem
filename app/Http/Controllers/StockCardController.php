@@ -598,15 +598,18 @@ class StockCardController extends Controller
 //             })
 //             ->addIndexColumn()
 //             ->make(true);
-             DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
 
              $store = 'JEZ MALANG';
              $brand = 'ARDILES';
              $startDate = '2025-01-01';
              $endDate = '2025-05-31';
 
+
              $data = DB::select("CALL sumary_stocks(?, ?, ?, ?)", [
-                 $store, $brand, $startDate, $endDate
+                 $store,
+                 $brand,
+                 $startDate,
+                 $endDate
              ]);
 
              dd($data);
