@@ -36,7 +36,6 @@
             },
             columns: [
             { data: 'DT_RowIndex', name: 'id', searchable: false},
-            { data: 'brand', name: 'brand' },
             { data: 'article_id', name: 'article_id' },
             { data: 'item_name', name: 'item_name' },
             { data: 'ps_barcode', name: 'ps_barcode' },

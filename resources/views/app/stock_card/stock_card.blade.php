@@ -113,9 +113,10 @@
                                         {{--                                            <th class="text-danger">Cross Setup Out</th>--}}
                                         {{--                                            <th class="text-success">Ending Stock</th>--}}
                                         {{--                                            <th class="text-warning">Today's Exception</th>--}}
+                                        <th class="text-warning">Adj diffk</th>
                                         <th class="text-warning">Today's Stock</th>
-                                        <th class="text-white">HB</th>
-                                        <th class="text-white">HJ</th>
+{{--                                        <th class="text-white">HB</th>--}}
+{{--                                        <th class="text-white">HJ</th>--}}
                                     </tr>
                                     </thead>
                                     <!--end::Table head-->
