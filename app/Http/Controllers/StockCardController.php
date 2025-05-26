@@ -601,13 +601,15 @@ class StockCardController extends Controller
 
              $store = 'JEZ MALANG';
              $brand = 'ARDILES';
+             $article_id = '';
              $startDate = '2025-01-01';
              $endDate = '2025-05-31';
 
 
-             $data = DB::select("CALL sumary_stocks(?, ?, ?, ?)", [
+             $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?)", [
                  $store,
                  $brand,
+                 $article_id,
                  $startDate,
                  $endDate
              ]);
