@@ -89,7 +89,7 @@
                     </div>
                     <!--end::Stats Widget 12-->
                 </div>
-                <div class="col-xl-12 d-none" id="article_panel">
+                <div class="col-xl-12 d-none">
                     <!--begin::Tables Widget 9-->
                     <div class="card card-xl-stretch mb-5 mb-xl-12">
                         <!--begin::Header-->
