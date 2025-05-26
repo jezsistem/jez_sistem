@@ -11,6 +11,7 @@ use App\Models\ExceptionLocation;
 use App\Models\ProductLocation;
 use App\Exports\StockCardExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\DataTables;
 
 class StockCardController extends Controller
 {
