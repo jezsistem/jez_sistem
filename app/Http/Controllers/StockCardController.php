@@ -498,14 +498,7 @@ class StockCardController extends Controller
                  ->addColumn('adj_plus', fn ($row) => $row->SO_adjustment_plus)
                  ->addColumn('ending_stock', fn ($row) => $row->ending_stocks)
                  ->addColumn('today_stock', fn ($row) => $row->today_stocks)
-                 ->editColumn('ending_stocks', function ($row) {
-                        $ending =  $row->ending_stocks;
-                        if ($ending == NULL || $ending == '') {
-                            return 0;
-                        } else {
-                            return $ending;
-                        }
-                 })
+                 ->editColumn('ending_stocks', fn($row) => ($row->ending_stocks === null || $row->ending_stocks === '') ? 0 : $row->ending_stocks)
                  ->rawColumns(['article'])
                  ->make(true);
          }
