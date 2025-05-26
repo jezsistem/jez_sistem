@@ -498,14 +498,14 @@ class StockCardController extends Controller
                  ->addColumn('adj_plus', fn ($row) => $row->SO_adjustment_plus)
                  ->addColumn('ending_stock', fn ($row) => $row->ending_stocks)
                  ->addColumn('today_stock', fn ($row) => $row->today_stocks)
-//                 ->editColumn('ending_stocks', function ($data) {
-//                        $ending =  fn ($row) => $row->today_stocks;
-//                        if ($ending == NULL || $ending == '') {
-//                            return 0;
-//                        } else {
-//                            return $ending;
-//                        }
-//                 })
+                 ->editColumn('ending_stocks', function ($row) {
+                        $ending =  $row->ending_stocks;
+                        if ($ending == NULL || $ending == '') {
+                            return 0;
+                        } else {
+                            return $ending;
+                        }
+                 })
                  ->rawColumns(['article'])
                  ->make(true);
          }
