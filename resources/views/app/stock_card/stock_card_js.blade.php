@@ -50,7 +50,7 @@
                 {data: 'SO_adjustment_plus', name: 'SO_adjustment_plus', orderable: false},
                 {data: 'SO_adjustment_minus', name: 'SO_adjustment_minus', orderable: false},
                 {data: 'SO_adjustment_diff', name: 'SO_adjustment_diff', orderable: false},
-                {data: 'ending_stocks', name: 'ending_stocks', orderable: false},
+                // {data: 'ending_stocks', name: 'ending_stocks', orderable: false},
                 {data: 'today_stocks', name: 'today_stocks', orderable: false},
                 // { data: 'madj_min', name: 'madj_min', orderable: false },
                 // { data: 'madj_plus', name: 'madj_plus', orderable: false },
