@@ -457,12 +457,26 @@ class StockCardController extends Controller
      public function getADatatables(Request $request)
      {
          if(request()->ajax()) {
-             $store = 'JEZ MALANG';
-             $brand = 'ARDILES';
-             $article_id = '';
-             $startDate = '2025-01-01';
-             $endDate = '2025-05-31';
+            $date = $request->get('date');
+            $brand = $request->get('br_id');
+            $store = $request->get('st_id');
+            $start = null;
+            $end = null;
+            $exp = explode('|', $date);
+            if (count($exp) > 1) {
+                if ($exp[0] != $exp[1]) {
+                    $start = $exp[0];
+                    $end = $exp[1];
+                } else {
+                    $start = $exp[0];
+                }
+            } else {
+                $start = $date;
+            }
 
+             $startDate = $start;
+             $endDate = $end;
+             $article_id = '';
 
              $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?)", [
                  $store,
@@ -471,8 +485,6 @@ class StockCardController extends Controller
                  $startDate,
                  $endDate
              ]);
-
-//             dd($data);
 
              $collection = collect($data);
 

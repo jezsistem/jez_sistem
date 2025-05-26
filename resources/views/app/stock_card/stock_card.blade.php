@@ -57,13 +57,13 @@
                             <select class="form-control mt-2 bg-primary text-white" id="store_filter">
                                 <option value=''>- Store -</option>
                                 @foreach ($data['st_id'] as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
+                                <option value="{{ $value }}">{{ $value }}</option>
                                 @endforeach
                             </select>
                             <select class="form-control mt-2 bg-primary text-white" id="brand_filter">
                                 <option value=''>- Tentukan Brand -</option>
                                 @foreach ($data['br_id'] as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
+                                <option value="{{ $value }}">{{ $value }}</option>
                                 @endforeach
                             </select>
                             <a class="btn btn-success mt-2" id="exec_btn">Tampilkan</a>
@@ -73,67 +73,67 @@
                     </div>
                     <!--end: List Widget 9-->
                 </div>
-                <div class="col-lg-12 col-xxl-12" style="min-height: 315px;" id="graph_panel">
-                    <!--begin::Stats Widget 12-->
-                    <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">
-                        <!--begin::Body-->
-                        <div class="card-body p-0">
-                            <div class="d-flex align-items-center justify-content-between card-spacer flex-grow-1">
-                                <span class="btn-sm btn-primary font-weight-bolder">
-                                    Kartu Stok
-                                </span>
-                            </div>
+{{--                <div class="col-lg-12 col-xxl-12" style="min-height: 315px;" id="graph_panel">--}}
+{{--                    <!--begin::Stats Widget 12-->--}}
+{{--                    <div class="card card-custom card-stretch gutter-b" style="border-radius:.625rem;">--}}
+{{--                        <!--begin::Body-->--}}
+{{--                        <div class="card-body p-0">--}}
+{{--                            <div class="d-flex align-items-center justify-content-between card-spacer flex-grow-1">--}}
+{{--                                <span class="btn-sm btn-primary font-weight-bolder">--}}
+{{--                                    Kartu Stok--}}
+{{--                                </span>--}}
+{{--                            </div>--}}
 {{--                            <div id="chart"></div>--}}
-                            <div class="table-responsive">
-                                <!--begin::Table-->
-                                <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari Artikel"/><br/>
-                                <table class="table table-border table-striped table-row-gray-300 align-middle gs-0 gy-4" id="article_table">
-                                    <!--begin::Table head-->
-                                    <thead class="bg-primary">
-                                    <tr class="fw-bold text-black">
-                                        <th class="text-white">No</th>
-                                        <th class="text-white">article ID</th>
-                                        <th class="text-white">Item Name</th>
-                                        <th class="text-white">SKU</th>
-                                        <th class="text-white">Size</th>
-                                        <th class="text-white">Brand</th>
-                                        <th class="text-white">Beginning Stock</th>
-                                        <th class="text-white">Purchase Order</th>
-                                        <th class="text-white">Trans-In</th>
-                                        <th class="text-white">Trans-Out</th>
-                                        <th class="text-white">Sales</th>
-                                        <th class="text-white">Adj(-)</th>
-                                        <th class="text-white">Adj(+)</th>
-                                        {{--                                            <th class="text-white">MAdj(-)</th>--}}
-                                        {{--                                            <th class="text-white">MAdj(+)</th>--}}
-                                        {{--                                            <th class="text-white">SAdj(-)</th>--}}
-                                        {{--                                            <th class="text-white">SAdj(+)</th>--}}
-                                        {{--                                            <th class="text-info">Waiting (OFF/CO/TAKE)</th>--}}
-                                        {{--                                            <th class="text-danger">Cross Setup In</th>--}}
-                                        {{--                                            <th class="text-danger">Cross Setup Out</th>--}}
-                                        {{--                                            <th class="text-success">Ending Stock</th>--}}
-                                        {{--                                            <th class="text-warning">Today's Exception</th>--}}
-                                        <th class="text-warning">Adj diffk</th>
-                                        <th class="text-warning">Today's Stock</th>
+{{--                            <div class="table-responsive">--}}
+{{--                                <!--begin::Table-->--}}
+{{--                                <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari Artikel"/><br/>--}}
+{{--                                <table class="table table-border table-striped table-row-gray-300 align-middle gs-0 gy-4" id="article_table">--}}
+{{--                                    <!--begin::Table head-->--}}
+{{--                                    <thead class="bg-primary">--}}
+{{--                                    <tr class="fw-bold text-black">--}}
+{{--                                        <th class="text-white">No</th>--}}
+{{--                                        <th class="text-white">article ID</th>--}}
+{{--                                        <th class="text-white">Item Name</th>--}}
+{{--                                        <th class="text-white">SKU</th>--}}
+{{--                                        <th class="text-white">Size</th>--}}
+{{--                                        <th class="text-white">Brand</th>--}}
+{{--                                        <th class="text-white">Beginning Stock</th>--}}
+{{--                                        <th class="text-white">Purchase Order</th>--}}
+{{--                                        <th class="text-white">Trans-In</th>--}}
+{{--                                        <th class="text-white">Trans-Out</th>--}}
+{{--                                        <th class="text-white">Sales</th>--}}
+{{--                                        <th class="text-white">Adj(+)</th>--}}
+{{--                                        <th class="text-white">Adj(-)</th>--}}
+{{--                                        --}}{{--                                            <th class="text-white">MAdj(-)</th>--}}
+{{--                                        --}}{{--                                            <th class="text-white">MAdj(+)</th>--}}
+{{--                                        --}}{{--                                            <th class="text-white">SAdj(-)</th>--}}
+{{--                                        --}}{{--                                            <th class="text-white">SAdj(+)</th>--}}
+{{--                                        --}}{{--                                            <th class="text-info">Waiting (OFF/CO/TAKE)</th>--}}
+{{--                                        --}}{{--                                            <th class="text-danger">Cross Setup In</th>--}}
+{{--                                        --}}{{--                                            <th class="text-danger">Cross Setup Out</th>--}}
+{{--                                        --}}{{--                                            <th class="text-success">Ending Stock</th>--}}
+{{--                                        --}}{{--                                            <th class="text-warning">Today's Exception</th>--}}
+{{--                                        <th class="text-warning">Adj diff</th>--}}
+{{--                                        <th class="text-warning">Today's Stock</th>--}}
 {{--                                        <th class="text-white">HB</th>--}}
 {{--                                        <th class="text-white">HJ</th>--}}
-                                    </tr>
-                                    </thead>
-                                    <!--end::Table head-->
-                                    <!--begin::Table body-->
-                                    <tbody>
+{{--                                    </tr>--}}
+{{--                                    </thead>--}}
+{{--                                    <!--end::Table head-->--}}
+{{--                                    <!--begin::Table body-->--}}
+{{--                                    <tbody>--}}
 
-                                    </tbody>
-                                    <!--end::Table body-->
-                                </table>
-                                <!--end::Table-->
-                            </div>
-                        </div>
-                        <!--end::Body-->
-                    </div>
-                    <!--end::Stats Widget 12-->
-                </div>
-                <div class="col-xl-12 d-none">
+{{--                                    </tbody>--}}
+{{--                                    <!--end::Table body-->--}}
+{{--                                </table>--}}
+{{--                                <!--end::Table-->--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                        <!--end::Body-->--}}
+{{--                    </div>--}}
+{{--                    <!--end::Stats Widget 12-->--}}
+{{--                </div>--}}
+                <div class="col-xl-12 article_panel">
                     <!--begin::Tables Widget 9-->
                     <div class="card card-xl-stretch mb-5 mb-xl-12">
                         <!--begin::Header-->
@@ -150,49 +150,39 @@
                         <!--begin::Body-->
                         <div class="card-body py-3">
                             <!--begin::Table container-->
-{{--                            <div class="table-responsive">--}}
-{{--                                <!--begin::Table-->--}}
-{{--                                <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari Artikel"/><br/>--}}
-{{--                                <table class="table table-border table-striped table-row-gray-300 align-middle gs-0 gy-4" id="article_table">--}}
-{{--                                    <!--begin::Table head-->--}}
-{{--                                    <thead class="bg-primary">--}}
-{{--                                        <tr class="fw-bold text-black">--}}
-{{--                                            <th class="text-white">No</th>--}}
-{{--                                            <th class="text-white">article ID</th>--}}
-{{--                                            <th class="text-white">Item Name</th>--}}
-{{--                                            <th class="text-white">SKU</th>--}}
-{{--                                            <th class="text-white">Size</th>--}}
-{{--                                            <th class="text-white">Brand</th>--}}
-{{--                                            <th class="text-white">Beginning Stock</th>--}}
-{{--                                            <th class="text-white">Purchase Order</th>--}}
-{{--                                            <th class="text-white">Trans-In</th>--}}
-{{--                                            <th class="text-white">Trans-Out</th>--}}
-{{--                                            <th class="text-white">Sales</th>--}}
-{{--                                            <th class="text-white">Adj(-)</th>--}}
-{{--                                            <th class="text-white">Adj(+)</th>--}}
-{{--                                            <th class="text-white">MAdj(-)</th>--}}
-{{--                                            <th class="text-white">MAdj(+)</th>--}}
-{{--                                            <th class="text-white">SAdj(-)</th>--}}
-{{--                                            <th class="text-white">SAdj(+)</th>--}}
-{{--                                            <th class="text-info">Waiting (OFF/CO/TAKE)</th>--}}
-{{--                                            <th class="text-danger">Cross Setup In</th>--}}
-{{--                                            <th class="text-danger">Cross Setup Out</th>--}}
-{{--                                            <th class="text-success">Ending Stock</th>--}}
-{{--                                            <th class="text-warning">Today's Exception</th>--}}
-{{--                                            <th class="text-warning">Today's Stock</th>--}}
-{{--                                            <th class="text-white">HB</th>--}}
-{{--                                            <th class="text-white">HJ</th>--}}
-{{--                                        </tr>--}}
-{{--                                    </thead>--}}
-{{--                                    <!--end::Table head-->--}}
-{{--                                    <!--begin::Table body-->--}}
-{{--                                    <tbody>--}}
+                            <div class="table-responsive">
+                                <!--begin::Table-->
+                                <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari Artikel"/><br/>
+                                <table class="table table-border table-striped table-row-gray-300 align-middle gs-0 gy-4" id="article_table">
+                                    <!--begin::Table head-->
+                                    <thead class="bg-primary">
+                                        <tr class="fw-bold text-black">
+                                            <th class="text-white">No</th>
+                                            <th class="text-white">article ID</th>
+                                            <th class="text-white">Item Name</th>
+                                            <th class="text-white">SKU</th>
+                                            <th class="text-white">Size</th>
+                                            <th class="text-white">Brand</th>
+                                            <th class="text-white">Beginning Stock</th>
+                                            <th class="text-white">Purchase Order</th>
+                                            <th class="text-white">Trans-In</th>
+                                            <th class="text-white">Trans-Out</th>
+                                            <th class="text-white">Sales</th>
+                                            <th class="text-white">Adj(+)</th>
+                                            <th class="text-white">Adj(-)</th>
+                                            <th class="text-warning">Adj diff</th>
+                                            <th class="text-warning">Today's Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <!--end::Table head-->
+                                    <!--begin::Table body-->
+                                    <tbody>
 
-{{--                                    </tbody>--}}
-{{--                                    <!--end::Table body-->--}}
-{{--                                </table>--}}
-{{--                                <!--end::Table-->--}}
-{{--                            </div>--}}
+                                    </tbody>
+                                    <!--end::Table body-->
+                                </table>
+                                <!--end::Table-->
+                            </div>
                             <!--end::Table container-->
                         </div>
                         <!--begin::Body-->

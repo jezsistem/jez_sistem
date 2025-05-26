@@ -16,6 +16,7 @@
         });
 
         var article_table = $('#article_table').DataTable({
+
             destroy: true,
             processing: true,
             serverSide: true,
@@ -27,11 +28,11 @@
             ajax: {
                 url : "{{ url('stc_article_datatables') }}",
                 data : function (d) {
-                    d.search = $('#article_search').val();
-                    d.st_id = st_id;
-                    d.br_id = br_id;
-                    d.exception = exception;
-                    d.date = dashboard_date;
+                    d.search = $('#article_search').val(),
+                    d.st_id = st_id,
+                    d.br_id = br_id,
+                    d.exception = exception,
+                    d.date = dashboard_date
                 }
             },
             columns: [
@@ -101,12 +102,10 @@
 
         $(document).delegate('#exec_btn', 'click', function(e) {
             e.preventDefault();
-            if (st_id == '') {
-                swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
-                return false;
-            }
             $('#article_panel').removeClass('d-none');
             article_table.draw();
+
+            console.log(dashboard_date);
         });
 
         function getExport() {
