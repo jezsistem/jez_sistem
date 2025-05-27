@@ -21,6 +21,7 @@
             serverSide: true,
             responsive: false,
             searching: false,
+            dom: 'Bfrtip',
             buttons: [{
                 "extend": 'excelHtml5',
                 "text": 'Excel',
