@@ -171,6 +171,7 @@
                                             <th class="text-white">Adj(+)</th>
                                             <th class="text-white">Adj(-)</th>
                                             <th class="text-warning">Adj diff</th>
+                                            <th class="text-warning">Ending Stocks</th>
                                             <th class="text-warning">Today's Stock</th>
                                         </tr>
                                     </thead>
