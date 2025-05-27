@@ -477,17 +477,13 @@ class StockCardController extends Controller
              $startDate = $start;
              $endDate = $end;
              $article_id = '';
-             $offset = $request->get('start', 0);
-             $limit = $request->get('length', 10);
 
-             $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?, ?, ?)", [
+             $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?)", [
                  $store,
                  $brand,
                  $article_id,
                  $startDate,
                  $endDate,
-                 $offset,
-                 $limit
              ]);
 
              $collection = array_slice($data, 0, -1);
@@ -495,8 +491,6 @@ class StockCardController extends Controller
 //             dd($data);
 
              return DataTables::of($collection)
-                 ->setTotalRecords($total)
-                 ->setFilteredRecords($total)
                  ->addIndexColumn()
                  ->addColumn('article', fn ($row) => $row->article_id)
                  ->addColumn('beginning_stock', fn ($row) => $row->begin_stocks)
@@ -506,8 +500,7 @@ class StockCardController extends Controller
                  ->addColumn('adj_plus', fn ($row) => $row->SO_adjustment_plus)
                  ->addColumn('ending_stock', fn ($row) => $row->ending_stocks)
                  ->addColumn('today_stock', fn ($row) => $row->today_stocks)
-//                 ->editColumn('ending_stocks', fn($row) => ($row->ending_stocks === null || $row->ending_stocks === '') ? 0 : $row->ending_stocks)
-                 ->rawColumns(['article'])
+g                 ->rawColumns(['article'])
                  ->make(true);
          }
      }
