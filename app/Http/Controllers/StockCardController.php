@@ -478,7 +478,7 @@ class StockCardController extends Controller
              $endDate = $end;
 //             $article_id = '';
 
-             $input = $request->$request->get('search');
+             $input = $request->get('search');
 
              if (!empty($input)) {
                  $article_id = $input;

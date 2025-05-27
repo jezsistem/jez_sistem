@@ -152,7 +152,7 @@
                             <!--begin::Table container-->
                             <div class="table-responsive">
                                 <!--begin::Table-->
-                                <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari Artikel"/><br/>
+                                <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari Artikel ID"/><br/>
                                 <table class="table table-border table-striped table-row-gray-300 align-middle gs-0 gy-4" id="article_table">
                                     <!--begin::Table head-->
                                     <thead class="bg-primary">
