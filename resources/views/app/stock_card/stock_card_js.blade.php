@@ -20,6 +20,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
+            searching: false,
             buttons: [{
                 "extend": 'excelHtml5',
                 "text": 'Excel',
