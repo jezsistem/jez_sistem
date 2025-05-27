@@ -603,9 +603,10 @@
             success: function (r) {
                 let response = typeof r === "string" ? JSON.parse(r) : r;
                 if (response.status == '200') {
-
+                } else if (response.status == '500') {
+                    swal('Error', response.message );
                 } else {
-                    swal('Error', response.message || 'Terjadi kesalahan', 'error');
+                    
                 }
             },
         });
