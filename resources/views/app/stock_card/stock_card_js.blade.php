@@ -20,6 +20,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
+            dom: 'lfrtip',
             buttons: [{
                 "extend": 'excelHtml5',
                 "text": 'Excel',

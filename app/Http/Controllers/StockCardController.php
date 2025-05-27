@@ -501,6 +501,7 @@ class StockCardController extends Controller
                  ->addColumn('ending_stock', fn ($row) => $row->ending_stocks)
                  ->addColumn('today_stock', fn ($row) => $row->today_stocks)
                 ->rawColumns(['article'])
+
                  ->make(true);
          }
      }
