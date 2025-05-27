@@ -141,10 +141,10 @@
                             <h4 class="card-title align-items-start flex-column">
                                 <span class="card-label fw-bold mb-1">Artikel</span>
                             </h4>
-                            <div class="card-toolbar" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-trigger="hover" title="Detail">
-                                <a href="#" class="btn btn-sm btn-success font-weight-bolder"  id="export_btn">
-                                <i class="fa fa-download"></i> Download Excel</a>
-                            </div>
+{{--                            <div class="card-toolbar" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-trigger="hover" title="Detail">--}}
+{{--                                <a href="#" class="btn btn-sm btn-success font-weight-bolder"  id="export_btn">--}}
+{{--                                <i class="fa fa-download"></i> Download Excel</a>--}}
+{{--                            </div>--}}
                         </div>
                         <!--end::Header-->
                         <!--begin::Body-->
@@ -152,8 +152,8 @@
                             <!--begin::Table container-->
                             <div class="table-responsive">
                                 <!--begin::Table-->
-                                <a href="{{ url('export-article-stock') }}?date=2024-01-01|2024-01-31&br_id=1&st_id=2&search=ABC123"
-                                   class="btn btn-success btn-sm">Export Excel</a>
+{{--                                <a href="{{ url('export-article-stock') }}?date=2024-01-01|2024-01-31&br_id=1&st_id=2&search=ABC123"--}}
+{{--                                   class="btn btn-success btn-sm">Export Excel</a>--}}
                                 <input type="search" class="form-control  col-6" id="article_search" placeholder="Cari Artikel ID"/><br/>
                                 <table class="table table-border table-striped table-row-gray-300 align-middle gs-0 gy-4" id="article_table">
                                     <!--begin::Table head-->
