@@ -488,6 +488,8 @@ class StockCardController extends Controller
 
              $collection = collect($data);
 
+             dd($collection);
+
              return DataTables::of($collection)
                  ->addIndexColumn()
                  ->addColumn('article', fn ($row) => $row->article_id)
