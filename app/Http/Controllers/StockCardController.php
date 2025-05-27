@@ -476,15 +476,15 @@ class StockCardController extends Controller
 
              $startDate = $start;
              $endDate = $end;
-//             $article_id = '';
+             $article_id = '';
 
-             $input = $request->get('search');
+//             $input = $request->get('search');
 
-             if (!empty($input)) {
-                 $article_id = $input;
-             } else {
-                 $article_id = '';
-             }
+//             if (!empty($input)) {
+//                 $article_id = $input;
+//             } else {
+//                 $article_id = '';
+//             }
 
              $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?)", [
                  $store,
