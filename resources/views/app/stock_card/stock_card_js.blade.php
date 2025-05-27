@@ -20,7 +20,6 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: '<"text-left"l>rt<"text-right"p>',
             buttons: [{
                 "extend": 'excelHtml5',
                 "text": 'Excel',
@@ -62,10 +61,7 @@
                 }
             ],
             pageLength: -1,
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "Semua"]
-            ],
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
                 lengthMenu: "_MENU_",
             },
