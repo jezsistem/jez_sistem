@@ -500,7 +500,7 @@ class StockCardController extends Controller
                  ->addColumn('adj_plus', fn ($row) => $row->SO_adjustment_plus)
                  ->addColumn('ending_stock', fn ($row) => $row->ending_stocks)
                  ->addColumn('today_stock', fn ($row) => $row->today_stocks)
-g                 ->rawColumns(['article'])
+                ->rawColumns(['article'])
                  ->make(true);
          }
      }
