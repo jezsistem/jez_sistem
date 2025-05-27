@@ -21,7 +21,7 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'rtl<"text-right"ip>',
+            dom: 'Blfrtip',
             buttons: [
                 {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
             ],
