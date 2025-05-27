@@ -477,20 +477,26 @@ class StockCardController extends Controller
              $startDate = $start;
              $endDate = $end;
              $article_id = '';
+             $offset = $request->get('start', 0);
+             $limit = $request->get('length', 10);
 
-             $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?)", [
+             $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?, ?, ?)", [
                  $store,
                  $brand,
                  $article_id,
                  $startDate,
-                 $endDate
+                 $endDate,
+                 $offset,
+                 $limit
              ]);
 
-             $collection = collect($data);
-
+             $collection = array_slice($data, 0, -1);
+             $total = $result[count($data) - 1]->total ?? 0;
 //             dd($data);
 
              return DataTables::of($collection)
+                 ->setTotalRecords($total)
+                 ->setFilteredRecords($total)
                  ->addIndexColumn()
                  ->addColumn('article', fn ($row) => $row->article_id)
                  ->addColumn('beginning_stock', fn ($row) => $row->begin_stocks)
