@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Exports\ArticleStockExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -512,6 +513,26 @@ class StockCardController extends Controller
                  ->make(true);
          }
      }
+
+
+    public function exportArticleStock(Request $request)
+    {
+        $date = $request->get('date');
+        $brand = $request->get('br_id');
+        $store = $request->get('st_id');
+        $article_id = $request->get('search', '');
+
+        $start = $end = null;
+        $exp = explode('|', $date);
+        if (count($exp) > 1 && $exp[0] != $exp[1]) {
+            $start = $exp[0];
+            $end = $exp[1];
+        } else {
+            $start = $exp[0];
+        }
+
+        return Excel::download(new ArticleStockExport($store, $brand, $article_id, $start, $end), 'article_stock.xlsx');
+    }
 
 //    public function getADatatables(Request $request)
 //    {
