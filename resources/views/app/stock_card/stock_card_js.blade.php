@@ -16,23 +16,25 @@
         });
 
         var article_table = $('#article_table').DataTable({
-
             destroy: true,
             processing: true,
             serverSide: true,
             responsive: false,
-            dom: 'Blfrtip',
             buttons: [
-                {"extend": 'excelHtml5', "text": 'Excel', "className": 'btn btn-primary btn-xs'}
+                {
+                    extend: 'excelHtml5',
+                    text: 'Excel',
+                    className: 'btn btn-primary btn-xs'
+                }
             ],
             ajax: {
                 url: "{{ url('stc_article_datatables') }}",
                 data: function (d) {
-                    d.search = $('#article_search').val(),
-                        d.st_id = st_id,
-                        d.br_id = br_id,
-                        d.exception = exception,
-                        d.date = dashboard_date
+                    d.search = $('#article_search').val();
+                    d.st_id = st_id;
+                    d.br_id = br_id;
+                    d.exception = exception;
+                    d.date = dashboard_date;
                 }
             },
             columns: [
@@ -51,31 +53,20 @@
                 {data: 'SO_adjustment_minus', name: 'SO_adjustment_minus', orderable: false},
                 {data: 'SO_adjustment_diff', name: 'SO_adjustment_diff', orderable: false},
                 {data: 'ending_stocks', name: 'ending_stocks', orderable: false},
-                {data: 'today_stocks', name: 'today_stocks', orderable: false},
-                // { data: 'madj_min', name: 'madj_min', orderable: false },
-                // { data: 'madj_plus', name: 'madj_plus', orderable: false },
-                // { data: 'sadj_min', name: 'sadj_min', orderable: false },
-                // { data: 'sadj_plus', name: 'sadj_plus', orderable: false },
-                // { data: 'waiting', name: 'waiting', orderable: false },
-                // { data: 'cross_setup_in', name: 'cross_setup_in', orderable: false },
-                // { data: 'cross_setup_out', name: 'cross_setup_out', orderable: false },
-                // { data: 'ending_stock', name: 'stock'},
-                // { data: 'today_exception', name: 'today_exception', orderable: false},
-                // { data: 'today_stock', name: 'today_stock'},
-                // { data: 'hb', name: 'hb', orderable: false },
-                // { data: 'hj', name: 'hj', orderable: false },
+                {data: 'today_stocks', name: 'today_stocks', orderable: false}
             ],
             columnDefs: [
                 {
                     "targets": 0,
                     "className": "text-center",
                     "width": "0%"
-                }],
+                }
+            ],
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
             language: {
-                "lengthMenu": "_MENU_",
+                lengthMenu: "_MENU_",
             },
-            order: [[0, 'desc']],
+            order: [[0, 'desc']]
         });
 
         $('#article_search').on('keyup', function () {
