@@ -20,13 +20,12 @@
             processing: true,
             serverSide: true,
             responsive: false,
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Excel',
-                    className: 'btn btn-primary btn-xs'
-                }
-            ],
+            dom: '<"text-left"l>rt<"text-right"p>',
+            buttons: [{
+                "extend": 'excelHtml5',
+                "text": 'Excel',
+                "className": 'btn btn-primary btn-xs'
+            }],
             ajax: {
                 url: "{{ url('stc_article_datatables') }}",
                 data: function (d) {
@@ -62,7 +61,11 @@
                     "width": "0%"
                 }
             ],
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            pageLength: -1,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 lengthMenu: "_MENU_",
             },
