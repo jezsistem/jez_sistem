@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Exports\ArticleStockExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -478,15 +479,25 @@ class StockCardController extends Controller
              $endDate = $end;
              $article_id = '';
 
+//             $input = $request->get('search');
+
+//             if (!empty($input)) {
+//                 $article_id = $input;
+//             } else {
+//                 $article_id = '';
+//             }
+
              $data = DB::select("CALL sumary_stocks(?, ?, ?, ?, ?)", [
                  $store,
                  $brand,
                  $article_id,
                  $startDate,
-                 $endDate
+                 $endDate,
              ]);
 
-             $collection = collect($data);
+             $collection = array_slice($data, 0, -1);
+             $total = $result[count($data) - 1]->total ?? 0;
+//             dd($data);
 
              return DataTables::of($collection)
                  ->addIndexColumn()
@@ -498,11 +509,30 @@ class StockCardController extends Controller
                  ->addColumn('adj_plus', fn ($row) => $row->SO_adjustment_plus)
                  ->addColumn('ending_stock', fn ($row) => $row->ending_stocks)
                  ->addColumn('today_stock', fn ($row) => $row->today_stocks)
-//                 ->editColumn('ending_stocks', fn($row) => ($row->ending_stocks === null || $row->ending_stocks === '') ? 0 : $row->ending_stocks)
-                 ->rawColumns(['article'])
+                ->rawColumns(['article'])
                  ->make(true);
          }
      }
+
+
+    public function exportArticleStock(Request $request)
+    {
+        $date = $request->get('date');
+        $brand = $request->get('br_id');
+        $store = $request->get('st_id');
+        $article_id = $request->get('search', '');
+
+        $start = $end = null;
+        $exp = explode('|', $date);
+        if (count($exp) > 1 && $exp[0] != $exp[1]) {
+            $start = $exp[0];
+            $end = $exp[1];
+        } else {
+            $start = $exp[0];
+        }
+
+        return Excel::download(new ArticleStockExport($store, $brand, $article_id, $start, $end), 'article_stock.xlsx');
+    }
 
 //    public function getADatatables(Request $request)
 //    {
