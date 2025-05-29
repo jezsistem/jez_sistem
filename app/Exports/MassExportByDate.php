@@ -19,6 +19,10 @@ class MassExportByDate implements FromCollection, WithHeadings
     {
         return [
             "No",
+            "Tanggal Adjustment",
+//            "Eksekutor",
+//            "Approval",
+            "Tanggal Adjustment",
             "Kode",
             "Store",
             "BIN",
@@ -45,6 +49,10 @@ class MassExportByDate implements FromCollection, WithHeadings
         foreach ($this->data as $index => $row) {
             $export[] = [
                 $index + 1,
+                $row->adjustment_date,
+//                $row->ma_executor_name,
+//                $row->ma_approval_name,
+                $row->adjustment_date,
                 $row->ma_code,
                 $row->st_name,
                 $row->pl_code,

@@ -329,7 +329,7 @@
                 data: function(d) {
                     d.search = $('#ma_search').val();
                     d.filter = $('#filter_status').val();
-                    d.st_id = st_id; // Include st_id in the request
+                    d.st_id = st_id;
                 }
             },
             columns: [{
@@ -550,6 +550,32 @@
             stock_table.draw();
             mass_adjustment_table.draw();
         });
+
+        // Initialize Select2 pada elemen select st_export_filter
+        $('#st_export_filter').select2({
+            dropdownParent: $('#st_export_filter_parent')
+        });
+        $('#st_export_filter').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#st_export_filter').on('change', function() {
+            mass_adjustment_table.draw();
+            var id = $(this).val();
+            console.log(id)
+        });
+
+        $(document).delegate('#st_export_filter', 'change', function(e) {
+            e.preventDefault();
+            st_id = $(this).val();
+            loadLocation(st_id);
+            loadAsset(st_id, psc_id, br_id);
+            stock_table.draw();
+            mass_adjustment_table.draw();
+        });
+
 
         // Initialize Select2 pada elemen select psc_filter
         $('#br_filter').select2({
@@ -1102,6 +1128,7 @@
         $(document).delegate('#export_by_date', 'click', function(e) {
             e.preventDefault();
             var dt = $('#ma_date').val();
+            $('#loader').show();
 
             $.ajaxSetup({
                 headers: {
@@ -1118,11 +1145,14 @@
                 dataType: 'json',
                 url: "{{ url('export_mass_by_date') }}",
                 success: function(r) {
+                    console.log(r)
+                    $('#loader').hide();
                     $('#MassAdjustmentExportModal').modal('show');
                     $('#MassAdjustmentDetailtb tbody').empty(); // Clear existing rows
                     $(r.data).each(function(index, row) {
                         $('#MassAdjustmentDetailtb tbody').append(
                             "<tr><td>" + (index + 1) +
+                            "</td><td>" + formatTanggal(row.adjustment_date) +
                             "</td><td>" + row.ma_code +
                             "</td><td>" + row.st_name +
                             "</td><td>" + row.pl_code +
@@ -1155,8 +1185,27 @@
             });
         });
 
+        function formatTanggal(tgl) {
+            if (!tgl) return '-';
+            const date = new Date(tgl);
+            const bulanIndo = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            const day = date.getDate();
+            const month = bulanIndo[date.getMonth()];
+            const year = date.getFullYear();
+            const jam = String(date.getHours()).padStart(2, '0');
+            const menit = String(date.getMinutes()).padStart(2, '0');
+            const detik = String(date.getSeconds()).padStart(2, '0');
+            return `${day} ${month} ${year} ${jam}:${menit}:${detik}`;
+        }
+
+
+        //export bro
         $(document).delegate('#excel_report', 'click', function(e) {
             e.preventDefault();
+            $('#loader_download').show();
             var dt = $('#ma_date').val();
 
             $.ajaxSetup({
@@ -1176,6 +1225,7 @@
                     responseType: 'blob'
                 },
                 success: function(blob, status, xhr) {
+                    $('#loader_download').hide();
                     var filename = "exported_data.xlsx";
                     var disposition = xhr.getResponseHeader('Content-Disposition');
                     if (disposition && disposition.indexOf('attachment') !== -1) {

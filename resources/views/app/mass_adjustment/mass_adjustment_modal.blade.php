@@ -196,12 +196,30 @@
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Export SO Adjustment</h5>
             </div>
 
+{{--            <style>--}}
+{{--                #MassAdjustmentDetailtb {--}}
+{{--                    /*table-layout: fixed;*/--}}
+{{--                    width: 100%;--}}
+{{--                }--}}
+
+{{--                #MassAdjustmentDetailtb td:nth-child(2),--}}
+{{--                #MassAdjustmentDetailtb th:nth-child(2) {--}}
+{{--                    width: 550px;--}}
+{{--                }--}}
+
+{{--                #MassAdjustmentDetailtb td:nth-child(2),--}}
+{{--                #MassAdjustmentDetailtb th:nth-child(2) {--}}
+{{--                    width: 150px !important;--}}
+{{--                }--}}
+{{--            </style>--}}
+
             <div class="modal-body table-responsive">
                 <a class="btn-sm btn-primary float-left" id="excel_report">Excel</a><br />
                 <table class="table table-hover" id="MassAdjustmentDetailtb" style="width: 100%;">
                     <thead class="text-dark">
                         <tr>
                             <th class="text-dark">No</th>
+                            <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Adjustment</th>
                             <th class="text-dark">Kode</th>
                             <th class="text-dark">Store</th>
                             <th class="text-dark">BIN</th>

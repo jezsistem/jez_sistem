@@ -77,7 +77,8 @@
                                     </select>
                                     <div id="bin_filter_parent"></div>
                                 </div>
-                                <div id="bin_filter_panel" class="mt-4"></div><br />
+                                <div id="bin_filter_panel" class="mt-4"></div>
+                                <br/>
                                 <!--end::Timeline-->
                             </div>
                             <!--end: Card Body-->
@@ -136,21 +137,21 @@
                             </div>
                             <div class="card-body table-responsive">
                                 <input type="search" class="form-control  col-6" id="stock_search"
-                                    placeholder="Cari stok" /><br />
+                                       placeholder="Cari stok"/><br/>
                                 <table class="table table-hover table-checkable" id="Stocktb">
                                     <thead class="bg-light text-dark">
-                                        <tr>
-                                            <th class="text-dark">No</th>
-                                            <th class="text-dark">BIN</th>
-                                            <th class="text-dark">BRAND</th>
-                                            <th class="text-dark">ARTIKEL</th>
-                                            <th class="text-dark">WARNA</th>
-                                            <th class="text-dark">SIZE</th>
-                                            <th class="text-dark">Sub Kategori</th>
-                                            <th class="text-dark">Stok</th>
-                                            <th class="text-dark">Harga Beli</th>
-                                            <th class="text-dark">Harga Jual</th>
-                                        </tr>
+                                    <tr>
+                                        <th class="text-dark">No</th>
+                                        <th class="text-dark">BIN</th>
+                                        <th class="text-dark">BRAND</th>
+                                        <th class="text-dark">ARTIKEL</th>
+                                        <th class="text-dark">WARNA</th>
+                                        <th class="text-dark">SIZE</th>
+                                        <th class="text-dark">Sub Kategori</th>
+                                        <th class="text-dark">Stok</th>
+                                        <th class="text-dark">Harga Beli</th>
+                                        <th class="text-dark">Harga Jual</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
 
@@ -165,9 +166,9 @@
                                 <div class="col-4">
                                     <a class="btn btn-success mt-2" id="import_btn">Import Template</a>
                                     <input type="search" class="form-control form-control-sm col-6 mt-2" id="ma_search"
-                                        placeholder="Cari kode" />
+                                           placeholder="Cari kode"/>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-2">
                                     <select name="filter_status" id="filter_status" class="form-control col-6">
                                         <option value="">-- Pilih Status Adjustment --</option>
                                         <option value="1">Selesai</option>
@@ -175,35 +176,100 @@
                                     </select>
                                     <div id="filter_status_parent"></div>
                                 </div>
-                                <div class="col-2">
-                                    <a class="btn btn-date-info font-weight-bold mr-2" id="kt_dashboard_daterangepicker"
-                                        data-toggle="tooltip" title="Tanggal PO untuk diexport" data-placement="left">
-                                        <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
-                                        <span class="font-size-base font-weight-bolder"
-                                            id="kt_dashboard_daterangepicker_date"></span>
-                                        <input type="hidden" id="ma_date" />
-                                    </a>
-                                    <a class="btn btn-success mt-2" id="export_by_date">Export By Date</a>
+                                <div class="col-6">
+                                    <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
+                                            <a class="btn btn-date-info font-weight-bold mr-2"
+                                               id="kt_dashboard_daterangepicker"
+                                               data-toggle="tooltip" title="Tanggal PO untuk diexport"
+                                               data-placement="left">
+                                                <span class="font-size-base" id="kt_dashboard_daterangepicker_title">Today</span>
+                                                <span class="font-size-base font-weight-bolder"
+                                                      id="kt_dashboard_daterangepicker_date"></span>
+                                                <input type="hidden" id="ma_date"/>
+                                            </a>
+
+                                            <a class="btn btn-success" id="export_by_date">Export By Date</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <style>
+                                #loader .loading-text {
+                                    position: absolute;
+                                    top: 60%;
+                                    left: 50%;
+                                    margin-top: 20px;
+                                    transform: translateX(-50%);
+                                    font-size: 1.5em;
+                                    font-weight: bold;
+                                    color: #333;
+                                    font-family: Arial, sans-serif;
+                                }
+
+                                /* Dot animation */
+                                #loader_download .dots::after {
+                                    content: "";
+                                    animation: dots 1s steps(4, end) infinite;
+                                }
+
+                                #loader_download .loading-text {
+                                    position: absolute;
+                                    top: 60%;
+                                    left: 50%;
+                                    margin-top: 20px;
+                                    transform: translateX(-50%);
+                                    font-size: 1.5em;
+                                    font-weight: bold;
+                                    color: #333;
+                                    font-family: Arial, sans-serif;
+                                }
+
+                                /* Dot animation */
+                                #loader .dots::after {
+                                    content: "";
+                                    animation: dots 1s steps(4, end) infinite;
+                                }
+
+
+                                @keyframes dots {
+                                    0%, 100% { content: ""; }
+                                    25% { content: "."; }
+                                    50% { content: ".."; }
+                                    75% { content: "..."; }
+                                }
+                            </style>
+
+
+                            <div id="loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
+                                <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%" style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:10px; border-radius:10px;">
+                                <div class="loading-text">Load all history item Adjustment ....<span class="dots">...</span></div>
+                            </div>
+
+                            <div id="loader_download" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
+                                <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%" style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:10px; border-radius:10px;">
+                                <div class="loading-text">Download History item Adjustment ....<span class="dots">...</span></div>
+                            </div>
+
                             <div class="card-body table-responsive">
                                 <table class="table table-hover table-checkable" id="MassAdjustmenttb">
                                     <thead class="bg-light text-dark">
-                                        <tr>
-                                            <th class="text-dark">No</th>
-                                            <th class="text-dark">Kode</th>
-                                            <th class="text-dark">Store</th>
-                                            <th class="text-dark">Dibuat Oleh</th>
-                                            <th class="text-dark">Approval</th>
-                                            <th class="text-dark">Eksekutor</th>
-                                            <th class="text-dark">Editor</th>
-                                            <th class="text-dark">Note</th>
-                                            <th class="text-dark">Tipe</th>
-                                            <th class="text-dark">Dibuat</th>
-                                            <th class="text-dark">Diupdate</th>
-                                            <th class="text-dark">Status</th>
-                                            <th class="text-dark">Action</th>
-                                        </tr>
+                                    <tr>
+                                        <th class="text-dark">No</th>
+                                        <th class="text-dark">Kode</th>
+                                        <th class="text-dark">Store</th>
+                                        <th class="text-dark">Dibuat Oleh</th>
+                                        <th class="text-dark">Approval</th>
+                                        <th class="text-dark">Eksekutor</th>
+                                        <th class="text-dark">Editor</th>
+                                        <th class="text-dark">Note</th>
+                                        <th class="text-dark">Tipe</th>
+                                        <th class="text-dark">Dibuat</th>
+                                        <th class="text-dark">Diupdate</th>
+                                        <th class="text-dark">Status</th>
+                                        <th class="text-dark">Action</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
 
@@ -218,45 +284,45 @@
                             <div class="card-body row">
                                 <div class="col-4">
                                     <a class="btn btn-primary mt-2"><span data-id=""
-                                            id="ma_code">MADJxxxxxx</span></a>
+                                                                          id="ma_code">MADJxxxxxx</span></a>
                                     <input type="search" class="form-control form-control-sm col-12 mt-2"
-                                        id="mad_search" placeholder="Cari artikel" />
+                                           id="mad_search" placeholder="Cari artikel"/>
                                 </div>
                                 <div class="col-4">
                                     Approval
                                     <div class="row">
                                         <input class="form-control col-8" placeholder="Approval" data-id=""
-                                            type="text" id="approval_label" readonly /> <a
-                                            class="btn btn-sm btn-success col-2" style="background:#007bff;"
-                                            id="approval_btn">Approve</a>
+                                               type="text" id="approval_label" readonly/> <a
+                                                class="btn btn-sm btn-success col-2" style="background:#007bff;"
+                                                id="approval_btn">Approve</a>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <a class="btn btn-success ml-auto" style="float:right; background:#007bff;"
-                                        id="execution_btn">Eksekusi Penyesuaian</a>
+                                       id="execution_btn">Eksekusi Penyesuaian</a>
                                     <a class="btn btn-primary ml-auto mr-2" style="float:right;"
-                                        id="export_mad_btn">Export</a>
+                                       id="export_mad_btn">Export</a>
                                 </div>
                             </div>
                             <div class="card-body table-responsive">
                                 <table class="table table-hover table-checkable" id="MassAdjustmentDetailtb">
                                     <thead class="bg-light text-dark">
-                                        <tr>
-                                            <th class="text-dark">No</th>
-                                            <th class="text-dark">BIN</th>
-                                            <th class="text-dark">BRAND</th>
-                                            <th class="text-dark">SKU</th>
-                                            <th class="text-dark">ARTIKEL</th>
-                                            <th class="text-dark">WARNA</th>
-                                            <th class="text-dark">SIZE</th>
-                                            <th class="text-dark">Sub Kategori</th>
-                                            <th class="text-dark">HB</th>
-                                            <th class="text-dark">HJ</th>
-                                            <th class="text-dark">Qty System</th>
-                                            <th class="text-dark">Qty SO</th>
-                                            <th class="text-dark">Type</th>
-                                            <th class="text-dark">Diff</th>
-                                        </tr>
+                                    <tr>
+                                        <th class="text-dark">No</th>
+                                        <th class="text-dark">BIN</th>
+                                        <th class="text-dark">BRAND</th>
+                                        <th class="text-dark">SKU</th>
+                                        <th class="text-dark">ARTIKEL</th>
+                                        <th class="text-dark">WARNA</th>
+                                        <th class="text-dark">SIZE</th>
+                                        <th class="text-dark">Sub Kategori</th>
+                                        <th class="text-dark">HB</th>
+                                        <th class="text-dark">HJ</th>
+                                        <th class="text-dark">Qty System</th>
+                                        <th class="text-dark">Qty SO</th>
+                                        <th class="text-dark">Type</th>
+                                        <th class="text-dark">Diff</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
 
