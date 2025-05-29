@@ -58,7 +58,7 @@
                             <label>Deskripsi</label>
                             <textarea class="form-control" name="po_description" id="po_description" rows="3" disabled></textarea>
                         </div>
-                        <div class="col-4">
+                        <div class="col-4 mt-3">
                             <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
                             {{-- <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
                                 <option value="">- Pilih Tipe Stok -</option>
@@ -69,7 +69,7 @@
                             {{-- <div id="stkt_id_parent"></div> --}}
                             <input type="text" class="form-control" id="stkt_id" name="stkt_id" readonly>
                         </div>
-                        <div class="col-4">
+                        <div class="col-4 mt-3">
                             <label>Pajak</label>
                             <select class="form-control" id="tax_id" name="tax_id" required disabled>
                                 <option value="">- Pajak -</option>
@@ -79,18 +79,37 @@
                             </select>
                             <div id="tax_id_parent"></div>
                         </div>
-                        <div class="col-4">
-                            <label>Tanggal Terima (mm/dd/yy) </label>
-                            <input type="date" id="receive_date" class="form-control" value="" />
+                        <div class="col-4 mt-3">
+                            <label>Payment</label>
+                            <input type="text" class="form-control" id="a_name" name="a_name" disabled>
+                            <div id="acc_id_parent"></div>
                         </div>
+                        {{-- <div class="col-4 mt-5">
+                            <label>Payment</label>
+                            <select class="form-control" id="acc_id" name="acc_id" required disabled>
+                                <option value="">- Payment -</option>
+                                @foreach ($data['acc_id'] as $key => $value)
+                                    <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </select>
+                            <div id="acc_id_parent"></div>
+                        </div> --}}
                         <div class="col-4 mt-3">
                             <label>Dispute</label>
                             <input type="text" id="dispute" class="form-control" name="dispute" disabled />
                         </div>
                         <div class="col-4 mt-3">
+                            <label>Tanggal Terima (mm/dd/yy) </label>
+                            <input type="date" id="receive_date" class="form-control" value="" />
+                        </div>
+                                                <div class="col-4 mt-3">
                             <label>Ongkos Kirim</label>
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                 disabled />
+                        </div>
+                        <div class="col-4 mt-3">
+                            <label>Keterangan Dispute</label>
+                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3" disabled></textarea>
                         </div>
                         <div class="col-4 mt-5">
                             <div class="row">
@@ -104,14 +123,8 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-4">
-                            <label>Keterangan Dispute</label>
-                            <textarea class="form-control" name="dispute_description" id="dispute_description" rows="3" disabled></textarea>
-                        </div>
-                        <div class="col-4"></div>
-                        <div class="col-4 mt-4 d-flex flex-column">
-                            <label class="badge badge-primary">Bukti Gambar Invoice dan Paket</label>
+                        <div class="col-4 mt-3 d-flex flex-column">
+                            <label class="badge badge-primary mt-3">Bukti Gambar Invoice dan Paket</label>
                             <div class="row  justify-content-between">
                                 <a class="input-group col-5" type="button" id="InvoiceImagesBtn"
                                     aria-haspopup="true" aria-expanded="false">

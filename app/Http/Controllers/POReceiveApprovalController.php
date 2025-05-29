@@ -87,6 +87,7 @@ class POReceiveApprovalController extends Controller
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
             'stkt_id' => StockType::where('stkt_delete', '!=', '1')->orderByDesc('id')->pluck('stkt_name', 'id'),
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
+            // 'acc_id' => Account::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
             'segment' => request()->segment(1)
         ];
         return view('app.po_approval.po_approval', compact('data'));
@@ -109,6 +110,7 @@ class POReceiveApprovalController extends Controller
                     u_id_approve,
                     sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty,
                     acc_id,
+                    a_name,
                     is_paid,
                     ts_stores.id as st_id,
                     ts_purchase_orders.id as po_id,
@@ -134,6 +136,7 @@ class POReceiveApprovalController extends Controller
                     ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                     ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_orders.stkt_id') // Join for stkt_id
                     ->leftJoin('taxes', 'taxes.id', '=', 'purchase_orders.tax_id') // Join for tax_id
+                    ->leftJoin('accounts', 'accounts.id', '=', 'purchase_orders.acc_id') // Join for acc_id
                     ->whereNotNull('poads_invoice')
                     ->groupBy('poads_invoice')
             )
@@ -247,6 +250,7 @@ class POReceiveApprovalController extends Controller
             $r['ps_id'] = $draft->ps_id;
             $r['stkt_id'] = $draft->stkt_id;
             $r['tax_id'] = $draft->tax_id;
+            $r['acc_id'] = $draft->acc_id;
             $r['po_description'] = $draft->po_description;
             $r['dispute_description'] = $draft->dispute_description;
             //             $r['dispute'] = $draft->dispute;
@@ -267,14 +271,15 @@ class POReceiveApprovalController extends Controller
                     u_id_approve, br_name, p_name, sz_name, p_color, stkt_name, poads_qty, 
                     poad_purchase_price, ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty,
                     poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.pay_date,
-                    ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute") // Added stkt_id and tax_id
+                    ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, ts_accounts.a_name, 
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
                 ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_articles.po_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('accounts', 'accounts.id', '=', 'purchase_orders.acc_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_order_article_detail_statuses.stkt_id')

@@ -300,6 +300,7 @@
             // var tgl_terima = full_date.split(' ')[0];
             var stkt_name = po_approval_table.row(this).data().stkt_name;
             var tax_id = po_approval_table.row(this).data().tax_id;
+            var a_name = po_approval_table.row(this).data().a_name;
             var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table.row(this).data().created_at.split(' ')[0];
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
@@ -372,6 +373,7 @@
                     $('#total_approval_price').text(formatRupiah(r));
                     $('#stkt_id').val(stkt_name);
                     $('#tax_id').val(tax_id);
+                    $('#a_name').val(a_name);
                     $('#dispute').val(dispute_text);
                     $('#dispute_description').val(dispute_description);
                     $('#pay_date').val(pay_date);
