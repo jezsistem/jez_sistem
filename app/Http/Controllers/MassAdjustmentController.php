@@ -251,31 +251,9 @@ class MassAdjustmentController extends Controller
     public function adjustmentDetailDatatables(Request $request)
     {
         if (request()->ajax()) {
-            // Step 1: Update `qty_export` to match `pls_qty` where needed
-            //            DB::table('mass_adjustment_details')
-            //                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
-            //                ->whereColumn('mass_adjustment_details.qty_export', '<>', 'product_location_setups.pls_qty')
-            //                ->update(['mass_adjustment_details.qty_export' => DB::raw('ts_product_location_setups.pls_qty')]);
-            //
-            //            // Step 2: Update `mad_type` and `mad_diff` based on comparison between `qty_so` and `qty_export`
-            //            DB::table('mass_adjustment_details')
-            //                ->whereColumn('qty_so', '>', 'qty_export')
-            //                ->update([
-            //                    'mad_type' => '+',
-            //                    'mad_diff' => DB::raw('qty_so - qty_export')
-            //                ]);
-            //
-            //            DB::table('mass_adjustment_details')
-            //                ->whereColumn('qty_so', '<', 'qty_export')
-            //                ->update([
-            //                    'mad_type' => '-',
-            //                    'mad_diff' => DB::raw('qty_so - qty_export')
-            //                ]);
-
-            // Proceed with the DataTables query
             return datatables()->of(
                 DB::table('mass_adjustment_details')
-                    ->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
+                    ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date,br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
             avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode")
                     ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
                     ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -656,7 +634,7 @@ class MassAdjustmentController extends Controller
             }
         }
         $data = DB::table('mass_adjustment_details')
-            ->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
+            ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
         avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code, ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_stores.st_name")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -729,7 +707,7 @@ class MassAdjustmentController extends Controller
         }
 
         $data = DB::table('mass_adjustment_details')
-            ->selectRaw("ts_mass_adjustment_details.id as id, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
+            ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
     avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code,ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_stores.st_name")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')

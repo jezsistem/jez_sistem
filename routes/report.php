@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
     // StockCardController
     Route::get('stock_card', [StockCardController::class, 'index']);
     Route::get('stc_article_datatables', [StockCardController::class, 'getADatatables']);
+    Route::get('export-article-stock', [StockCardController::class, 'exportArticleStock']);
     Route::post('stc_save', [StockCardController::class, 'saveData']);
     Route::post('stc_delete', [StockCardController::class, 'deleteData']);
     Route::post('stock_report_fill_data', [StockCardController::class, 'fillData']);
