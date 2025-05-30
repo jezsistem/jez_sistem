@@ -7,7 +7,6 @@
             }
         });
 
-
         var cek_dana_online_table = $('#CekDanaOnlinetb').DataTable({
             destroy: true,
             processing: true,
@@ -52,8 +51,8 @@
                     name: 'order_number',
                 },
                 {
-                    data: 'cashout_date',
-                    name: 'cashout_date',
+                    data: 'settle_date',
+                    name: 'settle_date',
                     render: function(data, type, row) {
                         if (!data) {
                             return '-';
@@ -67,8 +66,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'final_price',
-                    name: 'final_price',
+                    data: 'revenue',
+                    name: 'revenue',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
@@ -76,8 +75,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'total_disburshed_amount',
-                    name: 'total_disburshed_amount',
+                    data: 'total_settle',
+                    name: 'total_settle',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
@@ -85,8 +84,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'seller_voucher_discount',
-                    name: 'seller_voucher_discount',
+                    data: 'seller_discount',
+                    name: 'seller_discount',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
@@ -94,8 +93,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'total_online_cut',
-                    name: 'total_online_cut',
+                    data: 'total_fee',
+                    name: 'total_fee',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
@@ -115,8 +114,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'jezpro_transaction_date',
-                    name: 'jezpro_transaction_date',
+                    data: 'trx_date',
+                    name: 'trx_date',
                     render: function(data, type, row) {
                         if (!data) {
                             return '-';
@@ -130,8 +129,8 @@
                     defaultContent: '-'
                 },
                 {
-                    data: 'pos_real_price',
-                    name: 'pos_real_price',
+                    data: 'jezpro_price',
+                    name: 'jezpro_price',
                     render: function(data, type, row) {
                         return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
                         data));
@@ -142,14 +141,18 @@
                     data: 'diff_jezpro_mp',
                     name: 'diff_jezpro_mp',
                     render: function(data, type, row) {
-                        return !data || isNaN(data) ? '-' : 'Rp ' + formatRupiah(parseInt(
+                        return !data || isNaN(data) ? 'Rp 0' : 'Rp ' + formatRupiah(parseInt(
                         data));
                     },
-                    defaultContent: '-'
                 },
                 {
                     data: 'status',
                     name: 'status',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'status_refund',
+                    name: 'status_refund',
                     defaultContent: '-'
                 },
             ],
@@ -169,11 +172,14 @@
             var to_id = $('#to_id').val(data.to_id);
             var st_id = $('#st_id_form').val(data.st_id);
             var order_number = $('#order_number').val(data.order_number);
+
+            console.log("Selected Row Data:", data);
+            
             
 
             // Fetch data from cek_dana_detail based on to_id
             $.ajax({
-                url: "{{ url('cek_dana_detail') }}/" + data.order_number,
+                url: "{{ url('cek_dana_detail') }}/" + data.order_number+ "/" + data.st_id,
                 type: "GET",
                 success: function(response) {
                 if (response) {
@@ -182,21 +188,21 @@
                     modalBody.find('tr').eq(0).find('td').eq(1).text(response.st_name || '-');
                     modalBody.find('tr').eq(1).find('td').eq(1).text(response.platform_name || '-');
                     modalBody.find('tr').eq(2).find('td').eq(1).text(response.order_number || '-');
-                    modalBody.find('tr').eq(3).find('td').eq(1).text(response.jezpro_transaction_date ? new Date(response.jezpro_transaction_date).toLocaleDateString('id-ID') : '-');
-                    modalBody.find('tr').eq(4).find('td').eq(1).text(response.cashout_date ? new Date(response.cashout_date).toLocaleDateString('id-ID') : '-');
-                    modalBody.find('tr').eq(5).find('td').eq(1).text(response.pos_real_price ? 'Rp ' + formatRupiah(response.pos_real_price) : 'Rp 0');
-                    modalBody.find('tr').eq(6).find('td').eq(1).text(response.final_price ? 'Rp ' + formatRupiah(response.final_price) : 'Rp 0');
+                    modalBody.find('tr').eq(3).find('td').eq(1).text(response.trx_date ? new Date(response.trx_date).toLocaleDateString('id-ID') : '-');
+                    modalBody.find('tr').eq(4).find('td').eq(1).text(response.settle_date ? new Date(response.settle_date).toLocaleDateString('id-ID') : '-');
+                    modalBody.find('tr').eq(5).find('td').eq(1).text(response.jezpro_price ? 'Rp ' + formatRupiah(response.jezpro_price) : 'Rp 0');
+                    modalBody.find('tr').eq(6).find('td').eq(1).text(response.revenue ? 'Rp ' + formatRupiah(response.revenue) : 'Rp 0');
                     modalBody.find('tr').eq(7).find('td').eq(1).text(response.diff ? 'Rp ' + formatRupiah(response.diff) : 'Rp 0');
-                    modalBody.find('tr').eq(8).find('td').eq(1).text(response.seller_voucher_discount ? 'Rp ' + formatRupiah(response.seller_voucher_discount) : 'Rp 0');
+                    modalBody.find('tr').eq(8).find('td').eq(1).text(response.seller_discount ? 'Rp ' + formatRupiah(response.seller_discount) : 'Rp 0');
                     modalBody.find('tr').eq(9).find('td').eq(1).text(response.seller_voucher_persentage || '0%');
                     modalBody.find('tr').eq(10).find('td').eq(1).text(response.affiliate_commission ? 'Rp ' + formatRupiah(response.affiliate_commission) : 'Rp 0');
                     modalBody.find('tr').eq(11).find('td').eq(1).text(response.marketplace_commission_fee ? 'Rp ' + formatRupiah(response.marketplace_commission_fee) : 'Rp 0');
                     modalBody.find('tr').eq(12).find('td').eq(1).text(response.service_fee ? 'Rp ' + formatRupiah(response.service_fee) : 'Rp 0');
                     modalBody.find('tr').eq(13).find('td').eq(1).text(response.voucher_xtra_service_fee ? 'Rp ' + formatRupiah(response.voucher_xtra_service_fee) : 'Rp 0');
                     modalBody.find('tr').eq(14).find('td').eq(1).text(response.cashback_service_fee ? 'Rp ' + formatRupiah(response.cashback_service_fee) : 'Rp 0');
-                    modalBody.find('tr').eq(15).find('td').eq(1).text(response.total_online_cut ? 'Rp ' + formatRupiah(response.total_online_cut) : 'Rp 0');
+                    modalBody.find('tr').eq(15).find('td').eq(1).text(response.total_fee ? 'Rp ' + formatRupiah(response.total_fee) : 'Rp 0');
                     modalBody.find('tr').eq(16).find('td').eq(1).text(response.fee_persentage || '-');
-                    modalBody.find('tr').eq(17).find('td').eq(1).text(response.total_disburshed_amount ? 'Rp ' + formatRupiah(response.total_disburshed_amount) : 'Rp 0');
+                    modalBody.find('tr').eq(17).find('td').eq(1).text(response.total_settle ? 'Rp ' + formatRupiah(response.total_settle) : 'Rp 0');
                 }
                 },
                 error: function() {

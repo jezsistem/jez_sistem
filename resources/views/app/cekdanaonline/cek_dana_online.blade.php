@@ -87,11 +87,20 @@
                                         </select>
                                         <div id="filter_platform_parent"></div>
                                     </div>
-                                    <div class="col-2">
+                                    {{-- <div class="col-2">
                                         <select name="filter_status" id="filter_status" class="form-control">
                                             <option value="">-- Pilih Status Cetak --</option>
                                             <option value="false">Belum di Cetak</option>
                                             <option value="true">Sudah di Cetak</option>
+                                        </select>
+                                        <div id="filter_status_parent"></div>
+                                    </div> --}}
+                                    <div class="col-2">
+                                        <select name="filter_status" id="filter_status" class="form-control">
+                                            <option value=0>-- Pilih Status Cetak --</option>
+                                            <option value=1>Done</option>
+                                            <option value=2>Belum Cair</option>
+                                            <option value=3>Belum TRX</option>
                                         </select>
                                         <div id="filter_status_parent"></div>
                                     </div>
@@ -142,6 +151,7 @@
                                         <th class="text-dark">Net Sales Jezpro</th>
                                         <th class="text-dark">Diff Jezpro - MP</th>
                                         <th class="text-dark">Status</th>
+                                        <th class="text-dark">Refund</th>
                                     </tr>
                                     </thead>
                                     <tbody></tbody>

@@ -104,230 +104,93 @@ class CekDanaOnlineController extends Controller
 
     public function getDatatables(Request $request)
     {
-
+        $this->runStoredProcedureCekDanaOnline();
         if (!empty($request->st_id)) {
             $st_id = $request->st_id;
         } else {
             $st_id = -1;
         }
 
-        $data = DB::table('pos_transactions')
-            ->select(
-                DB::raw('COALESCE(ts_pos_transactions.pos_invoice, ts_online_funds.order_number) as order_number'),
-                'online_funds.order_number as online_order_number',
-                'online_transactions.order_number as import_trx_order_number',
-                'pos_transactions.pos_real_price',
-                'stores.st_name',
-                'online_funds.platform_name',
-                'online_funds.final_price',
-                'online_funds.total_online_cut',
-                'online_funds.seller_voucher_discount',
-                'online_funds.affiliate_cut',
-                'online_funds.marketplace_commision_fee',
-                'online_funds.service_fee',
-                'online_funds.voucher_xtra_service_fee',
-                'online_funds.cashback_service_fee',
-                'online_funds.cashout_date',
-                'pos_transactions.created_at',
-                'online_funds.total_disburshed_amount',
-                'pos_transaction_details.created_at as jezpro_transaction_date',
-                'online_transactions.online_print'
-            )
-            ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-            ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_invoice')
-            ->leftJoin('online_funds', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
-            ->leftJoin('stores', function ($join) {
-                $join->on('pos_transactions.st_id', '=', 'stores.id')
-                    ->orOn('online_funds.st_id', '=', 'stores.id');
-            })
-            ->where(function ($query) use ($st_id) {
-                $query->whereNotNull('pos_transactions.st_id')
-                    ->where('pos_transactions.st_id', $st_id)
-                    ->orWhere(function ($query) use ($st_id) {
-                        $query->whereNotNull('online_funds.st_id')
-                            ->where('online_funds.st_id', $st_id);
-                    });
-            })
-            ->orderBy('pos_transactions.created_at', 'desc')
-            ->groupBy('pos_transactions.pos_invoice');
-
-        $d = $request->all();
-        if (!empty($d['status'])) {
-            if ($d['status'] === 'false') {
-                $data->where('online_transactions.online_print', 0)->orWhereNull('online_transactions.online_print');
-            } else {
-                $data->where('online_transactions.online_print', 1);
-            }
-        }
-        if (!empty($d['platform'])) {
-            $data->where('online_funds.platform_name', $d['platform']);
-        }
-        if (!empty($d['filter_trx_date'])) {
-            $trxDateRange = explode('|', $d['filter_trx_date']);
-            if (count($trxDateRange) == 2) {
-                $data->whereBetween('pos_transaction_details.created_at', [
-                    $trxDateRange[0] . ' 00:00:00',
-                    $trxDateRange[1] . ' 23:59:59'
-                ]);
-            } elseif ($trxDateRange[0] == $trxDateRange[1]) {
-                $data->whereBetween('pos_transaction_details.created_at', [
-                    $trxDateRange[0] . ' 00:00:00',
-                    $trxDateRange[0] . ' 23:59:59'
-                ]);
-            }
-        }
-        if (!empty($d['filter_cash_out_date'])) {
-            $cashOutDateRange = explode('|', $d['filter_cash_out_date']);
-            if (count($cashOutDateRange) == 2) {
-                $data->whereBetween('online_funds.cashout_date', [$cashOutDateRange[0], $cashOutDateRange[1]]);
-            } elseif ([$cashOutDateRange[0]] == $cashOutDateRange[1]) {
-                $data->whereBetween('online_funds.cashout_date', [
-                    $cashOutDateRange[0] . ' 00:00:00',
-                    $cashOutDateRange[1] . ' 23:59:59'
-                ]);
-            }
-        }
-        if (!empty($d['search'])) {
-            $data->where(function ($query) use ($d) {
-                $query->where('pos_transactions.pos_invoice', 'like', '%' . $d['search'] . '%')
-                    ->orWhere('online_funds.order_number', 'like', '%' . $d['search'] . '%');
-            });
+        if (!$request->filter_trx_date) {
+            $request_filter_trx_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_trx_date = $request->filter_trx_date;
         }
 
-        $data = $data->union(
-            DB::table('online_funds')
-                ->select(
-                    DB::raw('COALESCE(ts_pos_transactions.pos_invoice, ts_online_funds.order_number) as order_number'),
-                    'online_funds.order_number as online_order_number',
-                    'online_transactions.order_number as import_trx_order_number',
-                    'pos_transactions.pos_real_price',
-                    'stores.st_name',
-                    'online_funds.platform_name',
-                    'online_funds.final_price',
-                    'online_funds.total_online_cut',
-                    'online_funds.seller_voucher_discount',
-                    'online_funds.affiliate_cut',
-                    'online_funds.marketplace_commision_fee',
-                    'online_funds.service_fee',
-                    'online_funds.voucher_xtra_service_fee',
-                    'online_funds.cashback_service_fee',
-                    'online_funds.cashout_date',
-                    'pos_transactions.created_at',
-                    'online_funds.total_disburshed_amount',
-                    'pos_transaction_details.created_at as jezpro_transaction_date',
-                    'online_transactions.online_print'
-                )
-                ->leftJoin('pos_transactions', 'online_funds.order_number', '=', 'pos_transactions.pos_invoice')
-                ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_invoice')
-                ->leftJoin('stores', function ($join) {
-                    $join->on('pos_transactions.st_id', '=', 'stores.id')
-                        ->orOn('online_funds.st_id', '=', 'stores.id');
-                })
-                ->where(function ($query) use ($st_id) {
-                    $query->whereNotNull('pos_transactions.st_id')
-                        ->where('pos_transactions.st_id', $st_id)
-                        ->orWhere(function ($query) use ($st_id) {
-                            $query->whereNotNull('online_funds.st_id')
-                                ->where('online_funds.st_id', $st_id);
-                        });
-                })
+        if (!$request->filter_cash_out_date) {
+            $request_filter_cash_out_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_cash_out_date = $request->filter_cash_out_date;
+        }
 
-                ->when(!empty($d['status']), function ($query) use ($d) {
-                    if ($d['status'] === 'false') {
-                        $query->where('online_transactions.online_print', 0)->orWhereNull('online_transactions.online_print');
-                    } else {
-                        $query->where('online_transactions.online_print', 1);
-                    }
-                })
+        $filter_order_number = '%'.$request->search.'%' ?? '%%';
+        $filter_st_id = $st_id;
+        $filter_platform_name = '%'.$request->platform.'%' ?? '%%';
+        $filter_status = (int) $request->status;
+        
+        $exp_trx_date = explode('|', $request_filter_trx_date);
+        $filter_trx_date_start = $exp_trx_date[0];
+        $filter_trx_date_end = $exp_trx_date[1];
 
-                ->when(!empty($d['platform']), function ($query) use ($d) {
-                    $query->where('online_funds.platform_name', $d['platform']);
-                })
-                ->when(!empty($d['filter_trx_date']), function ($query) use ($d) {
-                    $dateRange = explode('|', $d['filter_trx_date']);
-                    if (count($dateRange) == 2) {
-                        $query->whereBetween('pos_transaction_details.created_at', [
-                            $dateRange[0] . ' 00:00:00',
-                            $dateRange[1] . ' 23:59:59'
-                        ]);
-                    } elseif ($dateRange[0] == $dateRange[1]) {
-                        $query->whereBetween('pos_transaction_details.created_at', [
-                            $dateRange[0] . ' 00:00:00',
-                            $dateRange[0] . ' 23:59:59'
-                        ]);
-                    }
-                })
-                ->when(!empty($d['filter_cash_out_date']), function ($query) use ($d) {
-                    $dateRange = explode('|', $d['filter_cash_out_date']);
-                    if (count($dateRange) == 2) {
-                        $query->whereBetween('online_funds.cashout_date', [$dateRange[0], $dateRange[1]]);
-                    } elseif ([$dateRange[0]] == $dateRange[1]) {
-                        $query->whereBetween('online_funds.cashout_date', [
-                            $dateRange[0] . ' 00:00:00',
-                            $dateRange[1] . ' 23:59:59'
-                        ]);
-                    }
-                })
-                ->when(!empty($d['status']), function ($query) use ($d) {
-                    if ($d['status'] === 'false') {
-                        $query->where('online_transactions.online_print', 0)->orWhereNull('online_transactions.online_print');
-                    } else {
-                        $query->where('online_transactions.online_print', 1);
-                    }
-                })
-                ->when(!empty($d['search']), function ($query) use ($d) {
-                    $query->where(function ($query) use ($d) {
-                        $query->where('pos_transactions.pos_invoice', 'like', '%' . $d['search'] . '%')
-                            ->orWhere('online_funds.order_number', 'like', '%' . $d['search'] . '%');
-                    });
-                })
-                ->orderBy('pos_transactions.created_at', 'desc')
-                ->groupBy('pos_transactions.pos_invoice')
-        );
+        $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+        $filter_cash_out_date_start = $exp_cash_out_date[0];
+        $filter_cash_out_date_end = $exp_cash_out_date[1];
 
-//        dd($d['search']);
-        return DataTables::of($data)
-            ->addColumn('fee_persentage', function ($data) {
-                if ($data->final_price && $data->total_online_cut && $data->total_online_cut != 0) {
-                    return number_format(($data->total_online_cut / $data->final_price * 100), 2) . '%';
+        $data = DB::select("CALL cek_dana_online(?,?,?,?,?,?,?,?)",[
+            $filter_order_number,
+            $filter_st_id,
+            $filter_platform_name,
+            $filter_status,
+            $filter_trx_date_start,
+            $filter_trx_date_end,
+            $filter_cash_out_date_start,
+            $filter_cash_out_date_end
+        ]);
+
+        $collection = collect($data);
+
+        return DataTables::of($collection)
+            ->addColumn('fee_persentage', function ($collection) {
+                if ($collection->revenue && $collection->total_fee && $collection->total_fee != 0) {
+                    return number_format(($collection->total_fee / $collection->revenue * 100), 2) . '%';
                 }
                 return '0.00%';
             })
-            ->addColumn('seller_voucher_persentage', function ($data) {
-                if ($data->final_price && $data->seller_voucher_discount && $data->seller_voucher_discount != 0) {
-                    return number_format(($data->seller_voucher_discount / $data->final_price * 100), 2) . '%';
+            ->addColumn('seller_voucher_persentage', function ($collection) {
+                if ($collection->revenue && $collection->seller_discount && $collection->seller_discount != 0) {
+                    return number_format(($collection->seller_discount / $collection->revenue * 100), 2) . '%';
                 }
                 return '0.00%';
             })
-            ->addColumn('diff_jezpro_mp', function ($data) {
-                return $data->pos_real_price - $data->final_price;
+            ->addColumn('diff_jezpro_mp', function ($collection) {
+                return $collection->jezpro_price - $collection->revenue;
             })
-            ->addColumn('status', function ($data) {
+            ->addColumn('status', function ($collection) {
                 if (
-                    $data->order_number &&
-                    $data->online_order_number &&
-                    $data->import_trx_order_number &&
-                    $data->order_number == $data->online_order_number &&
-                    $data->order_number == $data->import_trx_order_number &&
-                    $data->online_print != 0
+                    $collection->settle_date && $collection->status_print == 1
                 ) {
                     return '<button class="btn btn-sm btn-success">Done</button>';
                 }
 
-                // if (!$data->order_number && $data->online_order_number) {
-                //     return '<button class="btn btn-sm btn-danger">Belum di Trx</button>';
-                // }
-
-                if ($data->order_number && !$data->online_order_number) {
+                if ($collection->status_print == 1 && !$collection->settle_date) {
                     return '<button class="btn btn-sm btn-warning">Belum Cair</button>';
                 }
-                if ($data->online_print == 0 || $data->online_print == null) {
+                if ($collection->status_print == 0 && $collection->settle_date) {
                     return '<button class="btn btn-sm btn-warning">Belum Trx</button>';
+                }
+                if ($collection->status_print == 0 && !$collection->settle_date) {
+                    return '<button class="btn btn-sm btn-dark">Belum Cair & Belum Trx</button>';
                 }
                 return '<button class="btn btn-sm btn-secondary">Unknown</button>';
             })
-            ->rawColumns(['status'])
+            ->addColumn('status_refund', function ($collection) {
+                if ($collection->status_trx === 'REFUND') {
+                    return '<button class="btn btn-sm btn-danger">Refund</button>';
+                } else {
+                    return '<button class="btn btn-sm btn-dark">Not Refund</button>';
+                }
+            })
+            ->rawColumns(['status','status_refund'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -337,106 +200,88 @@ class CekDanaOnlineController extends Controller
 //        $filters = $request->all();
 //        return Excel::download(new TransactionOnlineSettleExport($filters), 'transactions.xlsx');
 
-        $query = $this->getQueryForExport($request);
-        $data = $query->get();
-
-//        dd($data);
+        $data = $this->getQueryForExport($request);
 
         if ($data->isEmpty()) {
             return back()->with('error', 'Data kosong untuk diekspor');
         }
 
-        return Excel::download(new TransactionOnlineSettleExport($request->all()), 'cek_dana_online.xlsx');
+        $store_name = $data->first()->st_name ?? 'All Stores';
+        $platform_name = $request->platform_name ?? 'All Platforms';
+        $file_name = 'Cek Dana Online - ' . $store_name . ' - ' . $platform_name . ' - ' . date('Y-m-d') . '.xlsx';
+
+        return Excel::download(new TransactionOnlineSettleExport($data), $file_name);
     }
 
-    public function getQueryForExport(Request $request)
-    {
-        $d = $request->all();
-//        dd($d, 'asd');
-        $st_id = !empty($request->st_id) ? $request->st_id : -1;
-
-        $baseQuery = DB::table('pos_transactions')
-            ->select(
-                DB::raw('COALESCE(ts_pos_transactions.pos_invoice, ts_online_funds.order_number) as order_number'),
-                'online_funds.order_number as online_order_number',
-                'online_transactions.order_number as import_trx_order_number',
-                'pos_transactions.pos_real_price',
-                'stores.st_name',
-                'online_funds.platform_name',
-                'online_funds.final_price',
-                'online_funds.total_online_cut',
-                'online_funds.seller_voucher_discount',
-                'online_funds.affiliate_cut',
-                'online_funds.marketplace_commision_fee',
-                'online_funds.service_fee',
-                'online_funds.voucher_xtra_service_fee',
-                'online_funds.cashback_service_fee',
-                'online_funds.cashout_date',
-                'pos_transactions.created_at',
-                'online_funds.total_disburshed_amount',
-                'pos_transaction_details.created_at as jezpro_transaction_date',
-                'online_transactions.online_print'
-            )
-            ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-            ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_invoice')
-            ->leftJoin('online_funds', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
-            ->leftJoin('stores', function ($join) {
-                $join->on('pos_transactions.st_id', '=', 'stores.id')
-                    ->orOn('online_funds.st_id', '=', 'stores.id');
-            })
-            ->where(function ($query) use ($st_id) {
-                $query->whereNotNull('pos_transactions.st_id')->where('pos_transactions.st_id', $st_id)
-                    ->orWhere(function ($query) use ($st_id) {
-                        $query->whereNotNull('online_funds.st_id')->where('online_funds.st_id', $st_id);
-                    });
-            });
-
-        // Filter dinamis
-        if (!empty($d['status'])) {
-            if ($d['status'] === 'false') {
-                $baseQuery->where('online_transactions.online_print', 0)
-                    ->orWhereNull('online_transactions.online_print');
-            } else {
-                $baseQuery->where('online_transactions.online_print', 1);
-            }
+    public function getQueryForExport(Request $request) {
+        $this->runStoredProcedureCekDanaOnline();
+        
+        if (!empty($request->st_id)) {
+            $st_id = $request->st_id;
+        } else {
+            $st_id = -1;
         }
 
-        if (!empty($d['platform'])) {
-            $baseQuery->where('online_funds.platform_name', $d['platform']);
+        if (!$request->filter_trx_date) {
+            $request_filter_trx_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_trx_date = $request->filter_trx_date;
         }
 
-        if (!empty($d['filter_trx_date'])) {
-            $range = explode('|', $d['filter_trx_date']);
-            if (count($range) === 2) {
-                $baseQuery->whereBetween('pos_transaction_details.created_at', [
-                    $range[0] . ' 00:00:00', $range[1] . ' 23:59:59'
-                ]);
-            } elseif ($range[0] == $range[1]) {
-                $baseQuery->whereBetween('pos_transaction_details.created_at', [
-                    $range[0] . ' 00:00:00', $range[0] . ' 23:59:59'
-                ]);
-            }
+        if (!$request->filter_cash_out_date) {
+            $request_filter_cash_out_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_cash_out_date = $request->filter_cash_out_date;
         }
 
-        if (!empty($d['filter_cash_out_date'])) {
-            $range = explode('|', $d['filter_cash_out_date']);
-            if (count($range) === 2) {
-                $baseQuery->whereBetween('online_funds.cashout_date', [$range[0], $range[1]]);
-            } elseif ($range[0] == $range[1]) {
-                $baseQuery->whereBetween('online_funds.cashout_date', [
-                    $range[0] . ' 00:00:00', $range[1] . ' 23:59:59'
-                ]);
-            }
-        }
+        $filter_order_number = '%' . $request->search . '%' ?? '%%';
+        $filter_st_id = $st_id;
+        $filter_platform_name = '%' . $request->platform . '%' ?? '%%';
+        $filter_status = (int) $request->status;
 
-        if (!empty($d['search'])) {
-            $baseQuery->where(function ($query) use ($d) {
-                $query->where('pos_transactiodns.pos_invoice', 'like', '%' . $d['search'] . '%')
-                    ->orWhere('online_funds.order_number', 'like', '%' . $d['search'] . '%');
-            });
-        }
+        $exp_trx_date = explode('|', $request_filter_trx_date);
+        $filter_trx_date_start = $exp_trx_date[0];
+        $filter_trx_date_end = $exp_trx_date[1];
 
-        return $baseQuery->orderBy('pos_transactions.created_at', 'desc');
+        $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+        $filter_cash_out_date_start = $exp_cash_out_date[0];
+        $filter_cash_out_date_end = $exp_cash_out_date[1];
+
+        $data = DB::select("CALL cek_dana_online(?,?,?,?,?,?,?,?)", [
+            $filter_order_number,
+            $filter_st_id,
+            $filter_platform_name,
+            $filter_status,
+            $filter_trx_date_start,
+            $filter_trx_date_end,
+            $filter_cash_out_date_start,
+            $filter_cash_out_date_end
+        ]);
+
+        $collection = collect($data)->map(function ($item) {
+            $item->fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0
+            ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
+            : '0.00%';
+            $item->seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0
+            ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
+            : '0.00%';
+            $item->diff_jezpro_mp = isset($item->jezpro_price, $item->revenue)
+            ? $item->jezpro_price - $item->revenue
+            : null;
+            $item->status = $item->settle_date && $item->status_print == 1
+            ? 'Done'
+            : ($item->status_print == 1 && !$item->settle_date
+                ? 'Belum Cair'
+                : ($item->status_print == 0 && $item->settle_date
+                ? 'Belum Trx'
+                : ($item->status_print == 0 && !$item->settle_date
+                    ? 'Belum Cair & Belum Trx'
+                    : 'Unknown')));
+            $item->status_refund = $item->status_trx === 'REFUND' ? 'Refund' : 'Not Refund';
+            return $item;
+        });
+
+        return $collection;
     }
 
 
@@ -467,40 +312,30 @@ class CekDanaOnlineController extends Controller
     //         }
     //     }
 
-    public function getDetail($order_number)
-    {
-        $data = DB::table('pos_transactions')
-            ->select('pos_transactions.pos_invoice as order_number', 'pos_transactions.pos_real_price', 'stores.st_name', 'online_funds.platform_name', 'online_funds.final_price', 'online_funds.total_online_cut', 'online_funds.seller_voucher_discount', 'online_funds.affiliate_cut', 'online_funds.marketplace_commision_fee', 'online_funds.service_fee', 'online_funds.voucher_xtra_service_fee', 'online_funds.cashback_service_fee', 'online_funds.cashout_date', 'online_funds.final_price', 'pos_transactions.created_at', 'online_funds.total_disburshed_amount', 'pos_transaction_details.created_at as jezpro_transaction_date')
-            ->join('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-            ->leftJoin('online_funds', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
-            ->leftJoin('stores', 'pos_transactions.st_id', '=', 'stores.id')
-            ->where('pos_transactions.pos_invoice', $order_number);
+    public function getDetail($order_number, $store_id) {
+        $data = DB::select("CALL cek_dana_online(?,?,?,?,?,?,?,?)", [
+            $order_number,
+            $store_id,
+            '%%',
+            '0',
+            null,
+            null,
+            null,
+            null
+        ]);
 
-        if (empty($data->first())) {
-            $data = DB::table('online_funds')
-                ->select('online_funds.order_number', 'pos_transactions.pos_real_price', 'stores.st_name', 'online_funds.platform_name', 'online_funds.final_price', 'online_funds.total_online_cut', 'online_funds.seller_voucher_discount', 'online_funds.affiliate_cut', 'online_funds.marketplace_commision_fee', 'online_funds.service_fee', 'online_funds.voucher_xtra_service_fee', 'online_funds.cashback_service_fee', 'online_funds.cashout_date', 'online_funds.final_price', 'pos_transactions.created_at', 'online_funds.total_disburshed_amount', 'pos_transaction_details.created_at as jezpro_transaction_date')
-                ->leftJoin('pos_transactions', 'pos_transactions.pos_invoice', '=', 'online_funds.order_number')
-                ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
-                ->leftJoin('stores', 'online_funds.st_id', '=', 'stores.id')
-                ->where('online_funds.order_number', $order_number);
-        }
-
-        $data = $data->latest()->first();
-        if (!$data) {
-
-            return response()->json(['error' => 'Data not found'], 404);
-        }
-
-        $data->diff = isset($data->pos_real_price, $data->final_price) ? $data->pos_real_price - $data->final_price : null;
-        $data->fee_persentage = isset($data->total_online_cut, $data->final_price) && $data->final_price != 0
-            ? number_format(($data->total_online_cut / $data->final_price * 100), 2) . '%'
+        $collection = collect($data)->map(function ($item) {
+            $item->diff = isset($item->jezpro_price, $item->revenue) ? $item->jezpro_price - $item->revenue : null;
+            $item->fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0
+            ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
             : '0.00%';
-        $data->seller_voucher_persentage = isset($data->seller_voucher_discount, $data->final_price) && $data->final_price != 0
-            ? number_format(($data->seller_voucher_discount / $data->final_price * 100), 2) . '%'
+            $item->seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0
+            ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
             : '0.00%';
-        $data->status = DB::table('pos_transactions')->where('pos_invoice', $order_number)->value('pos_status') ?? 'Unknown';
+            return $item;
+        });
 
-        return response()->json($data);
+        return response()->json($collection->first());
     }
 
     public function importData(Request $request)
@@ -607,5 +442,160 @@ class CekDanaOnlineController extends Controller
         return [
             'processedData' => 'success'
         ];
+    }
+
+    public function runStoredProcedureCekDanaOnline() {
+        DB::raw('
+        DROP PROCEDURE IF EXISTS cek_dana_online;
+
+        DELIMITER //
+
+        CREATE PROCEDURE cek_dana_online(
+            IN filter_order_number VARCHAR(225),
+            IN filter_st_id INT,
+            IN filter_platform_name VARCHAR(50),
+            IN filter_status INT,
+            IN filter_trx_date_start date,
+            IN filter_trx_date_end date,
+            IN filter_cash_out_start date,
+            IN filter_cash_out_end date
+        )
+        BEGIN
+
+            DROP TEMPORARY TABLE IF EXISTS temp_lastest_pos_transaction;
+            CREATE TEMPORARY TABLE temp_lastest_pos_transaction
+            (
+                order_number              VARCHAR(225),
+                st_id                     INT NULL,
+                platform_name             VARCHAR(50),
+                settle_date               DATE,
+                revenue                   FLOAT,
+                total_settle              FLOAT,
+                seller_discount           FLOAT,
+                total_fee                 FLOAT,
+                trx_date                  DATETIME,
+                jezpro_price              FLOAT,
+                status_trx                VARCHAR(40),
+                status_print              BOOLEAN,
+
+                affiliate_cut             FLOAT,
+                marketplace_commision_fee FLOAT,
+                service_fee               FLOAT,
+                voucher_xtra_service_fee  FLOAT,
+                cashback_service_fee      FLOAT
+            );
+
+            -- Insert latest POS transaction data
+            -- This populates: order_number, st_id, jezpro_price, trx_date, status
+            -- Other columns are NULL
+            INSERT INTO temp_lastest_pos_transaction (order_number, st_id, platform_name, settle_date, revenue,
+                                                    total_settle, seller_discount, total_fee, trx_date, jezpro_price,
+                                                    status_trx, status_print, affiliate_cut, marketplace_commision_fee,
+                                                    service_fee,
+                                                    voucher_xtra_service_fee, cashback_service_fee)
+            WITH ranked_messages AS (SELECT pos_order_number,
+                                            st_id,
+                                            created_at,
+                                            pos_real_price,
+                                            pos_status,
+                                            ROW_NUMBER() OVER (PARTITION BY pos_order_number ORDER BY id DESC) AS rn
+                                    FROM ts_pos_transactions
+                                    where st_id = filter_st_id)
+            SELECT r.pos_order_number                   AS order_number,
+                r.st_id,
+                ts_online_transactions.platform_name AS platform_name,
+                NULL                                 AS settle_date,
+                NULL                                 AS revenue,
+                NULL                                 AS total_settle,
+                NULL                                 AS seller_discount,
+                NULL                                 AS total_fee,
+                r.created_at                         AS trx_date,
+                r.pos_real_price                     AS jezpro_price,
+                r.pos_status                         AS status_trx,
+                ts_online_transactions.online_print  AS status_print,
+
+                NULL                                 AS affiliate_cut,
+                NULL                                 AS marketplace_commision_fee,
+                NULL                                 AS service_fee,
+                NULL                                 AS voucher_xtra_service_fee,
+                NULL                                 AS cashback_service_fee
+
+            FROM ranked_messages r
+                    JOIN ts_online_transactions ON r.pos_order_number = ts_online_transactions.order_number
+            WHERE r.rn = 1
+            and platform_name like filter_platform_name;
+
+            -- Insert online funds data
+            -- This populates: order_number, st_id, platform_name, settle_date, revenue, total_settle, seller_discount,
+            -- total_fee, fee_percentage, seller_discount_percentage
+            -- Other columns are NULL
+            INSERT INTO temp_lastest_pos_transaction (order_number, st_id, platform_name, settle_date, revenue,
+                                                    total_settle, seller_discount, total_fee, trx_date, jezpro_price,
+                                                    status_trx, status_print, affiliate_cut, marketplace_commision_fee,
+                                                    service_fee,
+                                                    voucher_xtra_service_fee, cashback_service_fee)
+            SELECT order_number              AS order_number,
+                st_id                     AS st_id,
+                platform_name             AS platform_name,
+                cashout_date              AS settle_date,
+                final_price               AS revenue,
+                total_disburshed_amount   AS total_settle,
+                seller_voucher_discount   AS seller_discount,
+                total_online_cut          AS total_fee,
+                NULL                      AS trx_date,
+                NULL                      AS jezpro_price,
+                NULL                      AS status_print,
+                NULL                      AS status_print,
+
+                affiliate_cut             AS affiliate_cut,
+                marketplace_commision_fee AS marketplace_commision_fee,
+                service_fee               AS service_fee,
+                voucher_xtra_service_fee  AS voucher_xtra_service_fee,
+                cashback_service_fee      AS cashback_service_fee
+            FROM ts_online_funds
+            where st_id = filter_st_id
+            and platform_name like filter_platform_name;
+
+            -- Select from the temporary table, grouping by order_number
+            -- and using MAX() to merge values.
+            SELECT *
+            from (SELECT order_number,
+                        MAX(st_id)              AS st_id,
+                        MAX(st_name)              AS st_name,
+                        MAX(platform_name)        AS platform_name,
+                        MAX(settle_date)          AS settle_date,
+                        MAX(revenue)              AS revenue,
+                        MAX(total_settle)         AS total_settle,
+                        MAX(seller_discount)      AS seller_discount,
+                        MAX(total_fee)            AS total_fee,
+                        MAX(trx_date)             AS trx_date,
+                        MAX(jezpro_price)         AS jezpro_price,
+                        MAX(status_trx)           AS status_trx,
+                        MAX(status_print)         AS status_print,
+                        MAX(affiliate_cut)             AS affiliate_cut,
+                        MAX(marketplace_commision_fee) AS marketplace_commision_fee,
+                        MAX(service_fee)               AS service_fee,
+                        MAX(voucher_xtra_service_fee)  AS voucher_xtra_service_fee,
+                        MAX(cashback_service_fee)      AS cashback_service_fee
+                FROM temp_lastest_pos_transaction t
+                        JOIN ts_stores s ON t.st_id = s.id
+                GROUP BY order_number
+                ORDER BY trx_date) AS grouped_data
+            WHERE order_number like filter_order_number
+            AND (IF(filter_trx_date_start is null and filter_trx_date_end is null, trx_date < CURDATE(),
+                    trx_date between filter_trx_date_start and filter_trx_date_end)
+                OR IF(filter_cash_out_start is null and filter_cash_out_end is null, settle_date < CURDATE(),
+                    settle_date between filter_cash_out_start and filter_cash_out_end))
+            AND CASE
+                    WHEN filter_status = 0 THEN order_number is not null
+                    WHEN filter_status = 1 THEN settle_date IS NOT NULL AND status_print = 1 #done
+                    WHEN filter_status = 2 THEN status_print = 1 AND settle_date IS NULL #belum_cair
+                    WHEN filter_status = 3 THEN status_print = 0 AND settle_date IS NOT NULL #belum_trx
+                END;
+
+        END //
+
+        DELIMITER ;
+        ');
     }
 }
