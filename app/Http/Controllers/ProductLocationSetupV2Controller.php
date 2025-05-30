@@ -519,12 +519,13 @@ class ProductLocationSetupV2Controller extends Controller
     {
 
         if (request()->ajax()) {
-            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'ps_barcode','st_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at')
+            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'ps_barcode','st_name', 'p_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_mutations.pl_id')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->leftJoin('users', 'users.id', '=', 'product_mutations.u_id')
                 ->join('product_location_setups', 'product_mutations.pls_id','=',  'product_location_setups.id')
-                ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id'))
+                ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->join('products', 'products.id', '=', 'product_stocks.p_id'))
                 ->editColumn('article', function ($data) {
                     $article = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
                         ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -604,17 +605,13 @@ class ProductLocationSetupV2Controller extends Controller
                         });
                     }
                     if (!empty($request->get('search'))) {
-                        $instance
-                            ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_mutations.pls_id')
-                            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                            ->where(function ($w) use ($request) {
-                                $search = $request->get('search');
-                                $w->orWhereRaw('CONCAT(product_stocks.ps_barcode, " ", brands.br_name, " ", products.p_name, " ", products.p_color, " ", sizes.sz_name) LIKE ?', ["%$search%"]);
-                            });
-                    }
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('product_stocks.ps_barcode', 'LIKE', "%$search%")
+                                ->orWhere('users.u_name', 'LIKE', "%$search%")
+                                ->orWhere('products.p_name', 'LIKE', "%$search%");
+                        });
+                    }                                        
                 })
                 ->addIndexColumn()
                 ->make(true);

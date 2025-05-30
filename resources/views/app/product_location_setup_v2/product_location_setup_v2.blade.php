@@ -193,7 +193,7 @@
                             <!--end::Header-->
                             <div class="card-body table-responsive">
                                 <center><input type="search" class="form-control  col-6" id="history_search"
-                                        placeholder="Cari artikel / BIN Tujuan" /></center><br />
+                                        placeholder="Cari Artikel / Sku / User" /></center><br />
                                 <table class="table table-hover table-checkable" id="BinHistorytb">
                                     <thead class="bg-light text-dark">
                                         <tr>
