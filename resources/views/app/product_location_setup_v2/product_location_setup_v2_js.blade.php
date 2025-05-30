@@ -2,6 +2,7 @@
     var history_date = '';
     var start_bin_table = '';
     var end_bin_table = '';
+    var bin_history_table = '';
 
     function loadStartEnd() {
         $.ajax({
@@ -18,6 +19,22 @@
             url: "{{ url('reload_end_bin') }}",
             success: function(r) {
                 $("#end").html(r);
+            }
+        });
+        $.ajax({
+            type: "GET",
+            dataType: 'html',
+            url: "{{ url('reload_history_start_bin') }}",
+            success: function(r) {
+                $("#history_start").html(r);
+            }
+        });
+        $.ajax({
+            type: "GET",
+            dataType: 'html',
+            url: "{{ url('reload_history_end_bin') }}",
+            success: function(r) {
+                $("#history_end").html(r);
             }
         });
         return false;
@@ -288,7 +305,7 @@
 
 
         //ISI TABEL HISTORY SETUP
-        var bin_history_table = $('#BinHistorytb').DataTable({
+        bin_history_table = $('#BinHistorytb').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
@@ -305,6 +322,8 @@
                     d.search = $('#history_search').val();
                     d.st_id = $('#st_id_filter').val();
                     d.date = history_date;
+                    d.history_bin_start = $('#history_pl_id_start').val();
+                    d.history_bin_end = $('#history_pl_id_end').val();
                 }
             },
             columns: [{
@@ -463,8 +482,11 @@
             $('#export_btn').addClass('disabled');
             var date = history_date;
             var st_id = $('#st_id_filter').val();
+            var search = $('#history_search').val();
+            var history_bin_start = $('#history_pl_id_start').val();
+            var history_bin_end = $('#history_pl_id_end').val();
             window.location.href = "{{ url('history_setup_export') }}?&st_id=" + st_id + "&date=" +
-                date + "";
+                date + "&search=" + search + "&history_bin_start=" + history_bin_start + "&history_bin_end=" + history_bin_end;
 
             $('#export_btn').text('Export Data');
             $('#export_btn').removeClass('disabled');

@@ -525,7 +525,17 @@ class ProductLocationSetupV2Controller extends Controller
                 ->leftJoin('users', 'users.id', '=', 'product_mutations.u_id')
                 ->join('product_location_setups', 'product_mutations.pls_id','=',  'product_location_setups.id')
                 ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
-                ->join('products', 'products.id', '=', 'product_stocks.p_id'))
+                ->join('products', 'products.id', '=', 'product_stocks.p_id')
+                ->where(function ($query) use ($request) {
+                    if (!empty($request->get('history_bin_start'))) {
+                        $query->where('product_location_setups.pl_id', '=', $request->get('history_bin_start'));
+                    }
+                })
+                ->where(function ($query) use ($request) {
+                    if (!empty($request->get('history_bin_end'))) {
+                        $query->where('product_mutations.pl_id', '=', $request->get('history_bin_end'));
+                    }
+                }))
                 ->editColumn('article', function ($data) {
                     $article = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
                         ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -780,10 +790,48 @@ class ProductLocationSetupV2Controller extends Controller
         return view('app.product_location_setup_v2._end', compact('data'));
     }
 
+    public function reloadHistoryStartBin()
+    {
+        $access = $this->checkAccess();
+
+        $exception = ExceptionLocation::select('pl_code')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
+
+        $pl_id = ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
+            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+            ->where('pl_delete', '!=', '1')
+            ->orderByDesc('pl_code')->pluck('location', 'pl_id');
+
+        $data = [
+            'pl_id' => $pl_id
+        ];
+        return view('app.product_location_setup_v2._history_start', compact('data'));
+    }
+
+    public function reloadHistoryEndBin()
+    {
+        $access = $this->checkAccess();
+
+        $exception = ExceptionLocation::select('pl_code')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
+        $pl_id = ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
+            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+            ->where('pl_delete', '!=', '1')
+            ->orderByDesc('pl_code')->pluck('location', 'pl_id');
+
+        $data = [
+            'pl_id' => $pl_id,
+        ];
+        return view('app.product_location_setup_v2._history_end', compact('data'));
+    }
+
     public function exportData(Request $request)
     {
         $st_id = $request->get('st_id');
         $date = $request->get('date');
+        $search = $request->get('search');
+        $history_bin_start = $request->get('history_bin_start');
+        $history_bin_end = $request->get('history_bin_end');
 
         $start = null;
         $end = null;
@@ -798,6 +846,7 @@ class ProductLocationSetupV2Controller extends Controller
         } else {
             $start = $date;
         }
-        return Excel::download(new SetupHistoryExport($st_id, $start, $end), 'history_setup_barang.xlsx');
+        $fileName = 'setup_history_' . date('Y_m_d_H_i_s') . '.xlsx';
+        return Excel::download(new SetupHistoryExport($st_id, $start, $end, $search, $history_bin_start, $history_bin_end), $fileName);
     }
 }

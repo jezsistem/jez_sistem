@@ -217,6 +217,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('bin_history_datatables', [ProductLocationSetupV2Controller::class, 'binHistoryDatatables']);
     Route::get('reload_start_bin', [ProductLocationSetupV2Controller::class, 'reloadStartBin']);
     Route::get('reload_end_bin', [ProductLocationSetupV2Controller::class, 'reloadEndBin']);
+    Route::get('reload_history_start_bin', [ProductLocationSetupV2Controller::class, 'reloadHistoryStartBin']);
+    Route::get('reload_history_end_bin', [ProductLocationSetupV2Controller::class, 'reloadHistoryEndBin']);
     Route::get('history_setup_export', [ProductLocationSetupV2Controller::class, 'exportData']);
     Route::delete('cancel_import', [ProductLocationSetupV2Controller::class, 'cancelImportData']);
     Route::post('sv_mutation_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);

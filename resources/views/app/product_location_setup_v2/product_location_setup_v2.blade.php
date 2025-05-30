@@ -89,7 +89,7 @@
                                     </div>
                                 </div>
 
-                                
+
                                 {{-- tabel A/kiri --}}
                                 <table class="table table-hover table-checkable pr-4" id="StartBintb">
                                     <thead class="bg-light text-dark">
@@ -191,9 +191,17 @@
                                 </div>
                             </div>
                             <!--end::Header-->
-                            <div class="card-body table-responsive">
-                                <center><input type="search" class="form-control  col-6" id="history_search"
-                                        placeholder="Cari Artikel / Sku / User" /></center><br />
+                            <div class="card-body table-responsive" style="min-height: 70vh;">
+                                    <div class="row justify-content-center align-items-center text-center">
+                                        <input type="search" class="form-control col-4 mr-2" id="history_search"
+                                            placeholder="Cari Artikel / Sku / User" />
+                                        <div class="form-group col-3 mb-0">
+                                            <div id="history_start"></div>
+                                        </div>
+                                        <div class="form-group col-3 mb-0">
+                                            <div id="history_end"></div>
+                                        </div>
+                                    </div><br />
                                 <table class="table table-hover table-checkable" id="BinHistorytb">
                                     <thead class="bg-light text-dark">
                                         <tr>
