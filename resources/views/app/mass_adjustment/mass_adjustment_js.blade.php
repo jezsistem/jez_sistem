@@ -1175,6 +1175,8 @@
                             "</td><td>" + row.mad_diff +
                             "</td><td>" + row.adjust_note +
                             "</td><td>" + row.adjust_type +
+                            "</td><td>" + row.ma_approve_time +
+                            "</td><td>" + row.ma_executor_time +
                             "</td></tr>"
                         );
                     });

@@ -22,7 +22,6 @@ class MassExportByDate implements FromCollection, WithHeadings
             "Tanggal Adjustment",
 //            "Eksekutor",
 //            "Approval",
-            "Tanggal Adjustment",
             "Kode",
             "Store",
             "BIN",
@@ -40,6 +39,8 @@ class MassExportByDate implements FromCollection, WithHeadings
             "Diff",
             "Note",
             "Tipe Adjustment",
+            "Tanggal Approval",
+            "Tanggal Eksekusi"
         ];
     }
 
@@ -52,7 +53,6 @@ class MassExportByDate implements FromCollection, WithHeadings
                 $row->adjustment_date,
 //                $row->ma_executor_name,
 //                $row->ma_approval_name,
-                $row->adjustment_date,
                 $row->ma_code,
                 $row->st_name,
                 $row->pl_code,
@@ -69,7 +69,9 @@ class MassExportByDate implements FromCollection, WithHeadings
                 $row->mad_type,
                 $row->mad_diff,
                 $row->adjust_note,
-                $row->adjust_type
+                $row->adjust_type,
+                $row->ma_approve_time,
+                $row->ma_executor_time
             ];
         }
         return collect($export);
