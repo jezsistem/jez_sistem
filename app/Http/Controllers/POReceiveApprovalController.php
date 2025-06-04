@@ -409,7 +409,7 @@ class POReceiveApprovalController extends Controller
                 DB::table('products')
                     ->where('id', $check_product_stock->p_id)
                     ->update([
-                        'product_cogs' => $avg_cogs,
+                        'p_purchase_price' => $avg_cogs,
                         'updated_at' => now()
                     ]);
             }
