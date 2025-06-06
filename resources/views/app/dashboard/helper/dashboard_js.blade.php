@@ -354,6 +354,7 @@
                 // d.pl_id = $('#pl_id_out').val();
                 d.search = $('#out_search').val();
                 d.st_id = $('#st_id').val();
+                d.sa_id = $('#storage_area').val();
             }
         },
         columns: [{
@@ -442,6 +443,7 @@
             data: function(d) {
                 d.search = $('#scan_out_search').val();
                 d.st_id = $('#st_id').val();
+                d.sa_id = $('#storage_area').val();
             }
         },
         columns: [{

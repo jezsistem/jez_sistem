@@ -513,10 +513,16 @@ class TrackingController extends Controller
                 ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($query) use ($request) {
+                    if ($request->get('sa_id')) {
+                        $query->where('product_locations.sa_id', $request->get('sa_id'));
+                    }
+                })
                 ->where(function ($w) {
                     $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
                 })
-                ->where('plst_status', '=', 'WAITING TO TAKE'))
+                ->where('plst_status', '=', 'WAITING TO TAKE')
+                )
                 ->editColumn('article', function ($data) {
                     $timestamp = $data->created_at;
                     $formattedTimestamp = Carbon::parse($timestamp)->translatedFormat('d F Y H:i:s');
@@ -557,6 +563,11 @@ class TrackingController extends Controller
                 ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->where(function ($query) use ($request) {
+                    if ($request->get('sa_id')) {
+                        $query->where('product_locations.sa_id', $request->get('sa_id'));
+                    }
+                })
                 ->where(function ($w) {
                     $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
                 })

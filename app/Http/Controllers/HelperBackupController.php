@@ -9,6 +9,7 @@ use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\UserActivity;
 use App\Models\PosTransaction;
+use App\Models\StorageArea;
 
 class HelperBackupController extends Controller
 {
@@ -65,13 +66,15 @@ class HelperBackupController extends Controller
         $select_activity = ['user_activities.id as uaid', 'u_name', 'ua_description', 'user_activities.created_at as ua_created_at'];
         $activity = $user_activity->getAllJoinData($select_activity);
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
+        $storage_areas = StorageArea::query()->select('name', 'id')->where('st_id', Auth::user()->st_id)->orderBy('name')->get();
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
             'sidebar' => $this->sidebar(),
             'invoice' => PosTransaction::select('pos_invoice', 'plst_status'),
             'user' => $user_data,
-            'segment' => request()->segment(1)
+            'segment' => request()->segment(1),
+            'storage_areas' => $storage_areas,
         ];
 //        dd($data['user']);
         return view('app.dashboard.helper.dashboard', compact('data'));
