@@ -123,6 +123,10 @@
                         <label for="exampleTextarea">Alamat</label>
                         <input type="text" class="form-control" id="u_address" name="u_address"/>
                     </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Masa Aktif <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="u_active" name="u_active" required />
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

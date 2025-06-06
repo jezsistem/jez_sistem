@@ -364,6 +364,7 @@
             var u_email = user_table.row(this).data().u_email;
             var u_phone = user_table.row(this).data().u_phone;
             var u_address = user_table.row(this).data().u_address;
+            var u_active = user_table.row(this).data().u_active;
             var delete_access = user_table.row(this).data().delete_access;
             jQuery.noConflict();
             $('#UserModal').modal('show');
@@ -379,6 +380,7 @@
             $('#u_phone').val(u_phone);
             $('#u_password').val('');
             $('#u_address').val(u_address);
+            $('#u_active').val(u_active);
             $('#_id').val(uid);
             $('#_mode').val('edit');
 

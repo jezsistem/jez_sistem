@@ -17,10 +17,10 @@ class UserController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -29,7 +29,7 @@ class UserController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -42,9 +42,9 @@ class UserController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -100,53 +100,53 @@ class UserController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(User::selectRaw("ts_users.id as uid, ts_groups.id as gr_id, ts_stores.id as st_id, stt_id, u_nip, u_ktp, u_secret_code
-            , u_name, stt_name, st_name, u_email, u_phone, u_address, delete_access, g_name, u_delete,
+            , u_name, stt_name, st_name, u_email, u_phone, u_address, u_active, delete_access, g_name, u_delete,
             count(ts_user_menu_accesses.id) as uma")
-            ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
-            ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
-            ->leftJoin('store_types', 'store_types.id', '=', 'users.stt_id')
-            ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
-            ->leftJoin('user_menu_accesses', 'user_menu_accesses.u_id', '=', 'users.id')
-            ->groupBy('uid')
-            ->where('u_delete', '!=', '1'))
-            ->editColumn('st_name', function($data){
-                return '<span style="white-space: nowrap;">'.$data->st_name.'</span>';
-            })
-            ->editColumn('g_name', function($data){
-                return strtoupper($data->g_name);
-            })
-            ->editColumn('menu_access', function($data){
-                return "<span class='badge badge-sm badge-primary' id='menu_access_btn' data-id='".$data->uid."'><i class='fa fa-eye'></i></span>";
-            })
-            ->editColumn('delete_access_show', function($data){
-                if ($data->delete_access == '1') {
-                    $delete = 'Ya';
-                } else {
-                    $delete = '-';
-                }
-                return "<span class='badge badge-sm badge-primary'>".$delete."</span>";
-            })
-            ->rawColumns(['st_name', 'menu_access', 'delete_access_show'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhere('g_name', 'LIKE', "%$search%")
-                        ->orWhere('st_name', 'LIKE', "%$search%")
-                        ->orWhere('stt_name', 'LIKE', "%$search%")
-                        ->orWhere('u_name', 'LIKE', "%$search%")
-                        ->orWhere('u_nip', 'LIKE', "%$search%")
-                        ->orWhere('u_ktp', 'LIKE', "%$search%")
-                        ->orWhere('u_secret_code', 'LIKE', "%$search%")
-                        ->orWhere('u_phone', 'LIKE', "%$search%")
-                        ->orWhere('u_address', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
+                ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
+                ->leftJoin('store_types', 'store_types.id', '=', 'users.stt_id')
+                ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
+                ->leftJoin('user_menu_accesses', 'user_menu_accesses.u_id', '=', 'users.id')
+                ->groupBy('uid')
+                ->where('u_delete', '!=', '1'))
+                ->editColumn('st_name', function ($data) {
+                    return '<span style="white-space: nowrap;">' . $data->st_name . '</span>';
+                })
+                ->editColumn('g_name', function ($data) {
+                    return strtoupper($data->g_name);
+                })
+                ->editColumn('menu_access', function ($data) {
+                    return "<span class='badge badge-sm badge-primary' id='menu_access_btn' data-id='" . $data->uid . "'><i class='fa fa-eye'></i></span>";
+                })
+                ->editColumn('delete_access_show', function ($data) {
+                    if ($data->delete_access == '1') {
+                        $delete = 'Ya';
+                    } else {
+                        $delete = '-';
+                    }
+                    return "<span class='badge badge-sm badge-primary'>" . $delete . "</span>";
+                })
+                ->rawColumns(['st_name', 'menu_access', 'delete_access_show'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhere('g_name', 'LIKE', "%$search%")
+                                ->orWhere('st_name', 'LIKE', "%$search%")
+                                ->orWhere('stt_name', 'LIKE', "%$search%")
+                                ->orWhere('u_name', 'LIKE', "%$search%")
+                                ->orWhere('u_nip', 'LIKE', "%$search%")
+                                ->orWhere('u_ktp', 'LIKE', "%$search%")
+                                ->orWhere('u_secret_code', 'LIKE', "%$search%")
+                                ->orWhere('u_phone', 'LIKE', "%$search%")
+                                ->orWhere('u_address', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -155,39 +155,55 @@ class UserController extends Controller
         $user = new User;
         $mode = $request->_mode;
         $id = $request->_id;
+
         $data = [
-			'st_id' => $request->st_id,
-			'stt_id' => $request->stt_id,
-			'u_name' => $request->u_name,
-			'u_nip' => $request->u_nip,
-			'u_ktp' => $request->u_ktp,
-			'u_secret_code' => $request->u_secret_code,
-			'u_email' => $request->u_email,
-			'u_phone' => $request->u_phone,
-			'u_address' => $request->u_address,
-			'delete_access' => $request->delete_access,
-			'u_delete' => '0',
-		];
+            'st_id' => $request->st_id,
+            'stt_id' => $request->stt_id,
+            'u_name' => $request->u_name,
+            'u_nip' => $request->u_nip,
+            'u_ktp' => $request->u_ktp,
+            'u_secret_code' => $request->u_secret_code,
+            'u_email' => $request->u_email,
+            'u_phone' => $request->u_phone,
+            'u_address' => $request->u_address,
+            'u_active' => $request->u_active,
+            'delete_access' => $request->delete_access,
+            'u_delete' => '0',
+        ];
+
         $group_id = $request->gr_id;
         $password = $request->u_password;
         $created = [
-			'created_at' => date('Y-m-d H:i:s')
-		];
+            'created_at' => date('Y-m-d H:i:s')
+        ];
         $updated = [
-			'updated_at' => date('Y-m-d H:i:s')
-		];
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
         if ($user->storeData($mode, $id, $data, $group_id, $password, $created, $updated)) {
+            // Log aktivitas user
             if ($mode == 'add') {
-                $this->UserActivity('menambah data user ['.$request->u_ktp.'] ['.$request->u_nip.'] '.$request->u_name);
+                $this->UserActivity('menambah data user [' . $request->u_ktp . '] [' . $request->u_nip . '] ' . $request->u_name);
             } else {
-                $this->UserActivity('mengubah data user ['.$request->u_ktp.'] ['.$request->u_nip.'] '.$request->u_name);
+                $this->UserActivity('mengubah data user [' . $request->u_ktp . '] [' . $request->u_nip . '] ' . $request->u_name);
             }
+
+            DB::table('users')
+                ->whereDate('u_active', '<', now())
+                ->where('u_delete', '=', '0')
+                ->update([
+                    'u_delete' => '1',
+                    'updated_at' => now()
+                ]);
+
             $r['status'] = "200";
         } else {
             $r['status'] = "400";
         }
+
         return json_encode($r);
     }
+
 
     public function deleteData(Request $request)
     {
@@ -198,7 +214,7 @@ class UserController extends Controller
         ]);
         if ($save) {
             $item_name = User::select('u_name', 'u_ktp')->where('id', $id)->get()->first();
-            $this->UserActivity('menghapus data user ['.$item_name->u_ktp.'] '.$item_name->u_name);
+            $this->UserActivity('menghapus data user [' . $item_name->u_ktp . '] ' . $item_name->u_name);
             $r['status'] = '200';
         } else {
             $r['status'] = '400';
@@ -219,19 +235,18 @@ class UserController extends Controller
 
     function autocompleteMenu(Request $request)
     {
-        if($request->get('query'))
-        {
+        if ($request->get('query')) {
             $query = $request->get('query');
             $data = DB::table('menu_accesses')->select("id", "ma_title")
-            ->whereRaw('ma_title LIKE ?', "%$query%")
-            ->orderBy('ma_title')
-            ->limit(10)
-            ->get();
+                ->whereRaw('ma_title LIKE ?', "%$query%")
+                ->orderBy('ma_title')
+                ->limit(10)
+                ->get();
             $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
             if (!empty($data)) {
-                foreach($data as $row) {
+                foreach ($data as $row) {
                     $output .= '
-                    <li><a class="btn btn-sm btn-inventory col-12" data-id="'.$row->id.'" data-ma_title="'.$row->ma_title.'" id="add_ma_to_list"><span class="btn-sm btn-primary">'.$row->ma_title.'</span></a></li>
+                    <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->id . '" data-ma_title="' . $row->ma_title . '" id="add_ma_to_list"><span class="btn-sm btn-primary">' . $row->ma_title . '</span></a></li>
                     ';
                 }
             } else {
@@ -244,20 +259,19 @@ class UserController extends Controller
 
     function autocompleteStore(Request $request)
     {
-        if($request->get('query'))
-        {
+        if ($request->get('query')) {
             $query = $request->get('query');
             $data = DB::table('stores')->select("id", "st_name")
-            ->whereRaw('st_name LIKE ?', "%$query%")
-            ->where('st_delete', '!=', '1')
-            ->orderBy('st_name')
-            ->limit(10)
-            ->get();
+                ->whereRaw('st_name LIKE ?', "%$query%")
+                ->where('st_delete', '!=', '1')
+                ->orderBy('st_name')
+                ->limit(10)
+                ->get();
             $output = '<ul class="dropdown-menu form-control" style="display:block; position:relative;">';
             if (!empty($data)) {
-                foreach($data as $row) {
+                foreach ($data as $row) {
                     $output .= '
-                    <li><a class="btn btn-sm btn-inventory col-12" data-id="'.$row->id.'" data-st_name="'.$row->st_name.'" id="add_st_to_list"><span class="btn-sm btn-primary">'.$row->st_name.'</span></a></li>
+                    <li><a class="btn btn-sm btn-inventory col-12" data-id="' . $row->id . '" data-st_name="' . $row->st_name . '" id="add_st_to_list"><span class="btn-sm btn-primary">' . $row->st_name . '</span></a></li>
                     ';
                 }
             } else {
@@ -289,12 +303,32 @@ class UserController extends Controller
         return json_encode($r);
     }
 
-    public function loadStore() {
+    public function loadStore()
+    {
         $store = DB::table('stores')
-        ->where('id', '=', Auth::user()->st_id)->first()->st_name;
+            ->where('id', '=', Auth::user()->st_id)->first()->st_name;
         $r['status'] = 200;
         $r['store'] = $store;
         return json_encode($r);
     }
 
+    // public function autoDeactivateUsers(Request $req)
+    // {
+    //     $today = date('Y-m-d');
+
+    //     // Update users yang aktif tapi tanggal aktif sudah lewat
+    //     $update = DB::table('users')
+    //         ->whereDate('u_active', '<', $today)
+    //         ->where('u_delete', '=', 0)
+    //         ->update([
+    //             'u_delete' => 1,
+    //             'updated_at' => now()
+    //         ]);
+
+    //     if ($update) {
+    //         return response()->json(['status' => 200, 'message' => 'Data updated']);
+    //     } else {
+    //         return response()->json(['status' => 400, 'message' => 'No data updated']);
+    //     }
+    // }
 }
