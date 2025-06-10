@@ -30,6 +30,7 @@ use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class TransaksiOnlineController extends Controller
@@ -240,61 +241,67 @@ class TransaksiOnlineController extends Controller
 
     public function cetak_invoice(Request $request)
     {
-        $invoice = $request->orderNumber;
-        $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
-        $get_invoice = array();
-        $dropshipper = null;
-        $st_id = Auth::user()->st_id;
+        try {
+            DB::beginTransaction();
 
-        if ($check) {
-            $trx = PosTransaction::select(
-                'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
-                'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
-                'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
-                'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
-                'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
-                'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name')
-                ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
-                ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
-                ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
-                ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
-                ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
-                ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
-                ->where(['pos_invoice' => $invoice])
-                ->first();
+            $invoice = $request->orderNumber;
+            $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
+            $get_invoice = array();
+            $dropshipper = null;
+            $st_id = Auth::user()->st_id;
 
-            $check_transaction_detail = PosTransactionDetail::
-            leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->where(['pt_id' => $trx->pt_id])->get();
-            if (!empty($check_transaction_detail)) {
-                $trx->subitem = $check_transaction_detail;
-                if (!empty($trx->pm_id_partial)) {
-                    $trx->pm_name_partial = PaymentMethod::select('pm_name')
-                        ->where('id', $trx->pm_id_partial)->get()->first()->pm_name;
+            if ($check) {
+                $trx = PosTransaction::select(
+                    'pos_transactions.id as pt_id', 'cust_id', 'pos_cc_charge', 'cust_province', 'cust_city',
+                    'cust_subdistrict', 'sub_cust_id', 'u_name', 'pm_name', 'pm_id_partial', 'dv_name', 'cr_name',
+                    'pos_another_cost', 'pos_payment', 'pos_payment_partial', 'pos_ref_number', 'pos_card_number',
+                    'cust_name', 'cust_phone', 'cust_address', 'pos_invoice', 'st_name', 'st_phone', 'st_address',
+                    'pos_shipping', 'cr_id', 'pos_transactions.created_at as pos_created',
+                    'pos_transactions.pos_total_vouchers', 'pos_total_discount', 'cust_name')
+                    ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+                    ->leftJoin('couriers', 'couriers.id', '=', 'pos_transactions.cr_id')
+                    ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+                    ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
+                    ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+                    ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+                    ->where(['pos_invoice' => $invoice])
+                    ->first();
+
+                $check_transaction_detail = PosTransactionDetail::
+                leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where(['pt_id' => $trx->pt_id])->get();
+                if (!empty($check_transaction_detail)) {
+                    $trx->subitem = $check_transaction_detail;
+                    if (!empty($trx->pm_id_partial)) {
+                        $trx->pm_name_partial = PaymentMethod::select('pm_name')
+                            ->where('id', $trx->pm_id_partial)->get()->first()->pm_name;
+                    }
+                    array_push($get_invoice, $trx);
                 }
-                array_push($get_invoice, $trx);
             }
-        }
-        $stores = Auth::user()->st_id;
+            $stores = Auth::user()->st_id;
 
-        $response = [];
+            $response = [];
 
-        $check_status_print = OnlineTransactions::where('order_number', $invoice)->whereNotNull('time_print');
+            $check_status_print = OnlineTransactions::where('order_number', $invoice)->whereNotNull('time_print');
 
+            if ($check_status_print->count() > 0) {
+                // If already printed, return a 200 OK status
+                $response['status'] = 200;
+                DB::commit();
+                return $response;
+            }
 
-        if ($check_status_print->count() > 0) {
-            // If already printed, return a 200 OK status
-            $response['status'] = 200;
-        } else {
             $online_transactions = [];
-
-
-            $sku_current_print = OnlineTransactionDetails::where('order_number', $invoice);
-
             $cur_trx = OnlineTransactions::where('order_number', $invoice)->get()->first();
+            $sku_current_print = OnlineTransactionDetails::where('to_id', $cur_trx->id);
+
+            if (!$cur_trx) {
+                throw new \Exception('Online transaction not found');
+            }
 
             if ($cur_trx->platform_name == 'Shopee') {
                 $platform = StoreTypeDivision::where('dv_name', 'SHOPEE')->get()->first()->id;
@@ -302,17 +309,15 @@ class TransaksiOnlineController extends Controller
                 $platform = StoreTypeDivision::where('dv_name', 'TIKTOK')->get()->first()->id;
             }
 
+            $trx_id_new = null;
+
+
             foreach ($sku_current_print->get() as $ind => $data) {
-
-//                dd($data->qty);
-
                 $chk_pos_offline = PosTransaction::where('pos_invoice', $invoice)->count();
 
                 // Get product stock ID based on barcode
                 if ($ind <= $sku_current_print->count()) {
                     $ps_barcode_record = ProductStock::where('ps_barcode', $data->sku)->first();
-
-//                    dd($ps_barcode_record);
 
                     if ($ps_barcode_record) {
                         $ps_barcode_id = $ps_barcode_record->id;
@@ -336,8 +341,6 @@ class TransaksiOnlineController extends Controller
                             ->where('plst_status', '=', 'WAITING ONLINE')
                             ->first();
 
-//                        dd($cek_keep_online, $data_keep_online);
-
                         // If there are any waiting transactions, store them for further processing
                         if ($cek_keep_online > 0 && $data_keep_online) {
                             $online_transactions[] = [
@@ -349,36 +352,41 @@ class TransaksiOnlineController extends Controller
                         }
                     }
 
-                    $sku_count = OnlineTransactionDetails::where('order_number', $invoice)->where('sku', $data->sku)->count();
-//                    dd(count($online_transactions), $sku_count);
-//
+                    $sku_count = OnlineTransactionDetails::where('to_id', $cur_trx->id)->where('sku', $data->sku)->count();
                     if (count($online_transactions) >= $sku_count) {
+                        $pos_transaction_check = PosTransaction::where('pos_invoice', $invoice)->first();
 
-//                        if ($chk_pos_offline == 0) {
-                        $trx_id_new = DB::table('pos_transactions')->insertGetId([
-                            'u_id' => Auth::user()->id,
-                            'kasir_id' => Auth::user()->id,
-                            'st_id' => Auth::user()->st_id,
-                            'stt_id' => Auth::user()->stt_id,
-                            'pos_online_payment' => $cur_trx->payment_method,
-                            'std_id' => $platform,
-                            'cust_id' => 1,
-                            'pos_admin_cost' => 0,
-                            'pos_another_cost' => 0,
-                            'pos_real_price' => $cur_trx->total_payment,
-                            'pos_order_number' => $cur_trx->order_number,
-                            'pos_invoice' => $cur_trx->order_number,
-                            'pos_unique_code' => 0,
-                            'pos_shipping' => $cur_trx->shipping_fee,
-                            'pos_total_discount' => 0,
-                            'pos_discount_seller' => 0,
-                            'created_at' => date('Y-m-d H:i:s'),
-                            'pos_status' => 'DONE',
-                            'pos_payment' => $cur_trx->total_payment
-                        ]);
-//                        } else {
-//                            $trx_id_new = PosTransaction::where('pos_invoice', $invoice)->get()->first()->id;
-//                        }
+                        if ($pos_transaction_check) {
+                            // If a POS transaction already exists, use its ID
+                            $trx_id_new = $pos_transaction_check->id;
+                        } else {
+                            // If no POS transaction exists, create a new one
+                            $trx_id_new = DB::table('pos_transactions')->insertGetId([
+                                'u_id' => Auth::user()->id,
+                                'kasir_id' => Auth::user()->id,
+                                'st_id' => Auth::user()->st_id,
+                                'stt_id' => Auth::user()->stt_id,
+                                'pos_online_payment' => $cur_trx->payment_method,
+                                'std_id' => $platform,
+                                'cust_id' => 1,
+                                'pos_admin_cost' => 0,
+                                'pos_another_cost' => 0,
+                                'pos_real_price' => $cur_trx->total_payment,
+                                'pos_order_number' => $cur_trx->order_number,
+                                'pos_invoice' => $cur_trx->order_number,
+                                'pos_unique_code' => 0,
+                                'pos_shipping' => $cur_trx->shipping_fee,
+                                'pos_total_discount' => 0,
+                                'pos_discount_seller' => 0,
+                                'created_at' => date('Y-m-d H:i:s'),
+                                'pos_status' => 'DONE',
+                                'pos_payment' => $cur_trx->total_payment
+                            ]);
+                        }
+
+                        if (!$trx_id_new) {
+                            throw new \Exception('Failed to create POS transaction');
+                        }
 
                         $params = [
                             'online_print' => true,
@@ -388,8 +396,7 @@ class TransaksiOnlineController extends Controller
                         ];
                         OnlineTransactions::where('order_number', $invoice)->update($params);
 
-//                        if ($data->qty >= 0) {
-                        // disini update DONE status
+                        // Update DONE status
                         $keep_online_details = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                             ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                             ->where('product_stocks.ps_barcode', '=', $data->sku)
@@ -436,19 +443,18 @@ class TransaksiOnlineController extends Controller
                             'u_id_packer' => Auth::user()->id,
                             'pt_id' => $trx_id_new,
                         ];
-//                            dd($keep_online_details);
 
                         foreach ($keep_online_details as $key => $cko) {
                             $barcode_id = ProductStock::where('ps_barcode', $data->sku)->first()->id;
 
+                            if (!$barcode_id) {
+                                throw new \Exception('Product stock not found for barcode: ' . $data->sku);
+                            }
+
                             $item_detail_checks = PosTransactionDetail::where('pst_id', $barcode_id)->where('pt_id', $trx_id_new)->exists();
 
-//                            if ($key <= $data->qty) {
-
                             $price_before_discount = $data->original_price * $data->qty;
-
                             $price_after_discount = $data->price_after_discount * $data->qty;
-
 
                             if (!$item_detail_checks) {
                                 $insert_details = PosTransactionDetail::create([
@@ -469,66 +475,47 @@ class TransaksiOnlineController extends Controller
                                     'created_at' => date('Y-m-d H:i:s')
                                 ]);
 
+                                if (!$insert_details) {
+                                    throw new \Exception('Failed to create POS transaction detail');
+                                }
                             }
-                            ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
-
+                            
+                            $updateResult = ProductLocationSetupTransaction::where('id', $cko->plst_id)->update($paramsPlst);
+                            if (!$updateResult) {
+                                throw new \Exception('Failed to update product location setup transaction');
+                            }
                         }
-
-                        // Step 1: Find duplicate entries based on `pt_id` and `pst_id`
-//                        $duplicates = DB::table('pos_transaction_details')
-//                            ->select('pt_id', 'pst_id', DB::raw('COUNT(*) as duplicate_count'))
-//                            ->groupBy('pt_id', 'pst_id')
-//                            ->having('duplicate_count', '>', 1)
-//                            ->get();
-//
-//
-//                        foreach ($duplicates as $duplicate) {
-//                            // Step 2: Get the IDs of duplicates, excluding the minimum `id` for each duplicate group
-//                            $duplicateIds = DB::table('pos_transaction_details')
-//                                ->where('pt_id', $duplicate->pt_id)
-//                                ->where('pst_id', $duplicate->pst_id)
-//                                ->where('id', '!=', function ($query) use ($duplicate) {
-//                                    $query->select('id')
-//                                        ->from('pos_transaction_details')
-//                                        ->where('pt_id', $duplicate->pt_id)
-//                                        ->where('pst_id', $duplicate->pst_id)
-//                                        ->orderBy('id', 'asc')
-//                                        ->limit(1); // Select the minimum id to keep
-//                                })
-//                                ->pluck('id');
-//
-//                            // Step 3: Delete duplicates
-//                            DB::table('pos_transaction_details')->whereIn('id', $duplicateIds)->delete();
-//                        }
-//
-//                        foreach ($online_transactions as $transaction) {
-//                            // Update each waiting transaction to 'DONE AMP'
-//                            $paramsPlst = [
-//                                'plst_status' => 'DONE',
-//                                'updated_at' => now(),
-//                                'u_id_packer' => Auth::user()->id,
-//                                'pt_id' => $transaction['online_id'],
-//                            ];
-//                            ProductLocationSetupTransaction::where('id', $transaction['id'])->update($paramsPlst);
-//                        }
 
                         // Return a 200 OK status
                     } else {
                         // If not all transactions match, return a 400 Bad Request status
                         $response['status'] = 400;
+                        $response['message'] = 'Not all transactions match';
+                        DB::rollback();
+                        return $response;
                     }
                 }
             }
 
             if ($trx_id_new) {
                 $response['status'] = 200;
+                DB::commit();
             } else {
                 $response['status'] = 400;
+                $response['message'] = 'Failed to create transaction';
+                DB::rollback();
             }
 
-        }
+            return $response;
 
-        return $response;
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error in cetak_invoice: ' . $e->getMessage());
+            return [
+                'status' => 500,
+                'message' => 'An error occurred while processing the invoice: ' . $e->getMessage()
+            ];
+        }
     }
 
     public function cetak_nota($orderNumber)
@@ -591,10 +578,39 @@ class TransaksiOnlineController extends Controller
                     throw new \Exception('User not authenticated');
                 }
 
-                \Log::info('st_id_form: ' . $st_id_form);
+                Log::info('st_id_form: ' . $st_id_form);
 
                 $import = new TransactionOnlineImport();
                 $data = Excel::toArray($import, public_path('online/' . $nama_file));
+
+                // Validate header structure
+                $expectedHeaders = [
+                    "Order ID",
+                    "Order Status", 
+                    "Cancel Reason",
+                    "Tracking ID",
+                    "Delivery Option",
+                    "Created Time",
+                    "Paid Time",
+                    "Payment Method",
+                    "SKU Unit Original Price",
+                    "SKU Subtotal After Discount",
+                    "Quantity",
+                    "Seller SKU",
+                    "Sku Quantity of return",
+                    "SKU Seller Discount",
+                    "SKU Platform Discount",
+                    "Shipping Fee After Discount",
+                    "Order Amount",
+                    "Regency and City",
+                    "Province"
+                ];
+
+                if (!isset($data[0][0]) || $data[0][0] !== $expectedHeaders) {
+                    $r['status'] = "422";
+                    $r['message'] = 'Invalid file format.';
+                    return json_encode($r);
+                }
 
                 if (count($data) >= 0) {
                     $processData = $this->processImportData($data[0], $original_name, $st_id_form);

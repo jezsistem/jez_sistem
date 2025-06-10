@@ -343,6 +343,12 @@
                         excelImportData = data.data['processedData'];
                         console.log(data.data);
                         console.log(data.name);
+                    } else if (data.status == '422') {
+                        $("#ImportModal").modal('hide');
+                        console.log(data.data);
+                        swal('Belum dimacro ya jez? 😒😒',
+                            data.message || 'File yang anda import kosong atau format tidak tepat',
+                            'warning');
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
                         console.log(data.data);
