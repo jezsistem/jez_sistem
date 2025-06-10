@@ -165,6 +165,13 @@
                                 </span>Data Baru</a>
                                 <!--end::Button-->
                             </div>
+                            <div class="form-group ml-4" style="padding-top:22px;">
+                                <select class="form-control" id="filter_delete" name="filter_delete" style="border: 1px solid #ced4da;">
+                                    <option value="">- Pilih Status User -</option>
+                                    <option value="0">Active</option>
+                                    <option value="1">Non Active</option>
+                                </select>
+                            </div>                            
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->

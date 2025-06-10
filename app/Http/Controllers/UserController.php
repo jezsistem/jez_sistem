@@ -110,7 +110,8 @@ class UserController extends Controller
                 ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
                 ->leftJoin('user_menu_accesses', 'user_menu_accesses.u_id', '=', 'users.id')
                 ->groupBy('uid')
-                ->where('u_delete', '!=', '1'))
+                ->orderby('u_delete', 'asc'))
+                // ->where('u_delete', '!=', '1')
                 ->editColumn('st_name', function ($data) {
                     return '<span style="white-space: nowrap;">' . $data->st_name . '</span>';
                 })
@@ -144,6 +145,15 @@ class UserController extends Controller
                                 ->orWhere('u_address', 'LIKE', "%$search%");
                         });
                     }
+                    if ($request->has('filter_delete')) {
+                        $filter = $request->get('filter_delete');
+                        // dd($filter);
+                        if ($filter == '0') {
+                            $instance->where('u_delete', '0');
+                        } elseif ($filter == '1') {
+                            $instance->where('u_delete', '1');
+                        }
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -166,9 +176,9 @@ class UserController extends Controller
             'u_email' => $request->u_email,
             'u_phone' => $request->u_phone,
             'u_address' => $request->u_address,
+            'u_delete' => $request->u_delete,
             'u_active' => $request->u_active,
             'delete_access' => $request->delete_access,
-            'u_delete' => '0',
         ];
 
         $group_id = $request->gr_id;

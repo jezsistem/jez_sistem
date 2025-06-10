@@ -281,6 +281,7 @@
                 url: "{{ url('user_datatables') }}",
                 data: function(d) {
                     d.search = $('#user_search').val();
+                    d.filter_delete = $('#filter_delete').val();
                 }
             },
             columns: [{
@@ -345,6 +346,15 @@
             order: [
                 [0, 'desc']
             ],
+            rowCallback: function(row, data, index) {
+        if (data.u_delete === "1") {
+            $(row).css('background-color', '#f8d7da');
+            }}
+        });
+
+        $('#filter_delete').on('change', function () {
+            console.log($('#filter_delete').val())
+            user_table.draw();
         });
 
         user_table.buttons().container().appendTo($('#user_excel_btn'));
@@ -363,7 +373,8 @@
             var u_secret_code = user_table.row(this).data().u_secret_code;
             var u_email = user_table.row(this).data().u_email;
             var u_phone = user_table.row(this).data().u_phone;
-            var u_address = user_table.row(this).data().u_address;
+            var u_address = user_table.row(this).data().u_address;      
+            var u_delete = user_table.row(this).data().u_delete;
             var u_active = user_table.row(this).data().u_active;
             var delete_access = user_table.row(this).data().delete_access;
             jQuery.noConflict();
@@ -380,6 +391,7 @@
             $('#u_phone').val(u_phone);
             $('#u_password').val('');
             $('#u_address').val(u_address);
+            jQuery('#u_delete').val(u_delete).trigger('change');
             $('#u_active').val(u_active);
             $('#_id').val(uid);
             $('#_mode').val('edit');

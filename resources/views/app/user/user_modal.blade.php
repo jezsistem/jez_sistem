@@ -123,6 +123,17 @@
                         <label for="exampleTextarea">Alamat</label>
                         <input type="text" class="form-control" id="u_address" name="u_address"/>
                     </div>
+                    {{-- <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Status Staff</label>
+                        <input type="text" class="form-control" id="u_delete" name="u_delete"/>
+                    </div> --}}
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Status Staff <span class="text-danger">*</span>  </label>
+                        <select class="form-control" id="u_delete" name="u_delete" required>
+                            <option value="0">Active</option>
+                            <option value="1">Non Active</option>
+                        </select>
+                    </div>
                     <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Masa Aktif <span class="text-danger">*</span></label>
                         <input type="date" class="form-control" id="u_active" name="u_active" required />
