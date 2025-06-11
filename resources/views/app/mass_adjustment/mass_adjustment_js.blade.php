@@ -1174,9 +1174,9 @@
                             "</td><td>" + row.mad_type +
                             "</td><td>" + row.mad_diff +
                             "</td><td>" + row.adjust_note +
-                            "</td><td>" + row.adjust_type +
-                            "</td><td>" + row.ma_approve_time +
-                            "</td><td>" + row.ma_executor_time +
+                            "</td><td>" + (row.adjust_type || '-') +
+                            "</td><td>" + formatTanggal(row.ma_approve_time) +
+                            "</td><td>" + formatTanggal(row.ma_executor_time) +
                             "</td></tr>"
                         );
                     });

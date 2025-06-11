@@ -237,8 +237,8 @@
                             <th class="text-dark">Diff</th>
                             <th class="text-dark">Notes</th>
                             <th class="text-dark">Tipe Adjustment</th>
-                            <th class="text-dark">Tgl Approve</th>
-                            <th class="text-dark">Tgl Executor</th>
+                            <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Approve</th>
+                            <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Executor</th>
                         </tr>
                     </thead>
                     <tbody>
