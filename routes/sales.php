@@ -22,6 +22,7 @@ use App\Http\Controllers\ArtikelPromoController;
 use App\Http\Controllers\SatuanPosV2Controller;
 use App\Http\Controllers\BahanBakuPosV2Controller;
 use App\Http\Controllers\DataUserPosV2Controller;
+use App\Http\Controllers\PromoRecommendationController;
 
 Route::middleware(['auth'])->group(function () {
 
@@ -124,6 +125,16 @@ Route::middleware(['auth'])->group(function () {
 
 
     });
+
+    // Promo Recommendations
+    Route::get('rekomendasi_promo', [PromoRecommendationController::class, 'index']);
+    Route::get('rekomendasi_promo_datatables', [PromoRecommendationController::class, 'getDatatables']);
+    Route::get('rekomendasi_promo_detail_datatables', [PromoRecommendationController::class, 'getPromoRecommendationDetails']);
+    Route::post('rekomendasi_promo_save', [PromoRecommendationController::class, 'storeData']);
+    Route::post('rekomendasi_promo_delete', [PromoRecommendationController::class, 'deleteData']);
+    Route::post('check_exists_rekomendasi_promo', [PromoRecommendationController::class, 'checkExistsPromoRecommendation']);
+    Route::get('export_rekomendasi_promo', [PromoRecommendationController::class, 'exportData']);
+    Route::post('rekomendasi_promo_import', [PromoRecommendationController::class, 'savePromoRecommendationImport']);
 });
 
 
