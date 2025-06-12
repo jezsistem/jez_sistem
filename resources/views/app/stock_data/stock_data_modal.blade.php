@@ -121,3 +121,44 @@
     </div>
 </div>
 <!-- /Modal -->
+
+
+<!-- Modal-->
+<div class="modal fade" id="ChangeDisplayModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="f_ganti_display">
+            @csrf
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Ganti Display</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <div id="reader_change_display" class="rounded" style="max-width: 400px;"></div>
+                    <div id="result"></div>
+                    <div class="form-group mt-3 mb-1 pb-1">
+                        <label for="sku">SKU*</label>
+                        <input type="text" class="form-control" id="sku_display" name="sku" required />
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="nama_produk_display">Nama Produk</label>
+                        <p class="form-control-plaintext" id="product_name">-</p>
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="ukuran_display">Variant</label>
+                        <p class="form-control-plaintext" id="product_variant">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+                <button type="submit" class="btn btn-primary font-weight-bold">Submit</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->

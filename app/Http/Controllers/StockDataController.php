@@ -24,7 +24,8 @@ use App\Models\ProductLocationSetupTransactionStatus;
 use App\Models\PurchaseOrderArticleDetailStatus;
 use App\Models\ExceptionLocation;
 use App\Models\BuyOneGetOne;
-
+use App\Models\ProductLocation;
+use App\Models\ProductMutation;
 use duncan3dc\Speaker\Providers\GoogleProvider;
 use duncan3dc\Speaker\TextToSpeech;
 
@@ -1390,6 +1391,192 @@ class StockDataController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
+        }
+    }
+
+    public function getItemData($sku) {
+        $item = ProductStock::selectRaw("ts_product_stocks.id as pst_id, pl_code, st_name, br_name, p_name, pc_name, psc_name, pssc_name, p_color, sz_name")
+            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_categories', 'product_categories.id', '=', 'products.pc_id')
+            ->leftJoin('product_sub_categories', 'product_sub_categories.id', '=', 'products.psc_id')
+            ->leftJoin('product_sub_sub_categories', 'product_sub_sub_categories.id', '=', 'products.pssc_id')
+            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+            ->where('ps_barcode', $sku)
+            ->first();
+
+        if (!$item) {
+            return response()->json(['error' => 'Item not found'], 404);
+        }
+
+        return response()->json([
+            'pst_id' => $item->pst_id,
+            'pl_code' => $item->pl_code,
+            'st_name' => $item->st_name,
+            'br_name' => $item->br_name,
+            'p_name' => $item->p_name,
+            'pc_name' => $item->pc_name,
+            'psc_name' => $item->psc_name,
+            'pssc_name' => $item->pssc_name,
+            'p_color' => $item->p_color,
+            'sz_name' => $item->sz_name
+        ], 200);
+    }
+
+    public function changeDisplayStockData(Request $request)
+    {
+        DB::beginTransaction();
+        
+        try {
+            // Get data from request
+            $pst_id = ProductStock::select('id')->where('ps_barcode', $request->_pst_barcode)->get()->first()->id;
+
+            // Get 'TOKO' store ID
+            $pl_id_toko = ProductLocation::select('id')->where('st_id', Auth::user()->st_id)->where('pl_code', 'TOKO')->get()->first()->id;
+
+            // Update the transaction to 'IN' type and 'DONE' status
+            $plst_in = ProductLocationSetupTransaction::query()
+                ->select('product_location_setup_transactions.id', 'product_location_setup_transactions.pls_id')
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->where('product_location_setups.pst_id', $pst_id)
+                ->where('product_location_setup_transactions.st_id', Auth::user()->st_id)
+                ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+                ->orderByDesc('product_location_setup_transactions.created_at')
+                ->first();
+
+            if (!$plst_in) {
+                // If no transaction found, return error
+                DB::rollBack();
+                $r['status'] = '400';
+                $r['message'] = $request->_pst_barcode .' belum dipickup untuk pengganti display';
+                return json_encode($r);
+            }
+
+                
+            if ($plst_in) {
+                // Update transaction status and type
+                ProductLocationSetupTransaction::where('id', $plst_in->id)
+                ->update([
+                    'plst_type' => 'IN',
+                    'plst_status' => 'INSTOCK',
+                    'in_stock_time' => date('Y-m-d H:i:s')
+                ]);
+                
+                // Update quantity by adding 1
+                ProductLocationSetup::where('id', $plst_in->pls_id)
+                ->increment('pls_qty', 1);
+            }
+
+            $pls_id = $plst_in->pls_id ?? null;
+            $pmt_old_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $plst_in->pls_id])->get()->first()->pls_qty ?? 0;
+            $pmt_qty = 1;
+            $pl_id_end = $pl_id_toko;
+
+            $check_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->exists();
+            if ($check_destination) {
+                $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
+                if ($pmt_qty > $or_qty) {
+                    DB::rollBack();
+                    $r['status'] = '400';
+                    return json_encode($r);
+                }
+
+                $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->get()->first();
+                $qty_destination = $data_destination->pls_qty;
+                $update_data_destination = [
+                    'pls_qty' => $pmt_qty + $qty_destination
+                ];
+                $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->update($update_data_destination);
+                if (!empty($update_destination)) {
+                    $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
+                    $qty_origin = $data_origin->pls_qty;
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_data_origin = [
+                        'pls_qty' => $remain
+                    ];
+                    $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
+                    if (!empty($update_origin)) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_end,
+                            'u_id' => Auth::user()->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($mutation)) {
+                            DB::commit();
+                            $r['status'] = '200';
+                        } else {
+                            DB::rollBack();
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        DB::rollBack();
+                        $r['status'] = '400';
+                    }
+                } else {
+                    DB::rollBack();
+                    $r['status'] = '400';
+                }
+            } else {
+                $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
+                if ($pmt_qty > $or_qty) {
+                    DB::rollBack();
+                    $r['status'] = '400';
+                    return json_encode($r);
+                }
+                $insert_data_destination = [
+                    'pls_qty' => $pmt_qty,
+                    'pl_id' => $pl_id_end,
+                    'pst_id' => $pst_id,
+                    'created_at' => date('Y-m-d H:i:s')
+                ];
+                $insert_destination = ProductLocationSetup::create($insert_data_destination);
+                if (!empty($insert_destination)) {
+                    $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
+                    $qty_origin = $data_origin->pls_qty;
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_data_origin = [
+                        'pls_qty' => $remain
+                    ];
+                    $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
+                    if (!empty($update_origin)) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_end,
+                            'u_id' => Auth::user()->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($mutation)) {
+                            DB::commit();
+                            $r['status'] = '200';
+                        } else {
+                            DB::rollBack();
+                            $r['status'] = '400';
+                        }
+                    } else {
+                        DB::rollBack();
+                        $r['status'] = '400';
+                    }
+                } else {
+                    DB::rollBack();
+                    $r['status'] = '400';
+                }
+            }
+            
+            return json_encode($r);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $r['status'] = '500';
+            $r['message'] = $e->getMessage();
+            return json_encode($r);
         }
     }
 }

@@ -30,6 +30,9 @@
                         </select>
                         <div id="st_id_filter_parent"></div>
                     </div>
+                    <div class="form-group ml-5" style="padding-top:22px;">
+                        <button class="btn btn-info" style="white-space: nowrap;" id="change_display_btn">Ganti Display</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -170,7 +173,7 @@
 
                             <div class="card-body table-responsive">
                                 <form id="f_search">
-                                    <div id="reader" class="rounded"></div>
+                                    <div id="reader_main" class="rounded" style="max-width: 500px;"></div>
                                     <div id="result"></div>
                                     <div class="row">
                                         <div class="col-12">

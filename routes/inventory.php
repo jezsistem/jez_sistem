@@ -324,4 +324,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('storage_area_update', [StorageAreaController::class, 'updateData']);
     Route::post('storage_area_link', [StorageAreaController::class, 'linkBinToStorageArea']);
     Route::post('storage_area_unlink', [StorageAreaController::class, 'unlinkBinToStorageArea']);
+
+    //change display stock data
+    Route::get('get_item_data_by_sku/{sku}', [StockDataController::class, 'getItemData']);
+    Route::post('change_display_stock_data', [StockDataController::class, 'changeDisplayStockData']);
+
 });

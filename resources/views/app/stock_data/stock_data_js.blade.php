@@ -1,5 +1,5 @@
 <script>
-
+    modal_opened = '';
 
     function reloadSubCategory(type, id) {
         $.ajaxSetup({
@@ -15,7 +15,7 @@
             },
             dataType: 'html',
             url: "{{ url('stock_data_reload_sub_category') }}",
-            success: function (r) {
+            success: function(r) {
                 $('#psc_id').html(r);
             }
         });
@@ -36,7 +36,7 @@
             },
             dataType: 'html',
             url: "{{ url('stock_data_reload_sub_sub_category') }}",
-            success: function (r) {
+            success: function(r) {
                 $('#pssc_id').html(r);
             }
         });
@@ -57,7 +57,7 @@
             },
             dataType: 'html',
             url: "{{ url('stock_data_reload_brand') }}",
-            success: function (r) {
+            success: function(r) {
                 $('#br_id').html(r);
             }
         });
@@ -78,7 +78,7 @@
             },
             dataType: 'html',
             url: "{{ url('stock_data_reload_size') }}",
-            success: function (r) {
+            success: function(r) {
                 $('#sz_id').html(r);
             }
         });
@@ -120,7 +120,7 @@
             },
             dataType: 'html',
             url: "{{ url('stock_data_reload_product') }}",
-            success: function (r) {
+            success: function(r) {
                 $('#p_name').html(r);
             }
         });
@@ -141,14 +141,30 @@
             },
             dataType: 'html',
             url: "{{ url('stock_data_reload_size') }}",
-            success: function (r) {
+            success: function(r) {
                 $('#sz_id').html(r);
             }
         });
         return false;
     }
 
-    $(document).ready(function () {
+    function initializeScanner(elementId) {
+        return new Html5QrcodeScanner(elementId, {
+            // Scanner will be initialized in DOM inside the element with the given id
+            qrbox: {
+                width: 250,
+                height: 250,
+            },
+            fps: 30,
+        });
+    }
+
+    // Example usage for multiple modals
+    let scanner_main = initializeScanner('reader_main');
+    let scanner_change_display = initializeScanner('reader_change_display');
+
+    $(document).ready(function() {
+        scanner_main.render(success, error);
         $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').val('');
         // $('body').addClass('kt-primary--minimize aside-minimize');
         $.ajaxSetup({
@@ -171,7 +187,7 @@
             }],
             ajax: {
                 url: "{{ url('stock_data_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#stock_data_search').val();
                     d.search_scan = $('#stock_data_search_scan').val();
                     d.br_id = $('#br_id').val();
@@ -188,10 +204,10 @@
                 },
             },
             columns: [{
-                data: 'article_name',
-                name: 'article_name',
-                orderable: false
-            },
+                    data: 'article_name',
+                    name: 'article_name',
+                    orderable: false
+                },
                 {
                     data: 'article_stock',
                     name: 'article_stock',
@@ -203,12 +219,15 @@
                 "className": "text-left",
                 "width": "0%"
             }],
-            rowCallback: function (row, data, index) {
+            rowCallback: function(row, data, index) {
                 if (data.article_stock.indexOf("<table></table>") >= 0) {
                     $(row).hide();
                 }
             },
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             language: {
                 "lengthMenu": "_MENU_",
             },
@@ -233,7 +252,7 @@
         // });
 
 
-        $('#pickAvailableBtn').on('click', function () {
+        $('#pickAvailableBtn').on('click', function() {
             $('#is_zero').val(0);
             $('#pickZeroBtn').removeClass('btn-primary').addClass('btn-secondary');
             $('#pickAvailableBtn').removeClass('btn-secondary').addClass('btn-primary');
@@ -243,7 +262,7 @@
             stock_data_table.draw();
         });
 
-        $('#pickZeroBtn').on('click', function () {
+        $('#pickZeroBtn').on('click', function() {
             $('#is_zero').val(1);
             $('#pickZeroBtn').removeClass('btn-secondary').addClass('btn-primary');
             $('#pickAvailableBtn').removeClass('btn-primary').addClass('btn-secondary');
@@ -253,42 +272,6 @@
             stock_data_table.draw();
         });
 
-
-        const scanner = new Html5QrcodeScanner('reader', {
-            // Scanner will be initialized in DOM inside element with id of 'reader'
-            qrbox: {
-                width: 250,
-                height: 250,
-            },
-            fps: 30,
-        });
-
-
-        scanner.render(success, error);
-
-        function success(result) {
-
-            var hasil = result;
-
-            if (hasil.startsWith(']C1')) {
-                hasil = hasil.replace(']C1', '');
-            }
-
-            alert(hasil);
-
-            $('#stock_data_search').val(hasil);
-            stock_data_table.draw();
-
-        }
-
-        function error(err) {
-            console.error(err);
-            // Prints any errors to the console
-        }
-
-        function console_log(result) {
-            console.log(result);
-        }
         {{-- var aging_table = $('#Agingtb').DataTable({ --}}
         {{--    destroy: true, --}}
         {{--    processing: true, --}}
@@ -346,16 +329,16 @@
             dom: 'rt<"text-right"ip>',
             ajax: {
                 url: "{{ url('pickup_list_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.search = $('#pick_data_search').val();
                     d.st_id = "{{ $data['user']->st_id }}";
                 }
             },
             columns: [{
-                data: 'article',
-                name: 'p_name',
-                orderable: false
-            },
+                    data: 'article',
+                    name: 'p_name',
+                    orderable: false
+                },
                 {
                     data: 'bin',
                     name: 'pl_code, orderable: false'
@@ -393,7 +376,7 @@
 
         function debounce(func, delay) {
             let timeoutId;
-            return function (...args) {
+            return function(...args) {
                 if (timeoutId) {
                     clearTimeout(timeoutId);
                 }
@@ -401,6 +384,36 @@
                     func.apply(this, args);
                 }, delay);
             };
+        }
+
+        function success(result) {
+
+            var hasil = result;
+
+            if (hasil.startsWith(']C1')) {
+                hasil = hasil.replace(']C1', '');
+            }
+
+            alert(hasil);
+
+            if (modal_opened == 'ScanChangeDisplay') {
+                $('#sku_display').val(hasil);
+                $('#sku_display').trigger('change');
+                
+            } else {
+                $('#stock_data_search').val(hasil);
+                stock_data_table.ajax.reload();
+            }
+
+        }
+
+        function error(err) {
+            console.error(err);
+            // Prints any errors to the console
+        }
+
+        function console_log(result) {
+            console.log(result);
         }
 
         stock_data_table.buttons().container().appendTo($('#stock_data_excel_btn'));
@@ -413,9 +426,9 @@
         //     }, 400));
         // });
 
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Block the enter key in the input field
-            $('#stock_data_search').on('keydown', function (e) {
+            $('#stock_data_search').on('keydown', function(e) {
                 if (e.key === "Enter") {
                     e.preventDefault();
                 }
@@ -423,7 +436,7 @@
 
 
             // Debounce function for search
-            $('#stock_data_search').on('keyup', debounce(function () {
+            $('#stock_data_search').on('keyup', debounce(function() {
                 var query = $(this).val();
                 if ($.trim(query).length > 4 || $.trim(query).length != 0) {
                     stock_data_table.draw();
@@ -431,7 +444,7 @@
             }, 400));
         });
 
-        $('#pick_data_search').on('keyup', function () {
+        $('#pick_data_search').on('keyup', function() {
             pickup_list_table.draw();
         });
 
@@ -448,12 +461,12 @@
         //     aging_table.draw();
         // });
 
-        $(document).delegate('#aging_detail', 'click', function (e) {
+        $(document).delegate('#aging_detail', 'click', function(e) {
             // swal($(this).attr('title'));
             alert($(this).attr('title'));
         });
 
-        $(document).delegate('#copy-button', 'click', function (e) {
+        $(document).delegate('#copy-button', 'click', function(e) {
             // swal($(this).attr('title'));
             var textToCopy = $(this).attr('title');
 
@@ -477,7 +490,7 @@
 
         });
 
-        $(document).delegate('#pickup_item', 'click', function (e) {
+        $(document).delegate('#pickup_item', 'click', function(e) {
             e.preventDefault();
             var st_id = $('#st_id_filter').val();
 
@@ -500,94 +513,167 @@
                 });
             } else {
                 @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
-                if (st_id == {{ $data['user']->st_id }}) {
-                    // Fetch the articles_promo data first
-                    let article_id = $(this).data('p_article');
-                    let p_name = $(this).data('p_name');
-                    let bin = $(this).data('bin');
+                    if (st_id == {{ $data['user']->st_id }}) {
+                        // Fetch the articles_promo data first
+                        let article_id = $(this).data('p_article');
+                        let p_name = $(this).data('p_name');
+                        let bin = $(this).data('bin');
 
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-
-                    $.ajax({
-                        type: "GET",
-                        url: "{{ url('get_articles_promo') }}/" +
-                            article_id, // Send article_id to your controller route
-                        success: function (response) {
-                            // Prepare the content for swal based on response data
-                            let promoInfo = '';
-                            let promoPrice = '';
-                            let getTotalDiscountPrice = '';
-
-                            if (response.data && response.data.length > 0) {
-                                promoInfo = '';
-                                promoPrice = '';
-
-                                response.data.forEach(function (promo) {
-                                    let originalPrice = promo.p_price_tag; // Harga asli
-                                    let discount = promo.promo_disc; // Persentase diskon
-
-                                    // Hitung harga setelah diskon
-                                    let discountedPrice = originalPrice - (originalPrice * (discount / 100));
-
-                                    promoInfo += 'Promo: ' + discount + '% - ' + promo.promo_name + "";
-                                    promoPrice += 'Discount Price: ' + discountedPrice.toLocaleString('id-ID') + "\n";
-                                });
-
-                            } else {
-                                promoInfo = 'No promo available for this article.';
-                                promoPrice = 'Harga Normal guys!';
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             }
+                        });
 
-                            // Now show the swal with the promo data
-                            swal({
-                                title: bin,
-                                text: "Yakin pickup item " + p_name + " dari bin " +
-                                    bin + " ?\n\nPromotions:\n" + promoInfo + "\n" +
-                                    promoPrice,
-                                icon: "warning",
-                                buttons: [
-                                    'Batal',
-                                    'Yakin'
-                                ],
-                                dangerMode: false,
-                            }).then(function (isConfirm) {
-                                if (isConfirm) {
-                                    // Proceed with the existing POST request to pickup the item
-                                    $.ajax({
-                                        type: "POST",
-                                        data: {
-                                            _pls_id: pls_id,
-                                            _pst_id: pst_id,
-                                            _pl_id: pl_id,
-                                            _pl_code: pl_code,
-                                            _st_id: st_id
-                                        },
-                                        dataType: 'json',
-                                        url: "{{ url('pickup_item') }}",
-                                        success: function (r) {
-                                            if (r.status == '200') {
-                                                toast("Berhasil", "Item berhasil dipickup", "success");
-                                                stock_data_table.draw();
-                                                pickup_list_table.draw();
-                                            } else {
-                                                toast('Gagal', 'Gagal pickup item', 'error');
-                                            }
-                                        }
+                        $.ajax({
+                            type: "GET",
+                            url: "{{ url('get_articles_promo') }}/" +
+                                article_id, // Send article_id to your controller route
+                            success: function(response) {
+                                // Prepare the content for swal based on response data
+                                let promoInfo = '';
+                                let promoPrice = '';
+                                let getTotalDiscountPrice = '';
+
+                                if (response.data && response.data.length > 0) {
+                                    promoInfo = '';
+                                    promoPrice = '';
+
+                                    response.data.forEach(function(promo) {
+                                        let originalPrice = promo
+                                        .p_price_tag; // Harga asli
+                                        let discount = promo
+                                        .promo_disc; // Persentase diskon
+
+                                        // Hitung harga setelah diskon
+                                        let discountedPrice = originalPrice - (
+                                            originalPrice * (discount / 100));
+
+                                        promoInfo += 'Promo: ' + discount + '% - ' +
+                                            promo.promo_name + "";
+                                        promoPrice += 'Discount Price: ' +
+                                            discountedPrice.toLocaleString(
+                                            'id-ID') + "\n";
                                     });
-                                    return false;
+
+                                } else {
+                                    promoInfo = 'No promo available for this article.';
+                                    promoPrice = 'Harga Normal guys!';
                                 }
-                            });
-                        },
-                        error: function () {
-                            // Handle error
-                            swal('Error', 'Failed to fetch promo data', 'error');
-                        }
-                    });
-                } else {
+
+                                // Now show the swal with the promo data
+                                swal({
+                                    title: bin,
+                                    text: "Yakin pickup item " + p_name +
+                                        " dari bin " +
+                                        bin + " ?\n\nPromotions:\n" + promoInfo +
+                                        "\n" +
+                                        promoPrice,
+                                    icon: "warning",
+                                    buttons: [
+                                        'Batal',
+                                        'Yakin'
+                                    ],
+                                    dangerMode: false,
+                                }).then(function(isConfirm) {
+                                    if (isConfirm) {
+                                        // Proceed with the existing POST request to pickup the item
+                                        $.ajax({
+                                            type: "POST",
+                                            data: {
+                                                _pls_id: pls_id,
+                                                _pst_id: pst_id,
+                                                _pl_id: pl_id,
+                                                _pl_code: pl_code,
+                                                _st_id: st_id
+                                            },
+                                            dataType: 'json',
+                                            url: "{{ url('pickup_item') }}",
+                                            success: function(r) {
+                                                if (r.status == '200') {
+                                                    toast("Berhasil",
+                                                        "Item berhasil dipickup",
+                                                        "success");
+                                                    stock_data_table
+                                                        .draw();
+                                                    pickup_list_table
+                                                        .draw();
+                                                } else {
+                                                    toast('Gagal',
+                                                        'Gagal pickup item',
+                                                        'error');
+                                                }
+                                            }
+                                        });
+                                        return false;
+                                    }
+                                });
+                            },
+                            error: function() {
+                                // Handle error
+                                swal('Error', 'Failed to fetch promo data', 'error');
+                            }
+                        });
+                    } else {
+                        swal({
+                            title: "Pickup..?",
+                            text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
+                            icon: "warning",
+                            buttons: [
+                                'Batal',
+                                'Yakin'
+                            ],
+                            dangerMode: false,
+                        }).then(function(isConfirm) {
+                            if (isConfirm) {
+                                $.ajaxSetup({
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]')
+                                            .attr(
+                                                'content')
+                                    }
+                                });
+                                $.ajax({
+                                    type: "POST",
+                                    data: {
+                                        _pls_id: pls_id,
+                                        _pst_id: pst_id,
+                                        _pl_id: pl_id,
+                                        _pl_code: pl_code
+                                    },
+                                    dataType: 'json',
+                                    url: "{{ url('pickup_item') }}",
+                                    success: function(r) {
+                                        if (r.status == '200') {
+                                            toast("Berhasil",
+                                                "Item berhasil dipickup",
+                                                "success");
+                                            stock_data_table.draw();
+                                            pickup_list_table.draw();
+                                        } else {
+                                            toast('Gagal', 'Gagal pickup item',
+                                                'error');
+                                        }
+                                    }
+                                });
+                                return false;
+                            }
+                        })
+                    }
+                @endif
+            }
+
+
+        });
+
+        $(document).delegate('#pickup_approval_item', 'click', function(e) {
+            e.preventDefault();
+            var st_id = $('#st_id_filter').val();
+            var plst_id = $(this).attr('data-plst_id');
+            var p_name = $(this).attr('data-p_name');
+            var bin = $(this).attr('data-bin');
+            @if (strtolower($data['user']->stt_name) == 'offline' and strtolower($data['user']->g_name) == 'sales')
+                if (st_id == {{ $data['user']->st_id }}) {
                     swal({
                         title: "Pickup..?",
                         text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
@@ -597,7 +683,7 @@
                             'Yakin'
                         ],
                         dangerMode: false,
-                    }).then(function (isConfirm) {
+                    }).then(function(isConfirm) {
                         if (isConfirm) {
                             $.ajaxSetup({
                                 headers: {
@@ -608,19 +694,16 @@
                             $.ajax({
                                 type: "POST",
                                 data: {
-                                    _pls_id: pls_id,
-                                    _pst_id: pst_id,
-                                    _pl_id: pl_id,
-                                    _pl_code: pl_code
+                                    plst_id: plst_id
                                 },
                                 dataType: 'json',
-                                url: "{{ url('pickup_item') }}",
-                                success: function (r) {
+                                url: "{{ url('pickup_approval_item') }}",
+                                success: function(r) {
                                     if (r.status == '200') {
-                                        toast("Berhasil", "Item berhasil dipickup",
-                                            "success");
                                         stock_data_table.draw();
                                         pickup_list_table.draw();
+                                        toast("Berhasil", "Item berhasil dipickup",
+                                            "success");
                                     } else {
                                         toast('Gagal', 'Gagal pickup item',
                                             'error');
@@ -631,66 +714,12 @@
                         }
                     })
                 }
-                @endif
-            }
-
-
-        });
-
-        $(document).delegate('#pickup_approval_item', 'click', function (e) {
-            e.preventDefault();
-            var st_id = $('#st_id_filter').val();
-            var plst_id = $(this).attr('data-plst_id');
-            var p_name = $(this).attr('data-p_name');
-            var bin = $(this).attr('data-bin');
-            @if (strtolower($data['user']->stt_name) == 'offline' and strtolower($data['user']->g_name) == 'sales')
-            if (st_id == {{ $data['user']->st_id }}) {
-                swal({
-                    title: "Pickup..?",
-                    text: "Yakin pickup item " + p_name + " dari bin " + bin + " ?",
-                    icon: "warning",
-                    buttons: [
-                        'Batal',
-                        'Yakin'
-                    ],
-                    dangerMode: false,
-                }).then(function (isConfirm) {
-                    if (isConfirm) {
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
-                                    'content')
-                            }
-                        });
-                        $.ajax({
-                            type: "POST",
-                            data: {
-                                plst_id: plst_id
-                            },
-                            dataType: 'json',
-                            url: "{{ url('pickup_approval_item') }}",
-                            success: function (r) {
-                                if (r.status == '200') {
-                                    stock_data_table.draw();
-                                    pickup_list_table.draw();
-                                    toast("Berhasil", "Item berhasil dipickup",
-                                        "success");
-                                } else {
-                                    toast('Gagal', 'Gagal pickup item',
-                                        'error');
-                                }
-                            }
-                        });
-                        return false;
-                    }
-                })
-            }
             @endif
         });
 
         jQuery.noConflict();
 
-        $('#reset_btn').on('click', function () {
+        $('#reset_btn').on('click', function() {
             $("#br_id").val("");
             $("#br_id").trigger('change');
             $("#pc_id").val("");
@@ -713,9 +742,10 @@
             // stock_data_table.draw();
         });
 
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').on('change', function () {
-            stock_data_table.draw();
-        });
+        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').on('change',
+            function() {
+                stock_data_table.draw();
+            });
 
         $('#br_id').select2({
             multiple: true,
@@ -725,7 +755,7 @@
             placeholder: "BRANDS",
             allowClear: true,
         });
-        $('#br_id').on('select2:open', function (e) {
+        $('#br_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -739,7 +769,7 @@
             placeholder: "KATEGORI",
             allowClear: true,
         });
-        $('#pc_id').on('select2:open', function (e) {
+        $('#pc_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -753,7 +783,7 @@
             placeholder: "SUB KATEGORI",
             allowClear: true,
         });
-        $('#psc_id').on('select2:open', function (e) {
+        $('#psc_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -767,7 +797,7 @@
             placeholder: "SUB ON SUB KATEGORI",
             allowClear: true,
         });
-        $('#pssc_id').on('select2:open', function (e) {
+        $('#pssc_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -781,7 +811,7 @@
             placeholder: "SIZE / UKURAN",
             allowClear: true,
         });
-        $('#sz_id').on('select2:open', function (e) {
+        $('#sz_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -856,32 +886,161 @@
             placeholder: "MAIN COLOR",
             allowClear: true,
         });
-        $('#main_color_id').on('select2:open', function (e) {
+        $('#main_color_id').on('select2:open', function(e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#pc_id').on('change', function () {
+        $('#pc_id').on('change', function() {
             reloadSubCategory('product_category', $(this).val());
         });
 
-        $('#psc_id').on('change', function () {
+        $('#psc_id').on('change', function() {
             reloadSubOnSubCategory('product_sub_category', $(this).val());
         });
 
-        $('#br_id').on('change', function () {
+        $('#br_id').on('change', function() {
             reloadCategory('brand', $(this).val());
         });
 
-        $('#pickup_list_btn').on('click', function () {
+        $('#pickup_list_btn').on('click', function() {
             jQuery.noConflict();
-            $('#PickupListModal').on('show.bs.modal', function () {
+            $('#PickupListModal').on('show.bs.modal', function() {
                 pickup_list_table.draw();
             }).modal('show');
         });
 
-        $(document).delegate('#cancel_pickup_btn', 'click', function () {
+        $('#change_display_btn').on('click', function() {
+            jQuery.noConflict();
+            scanner_main.clear();
+            modal_opened = 'ScanChangeDisplay'
+            $('#ChangeDisplayModal').on('show.bs.modal').modal('show');
+            scanner_change_display.render(success, error);
+        });
+
+        $('#ChangeDisplayModal').on('hidden.bs.modal', function() {
+            scanner_change_display.clear();
+            modal_opened = '';
+            scanner_main.render(success, error);
+        });
+
+        $('#sku_display').on('change', function() {
+            var sku = $(this).val();
+
+            if (sku.trim() !== '') {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    type: "GET",
+                    url: "{{ url('get_item_data_by_sku') }}/" + sku,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response) {
+                            // Update product name
+                            $('#product_name').text(response.p_name || '-');
+
+                            // Update product variant (combining color and size)
+                            var variant = '';
+                            if (response.p_color && response.sz_name) {
+                                variant = response.p_color + ' / ' + response.sz_name;
+                            } else if (response.p_color) {
+                                variant = response.p_color;
+                            } else if (response.sz_name) {
+                                variant = response.sz_name;
+                            } else {
+                                variant = '-';
+                            }
+                            $('#product_variant').text(variant);
+                        } else {
+                            // Reset fields if no data found
+                            $('#product_name').text('-');
+                            $('#product_variant').text('-');
+                        }
+                    },
+                    error: function() {
+                        // Reset fields on error
+                        $('#product_name').text('-');
+                        $('#product_variant').text('-');
+                        toast('Error', 'Failed to fetch item data', 'error');
+                    }
+                });
+            } else {
+                // Reset fields if SKU is empty
+                $('#product_name').text('-');
+                $('#product_variant').text('-');
+            }
+        });
+
+        $('#f_ganti_display').on('submit', function(event) {
+            event.preventDefault();
+
+            var sku = $('#sku_display').val();
+            var product_name = $('#product_name').text();
+
+            if (sku.trim() === '') {
+                swal('Error', 'SKU tidak boleh kosong', 'error');
+                return;
+            }
+
+            if (product_name.trim() === '-' || product_name.trim() === '') {
+                swal('Error', 'Nama produk tidak ditemukan', 'error');
+                return;
+                
+            }
+
+            swal({
+                title: "Ganti Display..?",
+                text: "Yakin ganti display untuk SKU " + sku + " ?",
+                icon: "warning",
+                buttons: [
+                    'Batal',
+                    'Yakin'
+                ],
+                dangerMode: false,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('change_display_stock_data') }}",
+                        data: {
+                            _pst_barcode: sku
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status == '200') {
+                                swal('Berhasil',
+                                    'Display stock data berhasil diubah',
+                                    'success');
+                                $('#ChangeDisplayModal').modal('hide');
+                                stock_data_table.draw();
+                            } else {
+                                swal('Gagal', response.message ||
+                                    'Gagal mengubah display stock data', 'error'
+                                    );
+                            }
+                        },
+                        error: function() {
+                            swal('Error',
+                                'Terjadi kesalahan saat mengubah display stock data',
+                                'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).delegate('#cancel_pickup_btn', 'click', function() {
             var plst_id = $(this).attr('data-plst_id');
             var pls_id = $(this).attr('data-pls_id');
             var pst_id = $(this).attr('data-pst_id');
@@ -897,7 +1056,7 @@
                     'Yakin'
                 ],
                 dangerMode: false,
-            }).then(function (isConfirm) {
+            }).then(function(isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -915,7 +1074,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('cancel_pickup_item') }}",
-                        success: function (r) {
+                        success: function(r) {
                             if (r.status == '200') {
                                 toast("Berhasil", "Pickup item berhasil dibatalkan",
                                     "success");
@@ -931,13 +1090,13 @@
             })
         });
 
-        $('#st_id_filter').on('change', function () {
+        $('#st_id_filter').on('change', function() {
             stock_data_table.draw();
         });
 
 
         var scanMode = false;
-        $('#scan_mode_btn').click(function () {
+        $('#scan_mode_btn').click(function() {
 
             scanMode = !scanMode;
 
@@ -975,12 +1134,12 @@
         //     }, 300); // Adjust the delay as needed
         // });
         // Add submit event listener to the form
-        $('#f_search').on('submit', function (event) {
+        $('#f_search').on('submit', function(event) {
             event.preventDefault(); // Prevent the default form submission
 
             clearTimeout(debounceTimeout);
 
-            debounceTimeout = setTimeout(function () {
+            debounceTimeout = setTimeout(function() {
                 var query = $('#stock_data_search').val();
                 stock_data_table.draw();
             }, 300); // Adjust the delay as needed
@@ -1001,7 +1160,7 @@
             },
             dataType: 'html',
             url: "{{ url('stock_data_reload_category') }}",
-            success: function (r) {
+            success: function(r) {
                 $('#pc_id').html(r);
             }
         });
@@ -1026,7 +1185,7 @@
             data: {
                 _st_id: {{ \Illuminate\Support\Facades\Auth::user()->st_id }}
             },
-            success: function (response) {
+            success: function(response) {
                 // Parse the new count from the response
                 const newCount = response.count;
 
@@ -1036,14 +1195,15 @@
                 // Check if the count decrease
                 if (newCount < previousCount) {
                     // Play a notification sound
-                    const audio = new Audio("{{ asset('music/lily.mp3') }}"); // Replace with your audio file path
+                    const audio = new Audio(
+                    "{{ asset('music/lily.mp3') }}"); // Replace with your audio file path
                     audio.play();
                 }
 
                 // Update the previous count variable
                 previousCount = newCount;
             },
-            error: function () {
+            error: function() {
                 console.error('Failed to fetch request count.');
             }
         });
