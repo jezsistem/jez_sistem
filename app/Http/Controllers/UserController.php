@@ -12,6 +12,7 @@ use App\Models\Store;
 use App\Models\StoreType;
 use App\Models\UserActivity;
 
+
 class UserController extends Controller
 {
     protected function validateAccess()
@@ -93,7 +94,7 @@ class UserController extends Controller
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'stt_id' => StoreType::where('stt_delete', '!=', '1')->orderByDesc('id')->pluck('stt_name', 'id'),
             'ma_id' => DB::table('menu_accesses')->orderBy('ma_sort')->pluck('ma_title', 'id'),
-            'sidebar' => $this->sidebar()
+            'sidebar' => $this->sidebar(),
         ];
         return view('app.user.user', compact('data'));
     }
@@ -129,7 +130,19 @@ class UserController extends Controller
                     }
                     return "<span class='badge badge-sm badge-primary'>" . $delete . "</span>";
                 })
-                ->rawColumns(['st_name', 'menu_access', 'delete_access_show'])
+                ->editColumn('u_delete', function ($data) {
+                    $checked = $data->u_delete == '0' ? 'checked' : '';
+                    return "
+                        <label class='switch'>
+                            <input type='checkbox' $checked data-id='{$data->uid}' class='toggle-delete'>
+                            <span class='slider round'></span>
+                        </label>";
+                })
+                ->editColumn('action', function ($data) {
+                    return '<button type="button" class="btn btn-primary btn-detail " data-uid="' . $data->uid . '">Detail</button>';
+                })
+
+                ->rawColumns(['st_name', 'menu_access', 'delete_access_show', 'u_delete', 'action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -321,24 +334,20 @@ class UserController extends Controller
         $r['store'] = $store;
         return json_encode($r);
     }
+    
+    public function updateDeleteStatus(Request $request)
+    {
+        $request->validate([
+            'uid' => 'required|exists:users,id', // Removed Rule facade
+            'u_delete' => 'required|in:0,1',
+        ]);
+    
+        DB::table('users') // Updated table name
+            ->where('id', $request->uid)
+            ->update(['u_delete' => $request->u_delete]);
+    
+        return response()->json(['message' => 'Status berhasil diperbarui.']);
+    }
+    
 
-    // public function autoDeactivateUsers(Request $req)
-    // {
-    //     $today = date('Y-m-d');
-
-    //     // Update users yang aktif tapi tanggal aktif sudah lewat
-    //     $update = DB::table('users')
-    //         ->whereDate('u_active', '<', $today)
-    //         ->where('u_delete', '=', 0)
-    //         ->update([
-    //             'u_delete' => 1,
-    //             'updated_at' => now()
-    //         ]);
-
-    //     if ($update) {
-    //         return response()->json(['status' => 200, 'message' => 'Data updated']);
-    //     } else {
-    //         return response()->json(['status' => 400, 'message' => 'No data updated']);
-    //     }
-    // }
 }

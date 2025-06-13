@@ -337,6 +337,15 @@
                     data: 'u_address',
                     name: 'u_address'
                 },
+                {
+                    data: 'u_delete',
+                    name: 'u_delete'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
+                },
+
             ],
             columnDefs: [{
                 "targets": 0,
@@ -347,12 +356,13 @@
                 [0, 'desc']
             ],
             rowCallback: function(row, data, index) {
-        if (data.u_delete === "1") {
-            $(row).css('background-color', '#f8d7da');
-            }}
+                if (data.u_delete === "1") {
+                    $(row).css('background-color', '#f8d7da');
+                }
+            }
         });
 
-        $('#filter_delete').on('change', function () {
+        $('#filter_delete').on('change', function() {
             console.log($('#filter_delete').val())
             user_table.draw();
         });
@@ -362,44 +372,40 @@
             user_table.draw(false);
         });
 
-        $('#Usertb tbody').on('click', 'tr td:not(:nth-child(4), :nth-child(5))', function() {
-            var uid = user_table.row(this).data().uid;
-            var gr_id = user_table.row(this).data().gr_id;
-            var stt_id = user_table.row(this).data().stt_id;
-            var st_id = user_table.row(this).data().st_id;
-            var u_name = user_table.row(this).data().u_name;
-            var u_nip = user_table.row(this).data().u_nip;
-            var u_ktp = user_table.row(this).data().u_ktp;
-            var u_secret_code = user_table.row(this).data().u_secret_code;
-            var u_email = user_table.row(this).data().u_email;
-            var u_phone = user_table.row(this).data().u_phone;
-            var u_address = user_table.row(this).data().u_address;      
-            var u_delete = user_table.row(this).data().u_delete;
-            var u_active = user_table.row(this).data().u_active;
-            var delete_access = user_table.row(this).data().delete_access;
+
+        $('#Usertb tbody').on('click', '.btn-detail', function() {
+            let uid = $(this).data('uid');
+            let data = user_table.rows().data().toArray().find(row => row.uid == uid);
+            if (data) {
+                showUserModal(data);
+            }
+        });
+
+        // Fungsi pemanggil modal
+        function showUserModal(data) {
             jQuery.noConflict();
             $('#UserModal').modal('show');
-            jQuery('#gr_id').val(gr_id).trigger('change');
-            jQuery('#stt_id').val(stt_id).trigger('change');
-            jQuery('#st_id').val(st_id).trigger('change');
-            jQuery('#delete_access').val(delete_access).trigger('change');
-            $('#u_name').val(u_name);
-            $('#u_nip').val(u_nip);
-            $('#u_ktp').val(u_ktp);
-            $('#u_secret_code').val(u_secret_code);
-            $('#u_email').val(u_email);
-            $('#u_phone').val(u_phone);
+            jQuery('#gr_id').val(data.gr_id).trigger('change');
+            jQuery('#stt_id').val(data.stt_id).trigger('change');
+            jQuery('#st_id').val(data.st_id).trigger('change');
+            jQuery('#delete_access').val(data.delete_access).trigger('change');
+            $('#u_name').val(data.u_name);
+            $('#u_nip').val(data.u_nip);
+            $('#u_ktp').val(data.u_ktp);
+            $('#u_secret_code').val(data.u_secret_code);
+            $('#u_email').val(data.u_email);
+            $('#u_phone').val(data.u_phone);
             $('#u_password').val('');
-            $('#u_address').val(u_address);
-            jQuery('#u_delete').val(u_delete).trigger('change');
-            $('#u_active').val(u_active);
-            $('#_id').val(uid);
+            $('#u_address').val(data.u_address);
+            jQuery('#u_delete').val(data.u_delete).trigger('change');
+            $('#u_active').val(data.u_active);
+            $('#_id').val(data.uid);
             $('#_mode').val('edit');
 
             @if ($data['user']->g_name == 'administrator')
                 $('#delete_user_btn').show();
             @endif
-        });
+        }
 
         $('#add_user_btn').on('click', function() {
             jQuery.noConflict();
@@ -713,7 +719,7 @@
                         success: function(r) {
                             if (r.status == '200') {
                                 toastr.success('Data berhasil disetups',
-                                'Berhasil');
+                                    'Berhasil');
                                 menu_access_table.draw(false);
                             } else {
                                 toastr.error('Gagal setup data', 'Gagal');
@@ -726,6 +732,28 @@
             })
 
         });
+        $(document).on('change', '.toggle-delete', function() {
+            let uid = $(this).data('id');
+            let isChecked = $(this).is(':checked') ? '0' : '1';
+
+            $.ajax({
+                url: '/update-delete-status',
+                method: 'POST',
+                data: {
+                    uid: uid,
+                    u_delete: isChecked,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('Data berhasil diubah', 'Berhasil');
+                    user_table.draw(false);
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengubah status.', 'Gagal');
+                }
+            });
+        });
+
 
     });
 </script>
