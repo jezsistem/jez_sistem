@@ -11,5 +11,10 @@ class PromoRecommendation extends Model
 
     protected $table = 'promo_recommendations';
 
-    protected $fillable = ['p_id', 'channel', 'discount', 'notes', 'created_at', 'updated_at'];
+    protected $fillable = ['u_id', 'pr_code', 'channel', 'created_at', 'updated_at'];
+
+    public function details()
+    {
+        return $this->hasMany(PromoRecommendationDetail::class, 'pr_id');
+    }
 }

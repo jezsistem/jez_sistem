@@ -1,4 +1,6 @@
 <script>
+    var pr_id = '';
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -22,41 +24,109 @@
                 url: "{{ url('rekomendasi_promo_datatables') }}",
                 data: function(d) {
                     d.search = $('#rekomendasi_promo_search').val();
-                    d.date_start = $('#artikelpromo_date').val();
+                    d.channel = $('#channel_rekomendasi_promo').val();
+                    d.date_start = $('#rekomendasi_promo_date_start').val();
+                    d.date_end = $('#rekomendasi_promo_date_end').val();
                 }
             },
             columns: [{
                     data: 'DT_RowIndex',
-                    name: 'a_id',
+                    name: 'pr_id',
                     searchable: false
                 },
                 {
-                    data: 'article_id',
-                    name: 'article_id'
-                },
-                {
-                    data: 'p_name',
-                    name: 'p_name'
+                    data: 'pr_code',
+                    name: 'pr_code'
                 },
                 {
                     data: 'channel',
                     name: 'channel'
                 },
                 {
+                    data: 'created_at',
+                    name: 'created_at',
+                    render: function(data, type, row) {
+                        if (data) {
+                            var date = new Date(data);
+                            var days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                            var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                            
+                            var dayName = days[date.getDay()];
+                            var day = date.getDate();
+                            var month = months[date.getMonth()];
+                            var year = date.getFullYear();
+                            var hours = date.getHours().toString().padStart(2, '0');
+                            var minutes = date.getMinutes().toString().padStart(2, '0');
+                            var seconds = date.getSeconds().toString().padStart(2, '0');
+                            
+                            return dayName + ', ' + day + ' ' + month + ' ' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+                        }
+                        return '';
+                    }
+                }
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        var data_promo_recommendation_detail_tb = '';
+        data_promo_recommendation_detail_tb = $('#PromoRecommendationDetailtb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            searching: true,
+            ajax: {
+                url: "{{ url('rekomendasi_promo_detail_datatables') }}",
+                data: function(d) {
+                    d.pr_id = pr_id;
+                    d.search = d.search.value;
+                }
+            },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'prd_id',
+                    searchable: false
+                },
+                {
+                    data: 'article_id',
+                    name: 'article_id',
+                    searchable: true
+                },
+                {
+                    data: 'p_name',
+                    name: 'p_name',
+                    searchable: true
+                },
+                {
                     data: 'promo_disc',
-                    name: 'promo_disc'
+                    name: 'promo_disc',
+                    searchable: false
                 },
                 {
                     data: 'p_price_tag',
-                    name: 'p_price_tag'
+                    name: 'p_price_tag',
+                    searchable: false
                 },
                 {
                     data: 'price_discount',
-                    name: 'price_discount'
+                    name: 'price_discount',
+                    searchable: false
                 },
                 {
                     data: 'notes',
-                    name: 'notes'
+                    name: 'notes',
+                    searchable: false
                 },
             ],
             columnDefs: [{
@@ -81,24 +151,11 @@
 
         $('#PromoRecommendationtb tbody').on('click', 'tr td:not(:nth-child(12))', function() {
             var row = data_promo_recommendation_tb.row(this).data();
-            var id = row.a_id;
-            var article_id = row.article_id;
+            pr_id = row.pr_id;
             var channel = row.channel;
-            var discount = row.discount;
-            var notes = row.notes;
             jQuery.noConflict();
-            $('#PromoRecommendationModal').modal('show');
-            $('#_id').val(id);
-            $('#article_id').val(article_id);
-            $('#channel').val(channel).trigger('change');
-            $('#discount').val(discount);
-            $('#notes').val(notes);
-            $('#_mode').val('edit');
-            if ("{{ $data['user']->delete_access }}" == '1') {
-                $('#delete_rekomendasi_promo_btn').show();
-            } else {
-                $('#delete_rekomendasi_promo_btn').hide();
-            }
+            $('#PromoRecommendationDetailModal').modal('show');
+            data_promo_recommendation_detail_tb.draw();
         });
 
         $('#add_rekomendasi_promo_btn').on('click', function() {
@@ -155,6 +212,14 @@
             });
         });
 
+        $('#rekomendasi_promo_search').on('keyup', function() {
+            data_promo_recommendation_tb.draw();
+        });
+
+        $('#channel_rekomendasi_promo').on('change', function() {
+            data_promo_recommendation_tb.draw();
+        });
+
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
             $('#import_data_btn').html('Proses...');
@@ -206,7 +271,7 @@
         });
 
 
-        $('#delete_rekomendasi_promo_btn').on('click', function() {
+        $('#delete_promo_recommendation').on('click', function() {
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -226,14 +291,14 @@
                     $.ajax({
                         type: "POST",
                         data: {
-                            _id: $('#_id').val()
+                            _id: pr_id
                         },
                         dataType: 'json',
                         url: "{{ url('rekomendasi_promo_delete') }}",
                         success: function(r) {
                             if (r.status == '200') {
                                 toastr.success("Data successfully deleted Jez", "Success");
-                                $('#PromoRecommendationModal').modal('hide');
+                                $('#PromoRecommendationDetailModal').modal('hide');
                                 data_promo_recommendation_tb.ajax.reload();
                             } else {
                                 toastr.error("Failed to delete data Jez", "Failed");
