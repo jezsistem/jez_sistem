@@ -97,7 +97,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="promoDetailModalLabel">Detail Rekomendasi Promo</h5>
+                <h5 class="modal-title text-dark" id="promoDetailModalLabel">Detail Rekomendasi Promo <span class="pr_code"></span> </h5>
                 <div class="d-flex justify-content-center align-items-center gap-3">
                     <div class="dropdown dropdown-inline mr-5">
                         <a type="button" class="btn btn-light-primary font-weight-bolder" id="ExportArticleData">

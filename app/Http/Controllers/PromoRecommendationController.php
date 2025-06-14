@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PromoRecommendationDetailExport;
 use App\Exports\PromoRecommendationExport;
 use App\Imports\PromoRecommendationImport;
 use App\Models\PromoRecommendation;
@@ -305,11 +306,45 @@ class PromoRecommendationController extends Controller
     public function exportData(Request $request)
     {
         try {
-            $type = $request->get('type');
+            $search = isset($request->search) ? $request->search : '';
+            $channel = isset($request->channel) ? $request->channel : '';
+            $date_start = isset($request->date_start) ? $request->date_start : '';
+            $date_end = isset($request->date_end) && $request->date_end !== 'undefined' ? $request->date_end : '';
 
-            $fileName = 'Export_Rekomendasi_Promo_' . date('Y-m-d') . '.xlsx';
+            $fileName = 'Export_Rekomendasi_Promo';
+            if (!empty($search)) {
+                $fileName .= '_' . str_replace(' ', '_', $search);
+            }
+            if (!empty($channel)) {
+                $fileName .= '_' . $channel;
+            }
+            if (!empty($date_start)) {
+                $fileName .= '_' . $date_start;
+            }
+            if (!empty($date_end)) {
+                $fileName .= '_' . $date_end;
+            }
+            $fileName .= '_' . date('Y-m-d') . '.xlsx';
 
-            return Excel::download(new PromoRecommendationExport($type), $fileName);
+            return Excel::download(new PromoRecommendationExport($search, $channel, $date_start, $date_end), $fileName);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+    }
+
+    public function exportDetailData(Request $request)
+    {
+        $id = $request->input('pr_id');
+        if (!$id) {
+            return response()->json(['status' => '400', 'message' => 'ID tidak ditemukan']);
+        }
+
+        $pr_code = PromoRecommendation::find($id);
+        try {
+
+            $fileName = 'Export_'. $pr_code->pr_code .'_' . date('Y-m-d') . '.xlsx';
+
+            return Excel::download(new PromoRecommendationDetailExport($id), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
         }

@@ -134,6 +134,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('rekomendasi_promo_delete', [PromoRecommendationController::class, 'deleteData']);
     Route::post('check_exists_rekomendasi_promo', [PromoRecommendationController::class, 'checkExistsPromoRecommendation']);
     Route::get('export_rekomendasi_promo', [PromoRecommendationController::class, 'exportData']);
+    Route::get('export_rekomendasi_promo_detail', [PromoRecommendationController::class, 'exportDetailData']);
     Route::post('rekomendasi_promo_import', [PromoRecommendationController::class, 'savePromoRecommendationImport']);
 });
 

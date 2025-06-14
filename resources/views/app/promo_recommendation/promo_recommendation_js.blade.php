@@ -48,9 +48,14 @@
                     render: function(data, type, row) {
                         if (data) {
                             var date = new Date(data);
-                            var days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                            var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                            
+                            var days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat',
+                                'Sabtu'
+                            ];
+                            var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei',
+                                'Juni', 'Juli', 'Agustus', 'September', 'Oktober',
+                                'November', 'Desember'
+                            ];
+
                             var dayName = days[date.getDay()];
                             var day = date.getDate();
                             var month = months[date.getMonth()];
@@ -58,8 +63,9 @@
                             var hours = date.getHours().toString().padStart(2, '0');
                             var minutes = date.getMinutes().toString().padStart(2, '0');
                             var seconds = date.getSeconds().toString().padStart(2, '0');
-                            
-                            return dayName + ', ' + day + ' ' + month + ' ' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+
+                            return dayName + ', ' + day + ' ' + month + ' ' + year + ' ' +
+                                hours + ':' + minutes + ':' + seconds;
                         }
                         return '';
                     }
@@ -155,6 +161,7 @@
             var channel = row.channel;
             jQuery.noConflict();
             $('#PromoRecommendationDetailModal').modal('show');
+            $('.pr_code').text('(' + row.pr_code + ')');
             data_promo_recommendation_detail_tb.draw();
         });
 
@@ -176,39 +183,39 @@
             var currentId = $('#_id').val(); // Get the current ID
 
             $.ajax({
-            type: 'POST',
-            url: "{{ url('rekomendasi_promo_save') }}",
-            data: formData,
-            dataType: 'json',
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function(data) {
-                $("#save_rekomendasi_promo_btn").html('Simpan');
-                $("#save_rekomendasi_promo_btn").attr("disabled", false);
+                type: 'POST',
+                url: "{{ url('rekomendasi_promo_save') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $("#save_rekomendasi_promo_btn").html('Simpan');
+                    $("#save_rekomendasi_promo_btn").attr("disabled", false);
 
-                if (data.status == '200') {
-                $("#PromoRecommendationModal").modal('hide');
-                swal("Success", "Data saved successfully Jez", "success");
+                    if (data.status == '200') {
+                        $("#PromoRecommendationModal").modal('hide');
+                        swal("Success", "Data saved successfully Jez", "success");
 
-                if (isEdit) {
-                    // Update the row in the DataTable
-                    data_promo_recommendation_tb.ajax.reload(null, false);
-                } else {
-                    // Add new data: reload the DataTable
-                    data_promo_recommendation_tb.ajax.reload(null, false);
+                        if (isEdit) {
+                            // Update the row in the DataTable
+                            data_promo_recommendation_tb.ajax.reload(null, false);
+                        } else {
+                            // Add new data: reload the DataTable
+                            data_promo_recommendation_tb.ajax.reload(null, false);
+                        }
+                    } else if (data.status == '400') {
+                        swal("Failed", "Data not saved Jez", "warning");
+                    } else {
+                        swal("Error", data.message, "error");
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    $("#save_rekomendasi_promo_btn").html('Simpan').attr("disabled", false);
+                    swal("Error", "Terjadi kesalahan saat memproses", "error");
                 }
-                } else if (data.status == '400') {
-                swal("Failed", "Data not saved Jez", "warning");
-                } else {
-                swal("Error", data.message, "error");
-                }
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText);
-                $("#save_rekomendasi_promo_btn").html('Simpan').attr("disabled", false);
-                swal("Error", "Terjadi kesalahan saat memproses", "error");
-            }
             });
         });
 
@@ -252,24 +259,67 @@
 
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        toastr.warning('File yang anda import kosong atau format tidak tepat', 'File');
+                        toastr.warning(
+                            'File yang anda import kosong atau format tidak tepat',
+                            'File');
                     } else {
                         $("#ImportModal").modal('hide');
                         toastr.error('Terjadi kesalahan saat memproses file', 'Error');
                     }
                 },
                 error: function(data) {
-                    toastr.error('An error occurred while processing your request', 'Error');
+                    toastr.error('An error occurred while processing your request',
+                        'Error');
+                }
+            });
+        });
+
+        $('#ExportArticleData').on('click', function(e) {
+            e.preventDefault();
+
+            swal({
+                title: "Ekspor Data",
+                text: "Apakah Anda ingin mengekspor data?",
+                icon: "info",
+                buttons: [
+                    'Batal',
+                    'Ekspor'
+                ],
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    var url = "{{ url('export_rekomendasi_promo_detail') }}" + "?pr_id=" +
+                        pr_id;
+                    window.location.href = url;
                 }
             });
         });
 
         $('#export_btn').on('click', function(e) {
             e.preventDefault();
-            
-            window.location.href = "{{ url('export_rekomendasi_promo') }}";
-        });
 
+            var search = $('#rekomendasi_promo_search').val();
+            var channel = $('#channel_rekomendasi_promo').val();
+            var date_start = $('#rekomendasi_promo_date_start').val();
+            var date_end = $('#rekomendasi_promo_date_end').val();
+
+            swal({
+                title: "Ekspor Data",
+                text: "Apakah Anda ingin mengekspor data?",
+                icon: "info",
+                buttons: [
+                    'Batal',
+                    'Ekspor'
+                ],
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    var url = "{{ url('export_rekomendasi_promo') }}" + "?search=" + encodeURIComponent(search) +
+                        "&channel=" + encodeURIComponent(channel) +
+                        "&date_start=" + encodeURIComponent(date_start) +
+                        "&date_end=" + encodeURIComponent(date_end);
+                    window.location.href = url;
+                }
+            });
+        });
 
         $('#delete_promo_recommendation').on('click', function() {
             swal({
@@ -297,7 +347,8 @@
                         url: "{{ url('rekomendasi_promo_delete') }}",
                         success: function(r) {
                             if (r.status == '200') {
-                                toastr.success("Data successfully deleted Jez", "Success");
+                                toastr.success("Data successfully deleted Jez",
+                                    "Success");
                                 $('#PromoRecommendationDetailModal').modal('hide');
                                 data_promo_recommendation_tb.ajax.reload();
                             } else {
@@ -336,20 +387,20 @@
             var hidden_range = '';
 
             if (label == 'All Days' || !label) {
-            title = '';
-            range = 'All Days';
-            hidden_range = '';
+                title = '';
+                range = 'All Days';
+                hidden_range = '';
             } else if ((end - start) < 100 || label == 'Today') {
-            title = 'Today:';
-            range = start.format('MMM D');
-            hidden_range = start.format('YYYY-MM-DD');
+                title = 'Today:';
+                range = start.format('MMM D');
+                hidden_range = start.format('YYYY-MM-DD');
             } else if (label == 'Yesterday') {
-            title = 'Yesterday:';
-            range = start.format('MMM D');
-            hidden_range = start.format('YYYY-MM-DD');
+                title = 'Yesterday:';
+                range = start.format('MMM D');
+                hidden_range = start.format('YYYY-MM-DD');
             } else {
-            range = start.format('MMM D') + ' - ' + end.format('MMM D');
-            hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
+                range = start.format('MMM D') + ' - ' + end.format('MMM D');
+                hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
 
             $('#rekomendasi_promo_date_start').val(hidden_range);
@@ -368,13 +419,14 @@
             applyClass: 'btn-primary',
             cancelClass: 'btn-light-primary',
             ranges: {
-            'All Days': [null, null],
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                'All Days': [null, null],
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1,
+                    'month').endOf('month')]
             }
         }, cb);
 
@@ -384,9 +436,9 @@
         data_promo_recommendation_tb.on('preXhr.dt', function(e, settings, data) {
             var dateRange = $('#rekomendasi_promo_date_start').val();
             if (dateRange) {
-            var dates = dateRange.split('|');
-            data.date_start = dates[0];
-            data.date_end = dates[1];
+                var dates = dateRange.split('|');
+                data.date_start = dates[0];
+                data.date_end = dates[1];
             }
         });
 
