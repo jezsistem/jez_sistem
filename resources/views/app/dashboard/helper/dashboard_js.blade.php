@@ -783,7 +783,7 @@
 
     // Example usage for multiple modals
     // let scanner_scan_out = initializeScanner('reader_scan_out');
-    let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
+    // let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
     let scanner_scan_in = initializeScanner('reader_scan_in');
     let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
 
