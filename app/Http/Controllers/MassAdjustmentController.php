@@ -165,9 +165,12 @@ class MassAdjustmentController extends Controller
     public function adjustmentDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe')
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name','st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe', 'product_stocks.ps_barcode')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
+                ->leftJoin('mass_adjustment_details', 'mass_adjustment_details.ma_id', '=', 'mass_adjustments.id')
+                ->leftJoin('product_location_setups', 'mass_adjustment_details.pls_id', '=', 'product_location_setups.id')
+                ->leftJoin('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->where(function ($query) use ($request) {
                     if ($request->has('st_id') && !empty($request->get('st_id')) && $request->get('st_id') != 'all') {
                         $query->where('mass_adjustments.st_id', '=', $request->get('st_id'));
@@ -176,6 +179,9 @@ class MassAdjustmentController extends Controller
                 ->where(function ($query) use ($request) {
                     if ($request->has('filter') && $request->get('filter') !== null) {
                         $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
+                    }
+                    if ($request->has('note_adjustment') && $request->get('note_adjustment') !== null) {
+                        $query->where('mass_adjustments.note_adjustment', 'LIKE', '%' . $request->get('note_adjustment') . '%');
                     }
                 })
                 )
@@ -228,12 +234,26 @@ class MassAdjustmentController extends Controller
                         return "<a class='btn btn-danger'>Done</a>";
                     }
                 })
-                ->rawColumns(['ma_code_show', 'action'])
+                ->editColumn('note', function ($d) {
+                    $aliases = [
+                        'MALANG' => 'MLG',
+                        'SURABAYA' => 'SBY',
+                        'KEDIRI' => 'KDR',
+                        'JEMBER' => 'JBR',
+                        'SIDOARJO' => 'SDA'
+                    ];
+                    $st_code_alias = $aliases[$d->st_code] ?? $d->st_code;
+                    return $st_code_alias . ' - ' . ($d->note ?? '-');
+                })
+                ->rawColumns(['ma_code_show', 'action', 'note'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            $w->orWhere('ma_code', 'LIKE', "%$search%");
+                            $w->orWhere('ma_code', 'LIKE', "%$search%")
+                              ->orWhere('u_name', 'LIKE', "%$search%")
+                              ->orWhere('note_adjustment', 'LIKE', "%$search%")
+                              ->orWhere('ps_barcode', 'LIKE', "%$search%");
                         });
                     }
                     if (!empty($request->get('filter'))) {
@@ -290,6 +310,7 @@ class MassAdjustmentController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('pl_code', 'LIKE', "%$search%")
+                                ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', ["%$search%"]);
                         });
                     }
@@ -637,7 +658,7 @@ class MassAdjustmentController extends Controller
         }
         $data = DB::table('mass_adjustment_details')
             ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,ts_mass_adjustments.ma_approve_time, ts_mass_adjustments.ma_executor_time,
-        avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code, ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time,ts_stores.st_name")
+        avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code, ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time,ts_stores.st_name, ts_stores.st_code")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -680,6 +701,18 @@ class MassAdjustmentController extends Controller
                 // Determine the sell price, handling the case where ps_sell_price might be empty
                 $data->sell = !empty($data->ps_sell_price) ? number_format($data->ps_sell_price) : number_format($data->p_sell_price);
 
+                $aliases = [
+                    'MALANG' => 'MLG',
+                    'SURABAYA' => 'SBY',
+                    'KEDIRI' => 'KDR',
+                    'JEMBER' => 'JBR',
+                    'SIDOARJO' => 'SDA'
+                ];
+                $st_code = $data->st_code ?? '';
+                $alias = $aliases[$st_code] ?? $st_code;
+                $data->adjust_note_formatted = $alias . ' - ' . ($data->adjust_note ?? '-');
+            
+
                 return $data;
             });
         $r['data'] = $data;
@@ -710,7 +743,7 @@ class MassAdjustmentController extends Controller
 
         $data = DB::table('mass_adjustment_details')
             ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,ts_mass_adjustments.ma_approve_time, ts_mass_adjustments.ma_executor_time,
-    avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code,ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type,ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time, ts_stores.st_name")
+    avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code,ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type,ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time, ts_stores.st_name, ts_stores.st_code")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -745,6 +778,17 @@ class MassAdjustmentController extends Controller
 
                 $data->purchase = round($purchasePrice);
                 $data->sell = !empty($data->ps_sell_price) ? round($data->ps_sell_price) : round($data->p_sell_price);
+
+                $aliases = [
+                    'MALANG' => 'MLG',
+                    'SURABAYA' => 'SBY',
+                    'KEDIRI' => 'KDR',
+                    'JEMBER' => 'JBR',
+                    'SIDOARJO' => 'SDA'
+                ];
+            
+                $alias = $aliases[$data->st_code] ?? $data->st_code;
+                $data->adjust_note = $alias . ' - ' . ($data->adjust_note ?? '-');
 
                 return $data;
             });
