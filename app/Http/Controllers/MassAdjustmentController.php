@@ -165,7 +165,7 @@ class MassAdjustmentController extends Controller
     public function adjustmentDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe')
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name','st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
                 ->where(function ($query) use ($request) {
@@ -176,6 +176,9 @@ class MassAdjustmentController extends Controller
                 ->where(function ($query) use ($request) {
                     if ($request->has('filter') && $request->get('filter') !== null) {
                         $query->where('mass_adjustments.ma_status', '=', $request->get('filter'));
+                    }
+                    if ($request->has('note_adjustment') && $request->get('note_adjustment') !== null) {
+                        $query->where('mass_adjustments.note_adjustment', 'LIKE', '%' . $request->get('note_adjustment') . '%');
                     }
                 })
                 )
@@ -228,12 +231,24 @@ class MassAdjustmentController extends Controller
                         return "<a class='btn btn-danger'>Done</a>";
                     }
                 })
-                ->rawColumns(['ma_code_show', 'action'])
+                ->editColumn('note', function ($d) {
+                    $aliases = [
+                        'MALANG' => 'MLG',
+                        'SURABAYA' => 'SBY',
+                        'KEDIRI' => 'KDR',
+                        'JEMBER' => 'JBR',
+                        'SIDOARJO' => 'SDA'
+                    ];
+                    $st_code_alias = $aliases[$d->st_code] ?? $d->st_code;
+                    return $st_code_alias . ' - ' . ($d->note ?? '-');
+                })
+                ->rawColumns(['ma_code_show', 'action', 'note '])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            $w->orWhere('ma_code', 'LIKE', "%$search%");
+                            $w->orWhere('ma_code', 'LIKE', "%$search%")
+                              ->orWhere('u_name', 'LIKE', "%$search%");
                         });
                     }
                     if (!empty($request->get('filter'))) {

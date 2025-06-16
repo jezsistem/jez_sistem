@@ -329,6 +329,7 @@
                 data: function(d) {
                     d.search = $('#ma_search').val();
                     d.filter = $('#filter_status').val();
+                    d.filter = $('#filter_note').val();
                     d.st_id = st_id;
                 }
             },
@@ -621,15 +622,13 @@
             $(window).off(evt);
         });
 
-        // Initialize Select2 pada elemen select filter_status
-        // $('#filter_status').select2({
-        //     width: "200px",
-        //     dropdownParent: $('#filter_status_parent') // Menentukan parent untuk dropdown
-        //     console.log()
-        // });
 
         // Event listener untuk perubahan pada filter_status
         $('#filter_status').on('change', function() {
+            console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
+            mass_adjustment_table.draw(); // Memuat ulang tabel sesuai dengan filter status
+        });
+        $('#filter_note').on('change', function() {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             mass_adjustment_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
@@ -1141,6 +1140,7 @@
                     ma_date: dt,
                     st_id: st_id,
                     filter: $('#filter_status').val(),
+                    filter: $('#filter_note').val(),
                 },
                 dataType: 'json',
                 url: "{{ url('export_mass_by_date') }}",
@@ -1221,6 +1221,7 @@
                     ma_date: dt,
                     st_id: st_id,
                     filter: $('#filter_status').val(),
+                    filter: $('#filter_note').val(),
                 },
                 url: "{{ url('export_mass_by_date_excel') }}",
                 xhrFields: {

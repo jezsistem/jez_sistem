@@ -32,7 +32,22 @@
 
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Note Adjustment</label>
-                            <textarea class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;"></textarea>
+                            <select class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;">
+                                <option value="">-- Pilih Note Adjustment --</option>
+                                <option value="STOCK OPNAME">STOCK OPNAME</option>
+                                <option value="PARTIAL">PARTIAL</option>
+                                <option value="REJECT">REJECT</option>
+                                <option value="CACAT">CACAT</option>
+                                <option value="PERBAIKAN">PERBAIKAN</option>
+                                <option value="PROMOSI">PROMOSI</option>
+                                <option value="OPERASIONAL">OPERASIONAL</option>
+                                <option value="SSR">SSR</option>
+                                <option value="RESELLER">RESELLER</option>
+                                <option value="KESALAHAN SYSTEM">KESALAHAN SYSTEM</option>
+                                <option value="CYCLE COUNT">CYCLE COUNT</option>
+                                <option value="RETUR IN">RETUR IN</option>
+                                <option value="RETUR OUT">RETUR OUT</option>
+                            </select>
                         </div>
                     </div>
                 </div>
