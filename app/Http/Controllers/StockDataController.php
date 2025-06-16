@@ -398,7 +398,7 @@ class StockDataController extends Controller
                                     }
 
                                     // place to new array
-                                    $areas = DB::table('storage_areas')->pluck('name')->toArray();
+                                    $areas = DB::table('storage_areas')->pluck('name', 'id')->toArray();
 
 //                                    dd($areas);
 
@@ -444,7 +444,7 @@ class StockDataController extends Controller
 
                                         $query = DB::table('product_location_setups')
                                             ->select(
-                                                'product_locations.sa_id as sa_id',
+                                                'storage_areas.id as sa_id',
                                                 'storage_areas.name as sa_name',
                                                 'product_stocks.id as pst_id',
                                                 'product_stocks.ps_barcode',
@@ -473,7 +473,7 @@ class StockDataController extends Controller
 //                                            );
 //                                        }
 
-                                        foreach ($areas as $area) {
+                                        foreach ($areas as $idsa => $area) {
                                             $columnName = 'qty_' . str_replace([' ', '-'], '_', strtolower($area)); // e.g. qty_lt_1
 
                                             $query->selectRaw("
@@ -534,7 +534,7 @@ class StockDataController extends Controller
                                         // sampai sini belum bisa mengurangin stok y
                                         $query = DB::table('product_location_setups')
                                             ->select(
-                                                'product_locations.sa_id as sa_id',
+                                                'storage_areas.id as sa_id',
                                                 'storage_areas.name as sa_name',
                                                 'product_stocks.id as pst_id',
                                                 'product_stocks.ps_barcode',
@@ -553,7 +553,7 @@ class StockDataController extends Controller
                                             ->where('product_locations.st_id', '=', $st_id)
                                             ->where('product_location_setups.pst_id', '=', $srow->pst_id);
 
-                                        foreach ($areas as $area) {
+                                        foreach ($areas as $idsa => $area) {
                                             $columnName = 'qty_' . str_replace([' ', '-'], '_', strtolower($area)); // e.g. qty_lt_1
 
                                             $query->selectRaw("
@@ -566,7 +566,7 @@ class StockDataController extends Controller
                                                 COALESCE(
                                                     MAX(
                                                         CASE 
-                                                            WHEN ts_storage_areas.name = ? THEN waiting.qty_waiting 
+                                                            WHEN ts_storage_areas.name = ? THEN qty_waiting 
                                                             ELSE 0 
                                                         END
                                                     ), 0
@@ -634,19 +634,19 @@ class StockDataController extends Controller
 //                                                    id="pickup_item">' . $lrow->qty_normal . '</span> ';
 //                                                }
                                                 // Render kolom dinamis per storage area
-                                                foreach ($areas as $area) {
+                                                foreach ($areas as $idsa => $area) {
                                                     $key = 'qty_' . str_replace([' ', '-'], '_', strtolower($area));
 
                                                     if (isset($lrow->$key) && $lrow->$key > 0) {
-                                                        $bin .= '<span class="btn-sm-custom btn-success" title="Gudang - ' . $area . '"  
+                                                        $bin .= '<span class="btn-sm-custom btn-success" title="Gudang - ' . $area . ' - ' . $idsa .'"  
                                                         data-p_article="' . $row->article_id . '" 
                                                         data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
                                                         data-ps_barcode="' . $lrow->ps_barcode . '"  
                                                         data-qty="' . $lrow->$key . '" 
                                                         data-pst_id="' . $srow->pst_id . '" 
                                                         data-storage_area="' . $area . '" 
-                                                        data-sa_id="' . $lrow->sa_id . '"
-                                                        data-sa_name = "Gudang - ' . $lrow->sa_name . '"
+                                                        data-sa_id="' . $idsa . '"
+                                                        data-sa_name = "Gudang - ' . $area . '"
                                                         id="pickup_item">' . $lrow->$key . '</span> ';
                                                     }
                                                 }
