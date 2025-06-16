@@ -136,6 +136,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('product_in_datatables', [TrackingController::class, 'inDatatables']);
     Route::get('product_out_datatables', [TrackingController::class, 'outDatatables']);
     Route::get('scan_product_out_datatables', [TrackingController::class, 'scanOutDatatables']);
+    Route::get('get_bin_by_sa', [TrackingController::class, 'getBinByStorageArea']);
     Route::get('scan_product_in_datatables', [TrackingController::class, 'scanInDatatables']);
     Route::get('scan_product_in_refund_datatables', [TrackingController::class, 'scanInRefundDatatables']);
     Route::get('scan_product_online_datatables', [TrackingController::class, 'scanOnlineDatatables']);

@@ -489,37 +489,37 @@ class TrackingController extends Controller
             return datatables()->of(ProductLocationSetupTransaction::select(
                 'product_location_setup_transactions.id as plst_id',
                 'pls_id',
-                'pst_id',
-                'pls_qty',
+                'product_location_setup_transactions.pst_id',
+//                'pls_qty',
                 'plst_qty',
                 'plst_status',
-                'pl_id',
+//                'pl_id',
                 'u_name',
                 'p_name',
                 'br_name',
                 'p_color',
                 'sz_name',
-                'pl_code',
-                'pl_name',
-                'pl_description',
+//                'pl_code',
+//                'pl_name',
+//                'pl_description',
                 'product_location_setup_transactions.created_at as plst_created',
                 'ps_barcode',
                 'product_location_setup_transactions.created_at'
             )
-                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setup_transactions.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('storage_areas', 'storage_areas.id', '=', 'product_location_setup_transactions.sa_id')
                 ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(function ($query) use ($request) {
                     if ($request->get('sa_id')) {
-                        $query->where('product_locations.sa_id', $request->get('sa_id'));
+                        $query->where('product_location_setup_transactions.sa_id', $request->get('sa_id'));
                     }
                 })
                 ->where(function ($w) {
-                    $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+                    $w->whereIn('product_location_setup_transactions.st_id', [Auth::user()->st_id]);
                 })
                 ->where('plst_status', '=', 'WAITING TO TAKE')
                 )
@@ -530,10 +530,10 @@ class TrackingController extends Controller
                     return '
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
                     <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/>
-                    <small style="white-space: nowrap; font-weight:bold;">Stok Bin : ' . $data->pls_qty + 1 . ' | ' . $formattedTimestamp . '</small><br/>
+                    <small style="white-space: nowrap; font-weight:bold;">Stok Bin : 0 | ' . $formattedTimestamp . '</small><br/>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->plst_qty . '</span>
                     <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->pl_code . ']</span>                    
-                    <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="' . $data->pls_qty . '" data-pls_id="' . $data->pls_id . '" id="get_out_btn" style="font-weight:bold;">Keluar</a><br><hr>
+                    <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="0" id="get_out_btn" style="font-weight:bold;">Keluar</a><br><hr>
                     ';
                 })
                 ->rawColumns(['article', 'bin', 'status', 'qty', 'action'])
@@ -555,21 +555,22 @@ class TrackingController extends Controller
     public function scanOutDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'pst_id', 'pls_qty', 'plst_qty', 'plst_status', 'pl_id', 'u_name', 'p_name', 'br_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created', 'ps_barcode')
-                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            $data = datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'storage_areas.name as sa_name', 'product_location_setup_transactions.sa_id', 'plst_status', 'u_name', 'p_name', 'br_name', 'p_color', 'sz_name',  'product_location_setup_transactions.created_at as plst_created', 'ps_barcode')
+//                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setup_transactions.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftJoin('storage_areas', 'storage_areas.id', '=', 'product_location_setup_transactions.sa_id')
                 ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(function ($query) use ($request) {
                     if ($request->get('sa_id')) {
-                        $query->where('product_locations.sa_id', $request->get('sa_id'));
+                        $query->where('product_location_setup_transactions.sa_id', $request->get('sa_id'));
                     }
                 })
                 ->where(function ($w) {
-                    $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+                    $w->whereIn('product_location_setup_transactions.st_id', [Auth::user()->st_id]);
                 })
                 ->where('plst_status', '=', 'WAITING TO TAKE'))
                 ->editColumn('article', function ($data) {
@@ -582,8 +583,8 @@ class TrackingController extends Controller
                 <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/><span style="white-space: nowrap; font-weight:bold; font-size: 10px;">' . $time . ' </span><br/>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Jml : ' . $data->plst_qty . '</span>
                 <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">Stok : ' . $real_stock . '</span>
-                <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->pl_code . ']</span>
-                <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-qty="' . $data->pls_qty . '" data-pls_id="' . $data->pls_id . '" id="scan_get_out_btn" style="font-weight:bold;">Keluar</a>';
+                <span class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">[' . $data->sa_name . ']</span>
+                <a class="btn btn-sm btn-success" data-status="pickup" data-plst_id="' . $data->plst_id . '" data-p_name="' . $p_name . '" data-sku="' . $data->ps_barcode . '" data-qty="' . $data->pls_qty . '" data-sa_id="' . $data->sa_id . '" id="pick_get_bin_products" style="font-weight:bold;">Ambil</a>';
                 })
                 ->rawColumns(['article', 'bin', 'status', 'qty', 'action'])
                 ->filter(function ($instance) use ($request) {
@@ -597,7 +598,63 @@ class TrackingController extends Controller
                 })
                 ->addIndexColumn()
                 ->make(true);
+//
+            return $data;
+
+//            $query = ProductLocationSetupTransaction::select(
+//                'product_location_setup_transactions.id as plst_id',
+//                'pls_id', 'pst_id', 'pls_qty', 'plst_qty', 'plst_status',
+//                'pl_id', 'u_name', 'p_name', 'br_name', 'p_color', 'sz_name',
+//                'pl_code', 'pl_name', 'pl_description',
+//                'product_location_setup_transactions.created_at as plst_created',
+//                'ps_barcode'
+//            )
+//                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+//                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
+//                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+//                ->where(function ($query) use ($request) {
+//                    if ($request->get('sa_id')) {
+//                        $query->where('product_location_setups_transactions.sa_id', $request->get('sa_id'));
+//                    }
+//                })
+//                ->where(function ($w) {
+//                    $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+//                })
+//                ->where('plst_status', '=', 'WAITING TO TAKE');
+
+            // Tampilkan hasilnya
+//            dd($query->get());
         }
+    }
+
+    public function getBinByStorageArea(Request $request)
+    {
+//        $bins = DB::table('product_locations')
+//            ->where('sa_id', $request->sa_id)
+//            ->where('pl_default', 0)
+//            ->select('id', 'pl_code', DB::raw('0 as qty'))
+//            ->get();
+//        dd($bins);
+
+        $bins = DB::table('product_location_setups')
+            ->select('pls_qty', 'pl_code', 'product_location_setups.id as pls_id')
+            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->join('storage_areas', 'storage_areas.id', '=', 'product_locations.sa_id')
+            ->where('product_locations.sa_id', $request->sa_id)
+            ->where('ps_barcode', $request->sku)
+            ->where(function ($w) {
+                $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
+            })
+            ->get();
+
+//        dd($bins);
+
+        return response()->json(['data' => $bins]);
     }
 
     public function inDatatables(Request $request)

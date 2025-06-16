@@ -148,7 +148,7 @@ class StockDataController extends Controller
 
         // cek
         $p_id = Product::where('article_id', $article_id)->get()->first()->id;
-        $promoData = DB::table('articles_promo')->select('promo_name','p_price_tag','promo_disc')
+        $promoData = DB::table('articles_promo')->select('promo_name', 'p_price_tag', 'promo_disc')
             ->join('products', 'products.id', '=', 'articles_promo.p_id')
             ->where('p_id', $p_id)
             ->where('st_id', $st_id)
@@ -396,20 +396,198 @@ class StockDataController extends Controller
                                     } else {
                                         $br = '<br/>';
                                     }
+
+                                    // place to new array
+                                    $areas = DB::table('storage_areas')->pluck('name')->toArray();
+
+//                                    dd($areas);
+
+                                    $subWaiting = DB::table('product_location_setup_transactions')
+                                        ->select('sa_id', 'pst_id', DB::raw('SUM(ts_product_location_setup_transactions.plst_qty) as qty_waiting'))
+                                        ->join('storage_areas', 'storage_areas.id', '=', 'product_location_setup_transactions.sa_id')
+                                        ->where('plst_status', '=', 'WAITING TO TAKE')
+                                        ->whereNull('pls_id')
+//                                        ->where('product_location_setup_transactions.pst_id', '=', $srow->pst_id)
+                                        ->groupBy('sa_id', 'pst_id');
+
+//                                    dd($subWaiting->get());
+
                                     if ($request->is_zero != 1) {
-                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id', 'pl_freeze')
-                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                                            ->where('pls_qty', '<>', 0)
-                                            ->whereNotIn('pl_code', $exception)
+//                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id', 'pl_freeze')
+//                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                            ->where('pls_qty', '<>', 0)
+//                                            ->whereNotIn('pl_code', $exception)
+//                                            ->where('product_locations.st_id', '=', $st_id)
+//                                            ->where('pst_id', $srow->pst_id)->get();
+
+//                                        $item_location = ProductLocationSetup::select(
+//                                            'product_stocks.ps_barcode',
+//                                            'product_stocks.id as pst_id',
+//                                            'sizes.sz_name',
+//                                            'products.article_id',
+//                                            'products.p_name',
+//                                            'product_location_setups.pst_id',
+//                                            'st_id',
+//                                            DB::raw('SUM(CASE WHEN pl_code != "TOKO" AND pl_code NOT LIKE "%defect%" THEN pls_qty ELSE 0 END) as qty_normal'),
+//                                            DB::raw('SUM(CASE WHEN pl_code = "TOKO" THEN pls_qty ELSE 0 END) as qty_toko'),
+//                                            DB::raw('SUM(CASE WHEN pl_code LIKE "%defect%" THEN pls_qty ELSE 0 END) as qty_defect')
+//                                        )
+//                                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                                            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                                            ->where('pls_qty', '<>', 0)
+//                                            ->where('product_locations.st_id', '=', $st_id)
+//                                            ->where('product_location_setups.pst_id', $srow->pst_id)
+//                                            ->groupBy('product_stocks.id', 'product_stocks.ps_barcode')
+//                                            ->get();
+
+                                        $query = DB::table('product_location_setups')
+                                            ->select(
+                                                'product_locations.sa_id as sa_id',
+                                                'storage_areas.name as sa_name',
+                                                'product_stocks.id as pst_id',
+                                                'product_stocks.ps_barcode',
+                                                'sizes.sz_name',
+                                                DB::raw('SUM(CASE WHEN ts_product_locations.pl_code = "TOKO" THEN ts_product_location_setups.pls_qty ELSE 0 END) as qty_toko'),
+                                                DB::raw('SUM(CASE WHEN ts_product_locations.pl_code LIKE "%defect%" THEN ts_product_location_setups.pls_qty ELSE 0 END) as qty_defect')
+                                            )
+                                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                                            ->leftJoin('storage_areas', 'storage_areas.id', '=', 'product_locations.sa_id')
+                                            ->leftJoinSub($subWaiting, 'waiting', function ($join) {
+                                                $join->on('waiting.sa_id', '=', 'product_locations.sa_id')
+                                                    ->on('waiting.pst_id', '=', 'product_location_setups.pst_id');
+                                            })
                                             ->where('product_locations.st_id', '=', $st_id)
-                                            ->where('pst_id', $srow->pst_id)->get();
+                                            ->where('product_location_setups.pst_id', '=', $srow->pst_id);
+
+                                        // call array and try to merge into query
+//                                        foreach ($areas as $area) {
+//                                            $columnName = 'qty_' . str_replace([' ', '-'], '_', strtolower($area)); // contoh: "LT 1" -> "qty_lt_1"
+//
+//                                            $query->selectRaw(
+//                                                "COALESCE(SUM(CASE WHEN ts_storage_areas.name = ? THEN ts_product_location_setups.pls_qty END), 0) as {$columnName}",
+//                                                [$area]
+//                                            );
+//                                        }
+
+                                        foreach ($areas as $area) {
+                                            $columnName = 'qty_' . str_replace([' ', '-'], '_', strtolower($area)); // e.g. qty_lt_1
+
+                                            $query->selectRaw("
+                                                COALESCE(SUM(
+                                                    CASE 
+                                                        WHEN ts_storage_areas.name = ? THEN ts_product_location_setups.pls_qty 
+                                                        ELSE 0 
+                                                    END
+                                                ), 0) - 
+                                                COALESCE(
+                                                    MAX(
+                                                        CASE 
+                                                            WHEN ts_storage_areas.name = ? THEN qty_waiting 
+                                                            ELSE 0 
+                                                        END
+                                                    ), 0
+                                                ) AS {$columnName}
+                                            ", [$area, $area]);
+                                        }
+
+
+                                        $item_location = $query
+                                            ->groupBy('product_location_setups.pst_id', 'product_stocks.ps_barcode', 'sizes.sz_name')
+                                            ->get();
+
+//                                        dd( $item_location);
+
                                     } else {
-                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id', 'pl_freeze')
-                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                                            ->whereNotIn('pl_code', $exception)
+//                                        $item_location = ProductLocationSetup::select('product_location_setups.id as pls_id', 'pl_code', 'pl_name', 'pls_qty', 'pl_id', 'st_id', 'pl_freeze')
+//                                            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                            ->whereNotIn('pl_code', $exception)
+//                                            ->where('product_locations.st_id', '=', $st_id)
+//                                            ->where('pst_id', $srow->pst_id)->get();
+
+//                                        $item_location = ProductLocationSetup::select(
+//                                            'product_stocks.ps_barcode',
+//                                            'product_stocks.id as pst_id',
+//                                            'sizes.sz_name',
+//                                            'products.article_id',
+//                                            'products.p_name',
+//                                            'product_location_setups.pst_id',
+//                                            'st_id',
+//                                            DB::raw('SUM(CASE WHEN pl_code != "TOKO" AND pl_code NOT LIKE "%defect%" THEN pls_qty ELSE 0 END) as qty_normal'),
+//                                            DB::raw('SUM(CASE WHEN pl_code = "TOKO" THEN pls_qty ELSE 0 END) as qty_toko'),
+//                                            DB::raw('SUM(CASE WHEN pl_code LIKE "%defect%" THEN pls_qty ELSE 0 END) as qty_defect')
+//                                        )
+//                                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+//                                            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+//                                            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+//                                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+//                                            ->where('product_locations.st_id', '=', $st_id)
+//                                            ->where('product_location_setups.pst_id', $srow->pst_id)
+//                                            ->groupBy('product_stocks.id', 'product_stocks.ps_barcode')
+//                                            ->get();
+
+
+
+                                        // sampai sini belum bisa mengurangin stok y
+                                        $query = DB::table('product_location_setups')
+                                            ->select(
+                                                'product_locations.sa_id as sa_id',
+                                                'storage_areas.name as sa_name',
+                                                'product_stocks.id as pst_id',
+                                                'product_stocks.ps_barcode',
+                                                'sizes.sz_name',
+                                                DB::raw('SUM(CASE WHEN ts_product_locations.pl_code = "TOKO" THEN ts_product_location_setups.pls_qty ELSE 0 END) as qty_toko'),
+                                                DB::raw('SUM(CASE WHEN ts_product_locations.pl_code LIKE "%defect%" THEN ts_product_location_setups.pls_qty ELSE 0 END) as qty_defect')
+                                            )
+                                            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                                            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                                            ->leftJoin('storage_areas', 'storage_areas.id', '=', 'product_locations.sa_id')
+                                            ->leftJoinSub($subWaiting, 'waiting', function ($join) {
+                                                $join->on('waiting.sa_id', '=', 'product_locations.sa_id')
+                                                    ->on('waiting.pst_id', '=', 'product_location_setups.pst_id');
+                                            })
                                             ->where('product_locations.st_id', '=', $st_id)
-                                            ->where('pst_id', $srow->pst_id)->get();
+                                            ->where('product_location_setups.pst_id', '=', $srow->pst_id);
+
+                                        foreach ($areas as $area) {
+                                            $columnName = 'qty_' . str_replace([' ', '-'], '_', strtolower($area)); // e.g. qty_lt_1
+
+                                            $query->selectRaw("
+                                                COALESCE(SUM(
+                                                    CASE 
+                                                        WHEN ts_storage_areas.name = ? THEN ts_product_location_setups.pls_qty 
+                                                        ELSE 0 
+                                                    END
+                                                ), 0) - 
+                                                COALESCE(
+                                                    MAX(
+                                                        CASE 
+                                                            WHEN ts_storage_areas.name = ? THEN waiting.qty_waiting 
+                                                            ELSE 0 
+                                                        END
+                                                    ), 0
+                                                ) AS {$columnName}
+                                            ", [$area, $area]);
+                                        }
+
+//                                        foreach ($areas as $area) {
+//                                            $columnName = 'qty_' . str_replace([' ', '-'], '_', strtolower($area));
+//
+//                                            $query->selectRaw(
+//                                                "COALESCE(SUM(CASE WHEN storage_areas.name = ? THEN product_location_setups.pls_qty END), 0) as {$columnName}",
+//                                                [$area]
+//                                            );
+//                                        }
+
+                                        $item_location = $query
+                                            ->groupBy('product_stocks.id', 'product_stocks.ps_barcode', 'sizes.sz_name')
+                                            ->get();
                                     }
+//                                    dd($item_location);
                                     $bin = '';
                                     $st_user = Auth::user()->st_id;
                                     $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
@@ -422,31 +600,70 @@ class StockDataController extends Controller
 
                                             $stt_name = StoreType::where('id', $stt_id)->get()->first();
 
+//                                            dd($item_location_group);
+
+                                            // ini offline store
                                             if ($stt_name != 'OFFLINE') {
-                                                if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
-                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" data-freeze="'. $lrow->pl_freeze.'"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+//                                                if ($lrow->qty_toko >= 0 && $lrow->st_id == $st_id) {
+////                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" data-freeze="'. $lrow->pl_freeze.'"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+//                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-ps_barcode="' . $lrow->ps_barcode . '"  data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->qty_toko . '</span> ';
+//
+//                                                } else if($lrow->qty_normal >= 0) {
+//                                                    $bin .= '<span title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->ps_barcode . ' ' . $lrow->ps_barcode . '" data-qty="' . $lrow->qty_normal . '" data-pst_id="' . $srow->pst_id . '"  data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' .  $lrow->qty_normal . '</span> ';
+//                                                }
 
+                                                if ($lrow->qty_toko > 0) {
+                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"  
+                                                    data-p_article="' . $row->article_id . '" 
+                                                    data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
+                                                    data-ps_barcode="' . $lrow->ps_barcode . '"  
+                                                    data-qty="' . $lrow->qty_toko . '" 
+                                                    data-pst_id="' . $srow->pst_id . '" 
+                                                    data-pls_id="' . $lrow->pst_id . '" 
+                                                    id="pickup_item">' . $lrow->qty_toko . '</span> ';
+                                                }
+//                                                else if ($lrow->qty_normal > 0) {
+//                                                    $bin .= '<span title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"
+//                                                    class="btn-sm-custom btn-success"
+//                                                    data-p_article="' . $row->article_id . '"
+//                                                    data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '"
+//                                                    data-bin="' . $lrow->ps_barcode . ' ' . $lrow->ps_barcode . '"
+//                                                    data-qty="' . $lrow->qty_normal . '"
+//                                                    data-pst_id="' . $srow->pst_id . '"
+//                                                    data-pls_id="' . $lrow->pst_id . '"
+//                                                    id="pickup_item">' . $lrow->qty_normal . '</span> ';
+//                                                }
+                                                // Render kolom dinamis per storage area
+                                                foreach ($areas as $area) {
+                                                    $key = 'qty_' . str_replace([' ', '-'], '_', strtolower($area));
 
-                                                } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
-                                                    $bin .= '<span class="btn-sm-custom btn-warning" data-freeze="'. $lrow->pl_freeze.'" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                                } else if ($lrow->pl_code == '03 - DEFECT' || $lrow->pl_code == '02 - DEFECT' || $lrow->pl_code == 'DC - DEFECT') {
-//                                                $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                                    $bin .= '<span class="btn-sm-custom" data-freeze="'. $lrow->pl_freeze.'" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
-
-                                                } else {
-                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-freeze="'. $lrow->pl_freeze.'" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                    if (isset($lrow->$key) && $lrow->$key > 0) {
+                                                        $bin .= '<span class="btn-sm-custom btn-success" title="Gudang - ' . $area . '"  
+                                                        data-p_article="' . $row->article_id . '" 
+                                                        data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
+                                                        data-ps_barcode="' . $lrow->ps_barcode . '"  
+                                                        data-qty="' . $lrow->$key . '" 
+                                                        data-pst_id="' . $srow->pst_id . '" 
+                                                        data-storage_area="' . $area . '" 
+                                                        data-sa_id="' . $lrow->sa_id . '"
+                                                        data-sa_name = "Gudang - ' . $lrow->sa_name . '"
+                                                        id="pickup_item">' . $lrow->$key . '</span> ';
+                                                    }
                                                 }
                                             } else {
+
+                                                //online belum nich pick nya bro
                                                 if ($lrow->pl_code == 'TOKO' && $lrow->st_id == $st_id) {
-                                                    $bin .= '<span class="btn-sm-custom btn-info" data-freeze="'. $lrow->pl_freeze.'" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                    $bin .= '<span class="btn-sm-custom btn-info" data-freeze="' . $lrow->pl_freeze . '" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item_toko">' . $lrow->qty_toko . '</span> ';
                                                 } else if (in_array(['pl_code' => $lrow->pl_code], $b1g1_setup)) {
-                                                    $bin .= '<span class="btn-sm-custom btn-warning" data-freeze="'. $lrow->pl_freeze.'" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
+                                                    $bin .= '<span class="btn-sm-custom btn-warning" data-freeze="' . $lrow->pl_freeze . '" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
                                                 } else if ($lrow->pl_code == '03 - DEFECT' || $lrow->pl_code == '02 - DEFECT' || $lrow->pl_code == 'DC - DEFECT') {
 //                                                $bin .= '<span class="btn-sm-custom" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '">[' . $lrow->pl_code . '] (' . $lrow->pls_qty . ')</span> ';
-                                                    $bin .= '<span class="btn-sm-custom" data-freeze="'. $lrow->pl_freeze.'" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                    $bin .= '<span class="btn-sm-custom" data-freeze="' . $lrow->pl_freeze . '" style="background-color: green; color: white;" title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '"  data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
 
                                                 } else {
-                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-freeze="'. $lrow->pl_freeze.'" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
+                                                    $bin .= '<span title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->ps_barcode . ' ' . $lrow->ps_barcode . '" data-qty="' . $lrow->qty_normal . '" data-pst_id="' . $srow->pst_id . '"  data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->qty_normal . '</span> ';
+//                                                    $bin .= '<span title="[' . $lrow->pl_code . '] ' . $lrow->pl_name . '" class="btn-sm-custom btn-success" data-freeze="'. $lrow->pl_freeze.'" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->pl_code . ' ' . $lrow->pl_name . '" data-qty="' . $lrow->pls_qty . '" data-pst_id="' . $srow->pst_id . '" data-pl_id="' . $lrow->pl_id . '" data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' . $lrow->pls_qty . '</span> ';
                                                 }
                                             }
                                         }
@@ -1394,7 +1611,8 @@ class StockDataController extends Controller
         }
     }
 
-    public function getItemData($sku) {
+    public function getItemData($sku)
+    {
         $item = ProductStock::selectRaw("ts_product_stocks.id as pst_id, pl_code, st_name, br_name, p_name, pc_name, psc_name, pssc_name, p_color, sz_name")
             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
             ->leftJoin('product_categories', 'product_categories.id', '=', 'products.pc_id')
@@ -1429,7 +1647,7 @@ class StockDataController extends Controller
     public function changeDisplayStockData(Request $request)
     {
         DB::beginTransaction();
-        
+
         try {
             // Get data from request
             $pst_id = ProductStock::select('id')->where('ps_barcode', $request->_pst_barcode)->get()->first()->id;
@@ -1451,23 +1669,23 @@ class StockDataController extends Controller
                 // If no transaction found, return error
                 DB::rollBack();
                 $r['status'] = '400';
-                $r['message'] = $request->_pst_barcode .' belum dipickup untuk pengganti display';
+                $r['message'] = $request->_pst_barcode . ' belum dipickup untuk pengganti display';
                 return json_encode($r);
             }
 
-                
+
             if ($plst_in) {
                 // Update transaction status and type
                 ProductLocationSetupTransaction::where('id', $plst_in->id)
-                ->update([
-                    'plst_type' => 'IN',
-                    'plst_status' => 'INSTOCK',
-                    'in_stock_time' => date('Y-m-d H:i:s')
-                ]);
-                
+                    ->update([
+                        'plst_type' => 'IN',
+                        'plst_status' => 'INSTOCK',
+                        'in_stock_time' => date('Y-m-d H:i:s')
+                    ]);
+
                 // Update quantity by adding 1
                 ProductLocationSetup::where('id', $plst_in->pls_id)
-                ->increment('pls_qty', 1);
+                    ->increment('pls_qty', 1);
             }
 
             $pls_id = $plst_in->pls_id ?? null;
@@ -1569,9 +1787,9 @@ class StockDataController extends Controller
                     $r['status'] = '400';
                 }
             }
-            
+
             return json_encode($r);
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
             $r['status'] = '500';

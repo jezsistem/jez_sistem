@@ -782,22 +782,12 @@
     }
 
     // Example usage for multiple modals
-    let scanner_scan_out = initializeScanner('reader_scan_out');
+    // let scanner_scan_out = initializeScanner('reader_scan_out');
+    let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
     let scanner_scan_in = initializeScanner('reader_scan_in');
     let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
 
     //
-    // const scanner_refund = new Html5QrcodeScanner('reader_refund', {
-    //     // Scanner will be initialized in DOM inside element with id of 'reader'
-    //     qrbox: {
-    //         width: 250,
-    //         height: 250,
-    //     },
-    //     fps: 30,
-    // });
-
-    // scanner_refund.render(success_refund, error);
-
 
     function success(result) {
         
@@ -819,6 +809,10 @@
 
         } else if (modal_opened == 'ScanInRefundModal') {
             $('#scan_in_refund_search').val(hasil);
+            scan_in_refund_table.ajax.reload();
+        }
+        else if (modal_opened == 'binModal') {
+            $('#bin_out_search').val(hasil);
             scan_in_refund_table.ajax.reload();
         }
 
@@ -1305,62 +1299,153 @@
         })
     });
 
-    $(document).delegate('#scan_get_out_btn', 'click', function() {
+    // $(document).delegate('#scan_get_out_btn', 'click', function() {
+    //     var plst_id = $(this).attr('data-plst_id');
+    //     var plst_qty = $(this).attr('data-plst_qty');
+    //     var current_qty = $(this).attr('data-qty');
+    //     var p_name = $(this).attr('data-p_name');
+    //     var sa_id = $(this).attr('data-sa_id');
+    //
+    //     console.log(sa_id);
+    //     var bin = $('#pl_id_out option:selected').text();
+    //     var secret_code = $('#u_secret_code').val();
+    //     var status = $(this).attr('data-status');
+    //     // if (current_qty >= 0) {
+    //
+    //     // }
+    // });
+
+    $(document).on('click', '#pick_get_bin_products', function (e) {
+        e.preventDefault();
+
+        let plst_id = $(this).data('plst_id');
+        let sa_id = $(this).data('sa_id');
+        let qty = $(this).data('qty');
+        let sku = $(this).data('sku');
+        let p_name = $(this).data('p_name');
+
+        console.log("SKU:", sku);
+
+        // AJAX ambil data BIN
+        $.ajax({
+            url: "{{ url('get_bin_by_sa') }}",
+            method: 'GET',
+            data: {
+                sa_id: sa_id,
+                plst_id: plst_id,
+                sku: sku
+            },
+            success: function (response) {
+                // Kosongkan isi tabel
+                $('#binTable tbody').empty();
+
+                // Masukkan data BIN ke tabel
+                $.each(response.data, function (index, bin) {
+                    $('#binTable tbody').append(`
+                        <tr>
+                            <td>${bin.pl_code}</td>
+                            <td>${bin.pls_qty}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm ambil-dari-bin"
+                                        data-bin_id="${bin.id}"
+                                        data-pl_code="${bin.pl_code}">
+                                    Ambil
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                // Set nama produk
+                $('#product_name').text(p_name);
+
+                // Tampilkan modal
+                $('#binModal').modal('show');
+
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        $('#binModal').on('shown.bs.modal', function () {
+
+            if ($('#bin_out_search').val().trim() === '') {
+                return;
+            }
+        });
+    });
+
+
+    // Hapus blur saat modal ditutup
+    $('#binModal').on('hidden.bs.modal', function () {
+        $('.modal-backdrop').removeClass('blur');
+    });
+
+    $('#binModal').on('hidden.bs.modal', function () {
+        $('.modal-backdrop').removeClass('blur');
+    });
+
+    $(document).delegate('#pick_get_bin_productss', 'click', function() {
         console.log('running ga nih?');
-        var pls_id = $(this).attr('data-pls_id');
+        // var pls_id = $(this).attr('data-pls_id');
         var plst_id = $(this).attr('data-plst_id');
         var plst_qty = $(this).attr('data-plst_qty');
         var current_qty = $(this).attr('data-qty');
         var p_name = $(this).attr('data-p_name');
+        var sa_id = $(this).attr('data-sa_id');
+
+        console.log(sa_id);
         var bin = $('#pl_id_out option:selected').text();
         var secret_code = $('#u_secret_code').val();
         var status = $(this).attr('data-status');
         // if (current_qty >= 0) {
-            swal({
-                title: "Keluar..?",
-                text: "Yakin keluarin produk " + p_name + " dari BIN " + bin + " ?",
-                icon: "warning",
-                buttons: [
-                    'Batal',
-                    'Yakin'
-                ],
-                dangerMode: false,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
-                    $(this).prop('disabled', true);
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        swal({
+            title: "Keluar..?",
+            text: "Yakin keluarin produk " + p_name + " dari BIN " + sa_id + " ?",
+            icon: "warning",
+            buttons: [
+                'Batal',
+                'Yakin'
+            ],
+            dangerMode: false,
+        }).then(function(isConfirm) {
+            if (isConfirm) {
+                $(this).prop('disabled', true);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    type: "POST",
+                    data: {
+                        _plst_qty: plst_qty,
+                        _plst_id: plst_id,
+                        _pls_id: pls_id,
+                        _secret_code: secret_code,
+                        _status: status
+                    },
+                    dataType: 'json',
+                    url: "{{ url('save_out_activity') }}",
+                    success: function(r) {
+                        if (r.status == '200') {
+                            scan_out_table.draw();
+                            $(this).prop('disabled', false);
+                            toast('Dikeluarkan', p_name + ' berhasil dikeluarkan',
+                                'success');
+                        } else {
+                            $(this).prop('disabled', false);
+                            swal('Gagal', 'Gagal keluar produk', 'error');
                         }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        data: {
-                            _plst_qty: plst_qty,
-                            _plst_id: plst_id,
-                            _pls_id: pls_id,
-                            _secret_code: secret_code,
-                            _status: status
-                        },
-                        dataType: 'json',
-                        url: "{{ url('save_out_activity') }}",
-                        success: function(r) {
-                            if (r.status == '200') {
-                                scan_out_table.draw();
-                                $(this).prop('disabled', false);
-                                toast('Dikeluarkan', p_name + ' berhasil dikeluarkan',
-                                    'success');
-                            } else {
-                                $(this).prop('disabled', false);
-                                swal('Gagal', 'Gagal keluar produk', 'error');
-                            }
-                        }
-                    });
-                    return false;
-                }
-            })
+                    }
+                });
+                return false;
+            }
+        })
         // }
     });
+
+
 
     $(document).delegate('#get_in_btn', 'click', function() {
         var plst_id = $(this).attr('data-plst_id');
@@ -1920,11 +2005,11 @@
         $('#st_id').val('');
         $('#ScanOutModal').modal('show');
         out_table.draw();
-        scanner_scan_out.render(success, error);
+        // scanner_scan_out.render(success, error);
     });
 
     $('#ScanOutModal').on('hide.bs.modal', function() {
-        scanner_scan_out.clear();
+        // scanner_scan_out.clear();
     });
 
     jQuery.noConflict();

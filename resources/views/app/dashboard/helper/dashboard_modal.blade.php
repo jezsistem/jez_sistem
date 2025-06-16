@@ -10,7 +10,9 @@
                 </button>
             </div>
             <div class="modal-body">
-                <input type="search" class="form-control" id="stock_data_search" placeholder="Ketik 3 huruf pertama nama artikel atau SKU Atau scan" style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
+                <input type="search" class="form-control" id="stock_data_search"
+                       placeholder="Ketik 3 huruf pertama nama artikel atau SKU Atau scan"
+                       style="border:1px solid black; padding:20px; background:#efefef;"/><br/>
                 <table class="table table-hover table-checkable table-responsive" id="StockDatatb">
                     <thead class="bg-light text-dark">
                     <tr>
@@ -407,16 +409,9 @@
                 <h5 class="modal-title text-light" id="exampleModalLabel">Barang Keluar</h5>
             </div>
             <div class="modal-body table-responsive">
-                <div id="pl_id_out_parent"></div>
-                <br>
-                <div class="d-flex justify-content-center">
-                    <div>
-                        <div id="reader_scan_out" class="rounded"></div>
-                        <div id="result"></div>
-                    </div>
-                </div>
+
                 <input type="search" class="form-control" id="scan_out_search" placeholder="Cari brand artikel"/>
-                    <table class="table table-hover table-checkable table-striped" id="ScanOuttb">
+                <table class="table table-hover table-checkable table-striped" id="ScanOuttb">
                     <thead class="bg-dark text-light">
                     <tr>
                         <th class="text-dark">Artikel</th>
@@ -527,7 +522,8 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dark font-weight-bold" id="scan_in_refund_modal_finish">Selesai</button>
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_in_refund_modal_finish">Selesai
+                </button>
             </div>
         </div>
     </div>
@@ -547,7 +543,8 @@
                 <select class="form-control form-control-sm bg-info text-white" id="waiting_filter_online">
                     <option value='WAITING ONLINE'>Waiting Online</option>
                 </select><br/>
-                <input type="search" class="form-control" id="scan_in_search" placeholder="Scan SKU" autofocus autocomplete="off"/>
+                <input type="search" class="form-control" id="scan_in_search" placeholder="Scan SKU" autofocus
+                       autocomplete="off"/>
                 <table class="table table-hover table-checkable table-striped" id="ScanInOnlinetb">
                     <thead class="bg-dark text-light">
                     <tr>
@@ -626,3 +623,50 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<style>
+    .modal-backdrop.blur {
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); /* untuk Safari */
+        background-color: rgba(0, 0, 0, 0.3);
+        transition: backdrop-filter 0.3s ease;
+    }
+</style>
+
+<div class="modal fade" id="binModal" tabindex="-1" role="dialog" aria-labelledby="binModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pilih BIN <span id="product_name"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="pl_id_out_parent"></div>
+                <br>
+                <div>
+                    <div id="reader_scan_in" class="rounded"></div>
+                    <div id="result"></div>
+                </div>
+                <input type="search" class="form-control" id="bin_out_search" placeholder="Cari nama bin"/><br>
+                <table class="table table-bordered" id="binTable">
+                    <thead>
+                    <tr>
+                        <th>BIN</th>
+                        <th>QTY</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Data BIN akan diisi di sini -->
+                    </tbody>
+                </table>
+                <div class="text-right mt-3">
+                    {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>--}}
+                    <button type="button" class="btn btn-dark font-weight-bold" data-dismiss="modal">Selesai</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

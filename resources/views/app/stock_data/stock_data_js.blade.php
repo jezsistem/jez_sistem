@@ -502,6 +502,8 @@
             var pl_code = $(this).attr('data-pl_code');
             var bin = $(this).attr('data-bin');
             var freeze = $(this).attr('data-freeze');
+            var sa_id = $(this).attr('data-sa_id');
+            var sa_name = $(this).attr('data-sa_name');
             var st_id = {{ \Illuminate\Support\Facades\Auth::user()->st_id }};
 
             if (freeze == 1) {
@@ -563,10 +565,10 @@
 
                                 // Now show the swal with the promo data
                                 swal({
-                                    title: bin,
+                                    title: sa_name,
                                     text: "Yakin pickup item " + p_name +
-                                        " dari bin " +
-                                        bin + " ?\n\nPromotions:\n" + promoInfo +
+                                        " dari area  " +
+                                        sa_name + " ?\n\nPromotions:\n" + promoInfo +
                                         "\n" +
                                         promoPrice,
                                     icon: "warning",
@@ -581,10 +583,11 @@
                                         $.ajax({
                                             type: "POST",
                                             data: {
-                                                _pls_id: pls_id,
+                                                _sa_id: sa_id,
+                                                // _pls_id: pls_id,
                                                 _pst_id: pst_id,
-                                                _pl_id: pl_id,
-                                                _pl_code: pl_code,
+                                                // _pl_id: pl_id,
+                                                // _pl_code: pl_code,
                                                 _st_id: st_id
                                             },
                                             dataType: 'json',
