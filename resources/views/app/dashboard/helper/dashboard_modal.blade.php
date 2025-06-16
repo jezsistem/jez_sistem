@@ -645,11 +645,14 @@
             <div class="modal-body">
                 <div id="pl_id_out_parent"></div>
                 <br>
-                <div>
-                    <div id="reader_scan_in" class="rounded"></div>
-                    <div id="result"></div>
+                <div class="d-flex justify-content-center">
+                    <div>
+                        <div id="reader_scan_bin_out" class="rounded" style="max-width: 500px;"></div>
+
+                        <div id="result"></div>
+                    </div>
                 </div>
-                <input type="search" class="form-control" id="bin_out_search" placeholder="Cari nama bin"/><br>
+                <input type="search" class="form-control mt-3" id="bin_out_search" placeholder="Cari nama bin"/><br>
                 <table class="table table-bordered" id="binTable">
                     <thead>
                     <tr>

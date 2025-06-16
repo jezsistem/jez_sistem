@@ -783,7 +783,7 @@
 
     // Example usage for multiple modals
     // let scanner_scan_out = initializeScanner('reader_scan_out');
-    // let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
+    let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
     let scanner_scan_in = initializeScanner('reader_scan_in');
     let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
 
@@ -1359,8 +1359,13 @@
                 // Set nama produk
                 $('#product_name').text(p_name);
 
-                // Tampilkan modal
+
+                modal_opened = 'binModal';
+                                // Tampilkan modal
                 $('#binModal').modal('show');
+
+                // scan_in_table.draw();
+                scanner_scan_bin_out.render(success, error);
 
             }
         });
@@ -2051,6 +2056,10 @@
 
     $('#ScanInRefundModal').on('hide.bs.modal', function() {
         scanner_scan_in_refund.clear();
+    });
+
+    $('#binModal').on('hide.bs.modal', function() {
+        scanner_scan_bin_out.clear();
     });
 
     $('#scan_keep_btn').on('click', function(e) {
