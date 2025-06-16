@@ -562,6 +562,16 @@ class TransaksiOnlineController extends Controller
 
     public function importData(Request $request)
     {
+        $user_store_id = Auth::user()->st_id;
+        $online_store_ids = Store::where('st_name', 'like', '%ONLINE%')->pluck('id')->toArray();
+        
+        if (!in_array($user_store_id, $online_store_ids)) {
+            return response()->json([
+            'status' => '403',
+            'message' => 'Anda tidak memiliki izin untuk import data.'
+            ]);
+        }
+
         try {
             if ($request->hasFile('importFile')) {
                 $file = $request->file('importFile');

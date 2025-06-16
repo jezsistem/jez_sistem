@@ -357,6 +357,9 @@
                             'warning');
                     } else {
                         $("#ImportModal").modal('hide');
+                        swal('Error',
+                            data.message || 'Terjadi kesalahan saat mengimpor data',
+                            'error');
                     }
                 },
                 error: function(data) {
