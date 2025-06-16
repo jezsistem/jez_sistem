@@ -189,7 +189,6 @@ class UserController extends Controller
             'u_email' => $request->u_email,
             'u_phone' => $request->u_phone,
             'u_address' => $request->u_address,
-            'u_delete' => $request->u_delete,
             'u_active' => $request->u_active,
             'delete_access' => $request->delete_access,
         ];
