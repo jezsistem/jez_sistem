@@ -166,9 +166,9 @@
                                 <div class="col-4">
                                     <a class="btn btn-success mt-2" id="import_btn">Import Template</a>
                                     <input type="search" class="form-control form-control-sm col-18 mt-6" id="ma_search"
-                                        placeholder="Cari kode / User / Sku" />
+                                        placeholder="Cari kode / User / Sku / Note" />
                                 </div>
-                                <div class="col-2">
+                                {{-- <div class="col-2">
                                     <select name="filter_status" id="filter_status" class="form-control col-40"
                                         style="border: 1px solid #ced4da; width: auto;">
                                         <option value="">-- Pilih Status Adjustment --</option>
@@ -196,7 +196,7 @@
                                         <option value="RETUR IN">RETUR IN</option>
                                         <option value="RETUR OUT">RETUR OUT</option>
                                     </select>
-                                </div>
+                                </div> --}}
 
                                 <div class="col d-flex justify-content-end align-items-start gap-2">
                                     <a class="btn btn-date-info font-weight-bold me-2" id="kt_dashboard_daterangepicker"
@@ -323,7 +323,7 @@
                         <div class="col-4">
                             <a class="btn btn-primary mt-2"><span data-id="" id="ma_code">MADJxxxxxx</span></a>
                             <input type="search" class="form-control form-control-sm col-12 mt-2" id="mad_search"
-                                placeholder="Cari artikel" />
+                                placeholder="Cari artikel / Sku" />
                         </div>
                         <div class="col-4">
                             Approval

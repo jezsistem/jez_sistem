@@ -165,9 +165,12 @@ class MassAdjustmentController extends Controller
     public function adjustmentDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name','st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe')
+            return datatables()->of(DB::table('mass_adjustments')->select('mass_adjustments.id as id', 'ma_code', 'ma_approve', 'ma_editor', 'ma_executor', 'ma_status', 'ma_approve_time','ma_executor_time','st_name','st_code', 'u_name', 'mass_adjustments.created_at', 'mass_adjustments.updated_at', 'mass_adjustments.note_adjustment as note', 'mass_adjustments.tipe_adjustment as tipe', 'product_stocks.ps_barcode')
                 ->leftJoin('stores', 'stores.id', '=', 'mass_adjustments.st_id')
                 ->leftJoin('users', 'users.id', '=', 'mass_adjustments.u_id')
+                ->leftJoin('mass_adjustment_details', 'mass_adjustment_details.ma_id', '=', 'mass_adjustments.id')
+                ->leftJoin('product_location_setups', 'mass_adjustment_details.pls_id', '=', 'product_location_setups.id')
+                ->leftJoin('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->where(function ($query) use ($request) {
                     if ($request->has('st_id') && !empty($request->get('st_id')) && $request->get('st_id') != 'all') {
                         $query->where('mass_adjustments.st_id', '=', $request->get('st_id'));
@@ -242,13 +245,15 @@ class MassAdjustmentController extends Controller
                     $st_code_alias = $aliases[$d->st_code] ?? $d->st_code;
                     return $st_code_alias . ' - ' . ($d->note ?? '-');
                 })
-                ->rawColumns(['ma_code_show', 'action', 'note '])
+                ->rawColumns(['ma_code_show', 'action', 'note'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('ma_code', 'LIKE', "%$search%")
-                              ->orWhere('u_name', 'LIKE', "%$search%");
+                              ->orWhere('u_name', 'LIKE', "%$search%")
+                              ->orWhere('note_adjustment', 'LIKE', "%$search%")
+                              ->orWhere('ps_barcode', 'LIKE', "%$search%");
                         });
                     }
                     if (!empty($request->get('filter'))) {
@@ -305,6 +310,7 @@ class MassAdjustmentController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('pl_code', 'LIKE', "%$search%")
+                                ->orWhere('ps_barcode', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', ["%$search%"]);
                         });
                     }
