@@ -57,6 +57,10 @@
                     data: 'pl_freeze',
                     name: 'pl_freeze'
                 },
+                {
+                    data: 'detail',
+                    name: 'detail'
+                },
             ],
             columnDefs: [{
                 "targets": 0,
@@ -99,30 +103,57 @@
             }
         });
 
-        $('#ProductLocationtb tbody').on('click', 'tr', function() {
-            var id = product_location_table.row(this).data().pl_id;
-            var pl_code = product_location_table.row(this).data().pl_code;
-            var pl_name = product_location_table.row(this).data().pl_name;
-            var pl_description = product_location_table.row(this).data().pl_description;
-            var pl_default = product_location_table.row(this).data().pl_default;
-            var pl_default_refund = product_location_table.row(this).data().pl_default_refund;
+        $('#ProductLocationtb tbody').on('click', '.btn-detail', function() {
+            let pl_id = $(this).data('plid');
+            let data = product_location_table.rows().data().toArray().find(row => row.pl_id == pl_id);
+            if (data) {
+                showProductLocationModal(data);
+            }
+        });
+
+        // Function to show the modal
+        function showProductLocationModal(data) {
             jQuery.noConflict();
-            $('#ProductCategoryModal').modal('show');
-            $('#pl_code').val(pl_code);
-            $('#pl_name').val(pl_name);
-            $('#pl_description').val(pl_description);
-            $('#pl_default').val(pl_default);
-            $('#pl_default_refund').val(pl_default_refund);
-            $('#_id').val(id);
+            $('#ProductLocationModal').modal('show');
+            $('#pl_code').val(data.pl_code);
+            $('#pl_name').val(data.pl_name);
+            $('#pl_description').val(data.pl_description);
+            $('#pl_default').val(data.pl_default);
+            $('#pl_refund').val(data.pl_refund);
+            $('#pl_freeze').val(data.pl_freeze);
+            // jQuery('#pl_freeze').val(data.pl_freeze).trigger('change');
+            $('#_id').val(data.pl_id);
             $('#_mode').val('edit');
             @if ($data['user']->delete_access == '1')
                 $('#delete_product_location_btn').show();
             @endif
-        });
+        }
+        
+        
+        // $('#ProductLocationtb tbody').on('click', 'tr', function() {
+        //     var id = product_location_table.row(this).data().pl_id;
+        //     var pl_code = product_location_table.row(this).data().pl_code;
+        //     var pl_name = product_location_table.row(this).data().pl_name;
+        //     var pl_description = product_location_table.row(this).data().pl_description;
+        //     var pl_default = product_location_table.row(this).data().pl_default;
+        //     var pl_default_refund = product_location_table.row(this).data().pl_default_refund;
+        //     jQuery.noConflict();
+        //     $('#ProductCategoryModal').modal('show');
+        //     $('#pl_code').val(pl_code);
+        //     $('#pl_name').val(pl_name);
+        //     $('#pl_description').val(pl_description);
+        //     $('#pl_default').val(pl_default);
+        //     $('#pl_default_refund').val(pl_default_refund);
+        //     $('#_id').val(id);
+        //     $('#_mode').val('edit');
+        //     @if ($data['user']->delete_access == '1')
+        //         $('#delete_product_location_btn').show();
+        //     @endif
+        // });
 
         $('#add_product_location_btn').on('click', function() {
             jQuery.noConflict();
-            $('#ProductCategoryModal').modal('show');
+            $('#ProductLocationModal').modal('show');
             $('#_id').val('');
             $('#_mode').val('add');
             $('#f_product_location')[0].reset();
@@ -217,12 +248,12 @@
                     $("#save_product_location_btn").attr("disabled", false);
 
                     if (data.status == '200') {
-                        $("#ProductCategoryModal").modal('hide');
+                        $("#ProductLocationModal").modal('hide');
                         toastr.success('Data berhasil disimpan',
                             'Berhasil');
                         product_location_table.ajax.reload();
                     } else if (data.status == '400') {
-                        $("#ProductCategoryModal").modal('hide');
+                        $("#ProductLocationModal").modal('hide');
                         toastr.warning('Data tidak tersimpan',
                             'Gagal');
                     }
@@ -265,7 +296,7 @@
                             if (r.status == '200') {
                                 toastr.success("Data berhasil dihapus",
                                 "Berhasil"); // Use toastr for success
-                                $('#ProductCategoryModal').modal('hide');
+                                $('#ProductLocationModal').modal('hide');
                                 product_location_table.ajax.reload();
                             } else {
                                 toastr.error('Gagal hapus data',
@@ -282,6 +313,27 @@
             });
         });
 
+        $(document).on('change', '.toggle-freeze', function() {
+            let plid = $(this).data('id');
+            let isChecked = $(this).is(':checked') ? '1' : '0';
+
+            $.ajax({
+                url: '{{ url("pl_freeze_status") }}',
+                method: 'POST',
+                data: {
+                    plid: plid,
+                    pl_freeze: isChecked,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('Data berhasil diubah', 'Berhasil');
+                    product_location_table.draw(false);
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengubah status.', 'Gagal');
+                }
+            });
+        });
 
     });
 </script>

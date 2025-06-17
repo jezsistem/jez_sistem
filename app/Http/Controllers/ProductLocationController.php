@@ -108,12 +108,18 @@ class ProductLocationController extends Controller
                     }
                 })
                 ->editColumn('pl_freeze', function ($data) {
-                    if ($data->pl_freeze == '1') {
-                        return 'Yes';
-                    } else {
-                        return 'No';
-                    }
+                    $checked = $data->pl_freeze == '1' ? 'checked' : '';
+                    return "
+                        <label class='switch'>
+                            <input type='checkbox' $checked data-id='{$data->pl_id}' class='toggle-freeze'>
+                            <span class='slider round'></span>
+                        </label>";
                 })
+                ->editColumn('detail', function ($data) {
+                    return '<button type="button" class="btn btn-primary btn-detail" data-plid="' . $data->pl_id . '">Detail</button>';
+                })
+
+                ->rawColumns(['pl_freeze', 'detail'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -150,7 +156,6 @@ class ProductLocationController extends Controller
             'pl_default' => $request->input('pl_default'),
             'pl_default_refund' => $request->input('pl_default_refund'),
             'pl_delete' => '0',
-            'pl_freeze' => $pl_freeze,
         ];
 
         $save = $product_location->storeData($mode, $id, $data);
@@ -194,5 +199,19 @@ class ProductLocationController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function updateFreezeStatus(Request $request)
+    {
+        $request->validate([
+            'plid' => 'required|exists:product_locations,id', // Removed Rule facade
+            'pl_freeze' => 'required|in:0,1',
+        ]);
+    
+        DB::table('product_locations') // Updated table name
+            ->where('id', $request->plid)
+            ->update(['pl_freeze' => $request->pl_freeze]);
+    
+        return response()->json(['message' => 'Status berhasil diperbarui.']);
     }
 }
