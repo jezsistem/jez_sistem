@@ -1228,7 +1228,7 @@
                     jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(
                         total_price)) + parseFloat(sell_price)));
                     jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(
-                        total_price)) + parseFloat(sell_price)));
+                        total_final_price)) + parseFloat(sell_price)));
                     if (item_type == 'waiting') {
                         jQuery('#orderTable tr:last').after(
                             "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
@@ -1401,7 +1401,7 @@
                     jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(
                         total_price)) + parseFloat(sell_price)));
                     jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(
-                        total_price)) + parseFloat(sell_price)));
+                        total_final_price)) + parseFloat(sell_price)));
                     if (item_type == 'waiting') {
                         jQuery('#orderTable tr:last').after(
                             "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
@@ -2593,7 +2593,7 @@
                 jQuery('#total_item_side').text(parseInt(total_item) - 1);
                 jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
                     parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_final_price)) -
                     parseFloat(total_price_item)));
                 addRefundExchangeList('add', plst_id, pt_id);
                 jQuery('#orderTable tr:last').after(
@@ -2619,7 +2619,7 @@
                 jQuery('#total_item_side').text(parseInt(total_item) + 1);
                 jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
                     parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_final_price)) +
                     parseFloat(total_price_item)));
                 //alert(plst_id);
                 addRefundExchangeList('remove', plst_id, pt_id);
