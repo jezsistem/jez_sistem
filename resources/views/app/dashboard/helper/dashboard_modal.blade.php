@@ -637,7 +637,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Pilih BIN <span id="product_name"></span></h5>
+                <h5 class="modal-title">Pilih BIN <span id="product_name"></span>-<span id="plst_id"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -648,10 +648,17 @@
                 <div class="d-flex justify-content-center">
                     <div>
                         <div id="reader_scan_bin_out" class="rounded" style="max-width: 500px;"></div>
-
                         <div id="result"></div>
                     </div>
                 </div>
+
+                <span style="margin-top: 20px;">Bin Set : </span><br>
+                <span>SKU : </span><span id="sku_selected"></span>
+                <input type="text" id="sku_send">
+{{--                <input type="text" id="" value="">--}}
+{{--                <input type="text" id="" value="">--}}
+{{--                <input type="text" id="" value="">--}}
+{{--                <input type="text" id="" value="">--}}
                 <input type="search" class="form-control mt-3" id="bin_out_search" placeholder="Cari nama bin"/><br>
                 <table class="table table-bordered" id="binTable">
                     <thead>

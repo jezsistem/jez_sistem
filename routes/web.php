@@ -127,6 +127,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('order_list_by_invoice', [PointOfSaleController::class, 'orderListByInvoice']);
     Route::post('packing_list_by_invoice', [PointOfSaleController::class, 'packingListByInvoice']);
     Route::post('save_out_activity', [TrackingController::class, 'saveOutActivity']);
+    Route::post('save_out_activity_bin_selected', [TrackingController::class, 'saveOutActivityBinSelected']);
     Route::post('save_in_activity', [TrackingController::class, 'saveInActivity']);
     Route::post('save_in_refund_activity', [TrackingController::class, 'saveInRefundActivity']);
     Route::post('save_tracking_activity', [TrackingController::class, 'saveTrackingActivity']);

@@ -813,14 +813,13 @@
         }
         else if (modal_opened == 'binModal') {
             $('#bin_out_search').val(hasil);
-            scan_in_refund_table.ajax.reload();
+            // scan_in_refund_table.ajax.reload();
         }
 
     }
 
     function error(err) {
-        console.error(err);
-        // Prints any errors to the console
+        // console.error(err);
     }
     //
     // function console_log(result) {
@@ -1326,6 +1325,8 @@
 
         console.log("SKU:", sku);
 
+        $('#sku_selected').text(sku);
+
         // AJAX ambil data BIN
         $.ajax({
             url: "{{ url('get_bin_by_sa') }}",
@@ -1358,6 +1359,7 @@
 
                 // Set nama produk
                 $('#product_name').text(p_name);
+                $('#plst_id').text(plst_id);
 
 
                 modal_opened = 'binModal';
@@ -1370,6 +1372,131 @@
             }
         });
     });
+
+    $('#bin_out_search').on('keyup', function (event) {
+        let searchText = $(this).val().toLowerCase();
+        let bin_search = $(this).val();
+        let matchingRows = [];
+
+        let bin = bin_search;
+
+        $('#binTable tbody tr').each(function () {
+            let binText = $(this).find('td:first').text().toLowerCase();
+
+            if (binText.includes(searchText)) {
+                $(this).show();
+                matchingRows.push(this);
+            } else {
+                $(this).hide();
+            }
+        });
+
+        if (event.key === 'Enter') {
+            if (matchingRows.length === 1) {
+                // Disable BIN input dan trigger klik
+                $('#bin_out_search').prop('disabled', true);
+                $(matchingRows[0]).find('.ambil-dari-bin').trigger('click');
+
+                let selectedRow = $(matchingRows[0]);
+                let validSku =  document.getElementById('sku_selected').textContent;
+                let plst_id =  document.getElementById('plst_id').textContent;
+
+                // Tambahkan input SKU
+                if ($('#sku_search').length === 0) {
+                    $('#bin_out_search').after(`
+                    <input type="text" id="sku_search" class="form-control mt-2" placeholder="Scan / Ketik SKU...">
+                `);
+                }
+
+                // var sku_send = $('#sku_send').val(validSku)
+
+                $('#sku_search').focus().on('keyup', function (e) {
+                    if (e.key === 'Enter') {
+                        let enteredSku = $(this).val();
+
+                        if (enteredSku === validSku) {
+                            swal({
+                                title: "Keluar..?",
+                                text: "Yakin keluarin produk " + 2 + " dari BIN " + 2 + " ?",
+                                icon: "warning",
+                                buttons: [
+                                    'Batal',
+                                    'Yakin'
+                                ],
+                                dangerMode: false,
+                            }).then(function(isConfirm) {
+                                if (isConfirm) {
+                                    $.ajaxSetup({
+                                        headers: {
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                        }
+                                    });
+
+                                    $.ajax({
+                                        type: "POST",
+                                        data: {
+                                            // cari ini
+                                            _sku: enteredSku,
+                                            _bin: bin,
+                                            _plst_qty: 1,
+                                            _plst_id: plst_id,
+                                            _status: status
+                                        },
+                                        dataType: 'json',
+                                        url: "{{ url('save_out_activity_bin_selected') }}",
+                                        success: function(r) {
+                                            if (r.status == '200') {
+                                                out_table.draw();
+                                                $('#binModal').modal('hide');
+
+                                                $('#sku_send').val('');
+                                                $('#bin_out_search').val('');
+                                                $('#binTable tbody').empty();
+                                                $('#sku_search').remove();
+                                                $('#bin_out_search').prop('disabled', false);
+
+                                                swal({
+                                                    title: 'Berhasil',
+                                                    text: ' berhasil dikeluarkan',
+                                                    icon: 'success',
+                                                    button: 'OK',
+                                                });
+                                            } else {
+                                                swal('Gagal', 'Gagal keluar produk', 'error');
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'SKU tidak ditemukan',
+                                text: 'SKU tidak cocok dengan BIN yang dipilih!',
+                            });
+                        }
+                    }
+                });
+
+            } else if (matchingRows.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'BIN tidak ditemukan',
+                    text: 'Pastikan kode BIN yang kamu masukkan benar!',
+                });
+            } else {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Terlalu banyak hasil',
+                    text: 'Lebih dari satu BIN cocok. Harap perjelas pencarian.',
+                });
+            }
+        }
+    });
+
+
+
+
 
     $(document).ready(function () {
         $('#binModal').on('shown.bs.modal', function () {
