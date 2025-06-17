@@ -786,6 +786,7 @@
     let scanner_scan_bin_out = initializeScanner('reader_scan_bin_out');
     let scanner_scan_in = initializeScanner('reader_scan_in');
     let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
+    let scanner_pick_online = initializeScanner('reader_pick_online');
 
     //
 
@@ -815,11 +816,15 @@
             $('#bin_out_search').val(hasil);
             // scan_in_refund_table.ajax.reload();
         }
+        else if (modal_opened == 'PickOnModal') {
+            $('#scan_pick_on_search').val(hasil);
+            scan_keep_table.ajax.reload();
+        }
 
     }
 
     function error(err) {
-        // console.error(err);
+        console.error(err);
     }
     //
     // function console_log(result) {
@@ -2194,6 +2199,19 @@
         $('#st_id').val('');
         $('#KeepOnModal').modal('show');
         scan_keep_table.draw();
+    });
+
+    $('#take_online_btn').on('click', function(e) {
+        e.preventDefault();
+        modal_opened = 'PickOnModal';
+        $('#st_id').val('');
+        $('#PickOnModal').modal('show');
+        scan_keep_table.draw();
+        scanner_pick_online.render(success, error);
+    });
+
+    $('#PickOnModal').on('hide.bs.modal', function() {
+        scanner_pick_online.clear();
     });
 
     $('#urban_out_btn').on('click', function(e) {
