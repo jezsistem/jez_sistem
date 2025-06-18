@@ -97,6 +97,7 @@
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">Artikel</th>
                                             <th class="text-dark">Stok</th>
+                                            <th class="text-dark">Bin</th>
                                             <th class="text-dark">Mutasi</th>
                                         </tr>
                                     </thead>

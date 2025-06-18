@@ -1,3 +1,5 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
     var history_date = '';
     var start_bin_table = '';
@@ -151,17 +153,67 @@
         });
     });
 
-
     //button
     function checkMissingBarcode(missingBarcodeData) {
-        // each from missingBarcodeData array
-        var missingBarcode = [];
-        for (var i = 0; i < missingBarcodeData.length; i++) {
-            missingBarcode.push(missingBarcodeData[i]);
-        }
+        if (missingBarcodeData && missingBarcodeData.length > 0) {
+            Swal.fire({
+                title: 'Missing Barcode Data',
+                html: `
+                    <div style="overflow-x:auto;">
+                        <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="border: 1px solid #ccc; padding: 8px;">Bin</th>
+                                    <th style="border: 1px solid #ccc; padding: 8px;">Barcode</th>
+                                </tr>
+                            </thead>
+                            <tbody id="barcode-table-body">
+                                <!-- Data masuk sini -->
+                            </tbody>
+                        </table>
+                        <br/>
+                        <div style="text-align: center;">
+                            <button id="export_missing_barcode" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                            <button id="close_missing_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                        </div>
+                    </div>
+                `,
+                icon: 'warning',
+                showConfirmButton: false,
+                didOpen: () => {
+                    let tbody = document.getElementById('barcode-table-body');
+                    missingBarcodeData.forEach(function(item) {
+                        let row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td style="border: 1px solid #ccc; padding: 8px;">${item[0] || '-'}</td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">${item[1] || '-'}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
 
-        if (missingBarcode.length > 0) {
-            swal('Missing Barcode', 'Barcode yang tidak terdaftar : ' + missingBarcode.join(', '), 'warning');
+                    // Tombol Export Excel
+                    document.getElementById('export_missing_barcode')
+                        .addEventListener('click', function() {
+                            let wb = XLSX.utils.book_new();
+                            let ws_data = [
+                                ["Bin","Barcode"], // Header
+                                ...missingBarcodeData.map(item => [
+                                    item[0] || '-',
+                                    item[1] || '-'
+                                ])
+                            ];
+                            let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                            XLSX.utils.book_append_sheet(wb, ws, "Missing Barcodes");
+                            XLSX.writeFile(wb, "Missing_Barcodes.xlsx");
+                        });
+
+                    // Tombol Tutup
+                    document.getElementById('close_missing_alert')
+                        .addEventListener('click', function() {
+                            Swal.close();
+                        });
+                }
+            });
         }
     }
 
@@ -218,6 +270,11 @@
                     orderable: false
                 },
                 {
+                    data: 'bin_code',
+                    name: 'bin_code',
+                    orderable: false
+                },
+                {
                     data: 'action',
                     name: 'action',
                     orderable: false
@@ -240,8 +297,12 @@
             ],
         });
 
+        var searchTimeout;
         $('#article_search').on('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
             start_bin_table.draw();
+            }, 2000);
         });
 
         //button untuk memilih jumlah data yang akan di tampilkan kanan

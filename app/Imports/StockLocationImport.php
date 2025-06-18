@@ -12,7 +12,7 @@ class StockLocationImport implements ToCollection, WithStartRow
 
     public function startRow(): int
     {
-        return 1;
+        return 2;
     }
 
     public function getRowCount(): int

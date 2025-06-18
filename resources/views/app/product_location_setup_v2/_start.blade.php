@@ -1,5 +1,5 @@
 <!-- <input type="hidden" id="_pc_id" value="" /> -->
-<select class="form-control" id="pl_id_start" name="pl_id_start" required>
+<select class="form-control" id="pl_id_start" name="pl_id_start[]" multiple="multiple" >
     <option value="">- BIN Awal -</option>
     @foreach ($data['pl_id'] as $key => $value)
         <option value="{{ $key }}">{{ $value }}</option>
