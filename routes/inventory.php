@@ -13,7 +13,9 @@ use App\Http\Controllers\ProductLocationSetupV2Controller;
 use App\Http\Controllers\QtyExceptionController;
 use App\Http\Controllers\ScanAdjustmentController;
 use App\Http\Controllers\StockDataController;
+use App\Http\Controllers\StockDataV1Controller;
 use App\Http\Controllers\StockTrackingController;
+use App\Http\Controllers\StockTrackingV1Controller;
 use App\Http\Controllers\StoreAgingController;
 use App\Http\Controllers\MarketplaceManagerController;
 use App\Http\Controllers\StockTransferController;
@@ -28,7 +30,6 @@ use Illuminate\Support\Facades\Route;
 
 /* new 25-09-2024*/
 use App\Http\Controllers\AllstockController;
-use App\Http\Controllers\StorageAreaController;
 use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/allstock', [AllstockController::class, 'index']);
@@ -44,7 +45,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pl_delete', [ProductLocationController::class, 'deleteData']);
     Route::post('pl_import', [ProductLocationController::class, 'importData']);
     Route::post('pl_code_check_data', [ProductLocationController::class, 'checkCode']);
-    Route::post('pl_freeze_status', [ProductLocationController::class, 'updateFreezeStatus']);
 
     // StoreAgingController
     Route::get(
@@ -219,8 +219,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('bin_history_datatables', [ProductLocationSetupV2Controller::class, 'binHistoryDatatables']);
     Route::get('reload_start_bin', [ProductLocationSetupV2Controller::class, 'reloadStartBin']);
     Route::get('reload_end_bin', [ProductLocationSetupV2Controller::class, 'reloadEndBin']);
-    Route::get('reload_history_start_bin', [ProductLocationSetupV2Controller::class, 'reloadHistoryStartBin']);
-    Route::get('reload_history_end_bin', [ProductLocationSetupV2Controller::class, 'reloadHistoryEndBin']);
     Route::get('history_setup_export', [ProductLocationSetupV2Controller::class, 'exportData']);
     Route::delete('cancel_import', [ProductLocationSetupV2Controller::class, 'cancelImportData']);
     Route::post('sv_mutation_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
@@ -296,11 +294,24 @@ Route::middleware(['auth'])->group(function () {
     Route::post('stock_data_reload_size', [StockDataController::class, 'reloadSize']);
     Route::post('request_count_pickup', [StockDataController::class, 'requestCount']);
 
+
+    // Stock Data V1
+    Route::get('data_stok_v1', [StockDataV1Controller::class, 'index'])->name('data_stok_v1');
+    Route::get('get_articles_promo_v1/{article_id}', [StockDataV1Controller::class, 'getArticlesPromo']);
+    Route::get('stock_data_datatables_v1', [StockDataV1Controller::class, 'getDatatables']);
+    Route::get('aging_datatables_v1', [StockDataV1Controller::class, 'getAgingDatatables']);
+    Route::get('helper_stock_data_datatables_v1', [StockDataV1Controller::class, 'getHelperDatatables']);
+    Route::post('stock_data_reload_category_v1', [StockDataV1Controller::class, 'reloadCategory']);
+    Route::post('stock_data_reload_sub_category_v1', [StockDataV1Controller::class, 'reloadSubCategory']);
+    Route::post('stock_data_reload_sub_sub_category_v1', [StockDataV1Controller::class, 'reloadSubSubCategory']);
+    Route::post('stock_data_reload_brand_v1', [StockDataV1Controller::class, 'reloadBrand']);
+    Route::post('stock_data_reload_size_v1', [StockDataV1Controller::class, 'reloadSize']);
+    Route::post('request_count_pickup_v1', [StockDataV1Controller::class, 'requestCount']);
+
     // Stock Tracking
     Route::get('stock_tracking', [StockTrackingController::class, 'index'])->name('stock_tracking');
     Route::get('stock_tracking_datatables', [StockTrackingController::class, 'getDatatables']);
     Route::get('pickup_list_datatables', [StockTrackingController::class, 'getPickupDatatables']);
-    Route::get('waiting_list_datatables', [StockTrackingController::class, 'getWaitingOfflineDatatables']);
     Route::post('get_stock_notice', [StockTrackingController::class, 'getNotice']);
     Route::post('get_stock_graph', [StockTrackingController::class, 'getGraph']);
     Route::post(
@@ -314,21 +325,20 @@ Route::middleware(['auth'])->group(function () {
         [StockTrackingController::class, 'deleteData']
     );
 
-    // Storage Area
-    Route::get('storage_area', [StorageAreaController::class, 'index'])->name('storage_area');
-    Route::get('storage_area/{id}', [StorageAreaController::class, 'show']);
-    Route::get('storage_area_datatable', [StorageAreaController::class, 'storageAreaDatatables']);
-    Route::post('storage_area_create', [StorageAreaController::class, 'createData']);
-    Route::delete('storage_area_delete/{id}', [StorageAreaController::class, 'deleteData']);
-    Route::get('storage_area_list', [StorageAreaController::class, 'storageAreaList']);
-    Route::get('bin_list_no_area', [StorageAreaController::class, 'binListNoArea']);
-    Route::get('bin_list', [StorageAreaController::class, 'binList']);
-    Route::post('storage_area_update', [StorageAreaController::class, 'updateData']);
-    Route::post('storage_area_link', [StorageAreaController::class, 'linkBinToStorageArea']);
-    Route::post('storage_area_unlink', [StorageAreaController::class, 'unlinkBinToStorageArea']);
-
-    //change display stock data
-    Route::get('get_item_data_by_sku/{sku}', [StockDataController::class, 'getItemData']);
-    Route::post('change_display_stock_data', [StockDataController::class, 'changeDisplayStockData']);
-
+    // Stock Tracking
+    Route::get('stock_tracking_v1', [StockTrackingV1Controller::class, 'index'])->name('stock_tracking_v1');
+    Route::get('stock_tracking_datatables_v1', [StockTrackingV1Controller::class, 'getDatatables']);
+    Route::get('pickup_list_datatables_v1', [StockTrackingV1Controller::class, 'getPickupDatatables']);
+    Route::post('get_stock_notice_v1', [StockTrackingV1Controller::class, 'getNotice']);
+    Route::post('get_stock_graph_v1', [StockTrackingV1Controller::class, 'getGraph']);
+    Route::post(
+        'pickup_item_v1',
+        [StockTrackingV1Controller::class, 'pickupItem']
+    );
+    Route::post('pickup_approval_item_v1', [StockTrackingV1Controller::class, 'pickupApprovalItem']);
+    Route::post('cancel_pickup_item_v1', [StockTrackingV1Controller::class, 'cancelPickupItem']);
+    Route::post(
+        'plst_delete_v1 ',
+        [StockTrackingV1Controller::class, 'deleteData']
+    );
 });
