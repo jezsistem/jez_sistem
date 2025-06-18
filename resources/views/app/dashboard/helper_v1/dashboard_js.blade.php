@@ -438,7 +438,7 @@
         responsive: false,
         dom: 'rt<"text-right"ip>',
         ajax: {
-            url: "{{ url('scan_product_out_datatables') }}",
+            url: "{{ url('scan_product_out_datatables_v1') }}",
             data: function(d) {
                 d.search = $('#scan_out_search').val();
                 d.st_id = $('#st_id').val();
