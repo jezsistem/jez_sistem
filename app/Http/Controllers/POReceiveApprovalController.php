@@ -325,7 +325,6 @@ class POReceiveApprovalController extends Controller
             ->get();
 
 
-
         if (!empty($poads->first())) {
             foreach ($poads as $row) {
                 $bin = DB::table('product_locations')->select('id')->where('st_id', '=', $row->st_id)->where('pl_default', '=', '1')->get()->first()->id;
@@ -343,8 +342,20 @@ class POReceiveApprovalController extends Controller
                     $old_stock = $check_pl->pls_qty;
                     $old_cogs = $check_product_stock->ps_purchase_price;
 
+                    if ($old_stock == null) {
+                        $old_stock_current = 0;
+                    } else {
+                        $old_stock_current = $old_stock;
+                    }
+
+                    if ($old_cogs == null) {
+                        $old_cogs_current = 0;
+                    } else {
+                        $old_cogs_current = $old_cogs;
+                    }
+
                     // total old cogs
-                    $total_cogs_old = $old_cogs * $old_stock;
+                    $total_cogs_old = $old_cogs_current * $old_stock_current;
 
                     //get new stok and old cogs
                     $new_stock = $row->poads_qty;
@@ -391,6 +402,21 @@ class POReceiveApprovalController extends Controller
                         ]);
                     }
                 }
+                // Update COGS article level
+                $check_product_stock = DB::table('product_stocks')->where('id', $row->pst_id)->get()->first();
+
+                $avg_cogs = DB::table('product_stocks')
+                    ->where('p_id', $check_product_stock->p_id)
+                    ->avg('ps_purchase_price');
+
+                $avg_cogs = ceil($avg_cogs);
+
+                DB::table('products')
+                    ->where('id', $check_product_stock->p_id)
+                    ->update([
+                        'p_purchase_price' => $avg_cogs,
+                        'updated_at' => now()
+                    ]);
             }
         }
         $r['status'] = '200';

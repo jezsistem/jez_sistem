@@ -1,10 +1,12 @@
 <?php
 
 
+use App\Http\Controllers\HelperBackupV1Controller;
 use App\Http\Controllers\ProductSubSubCategoryTestController;
 use App\Http\Controllers\ProductSubSubCategoryController;
 use App\Http\Controllers\PhotoController;
 
+use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
@@ -145,6 +147,33 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_article', [ArticleController::class, 'checkArticle']);
     Route::get('export-stock-tracking', [TrackingController::class, 'exportExcel']);
 
+    // Tracking
+    Route::get('tracking_v1', [TrackingV1Controller::class, 'index'])->name('tracking_v1');
+    Route::get('check_invoice/{invoice}', [InvoiceController::class, 'checkInvoice'])->name('check_invoice');
+    Route::get('check_offline_invoice/{invoice}', [InvoiceController::class, 'checkOfflineInvoice'])->name('check_offline_invoice');
+    Route::get('check_sync', [InvoiceController::class, 'checkSync']);
+    Route::post('check_barcode_tracking_v1', [TrackingV1Controller::class, 'checkBarcodeTracking']);
+    Route::post('check_secret_code_v1', [TrackingV1Controller::class, 'checkSecretCode']);
+    Route::post('reload_bin_by_barcode_v1', [TrackingV1Controller::class, 'reloadBinByBarcode']);
+    Route::post('order_list_by_invoice_v1', [PointOfSaleController::class, 'orderListByInvoice']);
+    Route::post('packing_list_by_invoice_v1', [PointOfSaleController::class, 'packingListByInvoice']);
+    Route::post('save_out_activity_v1', [TrackingV1Controller::class, 'saveOutActivity']);
+    Route::post('save_in_activity_v1', [TrackingV1Controller::class, 'saveInActivity']);
+    Route::post('save_in_refund_activity_v1', [TrackingV1Controller::class, 'saveInRefundActivity']);
+    Route::post('save_tracking_activity_v1', [TrackingV1Controller::class, 'saveTrackingActivity']);
+    Route::post('cancel_tracking_activity_v1', [TrackingV1Controller::class, 'cancelTrackingActivity']);
+    Route::post('save_packing_activity_v1', [TrackingV1Controller::class, 'savePackingActivity']);
+    Route::post('save_reject_activity_v1', [TrackingV1Controller::class, 'saveRejectActivity']);
+    Route::get('product_in_datatables_v1', [TrackingV1Controller::class, 'inDatatables']);
+    Route::get('product_out_datatables_v1', [TrackingV1Controller::class, 'outDatatables']);
+    Route::get('scan_product_out_datatables_v1', [TrackingV1Controller::class, 'scanOutDatatables']);
+    Route::get('scan_product_in_datatables_v1', [TrackingV1Controller::class, 'scanInDatatables']);
+    Route::get('scan_product_in_refund_datatables_v1', [TrackingV1Controller::class, 'scanInRefundDatatables']);
+    Route::get('scan_product_online_datatables_v1', [TrackingV1Controller::class, 'scanOnlineDatatables']);
+    Route::post('autocomplete_fetch', [ArticleController::class, 'fetch']);
+    Route::post('check_article', [ArticleController::class, 'checkArticle']);
+    Route::get('export-stock-tracking_v1', [TrackingV1Controller::class, 'exportExcel']);
+
     // POS
     Route::get('point_of_sale', [PointOfSaleController::class, 'index'])->name('point_of_sale');
     Route::get('/current-shift-data', [PointOfSaleController::class, 'getCurrentShiftData'])->name('current-shift.data');
@@ -232,7 +261,8 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Helper Backup //
     Route::get('helper_backup', [HelperBackupController::class, 'index']);
-    
+    Route::get('helper_backup_v1', [HelperBackupV1Controller::class, 'index']);
+
     // Customer Type
     Route::get('customer_type_datatables', [CustomerTypeController::class, 'getDatatables']);
     Route::get('reload_customer_type', [CustomerTypeController::class, 'reloadCustomerType']);
