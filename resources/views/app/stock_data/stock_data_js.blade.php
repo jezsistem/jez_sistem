@@ -1062,6 +1062,7 @@
                 text: "Yakin ganti display untuk SKU " + sku + " ?",
                 icon: "warning",
                 buttons: [
+
                     'Batal',
                     'Yakin'
                 ],
