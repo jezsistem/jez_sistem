@@ -87,6 +87,10 @@
                                 <option value="1">Yes</option>
                             </select>
                         </div>
+                        <div class="form-group mb-1 pb-1">
+                            <label for="exampleTextarea">Kapasitas Bin (pcs/pairs)</label>
+                            <input type="number" class="form-control" id="pl_capacity" name="pl_capacity" />
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

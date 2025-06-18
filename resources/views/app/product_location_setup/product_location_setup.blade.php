@@ -94,6 +94,8 @@
                                         <th class="text-dark">Store</th>
                                         <th style="white-space: nowrap;" class="text-light">Lokasi</th>
                                         <th class="text-dark">Produk</th>
+                                        <th class="text-dark">Kapasitas</th>
+                                        <th class="text-dark">%</th>
                                     </tr>
                                 </thead>
                                 <tbody>
