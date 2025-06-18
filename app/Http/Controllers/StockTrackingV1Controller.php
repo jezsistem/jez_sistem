@@ -368,7 +368,7 @@ class StockTrackingV1Controller extends Controller
         $status = array();
         $status = ['WAITING TO TAKE', 'INSTOCK APPROVAL'];
         if (request()->ajax()) {
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'pst_id', 'pl_id', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created')
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'product_location_setups.pst_id', 'pl_id', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
