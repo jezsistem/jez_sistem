@@ -196,7 +196,7 @@
                         .addEventListener('click', function() {
                             let wb = XLSX.utils.book_new();
                             let ws_data = [
-                                ["Bin","Barcode"], // Header
+                                ["Bin", "Barcode"], // Header
                                 ...missingBarcodeData.map(item => [
                                     item[0] || '-',
                                     item[1] || '-'
@@ -301,7 +301,7 @@
         $('#article_search').on('keyup', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(function() {
-            start_bin_table.draw();
+                start_bin_table.draw();
             }, 2000);
         });
 
@@ -485,6 +485,91 @@
 
         //BUTTON  MUTATION DI TABEL A/KIRI
         $('#mutation_btn').on('click', function() {
+            // Check if any mutation qty exceeds available stock
+            var hasInvalidQty = false;
+            var invalidItems = [];
+
+            $('input[data-mutation-qty]').each(function() {
+                var mutationQty = parseInt($(this).val()) || 0;
+                var availableQty = parseInt($(this).attr('data-qty')) || 0;
+
+                if (mutationQty > 0 && mutationQty > availableQty) {
+                    hasInvalidQty = true;
+                    var ps_barcode = $(this).closest('tr').find('td').eq(2).find('a').eq(2)
+                        .text(); // third row, third <a> element
+                    invalidItems.push({
+                        ps_barcode: ps_barcode,
+                        mutation: mutationQty,
+                        available: availableQty
+                    });
+                }
+            });
+
+            if (hasInvalidQty) {
+                Swal.fire({
+                    title: 'Qty Tidak Valid',
+                    html: `
+                <div style="overflow-x:auto;">
+                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                        <th style="border: 1px solid #ccc; padding: 8px;">SKU</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Qty Sistem</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Qty Mutasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invalid-qty-table-body">
+                        <!-- Data masuk sini -->
+                    </tbody>
+                    </table>
+                    <br/>
+                    <div style="text-align: center;">
+                    <button id="export_invalid_qty" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                    <button id="close_invalid_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                    </div>
+                </div>
+                `,
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        let tbody = document.getElementById('invalid-qty-table-body');
+                        invalidItems.forEach(function(item) {
+                            let row = document.createElement('tr');
+                            row.innerHTML = `
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item.ps_barcode}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item.available}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item.mutation}</td>
+                    `;
+                            tbody.appendChild(row);
+                        });
+
+                        // Tombol Export Excel
+                        document.getElementById('export_invalid_qty')
+                            .addEventListener('click', function() {
+                                let wb = XLSX.utils.book_new();
+                                let ws_data = [
+                                    ["SKU", "Qty Sistem", "Qty Mutasi"], // Header
+                                    ...invalidItems.map(item => [
+                                        item.ps_barcode,
+                                        item.available,
+                                        item.mutation
+                                    ])
+                                ];
+                                let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                XLSX.utils.book_append_sheet(wb, ws, "Invalid Qty");
+                                XLSX.writeFile(wb, "Invalid_Qty_Data.xlsx");
+                            });
+
+                        // Tombol Tutup
+                        document.getElementById('close_invalid_alert')
+                            .addEventListener('click', function() {
+                                Swal.close();
+                            });
+                    }
+                });
+                return false;
+            }
+
             swal({
                 title: "Mutasi..?",
                 text: "Yakin mutasi data ?",
@@ -530,11 +615,6 @@
             })
         });
 
-
-
-
-
-
         //HISTORY SETUP
 
         $(document).delegate('#export_btn', 'click', function(e) {
@@ -547,7 +627,8 @@
             var history_bin_start = $('#history_pl_id_start').val();
             var history_bin_end = $('#history_pl_id_end').val();
             window.location.href = "{{ url('history_setup_export') }}?&st_id=" + st_id + "&date=" +
-                date + "&search=" + search + "&history_bin_start=" + history_bin_start + "&history_bin_end=" + history_bin_end;
+                date + "&search=" + search + "&history_bin_start=" + history_bin_start +
+                "&history_bin_end=" + history_bin_end;
 
             $('#export_btn').text('Export Data');
             $('#export_btn').removeClass('disabled');

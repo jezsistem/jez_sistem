@@ -229,7 +229,7 @@ class ProductLocationSetupV2Controller extends Controller
                                     ->orWhere('p_name', 'LIKE', "%$search%")
                                     ->orWhere('br_name', 'LIKE', "%$search%")
                                     ->orWhere('article_id', 'LIKE', "%$search%")
-                                    ->orWhere('ps_barcode', 'LIKE', "%$search%")
+                                    ->orWhere('product_stocks.ps_barcode', 'LIKE', "%$search%")
                                     ->orWhere('p_color', 'LIKE', "%$search%");
                             });
                         }
@@ -249,7 +249,7 @@ class ProductLocationSetupV2Controller extends Controller
                         'sz_name', 
                         'mc_name', 
                         'pls_qty', 
-                        'ps_barcode',
+                        'product_stocks.ps_barcode',
                         'product_locations.pl_code'
                     )
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -352,7 +352,7 @@ class ProductLocationSetupV2Controller extends Controller
                                         ->orWhere('p_name', 'LIKE', "%$search%")
                                         ->orWhere('br_name', 'LIKE', "%$search%")
                                         ->orWhere('article_id', 'LIKE', "%$search%")
-                                        ->orWhere('ps_barcode', '=', "$search")
+                                        ->orWhere('product_stocks.ps_barcode', '=', "$search")
                                         ->orWhere('p_color', 'LIKE', "%$search%");
                                 });
                             }
@@ -686,97 +686,120 @@ class ProductLocationSetupV2Controller extends Controller
 
         $u_id = Auth::user()->id;
 
-        // Delete Temp Data with where condition
-        TempMutasi::where('u_id', $u_id)->delete();
+        DB::beginTransaction();
+        try {
+            // Delete Temp Data with where condition
+            TempMutasi::where('u_id', $u_id)->delete();
 
-        $check_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->exists();
-        if ($check_destination) {
-            $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
-            if ($pmt_qty > $or_qty) {
-                $r['status'] = '400';
-                return false;
-            }
+            $check_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->exists();
+            if ($check_destination) {
+                $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
+                if ($pmt_qty > $or_qty) {
+                    $r['status'] = '400';
+                    $r['message'] = 'Qty mutasi lebih besar dari qty asal';
+                    DB::rollBack();
+                    return json_encode($r);
+                }
 
-            $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->get()->first();
-            $qty_destination = $data_destination->pls_qty;
-//            if ($qty_destination < 0) {
-//                $qty_destination = 0;
-//            }
-            $update_data_destination = [
-                'pls_qty' => $pmt_qty + $qty_destination
-            ];
-            $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->update($update_data_destination);
-            if (!empty($update_destination)) {
-                $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
-                $qty_origin = $data_origin->pls_qty;
-                $remain = $qty_origin - $pmt_qty;
-                $update_data_origin = [
-                    'pls_qty' => $remain
+                $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->get()->first();
+                $qty_destination = $data_destination->pls_qty;
+                $update_data_destination = [
+                    'pls_qty' => $pmt_qty + $qty_destination
                 ];
-                $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
-                if (!empty($update_origin)) {
-                    $mutation = ProductMutation::create([
-                        'pls_id' => $pls_id,
-                        'pl_id' => $pl_id_end,
-                        'u_id' => Auth::user()->id,
-                        'pmt_old_qty' => $pmt_old_qty,
-                        'pmt_qty' => $pmt_qty,
-                        'created_at' => date('Y-m-d H:i:s')
-                    ]);
-                    if (!empty($mutation)) {
-                        $r['status'] = '200';
+                $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_end, 'pst_id' => $pst_id])->update($update_data_destination);
+                if (!empty($update_destination)) {
+                    $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
+                    $qty_origin = $data_origin->pls_qty;
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_data_origin = [
+                        'pls_qty' => $remain
+                    ];
+                    $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
+                    if (!empty($update_origin)) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_end,
+                            'u_id' => Auth::user()->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($mutation)) {
+                            $r['status'] = '200';
+                            $r['message'] = 'Mutasi berhasil';
+                        } else {
+                            $r['status'] = '400';
+                            $r['message'] = 'Gagal menyimpan mutasi';
+                        }
                     } else {
                         $r['status'] = '400';
+                        $r['message'] = 'Gagal update qty asal';
                     }
                 } else {
                     $r['status'] = '400';
+                    $r['message'] = 'Gagal update qty tujuan';
                 }
             } else {
-                $r['status'] = '400';
-            }
-        } else {
-            $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
-            if ($pmt_qty > $or_qty) {
-                $r['status'] = '400';
-                return false;
-            }
-            $insert_data_destination = [
-                'pls_qty' => $pmt_qty,
-                'pl_id' => $pl_id_end,
-                'pst_id' => $pst_id,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-            $insert_destination = ProductLocationSetup::create($insert_data_destination);
-            if (!empty($insert_destination)) {
-                $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
-                $qty_origin = $data_origin->pls_qty;
-                $remain = $qty_origin - $pmt_qty;
-                $update_data_origin = [
-                    'pls_qty' => $remain
+                $or_qty = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first()->pls_qty;
+                if ($pmt_qty > $or_qty) {
+                    $r['status'] = '400';
+                    $r['message'] = 'Qty mutasi lebih besar dari qty asal';
+                    DB::rollBack();
+                    return json_encode($r);
+                }
+                $insert_data_destination = [
+                    'pls_qty' => $pmt_qty,
+                    'pl_id' => $pl_id_end,
+                    'pst_id' => $pst_id,
+                    'created_at' => date('Y-m-d H:i:s')
                 ];
-                $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
-                if (!empty($update_origin)) {
-                    $mutation = ProductMutation::create([
-                        'pls_id' => $pls_id,
-                        'pl_id' => $pl_id_end,
-                        'u_id' => Auth::user()->id,
-                        'pmt_old_qty' => $pmt_old_qty,
-                        'pmt_qty' => $pmt_qty,
-                        'created_at' => date('Y-m-d H:i:s')
-                    ]);
-                    if (!empty($mutation)) {
-                        $r['status'] = '200';
+                $insert_destination = ProductLocationSetup::create($insert_data_destination);
+                if (!empty($insert_destination)) {
+                    $data_origin = ProductLocationSetup::select('pls_qty')->where(['id' => $pls_id])->get()->first();
+                    $qty_origin = $data_origin->pls_qty;
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_data_origin = [
+                        'pls_qty' => $remain
+                    ];
+                    $update_origin = ProductLocationSetup::where(['id' => $pls_id])->update($update_data_origin);
+                    if (!empty($update_origin)) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_end,
+                            'u_id' => Auth::user()->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                        if (!empty($mutation)) {
+                            $r['status'] = '200';
+                            $r['message'] = 'Mutasi berhasil';
+                        } else {
+                            $r['status'] = '400';
+                            $r['message'] = 'Gagal menyimpan mutasi';
+                        }
                     } else {
                         $r['status'] = '400';
+                        $r['message'] = 'Gagal update qty asal';
                     }
                 } else {
                     $r['status'] = '400';
+                    $r['message'] = 'Gagal insert qty tujuan';
                 }
-            } else {
-                $r['status'] = '400';
             }
+
+            if ($r['status'] === '200') {
+                DB::commit();
+            } else {
+                DB::rollBack();
+            }
+            return json_encode($r);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $r['status'] = '400';
+            $r['message'] = $e->getMessage();
+            return json_encode($r);
         }
-        return json_encode($r);
     }
 
     private function checkAccess()
