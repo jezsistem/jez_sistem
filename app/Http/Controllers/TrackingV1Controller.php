@@ -759,7 +759,7 @@ class TrackingV1Controller extends Controller
                     $time = $dateTime ? Carbon::parse($dateTime, 'Asia/Jakarta')->format('d-F-Y H:i:s') : 'N/A';
 
                     $bin_refund = DB::table('product_locations')->where('st_id', '=', $data->stores_id)->where('pl_default_refund', '=','1')->get()->first();
- 
+
                     $note = $data->note;
 
                     if ($note == null) {
@@ -769,7 +769,7 @@ class TrackingV1Controller extends Controller
                         $new_note = $exp[1];
                     }
 
-                   
+
 
                     // dd($exp[1]);
 

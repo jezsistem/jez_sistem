@@ -121,6 +121,7 @@
             $('#pl_default').val(data.pl_default);
             $('#pl_refund').val(data.pl_refund);
             $('#pl_freeze').val(data.pl_freeze);
+            $('#pl_capacity').val(data.pl_capacity);
             // jQuery('#pl_freeze').val(data.pl_freeze).trigger('change');
             $('#_id').val(data.pl_id);
             $('#_mode').val('edit');

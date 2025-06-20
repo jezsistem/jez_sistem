@@ -23,10 +23,10 @@ class ProductLocationSetupController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
@@ -35,7 +35,7 @@ class ProductLocationSetupController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -48,9 +48,9 @@ class ProductLocationSetupController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -59,8 +59,8 @@ class ProductLocationSetupController extends Controller
         }
         return $sidebar;
     }
-    
-    public function index() 
+
+    public function index()
     {
         $this->validateAccess();
         $user = new User;
@@ -78,9 +78,9 @@ class ProductLocationSetupController extends Controller
             'segment' => request()->segment(1),
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'pl_id' => ProductLocation::selectRaw('ts_product_locations.id as pl_id, CONCAT(pl_code," (",st_name,")") as location')
-            ->join('stores', 'stores.id', '=', 'product_locations.st_id')
-            ->where('pl_delete', '!=', '1')
-            ->orderByDesc('pl_code')->pluck('location', 'pl_id'),
+                ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('pl_delete', '!=', '1')
+                ->orderByDesc('pl_code')->pluck('location', 'pl_id'),
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
             'mc_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'sz_id' => Size::where('sz_delete', '!=', '1')->orderByDesc('id')->pluck('sz_name', 'id'),
@@ -90,110 +90,136 @@ class ProductLocationSetupController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
-            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description')
-            ->leftJoin('stores', 'stores.id', '=','product_locations.st_id')
-            ->where('pl_delete', '!=', '1'))
-            ->editColumn('pl_location', function($data){
-                return '<span style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-12">'.$data->pl_code.'</a></span>';
-            })
-            ->editColumn('pl_location_plain', function($data){
-                return '<span style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-12" style="white-space: nowrap;">'.$data->pl_code.'</a></span>';
-            })
-            ->editColumn('pl_product', function($data){
-                $check = ProductLocationSetup::where('pl_id', '=', $data->pl_id)->get();
-                if (!empty($check)) {
-                    $total_product = 0;
-                    foreach ($check as $row) {
-                        $total_product += $row->pls_qty;
-                    }
-                    return '<a class="btn btn-sm btn-primary col-7" style="white-space: nowrap;">'.$total_product.'</a>';
-                } else {
-                    return '< a class="btn btn-sm btn-primary">0</a>';
-                }
+        if (request()->ajax()) {
+            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_capacity')
+                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('pl_delete', '!=', '1'))
+                ->editColumn('pl_location', function ($data) {
+                    return '<span style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-12">' . $data->pl_code . '</a></span>';
                 })
-            ->rawColumns(['pl_location', 'pl_location_plain', 'pl_product'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('st_id'))) {
-                    $instance->where(function($w) use($request){
-                        $st_id = $request->get('st_id');
-                        $w->orWhere('st_id', '=', $st_id);
-                    });
-                }
-                if (!empty($request->get('search'))) {
-                    $instance->leftJoin('product_location_setups', 'product_location_setups.pl_id', '=', 'product_locations.id')
-                    ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                    ->leftJoin('sizes', 'sizes.id', '=' ,'product_stocks.sz_id')
-                    ->leftJoin('products', 'products.id', '=' ,'product_stocks.p_id')
-                    ->leftJoin('brands', 'brands.id', '=' ,'products.br_id')
-                    ->where('pls_qty', '>', '0')
-                    ->groupBy('product_locations.id');
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
-                        ->orWhere('pl_code', 'LIKE', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                ->editColumn('pl_location_plain', function ($data) {
+                    return '<span style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-12" style="white-space: nowrap;">' . $data->pl_code . '</a></span>';
+                })
+                ->editColumn('pl_product', function ($data) {
+                    $check = ProductLocationSetup::where('pl_id', '=', $data->pl_id)->get();
+                    if (!empty($check)) {
+                        $total_product = 0;
+                        foreach ($check as $row) {
+                            $total_product += $row->pls_qty;
+                        }
+                        return '<a class="btn btn-sm btn-primary col-7" style="white-space: nowrap;">' . $total_product . '</a>';
+                    } else {
+                        return '< a class="btn btn-sm btn-primary">0</a>';
+                    }
+                })
+                ->editColumn('pl_capacity', function ($data) {
+                    // Ambil kapasitas dari tabel product_locations
+                    $capacity = $data->pl_capacity ?? 0;
+                    // Hitung jumlah qty dari tabel product_location_setups berdasarkan pl_id
+                    $total_product = ProductLocationSetup::where('pl_id', '=', $data->pl_id)->sum('pls_qty');
+                    // Tentukan warna tombol berdasarkan kondisi stok
+                    if ($capacity == 0) {
+                        return '<a class="btn btn-sm btn-light">Setup Kapasitas</a>';
+                    } elseif ($total_product < $capacity) {
+                        return '<a class="btn btn-sm btn-info">' . $total_product . '/' . $capacity . '</a>';
+                    } elseif ($total_product == $capacity) {
+                        return '<a class="btn btn-sm btn-success">' . $total_product . '/' . $capacity . '</a>';
+                    } else { // $total_product > $capacity
+                        return '<a class="btn btn-sm btn-warning">' . $total_product . '/' . $capacity . '</a>';
+                    }                  
+                })
+                ->editColumn('pl_percent', function ($data) {
+                    $capacity = $data->pl_capacity ?? 0;
+                    $total_product = ProductLocationSetup::where('pl_id', '=', $data->pl_id)->sum('pls_qty');
+                
+                    if ($capacity == 0) {
+                        return '<a class="btn btn-sm btn-light">-</span>';
+                    } else {
+                        $percent = ($total_product / $capacity) * 100;
+                        return '<a class="btn btn-sm btn-success">' . number_format($percent) . '%</span>';
+                    }
+                })                
+                ->rawColumns(['pl_location', 'pl_location_plain', 'pl_product', 'pl_capacity', 'pl_percent'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('st_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $st_id = $request->get('st_id');
+                            $w->orWhere('st_id', '=', $st_id);
+                        });
+                    }
+                    if (!empty($request->get('search'))) {
+                        $instance->leftJoin('product_location_setups', 'product_location_setups.pl_id', '=', 'product_locations.id')
+                            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                            ->where('pls_qty', '>', '0')
+                            ->groupBy('product_locations.id');
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%")
+                                ->orWhere('pl_code', 'LIKE', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
     public function getDatatablesLocation(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             return datatables()->of(ProductLocationSetup::select('product_location_setups.id as pls_id', 'products.id as p_id', 'br_name', 'p_name', 'p_color', 'sz_name', 'mc_name', 'pls_qty', 'ps_barcode')
-            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-            ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-            ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
-            ->where('pls_qty', '>', 0)
-            ->where('pl_id', '=', $request->_pl_id)
-            ->groupBy('products.id'))
-            ->editColumn('p_name', function($data){
-                return '<span style="white-space: nowrap;">['.$data->br_name.'] '.$data->p_name.'</span>';
-            })
-            ->editColumn('p_color', function($data){
-                return '<span style="white-space: nowrap;">('.$data->mc_name.') '.$data->p_color.'</span>';
-            })
-            ->editColumn('p_size', function($data) use ($request) {
-                $check_pst = ProductLocationSetup::select('product_stocks.id as pst_id', 'sz_name', 'pls_qty', 'ps_barcode')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->leftJoin('products', 'products.id', '=', 'product_stocks.sz_id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-                ->where('product_location_setups.pl_id', '=', $request->_pl_id)
-                ->where('product_stocks.p_id', '=', $data->p_id)
+                ->leftJoin('main_colors', 'main_colors.id', '=', 'products.mc_id')
                 ->where('pls_qty', '>', 0)
-                ->get();
-                if (!empty($check_pst)){
-                    $sz_name = '';
-                    foreach ($check_pst as $row) {
-                        if (!empty($row->ps_barcode)) {
-                            $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" onclick="return mutation('.$row->pst_id.', '.$request->_pl_id.', \''.$data->p_name.'\', \''.$data->p_color.'\', \''.$row->sz_name.'\', '.$row->pls_qty.')" style="white-space: nowrap;">'.$row->sz_name.'</a> <a class="btn btn-sm btn-primary col-2" onclick="return mutation('.$row->pst_id.', '.$request->_pl_id.', \''.$data->p_name.'\', \''.$data->p_color.'\', \''.$row->sz_name.'\', '.$row->pls_qty.')">'.$row->pls_qty.'</a> <a style="white-space: nowrap;" class="btn btn-sm btn-primary col-7" onclick="return mutation('.$row->pst_id.', '.$request->_pl_id.', \''.$data->p_name.'\', \''.$data->p_color.'\', \''.$row->sz_name.'\', '.$row->pls_qty.')">'.$row->ps_barcode.'</a></div>';
-                        } else {
-                            $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" onclick="return mutation('.$row->pst_id.', '.$request->_pl_id.', \''.$data->p_name.'\', \''.$data->p_color.'\', \''.$row->sz_name.'\', '.$row->pls_qty.')" style="white-space: nowrap;">'.$row->sz_name.'</a> <a class="btn btn-sm btn-primary col-4" onclick="return mutation('.$row->pst_id.', '.$request->_pl_id.', \''.$data->p_name.'\', \''.$data->p_color.'\', \''.$row->sz_name.'\', '.$row->pls_qty.')">'.$row->pls_qty.'</a></div>';
+                ->where('pl_id', '=', $request->_pl_id)
+                ->groupBy('products.id'))
+                ->editColumn('p_name', function ($data) {
+                    return '<span style="white-space: nowrap;">[' . $data->br_name . '] ' . $data->p_name . '</span>';
+                })
+                ->editColumn('p_color', function ($data) {
+                    return '<span style="white-space: nowrap;">(' . $data->mc_name . ') ' . $data->p_color . '</span>';
+                })
+                ->editColumn('p_size', function ($data) use ($request) {
+                    $check_pst = ProductLocationSetup::select('product_stocks.id as pst_id', 'sz_name', 'pls_qty', 'ps_barcode')
+                        ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('products', 'products.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->where('product_location_setups.pl_id', '=', $request->_pl_id)
+                        ->where('product_stocks.p_id', '=', $data->p_id)
+                        ->where('pls_qty', '>', 0)
+                        ->get();
+                    if (!empty($check_pst)) {
+                        $sz_name = '';
+                        foreach ($check_pst as $row) {
+                            if (!empty($row->ps_barcode)) {
+                                $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-2" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a> <a style="white-space: nowrap;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a></div>';
+                            } else {
+                                $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-4" onclick="return mutation(' . $row->pst_id . ', ' . $request->_pl_id . ', \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
+                            }
                         }
-
+                        return $sz_name;
+                    } else {
+                        return 'Data belum disetup';
                     }
-                    return $sz_name;
-                } else {
-                    return 'Data belum disetup';
-                }
-            })
-            ->rawColumns(['p_name', 'p_size', 'p_color'])
-            ->filter(function ($instance) use ($request) {
-                if (!empty($request->get('search'))) {
-                    $instance->where(function($w) use($request){
-                        $search = $request->get('search');
-                        $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
-                    });
-                }
-            })
-            ->addIndexColumn()
-            ->make(true);
+                })
+                ->rawColumns(['p_name', 'p_size', 'p_color'])
+                ->filter(function ($instance) use ($request) {
+                    if (!empty($request->get('search'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $search = $request->get('search');
+                            $w->orWhereRaw('CONCAT(br_name," ",p_name," ",p_color," ",sz_name) LIKE ?', "%$search%");
+                        });
+                    }
+                })
+                ->addIndexColumn()
+                ->make(true);
         }
     }
 
@@ -237,11 +263,11 @@ class ProductLocationSetupController extends Controller
     {
         $pl_id = $request->_pl_id;
         $check = ProductLocationSetup::select('product_location_setups.id as pls_id', 'p_name', 'p_color', 'p_image', 'sz_name', 'mc_name', 'pls_qty', 'ps_barcode')
-        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-        ->join('products', 'products.id', '=', 'product_stocks.p_id') 
-        ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-        ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
-        ->where('pl_id', '=', $pl_id)->get();
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
+            ->where('pl_id', '=', $pl_id)->get();
         if (!empty($check)) {
             $get_product = $check;
         } else {
@@ -266,7 +292,7 @@ class ProductLocationSetupController extends Controller
             $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_destination, 'pst_id' => $pst_id])->get()->first();
             $qty_destination = $data_destination->pls_qty;
             if ($qty_destination < 0) {
-              $qty_destination = 0;
+                $qty_destination = 0;
             }
             $update_data_destination = [
                 'pls_qty' => $mt_qty + $qty_destination
@@ -331,7 +357,7 @@ class ProductLocationSetupController extends Controller
             $data_destination = ProductLocationSetup::where(['pl_id' => $pl_id_destination, 'pst_id' => $pst_id])->get()->first();
             $qty_destination = $data_destination->pls_qty;
             if ($qty_destination < 0) {
-              $qty_destination = 0;
+                $qty_destination = 0;
             }
             $update_data_destination = [
                 'pls_qty' => $mt_qty + $qty_destination
@@ -339,7 +365,6 @@ class ProductLocationSetupController extends Controller
             $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_destination, 'pst_id' => $pst_id])->update($update_data_destination);
             if (!empty($update_destination)) {
                 $r['status'] = '200';
-                
             } else {
                 $r['status'] = '400';
             }
@@ -359,10 +384,10 @@ class ProductLocationSetupController extends Controller
         }
         return json_encode($r);
     }
-    
+
     public function exportData(Request $request)
-	{
+    {
         $store = $request->get('st_id');
-		return Excel::download(new ProductLocationSetupExport($store), 'product_location_setup.xlsx');
-	}
+        return Excel::download(new ProductLocationSetupExport($store), 'product_location_setup.xlsx');
+    }
 }

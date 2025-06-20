@@ -131,6 +131,14 @@
                     name: 'pl_product',
                     orderable: false
                 },
+                {
+                    data: 'pl_capacity',
+                    name: 'pl_capacity',
+                },
+                {
+                    data: 'pl_percent',
+                    name: 'pl_percent',
+                },
             ],
             columnDefs: [{
                 "targets": 0,
