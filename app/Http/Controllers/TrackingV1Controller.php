@@ -489,7 +489,7 @@ class TrackingV1Controller extends Controller
             return datatables()->of(ProductLocationSetupTransaction::select(
                 'product_location_setup_transactions.id as plst_id',
                 'pls_id',
-                'pst_id',
+                'product_location_setup_transactions.pst_id as pst_id',
                 'pls_qty',
                 'plst_qty',
                 'plst_status',
