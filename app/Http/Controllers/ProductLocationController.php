@@ -89,7 +89,7 @@ class ProductLocationController extends Controller
     public function getDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default', 'pl_default_refund','pl_freeze')
+            return datatables()->of(ProductLocation::select('product_locations.id as pl_id', 'st_name', 'pl_code', 'pl_name', 'pl_description', 'pl_default', 'pl_default_refund','pl_freeze', 'pl_capacity')
                 ->join('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->where('pl_delete', '!=', '1')
                 ->where('st_id', '=', $request->st_id))
@@ -155,6 +155,7 @@ class ProductLocationController extends Controller
             'pl_description' => $request->input('pl_description'),
             'pl_default' => $request->input('pl_default'),
             'pl_default_refund' => $request->input('pl_default_refund'),
+            'pl_capacity' => $request->input('pl_capacity'),
             'pl_delete' => '0',
         ];
 
