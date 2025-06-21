@@ -272,7 +272,7 @@ class StockTransferController extends Controller
     public function inTransferBinDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'pst_id', 'pl_id', 'st_id_start', 'st_id_end', 'stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'stfd_status', 'pl_code')
+            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'pst_id', 'pl_id', 'st_id_start', 'st_id_end', 'stf_status','stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'stfd_status', 'pl_code')
                 ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'stock_transfer_details.pl_id')
@@ -282,6 +282,14 @@ class StockTransferController extends Controller
                 ->where('stf_code', '=', $request->stf_code))
                 ->editColumn('article', function ($data) {
                     return '<span data-stfd_id="' . $data->stfd_id . '" data-pst_id="' . $data->pst_id . '" data-pl_id="' . $data->pl_id . '" data-stfd_qty="' . $data->stfd_qty . '" id="cancel_transfer_item" style="white-space:nowrap;">' . $data->p_name . '<br/>[' . $data->br_name . '] ' . $data->p_color . ' [' . $data->sz_name . '] <i class="badge badge-sm badge-danger">X</i></span>';
+                })
+                ->editColumn('stfd_qty', function ($data) {
+                    // Get stf_status for this row
+                    if ($data->stf_status == '0' || $data->stf_status == '3') {
+                        return '<input type="number" class="form-control form-control-sm" style="width:80px; display:inline-block;" value="' . $data->stfd_qty . '" data-stfd_id="' . $data->stfd_id . '" id="edit_stfd_qty" />';
+                    } else {
+                        return '<span>' . $data->stfd_qty . '</span>';
+                    }
                 })
                 ->editColumn('st_start', function ($data) {
                     $st_name = DB::table('stores')->select('st_name')->where('id', '=', $data->st_id_start)->get()->first()->st_name;
@@ -298,7 +306,7 @@ class StockTransferController extends Controller
                         return '<span class="btn-sm btn-success">Diambil</span>';
                     }
                 })
-                ->rawColumns(['article', 'status'])
+                ->rawColumns(['article', 'status', 'stfd_qty'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -715,5 +723,38 @@ class StockTransferController extends Controller
     {
         $tf_code = $request->stf_code;
         return Excel::download(new StdExportDraft($tf_code), 'stock_transfer_draft_' . $tf_code . '.xlsx');
+    }
+
+    public function changeTransferQty(Request $request)
+    {
+        $stfd_id = $request->id;
+        $qty = $request->qty;
+
+        $stfd = StockTransferDetail::find($stfd_id);
+        if (!$stfd) {
+            return response()->json(['status' => '404', 'message' => 'Detail transfer stok tidak ditemukan']);
+        }
+
+        $pls = ProductLocationSetup::where('pst_id', $stfd->pst_id)
+            ->where('pl_id', $stfd->pl_id)
+            ->first();
+
+        if (!$pls) {
+            return response()->json(['status' => '404', 'message' => 'Data Bin tidak ditemukan']);
+        }
+
+        if ($qty > ($pls->pls_qty + $stfd->stfd_qty)) {
+            return response()->json(['status' => '400', 'message' => 'Jumlah transfer melebihi stok tersedia']);
+        }
+
+        // Update qty di StockTransferDetail
+        $old_qty = $stfd->stfd_qty;
+        $stfd->update(['stfd_qty' => $qty]);
+
+        // Update qty di ProductLocationSetup
+        $selisih = $qty - $old_qty;
+        $pls->update(['pls_qty' => $pls->pls_qty - $selisih]);
+
+        return response()->json(['status' => '200', 'message' => 'Jumlah transfer berhasil diubah']);
     }
 }

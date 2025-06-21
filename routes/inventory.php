@@ -249,6 +249,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('cancel_import_transfer', [StockTransferController::class, 'cancelImportData']);
     Route::post('product_transfer', [StockTransferController::class, 'productTransfer']);
     Route::get('export_transfer_draft', [StockTransferController::class, 'exportData']);
+    Route::post('change_transfer_qty', [StockTransferController::class, 'changeTransferQty']);
 //    Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
 
     // Stock Transfer Data

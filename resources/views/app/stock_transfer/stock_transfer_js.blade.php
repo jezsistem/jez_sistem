@@ -788,5 +788,39 @@
                     'warning');
             }
         }
+
+        $(document).on('change', '#edit_stfd_qty', function () {
+            var stfd_id = $(this).data('stfd_id');
+            var qty = $(this).val();
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type: "POST",
+                url: "{{ url('change_transfer_qty') }}",
+                data: {
+                    id: stfd_id,
+                    qty: qty
+                },
+                dataType: 'json',
+                success: function (r) {
+                    if (r.status == '200') {
+                        toastr.success('Qty berhasil diubah', 'Berhasil');
+                        transfer_bin_table.draw();
+                        transfer_history_table.draw();
+                        in_transfer_bin_table.draw();
+                    } else {
+                        toastr.error(r.message, 'Gagal');
+                    }
+                },
+                error: function () {
+                    toastr.error(r.message, 'Error');
+                }
+            });
+        });
     });
 </script>
