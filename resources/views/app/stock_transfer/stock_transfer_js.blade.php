@@ -477,7 +477,7 @@
                 dangerMode: false,
             }).then((isConfirm) => {
                 if (isConfirm) {
-                    $(this).addClass('disabled');
+                    // $(this).addClass('disabled');
                     var arr = [];
                     var i = 0;
                     var st_start = $('#st_id_start').val();
