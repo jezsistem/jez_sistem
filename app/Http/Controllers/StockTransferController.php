@@ -326,10 +326,14 @@ class StockTransferController extends Controller
     public function transferListDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'st_id_start', 'st_id_end', 'stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'pl_code', 'product_stocks.ps_barcode as ps_barcode')
+            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'st_id_start', 'st_id_end', 'stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'pl_code', 'product_location_setups.pls_qty',  'product_stocks.ps_barcode as ps_barcode')
                 ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'stock_transfer_details.pl_id')
+                ->leftJoin('product_location_setups', function($join) {
+                    $join->on('product_location_setups.pst_id', '=', 'product_stocks.id')
+                         ->on('product_location_setups.pl_id', '=', 'product_locations.id');
+                })
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
@@ -344,13 +348,14 @@ class StockTransferController extends Controller
                 ->editColumn('article', function ($data) use ($request) {
                     if ($request->mode == 'get') {
                         return '[' . $data->br_name . ']<br/><span style="white-space:nowrap;">' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '</span><br/>
-                  <a class="btn btn-sm btn-primary">Jml : ' . $data->stfd_qty . '</a>
+                  <a class="btn btn-sm btn-primary" data-p_name="'. $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-stfd_id="' . $data->stfd_id . '" data-stfd_qty="' . $data->stfd_qty . '" data-current_stock="' . $data->pls_qty . '" id="change_transfer_quantity">Req : ' . $data->stfd_qty . '</a>
+                  <a class="btn btn-sm btn-primary">Stock : ' . $data->pls_qty . '</a>
                   <a class="btn btn-sm btn-primary">' . $data->pl_code . '</a>
-                  <a class="btn btn-sm btn-success" style="font-weight:bold;" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-bin="' . $data->pl_code . '" data-stfd_id="' . $data->stfd_id . '" data-ps-barcode="' . $data->ps_barcode . '" id="get_transfer_item">Ambil</a>
+                  <a class="btn btn-sm btn-success" style="font-weight:bold;" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-bin="' . $data->pl_code . '" data-stfd_id="' . $data->stfd_id . '" data-stfd_qty="' . $data->stfd_qty . '" data-ps-barcode="' . $data->ps_barcode . '" id="get_transfer_item">Ambil</a>
                   ';
                     } else {
                         return '[' . $data->br_name . ']<br/><span style="white-space:nowrap;">' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '</span><br/>
-                  <a class="btn btn-sm btn-primary">Jml : ' . $data->stfd_qty . '</a>
+                  <a class="btn btn-sm btn-primary" data-p_name="'. $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-stfd_id="' . $data->stfd_id . '" data-stfd_qty="' . $data->stfd_qty . '" id="change_transfer_quantity">Jml : ' . $data->stfd_qty . '</a>
                   <a class="btn btn-sm btn-primary">' . $data->pl_code . '</a>
                   ';
                     }
@@ -361,7 +366,8 @@ class StockTransferController extends Controller
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhereRaw('CONCAT(br_name," ", p_name," ", p_color," ", sz_name) LIKE ?', "%$search%")
-                                ->orWhere('product_stocks.ps_barcode', 'LIKE', "%$search%");
+                                ->orWhere('product_stocks.ps_barcode', 'LIKE', "%$search%")
+                                ->orWhere('pl_code', 'LIKE', "%$search%");
                         });
                     }
                 })
@@ -372,7 +378,7 @@ class StockTransferController extends Controller
 
     public function getTransferItem(Request $request)
     {
-        $stfd_id = $request->_stfd_id;
+        $stfd_id = $request->stfd_id;
         $update = StockTransferDetail::where('id', '=', $stfd_id)->update([
             'stfd_status' => '1'
         ]);
@@ -730,31 +736,39 @@ class StockTransferController extends Controller
         $stfd_id = $request->id;
         $qty = $request->qty;
 
-        $stfd = StockTransferDetail::find($stfd_id);
-        if (!$stfd) {
-            return response()->json(['status' => '404', 'message' => 'Detail transfer stok tidak ditemukan']);
+        try {
+            DB::beginTransaction();
+
+            $stfd = StockTransferDetail::find($stfd_id);
+            if (!$stfd) {
+                return response()->json(['status' => '404', 'message' => 'Detail transfer stok tidak ditemukan']);
+            }
+
+            $pls = ProductLocationSetup::where('pst_id', $stfd->pst_id)
+                ->where('pl_id', $stfd->pl_id)
+                ->first();
+
+            if (!$pls) {
+                return response()->json(['status' => '404', 'message' => 'Data Bin tidak ditemukan']);
+            }
+
+            if ($qty > ($pls->pls_qty + $stfd->stfd_qty)) {
+                return response()->json(['status' => '400', 'message' => 'Jumlah transfer melebihi stok tersedia']);
+            }
+
+            // Update qty di StockTransferDetail
+            $old_qty = $stfd->stfd_qty;
+            $stfd->update(['stfd_qty' => $qty]);
+
+            // Update qty di ProductLocationSetup
+            $selisih = $qty - $old_qty;
+            $pls->update(['pls_qty' => $pls->pls_qty - $selisih]);
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Jumlah transfer berhasil diubah']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
-
-        $pls = ProductLocationSetup::where('pst_id', $stfd->pst_id)
-            ->where('pl_id', $stfd->pl_id)
-            ->first();
-
-        if (!$pls) {
-            return response()->json(['status' => '404', 'message' => 'Data Bin tidak ditemukan']);
-        }
-
-        if ($qty > ($pls->pls_qty + $stfd->stfd_qty)) {
-            return response()->json(['status' => '400', 'message' => 'Jumlah transfer melebihi stok tersedia']);
-        }
-
-        // Update qty di StockTransferDetail
-        $old_qty = $stfd->stfd_qty;
-        $stfd->update(['stfd_qty' => $qty]);
-
-        // Update qty di ProductLocationSetup
-        $selisih = $qty - $old_qty;
-        $pls->update(['pls_qty' => $pls->pls_qty - $selisih]);
-
-        return response()->json(['status' => '200', 'message' => 'Jumlah transfer berhasil diubah']);
     }
 }
