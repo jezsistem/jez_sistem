@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\StdExport;
 use App\Exports\StdExportDraft;
+use App\Imports\TransferDoneCompareImport;
 use App\Models\ProductStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -242,7 +243,7 @@ class StockTransferController extends Controller
                     if ($data->stf_status == '1') {
                         return '<span class="btn-sm btn-warning text-white" style="white-space:nowrap;" data-code="' . $data->stf_code . '" id="view_btn">IN PROGRESS</span>';
                     } else if ($data->stf_status == '2') {
-                        return '<span class="btn-sm btn-success" data-code="' . $data->stf_code . '" id="view_btn">DONE</span>';
+                        return '<span class="btn-sm btn-success" data-code="' . $data->stf_code . '" id="done_btn">DONE</span>';
                     } else {
                         return '<span class="btn-sm btn-info" data-code="' . $data->stf_code . '" id="draft_btn">DRAFT</span>';
                     }
@@ -272,7 +273,7 @@ class StockTransferController extends Controller
     public function inTransferBinDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'pst_id', 'pl_id', 'st_id_start', 'st_id_end', 'stf_status','stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'stfd_status', 'pl_code')
+            return datatables()->of(StockTransferDetail::select('stock_transfer_details.id as stfd_id', 'pst_id', 'pl_id', 'st_id_start', 'st_id_end', 'stf_status','stf_code', 'br_name', 'p_name', 'p_color', 'sz_name', 'stfd_qty', 'stfd_status', 'pl_code','ps_barcode')
                 ->leftJoin('stock_transfers', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'stock_transfer_details.pst_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'stock_transfer_details.pl_id')
@@ -281,7 +282,9 @@ class StockTransferController extends Controller
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where('stf_code', '=', $request->stf_code))
                 ->editColumn('article', function ($data) {
-                    return '<span data-stfd_id="' . $data->stfd_id . '" data-pst_id="' . $data->pst_id . '" data-pl_id="' . $data->pl_id . '" data-stfd_qty="' . $data->stfd_qty . '" id="cancel_transfer_item" style="white-space:nowrap;">' . $data->p_name . '<br/>[' . $data->br_name . '] ' . $data->p_color . ' [' . $data->sz_name . '] <i class="badge badge-sm badge-danger">X</i></span>';
+                    return '<span data-stfd_id="' . $data->stfd_id . '" data-pst_id="' . $data->pst_id . '" data-pl_id="' . $data->pl_id . '" data-stfd_qty="' . $data->stfd_qty . '" id="cancel_transfer_item" style="white-space:nowrap;">
+                        <span style="color:red;font-weight:bold;">' . $data->ps_barcode . '</span> ' . $data->p_name . '<br/>[' . $data->br_name . '] ' . $data->p_color . ' [' . $data->sz_name . '] <i class="badge badge-sm badge-danger">X</i>
+                    </span>';
                 })
                 ->editColumn('stfd_qty', function ($data) {
                     // Get stf_status for this row
@@ -723,6 +726,81 @@ class StockTransferController extends Controller
             'processedData' => $processedData,
             'missingBarcode' => $missingBarcode
         ];
+    }
+
+    public function importCompareDoneTransfer(Request $request)
+    {
+        $stf_code = $request->stf_code_modal;
+        $check = StockTransfer::select('id')->where('stf_code', '=', $stf_code)->get()->first();
+
+        if (!$check) {
+            $r['status'] = '404';
+            $r['message'] = 'Stock transfer tidak ditemukan';
+            return response()->json($r);
+        }
+
+        if(!$request->file('importFile')) {
+            $r['status'] = '400';
+            $r['message'] = 'File tidak ditemukan';
+            return response()->json($r);
+        }
+
+        $file = $request->file('importFile');
+        // membuat nama file unik
+        $nama_file = rand() . $file->getClientOriginalName();
+
+        // upload ke folder di dalam folder public
+        $file->move('excel/import_transfer_compare/', $nama_file);
+
+        $import = new TransferDoneCompareImport;
+
+        if (!$import) {
+            $r['status'] = '400';
+            $r['message'] = 'Format file tidak sesuai';
+            return response()->json($r);
+        }
+
+        $data = Excel::toArray($import, public_path('excel/import_transfer_compare/' . $nama_file));
+
+        if ($data[0][0][0] != 'SKU' || $data[0][0][1] != 'Quantity') {
+            $r['status'] = '400';
+            $r['message'] = 'Format file tidak sesuai';
+            return response()->json($r);
+        }
+        
+        $transfer_data = DB::table('stock_transfers')
+            ->join('stock_transfer_details', 'stock_transfers.id', '=', 'stock_transfer_details.stf_id')
+            ->join('stock_transfer_detail_statuses', 'stock_transfer_details.id', '=', 'stock_transfer_detail_statuses.stfd_id')
+            ->join('product_stocks', 'stock_transfer_details.pst_id', '=', 'product_stocks.id')
+            ->select('product_stocks.ps_barcode', 'stock_transfer_detail_statuses.stfd_id', 'stock_transfer_detail_statuses.stfds_qty')
+            ->where('stock_transfers.id', $check->id)
+            ->groupBy('product_stocks.ps_barcode', 'stock_transfer_detail_statuses.stfd_id', 'stock_transfer_detail_statuses.stfds_qty')
+            ->get();
+        $unmatchedData = [];
+
+        foreach ($data[0] as $item) {
+            $barcode = $item[0];
+            $qty = $item[1];
+
+            // Find matching transfer data by barcode
+            $matchingTransfer = $transfer_data->firstWhere('ps_barcode', $barcode);
+
+            // If not found or qty does not match, add to unmatched
+            if (!$matchingTransfer || intval($matchingTransfer->stfds_qty) !== intval($qty)) {
+            $unmatchedData[] = [
+                'barcode' => $barcode,
+                'qty' => $qty,
+                'expected_qty' => $matchingTransfer ? $matchingTransfer->stfds_qty : null,
+            ];
+            }
+        }
+
+        return response()->json([
+            'status' => '200',
+            'unmatched' => $unmatchedData,
+        ]);
+
+        
     }
 
     public function exportData(Request $request)
