@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pl_delete', [ProductLocationController::class, 'deleteData']);
     Route::post('pl_import', [ProductLocationController::class, 'importData']);
     Route::post('pl_code_check_data', [ProductLocationController::class, 'checkCode']);
+    Route::post('pl_freeze_status', [ProductLocationController::class, 'updateFreezeStatus']);
 
     // StoreAgingController
     Route::get(
