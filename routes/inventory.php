@@ -313,6 +313,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('stock_tracking', [StockTrackingController::class, 'index'])->name('stock_tracking');
     Route::get('stock_tracking_datatables', [StockTrackingController::class, 'getDatatables']);
     Route::get('pickup_list_datatables', [StockTrackingController::class, 'getPickupDatatables']);
+    Route::get('waiting_list_datatables', [StockTrackingController::class, 'getWaitingOfflineDatatables']);
     Route::post('get_stock_notice', [StockTrackingController::class, 'getNotice']);
     Route::post('get_stock_graph', [StockTrackingController::class, 'getGraph']);
     Route::post(
