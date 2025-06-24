@@ -109,7 +109,7 @@ class ProductLocationSetupController extends Controller
                         }
                         return '<a class="btn btn-sm btn-primary col-7" style="white-space: nowrap;">' . $total_product . '</a>';
                     } else {
-                        return '< a class="btn btn-sm btn-primary">0</a>';
+                        return '<a class="btn btn-sm btn-primary">0</a>';
                     }
                 })
                 ->editColumn('pl_capacity', function ($data) {
