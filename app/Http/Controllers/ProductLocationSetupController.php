@@ -153,7 +153,7 @@ class ProductLocationSetupController extends Controller
                             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                            ->where('pls_qty', '>', '0')
+                            ->where('pls_qty', '>=', '0')
                             ->groupBy('product_locations.id');
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
