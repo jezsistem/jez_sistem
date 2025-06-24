@@ -34,7 +34,6 @@ use App\Models\Product;
 use App\Models\PurchaseOrderTransferImage;
 use App\Models\UserActivity;
 use App\Models\PurchaseOrderDisputeFile;
-use Carbon\Carbon;
 
 
 class PurchaseOrderReceiveController extends Controller
@@ -952,28 +951,16 @@ class PurchaseOrderReceiveController extends Controller
 
         if ($check && $request->hasFile('filedispute')) {
             foreach ($request->file('filedispute') as $file) {
-                if ($file->isValid()) {
-                    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                    $extension = $file->getClientOriginalExtension();
-                    $timestamp = Carbon::now()->format('Hidmy'); 
+                $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $destinationPath = public_path('/upload/purchase_order_dispute');
+                $file->move($destinationPath, $name);
 
-                    $safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName); // Bersihkan nama
-                    $finalName = $safeName . '_' . $timestamp;
+                PurchaseOrderDisputeFile::create([
+                    'purchase_order_id' => $po_id,
+                    'file_dispute' => $name,
+                ]);
 
-                    $destinationPath = public_path('upload/purchase_order_dispute');
-                    if (!file_exists($destinationPath)) {
-                        mkdir($destinationPath, 0755, true);
-                    }
-
-                    $file->move($destinationPath, $finalName);
-
-                    PurchaseOrderDisputeFile::create([
-                        'purchase_order_id' => $po_id,
-                        'file_dispute' => $finalName,
-                    ]);
-
-                    $success = true;
-                }
+                $success = true;
             }
         }
 
