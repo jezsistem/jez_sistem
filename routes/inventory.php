@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Route;
 
 /* new 25-09-2024*/
 use App\Http\Controllers\AllstockController;
+use App\Http\Controllers\StorageAreaController;
 use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/allstock', [AllstockController::class, 'index']);
@@ -313,6 +314,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('stock_tracking', [StockTrackingController::class, 'index'])->name('stock_tracking');
     Route::get('stock_tracking_datatables', [StockTrackingController::class, 'getDatatables']);
     Route::get('pickup_list_datatables', [StockTrackingController::class, 'getPickupDatatables']);
+    Route::get('waiting_list_datatables', [StockTrackingController::class, 'getWaitingOfflineDatatables']);
     Route::post('get_stock_notice', [StockTrackingController::class, 'getNotice']);
     Route::post('get_stock_graph', [StockTrackingController::class, 'getGraph']);
     Route::post(
@@ -342,4 +344,17 @@ Route::middleware(['auth'])->group(function () {
         'plst_delete_v1 ',
         [StockTrackingV1Controller::class, 'deleteData']
     );
+
+    // Storage AreaAdd commentMore actions
+    Route::get('storage_area', [StorageAreaController::class, 'index'])->name('storage_area');
+    Route::get('storage_area/{id}', [StorageAreaController::class, 'show']);
+    Route::get('storage_area_datatable', [StorageAreaController::class, 'storageAreaDatatables']);
+    Route::post('storage_area_create', [StorageAreaController::class, 'createData']);
+    Route::delete('storage_area_delete/{id}', [StorageAreaController::class, 'deleteData']);
+    Route::get('storage_area_list', [StorageAreaController::class, 'storageAreaList']);
+    Route::get('bin_list_no_area', [StorageAreaController::class, 'binListNoArea']);
+    Route::get('bin_list', [StorageAreaController::class, 'binList']);
+    Route::post('storage_area_update', [StorageAreaController::class, 'updateData']);
+    Route::post('storage_area_link', [StorageAreaController::class, 'linkBinToStorageArea']);
+    Route::post('storage_area_unlink', [StorageAreaController::class, 'unlinkBinToStorageArea']);
 });

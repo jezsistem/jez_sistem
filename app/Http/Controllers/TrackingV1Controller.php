@@ -489,7 +489,7 @@ class TrackingV1Controller extends Controller
             return datatables()->of(ProductLocationSetupTransaction::select(
                 'product_location_setup_transactions.id as plst_id',
                 'pls_id',
-                'product_location_setups.pst_id as pst_id',
+                'product_location_setup_transactions.pst_id as pst_id',
                 'pls_qty',
                 'plst_qty',
                 'plst_status',
@@ -773,7 +773,7 @@ class TrackingV1Controller extends Controller
 
                     // dd($exp[1]);
 
-                    //    dd($bin_refund);
+                //    dd($bin_refund);
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
                     <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
                     <span style="white-space: nowrap; font-weight:bold;">' . $time . '</span><br/>
