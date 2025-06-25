@@ -894,8 +894,7 @@ class TrackingController extends Controller
                     <span style="white-space: nowrap; font-weight:bold; color: green;">' . $new_note . '</span><br/>
                     <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . ($data->pl_code ?? 'N/A') . '</span>
-                    <a class="btn btn-sm btn-success" data-bin="' . ($bin_refund->pl_code?? 'N/A') . ' ' . $bin_refund->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_refund_btn" style="font-weight:bold;">Masuk</a>';
-
+                    <a class="btn btn-sm btn-success" data-bin="' . ($bin_refund->pl_code ?? 'N/A') . ' ' . ($bin_refund->pl_name ?? 'N/A') . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_refund_btn" style="font-weight:bold;">Masuk</a>';
                 })
                 ->rawColumns(['article', 'status', 'bin', 'qty', 'action'])
                 ->filter(function ($instance) use ($request) {
