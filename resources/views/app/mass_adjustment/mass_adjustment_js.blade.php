@@ -322,7 +322,7 @@
             }],
             ajax: {
                 url: "{{ url('mass_adjustment_datatables') }}",
-                type: 'POST', // Added method POST
+                type: 'GET', // Added method POST
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for POST
                 },
