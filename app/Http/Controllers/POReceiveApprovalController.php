@@ -324,6 +324,11 @@ class POReceiveApprovalController extends Controller
             ->whereNotNull('st_id')
             ->get();
 
+        if ($poads->where('poads_qty', '=', 0)->count() > 0) {
+            $r['status'] = '400';
+            $r['message'] = 'Ada Data yang memiliki Qty 0, silahkan periksa kembali.';
+            return json_encode($r);
+        }
 
         if (!empty($poads->first())) {
             foreach ($poads as $row) {
