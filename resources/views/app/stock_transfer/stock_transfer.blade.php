@@ -133,7 +133,8 @@
                                     <tr>
                                         <th class="text-dark">Artikel</th>
                                         <th class="text-dark">BIN</th>
-                                        <th class="text-dark">Qty</th>
+                                        <th class="text-dark">Qty TF</th>
+                                        <th class="text-dark">Qty in Bin</th>
                                         <th class="text-dark">Asal</th>
                                         <th class="text-dark">Tujuan</th>
                                         <th class="text-dark"></th>

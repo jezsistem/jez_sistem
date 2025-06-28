@@ -45,7 +45,7 @@
                         <div class="form-group">
                             <label>Pilih template yang sudah diisi data</label>
                             <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control" name="importFile" id="importFile" accept=".csv" required/>
+                            <input type="file" class="form-control" name="importFile" id="importFile" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required/>
                         </div>
                     </div>
                 </div>

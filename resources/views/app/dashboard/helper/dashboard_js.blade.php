@@ -798,26 +798,29 @@
         if (hasil.startsWith(']C1')) {
             hasil = hasil.replace(']C1', '');
         }
-        
-        alert(hasil);
 
         if (modal_opened == 'ScanOutModal') {
+            alert(hasil);
             $('#scan_out_search').val(hasil);
             scan_out_table.ajax.reload();
             
         } else if (modal_opened == 'ScanInModal') {
+            alert(hasil);
             $('#scan_in_search').val(hasil);
             scan_in_table.ajax.reload();
 
         } else if (modal_opened == 'ScanInRefundModal') {
+            alert(hasil);
             $('#scan_in_refund_search').val(hasil);
             scan_in_refund_table.ajax.reload();
         }
         else if (modal_opened == 'binModal') {
+            alert(hasil);
             $('#bin_out_search').val(hasil);
             // scan_in_refund_table.ajax.reload();
         }
         else if (modal_opened == 'PickOnModal') {
+            alert(hasil);
             $('#scan_pick_on_search').val(hasil);
             scan_keep_table.ajax.reload();
         }

@@ -17,6 +17,7 @@
     }
 
     let excelImportData = [];
+    let prevEditStfdQty = 0;
 
     $(document).ready(function() {
         // $('body').addClass('kt-primary--minimize aside-minimize');
@@ -126,6 +127,11 @@
                 {
                     data: 'stfd_qty',
                     name: 'stfd_qty',
+                    orderable: false
+                },
+                {
+                    data: 'pls_qty',
+                    name: 'pls_qty',
                     orderable: false
                 },
                 {
@@ -639,7 +645,7 @@
                         success: function(r) {
                             $(this).removeClass(
                                 'disabled'
-                                ); // Ensure button is re-enabled regardless of response
+                            ); // Ensure button is re-enabled regardless of response
                             if (r.status == '200') {
                                 $('#stf_code').text('');
                                 transfer_bin_table.draw();
@@ -654,7 +660,7 @@
                         error: function() {
                             $(this).removeClass(
                                 'disabled'
-                                ); // Re-enable the button in case of an error
+                            ); // Re-enable the button in case of an error
                             toastr.error(
                                 "Terjadi kesalahan saat memproses permintaan.",
                                 "Error");
@@ -669,7 +675,7 @@
         $(document).delegate('#draft_btn', 'click', function() {
             var inv = $(this).attr('data-code');
             $('#stf_code').text(inv);
-            $('#transfer_import_btn').addClass('d-none');
+            $('#transfer_import_btn').removeClass('d-none');
             $('#transfer_cancel_btn').removeClass('d-none');
             $('#transfer_draft_btn').removeClass('d-none');
             $('#transfer_done_btn').removeClass('d-none');
@@ -690,7 +696,7 @@
             var inv = $(this).attr('data-code');
             $('#stf_code').text(inv);
             in_transfer_bin_table.draw(false);
-            $('#transfer_import_btn').removeClass('d-none');
+            $('#transfer_import_btn').addClass('d-none');
             $('#transfer_cancel_btn').addClass('d-none');
             $('#transfer_draft_btn').addClass('d-none');
             $('#transfer_done_btn').addClass('d-none');
@@ -811,9 +817,23 @@
 
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
+
+
+            var st_start = $('#st_id_start').val();
+            var st_end = $('#st_id_end').val();
+
+            if (st_start == '' || st_end == '') {
+                swal('Periksa Store', 'Silahkan periksa Store Awal dan Store Tujuan', 'warning');
+                $('#import_data_btn').html('Import');
+                $('#import_data_btn').attr('disabled', false);
+                return false;
+            }
+
             $('#import_data_btn').html('Proses...');
             $('#import_data_btn').attr('disabled', true);
             var formData = new FormData(this);
+            formData.append('st_start', st_start);
+            formData.append('st_end', st_end);
 
             $.ajax({
                 type: 'POST',
@@ -824,34 +844,105 @@
                 contentType: false,
                 processData: false,
                 success: function(data) {
-                    console.log(data.data['missingBarcode']);
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     jQuery.noConflict();
+
                     if (data.status == '200') {
                         $("#ImportModal").modal('hide');
-
                         swal('Berhasil', 'Data berhasil diimport', 'success');
                         $('#f_import')[0].reset();
-                        // TODO : buat function buat return alert apabila barcode missing
                         excelImportData = data.data['processedData'];
-
                         transfer_bin_table.draw();
-
-                        checkMissingBarcode(data.data['missingBarcode']);
-                    } else if (data.status == '400') {
-                        $("#ImportModal").modal('hide');
-                        swal('File', 'File yang anda import kosong atau format tidak tepat',
-                            'warning');
+                        reloadPendingTransfer();
+                        setTimeout(() => {
+                            in_transfer_bin_table.draw();
+                        }, 2000);
+                        // checkMissingBarcode(data.data['missingBarcode']);
                     } else {
-                        $("#ImportModal").modal('hide');
-                        swal('Gagal',
-                            'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
-                            'warning');
+                        swal('Error', data.message, 'warning').then(() => {
+                            $("#ImportModal").modal('hide');
+                            if (data.missingBarcode && data.missingBarcode.length >
+                                0) {
+                                $("#ImportModal").modal('hide');
+                                let tableHtml = `
+                    <table id="missingBarcodeTable" border="1" style="width:100%;border-collapse:collapse;text-align:center">
+                    <thead>
+                        <tr>
+                        <th>BIN</th>
+                        <th>SKU</th>
+                        <th>QTY REQ</th>
+                        <th>QTY SYSTEM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+                                data.missingBarcode.forEach(item => {
+                                    tableHtml += `
+                    <tr>
+                        <td>${item.bin}</td>
+                        <td>${item.barcode}</td>
+                        <td>${item.qty_req}</td>
+                        <td>${item.qty_stock}</td>
+                    </tr>
+                    `;
+                                });
+                                tableHtml += `
+                    </tbody>
+                    </table>
+                    <br>
+                    <button id="exportMissingBarcodeExcel" class="swal-button swal-button--confirm">Export to Excel</button>
+                `;
+
+                                swal({
+                                    title: 'Error',
+                                    content: {
+                                        element: "div",
+                                        attributes: {
+                                            innerHTML: tableHtml
+                                        }
+                                    },
+                                    buttons: false
+                                });
+
+                                // Export to Excel handler using xlsx
+                                $(document).off('click',
+                                    '#exportMissingBarcodeExcel').on(
+                                    'click',
+                                    '#exportMissingBarcodeExcel',
+                                    function() {
+                                        let ws_data = [
+                                            ['BIN', 'SKU', 'QTY REQ',
+                                                'QTY SYSTEM'
+                                            ]
+                                        ];
+                                        data.missingBarcode.forEach(item => {
+                                            ws_data.push([item.bin, item
+                                                .barcode,
+                                                item
+                                                .qty_req, item
+                                                .qty_stock
+                                            ]);
+                                        });
+
+                                        let ws = XLSX.utils.aoa_to_sheet(
+                                            ws_data);
+                                        let wb = XLSX.utils.book_new();
+                                        XLSX.utils.book_append_sheet(wb, ws,
+                                            "MissingBarcode");
+
+                                        XLSX.writeFile(wb,
+                                            'missing_barcode.xlsx');
+                                    });
+                            }
+                        });
+
                     }
                 },
                 error: function(data) {
-                    swal('Error', data, 'error');
+                    $("#import_data_btn").html('Import');
+                    $("#import_data_btn").attr("disabled", false);
+                    swal('Error', 'Terjadi kesalahan saat memproses permintaan.', 'error');
                 }
             });
         });
@@ -920,6 +1011,10 @@
             }
         }
 
+        $(document).on('focus', '#edit_stfd_qty', function() {
+            prevEditStfdQty = $(this).val();
+        });
+
         $(document).on('change', '#edit_stfd_qty', function() {
             var stfd_id = $(this).data('stfd_id');
             var qty = $(this).val();
@@ -945,10 +1040,17 @@
                         transfer_history_table.draw();
                         in_transfer_bin_table.draw();
                     } else {
+
+                        let inputElement = document.querySelector('input[data-stfd_id="' +
+                            stfd_id + '"]');
+                        if (inputElement) {
+                            inputElement.value = prevEditStfdQty;
+                        }
                         toastr.error(r.message, 'Gagal');
                     }
                 },
                 error: function() {
+                    $(this).val(prevEditStfdQty);
                     toastr.error(r.message, 'Error');
                 }
             });
