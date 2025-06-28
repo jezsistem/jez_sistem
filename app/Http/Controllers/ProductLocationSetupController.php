@@ -109,7 +109,7 @@ class ProductLocationSetupController extends Controller
                         }
                         return '<a class="btn btn-sm btn-primary col-7" style="white-space: nowrap;">' . $total_product . '</a>';
                     } else {
-                        return '< a class="btn btn-sm btn-primary">0</a>';
+                        return '<a class="btn btn-sm btn-primary">0</a>';
                     }
                 })
                 ->editColumn('pl_capacity', function ($data) {
@@ -153,7 +153,7 @@ class ProductLocationSetupController extends Controller
                             ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                             ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                             ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                            ->where('pls_qty', '>', '0')
+                            ->where('pls_qty', '>=', '0')
                             ->groupBy('product_locations.id');
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');

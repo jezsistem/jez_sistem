@@ -171,6 +171,7 @@ class MassAdjustmentController extends Controller
                 ->leftJoin('mass_adjustment_details', 'mass_adjustment_details.ma_id', '=', 'mass_adjustments.id')
                 ->leftJoin('product_location_setups', 'mass_adjustment_details.pls_id', '=', 'product_location_setups.id')
                 ->leftJoin('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
+                ->groupBy('mass_adjustments.id')
                 ->where(function ($query) use ($request) {
                     if ($request->has('st_id') && !empty($request->get('st_id')) && $request->get('st_id') != 'all') {
                         $query->where('mass_adjustments.st_id', '=', $request->get('st_id'));

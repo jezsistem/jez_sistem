@@ -538,7 +538,7 @@
                                 po_approval_table.draw(false);
                                 swal("Berhasil", "Data berhasil diapprove", "success");
                             } else {
-                                swal('Gagal', 'Gagal approve data', 'error');
+                                swal('Gagal', r.message, 'error');
                             }
                         },
                         error: function () {
