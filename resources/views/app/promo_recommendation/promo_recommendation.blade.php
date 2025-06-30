@@ -57,7 +57,7 @@
 
                                         <div class="position-relative mr-3">
                                             <input type="search" class="form-control form-control-sm"
-                                                id="rekomendasi_promo_search" placeholder="Cari Rekomendasi Promo"
+                                                id="threshold_promo_search" placeholder="Cari Threshold Promo"
                                                 style="width: 250px;" />
                                         </div>
                                         <!--end::Search-->
@@ -65,7 +65,7 @@
                                         <!--begin::Channel Filter-->
                                         <div class="mr-3">
                                             <select class="form-control form-control-sm border"
-                                                id="channel_rekomendasi_promo" style="width: 150px;">
+                                                id="channel_threshold_promo" style="width: 150px;">
                                                 <option value="">Pilih Channel</option>
                                                 <option value="ONLINE">ONLINE</option>
                                                 <option value="OFFLINE">OFFLINE</option>
@@ -82,7 +82,7 @@
                                                     id="kt_dashboard_daterangepicker_title">All Days</span>
                                                 <span class="font-size-sm font-weight-bolder"
                                                     id="kt_dashboard_daterangepicker_date"></span>
-                                                <input type="hidden" id="rekomendasi_promo_date_start" />
+                                                <input type="hidden" id="threshold_promo_date_start" />
                                             </a>
                                         </div>
                                         <!--end::Date Range-->
@@ -100,8 +100,8 @@
                                     <thead class="bg-light text-dark">
                                         <tr>
                                             <th class="text-dark">No</th>
-                                            <th class="text-dark">Channel</th>
                                             <th class="text-dark">Code</th>
+                                            <th class="text-dark">Channel</th>
                                             <th class="text-dark">Created At</th>
                                         </tr>
                                     </thead>
