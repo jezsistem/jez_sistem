@@ -1,56 +1,4 @@
 <!-- Modal-->
-{{-- <div class="modal fade" id="PromoRecommendationModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="PromoRecommendationform">
-            @csrf
-            <input type="hidden" name="_id" id="_id" value="" />
-            <input type="hidden" name="_mode" id="_mode" value="" />
-            <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="exampleModalLabel">Rekomedasi Promo</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="card-body">
-                    <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Article ID</label>
-                        <input type="text" class="form-control" id="article_id" name="article_id" required />
-                    </div>
-                    <div class="form-group mb-1 pb-1">
-                        <label>Channel <span class="text-danger">*</span></label>
-                        <select class="form-control" id="channel" name="channel" required>
-                            <option value="">- Pilih Channel -</option>
-                            <option value="ONLINE">ONLINE</option>
-                            <option value="OFFLINE">OFFLINE</option>
-
-                        </select>
-                    </div>
-                    <div class="form-group mb-1 pb-1">
-                        <label for="discount">Promo Disc</label>
-                        <input type="number" class="form-control" id="discount" name="discount" min="0" max="100" required />
-                    </div>
-                    <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Note</label>
-                        <input type="text" class="form-control" id="notes" name="notes" required />
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-danger font-weight-bold" id="delete_rekomendasi_promo_btn" style="display:none;">Hapus</button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="save_artikel_promo_btn">Simpan</button>
-            </div>
-            </form>
-        </div>
-    </div>
-</div> --}}
-<!-- /Modal -->
-
-<!-- Modal-->
 <form id="f_import" enctype="multipart/form-data">
     @csrf
     <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -97,7 +45,7 @@
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title text-dark" id="promoDetailModalLabel">Detail Rekomendasi Promo <span class="pr_code"></span> </h5>
+                <h5 class="modal-title text-dark" id="promoDetailModalLabel">Detail Threshold Promo <span class="pr_code"></span> </h5>
                 <div class="d-flex justify-content-center align-items-center gap-3">
                     <div class="dropdown dropdown-inline mr-5">
                         <a type="button" class="btn btn-light-primary font-weight-bolder" id="ExportArticleData">
@@ -135,6 +83,7 @@
                                 <th class="text-dark">Price Tag</th>
                                 <th class="text-dark">Price Discount</th>
                                 <th class="text-dark">Note Promo</th>
+                                <th class="text-dark">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -155,3 +104,31 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal for Edit Data Detail Threshold Promo -->
+<div class="modal fade" id="EditThresholdPromoModal" tabindex="-1" role="dialog" aria-labelledby="editThresholdPromoLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="editThresholdPromoLabel">Edit Threshold Promo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <form id="edit_threshold_promo_form">
+                @csrf
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="threshold_discount">Diskon (%) <span class="text-danger">*</span></label>
+                        <input type="hidden" id="edit_threshold_promo_id" name="edit_threshold_promo_id">
+                        <input type="number" class="form-control" id="threshold_discount" name="threshold_discount" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-dark font-weight-bold" id="save_edit_threshold_promo_btn">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
