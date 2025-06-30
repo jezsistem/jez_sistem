@@ -21,12 +21,12 @@
                 "className": 'btn btn-primary btn-xs'
             }],
             ajax: {
-                url: "{{ url('rekomendasi_promo_datatables') }}",
+                url: "{{ url('threshold_promo_datatables') }}",
                 data: function(d) {
-                    d.search = $('#rekomendasi_promo_search').val();
-                    d.channel = $('#channel_rekomendasi_promo').val();
-                    d.date_start = $('#rekomendasi_promo_date_start').val();
-                    d.date_end = $('#rekomendasi_promo_date_end').val();
+                    d.search = $('#threshold_promo_search').val();
+                    d.channel = $('#channel_threshold_promo').val();
+                    d.date_start = $('#threshold_promo_date_start').val();
+                    d.date_end = $('#threshold_promo_date_end').val();
                 }
             },
             columns: [{
@@ -93,7 +93,7 @@
             responsive: false,
             searching: true,
             ajax: {
-                url: "{{ url('rekomendasi_promo_detail_datatables') }}",
+                url: "{{ url('threshold_promo_detail_datatables') }}",
                 data: function(d) {
                     d.pr_id = pr_id;
                     d.search = d.search.value;
@@ -134,6 +134,11 @@
                     name: 'notes',
                     searchable: false
                 },
+                {
+                    data: 'action',
+                    name: 'action',
+                    searchable: false
+                },
             ],
             columnDefs: [{
                 "targets": 0,
@@ -149,8 +154,8 @@
             ],
         });
 
-        data_promo_recommendation_tb.buttons().container().appendTo($('#rekomendasi_promo_excel_btn'));
-        $('#rekomendasi_promo_search').on('keyup', function() {
+        data_promo_recommendation_tb.buttons().container().appendTo($('#threshold_promo_excel_btn'));
+        $('#threshold_promo_search').on('keyup', function() {
             data_promo_recommendation_tb.draw();
         });
 
@@ -165,34 +170,34 @@
             data_promo_recommendation_detail_tb.draw();
         });
 
-        $('#add_rekomendasi_promo_btn').on('click', function() {
+        $('#add_threshold_promo_btn').on('click', function() {
             jQuery.noConflict();
             $('#PromoRecommendationModal').modal('show');
             $('#_id').val('');
             $('#_mode').val('add');
             $('#PromoRecommendationModal form')[0].reset();
-            $('#delete_rekomendasi_promo_btn').hide();
+            $('#delete_threshold_promo_btn').hide();
         });
 
         $('#PromoRecommendationModal form').on('submit', function(e) {
             e.preventDefault();
-            $("#save_rekomendasi_promo_btn").html('Proses ..');
-            $("#save_rekomendasi_promo_btn").attr("disabled", true);
+            $("#save_threshold_promo_btn").html('Proses ..');
+            $("#save_threshold_promo_btn").attr("disabled", true);
             var formData = new FormData(this);
             var isEdit = $('#_mode').val() === 'edit'; // Check if it's edit mode
             var currentId = $('#_id').val(); // Get the current ID
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('rekomendasi_promo_save') }}",
+                url: "{{ url('threshold_promo_save') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
-                    $("#save_rekomendasi_promo_btn").html('Simpan');
-                    $("#save_rekomendasi_promo_btn").attr("disabled", false);
+                    $("#save_threshold_promo_btn").html('Simpan');
+                    $("#save_threshold_promo_btn").attr("disabled", false);
 
                     if (data.status == '200') {
                         $("#PromoRecommendationModal").modal('hide');
@@ -213,17 +218,17 @@
                 },
                 error: function(xhr) {
                     console.log(xhr.responseText);
-                    $("#save_rekomendasi_promo_btn").html('Simpan').attr("disabled", false);
+                    $("#save_threshold_promo_btn").html('Simpan').attr("disabled", false);
                     swal("Error", "Terjadi kesalahan saat memproses", "error");
                 }
             });
         });
 
-        $('#rekomendasi_promo_search').on('keyup', function() {
+        $('#threshold_promo_search').on('keyup', function() {
             data_promo_recommendation_tb.draw();
         });
 
-        $('#channel_rekomendasi_promo').on('change', function() {
+        $('#channel_threshold_promo').on('change', function() {
             data_promo_recommendation_tb.draw();
         });
 
@@ -235,7 +240,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('rekomendasi_promo_import') }}",
+                url: "{{ url('threshold_promo_import') }}",
                 data: formData,
                 dataType: 'json',
                 cache: false,
@@ -287,7 +292,7 @@
                 ],
             }).then(function(isConfirm) {
                 if (isConfirm) {
-                    var url = "{{ url('export_rekomendasi_promo_detail') }}" + "?pr_id=" +
+                    var url = "{{ url('export_threshold_promo_detail') }}" + "?pr_id=" +
                         pr_id;
                     window.location.href = url;
                 }
@@ -297,10 +302,10 @@
         $('#export_btn').on('click', function(e) {
             e.preventDefault();
 
-            var search = $('#rekomendasi_promo_search').val();
-            var channel = $('#channel_rekomendasi_promo').val();
-            var date_start = $('#rekomendasi_promo_date_start').val();
-            var date_end = $('#rekomendasi_promo_date_end').val();
+            var search = $('#threshold_promo_search').val();
+            var channel = $('#channel_threshold_promo').val();
+            var date_start = $('#threshold_promo_date_start').val();
+            var date_end = $('#threshold_promo_date_end').val();
 
             swal({
                 title: "Ekspor Data",
@@ -312,7 +317,8 @@
                 ],
             }).then(function(isConfirm) {
                 if (isConfirm) {
-                    var url = "{{ url('export_rekomendasi_promo') }}" + "?search=" + encodeURIComponent(search) +
+                    var url = "{{ url('export_threshold_promo') }}" + "?search=" +
+                        encodeURIComponent(search) +
                         "&channel=" + encodeURIComponent(channel) +
                         "&date_start=" + encodeURIComponent(date_start) +
                         "&date_end=" + encodeURIComponent(date_end);
@@ -344,7 +350,7 @@
                             _id: pr_id
                         },
                         dataType: 'json',
-                        url: "{{ url('rekomendasi_promo_delete') }}",
+                        url: "{{ url('threshold_promo_delete') }}",
                         success: function(r) {
                             if (r.status == '200') {
                                 toastr.success("Data successfully deleted Jez",
@@ -362,6 +368,109 @@
                         }
                     });
                     return false;
+                }
+            });
+        });
+
+        $('#PromoRecommendationDetailtb').on('click', '.delete-btn', function() {
+            const prd_id = $(this).data('id');
+            if (!prd_id) {
+                toastr.error("Failed to retrieve the ID for deletion.", "Error");
+                return;
+            }
+            swal({
+                title: "Hapus..?",
+                text: "Yakin hapus data ini ?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        type: "DELETE",
+                        url: "{{ url('threshold_promo_detail_delete') }}/" + prd_id,
+                        success: function(r) {
+                            if (r.status == '200') {
+                                toastr.success("Data successfully deleted Jez",
+                                    "Success");
+                                data_promo_recommendation_detail_tb.ajax.reload();
+                            } else {
+                                toastr.error("Failed to delete data Jez", "Failed");
+                            }
+                        },
+                        error: function() {
+                            toastr.error(
+                                "Terjadi kesalahan saat memproses permintaan",
+                                "Error");
+                        }
+                    });
+                    return false;
+                }
+            });
+        });
+
+        $('#PromoRecommendationDetailtb').on('click', '.edit-btn', function() {
+            const prd_id = $(this).data('id');
+            const discount = $(this).data('discount');
+            if (!prd_id) {
+                toastr.error("Gagal mendapatkan ID untuk pengeditan.", "Error");
+                return;
+            }
+
+            // Open the modal
+            $('#EditThresholdPromoModal').modal('show');
+
+            // Populate the modal with the current data
+            $('#edit_threshold_promo_id').val(prd_id);
+            $('#threshold_discount').val(discount);
+        });
+
+        $('#save_edit_threshold_promo_btn').on('click', function(e) {
+            e.preventDefault();
+            const prd_id = $('#edit_threshold_promo_id').val();
+            const discount = $('#threshold_discount').val();
+
+            if (!prd_id || !discount) {
+                toastr.error("Harap isi semua kolom yang diperlukan.", "Error");
+                return;
+            }
+
+            if (discount < 0 || discount > 100) {
+                toastr.error("Diskon harus antara 0 dan 100.", "Error");
+                return;
+            }
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('threshold_promo_detail_update') }}/" + prd_id,
+                data: {
+                    discount: discount
+                },
+                success: function(response) {
+                    if (response.status === '200') {
+                        toastr.success("Data berhasil diperbarui Jez", "Berhasil");
+                        $('#EditThresholdPromoModal').modal('hide');
+                        data_promo_recommendation_detail_tb.ajax.reload();
+                    } else {
+                        toastr.error("Gagal memperbarui data Jez", "Error");
+                    }
+                },
+                error: function() {
+                    toastr.error("Terjadi kesalahan saat memproses permintaan.", "Error");
                 }
             });
         });
@@ -403,7 +512,7 @@
                 hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
 
-            $('#rekomendasi_promo_date_start').val(hidden_range);
+            $('#threshold_promo_date_start').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
 
@@ -434,7 +543,7 @@
 
         // Update DataTable AJAX request to include date range filter
         data_promo_recommendation_tb.on('preXhr.dt', function(e, settings, data) {
-            var dateRange = $('#rekomendasi_promo_date_start').val();
+            var dateRange = $('#threshold_promo_date_start').val();
             if (dateRange) {
                 var dates = dateRange.split('|');
                 data.date_start = dates[0];

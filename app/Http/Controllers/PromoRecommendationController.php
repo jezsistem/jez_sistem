@@ -149,6 +149,11 @@ class PromoRecommendationController extends Controller
 
                     return number_format($discountedPrice);
                 })
+                ->addColumn('action', function ($row) {
+                    $deleteButton = '<button class="btn btn-danger btn-sm delete-btn" data-id="' . $row->prd_id . '" id="delete_promo_detail_' . $row->prd_id . '"><i class="fas fa-trash"></i></button>';
+                    $editButton = '<button class="btn btn-warning btn-sm edit-btn" data-id="' . $row->prd_id . '" data-discount="' . $row->discount . '" id="edit_promo_detail_' . $row->prd_id . '"><i class="fas fa-percent"></i></button>';
+                    return $editButton . ' ' . $deleteButton;
+                })
                 ->filter(function ($instance) use ($request) {
                     $search = $request->get('search');
                     if (!empty($search)) {
@@ -159,6 +164,7 @@ class PromoRecommendationController extends Controller
                         });
                     }
                 })
+                ->rawColumns(['action'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -206,7 +212,7 @@ class PromoRecommendationController extends Controller
     //             $checkExists = PromoRecommendation::query()->join('products', 'products.id', 'p_id')->where('products.article_id', $article_id)->exists();
     //             if ($checkExists) {
     //                 DB::rollBack();
-    //                 return response()->json(['status' => '403', 'message' => 'Rekomendasi Promo dengan Artikel ' . $article_id . ' sudah ada']);
+    //                 return response()->json(['status' => '403', 'message' => 'Threshold Promo dengan Artikel ' . $article_id . ' sudah ada']);
     //             }
 
     //             $promoRecommendation = new PromoRecommendation();
@@ -347,6 +353,56 @@ class PromoRecommendationController extends Controller
             return Excel::download(new PromoRecommendationDetailExport($id), $fileName);
         } catch (\Exception $e) {
             return $e->getMessage();
+        }
+    }
+
+    public function deletePromoRecommendationDetail(Request $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $promoDetail = PromoRecommendationDetail::find($id);
+            if ($promoDetail) {
+                $promoDetail->delete();
+                DB::commit();
+                return response()->json(['status' => '200', 'message' => 'Data successfully deleted']);
+            } else {
+                DB::rollBack();
+                return response()->json(['status' => '404', 'message' => 'Data not found']);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => 'An error occurred: ' . $e->getMessage()]);
+        }
+    }
+
+    public function updatePromoRecommendationDetail(Request $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $promoDetail = PromoRecommendationDetail::find($id);
+            if (!$promoDetail) {
+                return response()->json(['status' => '404', 'message' => 'Data not found']);
+            }
+
+            $request->validate([
+                'discount' => 'required|numeric|min:0|max:100',
+            ]);
+
+            $promoDetail->discount = $request->input('discount');
+            $promoDetail->updated_at = now();
+
+            if ($promoDetail->save()) {
+                DB::commit();
+                return response()->json(['status' => '200', 'message' => 'Data successfully updated']);
+            } else {
+                DB::rollBack();
+                return response()->json(['status' => '400', 'message' => 'Failed to update data']);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => 'An error occurred: ' . $e->getMessage()]);
         }
     }
 }

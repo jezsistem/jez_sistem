@@ -127,15 +127,17 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Promo Recommendations
-    Route::get('rekomendasi_promo', [PromoRecommendationController::class, 'index']);
-    Route::get('rekomendasi_promo_datatables', [PromoRecommendationController::class, 'getDatatables']);
-    Route::get('rekomendasi_promo_detail_datatables', [PromoRecommendationController::class, 'getPromoRecommendationDetails']);
-    Route::post('rekomendasi_promo_save', [PromoRecommendationController::class, 'storeData']);
-    Route::post('rekomendasi_promo_delete', [PromoRecommendationController::class, 'deleteData']);
-    Route::post('check_exists_rekomendasi_promo', [PromoRecommendationController::class, 'checkExistsPromoRecommendation']);
-    Route::get('export_rekomendasi_promo', [PromoRecommendationController::class, 'exportData']);
-    Route::get('export_rekomendasi_promo_detail', [PromoRecommendationController::class, 'exportDetailData']);
-    Route::post('rekomendasi_promo_import', [PromoRecommendationController::class, 'savePromoRecommendationImport']);
+    Route::get('threshold_promo', [PromoRecommendationController::class, 'index']);
+    Route::get('threshold_promo_datatables', [PromoRecommendationController::class, 'getDatatables']);
+    Route::get('threshold_promo_detail_datatables', [PromoRecommendationController::class, 'getPromoRecommendationDetails']);
+    Route::post('threshold_promo_save', [PromoRecommendationController::class, 'storeData']);
+    Route::post('threshold_promo_delete', [PromoRecommendationController::class, 'deleteData']);
+    Route::post('check_exists_threshold_promo', [PromoRecommendationController::class, 'checkExistsPromoRecommendation']);
+    Route::get('export_threshold_promo', [PromoRecommendationController::class, 'exportData']);
+    Route::get('export_threshold_promo_detail', [PromoRecommendationController::class, 'exportDetailData']);
+    Route::post('threshold_promo_import', [PromoRecommendationController::class, 'savePromoRecommendationImport']);
+    Route::delete('threshold_promo_detail_delete/{id}', [PromoRecommendationController::class, 'deletePromoRecommendationDetail']);
+    Route::post('threshold_promo_detail_update/{id}', [PromoRecommendationController::class, 'updatePromoRecommendationDetail']);
 });
 
 
