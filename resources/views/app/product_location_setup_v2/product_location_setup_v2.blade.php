@@ -29,6 +29,11 @@
             </div>
         </div>
         <!--end::Subheader-->
+        <div class="d-flex flex-column-fluid mb-3 mx-8">
+            <button type="button" class="btn btn-primary font-weight-bolder" id="multibin_btn">
+                Multibin to Multibin Mutations
+            </button>
+        </div>
         <!--begin::Entry-->
         <div class="d-flex flex-column-fluid">
             <!--begin::Container-->
@@ -97,7 +102,6 @@
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">Artikel</th>
                                             <th class="text-dark">Stok</th>
-                                            <th class="text-dark">Bin</th>
                                             <th class="text-dark">Mutasi</th>
                                         </tr>
                                     </thead>

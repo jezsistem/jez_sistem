@@ -5,6 +5,7 @@
     var start_bin_table = '';
     var end_bin_table = '';
     var bin_history_table = '';
+    var temp_multibin_data = '';
 
     function loadStartEnd() {
         $.ajax({
@@ -81,30 +82,50 @@
     }
 
     //button cancel
-    $('#CancelBtn').on('click', function() {
-        jQuery.noConflict();
+    function handleCancel(url, successMessage, errorMessage) {
+        Swal.fire({
+            title: 'Apakah anda yakin?',
+            text: "Data import akan dihapus!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            toastr.success(successMessage, 'Berhasil');
+                            start_bin_table.draw();
+                            temp_multibin_data.draw();
+                        } else {
+                            toastr.warning(errorMessage, 'Gagal');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        toastr.error('An error occurred while processing your request', 'Error');
+                    });
+            }
+        });
+    }
 
-        if (confirm('Apakah anda yakin untuk menghapus data import?')) {
-            fetch('{{ url('cancel_import') }}', {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        toastr.success('Cancel berhasil', 'Berhasil');
-                        start_bin_table.draw();
-                    } else {
-                        toastr.warning('Terjadi kesalahan saat melakukan cancel', 'Gagal');
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                    toastr.error('An error occurred while processing your request', 'Error');
-                });
-        }
+    $('#CancelBtn').on('click', function() {
+        handleCancel('{{ url('cancel_import') }}', 'Cancel berhasil',
+            'Terjadi kesalahan saat melakukan cancel');
+    });
+
+    $('#clearMutationMultiBinBtn').on('click', function() {
+        handleCancel('{{ url('cancel_import') }}', 'Cancel berhasil',
+            'Terjadi kesalahan saat melakukan cancel');
     });
 
 
@@ -130,7 +151,6 @@
                 jQuery.noConflict();
 
                 if (data.status == '200') {
-                    $("#ImportModal").modal('hide');
                     toastr.success('Data berhasil diimport', 'Berhasil');
                     $('#f_import')[0].reset();
 
@@ -141,10 +161,20 @@
 
                 } else if (data.status == '400') {
                     $("#ImportModal").modal('hide');
-                    toastr.warning('File yang anda import kosong atau format tidak tepat', 'File');
+                    Swal.fire({
+                        title: 'File Error',
+                        text: 'File yang anda import kosong atau format tidak tepat',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
                 } else {
                     $("#ImportModal").modal('hide');
-                    toastr.error('Terjadi kesalahan saat memproses file', 'Error');
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message || 'Terjadi kesalahan saat memproses file',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
             },
             error: function(data) {
@@ -267,11 +297,6 @@
                 {
                     data: 'qty',
                     name: 'qty',
-                    orderable: false
-                },
-                {
-                    data: 'bin_code',
-                    name: 'bin_code',
                     orderable: false
                 },
                 {
@@ -458,6 +483,64 @@
             ],
         });
 
+        temp_multibin_data = $('#mutationMultiBinTable').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: '<"text-right"l>rt<"text-right"p>',
+            buttons: [{}],
+            ajax: {
+                url: "{{ url('temp_multibins_datatable') }}",
+            },
+            columns: [{
+                    data: 'DT_RowIndex',
+                    name: 'pls_id',
+                    searchable: false
+                },
+                {
+                    data: 'ps_barcode',
+                    name: 'ps_barcode',
+                    orderable: false,
+                },
+                {
+                    data: 'start_bin',
+                    name: 'start_bin',
+                    orderable: false,
+                },
+                {
+                    data: 'end_bin',
+                    name: 'end_bin',
+                    orderable: false
+                },
+                {
+                    data: 'start_qty',
+                    name: 'start_qty',
+                    orderable: false
+                },
+                {
+                    data: 'mutation_qty',
+                    name: 'mutation_qty',
+                    orderable: false
+                },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-center",
+                "width": "0%"
+            }],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            language: {
+                "lengthMenu": "_MENU_",
+            },
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         $('#history_search').on('keyup', function() {
             bin_history_table.draw();
         });
@@ -481,6 +564,375 @@
                 $(this).val('');
                 return false;
             }
+        });
+
+        $('#mutationMultiBinForm').on('submit', function(e) {
+            e.preventDefault();
+            $('#mutationMultiBinSubmitBtn').html('Proses...');
+            $('#mutationMultiBinSubmitBtn').attr('disabled', true);
+            var formData = new FormData(this);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('stock_location_import_multibins') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $('#mutationMultiBinSubmitBtn').html('Submit');
+                    $('#mutationMultiBinSubmitBtn').attr('disabled', false);
+                    jQuery.noConflict();
+
+                    if (data.status == '200') {
+                        toastr.success('Data berhasil diimport', 'Berhasil');
+                        $('#mutationMultiBinForm')[0].reset();
+                        temp_multibin_data.draw();
+                        start_bin_table.draw();
+                    } else if (data.status == '400') {
+                        Swal.fire({
+                            title: 'File Error',
+                            text: 'File yang anda import kosong atau format tidak tepat',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                    } else if (data.status == '406') {
+                        Swal.fire({
+                            title: 'File Error',
+                            text: 'Ada data yang tidak lengkap atau salah format',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+
+                        checkMultibinMissingBarcode(data.missingBarcode, function() {
+                            checkMissingBins(data.missingBins, function() {
+                                checkMissingItemsOnBin(data.missingItemsOnBin, function() {
+                                    checkQtyInvalid(data.qtyInvalid, function() {
+                                        // All checks done
+                                        toastr.info('Semua data telah diperiksa', 'Info');
+                                    });
+                                });
+                            });
+                        });
+
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message ||
+                                'Terjadi kesalahan saat memproses file',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function(data) {
+                    toastr.error('An error occurred while processing your request',
+                        'Error');
+                }
+            });
+        });
+
+        function checkMultibinMissingBarcode(missingBarcodeData, callback) {
+            if (missingBarcodeData && missingBarcodeData.length > 0) {
+                Swal.fire({
+                    title: 'Missing Barcode Data',
+                    html: `
+                <div style="overflow-x:auto;">
+                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Bin</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Barcode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="barcode-table-body">
+                        <!-- Data masuk sini -->
+                    </tbody>
+                    </table>
+                    <br/>
+                    <div style="text-align: center;">
+                    <button id="export_missing_barcode" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                    <button id="close_missing_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                    </div>
+                </div>
+                `,
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        let tbody = document.getElementById('barcode-table-body');
+                        missingBarcodeData.forEach(function(item) {
+                            let row = document.createElement('tr');
+                            row.innerHTML = `
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[0] || '-'}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[1] || '-'}</td>
+                    `;
+                            tbody.appendChild(row);
+                        });
+
+                        document.getElementById('export_missing_barcode')
+                            .addEventListener('click', function() {
+                                let wb = XLSX.utils.book_new();
+                                let ws_data = [
+                                    ["Bin", "Barcode"],
+                                    ...missingBarcodeData.map(item => [
+                                        item[0] || '-',
+                                        item[1] || '-'
+                                    ])
+                                ];
+                                let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                XLSX.utils.book_append_sheet(wb, ws, "Missing Barcodes");
+                                XLSX.writeFile(wb, "Missing_Barcodes.xlsx");
+                            });
+
+                        document.getElementById('close_missing_alert')
+                            .addEventListener('click', function() {
+                                Swal.close();
+                                if (callback) callback();
+                            });
+                    }
+                });
+            } else if (callback) {
+                callback();
+            }
+        }
+
+        function checkMissingBins(missingBinsData, callback) {
+            if (missingBinsData && missingBinsData.length > 0) {
+                Swal.fire({
+                    title: 'Missing Bins Data',
+                    html: `
+                <div style="overflow-x:auto;">
+                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Bin Code</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Barcode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="missing-bins-table-body">
+                        <!-- Data masuk sini -->
+                    </tbody>
+                    </table>
+                    <br/>
+                    <div style="text-align: center;">
+                    <button id="export_missing_bins" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                    <button id="close_missing_bins_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                    </div>
+                </div>
+                `,
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        let tbody = document.getElementById('missing-bins-table-body');
+                        missingBinsData.forEach(function(item) {
+                            let row = document.createElement('tr');
+                            row.innerHTML = `
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[0] || '-'}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[1] || '-'}</td>
+                    `;
+                            tbody.appendChild(row);
+                        });
+
+                        document.getElementById('export_missing_bins')
+                            .addEventListener('click', function() {
+                                let wb = XLSX.utils.book_new();
+                                let ws_data = [
+                                    ["Bin Code", "Barcode"],
+                                    ...missingBinsData.map(item => [
+                                        item[0] || '-',
+                                        item[1] || '-'
+                                    ])
+                                ];
+                                let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                XLSX.utils.book_append_sheet(wb, ws, "Missing Bins");
+                                XLSX.writeFile(wb, "Missing_Bins.xlsx");
+                            });
+
+                        document.getElementById('close_missing_bins_alert')
+                            .addEventListener('click', function() {
+                                Swal.close();
+                                if (callback) callback();
+                            });
+                    }
+                });
+            } else if (callback) {
+                callback();
+            }
+        }
+
+        function checkMissingItemsOnBin(missingItemsData, callback) {
+            if (missingItemsData && missingItemsData.length > 0) {
+                Swal.fire({
+                    title: 'Missing Items on Bin',
+                    html: `
+                <div style="overflow-x:auto;">
+                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Start Bin</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Barcode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="missing-items-table-body">
+                        <!-- Data masuk sini -->
+                    </tbody>
+                    </table>
+                    <br/>
+                    <div style="text-align: center;">
+                    <button id="export_missing_items" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                    <button id="close_missing_items_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                    </div>
+                </div>
+                `,
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        let tbody = document.getElementById('missing-items-table-body');
+                        missingItemsData.forEach(function(item) {
+                            let row = document.createElement('tr');
+                            row.innerHTML = `
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[0] || '-'}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[1] || '-'}</td>
+                    `;
+                            tbody.appendChild(row);
+                        });
+
+                        document.getElementById('export_missing_items')
+                            .addEventListener('click', function() {
+                                let wb = XLSX.utils.book_new();
+                                let ws_data = [
+                                    ["Start Bin", "Barcode"],
+                                    ...missingItemsData.map(item => [
+                                        item[0] || '-',
+                                        item[1] || '-'
+                                    ])
+                                ];
+                                let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                XLSX.utils.book_append_sheet(wb, ws, "Missing Items on Bin");
+                                XLSX.writeFile(wb, "Missing_Items_On_Bin.xlsx");
+                            });
+
+                        document.getElementById('close_missing_items_alert')
+                            .addEventListener('click', function() {
+                                Swal.close();
+                                if (callback) callback();
+                            });
+                    }
+                });
+            } else if (callback) {
+                callback();
+            }
+        }
+
+        function checkQtyInvalid(invalidQtyData, callback) {
+            if (invalidQtyData && invalidQtyData.length > 0) {
+                Swal.fire({
+                    title: 'Invalid Quantity Data',
+                    html: `
+                <div style="overflow-x:auto;">
+                    <table class="table" style="width:100%; text-align:left; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Start Bin</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Barcode</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Qty Req</th>
+                        <th style="border: 1px solid #ccc; padding: 8px;">Qty Sys</th>
+                        </tr>
+                    </thead>
+                    <tbody id="qty-invalid-table-body">
+                        <!-- Data masuk sini -->
+                    </tbody>
+                    </table>
+                    <br/>
+                    <div style="text-align: center;">
+                    <button id="export_qty_invalid" class="swal2-confirm swal2-styled" style="background-color:#28a745; margin-right:10px;">Export ke Excel</button>
+                    <button id="close_qty_invalid_alert" class="swal2-cancel swal2-styled" style="background-color:#dc3545;">Tutup</button>
+                    </div>
+                </div>
+                `,
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        let tbody = document.getElementById('qty-invalid-table-body');
+                        invalidQtyData.forEach(function(item) {
+                            let row = document.createElement('tr');
+                            row.innerHTML = `
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[0] || '-'}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[1] || '-'}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[2] || '-'}</td>
+                    <td style="border: 1px solid #ccc; padding: 8px;">${item[3] || '-'}</td>
+                    `;
+                            tbody.appendChild(row);
+                        });
+
+                        document.getElementById('export_qty_invalid')
+                            .addEventListener('click', function() {
+                                let wb = XLSX.utils.book_new();
+                                let ws_data = [
+                                    ["Start Bin", "Barcode", "Quantity Req", "Quantity Sistem"], // Header
+                                    ...invalidQtyData.map(item => [
+                                        item[0] || '-',
+                                        item[1] || '-',
+                                        item[2] || '-',
+                                        item[3] || '-'
+                                    ])
+                                ];
+                                let ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                XLSX.utils.book_append_sheet(wb, ws, "Invalid Quantity");
+                                XLSX.writeFile(wb, "Invalid_Quantity_Data.xlsx");
+                            });
+
+                        document.getElementById('close_qty_invalid_alert')
+                            .addEventListener('click', function() {
+                                Swal.close();
+                                if (callback) callback();
+                            });
+                    }
+                });
+            } else if (callback) {
+                callback();
+            }
+        }
+
+        $('#saveMutationMultiBinBtn').on('click', function(e) {
+            e.preventDefault();
+            $('#saveMutationMultiBinBtn').html('Proses...');
+            $('#saveMutationMultiBinBtn').attr('disabled', true);
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('multibins_mutation') }}",
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $('#saveMutationMultiBinBtn').html('Submit');
+                    $('#saveMutationMultiBinBtn').attr('disabled', false);
+
+                    if (data.status == '200') {
+                        toastr.success('Mutasi berhasil disimpan', 'Berhasil');
+                        temp_multibin_data.draw();
+                        start_bin_table.draw();
+                        end_bin_table.draw();
+                    } else {
+                        toastr.error(data.message ||
+                            'Terjadi kesalahan saat menyimpan mutasi', 'Error');
+                    }
+                },
+                error: function(data) {
+                    toastr.error('An error occurred while processing your request',
+                        'Error');
+                    $('#saveMutationMultiBinBtn').html('Submit');
+                    $('#saveMutationMultiBinBtn').attr('disabled', false);
+                }
+            });
         });
 
         //BUTTON  MUTATION DI TABEL A/KIRI
@@ -632,6 +1084,12 @@
 
             $('#export_btn').text('Export Data');
             $('#export_btn').removeClass('disabled');
+        });
+
+        $('#multibin_btn').on('click', function() {
+            jQuery.noConflict();
+            $('#MutationMultiBinModal').modal('show');
+            temp_multibin_data.draw();
         });
 
         jQuery.noConflict();

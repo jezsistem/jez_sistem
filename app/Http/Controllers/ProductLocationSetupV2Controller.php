@@ -20,6 +20,7 @@ use App\Models\Size;
 use App\Models\ProductMutation;
 use App\Models\ExceptionLocation;
 use App\Exports\SetupHistoryExport;
+use App\Imports\TempMultiBinMutationImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductLocationSetupV2Controller extends Controller
@@ -102,7 +103,7 @@ class ProductLocationSetupV2Controller extends Controller
         }
         $st_city = Store::select('st_code')->where('id', '=', Auth::user()->st_id)->first();
         if (request()->ajax()) {
-            $count = TempMutasi::where('u_id',Auth::user()->id)->count();
+            $count = TempMutasi::where('u_id', Auth::user()->id)->where('pl_end', null)->count();
             if ($count > 0) {
 
                 // Convert pl_id to array if it's not already
@@ -110,18 +111,19 @@ class ProductLocationSetupV2Controller extends Controller
 
                 $pls_ids = TempMutasi::select('pls_id')
                     ->where('u_id', Auth::user()->id)
+                    ->where('pl_end', null)
                     ->groupBy('pls_id')
                     ->pluck('pls_id')->toArray();
 
                 return datatables()->of(ProductLocationSetup::select(
-                    'product_location_setups.id as pls_id', 
-                    'products.id as p_id', 
-                    'br_name', 
-                    'p_name', 
-                    'p_color', 
-                    'sz_name', 
-                    'mc_name', 
-                    'product_location_setups.pls_qty', 
+                    'product_location_setups.id as pls_id',
+                    'products.id as p_id',
+                    'br_name',
+                    'p_name',
+                    'p_color',
+                    'sz_name',
+                    'mc_name',
+                    'product_location_setups.pls_qty',
                     'product_stocks.ps_barcode',
                     'product_locations.pl_code'
                 )
@@ -207,7 +209,7 @@ class ProductLocationSetupV2Controller extends Controller
                         if (!empty($check_pst)) {
                             $action = '';
                             foreach ($check_pst as $row) {
-                                $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->where('u_id', Auth::user()->id)->first();
+                                $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->where('u_id', Auth::user()->id)->where('pl_end', null)->first();
                                 $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
 
                                 $this->table_row += 1;
@@ -365,6 +367,12 @@ class ProductLocationSetupV2Controller extends Controller
 
     public function importData(Request $request)
     {
+        $check_temp = TempMutasi::where('u_id', Auth::user()->id)->count();
+        if ($check_temp > 0) {
+            $r['status'] = '409';
+            $r['message'] = 'Anda sudah melakukan import data, silahkan hapus data terlebih dahulu sebelum melakukan import ulang.';
+            return json_encode($r);
+        }
         try {
             if ($request->hasFile('importFile')) {
                 $file = $request->file('importFile');
@@ -414,7 +422,7 @@ class ProductLocationSetupV2Controller extends Controller
     private function processImportData($data)
     {
         DB::beginTransaction();
-        
+
         try {
             $processedData = [];
             $missingBarcode = array();
@@ -458,9 +466,9 @@ class ProductLocationSetupV2Controller extends Controller
                     $missingBarcode[] = [$start_bin, $barcode];
                 }
             }
-            
+
             DB::commit();
-            
+
             return [
                 'processedData' => $processedData,
                 'missingBarcode' => $missingBarcode
@@ -491,10 +499,10 @@ class ProductLocationSetupV2Controller extends Controller
                 ->where('pl_id', '=', $request->pl_id)
                 ->where('product_locations.pl_code', '!=', 'TRIAL')
                 ->where(function ($w) use ($st_id, $st_city) {
-//                    $w->where('product_locations.st_id', '=', $st_id);
+                    //                    $w->where('product_locations.st_id', '=', $st_id);
                     $w->where('product_locations.pl_description', '=', $st_city->st_code);
                 })
-//                ->where('pls_qty', '>', '0')
+                //                ->where('pls_qty', '>', '0')
                 ->groupBy('products.id'))
                 ->editColumn('article', function ($data) {
                     $arr_name = array();
@@ -530,7 +538,7 @@ class ProductLocationSetupV2Controller extends Controller
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                         ->where('product_location_setups.pl_id', '=', $request->pl_id)
                         ->where('product_stocks.p_id', '=', $data->p_id)
-//                        ->where('pls_qty', '>', 0)
+                        //                        ->where('pls_qty', '>', 0)
                         ->get();
                     if (!empty($check_pst)) {
                         $sz_name = '';
@@ -567,11 +575,11 @@ class ProductLocationSetupV2Controller extends Controller
     {
 
         if (request()->ajax()) {
-            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'ps_barcode','st_name', 'p_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at')
+            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'ps_barcode', 'st_name', 'p_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_mutations.pl_id')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->leftJoin('users', 'users.id', '=', 'product_mutations.u_id')
-                ->join('product_location_setups', 'product_mutations.pls_id','=',  'product_location_setups.id')
+                ->join('product_location_setups', 'product_mutations.pls_id', '=',  'product_location_setups.id')
                 ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                 ->join('products', 'products.id', '=', 'product_stocks.p_id')
                 ->where(function ($query) use ($request) {
@@ -659,7 +667,6 @@ class ProductLocationSetupV2Controller extends Controller
                             } else {
                                 $w->whereDate('product_mutations.created_at', $start);
                             }
-
                         });
                     }
                     if (!empty($request->get('search'))) {
@@ -669,7 +676,7 @@ class ProductLocationSetupV2Controller extends Controller
                                 ->orWhere('users.u_name', 'LIKE', "%$search%")
                                 ->orWhere('products.p_name', 'LIKE', "%$search%");
                         });
-                    }                                        
+                    }
                 })
                 ->addIndexColumn()
                 ->make(true);
@@ -919,5 +926,253 @@ class ProductLocationSetupV2Controller extends Controller
         }
         $fileName = 'setup_history_' . date('Y_m_d_H_i_s') . '.xlsx';
         return Excel::download(new SetupHistoryExport($st_id, $start, $end, $search, $history_bin_start, $history_bin_end), $fileName);
+    }
+
+    public function importMultiBinsMutation(Request $request)
+    {
+        $check_temp = TempMutasi::where('u_id', Auth::user()->id)->count();
+        if ($check_temp > 0) {
+            $r['status'] = '409';
+            $r['message'] = 'Anda sudah melakukan import data, silahkan hapus data terlebih dahulu sebelum melakukan import ulang.';
+            return json_encode($r);
+        }
+
+        $import_data = Excel::toArray(new TempMultiBinMutationImport, $request->file('mutationInput'));
+
+        if (isset($import_data[0][0]) && $import_data[0][0] === ["BIN AWAL", "BIN TUJUAN", "SKU", "QUANTITY"]) {
+            array_shift($import_data[0]); // Remove the header row
+            $data = $this->processImportMultiBinData($import_data[0]);
+
+            if (count($data['missingBarcode']) != 0 || count($data['missingBins']) != 0 || count($data['missingItemsOnBin']) != 0 || count($data['qtyInvalid']) != 0) {
+                $r['status'] = '406';
+                $r['message'] = 'Data tidak lengkap atau ada kesalahan dalam format data yang diimpor.';
+                $r['missingBarcode'] = $data['missingBarcode'];
+                $r['missingBins'] = $data['missingBins'];
+                $r['missingItemsOnBin'] = $data['missingItemsOnBin'];
+                $r['qtyInvalid'] = $data['qtyInvalid'];
+                return json_encode($r);
+            }
+
+            DB::beginTransaction();
+            try {
+                TempMutasi::insert($data['processedData']);
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $r['status'] = '500';
+                $r['message'] = 'Terjadi kesalahan: ' . $e->getMessage();
+                return json_encode($r);
+            }
+
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'Format data tidak sesuai';
+            return json_encode($r);
+        }
+
+        $r['status'] = '200';
+        $r['message'] = 'Data berhasil diimport';
+        return json_encode($r);
+    }
+
+    private function processImportMultiBinData($data)
+    {
+        $processedData = [];
+        $missingBarcode = array();
+        $missingBins = array();
+        $missingItemsOnBin = array();
+        $qtyInvalid = array();
+
+        foreach ($data as $item) {
+            $start_bin = $item[0];
+            $end_bin = $item[1];
+            $barcode = $item[2];
+            $qty = $item[3];
+            // get id from barcode
+            $product_id = ProductStock::where('ps_barcode', '=', $barcode)->get()->first();
+
+            if (empty($product_id)) {
+                $missingBarcode[] = [$start_bin, $barcode];
+                continue; // Skip to the next item if barcode is not found
+            }
+
+            $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->get()->first();
+            if (empty($start_bin_id)) {
+                if (!in_array([$start_bin, $barcode], $missingBins)) {
+                    $missingBins[] = [$start_bin, $barcode];
+                }
+                continue; // Skip to the next item if start bin is not found
+            }
+
+            $end_bin_id = ProductLocation::where('pl_code', '=', $end_bin)->get()->first();
+            if (empty($end_bin_id)) {
+                if (!in_array([$end_bin, $barcode], $missingBins)) {
+                    $missingBins[] = [$end_bin, $barcode];
+                }
+                continue; // Skip to the next item if end bin is not found
+            }
+
+            $pls_id = ProductLocationSetup::where('pst_id', '=', $product_id->id)
+                ->where('pl_id', '=', $start_bin_id->id)->get()->first();
+
+            if (empty($pls_id)) {
+                if (!in_array([$start_bin, $barcode], $missingItemsOnBin)) {
+                    $missingItemsOnBin[] = [$start_bin, $barcode];
+                }
+                continue; // Skip to the next item if product is not found in start bin
+            }
+
+
+            if (!empty($pls_id)) {
+                if ($pls_id->pls_qty < $qty) {
+                    $qtyInvalid[] = [$start_bin, $barcode, $qty, $pls_id->pls_qty];
+                }
+                // If barcode doesn't exist, create a new entry
+                $params = [
+                    'u_id' => Auth::user()->id,
+                    'pls_id' => $pls_id->id,
+                    'pl_end' => $end_bin_id->id,
+                    'ps_barcode' => $barcode,
+                    'pls_qty' => $qty
+                ];
+                $processedData[] = $params;
+            }
+        }
+
+        return [
+            'processedData' => $processedData,
+            'missingBarcode' => $missingBarcode,
+            'missingBins' => $missingBins,
+            'missingItemsOnBin' => $missingItemsOnBin,
+            'qtyInvalid' => $qtyInvalid
+        ];
+    }
+
+    public function tempMultiBinsDatatable(Request $request)
+    {
+        if (request()->ajax()) {
+            $data = TempMutasi::select(
+                'product_location_setups.id as pls_id',
+                'temp_mutasi.ps_barcode',
+                'product_locations.pl_code as start_bin',
+                'destination_locations.pl_code as end_bin',
+                'product_location_setups.pls_qty as start_qty',
+                'temp_mutasi.pls_qty as mutation_qty'
+            )
+                ->where('temp_mutasi.u_id', Auth::user()->id)
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'temp_mutasi.pls_id')
+                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->join('product_locations as destination_locations', 'destination_locations.id', '=', 'temp_mutasi.pl_end')
+                ->get();
+
+            return datatables()->of($data)
+                ->editColumn('pls_qty', function ($data) {
+                    return '<span class="btn btn-sm btn-primary">' . $data->pls_qty . '</span>';
+                })
+                ->editColumn('ps_barcode', function ($data) {
+                    return '<span class="btn btn-sm btn-primary">' . $data->ps_barcode . '</span>';
+                })
+                ->rawColumns(['pls_qty', 'ps_barcode'])
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
+    public function multibinsMutation()
+    {
+        $datas = TempMutasi::query()->where('u_id', Auth::user()->id)->get();
+        $processedData = [];
+        $missingBins = [];
+        $missingItemsOnBin = [];
+        $qtyInvalid = [];
+
+        if ($datas->isEmpty()) {
+            return response()->json([
+                'status' => '404',
+                'message' => 'Tidak ada data mutasi yang ditemukan'
+            ]);
+        }
+
+        foreach ($datas as $data) {
+            $pls = ProductLocationSetup::find($data->pls_id);
+            if (!$pls) {
+                $missingItemsOnBin[] = ['pls_id' => $data->pls_id, 'sku' => $data->ps_barcode, 'qty' => $data->pls_qty];
+                continue; // Skip to the next iteration if ProductLocationSetup not found
+            }
+
+            $pl = ProductLocation::find($data->pl_end);
+            if (!$pl) {
+                $missingBins[] = ['pl_id' => $data->pl_end, 'sku' => $data->ps_barcode];
+                continue; // Skip if ProductLocation not found
+            }
+
+            if ($pls->pls_qty < $data->pls_qty) {
+                $pl_code = ProductLocation::find($pls->pl_id)->pl_code ?? 'Unknown';
+                $qtyInvalid[] = ['pl_code' => $pl_code, 'sku' => $data->ps_barcode, 'qty_mutasi' =>  $data->pls_qty, 'qty_available' => $pls->pls_qty];
+                continue; // Skip if quantity is invalid
+            }
+
+            $processedData[] = [
+                'pls_id' => $data->pls_id,
+                'pl_end' => $data->pl_end,
+                'ps_barcode' => $data->ps_barcode,
+                'pls_qty' => $data->pls_qty
+            ];
+        }
+        if (!empty($missingBins) || !empty($missingItemsOnBin) || !empty($qtyInvalid)) {
+            return response()->json([
+                'status' => '400',
+                'message' => 'Data mutasi ada yang bermasalah, silahkan perbaiki data dan import ulang',
+                'missingBins' => $missingBins,
+                'missingItemsOnBin' => $missingItemsOnBin,
+                'qtyInvalid' => $qtyInvalid
+            ]);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($processedData as $data) {
+                $pls = ProductLocationSetup::find($data['pls_id']);
+                if ($pls) {
+                    $pls->pls_qty -= $data['pls_qty'];
+                    $pls->save();
+                }
+
+                $plEnd = ProductLocation::find($data['pl_end']);
+                if ($plEnd) {
+                    $setup = ProductLocationSetup::where('pl_id', $plEnd->id)
+                        ->where('pst_id', $pls->pst_id)
+                        ->first();
+
+                    if ($setup) {
+                        $setup->pls_qty += $data['pls_qty'];
+                        $setup->save();
+                    } else {
+                        ProductLocationSetup::create([
+                            'pl_id' => $plEnd->id,
+                            'pst_id' => $pls->pst_id,
+                            'pls_qty' => $data['pls_qty']
+                        ]);
+                    }
+                }
+
+                ProductMutation::create([
+                    'pls_id' => $data['pls_id'],
+                    'pl_id' => $data['pl_end'],
+                    'u_id' => Auth::user()->id,
+                    'pmt_old_qty' => $pls->pls_qty + $data['pls_qty'],
+                    'pmt_qty' => $data['pls_qty'],
+                    'created_at' => now()
+                ]);
+            }
+
+            TempMutasi::where('u_id', Auth::user()->id)->delete();
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Mutasi berhasil dilakukan']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
     }
 }
