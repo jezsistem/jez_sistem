@@ -204,6 +204,34 @@
             ],
         });
 
+        var PurchaseOrdersFileDispute = $('#FileDisputeTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('po_dispute_file_datatable') }}",
+                data: function(d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'file',
+                name: 'file_dispute',
+                searchable: false
+            }, ],
+            columnDefs: [{
+                "targets": [0],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
             var id = $(this).data('id');
             
@@ -443,6 +471,7 @@
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
+                    PurchaseOrdersFileDispute.draw();
                 }
             });
             $('#ApproveModal').modal('show');
@@ -468,6 +497,12 @@
         $(document).ready(function() {
             $("#pembayaranCodBtn").click(function() {
                 $("#UploadImageTransferModal").modal("show");
+            });
+        });
+
+        $(document).ready(function() {
+            $("#DisputeFileBtn").click(function() {
+                $("#FileDisputeModal").modal("show");
             });
         });
 
