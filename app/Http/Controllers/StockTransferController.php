@@ -111,7 +111,7 @@ class StockTransferController extends Controller
                 ->editColumn('article', function ($data) {
                     return '<span style="color:red;font-weight:bold;">' . $data->article_id . '</span> '.'<span style="white-space: nowrap;">' . $data->p_name . '<br/>' . $data->p_color . '</span>';
                 })
-                ->editColumn('qty', function ($data) use ($request) {
+                ->editColumn('pls_qty', function ($data) use ($request) {
                     $check_pst = ProductLocationSetup::select('product_stocks.id as pst_id', 'sz_name', 'pls_qty', 'ps_barcode')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
@@ -183,7 +183,7 @@ class StockTransferController extends Controller
                         return '-';
                     }
                 })
-                ->rawColumns(['article', 'qty', 'transfer'])
+                ->rawColumns(['article', 'pls_qty', 'transfer'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -508,54 +508,113 @@ class StockTransferController extends Controller
 
     public function stockTransferExec(Request $request)
     {
+        // Validasi input
         $main_validate = $request->validate([
             '_st_start' => 'required|integer',
             '_st_end' => 'required|integer',
             '_bin' => 'required|integer',
         ]);
-        $check_stf = StockTransfer::select('id')->where('stf_status', '=', '0')->where('u_id', '=', Auth::user()->id)->get()->first();
-        $stf_code = 'TF' . date('YmdHis') . str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
-        if (!empty($check_stf)) {
-            $stf_id = $check_stf->id;
-        } else {
-            $stf_id = DB::table('stock_transfers')->insertGetId([
-                'u_id' => Auth::user()->id,
-                'st_id_start' => $request->_st_start,
-                'st_id_end' => $request->_st_end,
-                'stf_code' => $stf_code,
-                'stf_status' => '0',
-                'created_at' => date('Y-m-d H:i:s')
-            ]);
-        }
-        if (!empty($stf_id)) {
-            $insert = array();
-            $pls_id = array();
-            $pls_qty = array();
-            foreach ($request->_arr as $row) {
-                $insert[] = [
-                    'stf_id' => $stf_id,
-                    'pst_id' => $row[1],
-                    'pl_id' => $request->_bin,
-                    'stfd_qty' => $row[3],
-                    'stfd_status' => '0',
-                    'created_at' => date('Y-m-d H:i:s'),
-                ];
-                $pls_update = ProductLocationSetup::where([
-                    'id' => $row[0],
-                ])->update([
-                    'pls_qty' => ($row[2] - $row[3])
-                ]);
+
+        DB::beginTransaction(); // Mulai transaksi
+
+        try {
+            // Validasi Transfer yang dibuka
+            $check_opened_stf = StockTransfer::query()->where('stf_code', $request->_stf_code)->get()->first();
+
+            // Validasi transfer yang sedang aktif
+            if ($check_opened_stf) {
+
+                // Cek apakah transfer yang sedang aktif berstatus In Progress atau Done
+                if (!in_array($check_opened_stf->stf_status, ['0', '3'])) {
+                    $r['status'] = '400';
+                    $r['message'] = 'Tidak dapat melakukan transfer, karena ada transfer aktif yang berstatus In Progress atau Done.';
+                    return json_encode($r);
+                }
+
+                // Cek apakah lokasi awal dan tujuan sesuai dengan transfer yang sedang aktif
+                if ($check_opened_stf->st_id_start != $request->_st_start || $check_opened_stf->st_id_end != $request->_st_end) {
+                    $r['status'] = '400';
+                    $r['message'] = 'Tidak dapat melakukan transfer karena lokasi awal atau tujuan tidak sesuai dengan transfer yang sedang aktif.';
+                    return json_encode($r);
+                }
+
+                // Jika semua validasi berhasil, gunakan stf_code dan id dari transfer yang sedang aktif
+                $stf_code = $check_opened_stf->stf_code;
+                $stf_id = $check_opened_stf->id;
+            } else {
+
+                // Jika tidak ada transfer yang sedang aktif, buat transfer baru
+                $check_stf = StockTransfer::select('id')->where('stf_status', '=', '0')->where('u_id', '=', Auth::user()->id)->get()->first();
+                $stf_code = 'TF' . date('YmdHis') . str_pad(rand(0, pow(10, 3) - 1), 3, '0', STR_PAD_LEFT);
+
+                // Jika ada transfer tanpa status yang sedang aktif, gunakan id-nya
+                if (!empty($check_stf)) {
+                    $stf_id = $check_stf->id;
+                } else {
+                    $stf_id = DB::table('stock_transfers')->insertGetId([
+                        'u_id' => Auth::user()->id,
+                        'st_id_start' => $request->_st_start,
+                        'st_id_end' => $request->_st_end,
+                        'stf_code' => $stf_code,
+                        'stf_status' => '0',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
             }
-            $stfd = StockTransferDetail::insert($insert);
-            if (!empty($stfd)) {
+            
+            if (!empty($stf_id)) {
+                $insert = array();
+                foreach ($request->_arr as $row) {
+                    $existingDetail = StockTransferDetail::where([
+                        'stf_id' => $stf_id,
+                        'pst_id' => $row[1],
+                        'pl_id' => $request->_bin,
+                        'stfd_status' => '0',
+                    ])->first();
+
+                    if ($existingDetail) {
+                        // Update the existing record
+                        $existingDetail->update([
+                            'stfd_qty' => $existingDetail->stfd_qty + $row[3],
+                        ]);
+                    } else {
+                        // Prepare new record for insertion
+                        $insert[] = [
+                            'stf_id' => $stf_id,
+                            'pst_id' => $row[1],
+                            'pl_id' => $request->_bin,
+                            'stfd_qty' => $row[3],
+                            'stfd_status' => '0',
+                            'created_at' => date('Y-m-d H:i:s'),
+                        ];
+                    }
+
+                    // Update the ProductLocationSetup quantity
+                    $pls_update = ProductLocationSetup::where([
+                        'id' => $row[0],
+                    ])->update([
+                        'pls_qty' => ($row[2] - $row[3]),
+                    ]);
+                }
+
+                // Insert new records if any
+                if (!empty($insert)) {
+                    StockTransferDetail::insert($insert);
+                }
+
+                DB::commit(); // Commit transaction if successful
                 $r['status'] = '200';
                 $r['code'] = $stf_code;
             } else {
+                DB::rollBack(); // Rollback transaction if failed
                 $r['status'] = '400';
             }
-        } else {
-            $r['status'] = '400';
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback transaksi jika terjadi exception
+            $r['status'] = '500';
+            $r['message'] = 'Terjadi kesalahan: ' . $e->getMessage();
         }
+
         return json_encode($r);
     }
 
@@ -615,6 +674,16 @@ class StockTransferController extends Controller
 
     public function importData(Request $request)
     {
+        $check_unprocessed_transfer = StockTransfer::where('u_id', Auth::user()->id)
+            ->where('stf_status', '0')
+            ->exists();
+
+        if ($check_unprocessed_transfer) {
+            $r['status'] = '400';
+            $r['message'] = 'Anda sudah memiliki transfer yang belum menggantung. Silakan selesaikan terlebih dahulu.';
+            return json_encode($r);
+        }
+
         $store_start_id = $request->input('st_start');
         $store_end_id = $request->input('st_end');
 

@@ -64,8 +64,8 @@
                     orderable: false
                 },
                 {
-                    data: 'qty',
-                    name: 'qty',
+                    data: 'pls_qty',
+                    name: 'pls_qty',
                     orderable: false
                 },
                 {
@@ -458,6 +458,7 @@
             var st_start = $('#st_id_start option:selected').text();
             var st_end = $('#st_id_end option:selected').text();
             var bin = $('#pl_id option:selected').val();
+            var stf_code = $('#stf_code').text();
 
             if (st_start == '- Store Awal -' || st_end == '- Store Tujuan -') {
                 swal('Periksa Store', 'Silahkan periksa Store Awal dan Store Tujuan', 'warning');
@@ -512,6 +513,7 @@
                     $.ajax({
                         type: "POST",
                         data: {
+                            _stf_code: stf_code,
                             _st_start: st_start,
                             _st_end: st_end,
                             _bin: bin,
@@ -532,8 +534,7 @@
                                     "Data berhasil ditransfer dan menunggu diterima",
                                     "Berhasil");
                             } else {
-                                $(this).removeClass('disabled');
-                                toastr.error('Gagal hapus data', 'Gagal');
+                                toastr.error(r.message, 'Gagal');
                             }
                         },
                         error: function() {
