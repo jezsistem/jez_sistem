@@ -47,7 +47,15 @@
             </div>
 
             <div class="modal-body">
-                <center><input type="search" class="form-control  col-6" id="stock_transfer_receive_search"
+                <div class="d-flex justify-content-center">
+                    <div>
+                        <div id="reader_tf_receive" class="rounded" style="max-width: 500px;"></div>
+                        <div id="result"></div>
+                    </div>
+                </div>
+                <center><input type="text" class="form-control col-6 mt-5" id="scan_result"
+                               placeholder="Hasil Scan"/></center>
+                <center><input type="search" class="form-control col-6 mt-7" id="stock_transfer_receive_search"
                                placeholder="Cari artikel"/></center>
                 <a class="btn btn-primary float-right" style="margin-bottom:15px;" id="accept_qty_btn">Terima</a>
                 <input type="hidden" id="stf_id" value=""/>
