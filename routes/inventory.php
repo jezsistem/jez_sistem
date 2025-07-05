@@ -144,6 +144,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('export_start_scan_adjustment_bin', [ScanAdjustmentController::class, 'exportBIN']);
     Route::post('scan_adjustment_qty_update', [ScanAdjustmentController::class, 'updateQty']);
     Route::post('pos_barcode_scan', [PointOfSaleController::class, 'scanBarcode']);
+    Route::get('has_waiting_status', [PointOfSaleController::class, 'hasWaitingStatus']);
 
     // Adjustment
     Route::get('adjustment', [AdjustmentController::class, 'index'])->name('adjustment');
