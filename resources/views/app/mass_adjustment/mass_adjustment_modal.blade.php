@@ -19,8 +19,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Tipe Adjustment</label>
-                            <select class="form-control" name="tipe_adjustment" id="tipe_adjustment">
+                            <label>Tipe Adjustment<span class="text-danger">*</span></label>
+                            <select class="form-control" name="tipe_adjustment" id="tipe_adjustment" required>
                                 <option value="">-- Pilih Tipe Adjustment --</option>
                                 <option value="KERUGIAN">KERUGIAN</option>
                                 <option value="BELUM TERBAYAR">BELUM TERBAYAR</option>
@@ -31,8 +31,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label><span class="text-danger">*</span>Note Adjustment</label>
-                            <select class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;">
+                            <label>Note Adjustment<span class="text-danger">*</span></label>
+                            <select class="form-control" id="note_adjustment" name="note_adjustment" style="border: 2px solid #000;" required>
                                 <option value="">-- Pilih Note Adjustment --</option>
                                 <option value="STOCK OPNAME">STOCK OPNAME</option>
                                 <option value="PARTIAL">PARTIAL</option>
