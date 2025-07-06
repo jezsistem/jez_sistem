@@ -15,6 +15,7 @@ class StockTransferDetail extends Model
         'pst_id',
         'pl_id',
         'stfd_qty',
+        'stfd_status',
         'created_at',
         'updated_at',
     ];
