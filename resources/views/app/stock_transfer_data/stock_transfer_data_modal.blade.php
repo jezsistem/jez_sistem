@@ -61,22 +61,24 @@
                 <input type="hidden" id="stf_id" value=""/>
                 <input type="hidden" id="stf_code_label" value=""/>
                 <input type="hidden" id="st_id_end" value=""/>
-                <table class="table table-hover table-checkable pr-4" id="StockTransferDataAccepttb">
-                    <thead class="bg-light text-dark">
-                    <tr>
-                        <th class="text-dark">No</th>
-                        <th class="text-dark">Brand</th>
-                        <th class="text-dark">SKU</th>
-                        <th class="text-dark">Artikel</th>
-                        <th class="text-dark">Qty</th>
-                        <th class="text-dark">Diterima</th>
-                        <th class="text-dark">Terima</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                <div class="table-responsive">
+                    <table class="table table-hover table-checkable pr-4" id="StockTransferDataAccepttb">
+                        <thead class="bg-light text-dark">
+                        <tr>
+                            <th class="text-dark">No</th>
+                            <th class="text-dark">Brand</th>
+                            <th class="text-dark">SKU</th>
+                            <th class="text-dark">Artikel</th>
+                            <th class="text-dark">Qty</th>
+                            <th class="text-dark">Diterima</th>
+                            <th class="text-dark">Terima</th>
+                        </tr>
+                        </thead>
+                        <tbody>
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>

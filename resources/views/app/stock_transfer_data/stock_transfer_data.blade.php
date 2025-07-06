@@ -33,26 +33,17 @@
                                 <div class="dropdown dropdown-inline mr-2">
                                     <button type="button" class="btn btn-light-primary font-weight-bolder dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span class="svg-icon svg-icon-md">
-                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
-                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                                <rect x="0" y="0" width="24" height="24" />
-                                                <path d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z" fill="#000000" opacity="0.3" />
-                                                <path d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z" fill="#000000" />
-                                            </g>
-                                        </svg>
-                                        <!--end::Svg Icon-->
+                                        <!-- SVG ICON -->
                                     </span>Export</button>
                                     <!--begin::Dropdown Menu-->
                                     <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
-                                        <!--begin::Navigation-->
                                         <ul class="navi flex-column navi-hover py-2">
                                             <li class="navi-header font-weight-bolder text-uppercase font-size-sm text-primary pb-2">Tentukan Tanggal :</li>
                                             <li class="navi-item mb-4">
-                                                <center><input type="date" id="start_date"/></center>
+                                                <center><input type="date" id="start_date" class="form-control form-control-sm"/></center>
                                             </li>
                                             <li class="navi-item">
-                                                <center><input type="date" id="end_date"/></center>
+                                                <center><input type="date" id="end_date" class="form-control form-control-sm"/></center>
                                             </li>
                                             <li class="navi-item">
                                                 <a href="#" class="navi-link" id="std_export_all_btn">
@@ -63,7 +54,6 @@
                                                 </a>
                                             </li>
                                         </ul>
-                                        <!--end::Navigation-->
                                     </div>
                                     <!--end::Dropdown Menu-->
                                 </div>
@@ -72,10 +62,12 @@
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <input type="search" class="form-control col-6" id="stock_transfer_search" placeholder="Cari user / Artikel id / Kode Transfer"/>
-                                <div class="col-2">
-                                    <select class="form-control" id="st_id_start" name="st_id_start" required>
+                            <div class="row mb-4">
+                                <div class="col-12 col-md-6 mb-2 mb-md-0">
+                                    <input type="search" class="form-control w-100" id="stock_transfer_search" placeholder="Cari user / Artikel id / Kode Transfer"/>
+                                </div>
+                                <div class="col-6 col-md-2 mb-2 mb-md-0">
+                                    <select class="form-control w-100" id="st_id_start" name="st_id_start" required>
                                         <option value="">- Pilih Store Awal -</option>
                                         @foreach ($data['st_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
@@ -83,8 +75,8 @@
                                     </select>
                                     <div id="st_id_start_parent"></div>
                                 </div>
-                                <div class="col-2">
-                                    <select class="form-control" id="st_id_end" name="st_id_end" required>
+                                <div class="col-6 col-md-2 mb-2 mb-md-0">
+                                    <select class="form-control w-100" id="st_id_end" name="st_id_end" required>
                                         <option value="">- Pilih Store Tujuan -</option>
                                         @foreach ($data['st_id'] as $key => $value)
                                             <option value="{{ $key }}">{{ $value }}</option>
@@ -92,8 +84,8 @@
                                     </select>
                                     <div id="st_id_end_parent"></div>
                                 </div>
-                                <div class="form-group ml-4">
-                                    <a href="#" class="btn btn-date-info font-weight-bold"
+                                <div class="col-12 col-md-2">
+                                    <a href="#" class="btn btn-date-info font-weight-bold w-100"
                                         id="kt_dashboard_daterangepicker" data-toggle="tooltip"
                                         title="Tanggal Invoice" data-placement="left">
                                         <span class="font-size-base"
@@ -104,25 +96,25 @@
                                     </a>
                                 </div>
                             </div>
-                            
-                            <table class="table table-hover table-checkable" id="StockTransferDatatb">
-                                <thead class="bg-light text-dark">
-                                    <tr>
-                                        <th class="text-dark">No</th>
-                                        <th class="text-dark">Kode</th>
-                                        <th class="text-dark">Pengirim</th>
-                                        <th class="text-dark" style="white-space: nowrap;">Qty</th>
-                                        <th class="text-dark" style="white-space: nowrap;">Store Awal</th>
-                                        <th class="text-dark" style="white-space: nowrap;">Store Tujuan</th>
-                                        <th class="text-dark">Penerima</th>
-                                        <th class="text-dark" style="white-space: nowrap;">Tanggal</th>
-                                        <th class="text-dark">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-checkable" id="StockTransferDatatb">
+                                    <thead class="bg-light text-dark">
+                                        <tr>
+                                            <th class="text-dark">No</th>
+                                            <th class="text-dark">Kode</th>
+                                            <th class="text-dark">Pengirim</th>
+                                            <th class="text-dark" style="white-space: nowrap;">Qty</th>
+                                            <th class="text-dark" style="white-space: nowrap;">Store Awal</th>
+                                            <th class="text-dark" style="white-space: nowrap;">Store Tujuan</th>
+                                            <th class="text-dark">Penerima</th>
+                                            <th class="text-dark" style="white-space: nowrap;">Tanggal</th>
+                                            <th class="text-dark">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
                             <!--end: Datatable-->
                         </div>
                     </div>
@@ -132,29 +124,34 @@
                     <div class="card card-custom gutter-b">
                         <div class="card-body table-responsive">
                             <h5>History Penerimaan</h5>
-                            <input type="search" class="form-control  col-6" id="history_search" placeholder="Cari kode / artikel"/><br/>
-                            <table class="table table-hover table-checkable" id="Historytb">
-                                <thead class="bg-light text-dark">
-                                    <tr>
-                                        <th class="text-dark">No</th>
-                                        <th class="text-dark">Kode</th>
-                                        <th class="text-dark">Store Awal</th>
-                                        <th class="text-dark">Store Tujuan</th>
-                                        <th class="text-dark">Brand</th>
-                                        <th class="text-dark">Artikel</th>
-                                        <th class="text-dark">Warna</th>
-                                        <th class="text-dark">Size</th>
-                                        <th class="text-dark">Qty Terima</th>
-                                        <th class="text-dark">HB</th>
-                                        <th class="text-dark">HJ</th>
-                                        <th class="text-dark">Penerima</th>
-                                        <th class="text-dark">Tanggal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
+                            <div class="row">
+                                <div class="col-12 col-md-6 mb-2">
+                                    <input type="search" class="form-control w-100" id="history_search" placeholder="Cari kode / artikel"/><br/>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-checkable" id="Historytb">
+                                    <thead class="bg-light text-dark">
+                                        <tr>
+                                            <th class="text-dark">No</th>
+                                            <th class="text-dark">Kode</th>
+                                            <th class="text-dark">Store Awal</th>
+                                            <th class="text-dark">Store Tujuan</th>
+                                            <th class="text-dark">Brand</th>
+                                            <th class="text-dark">Artikel</th>
+                                            <th class="text-dark">Warna</th>
+                                            <th class="text-dark">Size</th>
+                                            <th class="text-dark">Qty Terima</th>
+                                            <th class="text-dark">HB</th>
+                                            <th class="text-dark">HJ</th>
+                                            <th class="text-dark">Penerima</th>
+                                            <th class="text-dark">Tanggal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -168,4 +165,19 @@
 @include('app.stock_transfer_data.stock_transfer_data_modal')
 @include('app._partials.js')
 @include('app.stock_transfer_data.stock_transfer_data_js')
+
+<style>
+@media (max-width: 767.98px) {
+    .card-header, .card-body {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    .table-responsive {
+        overflow-x: auto;
+    }
+    th, td {
+        white-space: nowrap;
+    }
+}
+</style>
 @endSection()
