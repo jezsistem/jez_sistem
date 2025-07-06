@@ -11,6 +11,8 @@ class StockTransfer extends Model
     use HasFactory;
     protected $table = 'stock_transfers';
     protected $fillable = [
+        'u_id',
+        'u_id_receive',
         'st_id_start',
         'st_id_end',
         'stf_code',

@@ -117,10 +117,11 @@
                                         <a class="btn btn-primary col-12" id="stf_code" style="white-space:nowrap;"></a>
                                     </div>
                                     <div class="form-group col-12 row justify-content-end" style="margin-top: 15px;">
+                                        <a class="btn btn-dark col-2 mr-2" id="transfer_import_btn" style="white-space:nowrap;">IMPORT</a>
                                         <a class="btn btn-info col-2 mr-2" id="export_btn" style="white-space:nowrap;">EXPORT</a>
-                                        <a class="btn btn-danger btn-sm col-2 mr-2" id="transfer_cancel_btn" style="white-space:nowrap;">DELETE</a>
-                                        <a class="btn btn-warning btn-sm col-2 mr-2" id="transfer_draft_btn" style="white-space:nowrap;">DRAFT</a>
-                                        <a class="btn btn-success btn-sm col-2" id="transfer_done_btn" style="white-space:nowrap;">DONE</a>
+                                        <a class="btn btn-danger col-2 mr-2" id="transfer_cancel_btn" style="white-space:nowrap;">DELETE</a>
+                                        <a class="btn btn-warning col-2 mr-2" id="transfer_draft_btn" style="white-space:nowrap;">DRAFT</a>
+                                        <a class="btn btn-success col-2" id="transfer_done_btn" style="white-space:nowrap;">DONE</a>
                                     </div>
                                 </div>
                                 <!--end: Datatable-->
@@ -132,7 +133,8 @@
                                     <tr>
                                         <th class="text-dark">Artikel</th>
                                         <th class="text-dark">BIN</th>
-                                        <th class="text-dark">Qty</th>
+                                        <th class="text-dark">Qty TF</th>
+                                        <th class="text-dark">Qty in Bin</th>
                                         <th class="text-dark">Asal</th>
                                         <th class="text-dark">Tujuan</th>
                                         <th class="text-dark"></th>

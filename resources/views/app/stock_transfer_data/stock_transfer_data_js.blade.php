@@ -1,5 +1,49 @@
 <script>
     $(document).ready(function() {
+        modal_opened = null;
+
+        function initializeScanner(elementId) {
+            return new Html5QrcodeScanner(elementId, {
+                // Scanner will be initialized in DOM inside the element with the given id
+                qrbox: {
+                    width: 250,
+                    height: 250,
+                },
+                fps: 30,
+            });
+        }
+
+        // Example usage for multiple modals
+        // let scanner_scan_out = initializeScanner('reader_scan_out');
+        let scanner_tf_receive = initializeScanner('reader_tf_receive');
+
+        //
+
+        scan_timer = null;
+
+        function success(result) {
+            if (scan_timer) {
+                clearTimeout(scan_timer);
+            }
+
+            scan_timer = setTimeout(function() {
+                var hasil = result;
+
+                if (hasil.startsWith(']C1')) {
+                    hasil = hasil.replace(']C1', '');
+                }
+
+                if (modal_opened == 'StockTransferDataModal') {
+                    $('#scan_result').val(hasil);
+                    processScanResult(hasil);
+                    $('#scan_result').val('');
+                }
+            }, 500); // Add a delay of 500ms to prevent spamming
+        }
+
+        function error(err) {
+            // console.error(err);
+        }
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -370,6 +414,8 @@
             $('#StockTransferDataModal').on('show.bs.modal', function() {
                 stock_transfer_data_accept_table.draw();
             }).modal('show');
+            modal_opened = 'StockTransferDataModal';
+            scanner_tf_receive.render(success, error);
         });
 
         $(document).delegate('#std_export_all_btn', 'click', function(e) {
@@ -395,19 +441,19 @@
             });
         });
 
-        $(document).delegate('input.accept_qty[data-stfd_id]', 'change', function() {
-            var stfd_id = $(this).attr('data-stfd_id');
-            var stfd_qty = $(this).attr('data-stfd_qty');
-            var accept_qty = $(this).val();
+        function handleAcceptQtyChange(element) {
+            var stfd_id = $(element).attr('data-stfd_id');
+            var stfd_qty = $(element).attr('data-stfd_qty');
+            var accept_qty = $(element).val();
             var stf_id = $('#stf_id').val();
 
             if (parseInt(accept_qty) > parseInt(stfd_qty)) {
-                $(this).val('');
+                $(element).val('');
                 toastr.error('Jumlah yang diterima tidak boleh melebihi jumlah yang ditransfer');
                 return false;
             }
             if (parseInt(accept_qty) < 0) {
-                $(this).val('');
+                $(element).val('');
                 toastr.error('Jumlah yang diterima tidak boleh kurang dari 0');
                 return false;
             }
@@ -441,7 +487,64 @@
                     toastr.error('Terjadi kesalahan saat mengirim data');
                 }
             });
+        }
+
+        $(document).delegate('input.accept_qty[data-stfd_id]', 'change', function() {
+            handleAcceptQtyChange(this);
         });
+
+        $('#scan_result').on('change', function() {
+            var scanValue = $(this).val();
+            alert(scanValue);
+            $(this).val('');
+        });
+
+        $('#scan_result').on('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                processScanResult($(this).val());
+                $(this).val('');
+            }
+        });
+
+        function processScanResult(scanValue) {
+            if (scanValue.trim() === '') {
+                toastr.warning('Scan result cannot be empty');
+                return false;
+            }
+            var found = false;
+            $('#StockTransferDataAccepttb tbody tr').each(function() {
+                var rowData = stock_transfer_data_accept_table.row(this).data();
+                if (rowData && rowData.ps_barcode === scanValue) {
+                    var inputField = $(this).find('input.accept_qty[data-stfd_id]');
+
+                    if (inputField.length === 0) {
+                        toastr.error('Input field not found in the row');
+                        return false; // Skip to the next row
+                    }
+                    
+                    var currentValue = parseInt(inputField.val()) || 0;
+                    var maxQty = parseInt(inputField.attr('data-stfd_qty')) || 0;
+
+                    if (currentValue + 1 > maxQty) {
+                        toastr.error(
+                            'Jumlah yang diterima tidak boleh melebihi jumlah yang ditransfer'
+                        );
+                        found = true;
+                        return false;
+                    }
+
+                    inputField.val(currentValue + 1);
+                    handleAcceptQtyChange(inputField); // Call the function explicitly
+                    found = true;
+                    return false;
+                }
+            });
+
+            if (!found) {
+                toastr.warning('Barcode not found in the table');
+            }
+        }
 
         $('#f_import').on('submit', function(e) {
             e.preventDefault();
