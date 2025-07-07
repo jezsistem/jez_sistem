@@ -791,97 +791,103 @@
 
     //
 
+    var scan_timer = null;
+
     function success(result) {
-        
-        var hasil = result;
-        
-        if (hasil.startsWith(']C1')) {
-            hasil = hasil.replace(']C1', '');
+        if (scan_timer) {
+            clearTimeout(scan_timer);
         }
 
-        if (modal_opened == 'ScanOutModal') {
-            alert(hasil);
-            $('#scan_out_search').val(hasil);
-            scan_out_table.ajax.reload();
-            
-        } else if (modal_opened == 'ScanInModal') {
-            alert(hasil);
-            $('#scan_in_search').val(hasil);
-            scan_in_table.ajax.reload();
+        scan_timer = setTimeout(function() {
+            var hasil = result;
 
-        } else if (modal_opened == 'ScanInRefundModal') {
-            alert(hasil);
-            $('#scan_in_refund_search').val(hasil);
-            scan_in_refund_table.ajax.reload();
-        }
-        else if (modal_opened == 'binModal') {
-            alert(hasil);
-            $('#bin_out_search').val(hasil);
-            // scan_in_refund_table.ajax.reload();
-        }
-        else if (modal_opened == 'PickOnModal') {
-            alert(hasil);
-            $('#scan_pick_on_search').val(hasil);
-            scan_keep_table.ajax.reload();
-        }
-        else if (modal_opened == 'TakeTransferItemModal') {
-
-            bin_code = $('#take_transfer_bin_info').text();
-            sku_code = $('#take_transfer_sku_info').text();
-            // Focus to BIN input first, then after BIN is filled, focus to SKU input
-            // If BIN already filled, skip setting it again
-            if ($('#take_transfer_bin').val().trim() === '') {
-                $('#take_transfer_bin').val(hasil).focus();
-                if (hasil !== bin_code) {
-                    swal({
-                        title: "Kode BIN tidak sesuai",
-                        text: "Silahkan scan ulang kode BIN yang benar.",
-                        icon: "warning",
-                        button: "OK"
-                    }).then(function() {
-                        $('#take_transfer_bin').val('').focus();
-                    });
-                    return;
-                    $('#take_transfer_bin_info').text(hasil);
-                }
-                return;
+            if (hasil.startsWith(']C1')) {
+                hasil = hasil.replace(']C1', '');
             }
 
-            // If BIN already filled, focus to SKU and set hasil to SKU
-            if ($('#take_transfer_bin').val().trim() !== '' && $('#take_transfer_barcode').val().trim() === '') {
-                // Check if the scanned barcode matches the expected SKU
-                if (hasil !== sku_code) {
-                    swal({
-                        title: "Kode SKU tidak sesuai",
-                        text: "Silahkan scan ulang kode SKU yang benar.",
-                        icon: "warning",
-                        button: "OK"
-                    }).then(function() {
-                        $('#take_transfer_barcode').val('').focus();
-                    });
+            if (modal_opened == 'ScanOutModal') {
+                alert(hasil);
+                $('#scan_out_search').val(hasil);
+                scan_out_table.ajax.reload();
+
+            } else if (modal_opened == 'ScanInModal') {
+                alert(hasil);
+                $('#scan_in_search').val(hasil);
+                scan_in_table.ajax.reload();
+
+            } else if (modal_opened == 'ScanInRefundModal') {
+                alert(hasil);
+                $('#scan_in_refund_search').val(hasil);
+                scan_in_refund_table.ajax.reload();
+
+            } else if (modal_opened == 'binModal') {
+                alert(hasil);
+                $('#bin_out_search').val(hasil);
+                // scan_in_refund_table.ajax.reload();
+
+            } else if (modal_opened == 'PickOnModal') {
+                alert(hasil);
+                $('#scan_pick_on_search').val(hasil);
+                scan_keep_table.ajax.reload();
+
+            } else if (modal_opened == 'TakeTransferItemModal') {
+                var bin_code = $('#take_transfer_bin_info').text();
+                var sku_code = $('#take_transfer_sku_info').text();
+
+                // Focus to BIN input first, then after BIN is filled, focus to SKU input
+                // If BIN already filled, skip setting it again
+                if ($('#take_transfer_bin').val().trim() === '') {
+                    $('#take_transfer_bin').val(hasil).focus();
+                    if (hasil !== bin_code) {
+                        swal({
+                            title: "Kode BIN tidak sesuai",
+                            text: "Silahkan scan ulang kode BIN yang benar.",
+                            icon: "warning",
+                            button: "OK"
+                        }).then(function() {
+                            $('#take_transfer_bin').val('').focus();
+                        });
+                        return;
+                    }
                     return;
                 }
 
-                setTimeout(function() {
-                    $('#take_transfer_barcode').focus();
-                }, 200);
+                // If BIN already filled, focus to SKU and set hasil to SKU
+                if ($('#take_transfer_bin').val().trim() !== '' && $('#take_transfer_barcode').val().trim() === '') {
+                    // Check if the scanned barcode matches the expected SKU
+                    if (hasil !== sku_code) {
+                        swal({
+                            title: "Kode SKU tidak sesuai",
+                            text: "Silahkan scan ulang kode SKU yang benar.",
+                            icon: "warning",
+                            button: "OK"
+                        }).then(function() {
+                            $('#take_transfer_barcode').val('').focus();
+                        });
+                        return;
+                    }
 
-                $('#take_transfer_barcode').val(hasil);
+                    setTimeout(function() {
+                        $('#take_transfer_barcode').focus();
+                    }, 200);
+
+                    $('#take_transfer_barcode').val(hasil);
+                }
+
+                // If BIN and SKU already filled, optionally auto-submit
+                if (
+                    $('#take_transfer_bin').val().trim() !== '' &&
+                    $('#take_transfer_barcode').val().trim() !== '' &&
+                    $('#take_transfer_quantity').val().trim() !== ''
+                ) {
+                    $('#btn_submit_scan_item_transfer').click();
+
+                    $('#take_transfer_bin').val('');
+                    $('#take_transfer_barcode').val('');
+                }
             }
 
-            // If BIN and SKU already filled, optionally auto-submit
-            if (
-            $('#take_transfer_bin').val().trim() !== '' &&
-            $('#take_transfer_barcode').val().trim() !== '' &&
-            $('#take_transfer_quantity').val().trim() !== ''
-            ) {
-            $('#btn_submit_scan_item_transfer').click();
-
-            $('#take_transfer_bin').val('');
-            $('#take_transfer_barcode').val('');
-            }
-        }
-
+        }, 1000); // Add a delay of 1s to prevent spamming
     }
 
     function error(err) {
@@ -891,6 +897,17 @@
     // function console_log(result) {
     //     console.log(result);
     // }
+
+    $('#take_transfer_barcode').on('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            $('#btn_submit_scan_item_transfer').trigger('click');
+            $('#take_transfer_bin').val(''); // Clear the input after submission
+            $('#take_transfer_barcode').val(''); // Clear the input after submission
+            $('#take_transfer_bin').focus();
+
+        }
+    });
 
 
     $('#ScanIntb').on('draw.dt', function() {
