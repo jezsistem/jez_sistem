@@ -47,7 +47,7 @@
 
     }
 
-    function saveMutation(pls_id, index, pst_id, pls_qty) {
+    function saveMutation(pls_id, index, pst_id, pls_qty, note) {
         var pl_id_end = $('#pl_id_end').val();
         var pmt_qty = $('.mutation_qty' + index).val();
         if (pmt_qty == 0 || pmt_qty == '') {
@@ -66,7 +66,8 @@
                 _pl_id_end: pl_id_end,
                 _pmt_qty: pmt_qty,
                 _pmt_old_qty: pls_qty,
-                _pst_id: pst_id
+                _pst_id: pst_id,
+                _note: note
             },
             dataType: 'json',
             url: "{{ url('sv_mutation_v2') }}",
@@ -257,6 +258,11 @@
     $(document).ready(function() {
         // $('body').addClass('kt-primary--minimize aside-minimize');
         loadStartEnd();
+        $(document).ajaxStop(function() {
+            // Continue the rest of the code after all AJAX requests are done
+            $(document).off('ajaxStop');
+            // Place any code that should run after loadStartEnd() AJAX calls finish here
+        });
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -320,6 +326,23 @@
             order: [
                 [0, 'desc']
             ],
+            drawCallback: function(settings) {
+                // Get the first pl_id from the data and select it in #pl_id_start
+                var api = this.api();
+                var data = api.rows({
+                    page: 'current'
+                }).data();
+                if (data.length > 0) {
+                    var firstPlId = data[0].pl_id;
+                    if (firstPlId) {
+                        var $select = $('#pl_id_start');
+                        if ($select.length && $select.val() != firstPlId) {
+                            $select.val(firstPlId).trigger('change').trigger('select2:select');
+                            $select.select2('close');
+                        }
+                    }
+                }
+            }
         });
 
         var searchTimeout;
@@ -461,6 +484,11 @@
                     orderable: false
                 },
                 {
+                    data: 'notes',
+                    name: 'notes',
+                    orderable: false
+                },
+                {
                     data: 'pm_created_at',
                     name: 'pm_created_at',
                     orderable: false
@@ -521,6 +549,12 @@
                 {
                     data: 'mutation_qty',
                     name: 'mutation_qty',
+                    orderable: false
+                },
+                {
+                    data: 'notes',
+                    name: 'notes',
+                    defaultContent: '-',
                     orderable: false
                 },
             ],
@@ -607,12 +641,17 @@
 
                         checkMultibinMissingBarcode(data.missingBarcode, function() {
                             checkMissingBins(data.missingBins, function() {
-                                checkMissingItemsOnBin(data.missingItemsOnBin, function() {
-                                    checkQtyInvalid(data.qtyInvalid, function() {
-                                        // All checks done
-                                        toastr.info('Semua data telah diperiksa', 'Info');
+                                checkMissingItemsOnBin(data
+                                    .missingItemsOnBin,
+                                    function() {
+                                        checkQtyInvalid(data.qtyInvalid,
+                                            function() {
+                                                // All checks done
+                                                toastr.info(
+                                                    'Semua data telah diperiksa',
+                                                    'Info');
+                                            });
                                     });
-                                });
                             });
                         });
 
@@ -870,7 +909,9 @@
                             .addEventListener('click', function() {
                                 let wb = XLSX.utils.book_new();
                                 let ws_data = [
-                                    ["Start Bin", "Barcode", "Quantity Req", "Quantity Sistem"], // Header
+                                    ["Start Bin", "Barcode", "Quantity Req",
+                                        "Quantity Sistem"
+                                    ], // Header
                                     ...invalidQtyData.map(item => [
                                         item[0] || '-',
                                         item[1] || '-',
@@ -921,6 +962,7 @@
                         temp_multibin_data.draw();
                         start_bin_table.draw();
                         end_bin_table.draw();
+                        bin_history_table.draw();
                     } else {
                         toastr.error(data.message ||
                             'Terjadi kesalahan saat menyimpan mutasi', 'Error');

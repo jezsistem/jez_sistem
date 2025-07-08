@@ -45,12 +45,18 @@
                 </div>
                 <div class="modal-body">
                     <div class="card-body">
-                        <p><b>Pastikan Anda menggunakan template import yang hanya berisi dua kolom, yaitu kolom kode
-                                SKU dan Qty mutasi
-                                Format File wajib CSV</b></p>
+                        <p>
+                            <b>
+                                Pastikan Anda menggunakan template import yang hanya berisi dua kolom, yaitu kolom kode SKU dan Qty mutasi.<br>
+                                Format file wajib <span class="text-danger">CSV</span>.<br>
+                                <span class="text-primary">Ekspor file dari Excel dengan memilih <b>CSV (MS-DOS) (*.csv)</b> pada saat menyimpan.</span>
+                            </b>
+                        </p>
+                        <a href="{{ asset('upload/template/impot_single_bin_mutasi_template.xlsx') }}" class="btn btn-xs btn-primary mb-3">
+                            Download Template <i class="fas fa-file-download"></i>
+                        </a>
                         <div class="form-group">
-                            <label>Pilih template yang sudah diisi data</label>
-                            <span class="text-danger">*</span></label>
+                            <label>Pilih template yang sudah diisi data <span class="text-danger">*</span></label>
                             <input type="file" class="form-control" name="importFile" id="importFile" accept=".csv"
                                 required />
                         </div>
@@ -110,6 +116,7 @@
                                 <th style="width: 200px;">BIN Tujuan</th>
                                 <th>Quantity Bin Awal (Current)</th>
                                 <th>Quantity Mutasi</th>
+                                <th>Catatan</th>
                             </tr>
                         </thead>
                         <tbody>

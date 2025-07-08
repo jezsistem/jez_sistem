@@ -16,6 +16,7 @@ class ProductMutation extends Model
         'u_id',
         'pmt_old_qty',
         'pmt_qty',
+        'notes',
         'created_at',
     ];
 }

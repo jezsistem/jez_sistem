@@ -220,6 +220,7 @@
                                             <th class="text-dark" style="white-space: nowrap;">Qty Mts</th>
                                             <th class="text-dark" style="white-space: nowrap;">NQBIN Awal</th>
                                             <th class="text-dark" style="white-space: nowrap;">BIN Tujuan</th>
+                                            <th class="text-dark">Catatan</th>
                                             <th class="text-dark">Tanggal</th>
                                         </tr>
                                     </thead>

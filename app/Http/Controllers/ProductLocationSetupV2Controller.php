@@ -125,7 +125,8 @@ class ProductLocationSetupV2Controller extends Controller
                     'mc_name',
                     'product_location_setups.pls_qty',
                     'product_stocks.ps_barcode',
-                    'product_locations.pl_code'
+                    'product_locations.pl_code',
+                    'product_locations.id as pl_id',
                 )
                     ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                     ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -211,11 +212,15 @@ class ProductLocationSetupV2Controller extends Controller
                             foreach ($check_pst as $row) {
                                 $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->where('u_id', Auth::user()->id)->where('pl_end', null)->first();
                                 $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
+                                $initial_note = $initial_pst_get ? $initial_pst_get->notes : "";
 
                                 $this->table_row += 1;
                                 $action .= '
-                                    <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control col-12 mutation_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
-                                    <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ')" id="saveMutation' . $this->table_row . '"></i>';
+                                    <div class="d-flex align-items-center mb-2">
+                                        <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                                        <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%;" placeholder="Note" title="Note" value="' . $initial_note . '"/>
+                                    </div>
+                                    <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ', document.querySelector(\'.mutation_note' . $this->table_row . '\').value)" id="saveMutation' . $this->table_row . '"></i>';
                             }
                             return $action;
                         } else {
@@ -334,11 +339,15 @@ class ProductLocationSetupV2Controller extends Controller
                                 foreach ($check_pst as $row) {
                                     $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->first();
                                     $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
+                                    $initial_note = $initial_pst_get ? $initial_pst_get->notes : "";
 
                                     $this->table_row += 1;
                                     $action .= '
-                                <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control col-12 mutation_qty' . $this->table_row . '" style="padding:10px; margin-bottom:2px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
-                                <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ')" id="saveMutation' . $this->table_row . '"></i>';
+                                <div class="d-flex align-items-center mb-2">
+                                    <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                                    <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%;" placeholder="Note" title="Note" value="' . $initial_note . '"/>                                
+                                </div>
+                                <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ', document.querySelector(\'.mutation_note' . $this->table_row . '\').value)" id="saveMutation' . $this->table_row . '"></i>';
                                 }
                                 return $action;
                             } else {
@@ -428,9 +437,10 @@ class ProductLocationSetupV2Controller extends Controller
             $missingBarcode = array();
 
             foreach ($data as $item) {
-                $barcode = $item[0];
-                $start_bin = $item[1];
-                $qty = $item[3];
+                $barcode = $item[1];
+                $start_bin = $item[0];
+                $qty = $item[2];
+                $notes = $item[3];
                 // get id from barcode
                 $product_id = ProductStock::where('ps_barcode', '=', $barcode)->get()->first();
                 $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->get()->first();
@@ -458,7 +468,8 @@ class ProductLocationSetupV2Controller extends Controller
                             'u_id' => Auth::user()->id,
                             'pls_id' => $pls_id->id,
                             'ps_barcode' => $barcode,
-                            'pls_qty' => $qty
+                            'pls_qty' => $qty,
+                            'notes' => $notes,
                         ];
                         TempMutasi::create($params);
                     }
@@ -575,7 +586,7 @@ class ProductLocationSetupV2Controller extends Controller
     {
 
         if (request()->ajax()) {
-            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'ps_barcode', 'st_name', 'p_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at')
+            return datatables()->of(ProductMutation::select('product_mutations.id as pmt_id', 'ps_barcode', 'st_name', 'p_name', 'u_name', 'pmt_old_qty', 'pmt_qty', 'u_id', 'pls_id', 'product_mutations.pl_id as pl_id', 'product_mutations.created_at as pm_created_at','product_mutations.notes')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_mutations.pl_id')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->leftJoin('users', 'users.id', '=', 'product_mutations.u_id')
@@ -690,6 +701,7 @@ class ProductLocationSetupV2Controller extends Controller
         $pmt_old_qty = $request->_pmt_old_qty;
         $pmt_qty = $request->_pmt_qty;
         $pl_id_end = $request->_pl_id_end;
+        $note = $request->_note;
 
         $u_id = Auth::user()->id;
 
@@ -729,6 +741,7 @@ class ProductLocationSetupV2Controller extends Controller
                             'u_id' => Auth::user()->id,
                             'pmt_old_qty' => $pmt_old_qty,
                             'pmt_qty' => $pmt_qty,
+                            'notes' => $note,
                             'created_at' => date('Y-m-d H:i:s')
                         ]);
                         if (!empty($mutation)) {
@@ -776,6 +789,7 @@ class ProductLocationSetupV2Controller extends Controller
                             'u_id' => Auth::user()->id,
                             'pmt_old_qty' => $pmt_old_qty,
                             'pmt_qty' => $pmt_qty,
+                            'notes' => $note,
                             'created_at' => date('Y-m-d H:i:s')
                         ]);
                         if (!empty($mutation)) {
@@ -939,7 +953,7 @@ class ProductLocationSetupV2Controller extends Controller
 
         $import_data = Excel::toArray(new TempMultiBinMutationImport, $request->file('mutationInput'));
 
-        if (isset($import_data[0][0]) && $import_data[0][0] === ["BIN AWAL", "BIN TUJUAN", "SKU", "QUANTITY"]) {
+        if (isset($import_data[0][0]) && $import_data[0][0] === ["BIN AWAL", "BIN TUJUAN", "SKU", "QUANTITY", "NOTES"]) {
             array_shift($import_data[0]); // Remove the header row
             $data = $this->processImportMultiBinData($import_data[0]);
 
@@ -988,6 +1002,7 @@ class ProductLocationSetupV2Controller extends Controller
             $end_bin = $item[1];
             $barcode = $item[2];
             $qty = $item[3];
+            $notes = isset($item[4]) ? $item[4] : null;
             // get id from barcode
             $product_id = ProductStock::where('ps_barcode', '=', $barcode)->get()->first();
 
@@ -1033,7 +1048,8 @@ class ProductLocationSetupV2Controller extends Controller
                     'pls_id' => $pls_id->id,
                     'pl_end' => $end_bin_id->id,
                     'ps_barcode' => $barcode,
-                    'pls_qty' => $qty
+                    'pls_qty' => $qty,
+                    'notes' => $notes
                 ];
                 $processedData[] = $params;
             }
@@ -1057,7 +1073,8 @@ class ProductLocationSetupV2Controller extends Controller
                 'product_locations.pl_code as start_bin',
                 'destination_locations.pl_code as end_bin',
                 'product_location_setups.pls_qty as start_qty',
-                'temp_mutasi.pls_qty as mutation_qty'
+                'temp_mutasi.pls_qty as mutation_qty',
+                'temp_mutasi.notes'
             )
                 ->where('temp_mutasi.u_id', Auth::user()->id)
                 ->join('product_location_setups', 'product_location_setups.id', '=', 'temp_mutasi.pls_id')
@@ -1116,7 +1133,8 @@ class ProductLocationSetupV2Controller extends Controller
                 'pls_id' => $data->pls_id,
                 'pl_end' => $data->pl_end,
                 'ps_barcode' => $data->ps_barcode,
-                'pls_qty' => $data->pls_qty
+                'pls_qty' => $data->pls_qty,
+                'notes' => $data->notes ?: null,
             ];
         }
         if (!empty($missingBins) || !empty($missingItemsOnBin) || !empty($qtyInvalid)) {
@@ -1163,6 +1181,7 @@ class ProductLocationSetupV2Controller extends Controller
                     'u_id' => Auth::user()->id,
                     'pmt_old_qty' => $pls->pls_qty + $data['pls_qty'],
                     'pmt_qty' => $data['pls_qty'],
+                    'notes' => $data['notes'],
                     'created_at' => now()
                 ]);
             }

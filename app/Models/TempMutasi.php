@@ -18,5 +18,6 @@ class TempMutasi extends Model
         'pl_end',
         'pls_qty',
         'ps_barcode',
+        'notes',
     ];
 }
