@@ -187,3 +187,21 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal Detail Customer -->
+<div class="modal fade" id="customerDetailModal" tabindex="-1" role="dialog" aria-labelledby="customerDetailLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customerDetailLabel">Detail Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="customer-detail-body">
+                <!-- Data akan diisi oleh JavaScript -->
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>

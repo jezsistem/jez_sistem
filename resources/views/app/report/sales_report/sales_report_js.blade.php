@@ -17,7 +17,7 @@
         var pdf = new jsPDF('p', 'pt', 'letter');
         source = $('#cabang_content')[0];
         specialElementHandlers = {
-            '#bypassme': function(element, renderer) {
+            '#bypassme': function (element, renderer) {
                 return true
             }
         };
@@ -48,7 +48,7 @@
                 'width': margins.width,
                 'elementHandlers': specialElementHandlers
             },
-            function(dispose) {
+            function (dispose) {
                 pdf.save(fileName); // Simpan PDF dengan nama file yang berisi timestamp
             },
             margins
@@ -70,7 +70,7 @@
             },
             dataType: 'json',
             url: "{{ url('cabang_summary') }}",
-            success: function(r) {
+            success: function (r) {
                 if (r.status == '200') {
                     $('#cabang_omset').text(addCommas(r.omset_global));
                     $('#cabang_target').text(addCommas(r.target));
@@ -92,7 +92,7 @@
         });
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -112,15 +112,15 @@
             }],
             ajax: {
                 url: "{{ url('check_hb_hj') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#hbhj_search').val();
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'id',
+                searchable: false
+            },
                 {
                     data: 'br_name',
                     name: 'br_name'
@@ -173,15 +173,40 @@
             ],
         });
 
-        $(document).delegate('#hbhj_search', 'keyup', function(e) {
+        $(document).delegate('#hbhj_search', 'keyup', function (e) {
             e.preventDefault();
             hbhj_table.draw();
         });
 
-        $(document).delegate('#check_hb_hj', 'click', function(e) {
+        $(document).delegate('#check_hb_hj', 'click', function (e) {
             e.preventDefault();
             jQuery.noConflict();
             $('#HBHJModal').modal('show');
+        });
+
+        $(document).delegate('#customer-detail', 'click', function (e) {
+            // console.log('kontol')
+            // e.preventDefault();
+            // jQuery.noConflict();
+            // $('#HBHJModal').modal('show');
+
+            var customerId = $(this).data('id');
+
+            $.ajax({
+                url: "{{ url('customer_details') }}",
+                type: 'GET',
+                data: {
+                    _id: customerId
+                },
+                success: function(response) {
+                    $('#customer-detail-body').html(response); // bisa HTML atau text
+                    $('#customerDetailModal').modal('show');
+                },
+                error: function(xhr) {
+                    $('#customer-detail-body').html('Gagal mengambil data.');
+                    // $('#customerDetailModal').modal('show');
+                }
+            });
         });
 
         var invoice_report_table = $('#InvoiceReporttb').DataTable({
@@ -200,7 +225,7 @@
             }],
             ajax: {
                 url: "{{ url('invoice_report_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#invoice_report_search').val();
                     d.stt_id = $('#stt_id').val();
                     d.st_id = $('#st_id_filter').val();
@@ -210,10 +235,10 @@
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'pt_id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'pt_id',
+                searchable: false
+            },
                 {
                     data: 'pos_created',
                     name: 'pos_created'
@@ -252,7 +277,7 @@
                     data: 'item_value',
                     name: 'item_value',
                     orderable: false,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -261,7 +286,7 @@
                 {
                     data: 'pos_shipping',
                     name: 'pos_shipping',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -274,7 +299,7 @@
                 {
                     data: 'pos_admin_cost',
                     name: 'pos_admin_cost',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -283,7 +308,7 @@
                 {
                     data: 'pos_discount_seller',
                     name: 'pos_discount_seller',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -292,7 +317,7 @@
                 {
                     data: 'pos_another_cost',
                     name: 'pos_another_cost',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -316,7 +341,7 @@
                 {
                     data: 'payment_one',
                     name: 'pm_id',
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return type === 'export' ?
                             data.replace(/[$,]/g, '') :
                             data;
@@ -401,7 +426,7 @@
             }],
             ajax: {
                 url: "{{ url('article_report_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#article_report_search').val();
                     d.stt_id = $('#stt_id').val();
                     d.st_id = $('#st_id_filter').val();
@@ -410,10 +435,10 @@
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'ptd_id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'ptd_id',
+                searchable: false
+            },
                 {
                     data: 'ptd_created',
                     name: 'ptd_created'
@@ -498,7 +523,7 @@
             }],
             ajax: {
                 url: "{{ url('article_cross_report_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#article_report_search').val();
                     d.stt_id = $('#stt_id').val();
                     d.st_id = $('#st_id_filter').val();
@@ -506,10 +531,10 @@
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'ptd_id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'ptd_id',
+                searchable: false
+            },
                 {
                     data: 'ptd_created',
                     name: 'ptd_created'
@@ -581,23 +606,22 @@
             ],
         });
 
-        $('#stt_id, #datetime, #st_id_filter, #dp_id').on('change', function() {
+        $('#stt_id, #datetime, #st_id_filter, #dp_id').on('change', function () {
             //sales_report_table.draw();
             invoice_report_table.draw();
             article_report_table.draw();
         });
 
 
-
-        $('#article_report_search').on('keyup', function() {
+        $('#article_report_search').on('keyup', function () {
             article_report_table.draw();
         });
 
-        $('#invoice_report_search').on('keyup', function() {
+        $('#invoice_report_search').on('keyup', function () {
             invoice_report_table.draw();
         });
 
-        $(document).delegate('#sales_summary_btn', 'click', function() {
+        $(document).delegate('#sales_summary_btn', 'click', function () {
             var st_label = $('#st_id_filter option:selected').text();
             var stt_label = $('#stt_id option:selected').text();
             var omset_date = $('#kt_dashboard_daterangepicker_date').text();
@@ -621,7 +645,7 @@
             cabangSummary(st_id, stt_id, date);
         });
 
-        $(document).delegate('#invoice_detail_btn', 'click', function() {
+        $(document).delegate('#invoice_detail_btn', 'click', function () {
             var pt_id = $(this).attr('data-pt_id');
             var pt_id_label = $(this).text();
             $('#pt_id_filter').val(pt_id);
@@ -630,14 +654,14 @@
             article_report_table.draw();
         });
 
-        $(document).delegate('#pt_id_filter_label', 'click', function() {
+        $(document).delegate('#pt_id_filter_label', 'click', function () {
             $('#pt_id_filter').val('');
             $('#pt_id_filter_label').removeClass('btn btn-primary');
             $('#pt_id_filter_label').text('');
             article_report_table.draw();
         });
 
-        $(document).delegate('#export_btn', 'click', function(e) {
+        $(document).delegate('#export_btn', 'click', function (e) {
             e.preventDefault();
             var type = $(this).attr('data-type');
             var stt_id = $('#stt_id').val();
@@ -645,11 +669,11 @@
             var date = $('#sales_date').val();
             var dp_id = $('#dp_id').val();
             {{-- window.location.href = "{{ url('sales_export') }}?type="+type+"&date="+date+"&stt_id="+stt_id+"&st_id="+st_id+""; --}}
-            window.location.href = "{{ url('sales_export') }}?type=" + type + "&date=" + date +
+                window.location.href = "{{ url('sales_export') }}?type=" + type + "&date=" + date +
                 "&stt_id=" + stt_id + "&st_id=" + st_id + "&dp_id=" + dp_id + "";
         });
 
-        $(document).delegate('#cabang_cross_order_detail', 'click', function() {
+        $(document).delegate('#cabang_cross_order_detail', 'click', function () {
             jQuery.noConflict();
             $('#CrossModal').modal('show');
             cross_report_tb.draw(false);
