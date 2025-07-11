@@ -282,66 +282,7 @@
         });
     });
 
-
-    // {{-- $(document).ready(function () { --}}
-    // {{--    $('#putaway').change(function () { --}}
-    // {{--        var no_order = $('#po_invoice_label').text(); --}}
-
-    // {{--        const putawayValue = $(this).val(); --}}
-    // {{--        const po_invoice = no_order --}}
-
-    // {{--        if (!po_invoice) { --}}
-    // {{--            alert("No PO Invoice provided!"); --}}
-    // {{--            return; --}}
-    // {{--        } --}}
-
-    // {{--        $.ajax({ --}}
-    // {{--            url: "{{ url('putaway_save') }}", --}}
-    // {{--            type: 'POST', --}}
-    // {{--            data: { --}}
-    // {{--                putaway: putawayValue, --}}
-    // {{--                po_invoice: po_invoice, --}}
-    // {{--                _token: '{{ csrf_token() }}' --}}
-    // {{--            }, --}}
-    // {{--            success: function (response) { --}}
-    // {{--                console.log(response); --}}
-    // {{--                toastr.success("Putaway selection berhasil disimpan", "Berhasil"); --}}
-    // {{--            }, --}}
-    // {{--            error: function (xhr) { --}}
-    // {{--                console.error(xhr); --}}
-    // {{--                toastr.error("Gagal menyimpan data", "Gagal"); --}}
-    // {{--            } --}}
-    // {{--        }); --}}
-    // {{--    }); --}}
-    // {{-- }); --}}
-
-    // $(document).ready(function() {
-    //     var previousPutawayValue = $('#putaway').val();
-    //     var isInitialized = false;
-
     $('#putaway').on('change', function() {
-
-        // if (!isInitialized) {
-        //     isInitialized = true;
-        //     previousPutawayValue = $(this).val();
-        //     return;
-        // }
-
-        // var currentPutawayValue = $(this).val();
-
-
-        // if (currentPutawayValue === previousPutawayValue) {
-        //     return;
-        // }
-        // previousPutawayValue = currentPutawayValue;
-
-        // var no_order = $('#po_invoice_label').text();
-
-        // if (!no_order) {
-        //     alert("No PO Invoice provided!");
-        //     return;
-        // }
-
         var putawayValue = $(this).val();
         var no_order = $('#po_invoice_label').text();
 
@@ -363,8 +304,6 @@
             }
         });
     });
-    // });
-
 
     $('#f_upload_dispute_file').on('submit', function(e) {
         e.preventDefault();
