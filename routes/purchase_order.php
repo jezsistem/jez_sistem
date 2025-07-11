@@ -103,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('poads_save', [PurchaseOrderArticleDetailStatusController::class, 'storeData']);
     Route::post('dispute_save', [PurchaseOrderArticleDetailStatusController::class, 'disputeSave']);
     Route::post('dispute_description_save', [PurchaseOrderArticleDetailStatusController::class, 'disputeDescSave']);
+    Route::post('putaway_save', [PurchaseOrderArticleDetailStatusController::class, 'savePutaway']);
     Route::get('poads_datatables', [PurchaseOrderArticleDetailStatusController::class, 'getDatatables']);
     Route::post('sv_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'revisionData']);
     Route::post('dl_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'deleteData']);
