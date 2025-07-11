@@ -1180,7 +1180,7 @@
                             sell_price = sell_price;
                             jQuery(row).find('.sell_price_item').text('0');
 
-                            // jQuery(row).find('.subtotal_item').text('0');
+                            jQuery(row).find('.subtotal_item').text('0');
 
                             console.log('BOGO CEK BOLO : ',sell_price);
                         } else {
@@ -1590,11 +1590,10 @@
 
                                 if (jQuery(row).hasClass('b1g1_mode')) {
                                     b1g1_qty_total += b1g1_qty;
-                                    if (parseFloat(sell_price) >= parseFloat(b1g1_temp[
-                                        0])) {
+                                    if (parseFloat(sell_price) >= parseFloat(b1g1_temp[0]) || parseFloat(sell_price) == parseFloat(b1g1_temp[0])) {
                                         sell_price = sell_price;
                                         console.log('row : ',row);
-                                        jQuery(row).find('#sell_price_item').text('0');
+                                        jQuery(row).find('.sell_price_item').text('0');
 
                                         console.log('BOGO CEK BOLO : ',sell_price);
                                     } else {
@@ -1700,8 +1699,7 @@
                                         "<td><span class='sell_price_item' id='sell_price_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                                         "<td><span class='discount_normal' style='width: 13rem;'  id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
-                                        (total_row + 1) + "'>" + addCommas(
-                                            sell_price) + "</span></td> " +
+                                        (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                                         "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                                         (total_row + 1) +
                                         "' onclick='return saveItem(" + (total_row +
@@ -1751,8 +1749,7 @@
                                         "<td><span class='sell_price_item' id='sell_price_item" +(total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                                         "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
-                                        (total_row + 1) + "'>" + addCommas(
-                                            sell_price) + "</span></td> " +
+                                        (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                                         "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                                         (total_row + 1) +
                                         "' onclick='return saveItem(" + (total_row +
