@@ -628,32 +628,24 @@ class PurchaseOrderReceiveController extends Controller
     public function poReceiveDetail(Request $request)
     {
         $po_id = $request->_po_id;
+        $check = PurchaseOrder::where(['id' => $po_id])->exists();
+        if ($check) {
+            $draft = PurchaseOrder::where(['id' => $po_id])->get()->first();
+            $r['status'] = '200';
+            $r['po_id'] = $draft->id;
+            $r['st_id'] = $draft->st_id;
+            $r['ps_id'] = $draft->ps_id;
+            $r['stkt_id'] = $draft->stkt_id;
+            $r['tax_id'] = $draft->tax_id;
+            $r['po_description'] = $draft->po_description;
+            $r['po_shipping_cost'] = $draft->po_shipping_cost;
+            $r['po_invoice'] = $draft->po_invoice;
+        } else {
+            $r['status'] = '400';
 
-        $po = PurchaseOrder::find($po_id);
-
-        if (!$po) {
-            return response()->json([
-                'status' => '400',
-                'message' => 'Purchase Order tidak ditemukan'
-            ]);
+            return json_encode($r);
         }
-        dd($putaway = $po->putaway);
-        return response()->json([
-            'status' => '200',
-            'po_id' => $po->id,
-            'st_id' => $po->st_id,
-            'ps_id' => $po->ps_id,
-            'stkt_id' => $po->stkt_id,
-            'tax_id' => $po->tax_id,
-            'putaway' => $po->putaway,
-            'po_description' => $po->po_description,
-            'po_shipping_cost' => $po->po_shipping_cost,
-            'po_invoice' => $po->po_invoice,
-            'dispute' => $po->dispute,
-            'dispute_description' => $po->dispute_description
-        ]);
     }
-
 
 
     public function poExport(Request $request)
