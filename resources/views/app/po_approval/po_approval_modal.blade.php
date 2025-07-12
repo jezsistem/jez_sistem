@@ -200,6 +200,10 @@
                                 </a>
                             </div>
                         </div>
+                        <div class="col-4 mt-3">
+                            <label>Putaway</label>
+                            <input type="text" id="putaway" class="form-control" name="putaway" disabled />
+                        </div>
                     </div>
                     <br>
                     <!--end::Row-->

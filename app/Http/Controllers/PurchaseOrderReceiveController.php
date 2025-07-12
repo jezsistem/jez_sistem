@@ -642,9 +642,11 @@ class PurchaseOrderReceiveController extends Controller
             $r['po_invoice'] = $draft->po_invoice;
         } else {
             $r['status'] = '400';
+
+            return json_encode($r);
         }
-        return json_encode($r);
     }
+
 
     public function poExport(Request $request)
     {
