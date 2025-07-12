@@ -8,7 +8,7 @@
 <script src="{{ asset('pos/js') }}/script.bundle.js"></script>
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script src="{{ asset('cdn/select2.min.js') }}"></script>
-{{--<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>--}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     var b1g1_temp = [];
