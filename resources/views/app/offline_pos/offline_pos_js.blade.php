@@ -1871,33 +1871,63 @@
     //     jQuery('#total_price_side').text(addCommas(total));
     // }
 
+    // function updateTotalHarga() {
+    //     let total = 0;
+    //
+    //     // Cek apakah ada B1G1
+    //     let hasB1G1 = false;
+    //
+    //     jQuery('[id^="orderList"]').each(function () {
+    //         if (jQuery(this).hasClass('b1g1_mode')) {
+    //             hasB1G1 = true;
+    //             return false; // break loop
+    //         }
+    //     });
+    //
+    //     // Pilih selector yang sesuai
+    //     let selector = hasB1G1 ? '[id^="price_tag_item"]' : '[id^="sell_price_item"]';
+    //
+    //     jQuery(selector).each(function () {
+    //         const rowId = jQuery(this).attr('id').replace(selector.includes('price_tag_item') ? 'price_tag_item' : 'sell_price_item', '');
+    //
+    //         let price = jQuery(this).text().replace(/,/g, '');
+    //         price = parseFloat(price) || 0;
+    //
+    //         let qty = parseFloat(jQuery('#item_qty' + rowId).val()) || 0;
+    //
+    //         total += price * qty;
+    //
+    //         console.log(`Row ${rowId} => ${price} x ${qty} = ${price * qty}`);
+    //     });
+    //
+    //     jQuery('#total_price_side').text(addCommas(total));
+    // }
+
     function updateTotalHarga() {
         let total = 0;
 
-        // Cek apakah ada B1G1
-        let hasB1G1 = false;
+        // get original sell price
+        // let OriginalPrice = parseFloat(jQuery('#discount_selection' + row).data('sellPrice')) || 0;
+        // console.log('Sell price for row ' + row + ':', OriginalPrice);
 
-        jQuery('[id^="orderList"]').each(function () {
-            if (jQuery(this).hasClass('b1g1_mode')) {
-                hasB1G1 = true;
-                return false; // break loop
-            }
-        });
+        // Loop through each price row
+        jQuery('[id^="price_tag_item"]').each(function () {
+            const rowId = jQuery(this).attr('id').replace('price_tag_item', '');
 
-        // Pilih selector yang sesuai
-        let selector = hasB1G1 ? '[id^="price_tag_item"]' : '[id^="sell_price_item"]';
-
-        jQuery(selector).each(function () {
-            const rowId = jQuery(this).attr('id').replace(selector.includes('price_tag_item') ? 'price_tag_item' : 'sell_price_item', '');
-
+            // Get price
             let price = jQuery(this).text().replace(/,/g, '');
             price = parseFloat(price) || 0;
 
+            // Get corresponding qty
             let qty = parseFloat(jQuery('#item_qty' + rowId).val()) || 0;
 
+            console.log('Row:', rowId, '| Price:', price, '| Qty:', qty);
+
+            // Add to total
             total += price * qty;
 
-            console.log(`Row ${rowId} => ${price} x ${qty} = ${price * qty}`);
+            console.log('asdasd : ',total);
+
         });
 
         jQuery('#total_price_side').text(addCommas(total));
