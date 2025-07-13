@@ -225,6 +225,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('cancel_import', [ProductLocationSetupV2Controller::class, 'cancelImportData']);
     Route::post('sv_mutation_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
     Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
+    Route::post('stock_location_import_multibins', [ProductLocationSetupV2Controller::class, 'importMultiBinsMutation']);
+    Route::get('temp_multibins_datatable', [ProductLocationSetupV2Controller::class, 'tempMultiBinsDatatable']);
+    Route::post('multibins_mutation', [ProductLocationSetupV2Controller::class, 'multibinsMutation']);
 
     // Stock Transfer
     Route::get('transfer_stok', [StockTransferController::class, 'index'])->name('stock_transfer');

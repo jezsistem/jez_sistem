@@ -15,7 +15,9 @@ class TempMutasi extends Model
     protected $fillable = [
         'u_id',
         'pls_id',
+        'pl_end',
         'pls_qty',
         'ps_barcode',
+        'notes',
     ];
 }

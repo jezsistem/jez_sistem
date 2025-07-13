@@ -37,6 +37,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $shipping_cost = $request->shipping_cost ?? 0;
         $invoice_note = $request->invoice_note;
         $dispute = $request->dispute;
+        $putaway = $request->putaway;
         $dispute_description = $request->dispute_description;
         $no_order = $request->no_order;
 
@@ -45,6 +46,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $params_edit = PurchaseOrder::where('po_invoice', $no_order)->update([
             'dispute' => $dispute,
             'dispute_description' => $dispute_description,
+            'putaway' => $putaway,
         ]);
 
         $check = DB::table('purchase_order_article_detail_statuses')->insertGetId([
@@ -228,5 +230,24 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $po->save();
 
         return response()->json(['message' => 'Dispute status updated successfully']);
+    }
+
+    public function savePutaway(Request $request)
+    {
+        $request->validate([
+            'po_invoice' => 'required|string',
+            'putaway' => 'required|in:0,1',
+        ]);
+
+        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        $po->putaway = $request->putaway;
+        $po->save();
+
+        return response()->json(['message' => 'Putaway berhasil disimpan']);
     }
 }
