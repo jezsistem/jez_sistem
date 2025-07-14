@@ -10,16 +10,23 @@ return new class extends Migration
     {
         Schema::create('modal_locks', function (Blueprint $table) {
             $table->id();
+            
             // Siapa yang mengunci?
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            // Data apa yang dikunci? (Ini bagian penting untuk skalabilitas)
+            // --- Bagian Kunci untuk Lock Spesifik ---
+            // Data apa yang dikunci?
             $table->unsignedBigInteger('lockable_id');
             $table->string('lockable_type');
-
+            // Pengenal unik untuk modal/URL
+            $table->string('identifier'); 
+            
             // Kapan lock ini kedaluwarsa?
             $table->timestamp('expires_at');
             $table->timestamps();
+
+            // Index unik untuk memastikan satu sesi hanya bisa di-lock satu kali
+            $table->unique(['lockable_id', 'lockable_type', 'identifier'], 'lock_unique_identifier');
         });
     }
 

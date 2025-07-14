@@ -2,6 +2,7 @@
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
 <script>
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
@@ -1159,64 +1160,12 @@
             $(window).off(evt);
         });
 
-        // Fungsi utama untuk mencoba membuka modal dan mendapatkan lock
-        async function openEditModal(type, id) {
-            console.log(`Mencoba mengunci ${type} dengan ID ${id}...`);
-            try {
-                const response = await fetch('/lock/acquire', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    body: JSON.stringify({
-                        lockable_type: type,
-                        lockable_id: id
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    // alert(data.message);
-                    // showYourModal(data);
-                } else if (response.status === 423) {
-                    swal('Gagal', `Purchase Order sedang diakses oleh ${data.locked_by}`, 'error');
-                    return false;
-                } else {
-                    alert(`Terjadi kesalahan: ${data.message}`);
-                }
-            } catch (error) {
-                console.error('Tidak bisa terhubung ke server:', error);
-                alert('Tidak bisa terhubung ke server.');
-            }
-            return true;
-        }
-
-        // Fungsi untuk melepas lock saat modal ditutup
-        async function closeEditModal(type, id) {
-            console.log(`Melepaskan kunci untuk ${type} dengan ID ${id}...`);
-            await fetch('/lock/release', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                body: JSON.stringify({
-                    lockable_type: type,
-                    lockable_id: id
-                })
-            });
-            // alert("Lock telah dilepaskan.");
-        }
 
         $('#PurchaseOrdertb tbody').on('click', 'tr', async function() {
             var po_id = purchase_order_table.row(this).data().po_id;
 
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id);
+            const lockResult = await openEditModal('purchase_order', po_id,'pembelian');
             if (lockResult === false) {
                 return;
             }
@@ -1224,7 +1173,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id);
+                extendLock('purchase_order', po_id,'pembelian');
             }, 60000);
 
             $.ajaxSetup({
@@ -1273,28 +1222,6 @@
                 }
             });
         });
-
-        // Fungsi extendLock
-        async function extendLock(type, id) {
-            try {
-                await fetch('/lock/extend', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    body: JSON.stringify({
-                        lockable_type: type,
-                        lockable_id: id
-                    })
-                });
-                // Tidak perlu alert, cukup silent
-            } catch (error) {
-                // Bisa tambahkan log jika perlu
-                // console.error('Gagal extend lock:', error);
-            }
-        }
 
         $(document).ready(function() {
             $("#InvoiceImagesBtn").click(function() {
@@ -1370,7 +1297,7 @@
             // alert("Modal ditutup, melepaskan lock...");
             var po_id = $('#_po_id').val();
             if (po_id) {
-                closeEditModal('purchase_order', po_id);
+                closeEditModal('purchase_order', po_id, 'pembelian');
             }
             // Hentikan interval extend lock
             if (window.lockExtendInterval) {
