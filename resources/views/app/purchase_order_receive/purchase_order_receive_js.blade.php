@@ -4,6 +4,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+
 <script>
     $('#dispute').select2({
         placeholder: 'Select Yes or No',
@@ -1794,10 +1796,22 @@
             @endif
         });
 
-        $('#PurchaseOrdertb tbody').on('click', 'tr', function() {
+        $('#PurchaseOrdertb tbody').on('click', 'tr', async function() {
             var po_id = purchase_order_table.row(this).data().po_id;
             // Store the po_id for later use
             $('#_po_id').val(po_id);
+
+            // Coba dapatkan lock sebelum buka modal
+            const lockResult = await openEditModal('purchase_order', po_id,'penerimaan');
+            if (lockResult === false) {
+                return;
+            }
+
+            // Mulai interval untuk extend lock setiap 60 detik
+            if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
+            window.lockExtendInterval = setInterval(function() {
+                extendLock('purchase_order', po_id,'penerimaan');
+            }, 60000);
 
             // Update DataTables AJAX configuration with the new po_id
             purchaseOrderInvoiceTable.ajax.reload();
@@ -2103,6 +2117,9 @@
             e.preventDefault();
             $('#PurchaseOrderModal').modal('hide');
             var po_id = $('#_po_id').val();
+            if (po_id) {
+                closeEditModal('purchase_order', po_id, 'penerimaan');
+            }
             purchase_order_table.draw(false);
         });
 

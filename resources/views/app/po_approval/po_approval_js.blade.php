@@ -1,3 +1,5 @@
+<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+
 <script>
     var approval = '';
 
@@ -315,7 +317,7 @@
             po_approval_table.draw(false);
         });
 
-        $('#APtb tbody').on('click', 'tr', function() {
+        $('#APtb tbody').on('click', 'tr', async function() {
 
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
@@ -360,6 +362,17 @@
                 putaway_text = 'Empty';
             }
  
+            // Coba dapatkan lock sebelum buka modal
+            const lockResult = await openEditModal('purchase_order', po_id,'approval_penerimaan');
+            if (lockResult === false) {
+                return;
+            }
+
+            // Mulai interval untuk extend lock setiap 60 detik
+            if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
+            window.lockExtendInterval = setInterval(function() {
+                extendLock('purchase_order', po_id,'approval_penerimaan');
+            }, 60000);
 
             console.log('STORES : ', tgl_terima);
             console.log('POADS ID :', poads_invoice);
