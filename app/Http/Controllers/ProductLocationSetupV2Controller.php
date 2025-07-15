@@ -922,11 +922,17 @@ class ProductLocationSetupV2Controller extends Controller
         $st_id = $request->get('st_id');
         $date = $request->get('date');
         $search = $request->get('search');
+    
+        // Tangani string "undefined" dari frontend
         $history_bin_start = $request->get('history_bin_start');
+        $history_bin_start = ($history_bin_start === 'undefined' || $history_bin_start === '') ? null : $history_bin_start;
+    
         $history_bin_end = $request->get('history_bin_end');
-
+        $history_bin_end = ($history_bin_end === 'undefined' || $history_bin_end === '') ? null : $history_bin_end;
+    
         $start = null;
         $end = null;
+    
         $exp = explode('|', $date);
         if (count($exp) > 1) {
             if ($exp[0] != $exp[1]) {
@@ -938,9 +944,15 @@ class ProductLocationSetupV2Controller extends Controller
         } else {
             $start = $date;
         }
+    
         $fileName = 'setup_history_' . date('Y_m_d_H_i_s') . '.xlsx';
-        return Excel::download(new SetupHistoryExport($st_id, $start, $end, $search, $history_bin_start, $history_bin_end), $fileName);
+    
+        return Excel::download(
+            new SetupHistoryExport($st_id, $start, $end, $search, $history_bin_start, $history_bin_end),
+            $fileName
+        );
     }
+    
 
     public function importMultiBinsMutation(Request $request)
     {
