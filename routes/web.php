@@ -447,6 +447,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('invoice_report_datatables', [InvoiceReportController::class, 'getDatatables']);
     Route::get('article_report_datatables', [ArticleReportController::class, 'getDatatables']);
     Route::get('article_cross_report_datatables', [ArticleReportController::class, 'getCrossDatatables']);
+    Route::get('customer_details', [InvoiceReportController::class, 'detail']);
 
     // Free Sock
     Route::post('get_free_sock', [PointOfSaleController::class, 'getFreeSock']);

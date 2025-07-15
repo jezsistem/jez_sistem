@@ -192,6 +192,12 @@
         </div>
     </div>
 </div>
+
+
+<div id="loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
+    <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%" style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:10px; border-radius:10px;">
+    <div class="loading-text">Loading<span class="dots">...</span></div>
+</div>
 @include('app.offline_pos.offline_pos_modal')
 @include('app.offline_pos.offline_pos_js')
 {{--	asdasd --}}
@@ -235,6 +241,32 @@
 
     .table td {
         vertical-align: middle;
+    }
+
+    #loader .loading-text {
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        margin-top: 20px;
+        transform: translateX(-50%);
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+        font-family: Arial, sans-serif;
+    }
+
+    /* Dot animation */
+    #loader .dots::after {
+        content: "";
+        animation: dots 1s steps(4, end) infinite;
+    }
+
+
+    @keyframes dots {
+        0%, 100% { content: ""; }
+        25% { content: "."; }
+        50% { content: ".."; }
+        75% { content: "..."; }
     }
 
 </style>
