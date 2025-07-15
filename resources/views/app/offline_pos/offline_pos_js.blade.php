@@ -1560,78 +1560,79 @@
             
             processBarcodeScan(barcode, type, item_type, std_id);
         }
+    });
 
-        // Helper function to process barcode scan
-        function processBarcodeScan(barcode, type, item_type, std_id) {
+        
 
-            jQuery.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            jQuery.ajax({
-                url: "{{ url('pos_barcode_scan') }}",
-                method: "POST",
-                dataType: "json",
-                data: {
-                    barcode: barcode,
-                    type: type,
-                    _item_type: item_type,
-                    _std_id: std_id
-                },
-                beforeSend: function() {
+    function processBarcodeScan(barcode, type, item_type, std_id) {
+        jQuery.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        jQuery.ajax({
+            url: "{{ url('pos_barcode_scan') }}",
+            method: "POST",
+            dataType: "json",
+            data: {
+                barcode: barcode,
+                type: type,
+                _item_type: item_type,
+                _std_id: std_id
+            },
+            beforeSend: function() {
                 // Show the loading indicator
                 jQuery('#loader').show();
                 jQuery('#barcode_input').prop('disabled', true);
             },
             success: function (r) {
-                    if (r.status == '200') {
-                        var pt_id = '';
-                        var st_id = "{{ $data['user']->st_id }}";
-                        var p_name = r.p_name;
-                        var pst_id = r.pst_id;
-                        var fs = r.fs;
-                        var pl_id = r.pl_id;
-                        var pls_qty = r.pls_qty;
-                        var psc_id = r.psc_id;
-                        var plst_id = r.plst_id;
-                        var sell_price = r.sell_price;
-                        var bandrol = r.bandrol;
-                        var total_row = parseFloat(jQuery('#total_row').val());
-                        jQuery('#total_row').val(total_row + 1);
-                        var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
-                        var item_type = jQuery('#item_type option:selected').val();
-                        var mode = 'add';
-                        var b1g1_id = r.b1g1_id;
-                        var b1g1_price = r.b1g1_price;
-                        var highlight = '';
-                        var b1g1_mode = '';
-                        var total_discount = jQuery('#total_discount_value_side').text();
-                        var discount_normal = r.bandrol - r.sell_price;
+                if (r.status == '200') {
+                    var pt_id = '';
+                    var st_id = "{{ $data['user']->st_id }}";
+                    var p_name = r.p_name;
+                    var pst_id = r.pst_id;
+                    var fs = r.fs;
+                    var pl_id = r.pl_id;
+                    var pls_qty = r.pls_qty;
+                    var psc_id = r.psc_id;
+                    var plst_id = r.plst_id;
+                    var sell_price = r.sell_price;
+                    var bandrol = r.bandrol;
+                    var total_row = parseFloat(jQuery('#total_row').val());
+                    jQuery('#total_row').val(total_row + 1);
+                    var pos_item_list = jQuery('.pos_item_list' + pst_id).length;
+                    var item_type = jQuery('#item_type option:selected').val();
+                    var mode = 'add';
+                    var b1g1_id = r.b1g1_id;
+                    var b1g1_price = r.b1g1_price;
+                    var highlight = '';
+                    var b1g1_mode = '';
+                    var total_discount = jQuery('#total_discount_value_side').text();
+                    var discount_normal = r.bandrol - r.sell_price;
 
-                        if (psc_id == '1') {
-                            shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
-                            // console.log(shoes_voucher_temp);
-                        }
+                    if (psc_id == '1') {
+                        shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
+                        // console.log(shoes_voucher_temp);
+                    }
 
                     console.log('B1G1 : ', b1g1_id, 'Price Bogo : ', b1g1_price);
 
-                        if (b1g1_id != '' && b1g1_price != '') {
-                            b1g1_temp.push(b1g1_price);
-                            highlight =
-                                'background:#ffc107; color:#000; font-weight:bold; border-radius:20px;';
-                            b1g1_mode = 'b1g1_mode';
-                            b1g1_temp = b1g1_temp.sort((a, b) => b - a);
-                            var b1g1_total_row = b1g1_temp.length;
-                            var b1g1_qty_total = 0;
-                            if (b1g1_total_row > 0) {
-                                jQuery('#orderTable tr').each(function(index, row) {
-                                    var b1g1_qty = parseFloat(jQuery(row).find('.item_qty')
-                                        .val());
-                                    if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' ||
-                                        isNaN(b1g1_qty)) {
-                                        b1g1_qty = 0;
-                                    }
+                    if (b1g1_id != '' && b1g1_price != '') {
+                        b1g1_temp.push(b1g1_price);
+                        highlight =
+                            'background:#ffc107; color:#000; font-weight:bold; border-radius:20px;';
+                        b1g1_mode = 'b1g1_mode';
+                        b1g1_temp = b1g1_temp.sort((a, b) => b - a);
+                        var b1g1_total_row = b1g1_temp.length;
+                        var b1g1_qty_total = 0;
+                        if (b1g1_total_row > 0) {
+                            jQuery('#orderTable tr').each(function (index, row) {
+                                var b1g1_qty = parseFloat(jQuery(row).find('.item_qty')
+                                    .val());
+                                if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' ||
+                                    isNaN(b1g1_qty)) {
+                                    b1g1_qty = 0;
+                                }
 
                                 if (jQuery(row).hasClass('b1g1_mode')) {
                                     b1g1_qty_total += b1g1_qty;
@@ -1671,74 +1672,59 @@
                     var total_price = jQuery('#total_price_side').text();
                     var total_final_price = jQuery('#total_final_price_side').text();
 
-                        if (jQuery('#cust_id').val() == '') {
-                            swal('Customer', 'Pilih customer', 'warning');
-                            jQuery('#product_name_input').val('');
-                            return false;
+                    if (jQuery('#cust_id').val() == '') {
+                        swal('Customer', 'Pilih customer', 'warning');
+                        jQuery('#product_name_input').val('');
+                        return false;
+                    }
+                    jQuery.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr(
+                                'content')
                         }
-                        jQuery.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr(
-                                    'content')
-                            }
-                        });
-                        jQuery.ajax({
-                            type: 'POST',
-                            url: "{{ url('change_waiting_status') }}",
-                            data: {
-                                _pt_id: pt_id,
-                                _pst_id: pst_id,
-                                _pl_id: pl_id,
-                                _mode: mode,
-                                _item_type: item_type,
-                                _plst_id: plst_id,
-                                _sell_price: bandrol
-                                // _bandrol: bandrol
-                            },
-                            dataType: 'json',
-                            success: function(r) {
-                                jQuery.noConflict();
-                                if (r.status == '200') {
-                                    toast('Ditambah', 'Item berhasil ditambah',
-                                        'success');
-                                    jQuery('#total_item_side').text(parseInt(
-                                        total_item) +
-                                        1);
-                                    console.log('TOTAL PRICE: ', total_price_side);
-                                    console.log('TOTAL NAMESET: ', total_nameset_side);
-                                    jQuery('#total_price_side').text(addCommas(
-                                        parseFloat(replaceComma(total_price)) +
-                                        parseFloat(sell_price)));
-                                    // jQuery('#total_final_price_side').text(addCommas(parseFloat(Number(replaceComma(total_price_side)) + Number(total_nameset_side)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))));
+                    });
+                    jQuery.ajax({
+                        type: 'POST',
+                        url: "{{ url('change_waiting_status') }}",
+                        data: {
+                            _pt_id: pt_id,
+                            _pst_id: pst_id,
+                            _pl_id: pl_id,
+                            _mode: mode,
+                            _item_type: item_type,
+                            _plst_id: plst_id,
+                            _sell_price: bandrol
+                            // _bandrol: bandrol
+                        },
+                        dataType: 'json',
+                        success: function (r) {
+                            jQuery.noConflict();
+                            if (r.status == '200') {
+                                toast('Ditambah', 'Item berhasil ditambah', 'success');
+                                jQuery('#total_item_side').text(parseInt(total_item) +
+                                    1);
+                                console.log('TOTAL PRICE: ', total_price_side);
+                                console.log('TOTAL NAMESET: ', total_nameset_side);
+                                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price)));
+                                // jQuery('#total_final_price_side').text(addCommas(parseFloat(Number(replaceComma(total_price_side)) + Number(total_nameset_side)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))));
 
-                                    // JQuery('#temp_total_side').val(addCommas(parseFloat(Number(replaceComma(total_price)) + Number(total_nameset)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))))
-                                    if (item_type == 'waiting') {
-                                        jQuery('#orderTable tr:last').after("" +
-                                            "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
-                                            b1g1_mode + "' id='orderList" + (
-                                                total_row +
-                                                1) + "'>" +
-                                            "<td style='white-space: nowrap; font-size:14px; " +
-                                            highlight + "' id='item_name" + (
-                                                total_row +
-                                                1) + "'>" + p_name + "</td>" +
-                                            "<td>" + (pls_qty) + "</td> " +
+                                // JQuery('#temp_total_side').val(addCommas(parseFloat(Number(replaceComma(total_price)) + Number(total_nameset)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))))
+                                if (item_type == 'waiting') {
+                                    jQuery('#orderTable tr:last').after("" +
+                                        "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
+                                        b1g1_mode + "' id='orderList" + (total_row +
+                                            1) + "'>" +
+                                        "<td style='white-space: nowrap; font-size:14px; " +
+                                        highlight + "' id='item_name" + (total_row +
+                                            1) + "'>" + p_name + "</td>" +
+                                        "<td>" + (pls_qty) + "</td> " +
 
-                                            "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
-                                            pst_id + " item_qty' id='item_qty" + (
-                                                total_row + 1) +
-                                            "' value='1' onchange='return changeQty(" +
-                                            (total_row + 1) + ", " + pst_id + ", " +
-                                            (pls_qty) + ")'></td> " +
-                                            "<td>" +
-                                            "<select style='width: 10rem;' data-sellPrice='" +
-                                            sell_price +
-                                            "' class='form-control col-10 mr-4' id='discount_selection" +
-                                            (total_row + 1) +
-                                            "' onchange='handleSelectChange(" + (
-                                                total_row + 1) + ",this)'>" +
-                                            "<option value='0'>Discount Extra</option>" +
-                                            "<option value='1'>Discount Promo</option>" +
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
+                                        "' value='1' onchange='return changeQty(" +(total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td> " +
+                                       "<td>" +
+                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                                                "<option value='0'>Discount Extra</option>" +
+                                                "<option value='1'>Discount Promo</option>" +
                                             "</select>" +
                                         "</td>" +
                                         "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +pst_id +
@@ -1826,19 +1812,16 @@
                                 var total_price_side = replaceComma(jQuery('#total_price_side').text());
                                 var total_discount_side = replaceComma(jQuery('#total_discount_value_side').text());
 
-                                    console.log(Number(total_price_side));
-                                    console.log(Number(total_nameset_side));
-                                    console.log(Number(total_discount_side));
+                                console.log(Number(total_price_side));
+                                console.log(Number(total_nameset_side));
+                                console.log(Number(total_discount_side));
 
-                                    jQuery('#total_final_price_side').text(
-                                        addCommas(parseFloat(Number(
-                                            total_price_side) + Number(
-                                            total_nameset_side) - Number(
-                                            total_discount_side)))
-                                    );
-                                    updateTotalDiskon();
-                                    updateTotalHarga();
-                                    updateGrandTotal();
+                                jQuery('#total_final_price_side').text(
+                                    addCommas(parseFloat(Number(total_price_side) + Number(total_nameset_side) - Number(total_discount_side)))
+                                );
+                                updateTotalDiskon();
+                                updateTotalHarga();
+                                updateGrandTotal();
 
                             } else if (r.status == '400') {
                                 console.log(r.barang);
@@ -1873,7 +1856,7 @@
         });
         jQuery('#barcode_input').val('');
         jQuery('#barcode_input').focus();
-    });
+}
 
     function handleSelectChange(row, selectElement) {
         const selectedValue = selectElement.value;
@@ -1923,7 +1906,7 @@
     //     var qty = parseFloat(jQuery('#item_qty' + row).val()) || 0;
 
     //     console.log('row : ', ro);
-
+        
 
     //     jQuery('[id^="price_tag_item"]').each(function () {
     //         let val = jQuery(this).text().replace(/,/g, '');
@@ -1999,14 +1982,14 @@
     function updateTotalDiskon() {
         let total_disc_normal = 0;
         let total_disc_field = 0;
-
+        
         // get original sell price 
         // let OriginalPrice = parseFloat(jQuery('#discount_selection' + row).data('sellPrice')) || 0;
         // console.log('Sell price for row ' + row + ':', OriginalPrice);
 
         jQuery('[id^="discount_normal"]').each(function () {
             const rowId = jQuery(this).attr('id').replace('discount_normal', '');
-
+            
             let val = jQuery(this).text().replace(/,/g, '');
             let num = parseFloat(val) || 0;
 
@@ -2063,10 +2046,10 @@
             }
         },
         columns: [{
-                data: 'DT_RowIndex',
-                name: 'id',
-                searchable: false
-            },
+            data: 'DT_RowIndex',
+            name: 'id',
+            searchable: false
+        },
             {
                 data: 'br_name',
                 name: 'br_name'
@@ -2416,10 +2399,10 @@
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'ptd_id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'ptd_id',
+                searchable: false
+            },
                 {
                     data: 'article',
                     name: 'article',
@@ -2476,10 +2459,10 @@
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'ptd_id',
-                    searchable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'ptd_id',
+                searchable: false
+            },
                 {
                     data: 'article',
                     name: 'article',
@@ -2777,11 +2760,11 @@
         });
 
         @if (strtolower($data['user']->stt_name) == 'offline')
-            jQuery('#posContent').show();
-            jQuery('.sidebarPOS').show();
+        jQuery('#posContent').show();
+        jQuery('.sidebarPOS').show();
         @else
-            jQuery('#posContent').hide();
-            jQuery('.sidebarPOS').hide();
+        jQuery('#posContent').hide();
+        jQuery('.sidebarPOS').hide();
         @endif
 
         jQuery('#filter_product_btn').on('click', function (e) {
