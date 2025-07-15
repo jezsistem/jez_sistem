@@ -339,9 +339,14 @@
                 name: 'p_name',
                 orderable: false
             },
+                // {
+                //     data: 'bin',
+                //     name: 'pl_code, orderable: false'
+                // },
                 {
-                    data: 'bin',
-                    name: 'pl_code, orderable: false'
+                    data: 'sa_name',
+                    name: 'sa_name',
+                    orderable: false
                 },
                 {
                     data: 'datetime',
