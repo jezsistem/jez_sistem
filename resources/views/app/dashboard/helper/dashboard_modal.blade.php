@@ -654,7 +654,7 @@
 
                 <span style="margin-top: 20px;">Bin Set : </span><br>
                 <span>SKU : </span><span id="sku_selected"></span>
-                <input type="text" id="sku_send">
+                <input type="hidden" id="sku_send">
 {{--                <input type="text" id="" value="">--}}
 {{--                <input type="text" id="" value="">--}}
 {{--                <input type="text" id="" value="">--}}

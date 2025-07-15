@@ -312,7 +312,14 @@
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                 onchange="updateCogs()" required />
                         </div>
-
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Putaway</label>
+                            <select class="form-control" id="putaway" name="putaway" required>
+                                <option value="">- Pilih Salah Satu -</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
                     </div>
                     <!--end::Row-->
                     <!--begin::Row-->

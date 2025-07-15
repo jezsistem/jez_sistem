@@ -1,3 +1,5 @@
+<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+
 <script>
     var approval = '';
 
@@ -315,7 +317,7 @@
             po_approval_table.draw(false);
         });
 
-        $('#APtb tbody').on('click', 'tr', function() {
+        $('#APtb tbody').on('click', 'tr', async function() {
 
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
@@ -334,6 +336,7 @@
             var u_id_approve = po_approval_table.row(this).data().u_id_approve;
             var po_invoice = po_approval_table.row(this).data().po_invoice;
             var dispute = po_approval_table.row(this).data().dispute;
+            var putaway = po_approval_table.row(this).data().putaway;
             var dispute_description = po_approval_table.row(this).data().dispute_description;
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
@@ -341,6 +344,7 @@
             jQuery.noConflict();
 
             let dispute_text = '';
+            let putaway_text = '';
 
             if (dispute === 1) {
                 dispute_text = 'Yes';
@@ -349,6 +353,26 @@
             } else {
                 dispute_text = 'Empty';
             }
+
+            if (putaway === 1) {
+                putaway_text = 'Yes';
+            } else if (putaway === 0) {
+                putaway_text = 'No';
+            } else {
+                putaway_text = 'Empty';
+            }
+ 
+            // Coba dapatkan lock sebelum buka modal
+            const lockResult = await openEditModal('purchase_order', po_id,'approval_penerimaan');
+            if (lockResult === false) {
+                return;
+            }
+
+            // Mulai interval untuk extend lock setiap 60 detik
+            if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
+            window.lockExtendInterval = setInterval(function() {
+                extendLock('purchase_order', po_id,'approval_penerimaan');
+            }, 60000);
 
             console.log('STORES : ', tgl_terima);
             console.log('POADS ID :', poads_invoice);
@@ -404,6 +428,7 @@
                     $('#dispute_description').val(dispute_description);
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
+                    $('#putaway').val(putaway_text);
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();

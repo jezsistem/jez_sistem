@@ -2,6 +2,7 @@
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
 <script>
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
@@ -236,7 +237,7 @@
 
         for (let i = 0; i < total_row; ++i) {
             var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
-            var qty = $('#poad_qty_' + id + '_' + i).val() || 1;  // Default qty to 1 if not entered
+            var qty = $('#poad_qty_' + id + '_' + i).val() || 1; // Default qty to 1 if not entered
             var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
             var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
 
@@ -600,13 +601,12 @@
                 pay_date: pay_date,
                 po_id: $('#_po_id').val()
             },
-            success: function (r) {
+            success: function(r) {
                 let response = typeof r === "string" ? JSON.parse(r) : r;
-                if (response.status == '200') {
-                } else if (response.status == '500') {
-                    swal('Error', response.message );
+                if (response.status == '200') {} else if (response.status == '500') {
+                    swal('Error', response.message);
                 } else {
-                    
+
                 }
             },
         });
@@ -626,7 +626,7 @@
                 due_date: due_date,
                 po_id: $('#_po_id').val()
             },
-            success: function (r) {
+            success: function(r) {
                 let response = typeof r === "string" ? JSON.parse(r) : r;
                 if (response.status == '200') {
 
@@ -822,7 +822,7 @@
             dom: 'rt<"text-right"ip>',
             ajax: {
                 url: "{{ url('po_transfer_image_datatable') }}",
-                data: function (d) {
+                data: function(d) {
                     d._po_id = $('#_po_id').val();
                 },
             },
@@ -840,7 +840,7 @@
                 },
             ],
             columnDefs: [{
-                "targets": [0,1],
+                "targets": [0, 1],
                 "className": "text-center",
                 "width": "0%"
             }],
@@ -1160,8 +1160,21 @@
             $(window).off(evt);
         });
 
-        $('#PurchaseOrdertb tbody').on('click', 'tr', function() {
+
+        $('#PurchaseOrdertb tbody').on('click', 'tr', async function() {
             var po_id = purchase_order_table.row(this).data().po_id;
+
+            // Coba dapatkan lock sebelum buka modal
+            const lockResult = await openEditModal('purchase_order', po_id,'pembelian');
+            if (lockResult === false) {
+                return;
+            }
+
+            // Mulai interval untuk extend lock setiap 60 detik
+            if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
+            window.lockExtendInterval = setInterval(function() {
+                extendLock('purchase_order', po_id,'pembelian');
+            }, 60000);
 
             $.ajaxSetup({
                 headers: {
@@ -1180,7 +1193,7 @@
                         global_po_id = r.po_id;
                         let dispute_text = '';
                         jQuery.noConflict();
-                        if (r.dispute == 1){
+                        if (r.dispute == 1) {
                             dispute_text = 'Yes';
                         } else {
                             dispute_text = 'No';
@@ -1210,16 +1223,16 @@
             });
         });
 
-        $(document).ready(function () {
-            $("#InvoiceImagesBtn").click(function () {
+        $(document).ready(function() {
+            $("#InvoiceImagesBtn").click(function() {
                 $("#InvoiceImagesModal").modal("show");
                 purchaseOrderInvoiceTable.draw();
                 console.log($('#po_id').val());
             });
         });
 
-        $(document).ready(function () {
-            $("#BuktitfImagesBtn").click(function () {
+        $(document).ready(function() {
+            $("#BuktitfImagesBtn").click(function() {
                 $("#BuktitfImagesModal").modal("show");
                 purchaseOrderBuktitfTable.draw();
                 console.log($('#po_id').val());
@@ -1281,6 +1294,16 @@
 
         $('#save_purchase_order_btn').on('click', function(e) {
             e.preventDefault();
+            // alert("Modal ditutup, melepaskan lock...");
+            var po_id = $('#_po_id').val();
+            if (po_id) {
+                closeEditModal('purchase_order', po_id, 'pembelian');
+            }
+            // Hentikan interval extend lock
+            if (window.lockExtendInterval) {
+                clearInterval(window.lockExtendInterval);
+                window.lockExtendInterval = null;
+            }
             $('#PurchaseOrderModal').modal('hide');
             var po_id = $('#_po_id').val();
             $.ajaxSetup({
@@ -1652,7 +1675,7 @@
                     jQuery.noConflict();
                     $("#ImportModal").modal('hide');
                     console.log(data.status);
-                    
+
                     if (data.status == '200') {
                         toastr.success('Data berhasil diimport', 'Berhasil');
                         $('#f_import')[0].reset();
@@ -1663,9 +1686,10 @@
                             'File yang anda import kosong atau format tidak tepat',
                             'File');
                     } else if (data.status == '404') {
-                        checkBarcodeImport(po_id, data.process_data.not_found,'not_found');
+                        checkBarcodeImport(po_id, data.process_data.not_found, 'not_found');
                     } else if (data.status == '403') {
-                        checkBarcodeImport(po_id, data.process_data.duplicate_items, 'duplicate_items');
+                        checkBarcodeImport(po_id, data.process_data.duplicate_items,
+                            'duplicate_items');
                     } else {
                         toastr.warning(
                             'Silahkan periksa format input pada template anda, pastikan kolom biru terisi sesuai dengan sistem',
@@ -1680,7 +1704,7 @@
 
         function checkBarcodeImport(id, excelData, title) {
             excelData = Array.isArray(excelData) ? excelData : Object.values(excelData);
-            
+
             if (title == 'duplicate_items') {
                 swal_title = 'Duplicate Barcode';
 
@@ -1743,12 +1767,12 @@
         function exportToExcel(data, title) {
             var po_invoice_label = $('#po_invoice_label').text();
             let formattedData = data.map(item => ({
-            SKU: item.sku,
-            Quantity: item.qty
+                SKU: item.sku,
+                Quantity: item.qty
             }));
 
             console.log(formattedData);
-            
+
             let worksheet = XLSX.utils.json_to_sheet(formattedData);
             let workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, title);

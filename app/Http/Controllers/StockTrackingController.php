@@ -447,7 +447,8 @@ class StockTrackingController extends Controller
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->whereIn('plst_status', $status)
                 ->where('product_locations.st_id', '=', $st_id)
-                ->where('users.stt_id', '=', Auth::user()->stt_id))
+                ->where('users.stt_id', '=', Auth::user()->stt_id)
+                ->orderBy('product_location_setups.created_at', 'desc'))
                 ->editColumn('article', function ($data) {
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })

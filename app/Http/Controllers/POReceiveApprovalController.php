@@ -125,6 +125,7 @@ class POReceiveApprovalController extends Controller
                     ts_purchase_orders.dispute_description,
                     ts_purchase_orders.pay_date,
                     ts_purchase_orders.due_date,
+                    ts_purchase_orders.putaway,
                     received_date
                 ")
                     ->leftJoin('users', 'users.id', '=', 'purchase_order_article_detail_statuses.u_id_receive')
@@ -255,6 +256,7 @@ class POReceiveApprovalController extends Controller
             $r['dispute_description'] = $draft->dispute_description;
             //             $r['dispute'] = $draft->dispute;
             $r['dispute'] = (string)$draft->dispute;
+            $r['putaway'] = (string)$draft->putaway;
             $r['po_shipping_cost'] = $draft->po_shipping_cost;
             $r['po_invoice'] = $draft->po_invoice;
         } else {
@@ -272,7 +274,7 @@ class POReceiveApprovalController extends Controller
                     poad_purchase_price, ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty,
                     poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.pay_date,
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, ts_accounts.a_name, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute") // Added stkt_id and tax_id
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute, ts_purchase_orders.putaway") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')

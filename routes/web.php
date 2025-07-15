@@ -80,9 +80,7 @@ use App\Http\Controllers\SendNotificationController;
 use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
-
-
-
+use App\Http\Controllers\LockController;
 use Illuminate\Support\Facades\DB;
 /*
 |--------------------------------------------------------------------------
@@ -449,6 +447,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('invoice_report_datatables', [InvoiceReportController::class, 'getDatatables']);
     Route::get('article_report_datatables', [ArticleReportController::class, 'getDatatables']);
     Route::get('article_cross_report_datatables', [ArticleReportController::class, 'getCrossDatatables']);
+    Route::get('customer_details', [InvoiceReportController::class, 'detail']);
 
     // Free Sock
     Route::post('get_free_sock', [PointOfSaleController::class, 'getFreeSock']);
@@ -678,6 +677,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('export-perusahaan', [DataPerusahaanController::class, 'exportData']);
 
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'fetchNotifications']);
+
+    // Grup rute untuk locking, hanya bisa diakses oleh user yang sudah login
+    Route::prefix('lock')->controller(LockController::class)->group(function () {
+        Route::post('/acquire', 'acquireLock')->name('lock.acquire');
+        Route::put('/extend', 'extendLock')->name('lock.extend'); // Untuk heartbeat
+        Route::delete('/release', 'releaseLock')->name('lock.release');
+    });
 });
 
 require __DIR__ . '/purchase_order.php';

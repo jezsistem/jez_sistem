@@ -414,6 +414,7 @@ class PurchaseOrderReceiveController extends Controller
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
+                    // Get all details for this POA
                     $poad_data = PurchaseOrderArticleDetail::select(
                         'purchase_order_article_details.id as poad_id',
                         'pst_id',
@@ -427,13 +428,34 @@ class PurchaseOrderReceiveController extends Controller
                         'poad_purchase_price',
                         'poad_total_price',
                         DB::raw('SUM(poads_total_price) As poads_total_price'),
-                        'product_stocks.ps_barcode'
+                        'product_stocks.ps_barcode',
+                        'purchase_order_article_detail_statuses.poads_invoice',
+                        'purchase_order_article_detail_statuses.created_at as poads_created_at',
                     )
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->groupBy('purchase_order_article_details.id')
-                        ->where(['poa_id' => $poa->poa_id])->get();
+                        ->where(['poa_id' => $poa->poa_id])
+                        ->orderByDesc('purchase_order_article_detail_statuses.created_at')
+                        ->orderByDesc('purchase_order_article_detail_statuses.poads_invoice')
+                        ->get();
+
+                    // Mark newest data for each item by created_at and poads_invoice, grouped by p_id
+                    if (!$poad_data->isEmpty()) {
+                        // Group by p_id (from product_stocks)
+                        $grouped = $poad_data->groupBy(function ($item) {
+                            return optional(\App\Models\ProductStock::find($item->pst_id))->p_id;
+                        });
+                        foreach ($grouped as $group) {
+                            $newest = collect($group)->sortByDesc(function ($item) {
+                                return [$item->poads_created_at, $item->poads_invoice];
+                            })->first();
+                            foreach ($group as $item) {
+                                $item->is_newest = ($item->poads_created_at == $newest->poads_created_at && $item->poads_invoice == $newest->poads_invoice);
+                            }
+                        }
+                    }
 
                     // Step 2: Retrieve pls_qty from product_location_setups
                     $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
@@ -642,9 +664,11 @@ class PurchaseOrderReceiveController extends Controller
             $r['po_invoice'] = $draft->po_invoice;
         } else {
             $r['status'] = '400';
+
+            return json_encode($r);
         }
-        return json_encode($r);
     }
+
 
     public function poExport(Request $request)
     {

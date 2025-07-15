@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Lockable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrder extends Model
 {
-    use HasFactory;
+    use HasFactory, Lockable;
     protected $table = 'purchase_orders';
 
     public function checkData($select, $where)

@@ -125,7 +125,6 @@ class SalesReportController extends Controller
                 'sz_name',
                 'p_color',
                 'pos_status'
-
             )
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
@@ -156,6 +155,7 @@ class SalesReportController extends Controller
                         return '-';
                     }
                 })
+
                 ->editColumn('u_name', function ($data) {
                     return '<span style="white-space: nowrap;">' . $data->u_name . '</span>';
                 })

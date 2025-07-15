@@ -1153,6 +1153,8 @@
         console.log('st_id: ', st_id);
         console.log('cross: ', cross);
 
+        console.log('B1G1 : ', b1g1_id);
+
         if (psc_id == '1') {
             shoes_voucher_temp.push(pst_id + '-' + bandrol + '-' + sell_price);
             // console.log(shoes_voucher_temp);
@@ -1177,8 +1179,14 @@
                         if (parseFloat(sell_price) >= parseFloat(b1g1_temp[0])) {
                             sell_price = sell_price;
                             jQuery(row).find('.sell_price_item').text('0');
+
+                            jQuery(row).find('.subtotal_item').text('0');
+
+                            console.log('BOGO CEK BOLO : ',sell_price);
                         } else {
                             sell_price = 0;
+
+                            console.log('BOGO CEK BOLO : ',sell_price);
                         }
                         jQuery(row).find('.item_qty').trigger('change');
 
@@ -1571,7 +1579,12 @@
                     _item_type: item_type,
                     _std_id: std_id
                 },
-                success: function (r) {
+                beforeSend: function() {
+                // Show the loading indicator
+                jQuery('#loader').show();
+                jQuery('#barcode_input').prop('disabled', true);
+            },
+            success: function (r) {
                     if (r.status == '200') {
                         var pt_id = '';
                         var st_id = "{{ $data['user']->st_id }}";
@@ -1601,6 +1614,8 @@
                             // console.log(shoes_voucher_temp);
                         }
 
+                    console.log('B1G1 : ', b1g1_id, 'Price Bogo : ', b1g1_price);
+
                         if (b1g1_id != '' && b1g1_price != '') {
                             b1g1_temp.push(b1g1_price);
                             highlight =
@@ -1618,31 +1633,43 @@
                                         b1g1_qty = 0;
                                     }
 
-                                    if (jQuery(row).hasClass('b1g1_mode')) {
-                                        b1g1_qty_total += b1g1_qty;
-                                        if (parseFloat(sell_price) >= parseFloat(b1g1_temp[
-                                                0])) {
-                                            sell_price = sell_price;
-                                            jQuery(row).find('.sell_price_item').text('0');
-                                        } else {
-                                            sell_price = 0;
-                                        }
-                                        jQuery(row).find('.item_qty').trigger('change');
+                                if (jQuery(row).hasClass('b1g1_mode')) {
+                                    b1g1_qty_total += b1g1_qty;
+                                    if (parseFloat(sell_price) >= parseFloat(b1g1_temp[0]) || parseFloat(sell_price) == parseFloat(b1g1_temp[0])) {
+                                        sell_price = sell_price;
+                                        console.log('row : ',row);
+                                        jQuery(row).find('.sell_price_item').text('0');
 
+                                        console.log('BOGO CEK BOLO : ',sell_price);
+                                    } else {
+                                        sell_price = 0;
                                     }
-                                });
-                                if (parseFloat(b1g1_qty_total) >= 2) {
-                                    swal('1 Invoice 1 B1G1',
-                                        'Silahkan checkout item diinvoice yang baru apabila lebih dari 2pcs',
-                                        'warning');
-                                    return false;
+                                    jQuery(row).find('.item_qty').trigger('change');
+
                                 }
+                            });
+                            if (parseFloat(b1g1_qty_total) >= 2) {
+                                swal({
+                                    title: '1 Invoice 1 B1G1',
+                                    text: '', // kosongkan text
+                                    content: {
+                                        element: "p",
+                                        attributes: {
+                                            innerHTML: 'Maksimal item B1G1 hanya 2 item yaaa......,<br>Silahkan Transaksi di Invoice baru ya 😊😊',
+                                            style: "text-align: center;"
+                                        }
+                                    },
+                                    icon: 'warning'
+                                });
+
+                                return false;
                             }
-                            //testing
                         }
-                        var total_item = jQuery('#total_item_side').text();
-                        var total_price = jQuery('#total_price_side').text();
-                        var total_final_price = jQuery('#total_final_price_side').text();
+                        //testing
+                    }
+                    var total_item = jQuery('#total_item_side').text();
+                    var total_price = jQuery('#total_price_side').text();
+                    var total_final_price = jQuery('#total_final_price_side').text();
 
                         if (jQuery('#cust_id').val() == '') {
                             swal('Customer', 'Pilih customer', 'warning');
@@ -1713,141 +1740,91 @@
                                             "<option value='0'>Discount Extra</option>" +
                                             "<option value='1'>Discount Promo</option>" +
                                             "</select>" +
-                                            "</td>" +
-                                            "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
-                                            pst_id +
-                                            " discount_percentage' id='discount_percentage" +
-                                            (total_row + 1) +
-                                            "' value='0' onchange='return changeDiscountPercentage(" +
-                                            (total_row + 1) + ", " + pst_id + ", " +
-                                            (
-                                                pls_qty) + ")'></td>" +
-                                            " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
-                                            pst_id +
-                                            " discount_number' id='discount_number" +
-                                            (total_row + 1) +
-                                            "' value='' onchange='return changeDiscountNumber(" +
-                                            (total_row + 1) + ", " + pst_id + ", " +
-                                            (
-                                                pls_qty) + ")'></td>" +
-                                            "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
-                                            (total_row + 1) +
-                                            "' onchange='return namesetPrice(" + (
-                                                total_row + 1) + ")'/></td> " +
-                                            "<td><span class='price_tag_item' id='price_tag_item" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                bandrol) + "</span></td> " +
-                                            "<td><span class='sell_price_item' id='sell_price_item" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                sell_price) + "</span></td> " +
-                                            "<td><span class='discount_normal' style='width: 13rem;'  id='discount_normal" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                discount_normal) + "</span></td> " +
-                                            "<td><span class='subtotal_item' id='subtotal_item" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                sell_price) + "</span></td> " +
-                                            "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
-                                            (total_row + 1) +
-                                            "' onclick='return saveItem(" + (
-                                                total_row +
-                                                1) + ", " + pst_id + ", " +
-                                            sell_price +
-                                            ", " + (plst_id || r.plst_id) + ", " +
-                                            pl_id +
-                                            ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
-                                            "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
-                                            pst_id + ", " + sell_price + ", " + (
-                                                total_row + 1) + ", " + pl_id +
-                                            ", " + (plst_id || r.plst_id) + ", " +
-                                            bandrol +
-                                            ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
-                                        );
-                                    } else {
-                                        jQuery('#orderTable tr:last').after("" +
-                                            "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
-                                            b1g1_mode + "' id='orderList" + (
-                                                total_row +
-                                                1) + "'>" +
-                                            "<td style='white-space: nowrap; font-size:14px; " +
-                                            highlight + "' id='item_name" + (
-                                                total_row +
-                                                1) + "'>" + p_name + "</td>" +
-                                            "<td>" + (pls_qty) + "</td> " +
+                                        "</td>" +
+                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +pst_id +
+                                        " discount_percentage' id='discount_percentage" +
+                                        (total_row + 1) +
+                                        "' value='0' onchange='return changeDiscountPercentage(" +
+                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                            pls_qty) + ")'></td>" +
+                                        " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
+                                        pst_id +
+                                        " discount_number' id='discount_number" + ( total_row + 1) +"' value='' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
+                                            pls_qty) + ")'></td>" +
+                                        "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
+                                        (total_row + 1) +
+                                        "' onchange='return namesetPrice(" + (
+                                            total_row + 1) + ")'/></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' style='width: 13rem;'  id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
+                                        "<td><span class='subtotal_item' id='subtotal_item" +
+                                        (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
+                                        (total_row + 1) +
+                                        "' onclick='return saveItem(" + (total_row +
+                                            1) + ", " + pst_id + ", " + sell_price +
+                                        ", " + (plst_id || r.plst_id) + ", " + pl_id +
+                                        ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
+                                        "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
+                                        pst_id + ", " + sell_price + ", " + (
+                                            total_row + 1) + ", " + pl_id + ", " + (plst_id || r.plst_id) + ", " + bandrol +
+                                        ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
+                                    );
+                                } else {
+                                    jQuery('#orderTable tr:last').after("" +
+                                        "<tr data-list-item class='pos_item_list mb-2 bg-light-primary " +
+                                        b1g1_mode + "' id='orderList" + (total_row +
+                                            1) + "'>" +
+                                        "<td style='white-space: nowrap; font-size:14px; " +
+                                        highlight + "' id='item_name" + (total_row +
+                                            1) + "'>" + p_name + "</td>" +
+                                        "<td>" + (pls_qty) + "</td> " +
 
-                                            "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
-                                            pst_id + " item_qty' id='item_qty" + (
-                                                total_row + 1) +
-                                            "' value='1' onchange='return changeQty(" +
-                                            (total_row + 1) + ", " + pst_id + ", " +
-                                            (
-                                                pls_qty) + ")'></td> " +
-                                            "<td>" +
-                                            "<select style='width: 10rem;' data-sellPrice='" +
-                                            sell_price +
-                                            "' class='form-control col-10 mr-4' id='discount_selection" +
-                                            (total_row + 1) +
-                                            "' onchange='handleSelectChange(" + (
-                                                total_row + 1) + ",this)'>" +
-                                            "<option value='0'>Discount Extra</option>" +
-                                            "<option value='1'>Discount Promo</option>" +
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
+                                        "' value='1' onchange='return changeQty(" +
+                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                            pls_qty) + ")'></td> " +
+                                        "<td>" +
+                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                                                "<option value='0'>Discount Extra</option>" +
+                                                "<option value='1'>Discount Promo</option>" +
                                             "</select>" +
-                                            "</td>" +
-                                            "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
-                                            pst_id +
-                                            " discount_percentage' id='discount_percentage" +
-                                            (total_row + 1) +
-                                            "' value='0' onchange='return changeDiscountPercentage(" +
-                                            (total_row + 1) + ", " + pst_id + ", " +
-                                            (
-                                                pls_qty) + ")'></td>" +
-                                            " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
-                                            pst_id +
-                                            " discount_number' id='discount_number" +
-                                            (total_row + 1) +
-                                            "' value='0' onchange='return changeDiscountNumber(" +
-                                            (total_row + 1) + ", " + pst_id + ", " +
-                                            (
-                                                pls_qty) + ")'></td>" +
-                                            "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
-                                            (total_row + 1) +
-                                            "' onchange='return namesetPrice(" + (
-                                                total_row + 1) + ")'/></td> " +
-                                            // "<td><input type='text' style='width: 13rem;' class='col-8 nameset_price namset-input' value='" + sell_price +"' id='item_price" + (total_row + 1) + "'/></td> " +
-                                            "<td><span class='price_tag_item' id='price_tag_item" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                bandrol) + "</span></td> " +
-                                            "<td><span class='sell_price_item' id='sell_price_item" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                sell_price) + "</span></td> " +
-                                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                discount_normal) + "</span></td> " +
-                                            "<td><span class='subtotal_item' id='subtotal_item" +
-                                            (total_row + 1) + "'>" + addCommas(
-                                                sell_price) + "</span></td> " +
-                                            "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
-                                            (total_row + 1) +
-                                            "' onclick='return saveItem(" + (
-                                                total_row +
-                                                1) + ", " + pst_id + ", " +
-                                            sell_price +
-                                            ", " + (plst_id || r.plst_id) + ", " +
-                                            pl_id +
-                                            ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
-                                            "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
-                                            pst_id + ", " + sell_price + ", " + (
-                                                total_row + 1) + ", " + pl_id +
-                                            ", " + (plst_id || r.plst_id) + ", " +
-                                            bandrol +
-                                            ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
-                                        );
-                                    }
-                                    var total_nameset_side = replaceComma(jQuery(
-                                        '#total_nameset_side').text());
-                                    var total_price_side = replaceComma(jQuery(
-                                        '#total_price_side').text());
-                                    var total_discount_side = replaceComma(jQuery(
-                                        '#total_discount_value_side').text());
+                                        "</td>" +
+                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
+                                        pst_id +
+                                        " discount_percentage' id='discount_percentage" +
+                                        (total_row + 1) +
+                                        "' value='0' onchange='return changeDiscountPercentage(" +
+                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                            pls_qty) + ")'></td>" +
+                                        " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
+                                        pst_id +
+                                        " discount_number' id='discount_number" + (total_row + 1) +
+                                        "' value='0' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
+                                            pls_qty) + ")'></td>" +
+                                        "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td> " +
+                                        // "<td><input type='text' style='width: 13rem;' class='col-8 nameset_price namset-input' value='" + sell_price +"' id='item_price" + (total_row + 1) + "'/></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" +(total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" +(total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
+                                        "<td><span class='subtotal_item' id='subtotal_item" +
+                                        (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
+                                        (total_row + 1) +
+                                        "' onclick='return saveItem(" + (total_row +
+                                            1) + ", " + pst_id + ", " + sell_price +
+                                        ", " + (plst_id || r.plst_id) + ", " + pl_id +
+                                        ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
+                                        "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
+                                        pst_id + ", " + sell_price + ", " + (
+                                            total_row + 1) + ", " + pl_id + ", " + (plst_id || r.plst_id) + ", " + bandrol +
+                                        ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
+                                    );
+                                }
+                                var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
+                                var total_price_side = replaceComma(jQuery('#total_price_side').text());
+                                var total_discount_side = replaceComma(jQuery('#total_discount_value_side').text());
 
                                     console.log(Number(total_price_side));
                                     console.log(Number(total_nameset_side));
@@ -1863,31 +1840,39 @@
                                     updateTotalHarga();
                                     updateGrandTotal();
 
-                                } else if (r.status == '400') {
-                                    console.log(r.barang);
-                                    toast('Gagal', 'Item gagal ditambah', 'danger');
-                                }
-                            },
-                            error: function(data) {
-                                swal('Error', data, 'error');
+                            } else if (r.status == '400') {
+                                console.log(r.barang);
+                                toast('Gagal', 'Item gagal ditambah', 'danger');
                             }
-                        });
-                        if (jQuery('#voucher_code').val() != '') {
-                            var code = jQuery('#voucher_code').val();
-                            jQuery('#cancel_voucher').trigger('click');
-                            jQuery('#voucher_code').val(code);
-                            setTimeout(() => {
-                                jQuery('#f_voucher').trigger('submit');
-                            }, 300);
+                        },
+                        error: function (data) {
+                            swal('Error', data, 'error');
                         }
-                    } else {
-                        console.log(r.barang);
-                        console.log(r.status);
-                        toast('Tidak DItemukan', 'Barcode tidak ditemukan', 'warning');
+                    });
+                    if (jQuery('#voucher_code').val() != '') {
+                        var code = jQuery('#voucher_code').val();
+                        jQuery('#cancel_voucher').trigger('click');
+                        jQuery('#voucher_code').val(code);
+                        setTimeout(() => {
+                            jQuery('#f_voucher').trigger('submit');
+                        }, 300);
                     }
+                } else {
+                    console.log(r.barang);
+                    console.log(r.status);
+                    toast('Tidak DItemukan', 'Barcode tidak ditemukan', 'warning');
                 }
-            });
-        }
+
+            },
+            complete: function() {
+                // Hide the loading indicator
+                jQuery('#loader').hide();
+                jQuery('#barcode_input').prop('disabled', false).focus();
+            }
+
+        });
+        jQuery('#barcode_input').val('');
+        jQuery('#barcode_input').focus();
     });
 
     function handleSelectChange(row, selectElement) {
@@ -1949,10 +1934,42 @@
     //     jQuery('#total_price_side').text(addCommas(total));
     // }
 
+    // function updateTotalHarga() {
+    //     let total = 0;
+    //
+    //     // Cek apakah ada B1G1
+    //     let hasB1G1 = false;
+    //
+    //     jQuery('[id^="orderList"]').each(function () {
+    //         if (jQuery(this).hasClass('b1g1_mode')) {
+    //             hasB1G1 = true;
+    //             return false; // break loop
+    //         }
+    //     });
+    //
+    //     // Pilih selector yang sesuai
+    //     let selector = hasB1G1 ? '[id^="price_tag_item"]' : '[id^="sell_price_item"]';
+    //
+    //     jQuery(selector).each(function () {
+    //         const rowId = jQuery(this).attr('id').replace(selector.includes('price_tag_item') ? 'price_tag_item' : 'sell_price_item', '');
+    //
+    //         let price = jQuery(this).text().replace(/,/g, '');
+    //         price = parseFloat(price) || 0;
+    //
+    //         let qty = parseFloat(jQuery('#item_qty' + rowId).val()) || 0;
+    //
+    //         total += price * qty;
+    //
+    //         console.log(`Row ${rowId} => ${price} x ${qty} = ${price * qty}`);
+    //     });
+    //
+    //     jQuery('#total_price_side').text(addCommas(total));
+    // }
+
     function updateTotalHarga() {
         let total = 0;
 
-        // get original sell price 
+        // get original sell price
         // let OriginalPrice = parseFloat(jQuery('#discount_selection' + row).data('sellPrice')) || 0;
         // console.log('Sell price for row ' + row + ':', OriginalPrice);
 
