@@ -1483,6 +1483,9 @@
                 let selectedRow = $(matchingRows[0]);
                 let validSku =  document.getElementById('sku_selected').textContent;
                 let plst_id =  document.getElementById('plst_id').textContent;
+                let product_name = document.getElementById('product_name').textContent;
+
+                let bin_name = $('#bin_out_search').val();
 
                 // Tambahkan input SKU
                 if ($('#sku_search').length === 0) {
@@ -1500,7 +1503,7 @@
                         if (enteredSku === validSku) {
                             swal({
                                 title: "Keluar..?",
-                                text: "Yakin keluarin produk " + 2 + " dari BIN " + 2 + " ?",
+                                text: "Yakin keluarin produk " + product_name + " dari BIN " + bin_name + " ?",
                                 icon: "warning",
                                 buttons: [
                                     'Batal',
