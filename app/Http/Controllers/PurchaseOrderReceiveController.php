@@ -33,6 +33,8 @@ use App\Models\ProductSubCategory;
 use App\Models\Product;
 use App\Models\PurchaseOrderTransferImage;
 use App\Models\UserActivity;
+use App\Models\PurchaseOrderDisputeFile;
+
 
 class PurchaseOrderReceiveController extends Controller
 {
@@ -126,7 +128,8 @@ class PurchaseOrderReceiveController extends Controller
                         if ($user_data->g_name != 'administrator') {
                             $w->where('purchase_orders.st_id', '=', Auth::user()->st_id);
                         }
-                    }))
+                    })
+            )
                 ->editColumn('po_created_at_show', function ($data) {
                     return date('d/m/Y H:i:s', strtotime($data->po_created_at));
                 })
@@ -231,7 +234,7 @@ class PurchaseOrderReceiveController extends Controller
         return json_encode($r);
     }
 
-    
+
     public function generatePoInvoice()
     {
         $invoice = date('YmdHis');
@@ -400,23 +403,59 @@ class PurchaseOrderReceiveController extends Controller
                 'p_name',
                 'p_color',
                 'poa_discount',
-                'poa_extra_discount', 'poa_reminder', 'products.article_id as articleid', 'products.created_at as item_added')
+                'poa_extra_discount',
+                'poa_reminder',
+                'products.article_id as articleid',
+                'products.created_at as item_added'
+            )
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();
             if (!empty($poa_data)) {
                 $get_product = array();
                 foreach ($poa_data as $poa) {
+                    // Get all details for this POA
                     $poad_data = PurchaseOrderArticleDetail::select(
-                        'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
-                        'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
-                        'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
-                        'product_stocks.ps_barcode')
+                        'purchase_order_article_details.id as poad_id',
+                        'pst_id',
+                        'sz_name',
+                        'ps_qty',
+                        'ps_running_code',
+                        'ps_sell_price',
+                        'ps_price_tag',
+                        'poad_qty',
+                        DB::raw('SUM(poads_qty) As poads_qty'),
+                        'poad_purchase_price',
+                        'poad_total_price',
+                        DB::raw('SUM(poads_total_price) As poads_total_price'),
+                        'product_stocks.ps_barcode',
+                        'purchase_order_article_detail_statuses.poads_invoice',
+                        'purchase_order_article_detail_statuses.created_at as poads_created_at',
+                    )
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                         ->join('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                         ->groupBy('purchase_order_article_details.id')
-                        ->where(['poa_id' => $poa->poa_id])->get();
+                        ->where(['poa_id' => $poa->poa_id])
+                        ->orderByDesc('purchase_order_article_detail_statuses.created_at')
+                        ->orderByDesc('purchase_order_article_detail_statuses.poads_invoice')
+                        ->get();
+
+                    // Mark newest data for each item by created_at and poads_invoice, grouped by p_id
+                    if (!$poad_data->isEmpty()) {
+                        // Group by p_id (from product_stocks)
+                        $grouped = $poad_data->groupBy(function ($item) {
+                            return optional(\App\Models\ProductStock::find($item->pst_id))->p_id;
+                        });
+                        foreach ($grouped as $group) {
+                            $newest = collect($group)->sortByDesc(function ($item) {
+                                return [$item->poads_created_at, $item->poads_invoice];
+                            })->first();
+                            foreach ($group as $item) {
+                                $item->is_newest = ($item->poads_created_at == $newest->poads_created_at && $item->poads_invoice == $newest->poads_invoice);
+                            }
+                        }
+                    }
 
                     // Step 2: Retrieve pls_qty from product_location_setups
                     $pstIds = $poad_data->pluck('pst_id'); // Get all unique pst_ids from the $poad_data
@@ -470,7 +509,7 @@ class PurchaseOrderReceiveController extends Controller
             'product' => $get_product,
         ];
 
-//        return $data['product']['0']['subitem'][0]['total_pls_qty'];
+        //        return $data['product']['0']['subitem'][0]['total_pls_qty'];
         return view('app.purchase_order_receive._purchase_order_article_detail', compact('data'));
     }
 
@@ -499,7 +538,9 @@ class PurchaseOrderReceiveController extends Controller
                 'p_name',
                 'p_color',
                 'poa_discount',
-                'poa_extra_discount', 'poa_reminder')
+                'poa_extra_discount',
+                'poa_reminder'
+            )
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(['po_id' => $po_id])->get();
@@ -510,9 +551,18 @@ class PurchaseOrderReceiveController extends Controller
                 // Step 1: Collect poad_data
                 foreach ($poa_data as $poa) {
                     $poad_data = PurchaseOrderArticleDetail::select(
-                        'purchase_order_article_details.id as poad_id', 'pst_id', 'sz_name', 'ps_qty', 'ps_running_code',
-                        'ps_sell_price', 'ps_price_tag', 'poad_qty', DB::raw('SUM(poads_qty) As poads_qty'),
-                        'poad_purchase_price', 'poad_total_price', DB::raw('SUM(poads_total_price) As poads_total_price'),
+                        'purchase_order_article_details.id as poad_id',
+                        'pst_id',
+                        'sz_name',
+                        'ps_qty',
+                        'ps_running_code',
+                        'ps_sell_price',
+                        'ps_price_tag',
+                        'poad_qty',
+                        DB::raw('SUM(poads_qty) As poads_qty'),
+                        'poad_purchase_price',
+                        'poad_total_price',
+                        DB::raw('SUM(poads_total_price) As poads_total_price'),
                         'product_stocks.ps_barcode',
                     )
                         ->join('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
@@ -614,9 +664,11 @@ class PurchaseOrderReceiveController extends Controller
             $r['po_invoice'] = $draft->po_invoice;
         } else {
             $r['status'] = '400';
+
+            return json_encode($r);
         }
-        return json_encode($r);
     }
+
 
     public function poExport(Request $request)
     {
@@ -724,7 +776,7 @@ class PurchaseOrderReceiveController extends Controller
                         if (empty($row->invoice_image)) {
                             return '<img src="' . asset('upload/image/no_image.png') . '"/>';
                         } else {
-//                            return '<a href="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).' target=_blank>$row->invoice_image</a>';
+                            //                            return '<a href="'.asset('upload/purchase_order_invoice/'.$row->invoice_image).' target=_blank>$row->invoice_image</a>';
                             return '<a href="' . asset('upload/purchase_order_invoice/' . $row->invoice_image) . '" target="_blank">' . $row->invoice_image . '</a>';
                         }
                     })
@@ -755,7 +807,7 @@ class PurchaseOrderReceiveController extends Controller
                         if (empty($row->transfer_image)) {
                             return '<img src="' . asset('upload/image/no_image.png') . '"/>';
                         } else {
-//                            return '<a href="'.asset('upload/purchase_order_transfer/'.$row->transfer_image).' target=_blank>$row->transfer_image</a>';
+                            //                            return '<a href="'.asset('upload/purchase_order_transfer/'.$row->transfer_image).' target=_blank>$row->transfer_image</a>';
                             return '<a href="' . asset('upload/purchase_order_transfer/' . $row->transfer_image) . '" target="_blank">' . $row->transfer_image . '</a>';
                         }
                     })
@@ -855,7 +907,7 @@ class PurchaseOrderReceiveController extends Controller
 
     public function deleteImagePOSuratJalan(Request $request)
     {
-//        return $request->all();
+        //        return $request->all();
         $delete = PODeliveryOrder::where(['id' => $request->id])->first();
 
         if ($delete) {
@@ -913,5 +965,74 @@ class PurchaseOrderReceiveController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function uploadFileDispute(Request $request)
+    {
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where('id', $po_id)->exists();
+        $success = false;
+
+        if ($check && $request->hasFile('filedispute')) {
+            foreach ($request->file('filedispute') as $file) {
+                $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $destinationPath = public_path('/upload/purchase_order_dispute');
+                $file->move($destinationPath, $name);
+
+                PurchaseOrderDisputeFile::create([
+                    'purchase_order_id' => $po_id,
+                    'file_dispute' => $name,
+                ]);
+
+                $success = true;
+            }
+        }
+
+        return response()->json([
+            'status' => $check && $success ? '200' : '400'
+        ]);
+    }
+
+    public function getFileDisputeDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = $request->get('_po_id');
+
+            $query = PurchaseOrderDisputeFile::select('id', 'file_dispute')
+                ->where('purchase_order_id', $po_id)
+                ->whereNotNull('file_dispute')
+                ->where('file_dispute', '!=', '');
+
+            return datatables()->of($query)
+                ->addColumn('file', function ($data) {
+                    $fileUrl = asset('upload/purchase_order_dispute/' . $data->file_dispute);
+                    return '<a href="' . $fileUrl . '" target="_blank">' . e($data->file_dispute) . '</a>';
+                })
+                ->addColumn('action', function ($data) {
+                    return '<a href="#" class="btn btn-danger btn-sm delete-file-dispute" data-id="' . $data->id . '">Delete</a>';
+                })
+                ->rawColumns(['file', 'action'])
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
+    public function deleteFileDispute(Request $request)
+    {
+        $id = $request->id;
+        $file = PurchaseOrderDisputeFile::find($id);
+
+        if (!$file) {
+            return response()->json(['status' => '404', 'message' => 'Data tidak ditemukan']);
+        }
+
+        $path = public_path('upload/purchase_order_dispute/' . $file->file_dispute);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+
+        $file->delete();
+
+        return response()->json(['status' => '200']);
     }
 }

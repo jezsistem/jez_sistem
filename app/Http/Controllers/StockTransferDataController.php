@@ -228,7 +228,7 @@ class StockTransferDataController extends Controller
                     if ($accept_qty < $data->stfd_qty) {
                         $current_qty_accept = $data->stfd_qty - $accept_qty;
                         $temp_quantity = !empty($data->temp_stfds_qty) ? $data->temp_stfds_qty : '';
-                        return '<input class="form-control accept_qty" data-stfd_id="' . $data->stfd_id . '" data-pst_id="' . $data->pst_id . '" data-pl_id="' . $data->pl_id . '" data-stfd_qty="' . $current_qty_accept . '" value="' . $temp_quantity . '" id="accept_qty" type="number">';
+                        return '<input class="form-control accept_qty" style="min-width:80px;" data-stfd_id="' . $data->stfd_id . '" data-pst_id="' . $data->pst_id . '" data-ps_barcode="' . $data->ps_barcode . '" data-pl_id="' . $data->pl_id . '" data-stfd_qty="' . $current_qty_accept . '" value="' . $temp_quantity . '" id="accept_qty" type="number">';
                     } else {
                         return '<span class="btn btn-success">Full</span>';
                     }

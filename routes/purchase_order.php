@@ -70,7 +70,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('por_import', [POPurchaseReceiveImportController::class, 'importExcel']);
     Route::get('po_invoice_image_datatable', [PurchaseOrderReceiveController::class, 'getImageInvoiceDatatables']);
     Route::get('po_transfer_image_datatable', [PurchaseOrderReceiveController::class, 'getImageTransferDatatables']);
+    Route::get('po_dispute_file_datatable', [PurchaseOrderReceiveController::class, 'getFileDisputeDatatables']);
+    Route::post('delete_file_dispute', [PurchaseOrderReceiveController::class, 'deleteFileDispute']);
     Route::post('po_delivery_order_image', [PurchaseOrderReceiveController::class, 'uploadDeliveryOrdersImage']);
+    Route::post('upload_file_dispute', [PurchaseOrderReceiveController::class, 'uploadFileDispute']);
     Route::post('po_invoice_image_delete', [PurchaseOrderReceiveController::class, 'deleteImageInvoice']);
     Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
@@ -100,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('poads_save', [PurchaseOrderArticleDetailStatusController::class, 'storeData']);
     Route::post('dispute_save', [PurchaseOrderArticleDetailStatusController::class, 'disputeSave']);
     Route::post('dispute_description_save', [PurchaseOrderArticleDetailStatusController::class, 'disputeDescSave']);
+    Route::post('putaway_save', [PurchaseOrderArticleDetailStatusController::class, 'savePutaway']);
     Route::get('poads_datatables', [PurchaseOrderArticleDetailStatusController::class, 'getDatatables']);
     Route::post('sv_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'revisionData']);
     Route::post('dl_poads_revision', [PurchaseOrderArticleDetailStatusController::class, 'deleteData']);

@@ -320,7 +320,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dark font-weight-bold" id="transfer_modal_finish">Selesai</button>
+                <button type="button" class="btn btn-dark font-weight-bold" id="transfer_modal_finish" data-dismiss="modal">Selesai</button>
             </div>
         </div>
     </div>
@@ -354,7 +354,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dark font-weight-bold" id="transfer_detail_modal_finish">Selesai
+                <button type="button" class="btn btn-dark font-weight-bold" id="transfer_detail_modal_finish" data-dismiss="modal">Selesai
                 </button>
             </div>
         </div>
@@ -580,7 +580,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dark font-weight-bold" id="scan_transfer_modal_finish">Selesai
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_transfer_modal_finish" data-dismiss="modal">Selesai
                 </button>
             </div>
         </div>
@@ -615,7 +615,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dark font-weight-bold" id="scan_transfer_detail_modal_finish">
+                <button type="button" class="btn btn-dark font-weight-bold" id="scan_transfer_detail_modal_finish" data-dismiss="modal">
                     Selesai
                 </button>
             </div>
@@ -654,7 +654,7 @@
 
                 <span style="margin-top: 20px;">Bin Set : </span><br>
                 <span>SKU : </span><span id="sku_selected"></span>
-                <input type="text" id="sku_send">
+                <input type="hidden" id="sku_send">
 {{--                <input type="text" id="" value="">--}}
 {{--                <input type="text" id="" value="">--}}
 {{--                <input type="text" id="" value="">--}}
@@ -720,3 +720,60 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="TakeTransferItemModal" tabindex="-1" role="dialog" aria-labelledby="TakeTransferItemModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-dark">
+            <h5 class="modal-title text-light" id="TakeTransferItemModalLabel">Ambil Barang Transfer</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                <i aria-hidden="true" class="ki ki-close"></i>
+            </button>
+            </div>
+            <div class="modal-body">
+            <!-- Info section: Bin, SKU, Qty requested -->
+            <div class="alert alert-info mb-3" id="take_transfer_info">
+                <strong>Ambil dari BIN:</strong> <span id="take_transfer_bin_info">-</span> &nbsp;|&nbsp;
+                <strong>SKU:</strong> <span id="take_transfer_sku_info">-</span> &nbsp;|&nbsp;
+                <strong>Qty Diminta:</strong> <span id="take_transfer_qty_info">-</span>
+            </div>
+            <div class="d-flex justify-content-center">
+                <div>
+                    <div id="reader_take_transfer" class="rounded"></div>
+                    <div id="result"></div>
+                </div>
+            </div>
+            <form id="take_transfer_item_form" class="form-inline mb-3 mt-3">
+                <div class="form-group mr-2 mb-2">
+                <input type="text" class="form-control" id="take_transfer_bin" placeholder="BIN" autocomplete="off" required>
+                </div>
+                <div class="form-group mr-2 mb-2">
+                <input type="text" class="form-control" id="take_transfer_barcode" placeholder="Barcode" autocomplete="off" required>
+                </div>
+                <input type="hidden" id="take_transfer_quantity" value=1>
+                <button type="submit" class="btn btn-dark mb-2" id="btn_submit_scan_item_transfer">Submit</button>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="TakeTransferItemTable">
+                <thead class="bg-light text-dark">
+                    <tr>
+                    <th>BIN</th>
+                    <th>SKU</th>
+                    <th>Qty</th>
+                    <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be appended here -->
+                </tbody>
+                </table>
+            </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success font-weight-bold" id="btn_take_transfer_item">Ambil</button>
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>

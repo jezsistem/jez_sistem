@@ -225,6 +225,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('cancel_import', [ProductLocationSetupV2Controller::class, 'cancelImportData']);
     Route::post('sv_mutation_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
     Route::post('stock_location_import', [ProductLocationSetupV2Controller::class, 'importData']);
+    Route::post('stock_location_import_multibins', [ProductLocationSetupV2Controller::class, 'importMultiBinsMutation']);
+    Route::get('temp_multibins_datatable', [ProductLocationSetupV2Controller::class, 'tempMultiBinsDatatable']);
+    Route::post('multibins_mutation', [ProductLocationSetupV2Controller::class, 'multibinsMutation']);
 
     // Stock Transfer
     Route::get('transfer_stok', [StockTransferController::class, 'index'])->name('stock_transfer');
@@ -251,6 +254,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('cancel_import_transfer', [StockTransferController::class, 'cancelImportData']);
     Route::post('product_transfer', [StockTransferController::class, 'productTransfer']);
     Route::get('export_transfer_draft', [StockTransferController::class, 'exportData']);
+    Route::post('change_transfer_qty', [StockTransferController::class, 'changeTransferQty']);
+    Route::post('import_compare_done_transfer', [StockTransferController::class, 'importCompareDoneTransfer']);
 //    Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
 
     // Stock Transfer Data

@@ -787,40 +787,107 @@
     let scanner_scan_in = initializeScanner('reader_scan_in');
     let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
     let scanner_pick_online = initializeScanner('reader_pick_online');
+    let scanner_take_transfer = initializeScanner('reader_take_transfer');
 
     //
 
+    var scan_timer = null;
+
     function success(result) {
-        
-        var hasil = result;
-        
-        if (hasil.startsWith(']C1')) {
-            hasil = hasil.replace(']C1', '');
-        }
-        
-        alert(hasil);
-
-        if (modal_opened == 'ScanOutModal') {
-            $('#scan_out_search').val(hasil);
-            scan_out_table.ajax.reload();
-            
-        } else if (modal_opened == 'ScanInModal') {
-            $('#scan_in_search').val(hasil);
-            scan_in_table.ajax.reload();
-
-        } else if (modal_opened == 'ScanInRefundModal') {
-            $('#scan_in_refund_search').val(hasil);
-            scan_in_refund_table.ajax.reload();
-        }
-        else if (modal_opened == 'binModal') {
-            $('#bin_out_search').val(hasil);
-            // scan_in_refund_table.ajax.reload();
-        }
-        else if (modal_opened == 'PickOnModal') {
-            $('#scan_pick_on_search').val(hasil);
-            scan_keep_table.ajax.reload();
+        if (scan_timer) {
+            clearTimeout(scan_timer);
         }
 
+        scan_timer = setTimeout(function() {
+            var hasil = result;
+
+            if (hasil.startsWith(']C1')) {
+                hasil = hasil.replace(']C1', '');
+            }
+
+            if (modal_opened == 'ScanOutModal') {
+                alert(hasil);
+                $('#scan_out_search').val(hasil);
+                scan_out_table.ajax.reload();
+
+            } else if (modal_opened == 'ScanInModal') {
+                alert(hasil);
+                $('#scan_in_search').val(hasil);
+                scan_in_table.ajax.reload();
+
+            } else if (modal_opened == 'ScanInRefundModal') {
+                alert(hasil);
+                $('#scan_in_refund_search').val(hasil);
+                scan_in_refund_table.ajax.reload();
+
+            } else if (modal_opened == 'binModal') {
+                alert(hasil);
+                $('#bin_out_search').val(hasil);
+                // scan_in_refund_table.ajax.reload();
+
+            } else if (modal_opened == 'PickOnModal') {
+                alert(hasil);
+                $('#scan_pick_on_search').val(hasil);
+                scan_keep_table.ajax.reload();
+
+            } else if (modal_opened == 'TakeTransferItemModal') {
+                var bin_code = $('#take_transfer_bin_info').text();
+                var sku_code = $('#take_transfer_sku_info').text();
+
+                // Focus to BIN input first, then after BIN is filled, focus to SKU input
+                // If BIN already filled, skip setting it again
+                if ($('#take_transfer_bin').val().trim() === '') {
+                    $('#take_transfer_bin').val(hasil).focus();
+                    if (hasil !== bin_code) {
+                        swal({
+                            title: "Kode BIN tidak sesuai",
+                            text: "Silahkan scan ulang kode BIN yang benar.",
+                            icon: "warning",
+                            button: "OK"
+                        }).then(function() {
+                            $('#take_transfer_bin').val('').focus();
+                        });
+                        return;
+                    }
+                    return;
+                }
+
+                // If BIN already filled, focus to SKU and set hasil to SKU
+                if ($('#take_transfer_bin').val().trim() !== '' && $('#take_transfer_barcode').val().trim() === '') {
+                    // Check if the scanned barcode matches the expected SKU
+                    if (hasil !== sku_code) {
+                        swal({
+                            title: "Kode SKU tidak sesuai",
+                            text: "Silahkan scan ulang kode SKU yang benar.",
+                            icon: "warning",
+                            button: "OK"
+                        }).then(function() {
+                            $('#take_transfer_barcode').val('').focus();
+                        });
+                        return;
+                    }
+
+                    setTimeout(function() {
+                        $('#take_transfer_barcode').focus();
+                    }, 200);
+
+                    $('#take_transfer_barcode').val(hasil);
+                }
+
+                // If BIN and SKU already filled, optionally auto-submit
+                if (
+                    $('#take_transfer_bin').val().trim() !== '' &&
+                    $('#take_transfer_barcode').val().trim() !== '' &&
+                    $('#take_transfer_quantity').val().trim() !== ''
+                ) {
+                    $('#btn_submit_scan_item_transfer').click();
+
+                    $('#take_transfer_bin').val('');
+                    $('#take_transfer_barcode').val('');
+                }
+            }
+
+        }, 1000); // Add a delay of 1s to prevent spamming
     }
 
     function error(err) {
@@ -830,6 +897,17 @@
     // function console_log(result) {
     //     console.log(result);
     // }
+
+    $('#take_transfer_barcode').on('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            $('#btn_submit_scan_item_transfer').trigger('click');
+            $('#take_transfer_bin').val(''); // Clear the input after submission
+            $('#take_transfer_barcode').val(''); // Clear the input after submission
+            $('#take_transfer_bin').focus();
+
+        }
+    });
 
 
     $('#ScanIntb').on('draw.dt', function() {
@@ -1070,59 +1148,59 @@
         transfer_list_table.draw();
     });
 
-    $('#scan_transfer_search').on('keyup', function(event) {
+    $('#scan_transfer_search').on('change', function(event) {
         scan_transfer_list_table.draw();
 
-        if (event.keyCode === 13) {
-            var scan_transfer_data = [];
-            var totalRequests = 0;
-            var completedRequests = 0;
+        // if (event.keyCode === 13) {
+        //     var scan_transfer_data = [];
+        //     var totalRequests = 0;
+        //     var completedRequests = 0;
 
-            scan_transfer_list_table.rows().every(function() {
-                totalRequests++;
-                var rowData = this.data();
-                scan_transfer_data.push({
-                    _stfd_id: rowData.stfd_id,
-                });
-            });
+        //     scan_transfer_list_table.rows().every(function() {
+        //         totalRequests++;
+        //         var rowData = this.data();
+        //         scan_transfer_data.push({
+        //             _stfd_id: rowData.stfd_id,
+        //         });
+        //     });
 
-            scan_transfer_data.forEach(function(item) {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
+        //     scan_transfer_data.forEach(function(item) {
+        //         $.ajaxSetup({
+        //             headers: {
+        //                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //             }
+        //         });
 
-                $.ajax({
-                    url: "{{ url('get_transfer_item') }}",
-                    type: "POST",
-                    data: {
-                        _stfd_id: item._stfd_id,
-                    },
-                    success: function(response) {
-                        var responseObject = JSON.parse(response);
-                        var status = responseObject.status;
+        //         $.ajax({
+        //             url: "{{ url('get_transfer_item') }}",
+        //             type: "POST",
+        //             data: {
+        //                 _stfd_id: item._stfd_id,
+        //             },
+        //             success: function(response) {
+        //                 var responseObject = JSON.parse(response);
+        //                 var status = responseObject.status;
 
-                        completedRequests++;
-                        if (status == '200') {
-                            scan_transfer_list_table.draw();
-                            if (completedRequests === totalRequests) {
-                                // All requests have completed
-                                if (status == 200) {
-                                    scan_transfer_list_table.draw();
-                                    toast('Dipindahkan', ' berhasil dipindahkan',
-                                        'success');
-                                    // swal('Dipindahkan', 'Berhasil dipindahkan produk', 'success');
-                                } else {
-                                    // toast('Dipindahkan', ' berhasil dipindahkan', 'success');
-                                    swal('Gagal', 'Gagal dipindahkan produk', 'error');
-                                }
-                            }
-                        }
-                    },
-                });
-            });
-        }
+        //                 completedRequests++;
+        //                 if (status == '200') {
+        //                     scan_transfer_list_table.draw();
+        //                     if (completedRequests === totalRequests) {
+        //                         // All requests have completed
+        //                         if (status == 200) {
+        //                             scan_transfer_list_table.draw();
+        //                             toast('Dipindahkan', ' berhasil dipindahkan',
+        //                                 'success');
+        //                             // swal('Dipindahkan', 'Berhasil dipindahkan produk', 'success');
+        //                         } else {
+        //                             // toast('Dipindahkan', ' berhasil dipindahkan', 'success');
+        //                             swal('Gagal', 'Gagal dipindahkan produk', 'error');
+        //                         }
+        //                     }
+        //                 }
+        //             },
+        //         });
+        //     });
+        // }
     });
 
 
@@ -1405,6 +1483,9 @@
                 let selectedRow = $(matchingRows[0]);
                 let validSku =  document.getElementById('sku_selected').textContent;
                 let plst_id =  document.getElementById('plst_id').textContent;
+                let product_name = document.getElementById('product_name').textContent;
+
+                let bin_name = $('#bin_out_search').val();
 
                 // Tambahkan input SKU
                 if ($('#sku_search').length === 0) {
@@ -1422,7 +1503,7 @@
                         if (enteredSku === validSku) {
                             swal({
                                 title: "Keluar..?",
-                                text: "Yakin keluarin produk " + 2 + " dari BIN " + 2 + " ?",
+                                text: "Yakin keluarin produk " + product_name + " dari BIN " + bin_name + " ?",
                                 icon: "warning",
                                 buttons: [
                                     'Batal',
@@ -1757,17 +1838,54 @@
 
 
     $(document).delegate('#get_transfer_item', 'click', function() {
+        jQuery.noConflict();
+
         var stfd_id = $(this).attr('data-stfd_id');
         var p_name = $(this).attr('data-p_name');
         var bin = $(this).attr('data-bin');
+        var qty = $(this).attr('data-stfd_qty');
+        var barcode = $(this).attr('data-ps-barcode');
+
+        $('#take_transfer_bin_info').text(bin);
+        $('#take_transfer_sku_info').text(barcode);
+        $('#take_transfer_qty_info').text(qty);
+
+        modal_opened = 'TakeTransferItemModal';
+        $('#TakeTransferItemModal').modal('show');
+        scanner_take_transfer.render(success, error);
+        localStorage.removeItem('take_transfer_item_form_data');
+        loadTakeTransferItemFormData();
+    });
+
+    $(document).on('click', '#btn_take_transfer_item', function(e) {
+        e.preventDefault();
+
+        var cacheKey = 'take_transfer_item_form_data';
+        var data = localStorage.getItem(cacheKey);
+        var stfd_id = $('#get_transfer_item').data('stfd_id'); // or get from modal context
+
+        if (!data) {
+            swal('Kosong', 'Tidak ada data yang akan dikirim', 'warning');
+            return;
+        }
+
+        var arr;
+        try {
+            arr = JSON.parse(data);
+            if (!Array.isArray(arr) || arr.length === 0) {
+                swal('Kosong', 'Tidak ada data yang akan dikirim', 'warning');
+                return;
+            }
+        } catch (e) {
+            swal('Error', 'Data cache rusak', 'error');
+            return;
+        }
+
         swal({
-            title: "Ambil..?",
-            text: "Yakin sudah ambil produk " + p_name + " dari " + bin + " ?",
+            title: "Ambil Barang?",
+            text: "Yakin ingin mengambil item transfer ini?",
             icon: "warning",
-            buttons: [
-                'Batal',
-                'Yakin'
-            ],
+            buttons: ['Batal', 'Yakin'],
             dangerMode: false,
         }).then(function(isConfirm) {
             if (isConfirm) {
@@ -1777,24 +1895,142 @@
                     }
                 });
                 $.ajax({
+                    url: "{{ url('get_transfer_item') }}",
                     type: "POST",
                     data: {
-                        _stfd_id: stfd_id
+                        stfd_id: stfd_id,
                     },
                     dataType: 'json',
-                    url: "{{ url('get_transfer_item') }}",
                     success: function(r) {
                         if (r.status == '200') {
-                            toast('Diambil', p_name + ' berhasil diambil', 'success');
+                            swal('Berhasil', 'Barang berhasil diambil', 'success');
                             transfer_list_table.draw();
+                            scan_transfer_list_table.draw();
+                            $('#TakeTransferItemModal').modal('hide');
+                            localStorage.removeItem(cacheKey);
                         } else {
-                            swal('Gagal', 'Gagal ambil produk', 'error');
+                            swal('Gagal', 'Gagal mengambil barang', 'error');
                         }
+                    },
+                    error: function() {
+                        swal('Error', 'Terjadi kesalahan server', 'error');
                     }
                 });
-                return false;
             }
-        })
+        });
+    });
+
+    $(document).on('click', '#btn_submit_scan_item_transfer', function(e) {
+        e.preventDefault();
+        // Get values from the form fields
+        var bin=$.trim($('#take_transfer_bin').val());
+        var sku=$.trim($('#take_transfer_barcode').val());
+        var qty = parseInt($('#take_transfer_quantity').val(), 10);
+
+        // Get max qty from the modal info
+        var maxQty = parseInt($('#take_transfer_qty_info').text(), 10);
+        var binInfo = $('#take_transfer_bin_info').text();
+        var skuInfo = $('#take_transfer_sku_info').text();
+
+        if (bin !== binInfo) {
+            swal('BIN tidak sesuai', 'BIN yang diinput tidak sesuai', 'warning');
+            return;
+        }
+        if (sku !== skuInfo) {
+            swal('SKU tidak sesuai', 'SKU yang diinput tidak sesuai', 'warning');
+            return;
+        }
+
+        // Check how much data is already in cache and sum qty
+        var cacheKey = 'take_transfer_item_form_data';
+        var dataArr = [];
+        var existing = localStorage.getItem(cacheKey);
+        var totalQty = 0;
+        if (existing) {
+            try {
+                dataArr = JSON.parse(existing);
+                if (!Array.isArray(dataArr)) dataArr = [];
+                totalQty = dataArr.reduce(function(sum, item) {
+                    return sum + (parseInt(item.qty, 10) || 0);
+                }, 0);
+            } catch (e) {
+                dataArr = [];
+                totalQty = 0;
+            }
+        }
+
+        if (isNaN(qty) || qty <= 0) {
+            swal('Qty tidak valid', 'Qty harus lebih dari 0', 'warning');
+            return;
+        }
+        if (isNaN(maxQty) || (totalQty + qty) > maxQty) {
+            swal('Qty melebihi batas', 'Total qty tidak boleh lebih dari ' + maxQty, 'warning');
+            return;
+        }
+
+        dataArr.push({ bin: bin, sku: sku, qty: qty });
+        localStorage.setItem(cacheKey, JSON.stringify(dataArr));
+        toast('Tersimpan', 'Data berhasil disimpan ke cache', 'success');
+        loadTakeTransferItemFormData();
+    });
+
+    // Update loadTakeTransferItemFormData to handle array
+    function loadTakeTransferItemFormData() {
+        $('#btn_take_transfer_item').prop('disabled', true);
+        var cacheKey = 'take_transfer_item_form_data';
+        var data = localStorage.getItem(cacheKey);
+        var tbody = $('#TakeTransferItemTable tbody');
+        var maxQty = parseInt($('#take_transfer_qty_info').text(), 10);
+
+        tbody.empty();
+        if (data) {
+            try {
+                var arr = JSON.parse(data);
+                if (!Array.isArray(arr)) arr = [];
+                var totalQty = arr.reduce((sum, item) => sum + (parseInt(item.qty, 10) || 0), 0);
+                $('#btn_take_transfer_item').prop('disabled', totalQty !== maxQty);
+                arr.forEach((obj, idx) => {
+                    tbody.append(`<tr>
+                        <td>${obj.bin || ''}</td>
+                        <td>${obj.sku || ''}</td>
+                        <td>${obj.qty || ''}</td>
+                        <td><button class="btn btn-sm btn-danger delete-take-transfer-item" data-idx="${idx}">Delete</button></td>
+                    </tr>`);
+                });
+            } catch (e) {
+                console.error('Failed to parse cached form data', e);
+            }
+        }
+    }
+
+    // Delete action for TakeTransferItemTable (delete only selected row)
+    $(document).on('click', '.delete-take-transfer-item', function() {
+        var cacheKey = 'take_transfer_item_form_data';
+        var idx = $(this).data('idx');
+        var data = localStorage.getItem(cacheKey);
+        if (data) {
+            try {
+                var arr = JSON.parse(data);
+                if (Array.isArray(arr)) {
+                    arr.splice(idx, 1);
+                    localStorage.setItem(cacheKey, JSON.stringify(arr));
+                }
+            } catch (e) {}
+        }
+        loadTakeTransferItemFormData();
+        toast('Dihapus', 'Data berhasil dihapus dari cache', 'success');
+    });
+
+    // Clear take_transfer_item_form_data when modal closed
+    // Make sure this binding is outside of any other event or function and only bound once
+    $(document).ready(function() {
+        $('#TakeTransferItemModal').off('hide.bs.modal').on('hide.bs.modal', function() {
+            modal_opened = '';
+            $('#take_transfer_bin').val('');
+            $('#take_transfer_barcode').val('');
+            scanner_take_transfer.clear();
+            localStorage.removeItem('take_transfer_item_form_data');
+        });
     });
 
     $('#out_modal_finish, #in_modal_finish, #transfer_modal_finish, #transfer_detail_modal_finish, #scan_out_modal_finish, #scan_in_modal_finish, #scan_transfer_modal_finish, #scan_in_refund_modal_finish')
@@ -2381,6 +2617,104 @@
         $('#ScanTransferDetailModal').on('show.bs.modal', function() {
             scan_transfer_list_table.draw();
         }).modal('show');
+    });
+
+    $(document).on('click', '#change_transfer_quantity', function() {
+        var stfd_id = $(this).data('stfd_id');
+        var current_qty = $(this).data('stfd_qty');
+        var current_stock = $(this).data('current_stock');
+        var p_name = $(this).data('p_name');
+
+        // Remove any existing modal
+        $('#changeQtyModal').remove();
+
+        // Append modal HTML to body
+        $('body').append(`
+            <div class="modal fade" id="changeQtyModal" tabindex="-1" role="dialog" aria-labelledby="changeQtyModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+            <form id="changeQtyForm">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="changeQtyModalLabel">Ubah Qty untuk ${p_name}</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                <div class="form-group row align-items-center mb-3">
+                    <label for="current_qty" class="col-sm-2 col-form-label font-weight-bold">Stok</label>
+                    <div class="col-sm-3">
+                        <input type="number" class="form-control-plaintext text-center bg-light border rounded" id="current_qty" value="${current_stock}" disabled>
+                    </div>
+                    <label for="new_qty" class="col-sm-2 col-form-label font-weight-bold">Qty Baru</label>
+                    <div class="col-sm-3">
+                        <input type="number" class="form-control text-center border-primary" id="new_qty" name="new_qty" min="1" value="${current_qty}" required>
+                    </div>
+                </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                  <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+              </div>
+            </form>
+              </div>
+            </div>
+        `);
+
+        // Show modal
+        $('#changeQtyModal').modal('show');
+
+        // Handle form submit
+        $('#changeQtyForm').on('submit', function(e) {
+            e.preventDefault();
+            var qty = parseInt($('#new_qty').val(), 10);
+            if (qty && !isNaN(qty) && qty > 0) {
+                swal({
+                    title: "Konfirmasi",
+                    text: "Yakin ingin mengubah qty menjadi " + qty + "?",
+                    icon: "info",
+                    buttons: [
+                        'Batal',
+                        'Yakin'
+                    ],
+                }).then(function(confirmChange) {
+                    if (confirmChange) {
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+                        $.ajax({
+                            url: "{{ url('change_transfer_qty') }}",
+                            type: "POST",
+                            data: {
+                                id: stfd_id,
+                                qty: qty
+                            },
+                            dataType: 'json',
+                            success: function(r) {
+                                if (r.status == '200') {
+                                    toast('Berhasil', 'Qty berhasil diubah', 'success');
+                                    transfer_list_table.draw();
+                                    scan_transfer_list_table.draw();
+                                    $('#changeQtyModal').modal('hide');
+                                } else {
+                                    swal('Gagal', r.message, 'error');
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Remove modal from DOM after it's hidden
+        $('#changeQtyModal').on('hidden.bs.modal', function () {
+            transfer_list_table.draw();
+            scan_transfer_list_table.draw();
+            $(this).remove();
+        });
     });
 
 
