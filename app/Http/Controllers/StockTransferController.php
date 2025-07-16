@@ -393,7 +393,21 @@ class StockTransferController extends Controller
 
     public function getTransferItem(Request $request)
     {
-        $stfd_id = $request->stfd_id;
+        if ($request->stfd_id) {
+            $stfd_id = $request->stfd_id;
+        } else if ($request->_stfd_id) {
+            $stfd_id = $request->_stfd_id;
+        } else {
+            $r['status'] = '400';
+            $r['message'] = 'ID Transfer Item tidak ditemukan';
+            return json_encode($r);
+        }
+
+        if (empty($stfd_id)) {
+            $r['status'] = '400';
+            $r['message'] = 'ID Transfer Item tidak ditemukan';
+            return json_encode($r);
+        }
         $update = StockTransferDetail::where('id', '=', $stfd_id)->update([
             'stfd_status' => '1'
         ]);

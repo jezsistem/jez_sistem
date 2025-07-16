@@ -1074,6 +1074,9 @@
         scan_transfer_list_table.draw();
 
         if (event.keyCode === 13) {
+            if ($('#scan_transfer_search').val().trim() === '') {
+                return;
+            }
             var scan_transfer_data = [];
             var totalRequests = 0;
             var completedRequests = 0;
@@ -1563,6 +1566,7 @@
                         if (r.status == '200') {
                             toast('Diambil', p_name + ' berhasil diambil', 'success');
                             transfer_list_table.draw();
+                            scan_transfer_list_table.draw();
                         } else {
                             swal('Gagal', 'Gagal ambil produk', 'error');
                         }
