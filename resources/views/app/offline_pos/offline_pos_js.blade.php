@@ -3,8 +3,8 @@
 <script src="{{ asset('pos/js') }}/jquery.dataTables.min.js"></script>
 <script src="{{ asset('pos/js') }}/multiple-select.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
-        integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="{{ asset('pos/js') }}/script.bundle.js"></script>
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script src="{{ asset('cdn/select2.min.js') }}"></script>
@@ -32,7 +32,7 @@
         let new_dicount = 0;
         let new_price = 0;
         var orginal_price = 0;
-     
+
         var item_qty = jQuery('#item_qty' + row).val();
 
         var selected_discount = jQuery('#discount_selection' + row).val();
@@ -40,13 +40,13 @@
         var discount_normal = jQuery('#discount_normal' + row).text().replace(/,/g, '');
 
         var price_tag = jQuery('#price_tag_item' + row).text().replace(/,/g, '');
-       
+
         if (selected_discount == 1) {
             orginal_price = price_tag;
         } else {
             originalPrice = jQuery('#discount_selection' + row).data('sellprice');
         }
-        
+
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
 
         var subtotal_item = replaceComma(jQuery('#subtotal_item' + row).text());
@@ -393,7 +393,7 @@
         } else {
             discount_number = disc_value + disc_text;
         }
-        
+
         // if (b1g1_temp.length > 0) {
         //     price = replaceComma(sell_price_item);
         // }
@@ -800,7 +800,7 @@
                         alert('Please allow popups for this website');
                     }
                     @php  session()->forget('voc_item') @endphp
-                        b1g1_temp = [];
+                    b1g1_temp = [];
                     // reloadRefund();
                     console.log(r.invoice);
                     // swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
@@ -1519,6 +1519,52 @@
 
         var barcode = inpBarcode.replace(/(\r\n|\n|\r)/gm, '');
 
+        jQuery('#barcode_input').val('');
+        if (item_type === 'store') {
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            jQuery.ajax({
+                url: "{{ url('has_waiting_status') }}",
+                method: "GET",
+                data: {
+                    barcode: barcode
+                },
+                dataType: "json",
+                success: function(r) {
+                    if (r.status == '200') {
+                        // Handle success response
+                        console.log('Barcode found in waiting status');
+                        if (confirm(r.message)) {
+                            // Proceed with barcode scan
+                            
+                            processBarcodeScan(barcode, type, item_type, std_id);
+                        } else {
+                            
+                            return false;
+                        }
+                    } else {
+                        // Handle other status
+                        console.log('Barcode not found or other status');
+                        processBarcodeScan(barcode, type, item_type, std_id);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error checking waiting status:', error);
+                }
+            });
+            return; // Prevent further execution until AJAX completes
+        } else {
+            
+            processBarcodeScan(barcode, type, item_type, std_id);
+        }
+    });
+
+        
+
+    function processBarcodeScan(barcode, type, item_type, std_id) {
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -1810,7 +1856,7 @@
         });
         jQuery('#barcode_input').val('');
         jQuery('#barcode_input').focus();
-    });
+}
 
     function handleSelectChange(row, selectElement) {
         const selectedValue = selectElement.value;
