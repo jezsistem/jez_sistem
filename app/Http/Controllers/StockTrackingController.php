@@ -637,33 +637,30 @@ class StockTrackingController extends Controller
     public
     function cancelPickupItem(Request $request)
     {
-        $plst_id = $request->_plst_id;
-        $pls_id = $request->_pls_id;
-        $pst_id = $request->_pst_id;
-        $pl_id = $request->_pl_id;
-        $pl_code = $request->_pl_code;
+        try {
+            DB::beginTransaction();
 
-        $is_approval = DB::table('product_location_setup_transactions')
-            ->where('id', '=', $plst_id)
-            ->where('is_approval', '=', '1')->first();
-        if (!empty($is_approval)) {
-            $update = DB::table('product_location_setup_transactions')
-                ->where('id', '=', $plst_id)
-                ->update([
-                    'plst_status' => 'INSTOCK APPROVAL',
-                    'is_approval' => '0'
-                ]);
-            $r['status'] = 200;
-            return json_encode($r);
-        }
+            $plst_id = $request->_plst_id;
+            $pls_id = $request->_pls_id;
+            $pst_id = $request->_pst_id;
+            $pl_id = $request->_pl_id;
+            $pl_code = $request->_pl_code;
 
-        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->first();
-        $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
-            'pls_qty' => ($pls->pls_qty + 1),
-            'updated_at' => now()
-        ]);
+            // $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->first();
+            // $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
+            //     'pls_qty' => ($pls->pls_qty + 1),
+            //     'updated_at' => now()
+            // ]);
 
-        if (!empty($update)) {
+            // Simulasi update, jika ingin mengaktifkan update qty, uncomment kode di atas dan baris di bawah ini
+            // if (!empty($update)) {
+            //     // lanjut
+            // } else {
+            //     $r['status'] = '400';
+            //     DB::rollBack();
+            //     return json_encode($r);
+            // }
+
             // Ambil data transaksi sebelum update
             $plst = DB::table('product_location_setup_transactions')->where('id', $plst_id)->first();
 
@@ -676,7 +673,7 @@ class StockTrackingController extends Controller
             ];
 
             // Tambahkan cancel_pickup_time jika status sebelumnya adalah WAITING TO TAKE
-            if ($plst->plst_status === 'WAITING TO TAKE') {
+            if ($plst && $plst->plst_status === 'WAITING TO TAKE') {
                 $updateData['cancel_pickup_time'] = now();
             }
 
@@ -686,18 +683,26 @@ class StockTrackingController extends Controller
                 ->whereIn('plst_status', ['WAITING TO TAKE', 'WAITING ONLINE', 'WAITING OFFLINE', 'EXCHANGE', 'REFUND'])
                 ->update($updateData);
 
-            // Logging
-            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
-                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->where('product_stocks.id', $pst_id)
-                ->first();
+            if ($update_plst) {
+                // Logging
+                $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where('product_stocks.id', $pst_id)
+                    ->first();
 
-            $this->UserActivity('membatalkan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
-            $r['status'] = '200';
-        } else {
+                $this->UserActivity('membatalkan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['error'] = $e->getMessage();
         }
 
         return json_encode($r);
