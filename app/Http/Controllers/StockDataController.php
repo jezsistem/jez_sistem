@@ -612,16 +612,16 @@ class StockDataController extends Controller
 //                                                    $bin .= '<span title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->ps_barcode . ' ' . $lrow->ps_barcode . '" data-qty="' . $lrow->qty_normal . '" data-pst_id="' . $srow->pst_id . '"  data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' .  $lrow->qty_normal . '</span> ';
 //                                                }
 
-                                                if ($lrow->qty_toko > 0) {
-                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"  
-                                                    data-p_article="' . $row->article_id . '" 
-                                                    data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
-                                                    data-ps_barcode="' . $lrow->ps_barcode . '"  
-                                                    data-qty="' . $lrow->qty_toko . '" 
-                                                    data-pst_id="' . $srow->pst_id . '" 
-                                                    data-pls_id="' . $lrow->pst_id . '" 
-                                                    id="pickup_item">' . $lrow->qty_toko . '</span> ';
-                                                }
+                                                // if ($lrow->qty_toko > 0) {
+                                                //     $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"  
+                                                //     data-p_article="' . $row->article_id . '" 
+                                                //     data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
+                                                //     data-ps_barcode="' . $lrow->ps_barcode . '"  
+                                                //     data-qty="' . $lrow->qty_toko . '" 
+                                                //     data-pst_id="' . $srow->pst_id . '" 
+                                                //     data-pls_id="' . $lrow->pst_id . '" 
+                                                //     id="pickup_item">' . $lrow->qty_toko . '</span> ';
+                                                // }
 //                                                else if ($lrow->qty_normal > 0) {
 //                                                    $bin .= '<span title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"
 //                                                    class="btn-sm-custom btn-success"
@@ -636,18 +636,19 @@ class StockDataController extends Controller
                                                 // Render kolom dinamis per storage area
                                                 foreach ($areas as $idsa => $area) {
                                                     $key = 'qty_' . str_replace([' ', '-'], '_', strtolower($area));
-
                                                     if (isset($lrow->$key) && $lrow->$key > 0) {
-                                                        $bin .= '<span class="btn-sm-custom btn-success" title="Gudang - ' . $area . ' - ' . $idsa .'"  
-                                                        data-p_article="' . $row->article_id . '" 
-                                                        data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
-                                                        data-ps_barcode="' . $lrow->ps_barcode . '"  
-                                                        data-qty="' . $lrow->$key . '" 
-                                                        data-pst_id="' . $srow->pst_id . '" 
-                                                        data-storage_area="' . $area . '" 
-                                                        data-sa_id="' . $idsa . '"
-                                                        data-sa_name = "Gudang - ' . $area . '"
-                                                        id="pickup_item">' . $lrow->$key . '</span> ';
+                                                        // Use blue btn color if sa_name is DISPLAY
+                                                        $btnClass = (isset($area) && strtoupper($area) === 'DISPLAY') ? 'btn-info' : 'btn-success';
+                                                        $bin .= '<span class="btn-sm-custom ' . $btnClass . '" title="Gudang - ' . $area . ' - ' . $idsa . '"  
+                                                            data-p_article="' . $row->article_id . '" 
+                                                            data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
+                                                            data-ps_barcode="' . $lrow->ps_barcode . '"  
+                                                            data-qty="' . $lrow->$key . '" 
+                                                            data-pst_id="' . $srow->pst_id . '" 
+                                                            data-storage_area="' . $area . '" 
+                                                            data-sa_id="' . $idsa . '"
+                                                            data-sa_name="Gudang - ' . $area . '"
+                                                            id="pickup_item">' . $lrow->$key . '</span> ';
                                                     }
                                                 }
                                             } else {
