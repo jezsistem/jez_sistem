@@ -1852,6 +1852,7 @@
 
         modal_opened = 'TakeTransferItemModal';
         $('#TakeTransferItemModal').modal('show');
+        $('#_stfd_id').val($('#get_transfer_item').data('stfd_id'));
         scanner_take_transfer.render(success, error);
         localStorage.removeItem('take_transfer_item_form_data');
         loadTakeTransferItemFormData();
@@ -1862,7 +1863,7 @@
 
         var cacheKey = 'take_transfer_item_form_data';
         var data = localStorage.getItem(cacheKey);
-        var stfd_id = $('#get_transfer_item').data('stfd_id'); // or get from modal context
+        stfd_id = $('#_stfd_id').val();
 
         if (!data) {
             swal('Kosong', 'Tidak ada data yang akan dikirim', 'warning');

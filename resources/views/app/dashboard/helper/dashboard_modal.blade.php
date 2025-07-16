@@ -724,6 +724,7 @@
 <!-- Modal-->
 <div class="modal fade" id="TakeTransferItemModal" tabindex="-1" role="dialog" aria-labelledby="TakeTransferItemModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <input type="hidden" id="_stfd_id"/>
         <div class="modal-content">
             <div class="modal-header bg-dark">
             <h5 class="modal-title text-light" id="TakeTransferItemModalLabel">Ambil Barang Transfer</h5>
