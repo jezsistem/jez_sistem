@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\B1g1Controller;
+use App\Http\Controllers\CycleCountController;
 use App\Http\Controllers\ExceptionLocationController;
 use App\Http\Controllers\InstockApprovalController;
 use App\Http\Controllers\InstockListController;
@@ -108,6 +109,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('mass_adjustment_approval', [MassAdjustmentController::class, 'approvalData']);
     Route::post('mass_adjustment_exec', [MassAdjustmentController::class, 'execData']);
     Route::post('mass_adjustment_cancel', [MassAdjustmentController::class, 'cancelAdjustment']);
+
+
+    //cycle count
+    Route::get('cycle_counts', [CycleCountController::class, 'index']);
+    Route::get('scan_get_item_details', [CycleCountController::class, 'getItemDetails']);
+
 
 
     Route::post('mass_stock_datatables_filter', [MassAdjustmentController::class, 'adjustmentDatatablesFilter']);
