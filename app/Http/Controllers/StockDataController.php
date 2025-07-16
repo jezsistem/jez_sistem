@@ -398,7 +398,7 @@ class StockDataController extends Controller
                                     }
 
                                     // place to new array
-                                    $areas = DB::table('storage_areas')->pluck('name', 'id')->toArray();
+                                    $areas = DB::table('storage_areas')->where('st_id', $st_id)->pluck('name', 'id')->toArray();
 
 //                                    dd($areas);
 
