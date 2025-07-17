@@ -674,7 +674,7 @@
                 </table>
                 <div class="text-right mt-3">
                     {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>--}}
-                    <button type="button" class="btn btn-dark font-weight-bold" data-dismiss="modal">Selesai</button>
+                    <button type="button" class="btn btn-dark font-weight-bold" id="close_scan_out_modal" data-dismiss="modal">Selesai</button>
                 </div>
             </div>
         </div>

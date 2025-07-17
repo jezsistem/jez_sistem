@@ -788,7 +788,7 @@
     let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
     let scanner_pick_online = initializeScanner('reader_pick_online');
     let scanner_take_transfer = initializeScanner('reader_take_transfer');
-
+    let scanner_scan_default = initializeScanner('reader_default');
     //
 
     var scan_timer = null;
@@ -821,8 +821,18 @@
                 scan_in_refund_table.ajax.reload();
 
             } else if (modal_opened == 'binModal') {
-                alert(hasil);
-                $('#bin_out_search').val(hasil);
+                // alert(hasil);
+                $('#sku_search').focus().val(hasil);
+
+                // Trigger keyup event with ENTER key using native KeyboardEvent
+                var event = new KeyboardEvent('keyup', {
+                    key: 'Enter',
+                    keyCode: 13,
+                    which: 13,
+                    bubbles: true,
+                    cancelable: true
+                });
+                document.getElementById('sku_search').dispatchEvent(event);
                 // scan_in_refund_table.ajax.reload();
 
             } else if (modal_opened == 'PickOnModal') {
@@ -1397,6 +1407,30 @@
     //     // }
     // });
 
+    $('#close_scan_out_modal').on('click', function() {
+        $('#sku_send').val('');
+        $('#bin_out_search').val('');
+        $('#binTable tbody').empty();
+        $('#sku_search').remove();
+        $('#bin_out_search').prop('disabled', false);
+    });
+
+    $(document).on('click', '.ambil-dari-bin', function(e) {
+        // e.preventDefault();
+        var pl_code = $(this).data('pl_code');
+        $('#bin_out_search').focus().val(pl_code);
+
+        // Trigger keyup event with ENTER key using native KeyboardEvent
+        var event = new KeyboardEvent('keyup', {
+            key: 'Enter',
+            keyCode: 13,
+            which: 13,
+            bubbles: true,
+            cancelable: true
+        });
+        document.getElementById('bin_out_search').dispatchEvent(event);
+    });
+
     $(document).on('click', '#pick_get_bin_products', function (e) {
         e.preventDefault();
 
@@ -1448,7 +1482,6 @@
                 modal_opened = 'binModal';
                                 // Tampilkan modal
                 $('#binModal').modal('show');
-
                 // scan_in_table.draw();
                 scanner_scan_bin_out.render(success, error);
 
@@ -1585,6 +1618,7 @@
 
 
     $(document).ready(function () {
+        scanner_scan_default.render(success, error);
         $('#binModal').on('shown.bs.modal', function () {
 
             if ($('#bin_out_search').val().trim() === '') {
@@ -1839,6 +1873,7 @@
 
     $(document).delegate('#get_transfer_item', 'click', function() {
         jQuery.noConflict();
+        scanner_scan_default.clear();
 
         var stfd_id = $(this).attr('data-stfd_id');
         var p_name = $(this).attr('data-p_name');
@@ -2374,6 +2409,7 @@
 
     jQuery.noConflict();
     $('#out_btn').on('click', function(e) {
+        scanner_scan_bin_out.clear();
         e.preventDefault();
         modal_opened = 'ScanOutModal';
         $('#st_id').val('');
@@ -2402,6 +2438,7 @@
     });
 
     $('#scan_in_btn').on('click', function(e) {
+        scanner_scan_bin_out.clear();
         e.preventDefault();
         modal_opened = 'ScanInModal';
         $('#st_id').val('');
@@ -2415,6 +2452,7 @@
     });
 
     $('#scan_in_refund_btn').on('click', function(e) {
+        scanner_scan_default.clear();
         e.preventDefault();
         modal_opened = 'ScanInRefundModal';
         $('#st_id').val('');
@@ -2439,6 +2477,7 @@
     });
 
     $('#take_online_btn').on('click', function(e) {
+        scanner_scan_default.clear();
         e.preventDefault();
         modal_opened = 'PickOnModal';
         $('#st_id').val('');
