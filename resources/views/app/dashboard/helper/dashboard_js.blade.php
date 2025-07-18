@@ -1849,10 +1849,11 @@
         $('#take_transfer_bin_info').text(bin);
         $('#take_transfer_sku_info').text(barcode);
         $('#take_transfer_qty_info').text(qty);
+        $('#take_transfer_p_name_info').text(p_name);
 
         modal_opened = 'TakeTransferItemModal';
         $('#TakeTransferItemModal').modal('show');
-        $('#_stfd_id').val($('#get_transfer_item').data('stfd_id'));
+        $('#_stfd_id').val(stfd_id);
         scanner_take_transfer.render(success, error);
         localStorage.removeItem('take_transfer_item_form_data');
         loadTakeTransferItemFormData();
@@ -1863,7 +1864,6 @@
 
         var cacheKey = 'take_transfer_item_form_data';
         var data = localStorage.getItem(cacheKey);
-        stfd_id = $('#_stfd_id').val();
 
         if (!data) {
             swal('Kosong', 'Tidak ada data yang akan dikirim', 'warning');
@@ -1899,7 +1899,10 @@
                     url: "{{ url('get_transfer_item') }}",
                     type: "POST",
                     data: {
-                        stfd_id: stfd_id,
+                        stfd_id: $('#_stfd_id').val(),
+                        bin: $('#take_transfer_bin_info').text(),
+                        sku: $('#take_transfer_sku_info').text(),
+                        qty: $('#take_transfer_qty_info').text(),
                     },
                     dataType: 'json',
                     success: function(r) {

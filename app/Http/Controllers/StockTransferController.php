@@ -393,14 +393,33 @@ class StockTransferController extends Controller
 
     public function getTransferItem(Request $request)
     {
+        $helper_app_version = null;
         if ($request->stfd_id) {
             $stfd_id = $request->stfd_id;
+            $helper_app_version = 2;
         } else if ($request->_stfd_id) {
             $stfd_id = $request->_stfd_id;
+            $helper_app_version = 1;
         } else {
             $r['status'] = '400';
             $r['message'] = 'ID Transfer Item tidak ditemukan';
             return json_encode($r);
+        }
+
+        $bin_code = isset($request->bin) ? $request->bin : null;
+        $sku = isset($request->sku) ? $request->sku : null;
+        $qty = isset($request->qty) ? $request->qty : null;
+
+        if ($helper_app_version == 2) {
+            $bin_id = ProductLocation::where('pl_code', '=', $bin_code)->pluck('id')->first();
+            $product_id = ProductStock::where('ps_barcode', '=', $sku)->pluck('id')->first();
+
+            $check_stfd_exist = StockTransferDetail::where('id', '=', $stfd_id)->where('pst_id', $product_id)->where('pl_id', $bin_id)->where('stfd_qty', $qty)->exists();
+            if (!$check_stfd_exist) {
+                $r['status'] = '400';
+                $r['message'] = 'Transfer Item tidak ditemukan';
+                return json_encode($r);
+            }
         }
 
         if (empty($stfd_id)) {
