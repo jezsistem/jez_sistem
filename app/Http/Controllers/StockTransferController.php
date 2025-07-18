@@ -288,7 +288,9 @@ class StockTransferController extends Controller
                 })
                 ->editColumn('stfd_qty', function ($data) {
                     // Get stf_status for this row
-                    if ($data->stf_status == '0' || $data->stf_status == '3') {
+                    if ($data->stfd_status == '1') {
+                        return '<input type="number" class="form-control form-control-sm" style="width:80px; display:inline-block;" value="' . $data->stfd_qty . '" data-stfd_id="' . $data->stfd_id . '" id="edit_stfd_qty" disabled />';
+                    } else if ($data->stf_status == '0' || $data->stf_status == '3') {
                         return '<input type="number" class="form-control form-control-sm" style="width:80px; display:inline-block;" value="' . $data->stfd_qty . '" data-stfd_id="' . $data->stfd_id . '" id="edit_stfd_qty" />';
                     } else {
                         return '<span>' . $data->stfd_qty . '</span>';
