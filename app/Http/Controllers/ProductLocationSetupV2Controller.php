@@ -443,6 +443,12 @@ class ProductLocationSetupV2Controller extends Controller
                 $notes = $item[3];
                 // get id from barcode
                 $product_id = ProductStock::where('ps_barcode', '=', $barcode)->get()->first();
+
+                if (!$product_id) {
+                    $missingBarcode[] = [$start_bin, $barcode];
+                    continue; // Skip to the next item if product_id is not found
+                }
+
                 $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->get()->first();
                 $pls_id = ProductLocationSetup::where('pst_id', '=', $product_id->id)
                     ->where('pl_id', '=', $start_bin_id->id)->get()->first();
