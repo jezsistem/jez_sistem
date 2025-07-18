@@ -1,4 +1,15 @@
 <script>
+    function loadStorageAreas() {
+        $.ajax({
+            type: "GET",
+            dataType: 'html',
+            url: "{{ url('reload_storage_area') }}",
+            success: function(r) {
+                $("#storage_area_select").html(r);
+            }
+        });
+        return false;
+    }
     modal_opened = null;
     function reloadOrderList() {
         var qr = $('#invoice_number').text();
@@ -2060,6 +2071,7 @@
     // Clear take_transfer_item_form_data when modal closed
     // Make sure this binding is outside of any other event or function and only bound once
     $(document).ready(function() {
+        loadStorageAreas();
         $('#TakeTransferItemModal').off('hide.bs.modal').on('hide.bs.modal', function() {
             modal_opened = '';
             $('#take_transfer_bin').val('');

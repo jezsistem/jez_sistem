@@ -601,6 +601,7 @@ class TrackingController extends Controller
 
     public function scanOutDatatables(Request $request)
     {
+        // dd($request->get('sa_id'));
         if (request()->ajax()) {
             $data = datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'storage_areas.name as sa_name', 'product_location_setup_transactions.sa_id', 'plst_status', 'u_name', 'p_name', 'br_name', 'p_color', 'sz_name',  'product_location_setup_transactions.created_at as plst_created', 'ps_barcode')
 //                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
@@ -612,8 +613,13 @@ class TrackingController extends Controller
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(function ($query) use ($request) {
-                    if ($request->get('sa_id')) {
-                        $query->where('product_location_setup_transactions.sa_id', $request->get('sa_id'));
+                    $saIds = $request->get('sa_id');
+                    if (!empty($saIds)) {
+                        if (is_array($saIds)) {
+                            $query->whereIn('product_location_setup_transactions.sa_id', $saIds);
+                        } else {
+                            $query->whereIn('product_location_setup_transactions.sa_id', [$saIds]);
+                        }
                     }
                 })
                 ->where(function ($w) {
