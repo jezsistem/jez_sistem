@@ -754,10 +754,12 @@
                             data.unmatched.forEach(function(row) {
                                 tableHtml += `
                         <tr>
-                        <td>${row.barcode}</td>
-                        <td>${row.qty}</td>
-                        <td>${row.expected_qty}</td>
-                        </tr>
+                        ${row.qty !== row.expected_qty ? `
+                        <tr>
+                            <td>${row.barcode}</td>
+                            <td>${row.qty}</td>
+                            <td>${row.expected_qty}</td>
+                        </tr>` : ''}
                     `;
                             });
                             tableHtml += `

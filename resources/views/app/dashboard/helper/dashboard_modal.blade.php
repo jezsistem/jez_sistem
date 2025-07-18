@@ -674,7 +674,7 @@
                 </table>
                 <div class="text-right mt-3">
                     {{--                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>--}}
-                    <button type="button" class="btn btn-dark font-weight-bold" data-dismiss="modal">Selesai</button>
+                    <button type="button" class="btn btn-dark font-weight-bold" id="close_scan_out_modal" data-dismiss="modal">Selesai</button>
                 </div>
             </div>
         </div>
@@ -734,6 +734,9 @@
             </div>
             <div class="modal-body">
             <!-- Info section: Bin, SKU, Qty requested -->
+            <div class="alert alert-danger mb-3" id="take_transfer_info">
+                <strong>Item:</strong> <span id="take_transfer_p_name_info">-</span>
+            </div>
             <div class="alert alert-info mb-3" id="take_transfer_info">
                 <strong>Ambil dari BIN:</strong> <span id="take_transfer_bin_info">-</span> &nbsp;|&nbsp;
                 <strong>SKU:</strong> <span id="take_transfer_sku_info">-</span> &nbsp;|&nbsp;
