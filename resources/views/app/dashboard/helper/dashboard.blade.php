@@ -188,6 +188,7 @@
         </div>
         <!--end::Entry-->
     </div>
+    <div id="reader_default" style="visibility: hidden;width:50px; height:50px; position:fixed; z-index:-1; left:0; top:0;"></div>
     <!--end::Content-->
     @include('app.dashboard.helper.dashboard_modal')
     @include('app._partials.js')
