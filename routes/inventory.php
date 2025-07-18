@@ -370,4 +370,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('storage_area_update', [StorageAreaController::class, 'updateData']);
     Route::post('storage_area_link', [StorageAreaController::class, 'linkBinToStorageArea']);
     Route::post('storage_area_unlink', [StorageAreaController::class, 'unlinkBinToStorageArea']);
+    Route::get('reload_storage_area', [StorageAreaController::class, 'reloadStorageArea']);
 });
