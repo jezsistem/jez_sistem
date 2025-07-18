@@ -418,4 +418,12 @@ class StorageAreaController extends Controller
             ], 500);
         }
     }
+
+    public function reloadStorageArea(Request $request)
+    {
+        $st_id = Auth::user()->st_id;
+        $storageAreas = StorageArea::where('st_id', $st_id)->get();
+
+        return view('app.dashboard.helper._storage_area_list', compact('storageAreas'));
+    }
 }
