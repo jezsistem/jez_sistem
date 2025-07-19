@@ -235,7 +235,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal" id="close_modal_approve_btn">Tutup
                 </button>
                 <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
             </div>
