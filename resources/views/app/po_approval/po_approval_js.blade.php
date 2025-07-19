@@ -1,4 +1,4 @@
-<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 
 <script>
     var approval = '';
@@ -328,8 +328,9 @@
             var stkt_name = po_approval_table.row(this).data().stkt_name;
             var tax_id = po_approval_table.row(this).data().tax_id;
             var a_name = po_approval_table.row(this).data().a_name;
-            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table.row(
-                this).data().created_at.split(' ')[0];
+            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table
+                .row(
+                    this).data().created_at.split(' ')[0];
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
@@ -361,9 +362,9 @@
             } else {
                 putaway_text = 'Empty';
             }
- 
+
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id,'approval_penerimaan');
+            const lockResult = await openEditModal('purchase_order', po_id, 'approval_penerimaan');
             if (lockResult === false) {
                 return;
             }
@@ -371,7 +372,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id,'approval_penerimaan');
+                extendLock('purchase_order', po_id, 'approval_penerimaan');
             }, 60000);
 
             console.log('STORES : ', tgl_terima);
@@ -595,6 +596,12 @@
                         url: "{{ url('apd_approve') }}",
                         success: function(r) {
                             if (r.status == '200') {
+                                const po_id = $('#_po_id')
+                            .val();
+                                if (po_id) {
+                                    closeEditModal('purchase_order', po_id,
+                                        'approval_penerimaan'); // ✅ panggil fungsi
+                                }
                                 $('#ApproveModal').modal('hide');
                                 po_approval_table.draw(false);
                                 swal("Berhasil", "Data berhasil diapprove",
@@ -613,6 +620,16 @@
                     return false;
                 }
             })
+        });
+
+        $('#close_modal_approve_btn').on('click', function(e) {
+            e.preventDefault();
+            $('#ApproveModal').modal('hide');
+            var po_id = $('#_po_id').val();
+            if (po_id) {
+                closeEditModal('purchase_order', po_id, 'approval_penerimaan');
+            }
+            po_approval_table.draw(false);
         });
 
         jQuery.noConflict();
@@ -672,5 +689,4 @@
 
         cb(start, end, '');
     });
-
 </script>
