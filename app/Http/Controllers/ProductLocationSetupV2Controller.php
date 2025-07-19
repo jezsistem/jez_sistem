@@ -449,7 +449,7 @@ class ProductLocationSetupV2Controller extends Controller
                     continue; // Skip to the next item if product_id is not found
                 }
 
-                $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->get()->first();
+                $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->where('st_id', Auth::user()->st_id)->get()->first();
                 $pls_id = ProductLocationSetup::where('pst_id', '=', $product_id->id)
                     ->where('pl_id', '=', $start_bin_id->id)->get()->first();
 
@@ -1029,7 +1029,7 @@ class ProductLocationSetupV2Controller extends Controller
                 continue; // Skip to the next item if barcode is not found
             }
 
-            $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->get()->first();
+            $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->where('st_id', Auth::user()->st_id)->get()->first();
             if (empty($start_bin_id)) {
                 if (!in_array([$start_bin, $barcode], $missingBins)) {
                     $missingBins[] = [$start_bin, $barcode];
