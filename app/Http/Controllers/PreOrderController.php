@@ -125,7 +125,7 @@ class PreOrderController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         if (request()->ajax()) {
-            return datatables()->of(PreOrder::select('pre_orders.id as po_id', 'st_name', 'ps_name', 'pre_order_code', 'po_draft', 'pre_orders.created_at as po_created_at')
+            return datatables()->of(PreOrder::select('pre_orders.id as po_id', 'st_name', 'ps_name', 'pre_order_code', 'po_draft', 'po_type', 'preorder_description','pre_orders.created_at as po_created_at')
                 ->leftJoin('pre_order_articles', 'pre_order_articles.po_id', '=', 'pre_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                 ->join('stores', 'stores.id', '=', 'pre_orders.st_id')
@@ -435,6 +435,8 @@ class PreOrderController extends Controller
             $r['br_id'] = $draft->br_id;
             $r['ss_id'] = $draft->ss_id;
             $r['pre_order_code'] = $draft->pre_order_code;
+            $r['po_type'] = $draft->po_type;
+            $r['preorder_description'] = $draft->preorder_description;
         } else {
             $r['status'] = '400';
         }
@@ -734,4 +736,27 @@ class PreOrderController extends Controller
 
         return json_encode($r);
     }
+
+    public function chooseTypePo(Request $request)
+    {
+        $check = DB::table('pre_orders')->where(['id' => $request->_po_id])->update(['po_type' => $request->_po_type]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function descriptionPreOrder(Request $request)
+    {
+        $check = DB::table('pre_orders')->where(['id' => $request->_po_id])->update(['preorder_description' => $request->_preorder_description]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
 }

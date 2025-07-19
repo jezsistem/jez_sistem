@@ -853,6 +853,16 @@
             $(window).off(evt);
         });
 
+        $('#preorder_type').select2({
+            width: "100%",
+            dropdownParent: $('#preorder_type_parent')
+        });
+        $('#preorder_type').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#st_id_filter').on('change', function() {
             purchase_order_table.draw();
         });
@@ -921,11 +931,12 @@
                         $('#po_invoice_label').text(r.pre_order_code);
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
-                        $('#po_description').val(r.po_description);
+                        $('#preorder_description').val(r.preorder_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#br_id').val(r.br_id).trigger('change');
                         jQuery('#ss_id').val(r.ss_id).trigger('change');
+                        jQuery('#preorder_type').val(r.po_type).trigger('change');
                         reloadArticleDetail(po_id);
                     } else {
                         console.log(r);
@@ -960,6 +971,7 @@
                         jQuery('#ps_id').val('').trigger('change');
                         jQuery('#br_id').val('').trigger('change');
                         jQuery('#ss_id').val('').trigger('change');
+                        jQuery('#preorder_type').val('').trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
                         jQuery.noConflict();
@@ -972,6 +984,7 @@
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#br_id').val(r.br_id).trigger('change');
                         jQuery('#ss_id').val(r.ss_id).trigger('change');
+                        jQuery('#preorder_type').val(r.po_type).trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                         reloadArticleDetail(r.po_id);
                     } else {
@@ -1095,6 +1108,31 @@
             });
         });
 
+        $('#preorder_type').on('change', function() {
+            var po_type = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _po_type: po_type
+                },
+                url: "{{ url('pre_order_choose_type') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
         $('#br_id').on('change', function() {
             var br_id = $(this).val();
             $.ajaxSetup({
@@ -1115,6 +1153,31 @@
 
                     } else {
                         //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#preorder_description').on('change', function() {
+            var preorder_description = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _preorder_description: preorder_description
+                },
+                url: "{{ url('preorder_description') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        swal('Gagal', 'Gagal mengubah deskripsi', 'warning');
                     }
                 }
             });
