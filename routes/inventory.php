@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\B1g1Controller;
+use App\Http\Controllers\CycleCountController;
 use App\Http\Controllers\ExceptionLocationController;
 use App\Http\Controllers\InstockApprovalController;
 use App\Http\Controllers\InstockListController;
@@ -110,6 +111,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('mass_adjustment_cancel', [MassAdjustmentController::class, 'cancelAdjustment']);
 
 
+    //cycle count
+    Route::get('cycle_counts', [CycleCountController::class, 'index']);
+    Route::get('scan_get_item_details', [CycleCountController::class, 'getItemDetails']);
+
+
+
     Route::post('mass_stock_datatables_filter', [MassAdjustmentController::class, 'adjustmentDatatablesFilter']);
 
     // ScanAdjustmentController
@@ -144,6 +151,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('export_start_scan_adjustment_bin', [ScanAdjustmentController::class, 'exportBIN']);
     Route::post('scan_adjustment_qty_update', [ScanAdjustmentController::class, 'updateQty']);
     Route::post('pos_barcode_scan', [PointOfSaleController::class, 'scanBarcode']);
+    Route::get('has_waiting_status', [PointOfSaleController::class, 'hasWaitingStatus']);
 
     // Adjustment
     Route::get('adjustment', [AdjustmentController::class, 'index'])->name('adjustment');
@@ -362,4 +370,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('storage_area_update', [StorageAreaController::class, 'updateData']);
     Route::post('storage_area_link', [StorageAreaController::class, 'linkBinToStorageArea']);
     Route::post('storage_area_unlink', [StorageAreaController::class, 'unlinkBinToStorageArea']);
+    Route::get('reload_storage_area', [StorageAreaController::class, 'reloadStorageArea']);
 });

@@ -2788,4 +2788,42 @@ class PointOfSaleController extends Controller
 
         return json_encode($response);
     }
+
+    public function hasWaitingStatus(Request $request)
+    {
+        $st_id = Auth::user()->st_id;
+        $pst_id = ProductStock::select('id')->where('ps_barcode', $request->barcode)->get()->first()->id;
+
+        $plst_status_new = [
+            'WAITING TO TAKE',
+            'WAITING OFFLINE'
+        ];
+        $data = ProductLocationSetupTransaction::query()
+            ->where('st_id', $st_id)
+            ->where('pst_id', $pst_id)
+            ->whereIn('plst_status', $plst_status_new)
+            ->orderBy('plst_status', 'asc')
+            ->get()->first();
+
+        if (!$data || !$data->plst_status) {
+            $r['status'] = '400';
+            $r['message'] = 'Tidak ada barang yang berstatus "WAITING TO TAKE" atau "WAITING OFFLINE".';
+
+            return response()->json($r);
+        }
+            
+        if ($data->plst_status == 'WAITING TO TAKE') {
+            $r['status'] = '200';
+            $r['message'] = 'Barang masih dalam proses pengambilan. Silakan tunggu hingga selesai atau yakin ambil dari display?';
+        }
+
+        if ($data->plst_status == 'WAITING OFFLINE') {
+            $r['status'] = '200';
+            $r['message'] = 'Sudah ada barang yang berstatus "WAITING OFFLINE". Yakin ambil dari display?';
+        }
+
+
+
+        return response()->json($r);
+    }
 }
