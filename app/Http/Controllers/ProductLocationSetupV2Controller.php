@@ -1037,7 +1037,7 @@ class ProductLocationSetupV2Controller extends Controller
                 continue; // Skip to the next item if start bin is not found
             }
 
-            $end_bin_id = ProductLocation::where('pl_code', '=', $end_bin)->get()->first();
+            $end_bin_id = ProductLocation::where('pl_code', '=', $end_bin)->where('st_id', Auth::user()->st_id)->get()->first();
             if (empty($end_bin_id)) {
                 if (!in_array([$end_bin, $barcode], $missingBins)) {
                     $missingBins[] = [$end_bin, $barcode];
@@ -1171,8 +1171,9 @@ class ProductLocationSetupV2Controller extends Controller
             foreach ($processedData as $data) {
                 $pls = ProductLocationSetup::find($data['pls_id']);
                 if ($pls) {
-                    $pls->pls_qty -= $data['pls_qty'];
-                    $pls->save();
+                    $pls->update(['pls_qty' => $pls->pls_qty - $data['pls_qty']]);
+                } else {
+                    return response()->json(['status' => '404', 'message' => 'Data setup tidak ditemukan untuk SKU: ' . $data['ps_barcode']]);
                 }
 
                 $plEnd = ProductLocation::find($data['pl_end']);
@@ -1182,8 +1183,9 @@ class ProductLocationSetupV2Controller extends Controller
                         ->first();
 
                     if ($setup) {
-                        $setup->pls_qty += $data['pls_qty'];
-                        $setup->save();
+                        $setup->update([
+                            'pls_qty' => $setup->pls_qty + $data['pls_qty']
+                        ]);
                     } else {
                         ProductLocationSetup::create([
                             'pl_id' => $plEnd->id,
@@ -1191,6 +1193,8 @@ class ProductLocationSetupV2Controller extends Controller
                             'pls_qty' => $data['pls_qty']
                         ]);
                     }
+                } else {
+                    return response()->json(['status' => '404', 'message' => 'Lokasi tujuan tidak ditemukan untuk SKU: ' . $data['ps_barcode']]);
                 }
 
                 ProductMutation::create([
