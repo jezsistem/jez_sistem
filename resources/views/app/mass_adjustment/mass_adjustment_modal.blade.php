@@ -47,6 +47,7 @@
                                 <option value="CYCLE COUNT">CYCLE COUNT</option>
                                 <option value="RETUR IN">RETUR IN</option>
                                 <option value="RETUR OUT">RETUR OUT</option>
+                                <option value="MARKETPLACE IN">MARKETPLACE IN</option>
                             </select>
                         </div>
                     </div>
