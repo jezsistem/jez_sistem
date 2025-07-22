@@ -853,6 +853,16 @@
             $(window).off(evt);
         });
 
+        $('#preorder_type').select2({
+            width: "100%",
+            dropdownParent: $('#preorder_type_parent')
+        });
+        $('#preorder_type').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#st_id_filter').on('change', function() {
             purchase_order_table.draw();
         });
@@ -921,11 +931,12 @@
                         $('#po_invoice_label').text(r.pre_order_code);
                         $('#_mode').val('edit');
                         $('#_po_id').val(r.po_id);
-                        $('#po_description').val(r.po_description);
+                        $('#preorder_description').val(r.preorder_description);
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#br_id').val(r.br_id).trigger('change');
                         jQuery('#ss_id').val(r.ss_id).trigger('change');
+                        jQuery('#preorder_type').val(r.po_type).trigger('change');
                         reloadArticleDetail(po_id);
                     } else {
                         console.log(r);
@@ -960,6 +971,7 @@
                         jQuery('#ps_id').val('').trigger('change');
                         jQuery('#br_id').val('').trigger('change');
                         jQuery('#ss_id').val('').trigger('change');
+                        jQuery('#preorder_type').val('').trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
                         jQuery.noConflict();
@@ -972,6 +984,7 @@
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#br_id').val(r.br_id).trigger('change');
                         jQuery('#ss_id').val(r.ss_id).trigger('change');
+                        jQuery('#preorder_type').val(r.po_type).trigger('change');
                         $('#add_po_btn').prop('disabled', false);
                         reloadArticleDetail(r.po_id);
                     } else {
@@ -1012,6 +1025,20 @@
                 }
             });
             purchase_order_table.draw(false);
+        });
+
+
+        $(document).ready(function() {
+            $("#UploadPOBtn").click(function() {
+                $("#UploadFilePreOrderModal").modal("show");
+            });
+        });
+
+        $(document).ready(function() {
+            $("#FilePreOrderBtn").click(function() {
+                $("#FilePreOrderModal").modal("show");
+                PreOrderFile.draw();
+            });
         });
 
         $('#add_product_btn').on('click', function() {
@@ -1095,6 +1122,152 @@
             });
         });
 
+        $('#preorder_type').on('change', function() {
+            var po_type = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _po_type: po_type
+                },
+                url: "{{ url('pre_order_choose_type') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#f_upload_preorder_file').on('submit', function(e) {
+            e.preventDefault();
+            $('#upload_file_preorder_btn').html('Proses...');
+            $('#upload_file_preorder_btn').attr('disabled', true);
+
+            var formData = new FormData(this);
+            var po_id = $('#_po_id').val();
+            formData.append('_po_id', po_id);
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('upload_file_preorder') }}",
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                    $('#upload_file_preorder_btn').html('Upload');
+                    $('#upload_file_preorder_btn').attr('disabled', false);
+                    $('#UploadFilePreOrderModal').modal('hide');
+
+                    if (data.status == '200') {
+                        toastr.success('File berhasil diupload', 'Berhasil');
+                        $('#f_upload_preorder_file')[0].reset();
+                        PreOrderFile.draw(); // refresh DataTable
+                    } else if (data.status == '400') {
+                        toastr.warning('File kosong atau format salah', 'Gagal');
+                    } else {
+                        toastr.warning('Format file tidak sesuai dengan sistem', 'Gagal');
+                    }
+                },
+                error: function() {
+                    $('#upload_file_preorder_btn').html('Upload');
+                    $('#upload_file_preorder_btn').attr('disabled', false);
+                    toastr.error('Terjadi kesalahan saat mengupload file', 'Error');
+                }
+            });
+        });
+
+        var PreOrderFile = $('#FilePreOrderTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('file_preorder_datatable') }}", // URL sudah sesuai
+                data: function(d) {
+                    d._po_id = $('#_po_id').val(); // Ambil ID PO dari input hidden atau modal
+                },
+            },
+            columns: [{
+                    data: 'file',
+                    name: 'file',
+                    searchable: false,
+                    orderable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    searchable: false,
+                    orderable: false
+                }
+            ],
+            columnDefs: [{
+                targets: [0, 1],
+                className: 'text-center',
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        $('#FilePreOrderTb tbody').on('click', '.delete-file-preorder', function() {
+            var id = $(this).data('id');
+
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+
+            swal({
+                title: "Hapus File?",
+                text: "Yakin ingin menghapus file ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('delete_file_preorder') }}",
+                        data: {
+                            id: id
+                        },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("File berhasil dihapus", "Berhasil");
+                                PreOrderFile.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal menghapus file',
+                                    'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus file: ' +
+                                error, 'Error');
+                        }
+                    });
+                }
+            });
+        });
+
         $('#br_id').on('change', function() {
             var br_id = $(this).val();
             $.ajaxSetup({
@@ -1115,6 +1288,31 @@
 
                     } else {
                         //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#preorder_description').on('change', function() {
+            var preorder_description = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _preorder_description: preorder_description
+                },
+                url: "{{ url('preorder_description') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        swal('Gagal', 'Gagal mengubah deskripsi', 'warning');
                     }
                 }
             });
@@ -1213,7 +1411,8 @@
                         reloadArticleDetail(po_id);
                     } else if (data.status == '400') {
                         $("#ImportModal").modal('hide');
-                        swal('File', 'The file you imported is empty or the format is incorrect',
+                        swal('File',
+                            'The file you imported is empty or the format is incorrect',
                             'warning');
                     } else if (data.status == '404') {
                         $("#ImportModal").modal('hide');
@@ -1231,7 +1430,7 @@
                 }
             });
         });
-        
+
         $('#f_upload_invoice_image').on('submit', function(e) {
             e.preventDefault();
             $('#upload_image_invoice_btn').html('Proses...');
