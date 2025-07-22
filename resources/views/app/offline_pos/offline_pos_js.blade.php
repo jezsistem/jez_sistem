@@ -3,8 +3,8 @@
 <script src="{{ asset('pos/js') }}/jquery.dataTables.min.js"></script>
 <script src="{{ asset('pos/js') }}/multiple-select.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
-        integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="{{ asset('pos/js') }}/script.bundle.js"></script>
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script src="{{ asset('cdn/select2.min.js') }}"></script>
@@ -18,7 +18,7 @@
 
     function debounce(func, delay) {
         let timeoutId;
-        return function (...args) {
+        return function(...args) {
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
@@ -32,7 +32,7 @@
         let new_dicount = 0;
         let new_price = 0;
         var orginal_price = 0;
-     
+
         var item_qty = jQuery('#item_qty' + row).val();
 
         var selected_discount = jQuery('#discount_selection' + row).val();
@@ -40,13 +40,13 @@
         var discount_normal = jQuery('#discount_normal' + row).text().replace(/,/g, '');
 
         var price_tag = jQuery('#price_tag_item' + row).text().replace(/,/g, '');
-       
+
         if (selected_discount == 1) {
             orginal_price = price_tag;
         } else {
             originalPrice = jQuery('#discount_selection' + row).data('sellprice');
         }
-        
+
         var sell_price_item = replaceComma(jQuery('#sell_price_item' + row).text());
 
         var subtotal_item = replaceComma(jQuery('#subtotal_item' + row).text());
@@ -56,7 +56,7 @@
         var b1g1_total_row = b1g1_temp.length;
         var b1g1_qty_total = 0;
         if (b1g1_total_row > 0) {
-            jQuery('#orderTable tr').each(function (index, row) {
+            jQuery('#orderTable tr').each(function(index, row) {
                 var b1g1_qty = parseFloat(jQuery(row).find('.item_qty').val());
                 if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' || isNaN(b1g1_qty)) {
                     b1g1_qty = 0;
@@ -99,7 +99,7 @@
         var discount_price = 0;
         var nameset = 0;
         var new_final_price = 0;
-        jQuery('#orderTable tr').each(function (index, row) {
+        jQuery('#orderTable tr').each(function(index, row) {
             if (jQuery(row).find('.sell_price_item').text() != '') {
                 var sbttl = parseFloat(replaceComma(jQuery(row).find('.sell_price_item').text()));
 
@@ -108,7 +108,7 @@
                     sbttl = 0;
                 }
                 // Perubahan QTY Price
-                final_price += (sbttl   );
+                final_price += (sbttl);
             }
 
             var disc_item = jQuery(row).find('.discount_number').val();
@@ -124,7 +124,7 @@
         });
 
         new_price = originalPrice * item_qty;
-        new_discount =  price_tag - originalPrice;
+        new_discount = price_tag - originalPrice;
 
         console.log('Ini Log Baru : ', originalPrice, price_tag);
 
@@ -161,7 +161,7 @@
         }
         var final_price = 0;
         var nameset = 0;
-        jQuery('#orderTable tr').each(function (index, row) {
+        jQuery('#orderTable tr').each(function(index, row) {
             if (jQuery(row).find('.subtotal_item').text() != '') {
                 var sbttl = parseFloat(replaceComma(jQuery(row).find('.subtotal_item').text()));
                 if (typeof sbttl === 'undefined' && sbttl == '') {
@@ -185,7 +185,7 @@
             return false;
         }
         var total_nameset = 0;
-        jQuery('#orderTable tr').each(function (index, row) {
+        jQuery('#orderTable tr').each(function(index, row) {
             var nameset = jQuery(row).find('.nameset_price').val();
             if (typeof nameset !== 'undefined' && nameset != '') {
                 total_nameset += parseFloat(nameset);
@@ -202,7 +202,7 @@
             return false;
         }
         var total_nameset = 0;
-        jQuery('#orderTable tr').each(function (index, row) {
+        jQuery('#orderTable tr').each(function(index, row) {
             var nameset = jQuery(row).find('.nameset_price').val();
             if (typeof nameset !== 'undefined' && nameset != '') {
                 total_nameset += parseFloat(nameset);
@@ -223,10 +223,10 @@
             type: 'POST',
             url: "{{ url('check_waiting_for_checkout') }}",
             dataType: 'html',
-            success: function (r) {
+            success: function(r) {
                 jQuery('#orderTable tr:last').after(r)
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
@@ -243,10 +243,10 @@
             type: 'POST',
             url: "{{ url('check_offline_complaint') }}",
             dataType: 'html',
-            success: function (r) {
+            success: function(r) {
                 jQuery('#orderTable tr:last').after(r)
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
@@ -261,7 +261,7 @@
             },
             dataType: 'html',
             url: "{{ url('reload_city') }}",
-            success: function (r) {
+            success: function(r) {
                 jQuery('#cust_city').html(r);
             }
         });
@@ -275,7 +275,7 @@
             },
             dataType: 'html',
             url: "{{ url('reload_subdistrict') }}",
-            success: function (r) {
+            success: function(r) {
                 jQuery('#cust_subdistrict').html(r);
             }
         });
@@ -323,7 +323,7 @@
             },
             dataType: 'json',
             url: "{{ url('reload_item_total') }}",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     jQuery('#total_item_side').text(r.total_item);
                     jQuery('#total_price_side').text(r.total_price);
@@ -337,22 +337,22 @@
         });
     };
 
-    {{--function reloadRefund() {--}}
-    {{--    jQuery.ajaxSetup({--}}
-    {{--        headers: {--}}
-    {{--            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')--}}
-    {{--        }--}}
-    {{--    });--}}
-    {{--    jQuery.ajax({--}}
-    {{--        type: "GET",--}}
-    {{--        dataType: 'html',--}}
-    {{--        url: "{{ url('reload_refund_offline') }}",--}}
-    {{--        success: function (r) {--}}
-    {{--            jQuery('#refund_reload').html(r);--}}
-    {{--            toast('Reloaded', 'Refund berhasil direload', 'success');--}}
-    {{--        }--}}
-    {{--    });--}}
-    {{--};--}}
+    {{-- function reloadRefund() { --}}
+    {{--    jQuery.ajaxSetup({ --}}
+    {{--        headers: { --}}
+    {{--            'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content') --}}
+    {{--        } --}}
+    {{--    }); --}}
+    {{--    jQuery.ajax({ --}}
+    {{--        type: "GET", --}}
+    {{--        dataType: 'html', --}}
+    {{--        url: "{{ url('reload_refund_offline') }}", --}}
+    {{--        success: function (r) { --}}
+    {{--            jQuery('#refund_reload').html(r); --}}
+    {{--            toast('Reloaded', 'Refund berhasil direload', 'success'); --}}
+    {{--        } --}}
+    {{--    }); --}}
+    {{-- }; --}}
 
     function dpInvoiceRefund() {
         jQuery.ajaxSetup({
@@ -364,7 +364,7 @@
             type: "GET",
             dataType: 'html',
             url: "{{ url('reload_dp_offline') }}",
-            success: function (r) {
+            success: function(r) {
                 jQuery('#dp_invoice_reload').html(r);
                 toast('Reloaded', 'Invoice DP berhasil direload', 'success');
             }
@@ -393,7 +393,7 @@
         } else {
             discount_number = disc_value + disc_text;
         }
-        
+
         // if (b1g1_temp.length > 0) {
         //     price = replaceComma(sell_price_item);
         // }
@@ -436,7 +436,7 @@
                 _cross: cross,
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 // console.log(r);
                 if (r.status == '200') {
                     toast('Saved', 'Saved', 'success');
@@ -444,7 +444,7 @@
                     toast('Gagal', 'Gagal simpan transaksi', 'warning');
                 }
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
@@ -500,7 +500,7 @@
         var final_price = parseFloat(replaceComma(jQuery('#total_price_side').text())) - parseFloat(replaceComma(
             sell_price_item));
         var key = pst_id + '-' + bandrol + '-' + price;
-        var total_key = jQuery.grep(shoes_voucher_temp, function (value) {
+        var total_key = jQuery.grep(shoes_voucher_temp, function(value) {
             return value === key;
         }).length;
 
@@ -520,7 +520,7 @@
                 _plst_id: plst_id
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 jQuery.noConflict();
                 if (r.status == '200') {
                     jQuery('#cancel_voucher').trigger('click');
@@ -538,11 +538,11 @@
 
                     console.log(index)
 
-                    b1g1_temp = jQuery.grep(b1g1_temp, function (value) {
+                    b1g1_temp = jQuery.grep(b1g1_temp, function(value) {
                         return value != price;
                     });
                     // console      .log(b1g1_temp);
-                    shoes_voucher_temp = jQuery.grep(shoes_voucher_temp, function (value) {
+                    shoes_voucher_temp = jQuery.grep(shoes_voucher_temp, function(value) {
                         return value != key;
                     });
                     if (total_key > 1) {
@@ -560,7 +560,7 @@
                         'danger');
                 }
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
@@ -576,7 +576,7 @@
                 'Benar'
             ],
             dangerMode: false,
-        }).then(function (isConfirm) {
+        }).then(function(isConfirm) {
             if (isConfirm) {
                 checkout()
             }
@@ -593,11 +593,11 @@
                 nohp: nohp,
                 pesan: pesan
             },
-            success: function (response) {
+            success: function(response) {
                 console.log("Message sent successfully:", response);
                 // You can add additional success handling here if needed
             },
-            error: function (xhr, status, error) {
+            error: function(xhr, status, error) {
                 console.error("Error sending message:", error);
                 // You can add error handling here if needed
             }
@@ -614,6 +614,7 @@
         var pt_id_complaint = jQuery('#_pt_id_complaint').val();
         var pm_id = jQuery('#pm_id_offline').val();
         var pm_id_two = jQuery('#pm_id_offline_two').val();
+        // var sub_payment = jQuery('#sub_payment_offline').val();
         var std_id = jQuery('#std_id').val();
         var type = jQuery('#std_id option:selected').text();
         var cust_id = jQuery('#cust_id').val();
@@ -697,6 +698,7 @@
                 _dp_checkBox: dp_checkBox,
                 _pm_id: pm_id,
                 _pm_id_two: pm_id_two,
+                _sub_payment: jQuery('#sub_payment_offline').val(),
                 _std_id: std_id,
                 _cust_id: cust_id,
                 _note: note,
@@ -708,13 +710,13 @@
                 _total_discount_side: replaceComma(total_discount_side),
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 jQuery.noConflict();
                 jQuery("#payment-offline-popup").modal('hide');
                 if (r.status == '200') {
                     var finish = '';
                     jQuery('#_pt_id').val(r.pt_id);
-                    jQuery('#orderTable tr').each(function (index, row) {
+                    jQuery('#orderTable tr').each(function(index, row) {
                         jQuery(row).find('.saveItem').trigger('click');
                     });
                     jQuery('#cr_id').val('');
@@ -740,6 +742,7 @@
                     jQuery('#ref_number_two').val('');
                     jQuery('#pm_id_offline').val('');
                     jQuery('#pm_id_offline_two').val('');
+                    // jQuery('#sub_payment_offline').val('');
                     jQuery('#_pt_id_complaint').val('');
                     jQuery('#_exchange').val('');
                     jQuery('#discount_total_temporary').val(0);
@@ -792,7 +795,8 @@
                     jQuery('#total_discount_value_side').text('0');
                     toast('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
 
-                    var win = window.open('{{ url('') }}/print_offline_invoice/' + r.invoice, '_blank');
+                    var win = window.open('{{ url('') }}/print_offline_invoice/' + r.invoice,
+                        '_blank');
 
                     if (win) {
                         win.focus();
@@ -800,32 +804,32 @@
                         alert('Please allow popups for this website');
                     }
                     @php  session()->forget('voc_item') @endphp
-                        b1g1_temp = [];
+                    b1g1_temp = [];
                     // reloadRefund();
                     console.log(r.invoice);
                     // swal('Berhasil', 'Transaksi Berhasil Disimpan', 'success');
 
                     // print nota off dulu sam e
                     // console.log(st_id);
-                    {{--setTimeout(() => {--}}
-                    {{--    if (std_id > '0') {--}}
-                    {{--        var win = window.open('{{ url('') }}/print_offline_invoice/' + r--}}
-                    {{--            .invoice, '_blank');--}}
-                    {{--    } else {--}}
-                    {{--        var win = window.open('{{ url('') }}/print_invoice/' + r.invoice,--}}
-                    {{--            '_blank');--}}
-                    {{--    }--}}
-                    {{--    if (win) {--}}
-                    {{--        win.focus();--}}
-                    {{--    } else {--}}
-                    {{--        alert('Please allow popups for this website');--}}
-                    {{--    }--}}
-                    {{--}, 2000);--}}
+                    {{-- setTimeout(() => { --}}
+                    {{--    if (std_id > '0') { --}}
+                    {{--        var win = window.open('{{ url('') }}/print_offline_invoice/' + r --}}
+                    {{--            .invoice, '_blank'); --}}
+                    {{--    } else { --}}
+                    {{--        var win = window.open('{{ url('') }}/print_invoice/' + r.invoice, --}}
+                    {{--            '_blank'); --}}
+                    {{--    } --}}
+                    {{--    if (win) { --}}
+                    {{--        win.focus(); --}}
+                    {{--    } else { --}}
+                    {{--        alert('Please allow popups for this website'); --}}
+                    {{--    } --}}
+                    {{-- }, 2000); --}}
                 } else if (r.status == '400') {
                     swal('Gagal', 'Gagal simpan transaksi', 'warning');
                 }
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
@@ -906,7 +910,7 @@
         var discount_percentage = jQuery('#discount_percentage' + row).val();
 
         var total_disc_item = 0;
-        jQuery('#orderTable tr').each(function (index, row) {
+        jQuery('#orderTable tr').each(function(index, row) {
             var disc_item = jQuery(row).find('#discount_number').val();
             if (typeof disc_item !== 'undefined' && disc_item !== 0) {
                 total_disc_item += parseFloat(disc_item);
@@ -924,7 +928,7 @@
         var b1g1_total_row = b1g1_temp.length;
         var b1g1_qty_total = 0;
         if (b1g1_total_row > 0) {
-            jQuery('#orderTable tr').each(function (index, row) {
+            jQuery('#orderTable tr').each(function(index, row) {
                 var b1g1_qty = parseFloat(jQuery(row).find('.item_qty').val());
                 if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' || isNaN(b1g1_qty)) {
                     b1g1_qty = 0;
@@ -962,7 +966,7 @@
         }
         var final_price = 0;
         var nameset = 0;
-        jQuery('#orderTable tr').each(function (index, row) {
+        jQuery('#orderTable tr').each(function(index, row) {
             if (jQuery(row).find('.subtotal_item').text() != '') {
                 var sbttl = parseFloat(replaceComma(jQuery(row).find('.subtotal_item').text()));
                 if (typeof sbttl === 'undefined' && sbttl == '') {
@@ -1014,7 +1018,7 @@
         var b1g1_total_row = b1g1_temp.length;
         var b1g1_qty_total = 0;
         if (b1g1_total_row > 0) {
-            jQuery('#orderTable tr').each(function (index, row) {
+            jQuery('#orderTable tr').each(function(index, row) {
                 var b1g1_qty = parseFloat(jQuery(row).find('.item_qty').val());
                 if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' || isNaN(b1g1_qty)) {
                     b1g1_qty = 0;
@@ -1053,7 +1057,7 @@
 
         var final_price = 0;
         var nameset = 0;
-        jQuery('#orderTable tr').each(function (index, row) {
+        jQuery('#orderTable tr').each(function(index, row) {
             if (jQuery(row).find('.subtotal_item').text() != '') {
                 var sbttl = parseFloat(replaceComma(jQuery(row).find('.subtotal_item').text()));
                 if (typeof sbttl === 'undefined' && sbttl == '') {
@@ -1088,7 +1092,7 @@
 
         // Menghitung total harga seluruh pesanan setelah diskon diterapkan ke baris saat ini
         var final_price = 0;
-        jQuery('#orderTable tr').each(function (index, rowElement) {
+        jQuery('#orderTable tr').each(function(index, rowElement) {
             if (jQuery(rowElement).find('.subtotal_item').text() != '') {
                 var sbttl = parseFloat(replaceComma(jQuery(rowElement).find('.subtotal_item').text()));
                 if (typeof sbttl === 'undefined' || sbttl == '') {
@@ -1103,7 +1107,7 @@
         updateGrandTotal();
     }
 
-    jQuery(document).delegate('#add_to_item_list', 'click', function (e) {
+    jQuery(document).delegate('#add_to_item_list', 'click', function(e) {
         e.preventDefault();
         jQuery('#product_name_input').val('');
         jQuery('#itemList').html('');
@@ -1168,7 +1172,7 @@
             var b1g1_total_row = b1g1_temp.length;
             var b1g1_qty_total = 0;
             if (b1g1_total_row > 0) {
-                jQuery('#orderTable tr').each(function (index, row) {
+                jQuery('#orderTable tr').each(function(index, row) {
                     var b1g1_qty = parseFloat(jQuery(row).find('.item_qty').val());
                     if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' || isNaN(b1g1_qty)) {
                         b1g1_qty = 0;
@@ -1182,11 +1186,11 @@
 
                             jQuery(row).find('.subtotal_item').text('0');
 
-                            console.log('BOGO CEK BOLO : ',sell_price);
+                            console.log('BOGO CEK BOLO : ', sell_price);
                         } else {
                             sell_price = 0;
 
-                            console.log('BOGO CEK BOLO : ',sell_price);
+                            console.log('BOGO CEK BOLO : ', sell_price);
                         }
                         jQuery(row).find('.item_qty').trigger('change');
 
@@ -1227,7 +1231,7 @@
                 _sell_price: sell_price
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 jQuery.noConflict();
                 if (r.status == '200') {
                     var discount_normal = bandrol - sell_price;
@@ -1249,7 +1253,10 @@
                             "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
                             pst_id + ", " + (pls_qty) + ")'></td> " +
                             "<td>" +
-                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                            "<select style='width: 10rem;' data-sellPrice='" + sell_price +
+                            "' class='form-control col-10 mr-4' id='discount_selection" + (
+                                total_row + 1) + "' onchange='handleSelectChange(" + (
+                                total_row + 1) + ",this)'>" +
                             "<option value='0'>Discount Extra</option>" +
                             "<option value='1'>Discount Promo</option>" +
                             "</select>" +
@@ -1266,10 +1273,13 @@
                             "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                             (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
                                 1) + ")'/></td> " +
-                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row +
+                                1) + "'>" + addCommas(bandrol) + "</span></td> " +
                             " <td><span class='sell_price_item' id='sell_price_item" + (
                                 total_row + 1) + "'>" + addCommas(sell_price) + "</span></td>" +
-                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
+                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +
+                            (total_row + 1) + "'>" + addCommas(discount_normal) +
+                            "</span></td> " +
                             " <td><span class='subtotal_item' id='subtotal_item" + (total_row +
                                 1) + "'>" + addCommas(sell_price) + "</span></td>" +
                             " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
@@ -1293,7 +1303,10 @@
                             "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
                             pst_id + ", " + (pls_qty) + ")'></td> " +
                             "<td>" +
-                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                            "<select style='width: 10rem;' data-sellPrice='" + sell_price +
+                            "' class='form-control col-10 mr-4' id='discount_selection" + (
+                                total_row + 1) + "' onchange='handleSelectChange(" + (
+                                total_row + 1) + ",this)'>" +
                             "<option value='0'>Discount Extra</option>" +
                             "<option value='1'>Discount Promo</option>" +
                             "</select>" +
@@ -1310,11 +1323,14 @@
                             "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                             (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
                                 1) + ")'/></td> " +
-                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
+                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row +
+                                1) + "'>" + addCommas(bandrol) + "</span></td> " +
                             "<td><span class='sell_price_item' id='sell_price_item" + (
                                 total_row + 1) + "'>" + addCommas(sell_price) +
                             "</span></td> " +
-                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
+                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +
+                            (total_row + 1) + "'>" + addCommas(discount_normal) +
+                            "</span></td> " +
                             "<td><span class='subtotal_item' id='subtotal_item" + (total_row +
                                 1) + "'>" + addCommas(sell_price) + "</span></td> " +
                             "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
@@ -1331,7 +1347,7 @@
                     toast('Gagal', 'Item gagal ditambah', 'danger');
                 }
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
@@ -1346,7 +1362,7 @@
         return false;
     });
 
-    jQuery(document).delegate('#add_custom_amount', 'click', function (e) {
+    jQuery(document).delegate('#add_custom_amount', 'click', function(e) {
         e.preventDefault();
         var pt_id = '';
         var st_id = "{{ $data['user']->st_id }}";
@@ -1400,7 +1416,7 @@
                 _sell_price: sell_price
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 jQuery.noConflict();
                 console.log(r.status);
                 if (r.status == '200') {
@@ -1439,7 +1455,8 @@
                                 1) + "'>" + addCommas(sell_price) + "</span></td>" +
                             " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                             (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
-                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " + pl_id +
+                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " +
+                            pl_id +
                             ")'>" +
                             " <i class='fa fa-eye' style='display:none;'></i></a> " +
                             " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
@@ -1458,7 +1475,10 @@
                             "' value='1' onchange='return changeQty(" + (total_row + 1) + ", " +
                             pst_id + ", " + (1) + ")'></td> " +
                             "<td>" +
-                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
+                            "<select style='width: 10rem;' data-sellPrice='" + sell_price +
+                            "' class='form-control col-10 mr-4' id='discount_selection" + (
+                                total_row + 1) + "' onchange='handleSelectChange(" + (
+                                total_row + 1) + ",this)'>" +
                             "<option value='0'>Discount Extra</option>" +
                             "<option value='1'>Discount Promo</option>" +
                             "</select>" +
@@ -1475,15 +1495,18 @@
                             "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                             (total_row + 1) + "' onchange='return namesetPrice(" + (total_row +
                                 1) + ")'/></td> " +
-                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                            "<td><span class='price_tag_item' id='price_tag_item" + (total_row +
+                                1) + "'>" + addCommas(sell_price) + "</span></td> " +
                             " <td><span class='sell_price_item' id='sell_price_item" + (
                                 total_row + 1) + "'>" + addCommas(sell_price) + "</span></td>" +
-                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + 0 + "</span></td> " +
+                            "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +
+                            (total_row + 1) + "'>" + 0 + "</span></td> " +
                             " <td><span class='subtotal_item' id='subtotal_item" + (total_row +
                                 1) + "'>" + addCommas(sell_price) + "</span></td>" +
                             " <td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                             (total_row + 1) + "' onclick='return saveItem(" + (total_row + 1) +
-                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " + pl_id +
+                            ", " + pst_id + ", " + sell_price + ", " + r.plst_id + ", " +
+                            pl_id +
                             ")'>" +
                             " <i class='fa fa-eye' style='display:none;'></i></a> " +
                             " <a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
@@ -1495,7 +1518,7 @@
                     toast('Gagal', 'Item gagal ditambah', 'danger');
                 }
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
@@ -1510,7 +1533,7 @@
         return false;
     });
 
-    jQuery(document).delegate('#barcode_input', 'change', function (e) {
+    jQuery(document).delegate('#barcode_input', 'change', function(e) {
         e.preventDefault();
         var inpBarcode = jQuery(this).val();
         var type = jQuery('#std_id option:selected').text();
@@ -1539,7 +1562,7 @@
                 jQuery('#loader').show();
                 jQuery('#barcode_input').prop('disabled', true);
             },
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     var pt_id = '';
                     var st_id = "{{ $data['user']->st_id }}";
@@ -1580,7 +1603,7 @@
                         var b1g1_total_row = b1g1_temp.length;
                         var b1g1_qty_total = 0;
                         if (b1g1_total_row > 0) {
-                            jQuery('#orderTable tr').each(function (index, row) {
+                            jQuery('#orderTable tr').each(function(index, row) {
                                 var b1g1_qty = parseFloat(jQuery(row).find('.item_qty')
                                     .val());
                                 if (typeof b1g1_qty === 'undefined' || b1g1_qty == '' ||
@@ -1590,12 +1613,14 @@
 
                                 if (jQuery(row).hasClass('b1g1_mode')) {
                                     b1g1_qty_total += b1g1_qty;
-                                    if (parseFloat(sell_price) >= parseFloat(b1g1_temp[0]) || parseFloat(sell_price) == parseFloat(b1g1_temp[0])) {
+                                    if (parseFloat(sell_price) >= parseFloat(b1g1_temp[
+                                        0]) || parseFloat(sell_price) == parseFloat(
+                                            b1g1_temp[0])) {
                                         sell_price = sell_price;
-                                        console.log('row : ',row);
+                                        console.log('row : ', row);
                                         jQuery(row).find('.sell_price_item').text('0');
 
-                                        console.log('BOGO CEK BOLO : ',sell_price);
+                                        console.log('BOGO CEK BOLO : ', sell_price);
                                     } else {
                                         sell_price = 0;
                                     }
@@ -1651,7 +1676,7 @@
                             // _bandrol: bandrol
                         },
                         dataType: 'json',
-                        success: function (r) {
+                        success: function(r) {
                             jQuery.noConflict();
                             if (r.status == '200') {
                                 toast('Ditambah', 'Item berhasil ditambah', 'success');
@@ -1659,7 +1684,9 @@
                                     1);
                                 console.log('TOTAL PRICE: ', total_price_side);
                                 console.log('TOTAL NAMESET: ', total_nameset_side);
-                                jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) + parseFloat(sell_price)));
+                                jQuery('#total_price_side').text(addCommas(parseFloat(
+                                    replaceComma(total_price)) + parseFloat(
+                                    sell_price)));
                                 // jQuery('#total_final_price_side').text(addCommas(parseFloat(Number(replaceComma(total_price_side)) + Number(total_nameset_side)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))));
 
                                 // JQuery('#temp_total_side').val(addCommas(parseFloat(Number(replaceComma(total_price)) + Number(total_nameset)) + parseFloat(sell_price) - parseFloat(replaceComma(total_discount))))
@@ -1673,15 +1700,25 @@
                                             1) + "'>" + p_name + "</td>" +
                                         "<td>" + (pls_qty) + "</td> " +
 
-                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
-                                        "' value='1' onchange='return changeQty(" +(total_row + 1) + ", " + pst_id + ", " + (pls_qty) + ")'></td> " +
-                                       "<td>" +
-                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
-                                                "<option value='0'>Discount Extra</option>" +
-                                                "<option value='1'>Discount Promo</option>" +
-                                            "</select>" +
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
+                                        pst_id + " item_qty' id='item_qty" + (
+                                            total_row + 1) +
+                                        "' value='1' onchange='return changeQty(" +
+                                        (total_row + 1) + ", " + pst_id + ", " + (
+                                            pls_qty) + ")'></td> " +
+                                        "<td>" +
+                                        "<select style='width: 10rem;' data-sellPrice='" +
+                                        sell_price +
+                                        "' class='form-control col-10 mr-4' id='discount_selection" +
+                                        (total_row + 1) +
+                                        "' onchange='handleSelectChange(" + (
+                                            total_row + 1) + ",this)'>" +
+                                        "<option value='0'>Discount Extra</option>" +
+                                        "<option value='1'>Discount Promo</option>" +
+                                        "</select>" +
                                         "</td>" +
-                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +pst_id +
+                                        "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
+                                        pst_id +
                                         " discount_percentage' id='discount_percentage" +
                                         (total_row + 1) +
                                         "' value='0' onchange='return changeDiscountPercentage(" +
@@ -1689,26 +1726,38 @@
                                             pls_qty) + ")'></td>" +
                                         " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
                                         pst_id +
-                                        " discount_number' id='discount_number" + ( total_row + 1) +"' value='' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
+                                        " discount_number' id='discount_number" + (
+                                            total_row + 1) +
+                                        "' value='' onchange='return changeDiscountNumber(" +
+                                        (total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
                                         "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
                                         (total_row + 1) +
                                         "' onchange='return namesetPrice(" + (
                                             total_row + 1) + ")'/></td> " +
-                                        "<td><span class='price_tag_item' id='price_tag_item" + (total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
-                                        "<td><span class='sell_price_item' id='sell_price_item" + (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
-                                        "<td><span class='discount_normal' style='width: 13rem;'  id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" +
+                                        (total_row + 1) + "'>" + addCommas(
+                                        bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" +
+                                        (total_row + 1) + "'>" + addCommas(
+                                            sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' style='width: 13rem;'  id='discount_normal" +
+                                        (total_row + 1) + "'>" + addCommas(
+                                            discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
-                                        (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        (total_row + 1) + "'>" + addCommas(
+                                            sell_price) + "</span></td> " +
                                         "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                                         (total_row + 1) +
                                         "' onclick='return saveItem(" + (total_row +
                                             1) + ", " + pst_id + ", " + sell_price +
-                                        ", " + (plst_id || r.plst_id) + ", " + pl_id +
+                                        ", " + (plst_id || r.plst_id) + ", " +
+                                        pl_id +
                                         ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
                                         "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
                                         pst_id + ", " + sell_price + ", " + (
-                                            total_row + 1) + ", " + pl_id + ", " + (plst_id || r.plst_id) + ", " + bandrol +
+                                            total_row + 1) + ", " + pl_id + ", " + (
+                                            plst_id || r.plst_id) + ", " + bandrol +
                                         ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
                                     );
                                 } else {
@@ -1721,15 +1770,22 @@
                                             1) + "'>" + p_name + "</td>" +
                                         "<td>" + (pls_qty) + "</td> " +
 
-                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +pst_id + " item_qty' id='item_qty" + (total_row + 1) +
+                                        "<td><input type='number' min='0' style='width: 10rem;' class='form-control border-dark col-5 basicInput2 qty-input" +
+                                        pst_id + " item_qty' id='item_qty" + (
+                                            total_row + 1) +
                                         "' value='1' onchange='return changeQty(" +
                                         (total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td> " +
                                         "<td>" +
-                                            "<select style='width: 10rem;' data-sellPrice='"+ sell_price +"' class='form-control col-10 mr-4' id='discount_selection" + (total_row + 1) + "' onchange='handleSelectChange(" + (total_row + 1) + ",this)'>"  +
-                                                "<option value='0'>Discount Extra</option>" +
-                                                "<option value='1'>Discount Promo</option>" +
-                                            "</select>" +
+                                        "<select style='width: 10rem;' data-sellPrice='" +
+                                        sell_price +
+                                        "' class='form-control col-10 mr-4' id='discount_selection" +
+                                        (total_row + 1) +
+                                        "' onchange='handleSelectChange(" + (
+                                            total_row + 1) + ",this)'>" +
+                                        "<option value='0'>Discount Extra</option>" +
+                                        "<option value='1'>Discount Promo</option>" +
+                                        "</select>" +
                                         "</td>" +
                                         "<td><input type='number' style='width: 13rem;' class='form-control border-dark col-5 basicInput2 discount-percent" +
                                         pst_id +
@@ -1740,38 +1796,57 @@
                                             pls_qty) + ")'></td>" +
                                         " <td><input type='number' style='width: 13rem;' class='form-control border-dark col-8 basicInput2 discount-number" +
                                         pst_id +
-                                        " discount_number' id='discount_number" + (total_row + 1) +
-                                        "' value='0' onchange='return changeDiscountNumber(" +(total_row + 1) + ", " + pst_id + ", " + (
+                                        " discount_number' id='discount_number" + (
+                                            total_row + 1) +
+                                        "' value='0' onchange='return changeDiscountNumber(" +
+                                        (total_row + 1) + ", " + pst_id + ", " + (
                                             pls_qty) + ")'></td>" +
-                                        "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" + (total_row + 1) + "' onchange='return namesetPrice(" + (total_row + 1) + ")'/></td> " +
+                                        "<td><input type='number' style='width: 13rem;' class='col-8 nameset_price namset-input' id='nameset_price" +
+                                        (total_row + 1) +
+                                        "' onchange='return namesetPrice(" + (
+                                            total_row + 1) + ")'/></td> " +
                                         // "<td><input type='text' style='width: 13rem;' class='col-8 nameset_price namset-input' value='" + sell_price +"' id='item_price" + (total_row + 1) + "'/></td> " +
-                                        "<td><span class='price_tag_item' id='price_tag_item" +(total_row + 1) + "'>" + addCommas(bandrol) + "</span></td> " +
-                                        "<td><span class='sell_price_item' id='sell_price_item" +(total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
-                                        "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +(total_row + 1) + "'>" + addCommas(discount_normal) + "</span></td> " +
+                                        "<td><span class='price_tag_item' id='price_tag_item" +
+                                        (total_row + 1) + "'>" + addCommas(
+                                        bandrol) + "</span></td> " +
+                                        "<td><span class='sell_price_item' id='sell_price_item" +
+                                        (total_row + 1) + "'>" + addCommas(
+                                            sell_price) + "</span></td> " +
+                                        "<td><span class='discount_normal' style='width: 13rem;' id='discount_normal" +
+                                        (total_row + 1) + "'>" + addCommas(
+                                            discount_normal) + "</span></td> " +
                                         "<td><span class='subtotal_item' id='subtotal_item" +
-                                        (total_row + 1) + "'>" + addCommas(sell_price) + "</span></td> " +
+                                        (total_row + 1) + "'>" + addCommas(
+                                            sell_price) + "</span></td> " +
                                         "<td><div class='card-toolbar text-right'><a href='#' class='saveItem' id='saveItem" +
                                         (total_row + 1) +
                                         "' onclick='return saveItem(" + (total_row +
                                             1) + ", " + pst_id + ", " + sell_price +
-                                        ", " + (plst_id || r.plst_id) + ", " + pl_id +
+                                        ", " + (plst_id || r.plst_id) + ", " +
+                                        pl_id +
                                         ")'><i class='fa fa-eye' style='display:none;'></i></a> " +
                                         "<a href='#' class='confirm-delete' title='Delete' onclick='return deleteItem(" +
                                         pst_id + ", " + sell_price + ", " + (
-                                            total_row + 1) + ", " + pl_id + ", " + (plst_id || r.plst_id) + ", " + bandrol +
+                                            total_row + 1) + ", " + pl_id + ", " + (
+                                            plst_id || r.plst_id) + ", " + bandrol +
                                         ")'><i class='fas fa-trash-alt'></i></a></div></td></tr>"
                                     );
                                 }
-                                var total_nameset_side = replaceComma(jQuery('#total_nameset_side').text());
-                                var total_price_side = replaceComma(jQuery('#total_price_side').text());
-                                var total_discount_side = replaceComma(jQuery('#total_discount_value_side').text());
+                                var total_nameset_side = replaceComma(jQuery(
+                                    '#total_nameset_side').text());
+                                var total_price_side = replaceComma(jQuery(
+                                    '#total_price_side').text());
+                                var total_discount_side = replaceComma(jQuery(
+                                    '#total_discount_value_side').text());
 
                                 console.log(Number(total_price_side));
                                 console.log(Number(total_nameset_side));
                                 console.log(Number(total_discount_side));
 
                                 jQuery('#total_final_price_side').text(
-                                    addCommas(parseFloat(Number(total_price_side) + Number(total_nameset_side) - Number(total_discount_side)))
+                                    addCommas(parseFloat(Number(total_price_side) +
+                                        Number(total_nameset_side) - Number(
+                                            total_discount_side)))
                                 );
                                 updateTotalDiskon();
                                 updateTotalHarga();
@@ -1782,7 +1857,7 @@
                                 toast('Gagal', 'Item gagal ditambah', 'danger');
                             }
                         },
-                        error: function (data) {
+                        error: function(data) {
                             swal('Error', data, 'error');
                         }
                     });
@@ -1860,7 +1935,7 @@
     //     var qty = parseFloat(jQuery('#item_qty' + row).val()) || 0;
 
     //     console.log('row : ', ro);
-        
+
 
     //     jQuery('[id^="price_tag_item"]').each(function () {
     //         let val = jQuery(this).text().replace(/,/g, '');
@@ -1911,7 +1986,7 @@
         // console.log('Sell price for row ' + row + ':', OriginalPrice);
 
         // Loop through each price row
-        jQuery('[id^="price_tag_item"]').each(function () {
+        jQuery('[id^="price_tag_item"]').each(function() {
             const rowId = jQuery(this).attr('id').replace('price_tag_item', '');
 
             // Get price
@@ -1926,7 +2001,7 @@
             // Add to total
             total += price * qty;
 
-            console.log('asdasd : ',total);
+            console.log('asdasd : ', total);
 
         });
 
@@ -1936,14 +2011,14 @@
     function updateTotalDiskon() {
         let total_disc_normal = 0;
         let total_disc_field = 0;
-        
+
         // get original sell price 
         // let OriginalPrice = parseFloat(jQuery('#discount_selection' + row).data('sellPrice')) || 0;
         // console.log('Sell price for row ' + row + ':', OriginalPrice);
 
-        jQuery('[id^="discount_normal"]').each(function () {
+        jQuery('[id^="discount_normal"]').each(function() {
             const rowId = jQuery(this).attr('id').replace('discount_normal', '');
-            
+
             let val = jQuery(this).text().replace(/,/g, '');
             let num = parseFloat(val) || 0;
 
@@ -1954,13 +2029,13 @@
         });
 
 
-        jQuery('[id^="discount_number"]').each(function () {
+        jQuery('[id^="discount_number"]').each(function() {
             let val = jQuery(this).val().replace(/,/g, '');
             let num = parseFloat(val) || 0;
             total_disc_field += num;
         });
 
-        console.log('Ini diskon diskonan : ',total_disc_normal, total_disc_field);
+        console.log('Ini diskon diskonan : ', total_disc_normal, total_disc_field);
 
         jQuery('#total_discount_value_side').text(addCommas(total_disc_field + total_disc_normal));
     }
@@ -1995,15 +2070,15 @@
         }],
         ajax: {
             url: "{{ url('scan_adjustment_product_datatables') }}",
-            data: function (d) {
+            data: function(d) {
                 d.search = jQuery('#p_search').val();
             }
         },
         columns: [{
-            data: 'DT_RowIndex',
-            name: 'id',
-            searchable: false
-        },
+                data: 'DT_RowIndex',
+                name: 'id',
+                searchable: false
+            },
             {
                 data: 'br_name',
                 name: 'br_name'
@@ -2035,18 +2110,18 @@
         ],
     });
 
-    jQuery('#p_search').on('keyup', function () {
+    jQuery('#p_search').on('keyup', function() {
         product.draw(false);
     });
 
-    jQuery(document).delegate('#product_barcode_btn', 'click', function (e) {
+    jQuery(document).delegate('#product_barcode_btn', 'click', function(e) {
         e.preventDefault();
         jQuery.noConflict();
         jQuery('#ProductBarcodeModal').modal('show');
         product.draw(false);
     });
 
-    jQuery(document).delegate('#input_barcode', 'change', function (e) {
+    jQuery(document).delegate('#input_barcode', 'change', function(e) {
         e.preventDefault();
         var id = jQuery(this).attr('data-id');
         var barcode = jQuery(this).val();
@@ -2063,7 +2138,7 @@
             },
             dataType: 'json',
             url: "{{ url('scan_adjustment_barcode_update') }}",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     swal("Berhasil", "Data berhasil diupdate", "success");
                     product.draw(false);
@@ -2075,7 +2150,7 @@
         return false;
     });
 
-    jQuery(document).on('body', 'click', function (e) {
+    jQuery(document).on('body', 'click', function(e) {
         jQuery('#itemList').fadeOut();
     });
 
@@ -2091,7 +2166,7 @@
                 url: "{{ url('check_rating_for_checkout') }}",
                 method: "POST",
                 dataType: "JSON",
-                success: function (r) {
+                success: function(r) {
                     if (r.status == '200') {
                         jQuery('#waiting_customer_label').addClass('d-none');
                         jQuery('#free_sock_customer_panel').removeClass('d-none');
@@ -2110,7 +2185,7 @@
     }, 3000);
 
 
-    jQuery(document).delegate('#cancel_rating_btn', 'click', function () {
+    jQuery(document).delegate('#cancel_rating_btn', 'click', function() {
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -2120,7 +2195,7 @@
             type: 'POST',
             url: "{{ url('delete_rating') }}",
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 jQuery('#waiting_customer_label').addClass('d-none');
                 jQuery('#free_sock_customer_panel').addClass('d-none');
                 jQuery('#free_sock_customer_label').val('');
@@ -2128,13 +2203,13 @@
                 jQuery('#free_sock_customer_mode').val('');
                 jQuery('#free_sock_customer_ur_id').val('');
             },
-            error: function (data) {
+            error: function(data) {
                 swal('Error', data, 'error');
             }
         });
     });
 
-    jQuery(document).delegate('#free_sock_btn', 'click', function (e) {
+    jQuery(document).delegate('#free_sock_btn', 'click', function(e) {
         var access_code = jQuery('#free_sock_access_code').val();
         if (access_code == '') {
             swal('Input Kode', 'Silahkan input kode akses kasir', 'warning');
@@ -2152,7 +2227,7 @@
                 _access_code: access_code
             },
             dataType: "json",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     jQuery('#OfferModal').modal('hide');
                     jQuery('#free_sock_customer_mode').val('1');
@@ -2167,7 +2242,7 @@
         });
     });
 
-    jQuery(document).ready(function (e) {
+    jQuery(document).ready(function(e) {
         jQuery('#_pt_id_complaint').val('');
         jQuery('#_exchange').val('');
         reloadWaitingForCheckout();
@@ -2196,7 +2271,7 @@
         jQuery('#total_payment_two').addClass('d-none');
         jQuery('#total_payment_two').removeClass('d-flex');
 
-        jQuery('#cust_id_label').on('change', function () {
+        jQuery('#cust_id_label').on('change', function() {
             var query = jQuery(this).val();
             if (query == '') {
                 jQuery('#cust_id').val('1');
@@ -2206,12 +2281,12 @@
             }
         });
 
-        jQuery('#cust_id_label').on('focus', function () {
+        jQuery('#cust_id_label').on('focus', function() {
             jQuery(this).val('');
             jQuery('#cust_id').val('1');
         });
 
-        jQuery('#cust_id_label').on('keyup', function () {
+        jQuery('#cust_id_label').on('keyup', function() {
             var query = jQuery(this).val();
             var type = 'cust';
             if (jQuery.trim(query) != '' || jQuery.trim(query) != null) {
@@ -2228,7 +2303,7 @@
                             query: query,
                             type: type
                         },
-                        success: function (data) {
+                        success: function(data) {
                             jQuery('#itemListCust').fadeIn();
                             jQuery('#itemListCust').html(data);
                         }
@@ -2241,7 +2316,7 @@
             }
         });
 
-        jQuery(document).delegate('#add_to_item_list_cust', 'click', function () {
+        jQuery(document).delegate('#add_to_item_list_cust', 'click', function() {
             var cust_id = jQuery(this).attr('data-id');
             var cust_name = jQuery(this).text();
             jQuery('#cust_id').val(cust_id);
@@ -2251,7 +2326,7 @@
             jQuery('#itemListCust').fadeOut();
         });
 
-        jQuery(document).delegate('#add_new_customer', 'click', function () {
+        jQuery(document).delegate('#add_new_customer', 'click', function() {
             console.log(jQuery('#cust_id_label').val());
             jQuery('#_mode').val('add');
             var custIdLabelValue = jQuery('#cust_id_label').val();
@@ -2259,7 +2334,7 @@
             jQuery('#cust_phone').val(custIdLabelValue);
         })
 
-        jQuery(document).delegate('#check_customer', 'click', function () {
+        jQuery(document).delegate('#check_customer', 'click', function() {
             jQuery('#_mode').val('edit');
             var cust_id = jQuery(this).attr('data-id');
             jQuery('#_id').val(cust_id);
@@ -2275,7 +2350,7 @@
                     _cust_id: cust_id
                 },
                 dataType: 'json',
-                success: function (r) {
+                success: function(r) {
                     if (r.status == '200') {
                         jQuery('#choosecustomer').modal('show');
                         jQuery('#ct_id').val(r.ct_id);
@@ -2299,7 +2374,7 @@
                         swal('Gagal', 'Gagal menampilkan detail', 'warning');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -2309,11 +2384,13 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ route("current-shift.data") }}',
+                url: '{{ route('current-shift.data') }}',
                 type: 'GET',
             },
-            columns: [
-                { data: 'pm_name', name: 'pm_name' },
+            columns: [{
+                    data: 'pm_name',
+                    name: 'pm_name'
+                },
                 {
                     data: 'total_pos_real_price',
                     name: 'total_pos_real_price',
@@ -2322,7 +2399,10 @@
                     }
                 }
             ],
-            order: [[0, 'asc'], [1, 'asc']],
+            order: [
+                [0, 'asc'],
+                [1, 'asc']
+            ],
             paging: false,
             searching: false,
             lengthChange: false,
@@ -2330,7 +2410,10 @@
         });
 
         function formatRupiahDetail(number) {
-            return number.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
+            return number.toLocaleString('id-ID', {
+                style: 'currency',
+                currency: 'IDR'
+            });
         }
 
         var refund_retur_table = jQuery('#RefundReturtb').DataTable({
@@ -2346,17 +2429,17 @@
             }],
             ajax: {
                 url: "{{ url('refund_retur_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.pt_id = jQuery('#refund_retur_pt_id').val();
 
                     // console.log("test");
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'ptd_id',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'ptd_id',
+                    searchable: false
+                },
                 {
                     data: 'article',
                     name: 'article',
@@ -2406,17 +2489,17 @@
             }],
             ajax: {
                 url: "{{ url('dp_invoice_datatables') }}",
-                data: function (d) {
+                data: function(d) {
                     d.pt_id = jQuery('#dp_pt_id').val();
 
                     // console.log("test");
                 }
             },
             columns: [{
-                data: 'DT_RowIndex',
-                name: 'ptd_id',
-                searchable: false
-            },
+                    data: 'DT_RowIndex',
+                    name: 'ptd_id',
+                    searchable: false
+                },
                 {
                     data: 'article',
                     name: 'article',
@@ -2448,18 +2531,18 @@
             ],
         });
 
-        jQuery('#choosecustomer').on('hide.bs.modal', function () {
+        jQuery('#choosecustomer').on('hide.bs.modal', function() {
             jQuery('#f_customer')[0].reset();
         });
 
-        jQuery('#add_customer_btn').on('click', function () {
+        jQuery('#add_customer_btn').on('click', function() {
             jQuery('#_mode').val('add');
             jQuery('#choosecustomer').modal('show');
         });
 
         let is_shift = 0;
 
-        jQuery('#shiftEmployeeBtn').on('click', function () {
+        jQuery('#shiftEmployeeBtn').on('click', function() {
 
             // jQuery('#shiftEmployeeModal').modal('show');
             jQuery.ajaxSetup({
@@ -2471,7 +2554,7 @@
             jQuery.ajax({
                 url: '/check_user_shift',
                 method: 'GET',
-                success: function (response) {
+                success: function(response) {
                     if (response.status === '200') {
                         // User has started a shift
                         jQuery('#startShiftButton').hide();
@@ -2494,13 +2577,13 @@
                         is_shift = response.shiftStatus;
                     }
                 },
-                error: function (error) {
+                error: function(error) {
                     console.error('Error checking user shift:', error);
                 }
             });
         });
 
-        jQuery('#payment_option').on('change', function () {
+        jQuery('#payment_option').on('change', function() {
             var payment_option = jQuery(this).val();
 
             jQuery('#pm_id_offline').val('').trigger('change');
@@ -2546,7 +2629,7 @@
         //     reloadRefund();
         // });
 
-        jQuery('#reload_dp_list').on('click', function () {
+        jQuery('#reload_dp_list').on('click', function() {
             dpInvoiceRefund();
         });
 
@@ -2565,7 +2648,7 @@
                 },
                 dataType: 'json',
                 url: "{{ url('refund_exchange_list') }}",
-                success: function (r) {
+                success: function(r) {
                     if (r.status == '200') {
                         toast('Added', 'Added to refund list', 'success');
                     } else {
@@ -2638,7 +2721,7 @@
         //     }
         // });
 
-        jQuery(document).delegate('#select_refund_exchange_item', 'click', function () {
+        jQuery(document).delegate('#select_refund_exchange_item', 'click', function() {
             var p_name = jQuery(this).attr('data-p_name');
             var pst_id = jQuery(this).attr('data-pst_id');
             var pt_id = jQuery(this).attr('data-pt_id');
@@ -2657,7 +2740,8 @@
                 jQuery('#total_item_side').text(parseInt(total_item) - 1);
                 jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) -
                     parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_final_price)) -
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(
+                        total_final_price)) -
                     parseFloat(total_price_item)));
                 addRefundExchangeList('add', plst_id, pt_id);
                 jQuery('#orderTable tr:last').after(
@@ -2683,7 +2767,8 @@
                 jQuery('#total_item_side').text(parseInt(total_item) + 1);
                 jQuery('#total_price_side').text(addCommas(parseFloat(replaceComma(total_price)) +
                     parseFloat(total_price_item)));
-                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(total_final_price)) +
+                jQuery('#total_final_price_side').text(addCommas(parseFloat(replaceComma(
+                        total_final_price)) +
                     parseFloat(total_price_item)));
                 //alert(plst_id);
                 addRefundExchangeList('remove', plst_id, pt_id);
@@ -2691,7 +2776,7 @@
             }
         });
 
-        jQuery(document).delegate('#refund_invoice', 'change', function (e) {
+        jQuery(document).delegate('#refund_invoice', 'change', function(e) {
             e.preventDefault();
             var invoice = jQuery('option:selected', this).text();
             var pt_id = jQuery(this).val();
@@ -2702,7 +2787,7 @@
             refund_retur_table.draw();
         });
 
-        jQuery(document).delegate('#dp_invoice', 'change', function (e) {
+        jQuery(document).delegate('#dp_invoice', 'change', function(e) {
             e.preventDefault();
             var invoice = jQuery('option:selected', this).text();
             var pt_id = jQuery(this).val();
@@ -2714,19 +2799,19 @@
         });
 
         @if (strtolower($data['user']->stt_name) == 'offline')
-        jQuery('#posContent').show();
-        jQuery('.sidebarPOS').show();
+            jQuery('#posContent').show();
+            jQuery('.sidebarPOS').show();
         @else
-        jQuery('#posContent').hide();
-        jQuery('.sidebarPOS').hide();
+            jQuery('#posContent').hide();
+            jQuery('.sidebarPOS').hide();
         @endif
 
-        jQuery('#filter_product_btn').on('click', function (e) {
+        jQuery('#filter_product_btn').on('click', function(e) {
             e.preventDefault();
             jQuery('#FilterProductModal').modal('show');
         });
 
-        jQuery('#payment_btn').on('click', function (e) {
+        jQuery('#payment_btn').on('click', function(e) {
 
             // if (is_shift === 0) {
             //     swal("Shift Status", "Silahkan klik button Start Shift", "warning");
@@ -2762,7 +2847,7 @@
             // console.log('Halo');
         });
 
-        jQuery('#unique_code').on('change', function () {
+        jQuery('#unique_code').on('change', function() {
             var unique = jQuery(this).val();
             var cost = jQuery('#another_cost').val();
             var admin = jQuery('#admin_cost').val();
@@ -2789,7 +2874,7 @@
             jQuery('#payment_total').text(addCommas(final_total));
         });
 
-        jQuery('#another_cost').on('change', function () {
+        jQuery('#another_cost').on('change', function() {
             var cost = jQuery(this).val();
             var admin = jQuery('#admin_cost').val();
             var unique = jQuery('#unique_code').val();
@@ -2816,7 +2901,7 @@
             jQuery('#payment_total').text(addCommas(final_total_admin));
         });
 
-        jQuery('#admin_cost').on('change', function () {
+        jQuery('#admin_cost').on('change', function() {
             var admin = jQuery(this).val();
             var cost = jQuery('#another_cost').val();
             var unique = jQuery('#unique_code').val();
@@ -2843,7 +2928,7 @@
             jQuery('#payment_total').text(addCommas(final_total_admin));
         });
 
-        jQuery('#shipping_cost').on('change', function () {
+        jQuery('#shipping_cost').on('change', function() {
             var shipping_cost = jQuery(this).val();
             var cost = jQuery('#another_cost').val();
             var admin = jQuery('#admin_cost').val();
@@ -2870,7 +2955,7 @@
             jQuery('#payment_total').text(addCommas(final_total_admin));
         });
 
-        jQuery(document).delegate('#free_sock_no_btn', 'click', function () {
+        jQuery(document).delegate('#free_sock_no_btn', 'click', function() {
             jQuery('#payment-offline-popup').modal('show');
             var total_final_price_side = jQuery('#total_final_price_side').text();
             var total_nameset_side = jQuery('#total_nameset_side').text();
@@ -2903,7 +2988,7 @@
         // });
 
 
-        jQuery('#charge').on('change', function (e) {
+        jQuery('#charge').on('change', function(e) {
             e.preventDefault();
             var charge = jQuery(this).val();
             var payment_total = jQuery('#payment_total').text();
@@ -2917,7 +3002,7 @@
             }
         });
 
-        jQuery('#pm_id_offline').on('change', function (e) {
+        jQuery('#pm_id_offline').on('change', function(e) {
             e.preventDefault();
             var label = jQuery('#pm_id_offline option:selected').text();
             if (label == 'DEBIT CARD') {
@@ -2929,6 +3014,7 @@
                 jQuery('#ref_number_label').addClass('d-flex');
                 jQuery('#return_payment').text('');
                 jQuery('#charge_label').addClass('d-none');
+                jQuery('#sub_payment_offline_content').addClass('d-none').removeClass('d-flex');
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
@@ -2942,6 +3028,7 @@
                 jQuery('#ref_number_label').addClass('d-flex');
                 jQuery('#return_payment').text('');
                 jQuery('#charge_label').addClass('d-flex');
+                jQuery('#sub_payment_offline_content').addClass('d-none').removeClass('d-flex');
                 jQuery('#charge_label').removeClass('d-none');
                 jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             } else if (label == 'CASH') {
@@ -2951,11 +3038,21 @@
                 jQuery('#card_number_label').removeClass('d-flex');
                 jQuery('#ref_number_label').addClass('d-none');
                 jQuery('#ref_number_label').removeClass('d-flex');
+                jQuery('#sub_payment_offline_content').addClass('d-none').removeClass('d-flex');
                 jQuery('#charge_label').addClass('d-none');
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
                 jQuery('#charge_total').val('');
                 jQuery('#total_payment').val('');
+            } else if (label.includes('EDC')) {
+                jQuery('#sub_payment_offline_content').removeClass('d-none').addClass('d-flex');
+                jQuery('#card_number_label').addClass('d-none').removeClass('d-flex');
+                jQuery('#card_provider_content').addClass('d-none').removeClass('d-flex');
+                jQuery('#ref_number_label').addClass('d-none').removeClass('d-flex');
+                jQuery('#charge_label').addClass('d-none').removeClass('d-flex');
+                jQuery('#charge').val('');
+                jQuery('#charge_total').val('');
+                jQuery('#total_payment').val(replaceComma(jQuery('#payment_total').text()));
             } else {
                 jQuery('#card_number_label').addClass('d-none');
                 jQuery('#card_number_label').removeClass('d-flex');
@@ -2964,6 +3061,7 @@
                 jQuery('#ref_number_label').removeClass('d-none');
                 jQuery('#ref_number_label').addClass('d-flex');
                 jQuery('#return_payment').text('');
+                jQuery('#sub_payment_offline_content').addClass('d-none').removeClass('d-flex');
                 jQuery('#charge_label').addClass('d-none');
                 jQuery('#charge_label').removeClass('d-flex');
                 jQuery('#charge').val('');
@@ -2972,7 +3070,7 @@
             }
         });
 
-        jQuery('#pm_id_offline_two').on('change', function (e) {
+        jQuery('#pm_id_offline_two').on('change', function(e) {
             e.preventDefault();
             var label = jQuery('#pm_id_offline_two option:selected').text();
             //alert(label);
@@ -3000,7 +3098,7 @@
             }
         });
 
-        jQuery('#checkout_btn').on('click', function (e) {
+        jQuery('#checkout_btn').on('click', function(e) {
             var payment_option = jQuery('#payment_option option:selected').val();
             var payment_option_label = jQuery('#payment_option option:selected').text();
             var payment_method = jQuery('#pm_id_offline').val();
@@ -3060,13 +3158,15 @@
             }
         });
 
-        jQuery('#InputCodeModal').on('shown.bs.modal', function () {
-            jQuery('#u_secret_code').focus(); // Replace '#inputFieldID' with the actual ID of your input field
+        jQuery('#InputCodeModal').on('shown.bs.modal', function() {
+            jQuery('#u_secret_code')
+        .focus(); // Replace '#inputFieldID' with the actual ID of your input field
         });
 
-        jQuery('#f_access').on('submit', function (e) {
+        jQuery('#f_access').on('submit', function(e) {
             // the loader html
-            var sweet_loader = '<div class="sweet_loader"><svg viewBox="0 0 140 140" width="140" height="140"><g class="outline"><path d="m 70 28 a 1 1 0 0 0 0 84 a 1 1 0 0 0 0 -84" stroke="rgba(0,0,0,0.1)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g><g class="circle"><path d="m 70 28 a 1 1 0 0 0 0 84 a 1 1 0 0 0 0 -84" stroke="#71BBFF" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="200" stroke-dasharray="300"></path></g></svg></div>';
+            var sweet_loader =
+                '<div class="sweet_loader"><svg viewBox="0 0 140 140" width="140" height="140"><g class="outline"><path d="m 70 28 a 1 1 0 0 0 0 84 a 1 1 0 0 0 0 -84" stroke="rgba(0,0,0,0.1)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g><g class="circle"><path d="m 70 28 a 1 1 0 0 0 0 84 a 1 1 0 0 0 0 -84" stroke="#71BBFF" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dashoffset="200" stroke-dasharray="300"></path></g></svg></div>';
 
             e.preventDefault();
             var u_secret_code = jQuery('#u_secret_code').val();
@@ -3089,16 +3189,17 @@
                     },
                     dataType: 'json',
                     url: "{{ url('check_secret_code') }}",
-                    beforeSend: function () {
+                    beforeSend: function() {
                         Swal.fire({
                             html: '<h5>Loading...</h5>',
                             showConfirmButton: false,
-                            didOpen: function () {
-                                Swal.getHtmlContainer().insertAdjacentHTML('afterbegin', sweet_loader);
+                            didOpen: function() {
+                                Swal.getHtmlContainer().insertAdjacentHTML(
+                                    'afterbegin', sweet_loader);
                             }
                         });
                     },
-                    success: function (r) {
+                    success: function(r) {
                         if (r.status == '200') {
                             // send_nota();
                             checkout();
@@ -3121,7 +3222,7 @@
             }
         });
 
-        jQuery('#st_id').on('change', function () {
+        jQuery('#st_id').on('change', function() {
             jQuery('#shipping_courier_side').text('');
             jQuery('#shipping_cost_side').text('0');
             jQuery('#total_final_price_side').text('0');
@@ -3141,7 +3242,7 @@
             jQuery('#discount_seller').val('');
         });
 
-        jQuery('#product_name_input').on('keyup', function () {
+        jQuery('#product_name_input').on('keyup', function() {
             var query = jQuery(this).val();
             var type = jQuery('#std_id option:selected').text();
             var item_type = jQuery('#item_type option:selected').val();
@@ -3169,7 +3270,7 @@
                             _std_id: std_id,
                             _st_id: st_id
                         },
-                        success: function (data) {
+                        success: function(data) {
                             jQuery('#itemList').fadeIn();
                             jQuery('#itemList').html(data);
                         }
@@ -3183,7 +3284,7 @@
             }
         });
 
-        jQuery('#invoice_input').on('keyup', function () {
+        jQuery('#invoice_input').on('keyup', function() {
             var query = jQuery(this).val();
             if (jQuery.trim(query) != '' || jQuery.trim(query) != null) {
                 if (jQuery.trim(query).length > 4) {
@@ -3198,7 +3299,7 @@
                         data: {
                             query: query
                         },
-                        success: function (data) {
+                        success: function(data) {
                             jQuery('#itemList').fadeIn();
                             jQuery('#itemList').html(data);
                         }
@@ -3211,7 +3312,7 @@
             }
         });
 
-        jQuery('#product_name_input').on('change', function () {
+        jQuery('#product_name_input').on('change', function() {
             var query = jQuery(this).val();
             console.log(query);
             if (jQuery.trim(query) == '' || jQuery.trim(query) != null) {
@@ -3219,17 +3320,17 @@
             }
         });
 
-        jQuery('#cust_province').on('change', function () {
+        jQuery('#cust_province').on('change', function() {
             var province = jQuery(this).val();
             reloadCity(province);
         });
 
-        jQuery('#cust_city').on('change', function () {
+        jQuery('#cust_city').on('change', function() {
             var city = jQuery(this).val();
             reloadSubdistrict(city);
         });
 
-        jQuery('#f_customer').on('submit', function (e) {
+        jQuery('#f_customer').on('submit', function(e) {
             e.preventDefault();
             jQuery("#save_customer_btn").html('Proses ..');
             jQuery("#save_customer_btn").attr("disabled", true);
@@ -3253,7 +3354,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function (data) {
+                success: function(data) {
                     jQuery("#save_customer_btn").html('Simpan');
                     jQuery("#save_customer_btn").attr("disabled", false);
                     if (data.status == '200') {
@@ -3269,7 +3370,7 @@
                         toast('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function (data) {
+                error: function(data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -3278,7 +3379,7 @@
 
         var shiftStarted = false;
         var clockInterval;
-        jQuery('#startShiftButton').on('click', function () {
+        jQuery('#startShiftButton').on('click', function() {
             shiftStarted = true;
             jQuery('#shiftStatus').html('[Shift In Progress]');
             jQuery('#startShiftButton').hide();
@@ -3287,7 +3388,7 @@
             var clockElement = jQuery('<div class="clock"></div>');
             jQuery('.modal-body').append(clockElement);
 
-            clockInterval = setInterval(function () {
+            clockInterval = setInterval(function() {
                 var now = new Date();
                 var hours = now.getHours();
                 var minutes = now.getMinutes();
@@ -3305,11 +3406,11 @@
             jQuery.ajax({
                 url: '/user_start_shift',
                 method: 'POST',
-                success: function (response) {
+                success: function(response) {
                     // handle shift already starter or not, if already starterd change button to stop shift
                     console.log(response);
                 },
-                error: function (error) {
+                error: function(error) {
                     console.error('Error starting shift:', error);
                 }
             });
@@ -3325,7 +3426,7 @@
         //     product.draw(false);
         // });
 
-        jQuery('#stopShiftButton').on('click', function (e) {
+        jQuery('#stopShiftButton').on('click', function(e) {
             e.preventDefault();
             jQuery.noConflict();
             jQuery('#shiftEmployeeModal').modal('hide');
@@ -3335,7 +3436,7 @@
         });
 
 
-        jQuery('#inputKasButton').on('click', function (e) {
+        jQuery('#inputKasButton').on('click', function(e) {
             e.preventDefault();
             jQuery.noConflict();
             jQuery('#shiftDetailModal').modal('hide');
@@ -3365,7 +3466,7 @@
 
 
 
-        jQuery(document).delegate('#f_laba_input', 'submit', function (e) {
+        jQuery(document).delegate('#f_laba_input', 'submit', function(e) {
             e.preventDefault();
             var numericValue = document.getElementById('laba_shift').value
             let laba = parseInt(numericValue.replace(/\D/g, ''));
@@ -3387,7 +3488,7 @@
                     },
                     dataType: 'json',
                     url: "{{ url('user_end_shift') }}",
-                    success: function (response) {
+                    success: function(response) {
                         console.log(response);
                         swal('Berhasil', 'Laporan Shift Berhasil Disimpan', 'success');
                         jQuery('#InputLabaShift').modal('hide');
@@ -3396,7 +3497,7 @@
                         jQuery('#stopShiftButton').hide();
 
                     },
-                    error: function (error) {
+                    error: function(error) {
                         console.error('Error End shift:', error);
                     }
                 });
@@ -3486,7 +3587,7 @@
             {{-- }); --}}
         });
 
-        document.getElementById('total_payment').addEventListener('input', function (e) {
+        document.getElementById('total_payment').addEventListener('input', function(e) {
             const input = e.target;
             let value = input.value;
 
@@ -3505,7 +3606,7 @@
             input.value = formattedValue.replace('IDR', 'Rp');
         });
 
-        jQuery('#total_payment').on('keyup', function (e) {
+        jQuery('#total_payment').on('keyup', function(e) {
             e.preventDefault();
             var total_price = jQuery('#payment_total').text();
             var total_payment = jQuery(this).val();
@@ -3513,7 +3614,8 @@
             total_payment = total_payment.replace(/Rp|\,/g, '').trim();
 
             console.log(total_payment); // Log the cleaned value of the currency input
-            var return_payment = parseFloat(total_payment.replace(".", "")) - parseFloat(replaceComma(total_price));
+            var return_payment = parseFloat(total_payment.replace(".", "")) - parseFloat(replaceComma(
+                total_price));
             var method = jQuery('#payment_option option:selected').val();
             if (method == 'two') {
                 if (total_payment == '') {
@@ -3569,7 +3671,7 @@
 
     });
 
-    jQuery('#cust_phone').on('change', function () {
+    jQuery('#cust_phone').on('change', function() {
         var cust_phone = jQuery(this).val();
         jQuery.ajaxSetup({
             headers: {
@@ -3583,7 +3685,7 @@
             },
             dataType: 'json',
             url: "{{ url('check_exists_customer') }}",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     swal('No Telepon',
                         'Nomor telepon sudah ada disistem, silahkan ganti dengan yang lain',
@@ -3595,7 +3697,7 @@
         });
     });
 
-    jQuery(document).delegate('#f_voucher', 'submit', function (e) {
+    jQuery(document).delegate('#f_voucher', 'submit', function(e) {
         e.preventDefault();
         var code = jQuery('#voucher_code').val();
         var item = shoes_voucher_temp;
@@ -3619,7 +3721,7 @@
             },
             dataType: 'json',
             url: "{{ url('verify_voucher') }}",
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     // ditemukan
                     var new_total = parseFloat(total) - parseFloat(r.sell) + parseFloat(r.value);
@@ -3656,7 +3758,7 @@
         });
     });
 
-    jQuery(document).delegate('#cancel_voucher', 'click', function (e) {
+    jQuery(document).delegate('#cancel_voucher', 'click', function(e) {
         e.preventDefault();
         var total_final = jQuery('#total_final_price_side').text();
         var total = replaceComma(total_final);
@@ -3672,9 +3774,9 @@
         jQuery('#voucher_code').prop('disabled', false);
     });
 
-    jQuery(document).ready(function () {
+    jQuery(document).ready(function() {
         // Event listener to add a new voucher input field
-        jQuery(document).on('click', '.add-voucher', function () {
+        jQuery(document).on('click', '.add-voucher', function() {
             let newField = `
             <div class="input-group mb-3">
                 <input type="text" name="voucher-list[]" class="form-control" placeholder="Kode Voucher" value="">
@@ -3687,14 +3789,14 @@
         });
 
         // Event listener to remove a voucher input field
-        jQuery(document).on('click', '.remove-voucher', function () {
+        jQuery(document).on('click', '.remove-voucher', function() {
             jQuery(this).closest('.input-group').remove();
         });
     });
 
-    jQuery(document).ready(function () {
+    jQuery(document).ready(function() {
         // Event listener to add a new discount input field
-        jQuery(document).on('click', '.add-total-discount', function () {
+        jQuery(document).on('click', '.add-total-discount', function() {
 
             let newField = `
             <div class="input-group mb-3">
@@ -3708,7 +3810,7 @@
         });
 
         // Event listener to remove a discount input field
-        jQuery(document).on('click', '.remove-total-discount', function () {
+        jQuery(document).on('click', '.remove-total-discount', function() {
             let total_price = jQuery("#total_final_price_side").text();
             let total_discount_value_side = jQuery("#total_discount_value_side").text();
             let discount = jQuery(this).closest('.input-group').find('input').val();
@@ -3738,9 +3840,9 @@
 
 
         // Event listener to reset total discount input fields
-        jQuery(document).on('click', '#total_discount_reset', function () {
+        jQuery(document).on('click', '#total_discount_reset', function() {
             // Simulate clicking each remove button to trigger the remove event
-            jQuery('.remove-total-discount').each(function () {
+            jQuery('.remove-total-discount').each(function() {
                 jQuery(this).trigger('click');
             });
 
@@ -3771,7 +3873,7 @@
         });
     });
 
-    jQuery(document).delegate('#f_add_voucher', 'submit', function (e) {
+    jQuery(document).delegate('#f_add_voucher', 'submit', function(e) {
         e.preventDefault();
         var cust_phone = jQuery(this).val();
 
@@ -3795,7 +3897,7 @@
                 item: item,
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 // console.log(r.status);
                 if (r.status == '200') {
                     // ditemukan
@@ -3837,7 +3939,7 @@
 
 
     // hitung tambah discount
-    jQuery(document).delegate('#f_add_total_discount', 'submit', function (e) {
+    jQuery(document).delegate('#f_add_total_discount', 'submit', function(e) {
         e.preventDefault();
 
         jQuery.ajaxSetup({
@@ -3864,7 +3966,7 @@
                 formData: formData,
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 if (r.status == '200') {
                     if (r.discountType == 'percentage') {
                         // create count use percentage from total
