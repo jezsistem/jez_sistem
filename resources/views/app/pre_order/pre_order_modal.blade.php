@@ -103,6 +103,19 @@
                         </select>
                         <div id="ss_id_parent"></div>
                     </div>
+                    <div class="col-4 mt-5">
+                        <label>Jenis Pre Order</label>
+                        <select class="form-control" id="preorder_type" name="preorder_type" required>
+                            <option value="">- Pilih Type Pre order -</option>
+                            <option value=0>REPEAT</option>
+                            <option value=1>LAUNCHING</option>
+                        </select>
+                        <div id="preorder_type_parent"></div>
+                    </div>
+                    <div class="col-4 mt-5">
+                        <label>Deskripsi / Catatan</label>
+                        <textarea class="form-control" placeholder="Deskripsi / Catatan" name="preorder_description" id="preorder_description" rows="3"></textarea>
+                    </div>
                 </div>
                 <!--end::Row-->
                 <!--begin::Row-->

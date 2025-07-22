@@ -120,6 +120,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_receive_detail', [POReceiveApprovalController::class, 'poReceiveDetail']);
     Route::get('apd_export', [POReceiveApprovalController::class, 'exportData']);
 
+    // Pre Order
     Route::get('pre_order', [PreOrderController::class, 'index']);
     Route::get('pre_order_datatables', [PreOrderController::class, 'getDatatables']);
     Route::post('create_pre_order', [PreOrderController::class, 'createPreOrder']);
@@ -136,6 +137,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('check_pre_order_purchase_order', [PreOrderController::class, 'checkPreOrderPurchaseOrder']);
     Route::get('pre_order_article_export', [PreOrderController::class, 'exportPreOrderArticleData']);
     Route::post('pre_order_import', [PreOrderController::class, 'importPreOrderExcel']);
+    Route::post('pre_order_choose_type', [PreOrderController::class, 'chooseTypePo']);
+    Route::post('preorder_description', [PreOrderController::class, 'descriptionPreOrder']);
 
     // Purchase Order Article
     Route::post('proa_delete', [PreOrderArticleController::class, 'deleteData']);
