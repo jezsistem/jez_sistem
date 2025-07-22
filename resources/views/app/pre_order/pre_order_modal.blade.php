@@ -112,6 +112,35 @@
                         </select>
                         <div id="preorder_type_parent"></div>
                     </div>
+                    <div class="col-4 mt-4 d-flex flex-column">
+                        <label class="badge badge-primary">File Pre Order</label>
+                        <div class="row justify-content-start">
+                            <a class="input-group col-5" type="button" id="UploadPOBtn" aria-haspopup="true" aria-expanded="false">
+                                <label class="input-group-text" for="Uploadpo">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-capslock-fill" viewBox="0 0 16 16">
+                                            <path d="M7.27 1.047a1 1 0 0 1 1.46 0l6.345 6.77c.6.638.146 1.683-.73 1.683H11.5v1a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-1H1.654C.78 9.5.326 8.455.924 7.816zM4.5 13.5a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z"/>
+                                          </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    Upload FIle
+                                </label>
+                            </a>
+                            <a class="input-group col-5" type="button" id="FilePreOrderBtn" aria-haspopup="true" aria-expanded="false">
+                                <label class="input-group-text" for="Filepreorder">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-collection-fill" viewBox="0 0 16 16">
+                                            <path d="M0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6zM2 3a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 0-1h-11A.5.5 0 0 0 2 3m2-2a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7A.5.5 0 0 0 4 1"/>
+                                          </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    File Pre Order
+                                </label>
+                            </a>
+                        </div>
+                    </div>
                     <div class="col-4 mt-5">
                         <label>Deskripsi / Catatan</label>
                         <textarea class="form-control" placeholder="Deskripsi / Catatan" name="preorder_description" id="preorder_description" rows="3"></textarea>
@@ -292,3 +321,76 @@
     </div>
 </form>
 <!-- /Modal -->
+
+<!-- Modal-->
+<form id="f_upload_preorder_file" enctype="multipart/form-data">
+    @csrf
+    <div class="modal fade" id="UploadFilePreOrderModal" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Upload File Per Order</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Pilih File Pre Order</label>
+                            <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="filepreorder[]" id="filepreorder"
+                                multiple required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
+                        data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold"
+                        id="upload_file_preorder_btn">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- /Modal -->
+
+<!-- Modal-->
+<div class="modal fade" id="FilePreOrderModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">File PreOrder</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <div class="container">
+                        <table id="FilePreOrderTb" class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>File PreOrder</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn"
+                        data-dismiss="modal">Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Modal-->
