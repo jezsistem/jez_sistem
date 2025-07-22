@@ -219,13 +219,13 @@
 
             // Change modal-header color
             $('#ActionAdjustmentModal .modal-header')
-                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary')
+                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary bg-info')
                 .addClass(headerClass);
             $('#acctionModalLabel')
-                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary text-dark text-white text-light')
+                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary bg-info text-dark text-white text-light')
                 .addClass(headerClass);
             $('#icon_close')
-                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary text-dark text-white text-light')
+                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary bg-info text-dark text-white text-light')
                 .addClass(headerClass);
 
             // Hide all action buttons by default
