@@ -47,7 +47,6 @@
                                 <option value="CYCLE COUNT">CYCLE COUNT</option>
                                 <option value="RETUR IN">RETUR IN</option>
                                 <option value="RETUR OUT">RETUR OUT</option>
-                                <option value="MARKETPLACE IN">MARKETPLACE IN</option>
                             </select>
                         </div>
                     </div>
@@ -63,7 +62,7 @@
 </div><!-- Modal-->
 
 <div class="modal fade" id="ImportScanModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -132,7 +131,7 @@
 
 <!-- Modal Filter tanggal-->
 <div class="modal fade" id="TanggalModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_import" enctype="multipart/form-data">
@@ -149,7 +148,7 @@
                             <label>Pilih range tanggal
                                 <span class="text-danger">*</span></label>
                             <input value="" name="tanggal" id="tanggalrange" type="text"
-                                class="form-control" placeholder="Periode Tanggal">
+                                   class="form-control" placeholder="Periode Tanggal">
                         </div>
                     </div>
                 </div>
@@ -157,7 +156,7 @@
                     <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
                     </button>
                     <button type="submit" class="btn btn-dark font-weight-bold"
-                        id="import_data_btn">Tampilkan</button>
+                            id="import_data_btn">Tampilkan</button>
                 </div>
             </form>
         </div>
@@ -166,7 +165,7 @@
 
 <!-- Modal Export-->
 <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="f_export" enctype="multipart/form-data">
@@ -188,7 +187,7 @@
                             {{--                            <input type="file" class="form-control" name="template" id="template" required/> --}}
                             {{--                            <input class="form-control form-control-solid" placeholder="Pick date rage" id="kt_daterangepicker_4"/> --}}
                             <input value="" name="tanggal" id="tanggalrange" type="text"
-                                class="form-control" placeholder="Periode Tanggal">
+                                   class="form-control" placeholder="Periode Tanggal">
 
                         </div>
                     </div>
@@ -205,57 +204,57 @@
 
 <!-- Modal-->
 <div class="modal fade" id="MassAdjustmentExportModal" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true" style="overflow-y: auto;">
+     aria-hidden="true" style="overflow-y: auto;">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Export SO Adjustment</h5>
             </div>
 
-{{--            <style>--}}
-{{--                #MassAdjustmentDetailtb {--}}
-{{--                    /*table-layout: fixed;*/--}}
-{{--                    width: 100%;--}}
-{{--                }--}}
+            {{--            <style>--}}
+            {{--                #MassAdjustmentDetailtb {--}}
+            {{--                    /*table-layout: fixed;*/--}}
+            {{--                    width: 100%;--}}
+            {{--                }--}}
 
-{{--                #MassAdjustmentDetailtb td:nth-child(2),--}}
-{{--                #MassAdjustmentDetailtb th:nth-child(2) {--}}
-{{--                    width: 550px;--}}
-{{--                }--}}
+            {{--                #MassAdjustmentDetailtb td:nth-child(2),--}}
+            {{--                #MassAdjustmentDetailtb th:nth-child(2) {--}}
+            {{--                    width: 550px;--}}
+            {{--                }--}}
 
-{{--                #MassAdjustmentDetailtb td:nth-child(2),--}}
-{{--                #MassAdjustmentDetailtb th:nth-child(2) {--}}
-{{--                    width: 150px !important;--}}
-{{--                }--}}
-{{--            </style>--}}
+            {{--                #MassAdjustmentDetailtb td:nth-child(2),--}}
+            {{--                #MassAdjustmentDetailtb th:nth-child(2) {--}}
+            {{--                    width: 150px !important;--}}
+            {{--                }--}}
+            {{--            </style>--}}
 
             <div class="modal-body table-responsive">
                 <a class="btn-sm btn-primary float-left" id="excel_report">Excel</a><br />
                 <table class="table table-hover" id="MassAdjustmentDetailtb" style="width: 100%;">
                     <thead class="text-dark">
-                        <tr>
-                            <th class="text-dark">No</th>
-                            <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Adjustment</th>
-                            <th class="text-dark">Kode</th>
-                            <th class="text-dark">Store</th>
-                            <th class="text-dark">BIN</th>
-                            <th class="text-dark">BRAND</th>
-                            <th class="text-dark">SKU</th>
-                            <th class="text-dark">ARTIKEL</th>
-                            <th class="text-dark">WARNA</th>
-                            <th class="text-dark">SIZE</th>
-                            <th class="text-dark">Sub Kategori</th>
-                            <th class="text-dark">HB</th>
-                            <th class="text-dark">HJ</th>
-                            <th class="text-dark">Qty System</th>
-                            <th class="text-dark">Qty SO</th>
-                            <th class="text-dark">Type</th>
-                            <th class="text-dark">Diff</th>
-                            <th class="text-dark">Notes</th>
-                            <th class="text-dark">Tipe Adjustment</th>
-                            <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Approve</th>
-                            <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Executor</th>
-                        </tr>
+                    <tr>
+                        <th class="text-dark">No</th>
+                        <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Adjustment</th>
+                        <th class="text-dark">Kode</th>
+                        <th class="text-dark">Store</th>
+                        <th class="text-dark">BIN</th>
+                        <th class="text-dark">BRAND</th>
+                        <th class="text-dark">SKU</th>
+                        <th class="text-dark">ARTIKEL</th>
+                        <th class="text-dark">WARNA</th>
+                        <th class="text-dark">SIZE</th>
+                        <th class="text-dark">Sub Kategori</th>
+                        <th class="text-dark">HB</th>
+                        <th class="text-dark">HJ</th>
+                        <th class="text-dark">Qty System</th>
+                        <th class="text-dark">Qty SO</th>
+                        <th class="text-dark">Type</th>
+                        <th class="text-dark">Diff</th>
+                        <th class="text-dark">Notes</th>
+                        <th class="text-dark">Tipe Adjustment</th>
+                        <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Approve</th>
+                        <th class="text-dark" style="min-width: 200px; max-width: 250px;">Tgl Executor</th>
+                    </tr>
                     </thead>
                     <tbody>
 
@@ -264,7 +263,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-primary font-weight-bold"
-                    data-dismiss="modal">Tutup</button>
+                        data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>

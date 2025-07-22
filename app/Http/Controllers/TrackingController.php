@@ -601,6 +601,7 @@ class TrackingController extends Controller
 
     public function scanOutDatatables(Request $request)
     {
+        // dd($request->get('sa_id'));
         if (request()->ajax()) {
             $data = datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'pls_id', 'plst_qty', 'storage_areas.name as sa_name', 'product_location_setup_transactions.sa_id', 'plst_status', 'u_name', 'p_name', 'br_name', 'p_color', 'sz_name',  'product_location_setup_transactions.created_at as plst_created', 'ps_barcode')
 //                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
@@ -612,8 +613,13 @@ class TrackingController extends Controller
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->where(function ($query) use ($request) {
-                    if ($request->get('sa_id')) {
-                        $query->where('product_location_setup_transactions.sa_id', $request->get('sa_id'));
+                    $saIds = $request->get('sa_id');
+                    if (!empty($saIds)) {
+                        if (is_array($saIds)) {
+                            $query->whereIn('product_location_setup_transactions.sa_id', $saIds);
+                        } else {
+                            $query->whereIn('product_location_setup_transactions.sa_id', [$saIds]);
+                        }
                     }
                 })
                 ->where(function ($w) {
@@ -844,7 +850,8 @@ class TrackingController extends Controller
                 'sz_name',
                 'product_locations.st_id as stores_id',
                 'product_location_setup_transactions.created_at as TanggalTrx',
-                'invoice_editors.note'
+                'invoice_editors.note',
+                'pos_transactions.pos_invoice'
             )
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -853,6 +860,7 @@ class TrackingController extends Controller
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('invoice_editors', 'invoice_editors.pt_id', '=', 'product_location_setup_transactions.pt_id')
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'invoice_editors.pt_id')
                 ->where(function ($w) {
                     $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
                 })
@@ -892,7 +900,7 @@ class TrackingController extends Controller
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
                     <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
                     <span style="white-space: nowrap; font-weight:bold;">' . $time . '</span><br/>
-                    <span style="white-space: nowrap; font-weight:bold; color: green;">' . $new_note . '</span><br/>
+                    <span style="white-space: nowrap; font-weight:bold; color: green;">' . $new_note . '</span> / <span style="white-space: nowrap; font-weight:bold; color: blue;">' . $data->pos_invoice . '</span><br/>
                     <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
                     <a class="btn btn-sm btn-success" data-bin="' . $bin_refund->pl_code . ' ' . $bin_refund->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_refund_btn" style="font-weight:bold;">Masuk</a>';

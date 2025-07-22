@@ -51,7 +51,7 @@
                         <thead class="bg-light text-dark">
                             <tr>
                                 <th class="text-dark">Artikel</th>
-                                <th class="text-dark">BIN</th>
+                                <th class="text-dark">Storage Area</th>
                                 <th class="text-dark">Tanggal</th>
                                 <th class="text-dark">User</th>
                                 <th class="text-dark">Status</th>

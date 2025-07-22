@@ -1542,6 +1542,52 @@
 
         var barcode = inpBarcode.replace(/(\r\n|\n|\r)/gm, '');
 
+        jQuery('#barcode_input').val('');
+        if (item_type === 'store') {
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            jQuery.ajax({
+                url: "{{ url('has_waiting_status') }}",
+                method: "GET",
+                data: {
+                    barcode: barcode
+                },
+                dataType: "json",
+                success: function(r) {
+                    if (r.status == '200') {
+                        // Handle success response
+                        console.log('Barcode found in waiting status');
+                        if (confirm(r.message)) {
+                            // Proceed with barcode scan
+                            
+                            processBarcodeScan(barcode, type, item_type, std_id);
+                        } else {
+                            
+                            return false;
+                        }
+                    } else {
+                        // Handle other status
+                        console.log('Barcode not found or other status');
+                        processBarcodeScan(barcode, type, item_type, std_id);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error checking waiting status:', error);
+                }
+            });
+            return; // Prevent further execution until AJAX completes
+        } else {
+            
+            processBarcodeScan(barcode, type, item_type, std_id);
+        }
+    });
+
+        
+
+    function processBarcodeScan(barcode, type, item_type, std_id) {
         jQuery.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content')
@@ -1885,7 +1931,7 @@
         });
         jQuery('#barcode_input').val('');
         jQuery('#barcode_input').focus();
-    });
+}
 
     function handleSelectChange(row, selectElement) {
         const selectedValue = selectElement.value;
