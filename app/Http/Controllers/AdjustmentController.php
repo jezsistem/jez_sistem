@@ -458,6 +458,27 @@ class AdjustmentController extends Controller
             } else {
                 $ba_code = 'ADJ' . date('YmdHis');
             }
+            
+            $store = ProductLocation::select('st_name')
+                ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->where('product_locations.id', $pl_id)
+                ->first();
+
+            $aliases = [
+                'JEZ MALANG' => 'MLG',
+                'EVENT JEZ MALANG' => 'MLG',
+                'EVENT JEZ SURABAYA' => 'SBY',
+                'JEZ SURABAYA' => 'SBY',
+                'JEZ KEDIRI' => 'KDR',
+                'JEZ JEMBER' => 'JBR',
+                'JEZ SIDOARJO' => 'SDA',
+                'EVENT JEZ SIDOARJO' => 'SDA'
+            ];
+
+            $st_name = $store->st_name ?? '';
+            $alias = $aliases[$st_name] ?? $st_name;
+            $final_note = $alias . ' - ' . ($article_note ?: '-');
+
             $bin_history = BinAdjustment::create([
                 'pls_id' => $pls_id,
                 'u_id' => Auth::user()->id,
@@ -466,7 +487,7 @@ class AdjustmentController extends Controller
                 'ba_new_qty' => $pls_current_qty + $pls_qty,
                 'ba_adjust' => $pls_qty,
                 'ba_adjust_type' => '+',
-                'ba_note' => $article_note,
+                'ba_note' => $final_note,
                 'created_at' => date('Y-m-d H:i:s')
             ]);
             if (!empty($bin_history)) {
