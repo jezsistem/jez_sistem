@@ -1798,4 +1798,67 @@ class StockDataController extends Controller
             return json_encode($r);
         }
     }
+
+    public function moveToDisplayByWaitingList(Request $request)
+    {
+        DB::beginTransaction();
+        $plst_id = $request->input('_plst_id');
+        $plst = ProductLocationSetupTransaction::query()
+            ->select('product_location_setup_transactions.id as plst_id', 'product_location_setup_transactions.pls_id','product_location_setup_transactions.st_id', 'product_location_setup_transactions.plst_type', 'product_location_setup_transactions.plst_status','product_location_setups.pst_id')
+            ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+            ->where('product_location_setup_transactions.id', $plst_id)
+            ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+            ->where('product_location_setup_transactions.plst_type', 'OUT')
+            ->where('product_location_setup_transactions.st_id', Auth::user()->st_id)
+            ->first();
+
+        if (!$plst) {
+            return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+        }
+        
+        //check toko or display product location setup
+        $pl_id_toko = ProductLocation::select('id')->where('st_id', Auth::user()->st_id)->where('pl_code', 'TOKO')->first();
+        if (!$pl_id_toko) {
+            return response()->json(['status' => '404', 'message' => 'Store location not found.']);
+        }
+        $check_pls = ProductLocationSetup::where('pl_id', $pl_id_toko->id)
+            ->where('pst_id', $plst->pst_id)
+            ->first();
+
+        try {
+            if (!$check_pls) {
+                $pls_toko_item = ProductLocationSetup::create([
+                    'pl_id' => $pl_id_toko->id,
+                    'pst_id' => $plst->pst_id,
+                    'pls_qty' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                ProductLocationSetup::where('id', $check_pls->id)
+                    ->where('pl_id', $pl_id_toko->id)
+                    ->where('pst_id', $plst->pst_id)
+                    ->get()->first();
+
+                $pls_toko_item = ProductLocationSetup::find($check_pls->id);
+            }
+
+            if (!$pls_toko_item) {
+                DB::rollBack();
+                return response()->json(['status' => '500', 'message' => 'Failed to update or create product location setup for display.']);
+            }
+
+            //change pl on plst
+            ProductLocationSetupTransaction::where('id', $plst->plst_id)
+                ->update([
+                    'pls_id' => $pls_toko_item->id,
+                ]);
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => $e->getMessage()]);
+        }
+    }
 }
