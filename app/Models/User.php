@@ -123,4 +123,21 @@ class User extends Authenticatable
             }
         }
     }
+
+    public static function isAdmin($u_id)
+    {
+        $adminGroupId = DB::table('groups')
+            ->where('g_name', 'administrator')
+            ->value('id');
+
+        if (!$adminGroupId) {
+            return false;
+        }
+
+        return DB::table('user_groups')
+            ->where('user_id', $u_id)
+            ->where('group_id', $adminGroupId)
+            ->exists();
+    }
+    
 }
