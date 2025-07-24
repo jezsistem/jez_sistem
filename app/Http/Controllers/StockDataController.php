@@ -1798,4 +1798,229 @@ class StockDataController extends Controller
             return json_encode($r);
         }
     }
+
+    public function moveToDisplayByWaitingList(Request $request)
+    {
+        $plst_id = $request->input('_plst_id');
+        $user = Auth::user();
+
+        $product_category = ProductLocationSetupTransaction::query()
+            ->select('product_categories.pc_name')
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setup_transactions.pst_id')
+            ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            ->join('product_categories', 'product_categories.id', '=', 'products.pc_id')
+            ->where('product_location_setup_transactions.id', $plst_id)
+            ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+            ->where('product_location_setup_transactions.plst_type', 'OUT')
+            ->where('product_location_setup_transactions.st_id', $user->st_id)
+            ->first();
+        
+        if (!$product_category) {
+            return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+        }
+        
+        if ($product_category->pc_name != 'FOOTWEAR') {
+            return $this->moveToDisplayApparelAndAcc($plst_id,$user);
+        } else {
+            return $this->moveToDisplayFootware($plst_id,$user);
+        }
+    }
+
+    // harus scan masuk dulu baru tampil ke display
+    private function moveToDisplayFootware($plst_id, $user)
+    {
+        DB::beginTransaction();
+        try {
+        $plst = ProductLocationSetupTransaction::query()
+            ->select('product_location_setup_transactions.id as plst_id', 'product_location_setup_transactions.pls_id','product_location_setup_transactions.st_id', 'product_location_setup_transactions.plst_type', 'product_location_setup_transactions.plst_status','product_location_setups.pst_id')
+            ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+            ->where('product_location_setup_transactions.id', $plst_id)
+            ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+            ->where('product_location_setup_transactions.plst_type', 'OUT')
+            ->where('product_location_setup_transactions.st_id', $user->st_id)
+            ->first();
+
+        $pls_before = ProductLocationSetup::select('pls_qty')
+            ->where('id', $plst->pls_id)
+            ->first();
+
+        if (!$plst) {
+            return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+        }
+        
+        //check toko or display product location setup
+        $pl_id_toko = ProductLocation::select('id')->where('st_id', $user->st_id)->where('pl_code', 'TOKO')->first();
+        if (!$pl_id_toko) {
+            return response()->json(['status' => '404', 'message' => 'Store location not found.']);
+        }
+
+        $check_pls = ProductLocationSetup::where('pl_id', $pl_id_toko->id)
+            ->where('pst_id', $plst->pst_id)
+            ->first();
+
+            if (!$check_pls) {
+                $pls_toko_item = ProductLocationSetup::create([
+                    'pl_id' => $pl_id_toko->id,
+                    'pst_id' => $plst->pst_id,
+                    'pls_qty' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                ProductLocationSetup::where('id', $check_pls->id)
+                    ->where('pl_id', $pl_id_toko->id)
+                    ->where('pst_id', $plst->pst_id)
+                    ->get()->first();
+
+                $pls_toko_item = ProductLocationSetup::find($check_pls->id);
+            }
+
+            if (!$pls_toko_item) {
+                DB::rollBack();
+                return response()->json(['status' => '500', 'message' => 'Failed to update or create product location setup for display.']);
+            }
+
+            //change pl on plst
+            ProductLocationSetupTransaction::where('id', $plst->plst_id)
+                ->update([
+                    'pls_id' => $pls_toko_item->id,
+                ]);
+
+            ProductMutation::create([
+                'pls_id' => $pls_before->id,
+                'pl_id' => $pl_id_toko,
+                'u_id' => $user->id,
+                'pmt_old_qty' => $pls_before->pls_qty,
+                'pmt_qty' => 1,
+                'notes' => 'Ganti Display dari data stock',
+                'created_at' => now(),
+            ]);
+            
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => $e->getMessage()]);
+        }
+    }
+
+    // langsung pindah ke display
+    private function moveToDisplayApparelAndAcc($plst_id ,$user)
+    {
+        DB::beginTransaction();
+        try {
+
+            $plst = ProductLocationSetupTransaction::query()
+                ->select(
+                    'product_location_setup_transactions.id as plst_id',
+                    'product_location_setup_transactions.pls_id',
+                    'product_location_setup_transactions.st_id',
+                    'product_location_setup_transactions.plst_type',
+                    'product_location_setup_transactions.plst_status',
+                    'product_location_setups.pst_id'
+                )
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->where('product_location_setup_transactions.id', $plst_id)
+                ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+                ->where('product_location_setup_transactions.plst_type', 'OUT')
+                ->where('product_location_setup_transactions.st_id', $user->st_id)
+                ->first();
+
+            if (!$plst) {
+                return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+            }
+
+            $pl_id_toko = ProductLocation::where('st_id', $user->st_id)->where('pl_code', 'TOKO')->value('id');
+            if (!$pl_id_toko) {
+                return response()->json(['status' => '404', 'message' => 'Store location not found.']);
+            }
+
+            // Update transaction status and type
+            ProductLocationSetupTransaction::where('id', $plst->plst_id)
+                ->update([
+                    'plst_type' => 'IN',
+                    'plst_status' => 'INSTOCK',
+                    'in_stock_time' => now()
+                ]);
+
+            // Update quantity by adding 1
+            ProductLocationSetup::where('id', $plst->pls_id)->increment('pls_qty', 1);
+
+            $pls_id = $plst->pls_id;
+            $pmt_old_qty = ProductLocationSetup::where('id', $pls_id)->value('pls_qty') ?? 0;
+            $pmt_qty = 1;
+            $pst_id = $plst->pst_id;
+
+            $destination = ProductLocationSetup::where(['pl_id' => $pl_id_toko, 'pst_id' => $pst_id])->first();
+
+            if ($destination) {
+                $or_qty = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                if ($pmt_qty > $or_qty) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400']);
+                }
+                $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_toko, 'pst_id' => $pst_id])
+                    ->update(['pls_qty' => $destination->pls_qty + $pmt_qty]);
+                if ($update_destination) {
+                    $qty_origin = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_origin = ProductLocationSetup::where('id', $pls_id)->update(['pls_qty' => $remain]);
+                    if ($update_origin) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_toko,
+                            'u_id' => $user->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'notes' => 'Ganti Display dari data stock',
+                            'created_at' => now()
+                        ]);
+                        if ($mutation) {
+                            DB::commit();
+                            return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
+                        }
+                    }
+                }
+            } else {
+                $or_qty = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                if ($pmt_qty > $or_qty) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400']);
+                }
+                $insert_destination = ProductLocationSetup::create([
+                    'pls_qty' => $pmt_qty,
+                    'pl_id' => $pl_id_toko,
+                    'pst_id' => $pst_id,
+                    'created_at' => now()
+                ]);
+                if ($insert_destination) {
+                    $qty_origin = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_origin = ProductLocationSetup::where('id', $pls_id)->update(['pls_qty' => $remain]);
+                    if ($update_origin) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_toko,
+                            'u_id' => $user->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'notes' => 'Ganti Display dari data stock',
+                            'created_at' => now(),
+                        ]);
+                        if ($mutation) {
+                            DB::commit();
+                            return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
+                        }
+                    }
+                }
+            }
+
+            DB::rollBack();
+            return response()->json(['status' => '400']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => $e->getMessage()]);
+        }
+    }
 }
