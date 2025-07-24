@@ -1802,6 +1802,7 @@ class StockDataController extends Controller
     public function moveToDisplayByWaitingList(Request $request)
     {
         $plst_id = $request->input('_plst_id');
+        $user = Auth::user();
 
         $product_category = ProductLocationSetupTransaction::query()
             ->select('product_categories.pc_name')
@@ -1811,7 +1812,7 @@ class StockDataController extends Controller
             ->where('product_location_setup_transactions.id', $plst_id)
             ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
             ->where('product_location_setup_transactions.plst_type', 'OUT')
-            ->where('product_location_setup_transactions.st_id', Auth::user()->st_id)
+            ->where('product_location_setup_transactions.st_id', $user->st_id)
             ->first();
         
         if (!$product_category) {
@@ -1819,14 +1820,14 @@ class StockDataController extends Controller
         }
         
         if ($product_category->pc_name != 'FOOTWEAR') {
-            return $this->moveToDisplayApparelAndAcc($plst_id);
+            return $this->moveToDisplayApparelAndAcc($plst_id,$user);
         } else {
-            return $this->moveToDisplayFootware($plst_id);
+            return $this->moveToDisplayFootware($plst_id,$user);
         }
     }
 
     // harus scan masuk dulu baru tampil ke display
-    private function moveToDisplayFootware($plst_id)
+    private function moveToDisplayFootware($plst_id, $user)
     {
         DB::beginTransaction();
         try {
@@ -1836,7 +1837,11 @@ class StockDataController extends Controller
             ->where('product_location_setup_transactions.id', $plst_id)
             ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
             ->where('product_location_setup_transactions.plst_type', 'OUT')
-            ->where('product_location_setup_transactions.st_id', Auth::user()->st_id)
+            ->where('product_location_setup_transactions.st_id', $user->st_id)
+            ->first();
+
+        $pls_before = ProductLocationSetup::select('pls_qty')
+            ->where('id', $plst->pls_id)
             ->first();
 
         if (!$plst) {
@@ -1844,10 +1849,11 @@ class StockDataController extends Controller
         }
         
         //check toko or display product location setup
-        $pl_id_toko = ProductLocation::select('id')->where('st_id', Auth::user()->st_id)->where('pl_code', 'TOKO')->first();
+        $pl_id_toko = ProductLocation::select('id')->where('st_id', $user->st_id)->where('pl_code', 'TOKO')->first();
         if (!$pl_id_toko) {
             return response()->json(['status' => '404', 'message' => 'Store location not found.']);
         }
+
         $check_pls = ProductLocationSetup::where('pl_id', $pl_id_toko->id)
             ->where('pst_id', $plst->pst_id)
             ->first();
@@ -1881,14 +1887,15 @@ class StockDataController extends Controller
                 ]);
 
             ProductMutation::create([
-                'pls_id' => $check_pls->id,
+                'pls_id' => $pls_before->id,
                 'pl_id' => $pl_id_toko,
-                'u_id' => Auth::user()->id,
-                'pmt_old_qty' => $check_pls->pls_qty,
+                'u_id' => $user->id,
+                'pmt_old_qty' => $pls_before->pls_qty,
                 'pmt_qty' => 1,
                 'notes' => 'Ganti Display dari data stock',
                 'created_at' => now(),
             ]);
+            
 
             DB::commit();
             return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
@@ -1899,11 +1906,10 @@ class StockDataController extends Controller
     }
 
     // langsung pindah ke display
-    private function moveToDisplayApparelAndAcc($plst_id)
+    private function moveToDisplayApparelAndAcc($plst_id ,$user)
     {
         DB::beginTransaction();
         try {
-            $user = Auth::user();
 
             $plst = ProductLocationSetupTransaction::query()
                 ->select(
