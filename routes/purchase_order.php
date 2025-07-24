@@ -139,6 +139,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pre_order_import', [PreOrderController::class, 'importPreOrderExcel']);
     Route::post('pre_order_choose_type', [PreOrderController::class, 'chooseTypePo']);
     Route::post('preorder_description', [PreOrderController::class, 'descriptionPreOrder']);
+    Route::post('upload_file_preorder', [PreOrderController::class, 'uploadFilePreOrder']);
+    Route::get('file_preorder_datatable', [PreOrderController::class, 'getFilePreOrderDatatables']);
+    Route::post('delete_file_preorder', [PreOrderController::class, 'deleteFilePreOrder']);
 
     // Purchase Order Article
     Route::post('proa_delete', [PreOrderArticleController::class, 'deleteData']);

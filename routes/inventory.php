@@ -313,6 +313,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('stock_data_reload_brand', [StockDataController::class, 'reloadBrand']);
     Route::post('stock_data_reload_size', [StockDataController::class, 'reloadSize']);
     Route::post('request_count_pickup', [StockDataController::class, 'requestCount']);
+    Route::post('move_to_display_by_waiting_list', [StockDataController::class, 'moveToDisplayByWaitingList']);
 
 
     // Stock Data V1

@@ -337,7 +337,7 @@ class ProductLocationSetupV2Controller extends Controller
                             if (!empty($check_pst)) {
                                 $action = '';
                                 foreach ($check_pst as $row) {
-                                    $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->first();
+                                    $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->where('u_id', Auth::user()->id)->first();
                                     $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
                                     $initial_note = $initial_pst_get ? $initial_pst_get->notes : "";
 

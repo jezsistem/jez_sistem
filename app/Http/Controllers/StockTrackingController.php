@@ -454,7 +454,7 @@ class StockTrackingController extends Controller
                 ->whereIn('plst_status', $status)
                 ->where('product_locations.st_id', '=', $st_id)
                 ->where('users.stt_id', '=', Auth::user()->stt_id)
-                ->orderBy('product_location_setups.created_at', 'desc'))
+                ->orderBy('product_location_setup_transactions.created_at', 'desc'))
                 ->editColumn('article', function ($data) {
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })

@@ -537,6 +537,7 @@ class PointOfSaleController extends Controller
     public function saveTransaction(Request $request)
     {
         $pm_id = $request->_pm_id;
+        $sub_payment = $request->sub_payment;
         $cp_id = $request->_cp_id;
         $std_id = $request->_std_id;
         $cust_id = $request->_cust_id;
@@ -609,6 +610,7 @@ class PointOfSaleController extends Controller
             'st_id' => $st_omset,
             'stt_id' => $stt_id,
             'pm_id' => $pm_id,
+            'sub_payment' => $sub_payment,
             'cp_id' => $cp_id,
             'std_id' => $std_id,
             'cust_id' => $cust_id,
@@ -673,6 +675,7 @@ class PointOfSaleController extends Controller
         try {
             $pm_id = $request->_pm_id;
             $pm_id_two = $request->_pm_id_two;
+            $sub_payment = $request->_sub_payment;
             $ur_id = $request->_ur_id;
             $std_id = $request->_std_id;
             $cust_id = $request->_cust_id;
@@ -762,6 +765,7 @@ class PointOfSaleController extends Controller
                 'stt_id' => $stt_id,
                 'pm_id' => $pm_id,
                 'pm_id_partial' => $pm_id_two,
+                'sub_payment' => $sub_payment,
                 'cp_id' => $cp_id,
                 'cp_id_partial' => $cp_id_two,
                 'std_id' => $std_id,
@@ -831,43 +835,6 @@ class PointOfSaleController extends Controller
                 $pesan = "Struk belanja $store_name, \n\nTerima kasih telah melakukan pembelian dengan total pembelian Rp. $real_price. \nLihat detail & beri saran di $receipt_url \n\n[ABAIKAN BILA TIDAK MEMBELI]";
 
                 $st_code = $store->st_code;
-
-//                if ($st_code != 'MALANG') {
-//                    try {
-//                        $response = $client->get('http://jezdb.com:3002/api', [
-//                            'query' => [
-//                                'nohp' => $nohp,
-//                                'pesan' => $pesan,
-//                            ]
-//                        ]);
-//
-//
-//                        if ($response->getStatusCode() == 200) {
-//                            $responseData = json_decode($response->getBody()->getContents(), true);
-//                        }
-//                    } catch (\Exception $e) {
-//                        $r['status'] = '500';
-//                        $r['message'] = 'Error communicating with external API';
-//                    }
-//                } else {
-//                    try {
-//                        $response = $client->get('http://jezdb.com:3002/api', [
-//                            'query' => [
-//                                'nohp' => $nohp,
-//                                'pesan' => $pesan,
-//                            ]
-//                        ]);
-//
-//                        if ($response->getStatusCode() == 200) {
-//                            $responseData = json_decode($response->getBody()->getContents(), true);
-//                        }
-//                    } catch (\Exception $e) {
-//                        $r['status'] = '500';
-//                        $r['message'] = 'Error communicating with external API';
-//                    }
-//                }
-
-
                 $r['status'] = '200';
                 $r['pt_id'] = $insert_get_id;
                 $r['invoice'] = $invoice;

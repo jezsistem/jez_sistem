@@ -1193,15 +1193,15 @@
                             _pl_code: pl_code
                         },
                         dataType: 'json',
-                        url: "{{ url('cancel_pickup_item') }}",
-                        success: function (r) {
-                            if (r.status == '200') {
-                                toast("Berhasil", "Pickup item berhasil dibatalkan",
-                                    "success");
+                        url: "{{ url('move_to_display_by_waiting_list') }}",
+                        success: function (response) {
+                            if (response.status == '200') {
+                                swal('Berhasil', 'Pickup item berhasil dipindahkan ke display', 'success');
+                                waiting_list_table.draw();
                                 pickup_list_table.draw();
                                 stock_data_table.draw();
                             } else {
-                                toast('Gagal', 'Gagal batalkan pickup', 'error');
+                                swal('Gagal', response.message, 'error');
                             }
                         }
                     });
