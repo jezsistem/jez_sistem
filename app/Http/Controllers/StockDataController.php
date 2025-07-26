@@ -1399,10 +1399,9 @@ class StockDataController extends Controller
 
         $status = ['WAITING TO TAKE', 'INSTOCK APPROVAL'];
 
-        $count = ProductLocationSetupTransaction::leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+        $count = ProductLocationSetupTransaction::query()
             ->whereIn('plst_status', $status)
-            ->where('product_locations.st_id', '=', $st_id)->count();
+            ->where('product_location_setup_transactions.st_id', '=', $st_id)->count();
 //            ->where('users.stt_id', '=', Auth::user()->stt_id);
 
 //        var_dump($count);
