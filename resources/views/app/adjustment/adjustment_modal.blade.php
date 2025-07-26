@@ -196,12 +196,14 @@
                 <div class="mb-3 mt-5 justify-content-end d-none" id="btns_approval">
                     <button type="button" class="btn btn-outline-danger mx-2" id="btn_reject_adj">Tolak</button>
                     <button type="button" class="btn btn-success mx-2" id="btn_approve_adj">Setujui</button>
-                    <button type="button" class="btn btn-secondary mx-2" data-dismiss="modal" id="close_modal_approval">Tutup</button>
+                    <button type="button" class="btn btn-secondary mx-2" data-dismiss="modal"
+                        id="close_modal_approval">Tutup</button>
                 </div>
                 <div class="mb-3 mt-5 justify-content-end d-none" id="btns_execution">
                     <button type="button" class="btn btn-outline-danger mx-2" id="btn_cancel_adj">Batal</button>
                     <button type="button" class="btn btn-success mx-2" id="btn_exec_adj">Eksekusi</button>
-                    <button type="button" class="btn btn-secondary mx-2" data-dismiss="modal" id="close_modal_exec">Tutup</button>
+                    <button type="button" class="btn btn-secondary mx-2" data-dismiss="modal"
+                        id="close_modal_exec">Tutup</button>
                 </div>
             </div>
         </div>
