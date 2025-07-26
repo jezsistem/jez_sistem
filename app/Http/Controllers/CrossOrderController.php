@@ -120,6 +120,7 @@ class CrossOrderController extends Controller
             ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->where('pos_transactions.cross_order', '=', '1')
             ->where(function($w) use ($st_id) {
                 $w->where('pos_transactions.st_id_ref', '=', $st_id);
@@ -257,7 +258,8 @@ class CrossOrderController extends Controller
                         $search = $request->get('search');
                         $w->orWhere('pos_invoice', 'LIKE', "%$search%")
                         ->orWhere('pos_shipping_number', 'LIKE', "%$search%")
-                        ->orWhere('cust_name', 'LIKE', "%$search%");
+                        ->orWhere('cust_name', 'LIKE', "%$search%")
+                        ->orWhere('ps_barcode', 'LIKE', "%$search%");
                     });
                 }
             })
