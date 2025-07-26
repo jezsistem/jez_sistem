@@ -589,7 +589,6 @@ class AdjustmentController extends Controller
             echo $output;
         }
     }
-<<<<<<< HEAD
 
     public function getDetailAdjustment($id) {
         $data = BinAdjustment::select(
@@ -801,6 +800,3 @@ class AdjustmentController extends Controller
         }
     }
 }
-=======
-}
->>>>>>> df6735e5f73582380ee41000967c39cba5ea1a52
