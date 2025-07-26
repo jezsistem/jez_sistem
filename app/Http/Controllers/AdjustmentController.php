@@ -121,7 +121,7 @@ class AdjustmentController extends Controller
     public function adjustmentHistoryDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name','ba_approve','ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.created_at as ba_created','ba_status')
+            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name','ba_approve','ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.updated_at as ba_updated_at','ba_status')
                 ->leftJoin('users', 'users.id', '=', 'bin_adjustments.u_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'bin_adjustments.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -129,7 +129,8 @@ class AdjustmentController extends Controller
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id'))
+                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                ->orderBy('bin_adjustments.updated_at', 'desc'))
                 ->editColumn('ba_approve', function ($data) {
                     if (!empty($data->ba_approve)) {
                         return DB::table('users')->where('id', '=', $data->ba_approve)->first()->u_name;
@@ -169,8 +170,8 @@ class AdjustmentController extends Controller
                 ->editColumn('article', function ($data) {
                     return '<span class="btn btn-sm btn-primary" style="white-space: nowrap;">[' . $data->br_name . '] ' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '</span>';
                 })
-                ->editColumn('ba_created', function ($data) {
-                    return date('d-m-Y H:i:s', strtotime($data->ba_created));
+                ->editColumn('ba_updated_at', function ($data) {
+                    return date('d-m-Y H:i:s', strtotime($data->ba_updated_at));
                 })
                 ->editColumn('adjust', function ($data) {
                     if ($data->ba_adjust_type == '+') {
@@ -456,17 +457,7 @@ class AdjustmentController extends Controller
             $pls = ProductLocationSetup::select('id', 'pls_qty')->where(['pst_id' => $pst_id, 'pl_id' => $pl_id])->get()->first();
             $pls_id = $pls->id;
             $pls_current_qty = $pls->pls_qty;
-            $check_adjustment = ProductLocation::where(['pl_adjustment' => '1'])->exists();
-            if ($check_adjustment) {
-                $ba_code = BinAdjustment::select('ba_code')->orderByDesc('id')->limit(1)->get()->first()->ba_code;
-                if (empty($ba_code)) {
-                    $ba_code = 'ADJ' . date('YmdHis');
-                } else {
-                    $ba_code = $ba_code;
-                }
-            } else {
-                $ba_code = 'ADJ' . date('YmdHis');
-            }
+            $ba_code = 'ADJ' . date('YmdHis');
             
             $store = ProductLocation::select('st_name')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
@@ -497,15 +488,11 @@ class AdjustmentController extends Controller
                 'ba_adjust' => $pls_qty,
                 'ba_adjust_type' => '+',
                 'ba_note' => $final_note,
+                'ba_status' => BinAdjustment::NEED_APPROVAL,
                 'created_at' => date('Y-m-d H:i:s')
             ]);
             if (!empty($bin_history)) {
-                $pls_update = ProductLocationSetup::where(['id' => $pls_id])->update([
-                    'pls_qty' => $pls_current_qty + $pls_qty
-                ]);
-                if (!empty($pls_update)) {
                     $r['status'] = '200';
-                }
             } else {
                 $r['status'] = '400';
             }
@@ -513,21 +500,11 @@ class AdjustmentController extends Controller
             $insert_id = DB::table('product_location_setups')->insertGetId([
                 'pst_id' => $pst_id,
                 'pl_id' => $pl_id,
-                'pls_qty' => $pls_qty,
+                'pls_qty' => 0,
                 'created_at' => date('Y-m-d H:i:s')
             ]);
             if (!empty($insert_id)) {
-                $check_adjustment = ProductLocation::where(['pl_adjustment' => '1'])->exists();
-                if ($check_adjustment) {
-                    $ba_code = BinAdjustment::select('ba_code')->orderByDesc('id')->limit(1)->get()->first()->ba_code;
-                    if (empty($ba_code)) {
-                        $ba_code = 'ADJ' . date('YmdHis');
-                    } else {
-                        $ba_code = $ba_code;
-                    }
-                } else {
-                    $ba_code = 'ADJ' . date('YmdHis');
-                }
+                $ba_code = 'ADJ' . date('YmdHis');
                 $bin_history = BinAdjustment::create([
                     'pls_id' => $insert_id,
                     'u_id' => Auth::user()->id,
@@ -537,6 +514,7 @@ class AdjustmentController extends Controller
                     'ba_adjust' => $pls_qty,
                     'ba_adjust_type' => '+',
                     'ba_note' => $article_note,
+                    'ba_status' => BinAdjustment::NEED_APPROVAL,
                     'created_at' => date('Y-m-d H:i:s')
                 ]);
                 if (!empty($bin_history)) {

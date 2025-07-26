@@ -110,12 +110,13 @@
                             <option value="MARKETPLACE IN">MARKETPLACE IN</option>
                         </select>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light-primary font-weight-bold"
-                            data-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-dark font-weight-bold"
-                            id="save_add_article_btn">Simpan</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold"
+                        data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold"
+                        id="save_add_article_btn">Simpan</button>
+                </div>
             </form>
         </div>
     </div>
