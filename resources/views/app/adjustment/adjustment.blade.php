@@ -56,6 +56,14 @@
                                     @endforeach
                                 </select>
                             </div>
+                            <div class="card-title py-5">
+                                <select name="status" id="status" class="form-control">
+                                    <option value="">- Status -</option>
+                                    @foreach(App\Models\BinAdjustment::getStatusOptions() as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div class="alert alert-custom alert-white alert-shadow fade show gutter-b bg-primary" role="alert">
                                 <input type="hidden" id="stock_report_date" value=""/>
                                 <a href="#" class="btn btn-date-info font-weight-bold mr-2 col-12" id="kt_dashboard_daterangepicker" data-toggle="tooltip" title="Filter Tanggal" data-placement="left">
@@ -75,7 +83,9 @@
                                         <th class="text-dark">Code</th>
                                         <th class="text-dark">Store</th>
                                         <th class="text-dark">BIN</th>
-                                        <th class="text-dark">User</th>
+                                        <th class="text-dark">Creator</th>
+                                        <th class="text-dark">Approval</th>
+                                        <th class="text-dark">Eksekutor</th>
                                         <th class="text-dark">Brand</th>
                                         <th class="text-dark">Artikel</th>
                                         <th class="text-dark">SKU</th>
@@ -86,6 +96,7 @@
                                         <th class="text-dark">New Qty</th>
                                         <th class="text-dark">Adjust</th>
                                         <th class="text-dark">Note</th>
+                                        <th class="text-dark">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -98,7 +109,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            {{-- <div class="row">
                 <div class="col-lg-6">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
@@ -154,7 +165,7 @@
                     </div>
                     <!--end::Card-->
                 </div>
-            </div>
+            </div> --}}
 
         </div>
         <!--end::Container-->
