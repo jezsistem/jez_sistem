@@ -1840,7 +1840,7 @@ class StockDataController extends Controller
             ->where('product_location_setup_transactions.st_id', $user->st_id)
             ->first();
 
-        $pls_before = ProductLocationSetup::select('pls_qty')
+        $pls_before = ProductLocationSetup::query()
             ->where('id', $plst->pls_id)
             ->first();
 
