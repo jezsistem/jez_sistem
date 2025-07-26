@@ -91,37 +91,31 @@
                         <input type="text" class="form-control" id="pls_qty" name="pls_qty" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Note <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="article_note" name="article_note" required />
+                        <label for="article_note">Note <span class="text-danger">*</span></label>
+                        <select class="form-control" id="article_note" name="article_note" required>
+                            <option value="">-- Pilih Note Adjustment --</option>
+                            <option value="STOCK OPNAME">STOCK OPNAME</option>
+                            <option value="PARTIAL">PARTIAL</option>
+                            <option value="REJECT">REJECT</option>
+                            <option value="CACAT">CACAT</option>
+                            <option value="PERBAIKAN">PERBAIKAN</option>
+                            <option value="PROMOSI">PROMOSI</option>
+                            <option value="OPERASIONAL">OPERASIONAL</option>
+                            <option value="SSR">SSR</option>
+                            <option value="RESELLER">RESELLER</option>
+                            <option value="KESALAHAN SYSTEM">KESALAHAN SYSTEM</option>
+                            <option value="CYCLE COUNT">CYCLE COUNT</option>
+                            <option value="RETUR IN">RETUR IN</option>
+                            <option value="RETUR OUT">RETUR OUT</option>
+                            <option value="MARKETPLACE IN">MARKETPLACE IN</option>
+                        </select>
                     </div>
                 </div>
-<<<<<<< HEAD
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold"
                         data-dismiss="modal">Tutup</button>
                     <button type="submit" class="btn btn-dark font-weight-bold"
                         id="save_add_article_btn">Simpan</button>
-=======
-                <div class="form-group mb-1 pb-1">
-                    <label for="article_note">Note <span class="text-danger">*</span></label>
-                    <select class="form-control" id="article_note" name="article_note" required>
-                        <option value="">-- Pilih Note Adjustment --</option>
-                        <option value="STOCK OPNAME">STOCK OPNAME</option>
-                        <option value="PARTIAL">PARTIAL</option>
-                        <option value="REJECT">REJECT</option>
-                        <option value="CACAT">CACAT</option>
-                        <option value="PERBAIKAN">PERBAIKAN</option>
-                        <option value="PROMOSI">PROMOSI</option>
-                        <option value="OPERASIONAL">OPERASIONAL</option>
-                        <option value="SSR">SSR</option>
-                        <option value="RESELLER">RESELLER</option>
-                        <option value="KESALAHAN SYSTEM">KESALAHAN SYSTEM</option>
-                        <option value="CYCLE COUNT">CYCLE COUNT</option>
-                        <option value="RETUR IN">RETUR IN</option>
-                        <option value="RETUR OUT">RETUR OUT</option>
-                        <option value="MARKETPLACE IN">MARKETPLACE IN</option>
-                    </select>
->>>>>>> df6735e5f73582380ee41000967c39cba5ea1a52
                 </div>
             </form>
         </div>

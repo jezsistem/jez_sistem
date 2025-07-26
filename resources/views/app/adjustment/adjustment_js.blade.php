@@ -120,7 +120,7 @@
             { data: 'ps_barcode', name: 'ps_barcode'},
             { data: 'p_color', name: 'p_color'},
             { data: 'sz_name', name: 'sz_name'},
-            { data: 'ba_created', name: 'ba_created', orderable: false },
+            { data: 'ba_updated_at', name: 'ba_updated_at', orderable: false },
             { data: 'ba_old_qty', name: 'ba_old_qty', orderable: false },
             { data: 'ba_new_qty', name: 'ba_new_qty', orderable: false },
             { data: 'adjust', name: 'adjust', orderable: false },
