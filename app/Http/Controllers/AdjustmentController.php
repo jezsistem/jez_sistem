@@ -121,7 +121,7 @@ class AdjustmentController extends Controller
     public function adjustmentHistoryDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name','ba_approve','ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.updated_at as ba_updated_at','ba_status')
+            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name', 'ba_approve', 'ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.updated_at as ba_updated_at', 'ba_status')
                 ->leftJoin('users', 'users.id', '=', 'bin_adjustments.u_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'bin_adjustments.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -180,7 +180,7 @@ class AdjustmentController extends Controller
                         return '<span class="btn btn-sm btn-danger" style="white-space: nowrap;">' . $data->ba_adjust_type . ' ' . $data->ba_adjust . '</span>';
                     }
                 })
-                ->rawColumns(['pl_code', 'article', 'adjust','ba_status'])
+                ->rawColumns(['pl_code', 'article', 'adjust', 'ba_status'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->status)) {
                         $instance->where('ba_status', '=', $request->status);
@@ -368,6 +368,8 @@ class AdjustmentController extends Controller
 
     public function productAdjustment(Request $request)
     {
+        $response = []; // <- Tambahkan ini
+
         $pls_id = $request->_pls_id;
         $pst_id = $request->_pst_id;
         $pl_id = $request->_pl_id;
@@ -421,11 +423,17 @@ class AdjustmentController extends Controller
                 'ba_status' => BinAdjustment::NEED_APPROVAL,
                 'created_at' => date('Y-m-d H:i:s')
             ]);
+
+            $response['status'] = '200';
+            $response['message'] = 'Adjustment berhasil dibuat';
         } else {
-            $r['status'] = '400';
+            $response['status'] = '400';
+            $response['message'] = 'Product location tidak ditemukan';
         }
-        return json_encode($r);
+
+        return response()->json($response);
     }
+
 
 
     public function finishAdjustment()
@@ -458,7 +466,7 @@ class AdjustmentController extends Controller
             $pls_id = $pls->id;
             $pls_current_qty = $pls->pls_qty;
             $ba_code = 'ADJ' . date('YmdHis');
-            
+
             $store = ProductLocation::select('st_name')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
                 ->where('product_locations.id', $pl_id)
@@ -492,7 +500,7 @@ class AdjustmentController extends Controller
                 'created_at' => date('Y-m-d H:i:s')
             ]);
             if (!empty($bin_history)) {
-                    $r['status'] = '200';
+                $r['status'] = '200';
             } else {
                 $r['status'] = '400';
             }
@@ -568,33 +576,34 @@ class AdjustmentController extends Controller
         }
     }
 
-    public function getDetailAdjustment($id) {
+    public function getDetailAdjustment($id)
+    {
         $data = BinAdjustment::select(
-                'bin_adjustments.id as ba_id',
-                'ps_barcode',
-                'pls_id',
-                'st_name',
-                'pl_code',
-                'users.u_name as user_name',
-                'executor.u_name as executor_name',
-                'approver.u_name as approver_name',
-                'ba_approve',
-                'ba_executor',
-                'br_name',
-                'p_name',
-                'p_color',
-                'sz_name',
-                'ba_code',
-                'ba_note',
-                'ba_old_qty',
-                'ba_new_qty',
-                'ba_adjust',
-                'ba_adjust_type',
-                'bin_adjustments.created_at as ba_created',
-                'ba_status',
-                'approved_at',
-                'execute_at'
-            )
+            'bin_adjustments.id as ba_id',
+            'ps_barcode',
+            'pls_id',
+            'st_name',
+            'pl_code',
+            'users.u_name as user_name',
+            'executor.u_name as executor_name',
+            'approver.u_name as approver_name',
+            'ba_approve',
+            'ba_executor',
+            'br_name',
+            'p_name',
+            'p_color',
+            'sz_name',
+            'ba_code',
+            'ba_note',
+            'ba_old_qty',
+            'ba_new_qty',
+            'ba_adjust',
+            'ba_adjust_type',
+            'bin_adjustments.created_at as ba_created',
+            'ba_status',
+            'approved_at',
+            'execute_at'
+        )
             ->leftJoin('users', 'users.id', '=', 'bin_adjustments.u_id')
             ->leftJoin('users as executor', 'executor.id', '=', 'bin_adjustments.ba_executor')
             ->leftJoin('users as approver', 'approver.id', '=', 'bin_adjustments.ba_approve')
@@ -646,9 +655,9 @@ class AdjustmentController extends Controller
     public function approveAdjustment($id)
     {
         $adjustment = BinAdjustment::query()
-        ->where('id', $id)
-        ->where('ba_status', BinAdjustment::NEED_APPROVAL)
-        ->first();
+            ->where('id', $id)
+            ->where('ba_status', BinAdjustment::NEED_APPROVAL)
+            ->first();
 
         if (!$adjustment) {
             return response()->json(['status' => '404', 'message' => 'Adjustment not found']);
@@ -677,9 +686,9 @@ class AdjustmentController extends Controller
 
         if ($adjustment) {
             $adjustment->update([
-            'ba_approve' => Auth::user()->id,
-            'ba_status' => BinAdjustment::NEED_EXECUTION,
-            'approved_at' => now()
+                'ba_approve' => Auth::user()->id,
+                'ba_status' => BinAdjustment::NEED_EXECUTION,
+                'approved_at' => now()
             ]);
 
             $this->UserActivity('menyetujui adjustment dengan kode ' . $adjustment->ba_code);
@@ -687,16 +696,15 @@ class AdjustmentController extends Controller
         } else {
             return response()->json(['status' => '404', 'message' => 'Adjustment not found']);
         }
-        
     }
 
     public function executeAdjustment($id)
     {
 
         $adjustment = BinAdjustment::query()
-        ->where('id', $id)
-        ->where('ba_status', BinAdjustment::NEED_EXECUTION)
-        ->first();
+            ->where('id', $id)
+            ->where('ba_status', BinAdjustment::NEED_EXECUTION)
+            ->first();
 
         if (!$adjustment) {
             return response()->json(['status' => '404', 'message' => 'Adjustment not found']);
@@ -705,7 +713,7 @@ class AdjustmentController extends Controller
         $pls = ProductLocationSetup::query()
             ->where('id', $adjustment->pls_id)
             ->first();
-        
+
         if (!$pls) {
             return response()->json(['status' => '404', 'message' => 'Bin tidak ditemukan']);
         }
