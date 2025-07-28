@@ -444,7 +444,7 @@ class StockTrackingController extends Controller
         $status = array();
         $status = ['WAITING OFFLINE'];
         if (request()->ajax()) {
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'product_location_setups.pst_id', 'pl_id', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created')
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'product_location_setups.pst_id', 'pl_id', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created', 'products.article_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -455,6 +455,9 @@ class StockTrackingController extends Controller
                 ->where('product_locations.st_id', '=', $st_id)
                 ->where('users.stt_id', '=', Auth::user()->stt_id)
                 ->orderBy('product_location_setup_transactions.created_at', 'desc'))
+                ->editColumn('article_id', function ($data) {
+                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->article_id . '</span>';
+                })
                 ->editColumn('article', function ($data) {
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })
@@ -491,12 +494,12 @@ class StockTrackingController extends Controller
                         return '<a class="btn btn-sm btn-info" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-plst_id="' . $data->plst_id . '" data-pls_id="' . $data->pls_id . '" data-pst_id="' . $data->pst_id . '" data-pl_code="' . $data->pl_code . '" data-pl_id="' . $data->pl_id . '" id="pick_diplay_btn">Pick Display</a>';
                     }
                 })
-                ->rawColumns(['article', 'qty', 'bin', 'datetime', 'user', 'status', 'action'])
+                ->rawColumns(['article', 'qty', 'bin', 'datetime', 'user', 'status', 'action', 'article_id'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            $w->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                            $w->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name, " ", article_id) LIKE ?', "%$search%");
                         });
                     }
                 })

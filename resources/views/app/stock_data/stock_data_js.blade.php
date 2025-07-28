@@ -392,11 +392,17 @@
                     d.st_id = "{{ $data['user']->st_id }}";
                 }
             },
-            columns: [{
-                data: 'article',
-                name: 'p_name',
-                orderable: false
-            },
+            columns: [
+                {
+                    data: 'article_id',
+                    name: 'article_id',
+                    orderable: false
+                },
+                {
+                    data: 'article',
+                    name: 'p_name',
+                    orderable: false
+                },
                 {
                     data: 'bin',
                     name: 'pl_code, orderable: false'

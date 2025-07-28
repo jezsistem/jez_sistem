@@ -93,6 +93,7 @@
                     <table class="table table-hover table-checkable" id="WaitingListtb">
                         <thead class="bg-light text-dark">
                         <tr>
+                            <th class="text-dark">Artikel ID</th>
                             <th class="text-dark">Artikel</th>
                             <th class="text-dark">BIN</th>
                             <th class="text-dark">Tanggal</th>
