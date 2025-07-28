@@ -742,7 +742,7 @@
                     jQuery('#ref_number_two').val('');
                     jQuery('#pm_id_offline').val('');
                     jQuery('#pm_id_offline_two').val('');
-                    // jQuery('#sub_payment_offline').val('');
+                    jQuery('#sub_payment_offline').val('');
                     jQuery('#_pt_id_complaint').val('');
                     jQuery('#_exchange').val('');
                     jQuery('#discount_total_temporary').val(0);
