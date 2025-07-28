@@ -89,10 +89,11 @@
             <div class="modal-body">
                 <div class="card-body table-responsive">
                     <!--begin: Datatable-->
-                    <input type="search" class="form-control bg-light-primary" id="pick_data_search" placeholder="Cari artikel"/><br/>
+                    <input type="search" class="form-control bg-light-primary" id="waiting_data_search" placeholder="Cari artikel"/><br/>
                     <table class="table table-hover table-checkable" id="WaitingListtb">
                         <thead class="bg-light text-dark">
                         <tr>
+                            <th class="text-dark">Artikel ID</th>
                             <th class="text-dark">Artikel</th>
                             <th class="text-dark">BIN</th>
                             <th class="text-dark">Tanggal</th>
