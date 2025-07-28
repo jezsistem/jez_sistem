@@ -217,8 +217,8 @@ class ProductLocationSetupV2Controller extends Controller
                                 $this->table_row += 1;
                                 $action .= '
                                     <div class="d-flex align-items-center mb-2">
-                                        <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
-                                        <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%;" placeholder="Note" title="Note" value="' . $initial_note . '"/>
+                                        <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%; min-width:150px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                                        <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%; min-width:150px;" placeholder="Note" title="Note" value="' . $initial_note . '"/>
                                     </div>
                                     <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ', document.querySelector(\'.mutation_note' . $this->table_row . '\').value)" id="saveMutation' . $this->table_row . '"></i>';
                             }
@@ -344,8 +344,8 @@ class ProductLocationSetupV2Controller extends Controller
                                     $this->table_row += 1;
                                     $action .= '
                                 <div class="d-flex align-items-center mb-2">
-                                    <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
-                                    <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%;" placeholder="Note" title="Note" value="' . $initial_note . '"/>                                
+                                    <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%; min-width:150px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                                    <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%; min-width:150px;" placeholder="Note" title="Note" value="' . $initial_note . '"/>
                                 </div>
                                 <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ', document.querySelector(\'.mutation_note' . $this->table_row . '\').value)" id="saveMutation' . $this->table_row . '"></i>';
                                 }
