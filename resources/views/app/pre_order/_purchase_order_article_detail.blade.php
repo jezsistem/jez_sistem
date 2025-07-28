@@ -20,6 +20,25 @@
             <td style="white-space: nowrap;">
             [{{ $row->br_name }}] {{ $row->p_name }}<br/>{{ $row->p_color }} <img onclick="return deletePoa( {{ $row->poa_id }}, {{ $row->po_id }} )" src="{{ asset('cdn/details_close.png') }}"/><br/>
                 <input style="width:155px;" type="month" name="poa_reminder" id="poa_reminder{{ $row->poa_id }}" class="form-control" placeholder="Reminder" value="{{ $row->poa_reminder }}" onchange="return reminder( {{ $row->poa_id }} )"/>
+                <select name="poa_status_{{ $row->poa_id }}"
+                    id="poa_status_{{ $row->poa_id }}"
+                    class="form-control mt-3"
+                    style="
+                        width:155px;
+                        @if($row->poa_status == 3)
+                            background-color:#dc3545;color:#fff; /* Cancelled - Red */
+                        @elseif($row->poa_status == 2)
+                            background-color:#28a745;color:#fff; /* Completed - Green */
+                        @elseif($row->poa_status == 1)
+                            background-color:#ffc107;color:#212529; /* In Progress - Yellow */
+                        @endif
+                    "
+                    onchange="return updateStatus({{ $row->poa_id }})">
+                    <option value="">- Status -</option>
+                    @foreach(App\Models\PreOrderArticle::getStatusOptions() as $key => $value)
+                        <option value="{{ $key }}" {{ $row->poa_status == $key ? 'selected' : '' }}>{{ $value }}</option>
+                    @endforeach
+                </select>
             </td>
             <td style="white-space: nowrap;">
                 <input type="text" style="width:65px;" value="Disc" readonly/><input type="text" name="poa_discount" id="poa_discount{{ $row->poa_id }}" style="width:33px;" value="{{ $row->poa_discount }}" onchange="return discount( {{ $row->poa_id }} )"/><br/>
@@ -29,7 +48,7 @@
             <td style="white-space: nowrap;">
                     <input type="text" style="width:60px;" value="Sz" readonly/>
                     <input type="text" class="bg-primary text-white" style="width:50px;" value="Order" readonly/>
-                    <input type="text" class="bg-primary text-white" style="width:80px;" value="InStock" readonly/>
+                    <input type="text" class="bg-primary text-white" style="width:70px;" value="InStock" readonly/>
                     <input type="text" style="width:100px;" value="Harga Band" readonly/>
                     <input type="text" style="width:100px;" value="Harga Beli" readonly/>
                     <input type="text" style="width:100px;" value="Total" readonly/><br/>

@@ -147,6 +147,15 @@ class ProductLocationSetupController extends Controller
                             $w->orWhere('st_id', '=', $st_id);
                         });
                     }
+                    if (!empty($request->get('st_id'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $st_id = $request->get('st_id');
+                            $w->orWhere('st_id', '=', $st_id);
+                        });
+                    }
+                    if ($request->filled('bin_kl_filter')) {
+                        $instance->where('pl_code', 'like', '%' . $request->bin_kl_filter . '%');
+                    }                    
                     if (!empty($request->get('search'))) {
                         $instance->leftJoin('product_location_setups', 'product_location_setups.pl_id', '=', 'product_locations.id')
                             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')

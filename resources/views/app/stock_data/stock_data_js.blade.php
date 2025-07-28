@@ -388,15 +388,21 @@
             ajax: {
                 url: "{{ url('waiting_list_datatables') }}",
                 data: function (d) {
-                    d.search = $('#pick_data_search').val();
+                    d.search = $('#waiting_data_search').val();
                     d.st_id = "{{ $data['user']->st_id }}";
                 }
             },
-            columns: [{
-                data: 'article',
-                name: 'p_name',
-                orderable: false
-            },
+            columns: [
+                {
+                    data: 'article_id',
+                    name: 'article_id',
+                    orderable: false
+                },
+                {
+                    data: 'article',
+                    name: 'p_name',
+                    orderable: false
+                },
                 {
                     data: 'bin',
                     name: 'pl_code, orderable: false'
@@ -504,6 +510,10 @@
 
         $('#pick_data_search').on('keyup', function () {
             pickup_list_table.draw();
+        });
+
+        $('#waiting_data_search').on('keyup', function () {
+            waiting_list_table.draw();
         });
 
         // $('#aging_search').on('keyup', function() {

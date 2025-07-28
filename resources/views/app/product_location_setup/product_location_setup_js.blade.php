@@ -110,6 +110,7 @@
                 data: function(d) {
                     d.search = $('#product_location_setup_search').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.bin_kl_filter = $('#bin_kl_filter').val();
                 }
             },
             columns: [{
@@ -255,6 +256,10 @@
         });
 
         $('#st_id_filter').on('change', function() {
+            product_location_setup_table.draw();
+        });
+
+        $('#bin_kl_filter').on('change', function() {
             product_location_setup_table.draw();
         });
 

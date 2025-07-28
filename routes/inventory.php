@@ -168,6 +168,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('finish_adjustment', [AdjustmentController::class, 'finishAdjustment']);
     Route::post('add_article_adjustment', [AdjustmentController::class, 'addArticle']);
     Route::post('autocomplete_article', [AdjustmentController::class, 'fetchArticle']);
+    Route::get('get_adjustment_detail/{id}', [AdjustmentController::class, 'getDetailAdjustment']);
+    Route::post('approve_adjustment/{id}', [AdjustmentController::class, 'approveAdjustment']);
+    Route::post('execute_adjustment/{id}', [AdjustmentController::class, 'executeAdjustment']);
+    Route::post('cancel_adjustment/{id}', [AdjustmentController::class, 'cancelAdjustment']);
+    Route::post('reject_adjustment/{id}', [AdjustmentController::class, 'rejectAdjustment']);
 
     // Exception Location
     Route::get('exception_location', [ExceptionLocationController::class, 'index']);
