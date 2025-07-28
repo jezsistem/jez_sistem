@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddPoaDoneToPreOrderArticlesTable extends Migration
+class AddPoaStatusToPreOrderArticlesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,7 @@ class AddPoaDoneToPreOrderArticlesTable extends Migration
     public function up()
     {
         Schema::table('pre_order_articles', function (Blueprint $table) {
-            $table->boolean('poa_done')->after('poa_reminder')->default(false);
+            $table->smallInteger('poa_status')->after('poa_draft')->default(1);
         });
     }
 
@@ -26,7 +26,7 @@ class AddPoaDoneToPreOrderArticlesTable extends Migration
     public function down()
     {
         Schema::table('pre_order_articles', function (Blueprint $table) {
-            $table->dropColumn('poa_done');
+            $table->dropColumn('poa_status');
         });
     }
 }

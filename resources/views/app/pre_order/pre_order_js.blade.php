@@ -1485,10 +1485,14 @@
             var status = select.val();
 
             // Change color based on status
-            if (status == 1) {
-                select.css({'background-color': '#28a745', 'color': '#fff'});
+            if (status == 3) {
+                select.css({'background-color': '#dc3545', 'color': '#fff'}); // Cancelled - Red
+            } else if (status == 2) {
+                select.css({'background-color': '#28a745', 'color': '#fff'}); // Completed - Green
+            } else if (status == 1) {
+                select.css({'background-color': '#ffc107', 'color': '#212529'}); // In Progress - Yellow
             } else {
-                select.css({'background-color': '#dc3545', 'color': '#fff'});
+                select.css({'background-color': '', 'color': ''});
             }
 
             // Optionally, send status update to server

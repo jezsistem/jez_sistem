@@ -16,8 +16,12 @@ class PreOrderArticle extends Model
         'po_id',
         'pr_id',
         'poa_draft',
-        'poa_done',
+        'poa_status',
     ];
+
+    public const POA_STATUS_ON_PROGRESS = 1;
+    public const POA_STATUS_COMPLETED = 2;
+    public const POA_STATUS_CANCELLED = 3;
 
     public function deleteData($id)
     {
@@ -33,5 +37,14 @@ class PreOrderArticle extends Model
                 return false;
             }
         }
+    }
+
+    public static function getStatusOptions()
+    {
+        return [
+            self::POA_STATUS_ON_PROGRESS => 'On Progress',
+            self::POA_STATUS_COMPLETED => 'Completed',
+            self::POA_STATUS_CANCELLED => 'Cancelled',
+        ];
     }
 }

@@ -23,10 +23,21 @@
                 <select name="poa_status_{{ $row->poa_id }}"
                     id="poa_status_{{ $row->poa_id }}"
                     class="form-control mt-3"
-                    style="width:155px; {{ $row->poa_done == 1 ? 'background-color:#28a745;color:#fff;' : 'background-color:#dc3545;color:#fff;' }}"
+                    style="
+                        width:155px;
+                        @if($row->poa_status == 3)
+                            background-color:#dc3545;color:#fff; /* Cancelled - Red */
+                        @elseif($row->poa_status == 2)
+                            background-color:#28a745;color:#fff; /* Completed - Green */
+                        @elseif($row->poa_status == 1)
+                            background-color:#ffc107;color:#212529; /* In Progress - Yellow */
+                        @endif
+                    "
                     onchange="return updateStatus({{ $row->poa_id }})">
-                    <option value=0 {{ $row->poa_done == 0 ? 'selected' : '' }}>Not Done</option>
-                    <option value=1 {{ $row->poa_done == 1 ? 'selected' : '' }}>Done</option>
+                    <option value="">- Status -</option>
+                    @foreach(App\Models\PreOrderArticle::getStatusOptions() as $key => $value)
+                        <option value="{{ $key }}" {{ $row->poa_status == $key ? 'selected' : '' }}>{{ $value }}</option>
+                    @endforeach
                 </select>
             </td>
             <td style="white-space: nowrap;">

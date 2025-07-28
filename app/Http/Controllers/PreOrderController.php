@@ -298,7 +298,7 @@ class PreOrderController extends Controller
                 $po_id = $draft->id;
                 $po_st_id = $draft->st_id;
 
-                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder', 'poa_done')
+                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder', 'poa_status')
                     ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->where(['po_id' => $po_id])->get();
@@ -852,11 +852,8 @@ class PreOrderController extends Controller
         $poa = PreOrderArticle::find($poa_id);
         if ($poa) {
             $status = $request->input('status'); // Default to 0 if not provided
-            if ($status != 0 && $status != 1) {
-                return response()->json(['status' => '400', 'message' => 'Invalid status value.']);
-            }
 
-            $poa->update(['poa_done' => $status]);
+            $poa->update(['poa_status' => $status]);
             $this->UserActivity('mengubah status POA ' . $poa->id . ' menjadi ' . ($status ? 'Done' : 'Not Done'));
             return response()->json(['status' => '200', 'message' => 'Status updated successfully']);
         }
