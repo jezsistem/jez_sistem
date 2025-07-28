@@ -1479,5 +1479,42 @@
             var po_id = $('#_po_id').val();
             window.location.href = "{{ url('pre_order_article_export') }}?po_id=" + po_id;
         });
+
+        window.updateStatus = function(poa_id) {
+            var select = $('#poa_status_' + poa_id);
+            var status = select.val();
+
+            // Change color based on status
+            if (status == 1) {
+                select.css({'background-color': '#28a745', 'color': '#fff'});
+            } else {
+                select.css({'background-color': '#dc3545', 'color': '#fff'});
+            }
+
+            // Optionally, send status update to server
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "PATCH",
+                url: "{{ url('update_poa_done_status') }}/" + poa_id,
+                data: {
+                    status: status
+                },
+                dataType: 'json',
+                success: function(r) {
+                    if (r.status === '200') {
+                        toastr.success('Status berhasil diperbarui', 'Berhasil');
+                    } else {
+                        toastr.error('Gagal memperbarui status', 'Gagal');
+                    }
+                },
+                error: function() {
+                    toastr.error('Terjadi kesalahan saat memperbarui status', 'Error');
+                }
+            });
+        };
     });
 </script>

@@ -16,6 +16,7 @@ class PreOrderArticle extends Model
         'po_id',
         'pr_id',
         'poa_draft',
+        'poa_done',
     ];
 
     public function deleteData($id)

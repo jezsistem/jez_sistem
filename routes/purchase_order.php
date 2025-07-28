@@ -142,6 +142,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('upload_file_preorder', [PreOrderController::class, 'uploadFilePreOrder']);
     Route::get('file_preorder_datatable', [PreOrderController::class, 'getFilePreOrderDatatables']);
     Route::post('delete_file_preorder', [PreOrderController::class, 'deleteFilePreOrder']);
+    Route::patch('update_poa_done_status/{poa_id}', [PreOrderController::class, 'updatePoaDoneStatus']);
 
     // Purchase Order Article
     Route::post('proa_delete', [PreOrderArticleController::class, 'deleteData']);
