@@ -104,6 +104,7 @@
                     d.search = $('#history_search').val();
                     d.st_id = $('#st_id_filter').val();
                     d.adjustment_date = $('#adjustment_date').val();
+                    d.status = $('#status').val();
                 }
             },
             columns: [
@@ -112,16 +113,19 @@
             { data: 'st_name', name: 'st_name' },
             { data: 'pl_code', name: 'pl_code' },
             { data: 'u_name', name: 'u_name' },
+            { data: 'ba_approve', name: 'ba_approve' },
+            { data: 'ba_executor', name: 'ba_executor' },
             { data: 'br_name', name: 'br_name'},
             { data: 'p_name', name: 'p_name'},
             { data: 'ps_barcode', name: 'ps_barcode'},
             { data: 'p_color', name: 'p_color'},
             { data: 'sz_name', name: 'sz_name'},
-            { data: 'ba_created', name: 'ba_created', orderable: false },
+            { data: 'ba_updated_at', name: 'ba_updated_at', orderable: false },
             { data: 'ba_old_qty', name: 'ba_old_qty', orderable: false },
             { data: 'ba_new_qty', name: 'ba_new_qty', orderable: false },
             { data: 'adjust', name: 'adjust', orderable: false },
             { data: 'ba_note', name: 'ba_note', orderable: false },
+            { data: 'ba_status', name: 'ba_status', orderable: false },
             ], 
             columnDefs: [
             {
@@ -139,6 +143,301 @@
         $('#history_search').on('keyup', function() {
             adjustment_history_table.draw();
         });
+        
+        // Trigger ActionAdjustmentModal when clicking a row in AdjustmentHistorytb
+        $('#AdjustmentHistorytb tbody').on('click', 'tr', function () {
+            var data = adjustment_history_table.row(this).data();
+
+            if (data && data.ba_id) {
+
+            // Show loading indicator
+            Swal.fire({
+            title: 'Loading...',
+            allowOutsideClick: false,
+            didOpen: () => {
+            Swal.showLoading();
+            }
+            });
+
+            $.ajax({
+            url: "{{ url('get_adjustment_detail') }}/" + data.ba_id,
+            type: "GET",
+            dataType: "json",
+            success: function(response) {
+            Swal.close();
+
+            // Fill modal fields with response data
+            $('#ba_id').val(response.data.ba_id ?? '');
+            $('#adj_code').text(response.data.ba_code ?? '-');
+            $('#adj_creator').text(response.data.user_name ?? '-');
+            $('#adj_create_date').text(response.data.ba_created ?? '-');
+            $('#adj_approval').text(response.data.approver_name ?? '-');
+            $('#adj_approve_date').text(response.data.approved_at ?? '-');
+            $('#adj_execute').text(response.data.executor_name ?? '-');
+            $('#adj_execute_date').text(response.data.execute_at ?? '-');
+            $('#qty_awal').text(response.data.ba_old_qty ?? '-');
+            $('#qty_baru').text(response.data.ba_new_qty ?? '-');
+            $('#qty_adj').text(
+                (response.data.ba_adjust_type ? response.data.ba_adjust_type : '') +
+                (typeof response.data.ba_adjust !== 'undefined' ? response.data.ba_adjust : '-')
+            );
+            $('#product_name').text(response.data.p_name ?? '-');
+            $('#product_brand').text(response.data.br_name ?? '-');
+            $('#product_sku').text(response.data.ps_barcode ?? '-');
+            $('#product_color').text(response.data.p_color ?? '-');
+            $('#product_size').text(response.data.sz_name ?? '-');
+            $('#warehouse').text(response.data.st_name ?? '-');
+            $('#bin').text(response.data.pl_code ?? '-');
+            $('#adj_note').text(response.data.ba_note ?? '-');
+
+            // Set status badge and modal-header color
+            let statusText = '-';
+            let statusClass = 'bg-secondary text-dark';
+            let headerClass = 'bg-light';
+            if (response.data.ba_status == {{ App\Models\BinAdjustment::NEED_APPROVAL }}) {
+                statusText = 'Menunggu Persetujuan';
+                statusClass = 'bg-warning text-dark';
+                headerClass = 'bg-warning text-dark';
+            } else if (response.data.ba_status == {{ App\Models\BinAdjustment::NEED_EXECUTION }}) {
+                statusText = 'Menunggu Eksekusi';
+                statusClass = 'bg-info text-white';
+                headerClass = 'bg-info text-white';
+            } else if (response.data.ba_status == {{ App\Models\BinAdjustment::CANCEL }} ) {
+                statusText = 'Dibatalkan';
+                statusClass = 'bg-danger text-white';
+                headerClass = 'bg-danger text-white';
+            } else if (response.data.ba_status == {{ App\Models\BinAdjustment::REJECTED }} ) {
+                statusText = 'Ditolak';
+                statusClass = 'bg-danger text-white';
+                headerClass = 'bg-danger text-white';
+            } else if (response.data.ba_status == {{ App\Models\BinAdjustment::DONE }}) {
+                statusText = 'Selesai';
+                statusClass = 'bg-success text-white';
+                headerClass = 'bg-success text-white';
+            }
+            $('#ActionAdjustmentModal .badge').removeClass().addClass('badge ' + statusClass).text(statusText);
+
+            // Change modal-header color
+            $('#ActionAdjustmentModal .modal-header')
+                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary bg-info')
+                .addClass(headerClass);
+            $('#acctionModalLabel')
+                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary bg-info text-dark text-white text-light')
+                .addClass(headerClass);
+            $('#icon_close')
+                .removeClass('bg-light bg-warning bg-success bg-danger bg-primary bg-info text-dark text-white text-light')
+                .addClass(headerClass);
+
+            // Hide all action buttons by default
+            $('#btns_approval').hide();
+            $('#btns_execution').hide();
+
+            // Show action buttons based on status if needed
+            if (response.data.ba_status == {{ App\Models\BinAdjustment::NEED_APPROVAL }}) {
+                $('#btns_approval').removeClass('d-none').addClass('d-flex');
+            } else if (response.data.ba_status == {{ App\Models\BinAdjustment::NEED_EXECUTION }}) {
+                $('#btns_execution').removeClass('d-none').addClass('d-flex');
+            }
+
+            $('#ActionAdjustmentModal').modal('show');
+            },
+            error: function() {
+            Swal.close();
+            toast('Error', 'Gagal mengambil detail adjustment', 'error');
+            }
+            });
+            }
+        });
+
+        function resetAdjustmentModalButtons() {
+            $('#btns_approval').removeClass('d-flex').addClass('d-none');
+            $('#btns_execution').removeClass('d-flex').addClass('d-none');
+            $('#acctionModalLabel').removeClass('text-white').addClass('text-light');
+        }
+
+        $('#close_modal_1').on('click', function () {
+            resetAdjustmentModalButtons();
+        });
+
+        $('#close_modal_approval').on('click', function () {
+            resetAdjustmentModalButtons();
+        });
+
+        $('#close_modal_exec').on('click', function () {
+            resetAdjustmentModalButtons();
+        });
+
+        $('#btn_approve_adj').on('click', function () {
+            var ba_id = $('#ba_id').val();
+            if (ba_id) {
+            swal({
+                title: "Approve Adjustment?",
+                text: "Yakin ingin menyetujui adjustment ini?",
+                icon: "warning",
+                buttons: [
+                'Batal',
+                'Yakin'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        url: "{{ url('approve_adjustment') }}/" + ba_id,
+                        type: "POST",
+                        dataType: "json",
+                        success: function(response) {
+                            if (response.status == '200') {
+                                resetAdjustmentModalButtons();
+                                $('#ActionAdjustmentModal').modal('hide');
+                                adjustment_history_table.draw();
+                                swal('Berhasil', 'Adjustment berhasil disetujui', 'success');
+                            } else {
+                                swal('Gagal', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            swal('Gagal', response.message, 'error');
+                        }
+                    });
+                }
+            });
+            }
+        });
+
+        $('#btn_reject_adj').on('click', function () {
+            var ba_id = $('#ba_id').val();
+            if (ba_id) {
+            swal({
+                title: "Tolak Adjustment?",
+                text: "Yakin ingin menolak adjustment ini?",
+                icon: "warning",
+                buttons: [
+                'Batal',
+                'Yakin'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        url: "{{ url('reject_adjustment') }}/" + ba_id,
+                        type: "POST",
+                        dataType: "json",
+                        data: { action: 'reject' },
+                        success: function(response) {
+                            if (response.status == '200') {
+                                resetAdjustmentModalButtons();
+                                $('#ActionAdjustmentModal').modal('hide');
+                                adjustment_history_table.draw();
+                                swal('Berhasil', 'Adjustment berhasil ditolak', 'success');
+                            } else {
+                                swal('Gagal', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            swal('Gagal', response.message, 'error');
+                        }
+                    });
+                }
+            });
+            }
+        });
+
+        $('#btn_cancel_adj').on('click', function () {
+            var ba_id = $('#ba_id').val();
+            if (ba_id) {
+            swal({
+                title: "Tolak Adjustment?",
+                text: "Yakin ingin menolak adjustment ini?",
+                icon: "warning",
+                buttons: [
+                'Batal',
+                'Yakin'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        url: "{{ url('cancel_adjustment') }}/" + ba_id,
+                        type: "POST",
+                        dataType: "json",
+                        data: { action: 'cancel' },
+                        success: function(response) {
+                            if (response.status == '200') {
+                                resetAdjustmentModalButtons();
+                                $('#ActionAdjustmentModal').modal('hide');
+                                adjustment_history_table.draw();
+                                swal('Berhasil', 'Adjustment berhasil ditolak', 'success');
+                            } else {
+                                swal('Gagal', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            swal('Gagal', response.message, 'error');
+                        }
+                    });
+                }
+            });
+            }
+        });
+
+        $('#btn_exec_adj').on('click', function () {
+            var ba_id = $('#ba_id').val();
+            if (ba_id) {
+            swal({
+                title: "Eksekusi Adjustment?",
+                text: "Yakin ingin mengeksekusi adjustment ini?",
+                icon: "warning",
+                buttons: [
+                'Batal',
+                'Yakin'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        }
+                    });
+                    $.ajax({
+                        url: "{{ url('execute_adjustment') }}/" + ba_id,
+                        type: "POST",
+                        dataType: "json",
+                        success: function(response) {
+                            if (response.status == '200') {
+                                resetAdjustmentModalButtons();
+                                $('#ActionAdjustmentModal').modal('hide');
+                                adjustment_history_table.draw();
+                                swal('Berhasil', 'Adjustment berhasil dieksekusi', 'success');
+                            } else {
+                                swal('Gagal', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            swal('Gagal', response.message, 'error');
+                        }
+                    });
+                }
+            });
+            }
+        });
+
+
 
         var validated_table = $('#Validatedtb').DataTable({
             destroy: true,
@@ -446,6 +745,9 @@
         });
 
         $('#st_id_filter').on('change', function() {
+            adjustment_history_table.draw();
+        });
+        $('#status').on('change', function() {
             adjustment_history_table.draw();
         });
 
