@@ -24,13 +24,13 @@
                 pl_id: pl_id
             },
             dataType: 'json',
-            success: function(response) {
+            success: function (response) {
 
                 if (response.data && Object.keys(response.data).length > 0) {
                     console.log('kontol')
                     $('#bin_filter').empty(); // Clear existing options
                     $('#bin_filter').append('<option value="">- Pilih Lokasi -</option>');
-                    Object.entries(response.data).forEach(function([key, value]) {
+                    Object.entries(response.data).forEach(function ([key, value]) {
                         $('#bin_filter').append('<option value="' + key + '">' + value +
                             '</option>');
                     });
@@ -40,7 +40,7 @@
                     $('#bin_filter').append('<option value="">- Tidak Ada Lokasi Tersedia -</option>');
                 }
             },
-            error: function() {
+            error: function () {
                 $('#bin_filter').empty();
                 $('#bin_filter').append('<option value="">- Gagal Memuat Lokasi -</option>');
             }
@@ -59,7 +59,7 @@
         return x1 + x2;
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
 
 
         var mass_adjustment_table = $('#MassAdjustmenttb').DataTable({
@@ -79,7 +79,7 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for POST
                 },
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#ma_search').val();
                     d.filter = $('#filter_status').val();
                     d.filter = $('#filter_note').val();
@@ -168,7 +168,7 @@
             }],
             ajax: {
                 url: "{{ url('mass_adjustment_detail_datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#mad_search').val();
                     d.ma_id = $('#ma_code').attr('data-id');
                 }
@@ -250,15 +250,15 @@
             ],
         });
 
-        $('#stock_search').on('keyup', function() {
+        $('#stock_search').on('keyup', function () {
             stock_table.draw();
         });
 
-        $('#ma_search').on('keyup', function() {
+        $('#ma_search').on('keyup', function () {
             mass_adjustment_table.draw();
         });
 
-        $('#mad_search').on('keyup', function() {
+        $('#mad_search').on('keyup', function () {
             mass_adjustment_detail_table.draw();
         });
 
@@ -267,13 +267,13 @@
         $('#qty_filter').select2({
             dropdownParent: $('#qty_filter_parent')
         });
-        $('#qty_filter').on('select2:open', function(e) {
+        $('#qty_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#qty_filter').on('change', function(e) {
+        $('#qty_filter').on('change', function (e) {
             e.preventDefault();
             qty_filter = $(this).val();
             loadAsset(st_id, psc_id, br_id);
@@ -284,31 +284,30 @@
         $('#st_filter').select2({
             dropdownParent: $('#st_filter_parent')
         });
-        $('#st_filter').on('select2:open', function(e) {
+        $('#st_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#st_filter').on('change', function() {
+        $('#st_filter').on('change', function () {
             mass_adjustment_table.draw();
             var id = $(this).val();
             console.log(id)
         });
 
 
-
         // Initialize Select2 pada elemen select st_export_filter
         $('#st_export_filter').select2({
             dropdownParent: $('#st_export_filter_parent')
         });
-        $('#st_export_filter').on('select2:open', function(e) {
+        $('#st_export_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#st_export_filter').on('change', function() {
+        $('#st_export_filter').on('change', function () {
             mass_adjustment_table.draw();
             var id = $(this).val();
             console.log(id)
@@ -318,13 +317,13 @@
         $('#br_filter').select2({
             dropdownParent: $('#br_filter_parent')
         });
-        $('#br_filter').on('select2:open', function(e) {
+        $('#br_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#br_filter').on('change', function(e) {
+        $('#br_filter').on('change', function (e) {
             e.preventDefault();
             br_id = $(this).val();
             loadAsset(st_id, psc_id, br_id);
@@ -335,13 +334,13 @@
         $('#psc_filter').select2({
             dropdownParent: $('#psc_filter_parent')
         });
-        $('#psc_filter').on('select2:open', function(e) {
+        $('#psc_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
 
-        $('#psc_filter').on('change', function(e) {
+        $('#psc_filter').on('change', function (e) {
             e.preventDefault();
             psc_id = $(this).val();
             loadAsset(st_id, psc_id, br_id);
@@ -352,7 +351,7 @@
         $('#bin_filter').select2({
             dropdownParent: $('#bin_filter_parent')
         });
-        $('#bin_filter').on('select2:open', function(e) {
+        $('#bin_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -360,22 +359,22 @@
 
 
         // Event listener untuk perubahan pada filter_status
-        $('#filter_status').on('change', function() {
+        $('#filter_status').on('change', function () {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             mass_adjustment_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
-        $('#filter_note').on('change', function() {
+        $('#filter_note').on('change', function () {
             console.log($(this).val()); // Log nilai yang dipilih (0 atau 1)
             mass_adjustment_table.draw(); // Memuat ulang tabel sesuai dengan filter status
         });
 
-        $(document).delegate('#export_btn', 'click', function(e) {
+        $(document).delegate('#export_btn', 'click', function (e) {
             e.preventDefault();
             exportTable();
         });
 
         // sini
-        $(document).delegate('#btn_cancel', 'click', function(e) {
+        $(document).delegate('#btn_cancel', 'click', function (e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
 
@@ -388,7 +387,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
 
                     $.ajaxSetup({
@@ -403,7 +402,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_cancel') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil dibatalkan", "success");
                                 loadApproval();
@@ -418,7 +417,7 @@
             })
         });
 
-        $(document).delegate('#export_mad_btn', 'click', function(e) {
+        $(document).delegate('#export_mad_btn', 'click', function (e) {
             e.preventDefault();
             exportResult();
         });
@@ -438,7 +437,47 @@
         //     loadAsset(st_id, psc_id, br_id);
         // });
 
-        $(document).on('keypress', '#scan_sku', function(e) {
+        function create_cycleCounts_header(st_id, pl_id){
+            event.preventDefault();
+            // Generate kode CCN
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const time = now.getTime();
+            const randomText = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+            const ccn_number = `CCN${year}${month}${day}${time}${randomText}`;
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('cycle_counts_insert') }}",
+                data: {
+                    st_id: st_id,
+                    pl_id: pl_id,
+                    ccn_number: ccn_number
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status == '200') {
+                        toast('Success', 'Header Cycle Count berhasil dibuat', 'success');
+                        $('#ccn_number').val(res.data.ccn_number); // isi input hidden/visible ccn_number
+                    } else {
+                        swal('Gagal', res.message || 'Gagal membuat header', 'error');
+                    }
+                },
+                error: function (xhr) {
+                    console.log(xhr.responseText);
+                    swal('Error', 'Terjadi kesalahan saat membuat cycle count header', 'error');
+                }
+            });
+
+        }
+
+        $(document).on('keypress', '#scan_sku', function (e) {
             if (e.which === 13) { // 13 = Enter key
                 e.preventDefault(); // opsional: cegah form
 
@@ -447,6 +486,12 @@
 
                 console.log('BIN SCAN:', bin);
                 console.log('Scan SKU:', sku);
+
+                if (!sku) {
+                    swal('Peringatan', 'Silakan masukkan atau scan SKU', 'warning');
+                    return;
+                }
+
 
                 $.ajaxSetup({
                     headers: {
@@ -461,7 +506,7 @@
                     },
                     dataType: 'json',
                     url: "{{ url('scan_get_item_details') }}",
-                    success: function(r) {
+                    success: function (r) {
                         if (r.status == '200') {
                             // Tampilkan data ke form
                             toast('Success', 'Berhasil mengambil data item', 'success');
@@ -471,36 +516,61 @@
                             $('#pl_code').val(r.data.pl_code);
                             $('#pls_qty').val(r.data.pls_qty);
 
-                            //berikan ajax lagi untuk input kedalam
+                            $('#scan_sku').val('');
 
+                            //berikan ajax lagi untuk input kedalam
+                            $.ajax({
+                                type: "POST",
+                                url: "{{ url('cycle_count_detail_store') }}",
+                                data: {
+                                    ccn_number: ccn_number,
+                                    pls_id: bin,
+                                    sku: sku
+                                },
+                                dataType: 'json',
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                success: function (res) {
+                                    if (res.status == '200') {
+                                        toast('Success', 'Item berhasil disimpan ke cycle_count_details', 'success');
+                                        $('#scan_sku').val('').focus(); // kosongkan input SKU dan fokus ulang
+                                    } else {
+                                        swal('Gagal', res.message || 'Gagal simpan item', 'error');
+                                    }
+                                },
+                                error: function (xhr) {
+                                    console.log(xhr.responseText);
+                                    swal('Error', 'Terjadi kesalahan saat simpan data', 'error');
+                                }
+                            });
                         } else {
-                            swal('Gagal', 'Variant tidak di temukan', 'error');
+                            swal('Gagal', 'Item tidak di temukan', 'error');
                         }
                     }
                 });
             }
         });
 
-
-        $(document).delegate('#scan_btn', 'click', function(e) {
+        $(document).delegate('#scan_btn', 'click', function (e) {
             e.preventDefault();
             // let bin = $('#bin_filter').val();
             console.log(bin);
         });
 
-        $(document).delegate('#reset_btn', 'click', function(e) {
+        $(document).delegate('#reset_btn', 'click', function (e) {
             e.preventDefault();
             $('#bin_filter').select('');
             $('#scan_sku').val('');
         });
 
-        $(document).delegate('#import_btn', 'click', function(e) {
+        $(document).delegate('#import_btn', 'click', function (e) {
             e.preventDefault();
             jQuery.noConflict();
             $('#ImportModal').modal('show');
         });
 
-        $(document).delegate('#madj_btn', 'click', function(e) {
+        $(document).delegate('#madj_btn', 'click', function (e) {
             e.preventDefault();
             var id = $(this).attr('data-id');
             var code = $(this).text();
@@ -510,7 +580,7 @@
             mass_adjustment_detail_table.draw(false);
         });
 
-        $(document).delegate('#ma_code', 'click', function(e) {
+        $(document).delegate('#ma_code', 'click', function (e) {
             e.preventDefault();
             $('#ma_code').attr('data-id', '');
             $('#ma_code').text('');
@@ -518,7 +588,7 @@
             mass_adjustment_detail_table.draw(false);
         });
 
-        $(document).delegate('#approval_btn', 'click', function(e) {
+        $(document).delegate('#approval_btn', 'click', function (e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') != '') {
                 swal('Sudah Approve', 'Approval sudah disetujui', 'warning');
@@ -533,7 +603,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -547,7 +617,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_approval') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil approval", "success");
                                 loadApproval();
@@ -562,7 +632,7 @@
             })
         });
 
-        $(document).delegate('#execution_btn', 'click', function(e) {
+        $(document).delegate('#execution_btn', 'click', function (e) {
             e.preventDefault();
             if ($('#approval_label').attr('data-id') == '') {
                 swal('Approval', 'Approval masih kosong', 'warning');
@@ -577,7 +647,7 @@
                     'Yakin'
                 ],
                 dangerMode: true,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
@@ -591,7 +661,7 @@
                         },
                         dataType: 'json',
                         url: "{{ url('mass_adjustment_exec') }}",
-                        success: function(r) {
+                        success: function (r) {
                             if (r.status == '200') {
                                 swal("Berhasil", "Berhasil eksekusi", "success");
                                 mass_adjustment_table.draw(false);
@@ -628,7 +698,7 @@
                                                 .getElementById(
                                                     'sku-table-body');
                                             r.differences.forEach(
-                                                function(item) {
+                                                function (item) {
                                                     let row =
                                                         document
                                                             .createElement(
@@ -648,7 +718,7 @@
                                                 'export_excel')
                                                 .addEventListener(
                                                     'click',
-                                                    function() {
+                                                    function () {
                                                         let wb = XLSX
                                                             .utils
                                                             .book_new();
@@ -690,7 +760,7 @@
                                                 'close_alert')
                                                 .addEventListener(
                                                     'click',
-                                                    function() {
+                                                    function () {
                                                         Swal.close();
                                                     });
                                         }
@@ -706,7 +776,7 @@
             })
         });
 
-        $('#f_import').on('submit', function(e) {
+        $('#f_import').on('submit', function (e) {
             e.preventDefault();
             if (st_id == 'all') {
                 swal('Tentukan Store', 'Silahkan tentukan store terlebih dahulu', 'warning');
@@ -731,7 +801,7 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function(r) {
+                success: function (r) {
                     $("#import_data_btn").html('Import');
                     $("#import_data_btn").attr("disabled", false);
                     if (r.status == '200') {
@@ -773,7 +843,7 @@
                                 didOpen: () => {
                                     let tbody = document.getElementById(
                                         'sku-table-body');
-                                    r.invalid_skus.forEach(function(item) {
+                                    r.invalid_skus.forEach(function (item) {
                                         let row = document
                                             .createElement('tr');
                                         row.innerHTML = `
@@ -786,7 +856,7 @@
 
                                     // Tombol Export Excel
                                     document.getElementById('export_excel')
-                                        .addEventListener('click', function() {
+                                        .addEventListener('click', function () {
                                             let wb = XLSX.utils.book_new();
                                             let ws_data = [
                                                 ["SKU / ID",
@@ -809,7 +879,7 @@
 
                                     // Tombol Tutup
                                     document.getElementById('close_alert')
-                                        .addEventListener('click', function() {
+                                        .addEventListener('click', function () {
                                             Swal.close();
                                         });
                                 }
@@ -826,7 +896,7 @@
                         swal('Gagal', 'Adjustment gagal dicreate', 'warning');
                     }
                 },
-                error: function(data) {
+                error: function (data) {
                     swal('Error', data, 'error');
                 }
             });
@@ -838,7 +908,7 @@
             let csvContent = "data:text/csv;charset=utf-8,";
             csvContent += "SKU / ID,Qty Export,Qty Sistem\n"; // header
 
-            data.forEach(function(item) {
+            data.forEach(function (item) {
                 let row = `${item.sku},${item.qty_export},${item.qty_system}`;
                 csvContent += row + "\n";
             });
@@ -904,7 +974,7 @@
 
         cb(start, end, '');
 
-        $(document).delegate('#export_by_date', 'click', function(e) {
+        $(document).delegate('#export_by_date', 'click', function (e) {
             e.preventDefault();
             var dt = $('#ma_date').val();
             $('#loader').show();
@@ -924,12 +994,12 @@
                 },
                 dataType: 'json',
                 url: "{{ url('export_mass_by_date') }}",
-                success: function(r) {
+                success: function (r) {
                     console.log(r)
                     $('#loader').hide();
                     $('#MassAdjustmentExportModal').modal('show');
                     $('#MassAdjustmentDetailtb tbody').empty(); // Clear existing rows
-                    $(r.data).each(function(index, row) {
+                    $(r.data).each(function (index, row) {
                         $('#MassAdjustmentDetailtb tbody').append(
                             "<tr><td>" + (index + 1) +
                             "</td><td>" + formatTanggal(row.adjustment_date) +
@@ -961,7 +1031,7 @@
                         );
                     });
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error fetching data:', error);
                 }
             });
@@ -985,7 +1055,7 @@
 
 
         //export bro
-        $(document).delegate('#excel_report', 'click', function(e) {
+        $(document).delegate('#excel_report', 'click', function (e) {
             e.preventDefault();
             $('#loader_download').show();
             var dt = $('#ma_date').val();
@@ -1007,7 +1077,7 @@
                 xhrFields: {
                     responseType: 'blob'
                 },
-                success: function(blob, status, xhr) {
+                success: function (blob, status, xhr) {
                     $('#loader_download').hide();
                     var filename = "exported_data.xlsx";
                     var disposition = xhr.getResponseHeader('Content-Disposition');
@@ -1037,12 +1107,12 @@
                         } else {
                             window.location.href = downloadUrl;
                         }
-                        setTimeout(function() {
+                        setTimeout(function () {
                             URL.revokeObjectURL(downloadUrl);
                         }, 10000);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('Error exporting data:', error);
                 }
             });

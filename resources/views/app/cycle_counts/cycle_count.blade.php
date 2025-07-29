@@ -49,6 +49,8 @@
                                     <label for="scan_sku" class="form-label">Scan SKU</label>
                                     <input type="text" id="scan_sku" name="scan_sku" class="form-control"
                                            placeholder="Scan SKU disini">
+
+                                    <input type="text" id="ccn_number" name="ccn_number" value="">
                                 </div>
 
                                 <!-- Tombol Reset -->

@@ -114,7 +114,7 @@ Route::middleware(['auth'])->group(function () {
     //cycle count
     Route::get('cycle_counts', [CycleCountController::class, 'index']);
     Route::get('scan_get_item_details', [CycleCountController::class, 'getItemDetails']);
-
+    Route::get('cycle_counts_insert', [CycleCountController::class, 'createCycleCount']);
 
 
     Route::post('mass_stock_datatables_filter', [MassAdjustmentController::class, 'adjustmentDatatablesFilter']);

@@ -117,9 +117,29 @@ class CycleCountController extends Controller
                 ->first();
         }
 
+
 //        dd($data);
 
-        return response()->json(['status' => '200', 'data' => $data]);
+        if ($data) {
+            return response()->json(['status' => '200', 'data' => $data]);
+        } else {
+            return response()->json(['status' => '404', 'message' => 'Item tidak ditemukan']);
+        }
+
+    }
+
+
+    public function createCycleCount(Request $request){
+        dd('ini cycelcount Create');
+
+        $_check_id = 'hehehehe';
+
+
+        if(empty($_check_id)){
+            //insert new header cycle count
+        }
+
+
     }
 
     public function stockDatatables(Request $request)
@@ -128,7 +148,7 @@ class CycleCountController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
         if (request()->ajax()) {
             return datatables()->of(DB::table('product_location_setups')->selectRaw("ts_product_location_setups.id as id, pl_code, br_name, p_name, p_color, sz_name, psc_name,
-            pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_purchase_price as purchase_3, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
+            pls_qty, avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_arzticle_detail_statuses.poads_purchase_price) as purchase_1, ps_purchase_price as purchase_3, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price")
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.pst_id', '=', 'product_stocks.id')
