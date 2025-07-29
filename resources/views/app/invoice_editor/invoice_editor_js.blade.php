@@ -530,10 +530,10 @@
                             if (xhr.status === 422 || xhr.status === 400) {
                                 let res = JSON.parse(xhr.responseText);
                                 swal("Peringatan", res.message ||
-                                    "Sesi belum dapat diselesaikan.", "warning");
+                                    "Transaksi belum dapat diselesaikan.", "warning");
                             } else {
                                 swal("Error",
-                                    "Terjadi kesalahan saat menghubungi server.",
+                                    "Terjadi kesalahan server.",
                                     "error");
                             }
                         }

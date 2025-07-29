@@ -931,7 +931,7 @@ class InvoiceEditorController extends Controller
         if ($transaction->pos_status !== 'DONE') {
             return response()->json([
                 'status' => 422,
-                'message' => 'Sesi belum selesai, status transaksi belum DONE.'
+                'message' => 'Transaksi belum selesai, status transaksi belum DONE.'
             ], 422); // proses berhenti DI SINI
         }
 
