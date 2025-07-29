@@ -166,7 +166,7 @@
                                         </button>
 
                                         <button style="white-space: nowrap;" type="button"
-                                                class="btn btn-primary font-weight-bolder mb-2" id="waiting_list_btn"
+                                                class="btn btn-warning font-weight-bolder mb-2" id="waiting_list_btn"
                                                 aria-haspopup="true" aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
