@@ -183,10 +183,10 @@ class ProductLocationSetupV2Controller extends Controller
                             $sz_name = '';
                             foreach ($check_pst as $row) {
                                 if (!empty($row->ps_barcode)) {
-                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-2" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a> <a style="white-space: nowrap;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a></div>';
+                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-2" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a> <a style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a></div>';
                                 } else {
-                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;">' . $row->sz_name . '</a> 
-                                                <a class="btn btn-sm btn-primary col-4" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
+                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a> 
+                                                <a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
                                 }
                             }
                             return $sz_name;
@@ -311,9 +311,16 @@ class ProductLocationSetupV2Controller extends Controller
                                 $sz_name = '';
                                 foreach ($check_pst as $row) {
                                     if (!empty($row->ps_barcode)) {
-                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-2" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a> <a style="white-space: nowrap;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a></div>';
+                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;">
+                                            <a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a>
+                                            <a class="btn btn-sm btn-primary col-2" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a>
+                                            <a style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a>
+                                        </div>';
                                     } else {
-                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-4" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
+                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;">
+                                            <a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a>
+                                            <a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a>
+                                        </div>';
                                     }
                                 }
                                 return $sz_name;
