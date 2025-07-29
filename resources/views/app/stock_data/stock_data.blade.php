@@ -225,12 +225,18 @@
                                     </div>
                                 </form>
                                 <h5>Keterangan</h5>
+                                <style>
+                                    .custom-defect {
+                                        background-color: #784800;
+                                        color: #fff; /* supaya teks terlihat jelas */
+                                    }
+                                </style>
                                 <div class="mt-3">
                                     <button class="btn btn-sm btn-info">•</button>
                                     : Stok Toko |
                                     <button class="btn btn-sm btn-success ml-2">•</button>
                                     : Stok gudang |
-                                    <button class="btn btn-sm ml-2" style="background-color: green; color: white;">•</button>
+                                    <button class="btn btn-sm ml-2" style="background-color: #784800; color: white;">•</button>
                                     : Stok Defect |
                                     <button class="btn btn-sm btn-warning ml-2">•</button>
                                     : Stok Special Sale

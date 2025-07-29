@@ -638,7 +638,14 @@ class StockDataController extends Controller
                                                     $key = 'qty_' . str_replace([' ', '-'], '_', strtolower($area));
                                                     if (isset($lrow->$key) && $lrow->$key > 0) {
                                                         // Use blue btn color if sa_name is DISPLAY
-                                                        $btnClass = (isset($area) && strtoupper($area) === 'STORAGE DISPLAY') ? 'btn-info' : 'btn-success';
+                                                        if (isset($area) && strtoupper($area) === 'STORAGE GL3 DEFECT REJECT') {
+                                                            $btnClass = 'custom-defect';
+                                                        } elseif (isset($area) && strtoupper($area) === 'STORAGE DISPLAY') {
+                                                            $btnClass = 'btn-info';
+                                                        } else {
+                                                            $btnClass = 'btn-success';
+                                                        }
+
                                                         $bin .= '<span class="btn-sm-custom ' . $btnClass . '" title="Gudang - ' . $area . ' - ' . $idsa . '"  
                                                             data-p_article="' . $row->article_id . '" 
                                                             data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
