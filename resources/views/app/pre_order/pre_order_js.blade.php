@@ -580,6 +580,7 @@
                 data: function(d) {
                     d.search = $('#purchase_order_search').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.po_type = $('#po_status_filter').val();
                 }
             },
             columns: [{
@@ -864,6 +865,10 @@
         });
 
         $('#st_id_filter').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+        $('#po_status_filter').on('change', function() {
             purchase_order_table.draw();
         });
 
