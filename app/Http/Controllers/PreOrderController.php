@@ -197,14 +197,25 @@ class PreOrderController extends Controller
                 })
                 ->rawColumns(['po_status'])
                 ->filter(function ($instance) use ($request) {
+                    // Search input
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('pre_order_code', 'LIKE', "%$search%")
                                 ->orWhere('st_name', 'LIKE', "%$search%")
                                 ->orWhere('ps_name', 'LIKE', "%$search%")
-                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
+                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', ["%$search%"]);
                         });
+                    }
+                
+                    // Filter po_type (0 = REPEAT, 1 = LAUNCHING)
+                    if ($request->filled('po_type')) {
+                        $instance->where('po_type', $request->po_type);
+                    }
+                
+                    // Jika kamu juga ingin filter berdasarkan st_id
+                    if ($request->filled('st_id')) {
+                        $instance->where('st_id', $request->st_id);
                     }
                 })
                 ->addIndexColumn()
