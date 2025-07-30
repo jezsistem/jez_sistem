@@ -44,6 +44,7 @@
                                 <select class="form-control" id="bin_kl_filter" name="bin_kl_filter" required style="border: 1px solid #ced4da;">
                                     <option value="">-- Pilih Bin --</option>
                                     <option value="-KL">Bin Koli</option>
+                                    <option value="-KONTAINER">Bin Kontainer</option>
                                 </select>
                             </div>
                             <!--end: Datatable-->
