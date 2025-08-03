@@ -1239,8 +1239,14 @@
             });
         });
 
-        $('#add_po_btn').on('click', function() {
-            $('#add_po_btn').prop('disabled', true);
+        $('.add_po_btn').on('click', function() {
+            type = $(this).data('type');
+            if (type == 'with_item') {
+                $('#detail_po').addClass('d-none');
+            } else if (type == 'without_item') {
+                
+            }
+            $('.add_po_btn').prop('disabled', true);
             $('#purchase_order_detail_content').html('');
             $.ajaxSetup({
                 headers: {
@@ -1266,7 +1272,7 @@
                         jQuery('#tax_id').val('').trigger('change');
                         jQuery('#dp_id').val('').trigger('change');
                         jQuery('#acc_id').val('').trigger('change');
-                        $('#add_po_btn').prop('disabled', false);
+                        $('.add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
                         jQuery.noConflict();
                         $('#f_po')[0].reset();
@@ -1277,7 +1283,7 @@
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
-                        $('#add_po_btn').prop('disabled', false);
+                        $('.add_po_btn').prop('disabled', false);
                         reloadArticleDetail(r.po_id);
                     } else {
                         swal('Gagal', 'Gagal membuat PO', 'warning');
@@ -1327,6 +1333,8 @@
                 }
             });
             purchase_order_table.draw(false);
+
+            $('#detail_po').removeClass('d-none');
         });
 
         $('#add_product_btn').on('click', function() {

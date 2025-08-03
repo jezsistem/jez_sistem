@@ -273,11 +273,23 @@
                             </a>
                         </div>
                     </div>
+                    <div class="col-4 mt-5">
+                        <label>Total Pembelian</label>
+                        <input type="number" class="form-control" placeholder="Total Pembelian" name="total_purchase" id="total_purchase" />
+                    </div>
+                    <div class="col-4 mt-5">
+                        <label>Total Quantity</label>
+                        <input type="number" class="form-control" placeholder="Total Quantity" name="total_qty" id="total_qty" />
+                    </div>
+                    <div class="col-4 mt-5">
+                        <label>Nominal Payment</label>
+                        <input type="number" class="form-control" placeholder="Nominal Payment" name="payment_amount" id="payment_amount" />
+                    </div>
                 </div>
                     
                 <!--end::Row-->
                 <!--begin::Row-->
-                <div class="row mt-4">
+                <div class="row mt-4" id="detail_po">
                     <!--begin::Button-->
                     <div class="col-2 mb-2 mt-4">
                     <a href="#" class="btn-sm btn-primary font-weight-bolder" id="add_product_btn">
