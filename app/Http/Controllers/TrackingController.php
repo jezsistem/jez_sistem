@@ -779,7 +779,8 @@ class TrackingController extends Controller
                 'pl_code',
                 'pl_name',
                 'sz_name',
-                'product_location_setup_transactions.created_at as TanggalTrx' // Ensure the alias is here
+                'product_location_setup_transactions.created_at as TanggalTrx',
+                'u_name' // Ensure the alias is here
             )
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -787,6 +788,7 @@ class TrackingController extends Controller
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
                 ->where(function ($w) {
                     $w->whereIn('product_locations.st_id', [Auth::user()->st_id]);
                 })
@@ -806,10 +808,12 @@ class TrackingController extends Controller
                     // Format the date
                     $dateTime = $data->TanggalTrx;
                     $time = $dateTime ? Carbon::parse($dateTime, 'Asia/Jakarta')->format('d-F-Y H:i:s') : 'N/A';
+                    $u_name = $data->u_name ?? '-';
 
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm ' . $btn . '">' . $data->plst_status . '</span> 
                     <span style="white-space: nowrap; font-weight:bold;"> [' . $data->br_name . ']<br/>' . $data->p_name . '<br/>' . $data->p_color . ' [' . $data->sz_name . ']</span><br/>
                     <span style="white-space: nowrap; font-weight:bold;">' . $time . '</span><br/>
+                    <span style="white-space: nowrap; font-weight:bold; color: Teal;">' . $u_name . '</span><br/>
                     <a class="btn btn-sm btn-primary" style="white-space: nowrap; font-weight:bold;">Jml : ' . $data->plst_qty . '</a>
                     <span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->pl_code . '</span>
                     <a class="btn btn-sm btn-success" data-bin="' . $data->pl_code . ' ' . $data->pl_name . '" data-p_name="' . $p_name . '" data-qty="' . $data->plst_qty . '" data-pls_id="' . $data->pls_id . '" data-plst_id="' . $data->plst_id . '" id="scan_get_in_btn" style="font-weight:bold;">Masuk</a>';
