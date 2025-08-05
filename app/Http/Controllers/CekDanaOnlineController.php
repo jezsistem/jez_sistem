@@ -349,7 +349,7 @@ class CekDanaOnlineController extends Controller
                 $original_name = $file->getClientOriginalName();
 
                 $st_id_form = $request->input('st_id_form');
-                $platform_name = $request->input('platform_name_form');
+                $platform_name = $request->input('platform_name');
 
                 $file->move('online/cek_dana/', $nama_file);
 
@@ -423,7 +423,7 @@ class CekDanaOnlineController extends Controller
 
             DB::table('online_funds')->insert([
                 'st_id' => $st_id_form, // assuming $st_id_form passed from controller
-                'platform_name' => 'Shopee', // example static value; replace if dynamic
+                'platform_name' => $type, // example static value; replace if dynamic
                 'order_number' => $order_number,
                 'total_disburshed_amount' => $total_disburshed_amount,
                 'final_price' => $final_price,

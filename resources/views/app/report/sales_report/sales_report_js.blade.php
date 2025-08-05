@@ -380,6 +380,10 @@
                     name: 'pos_paid_dp'
                 },
                 {
+                    data: 'sub_payment',
+                    name: 'sub_payment'
+                },
+                {
                     data: 'pos_paid_dp_date',
                     name: 'pos_paid_dp_date'
                 },

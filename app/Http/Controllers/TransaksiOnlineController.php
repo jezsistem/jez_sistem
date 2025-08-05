@@ -549,13 +549,17 @@ class TransaksiOnlineController extends Controller
 
         $stores_code = $data_stores->st_code;
 
+        $cashier = User::query()->select('u_name')->where('id', $trx->u_print)->value('u_name');
+
+        
         $data = [
             'title' => 'Invoice ' . $orderNumber,
             'invoice' => $orderNumber,
             'st_name' => $st_name,
             'invoice_data' => $get_invoice,
             'store_code' => $stores_code,
-            'segment' => request()->segment(1)
+            'segment' => request()->segment(1),
+            'cashier' => $cashier
         ];
         return view('app.invoice.print_invoice_online', compact('data'));
     }

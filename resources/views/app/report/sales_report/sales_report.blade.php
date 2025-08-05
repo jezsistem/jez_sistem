@@ -121,6 +121,7 @@
                                             <th class="text-dark" style="white-space:nowrap;">Kartu 2</th>
                                             <th class="text-dark" style="white-space:nowrap;">Ref 2</th>
                                             <th class="text-dark" style="white-space:nowrap;">Pelunasan</th>
+                                            <th class="text-dark" style="white-space:nowrap;">Sub Payment</th>
                                             <th class="text-dark" style="white-space:nowrap;">Tanggal Pelunasan</th>
                                             <th class="text-dark">Pos Order Number</th>
                                             <th class="text-dark">Status</th>
