@@ -143,7 +143,7 @@
                         Pembayaran
                     </div>
                     <div class="user">
-                        {{ now()->format('H:i') }}<br/>
+                        {{ \Carbon\Carbon::parse($row->time_print)->format('H:i') }}<br/>
                         @php
                             $kasirLimited = substr($data['cashier'], 0, 15);
 
