@@ -87,7 +87,7 @@
                                         <!--end::Dropdown Menu-->
                                     </div>
                                     <!--end::Dropdown-->
-                                    <button href="#" class="btn btn-secondary font-weight-bolder add_po_btn" id="add_po_no_item_btn" data-type="with_item">
+                                    <button href="#" class="btn btn-secondary font-weight-bolder add_po_btn" id="add_po_no_item_btn" data-type="without_item">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +105,7 @@
                                         </span>Buat PO Tanpa Item</button>
                                     <!--end::Button-->
                                     <!--begin::Button-->
-                                    <button href="#" class="btn btn-dark font-weight-bolder ml-2 add_po_btn" id="add_po_btn" data-type="without_item">
+                                    <button href="#" class="btn btn-dark font-weight-bolder ml-2 add_po_btn" id="add_po_btn" data-type="with_item">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg"

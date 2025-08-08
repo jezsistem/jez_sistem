@@ -273,17 +273,17 @@
                             </a>
                         </div>
                     </div>
-                    <div class="col-4 mt-5">
+                    <div class="col-4 mt-5 without_item_input">
                         <label>Total Pembelian</label>
-                        <input type="number" class="form-control" placeholder="Total Pembelian" name="total_purchase" id="total_purchase" />
+                        <input type="number" class="form-control " placeholder="Total Pembelian" name="total_purchase" id="total_purchase" min="0" />
                     </div>
-                    <div class="col-4 mt-5">
+                    <div class="col-4 mt-5 without_item_input">
                         <label>Total Quantity</label>
-                        <input type="number" class="form-control" placeholder="Total Quantity" name="total_qty" id="total_qty" />
+                        <input type="number" class="form-control " placeholder="Total Quantity" name="total_qty" id="total_qty" min="0"/>
                     </div>
-                    <div class="col-4 mt-5">
+                    <div class="col-4 mt-5 without_item_input">
                         <label>Nominal Payment</label>
-                        <input type="number" class="form-control" placeholder="Nominal Payment" name="payment_amount" id="payment_amount" />
+                        <input type="number" class="form-control " placeholder="Nominal Payment" name="payment_amount" id="payment_amount" min="0" />
                     </div>
                 </div>
                     

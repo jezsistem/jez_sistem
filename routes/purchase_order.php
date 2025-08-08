@@ -60,6 +60,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_transfer_image', [PurchaseOrderController::class, 'uploadImageTransfer']);
     Route::get('po_invoice_image_datatable', [PurchaseOrderController::class, 'getImageInvoiceDatatables']);
     Route::post('po_transfer_image_delete', [PurchaseOrderController::class, 'deleteImageTransfer']);
+    Route::post('po_total_purchase', [PurchaseOrderController::class, 'totalPurchasePo']);
+    Route::post('po_total_qty', [PurchaseOrderController::class, 'totalQtyPo']);
+    Route::post('po_payment_amount', [PurchaseOrderController::class, 'paymentAmountPo']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
