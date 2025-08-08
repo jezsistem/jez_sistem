@@ -140,6 +140,9 @@ class PurchaseOrderController extends Controller
                 'purchase_order_article_detail_statuses.created_at as status_created_at',
                 'purchase_order_article_detail_statuses.updated_at as status_updated_at',
                 'purchase_orders.created_at as po_created_at',
+                'po_total_purchase',
+                'po_payment_amount',
+                'po_total_qty',
             )
                 ->leftJoin('purchase_order_articles', 'purchase_order_articles.po_id', '=', 'purchase_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
@@ -166,6 +169,25 @@ class PurchaseOrderController extends Controller
                 })
                 ->editColumn('po_total', function ($data) {
                     $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
+
+                    $custom_sku_po = ProductStock::where('ps_barcode','CUSTOMPO')->get();
+
+                    if (empty($custom_sku_po)) {
+                        return false;
+                    }
+
+                    # Get PO with CUSPO item
+                    if (!empty($poa)) {
+                        $poa_ids = $poa->pluck('id');
+                        $has_custom_po_item = PurchaseOrderArticleDetail::whereIn('poa_id', $poa_ids)
+                            ->where('pst_id', $custom_sku_po->first()->id)
+                            ->exists();
+                    }
+
+                    if ($has_custom_po_item) {
+                        return number_format($data->po_total_purchase);
+                    }
+
                     if (!empty($poa)) {
                         $total_price = 0;
                         foreach ($poa as $poa_row) {
@@ -181,6 +203,20 @@ class PurchaseOrderController extends Controller
                 })
                 ->editColumn('po_status', function ($data) {
                     $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
+                    $custom_sku_po = ProductStock::where('ps_barcode','CUSTOMPO')->get();
+
+                    if (empty($custom_sku_po)) {
+                        return false;
+                    }
+
+                    # Get PO with CUSPO item
+                    if (!empty($poa)) {
+                        $poa_ids = $poa->pluck('id');
+                        $has_custom_po_item = PurchaseOrderArticleDetail::whereIn('poa_id', $poa_ids)
+                            ->where('pst_id', $custom_sku_po->first()->id)
+                            ->exists();
+                    }
+
                     if (!empty($poa)) {
                         $total_qty = 0;
                         $total_qty_receive = 0;
@@ -199,6 +235,11 @@ class PurchaseOrderController extends Controller
                             }
                         }
                     }
+
+                    if ($has_custom_po_item) {
+                        return '<a class="btn btn-sm btn-primary">' . $total_qty_receive . '/' . $data->po_total_qty . '</a>';
+                    }
+
                     if ($data->po_draft == '1') {
                         return '<a class="btn btn-sm btn-warning">Draft</a>';
                     } else {
@@ -219,6 +260,29 @@ class PurchaseOrderController extends Controller
                     } else {
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
+                })
+                ->addColumn('is_no_item', function ($data) {
+
+                    $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
+
+                    $custom_sku_po = ProductStock::where('ps_barcode','CUSTOMPO')->get();
+
+                    if (empty($custom_sku_po)) {
+                        return false;
+                    }
+
+                    # Get PO with CUSPO item
+                    if (!empty($poa)) {
+                        $poa_ids = $poa->pluck('id');
+                        $has_custom_po_item = PurchaseOrderArticleDetail::whereIn('poa_id', $poa_ids)
+                            ->where('pst_id', $custom_sku_po->first()->id)
+                            ->exists();
+                    }
+
+                    if ($has_custom_po_item) {
+                        return true;
+                    }
+                    
                 })
                 ->rawColumns(['po_status', 'u_receive'])
                 ->filter(function ($instance) use ($request) {
@@ -298,22 +362,66 @@ class PurchaseOrderController extends Controller
         return PurchaseOrder::where(['po_invoice' => $number])->exists();
     }
 
-    public function createPo()
+    public function createPo(Request $request)
     {
-        $po_id = DB::table('purchase_orders')->insertGetId([
-            'po_invoice' => $this->generatePoInvoice(),
-            'po_draft' => '0',
-            'created_at' => date('Y-m-d H:i:s'),
-            'po_delete' => '0',
-            //            'created_by' =>
-        ]);
-        if (!empty($po_id)) {
-            $r['status'] = '200';
-            $r['po_id'] = $po_id;
-            $r['po_invoice'] = DB::table('purchase_orders')->select('po_invoice')->where(['id' => $po_id])->get()->first()->po_invoice;
-            $this->UserActivity('membuat PO ' . $r['po_invoice']);
-        } else {
+        DB::beginTransaction();
+        try {
+            $type = $request->input('_type');
+
+            $po_id = DB::table('purchase_orders')->insertGetId([
+                'po_invoice' => $this->generatePoInvoice(),
+                'po_draft' => '0',
+                'created_at' => date('Y-m-d H:i:s'),
+                'po_delete' => '0',
+            ]);
+
+            $poa_id = null;
+            $poad_id = null;
+
+            if ($type == 'without_item') {
+                $product_stock = ProductStock::where('ps_barcode', 'CUSTOMPO')->first();
+                if (!$product_stock) {
+                    throw new \Exception('CUSTOMPO stock not found');
+                }
+                $product = Product::where('id', $product_stock->p_id)->first();
+                if (!$product) {
+                    throw new \Exception('Product for CUSTOMPO not found');
+                }
+
+                $poa_id = DB::table('purchase_order_articles')->insertGetId([
+                    'po_id' => $po_id,
+                    'p_id' => $product->id,
+                    'poa_reminder' => $product->p_aging,
+                ]);
+
+                $poad_id = DB::table('purchase_order_article_details')->insertGetId([
+                    'poa_id' => $poa_id,
+                    'pst_id' => $product_stock->id,
+                    'poad_draft' => '0',
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+
+            DB::commit();
+
+            if (empty($poad_id) && !empty($po_id)) {
+                $r['status'] = '200';
+                $r['po_id'] = $po_id;
+                $r['po_invoice'] = DB::table('purchase_orders')->select('po_invoice')->where(['id' => $po_id])->get()->first()->po_invoice;
+                $this->UserActivity('membuat PO ' . $r['po_invoice']);
+            } elseif (!empty($poa_id) && !empty($poad_id) && !empty($po_id)) {
+                $r['status'] = '200';
+                $r['po_id'] = $po_id;
+                $r['po_invoice'] = DB::table('purchase_orders')->select('po_invoice')->where(['id' => $po_id])->get()->first()->po_invoice;
+                $this->UserActivity('membuat PO Tanpa Item ' . $r['po_invoice']);
+            } else {
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['error'] = $e->getMessage();
         }
         return json_encode($r);
     }
@@ -666,6 +774,9 @@ class PurchaseOrderController extends Controller
             $r['dispute_description'] = $draft->dispute_description;
             $r['pay_date'] = $draft->pay_date;
             $r['due_date'] = $draft->due_date;
+            $r['po_total_purchase'] = $draft->po_total_purchase;
+            $r['po_total_qty'] = $draft->po_total_qty;
+            $r['po_payment_amount'] = $draft->po_payment_amount;
         } else {
             $r['status'] = '400';
         }
@@ -797,5 +908,38 @@ class PurchaseOrderController extends Controller
 
         $response = ['status' => $delete ? '200' : '400'];
         return response()->json($response);
+    }
+
+    public function totalPurchasePo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_total_purchase' => $request->_total_purchase]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function totalQtyPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_total_qty' => $request->_total_qty]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function paymentAmountPo(Request $request)
+    {
+        $check = DB::table('purchase_orders')->where(['id' => $request->_po_id])->update(['po_payment_amount' => $request->_payment_amount]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
     }
 }
