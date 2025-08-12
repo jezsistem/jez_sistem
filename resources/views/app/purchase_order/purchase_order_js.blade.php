@@ -637,6 +637,33 @@
         });
     });
 
+    $('#status_dispute').on('change', function() {
+        var status_disputeValue = $(this).val();
+        var no_order = $('#po_invoice_label').text();
+
+        if (status_disputeValue === "") {
+        return;
+    }
+
+        $.ajax({
+            url: "{{ url('status_dispute_save') }}",
+            type: 'POST',
+            data: {
+                status_dispute: status_disputeValue,
+                po_invoice: no_order,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                console.log(response);
+                toastr.success("Status Dispute berhasil disimpan", "Berhasil");
+            },
+            error: function(xhr) {
+                console.error(xhr);
+                toastr.error("Gagal menyimpan Status Dispute", "Gagal");
+            }
+        });
+    });
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -1220,6 +1247,7 @@
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
                         jQuery('#dp_id').val(r.dp_id).trigger('change');
                         jQuery('#acc_id').val(r.acc_id).trigger('change');
+                        $('#status_dispute').val(r.status_dispute);
                         $('#total_purchase').val(r.po_total_purchase);
                         $('#payment_amount').val(r.po_payment_amount);
                         $('#total_qty').val(r.po_total_qty);
