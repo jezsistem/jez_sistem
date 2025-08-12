@@ -23,14 +23,15 @@
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
         <div class="container">
-            <div class="row">
+    <div class="row">
                 <div class="col-lg-12 col-xxl-12">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <div class="card-header flex-wrap py-3">
-                            <div class="card-toolbar">
+                    <div class="card-toolbar d-flex justify-content-between w-100">
+                    <input type="search" class="form-control col-6" id="leave_type_search" placeholder="Search"/>
                                 <!--begin::Button-->
-                                <a href="#" class="btn btn-dark font-weight-bolder" id="add_btn">
+                                <a href="{{ route('leave-types.create') }}" class="btn btn-dark font-weight-bolder" id="add_leave_type_btn">
                                 <span class="svg-icon svg-icon-md">
                                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -43,31 +44,30 @@
                                     <!--end::Svg Icon-->
                                 </span>Data Baru</a>
                                 <!--end::Button-->
-                            </div>
-                        </div>
+                                
+                                <!--begin::Search-->
+                                
+                                <!--end::Search-->
+                    </div>
+                </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <input type="search" class="form-control  col-6" id="user_search" placeholder="Cari user"/><br/>
-                            <table class="table table-hover table-checkable" id="Usertb">
+                            <table class="table table-hover table-checkable" id="leaveTypeTable">
                                 <thead class="bg-light text-dark">
-                                    <tr>
+                                <tr>
                                         <th class="text-dark">No</th>
-                                        <th class="text-dark">Nama</th>
-                                        <th class="text-dark">Level</th>
-                                        <th class="text-dark">Divisi</th>
-                                        <th class="text-dark">Store</th>
-                                        <th class="text-dark">NIP</th>
-                                        <th class="text-dark">KTP</th>
-                                        <th class="text-dark">Kode</th>
-                                        <th class="text-dark">No Telp</th>
-                                        <th class="text-dark">Email</th>
-                                        <th class="text-dark">Alamat</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
+                                        <th class="text-dark">Code</th>
+                                        <th class="text-dark">Name</th>
+                                        <th class="text-dark">Description</th>
+                                        <th class="text-dark">Duration</th>
+                                        <th class="text-dark">Status</th>
+                                        <th class="text-dark">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                    <!-- DataTables will populate this -->
+                            </tbody>
+                        </table>
                             <!--end: Datatable-->
                         </div>
                     </div>
@@ -80,7 +80,7 @@
     <!--end::Entry-->
 </div>
 <!--end::Content-->
-@include('app.user_management.user_management_modal')
+@endsection
+
 @include('app._partials.js')
-@include('app.user_management.user_management_js')
-@endSection()
+@include('app.leave_type.leave_type_js') 

@@ -76,6 +76,22 @@ use App\Http\Controllers\MenuAccessController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\SendNotificationController;
 
+// hris
+use App\Http\Controllers\ShiftCodeController;
+use App\Http\Controllers\DailyScheduleController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\BreakTimeController;
+use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\UserPositionController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\UserTypeController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\UserDivisionController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AnnouncementCategoryController;
+use App\Http\Controllers\AnnouncementReactionController;
+
 
 use App\Http\Controllers\WebConfigController;
 
@@ -677,6 +693,177 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('export-perusahaan', [DataPerusahaanController::class, 'exportData']);
 
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'fetchNotifications']);
+
+    // HR Management Routes
+    // ShiftCodeController
+    Route::get('shift-codes', [ShiftCodeController::class, 'index'])->name('shift-codes.index');
+    Route::get('shift-codes/datatables', [ShiftCodeController::class, 'getDatatables'])->name('shift-codes.datatables');
+    Route::get('shift-codes/create', [ShiftCodeController::class, 'create'])->name('shift-codes.create');
+    Route::post('shift-codes', [ShiftCodeController::class, 'store'])->name('shift-codes.store');
+    Route::get('shift-codes/{id}', [ShiftCodeController::class, 'show'])->name('shift-codes.show');
+    Route::get('shift-codes/{id}/edit', [ShiftCodeController::class, 'edit'])->name('shift-codes.edit');
+    Route::put('shift-codes/{id}', [ShiftCodeController::class, 'update'])->name('shift-codes.update');
+    Route::delete('shift-codes/{id}', [ShiftCodeController::class, 'destroy'])->name('shift-codes.destroy');
+    Route::post('shift-codes/{id}/toggle-status', [ShiftCodeController::class, 'toggleStatus'])->name('shift-codes.toggle-status');
+    Route::get('shift-codes/type/{type}', [ShiftCodeController::class, 'getShiftCodesByType'])->name('shift-codes.by-type');
+
+    // DailyScheduleController
+    Route::get('daily-schedules', [DailyScheduleController::class, 'index'])->name('daily-schedules.index');
+    Route::get('daily-schedules/datatables', [DailyScheduleController::class, 'getDatatables'])->name('daily-schedules.datatables');
+    Route::get('daily-schedules/statistics', [DailyScheduleController::class, 'getStatistics'])->name('daily-schedules.statistics');
+    Route::get('daily-schedules/create', [DailyScheduleController::class, 'create'])->name('daily-schedules.create');
+    Route::post('daily-schedules', [DailyScheduleController::class, 'store'])->name('daily-schedules.store');
+    Route::get('daily-schedules/bulk/create', [DailyScheduleController::class, 'bulkCreate'])->name('daily-schedules.bulk-create');
+    Route::post('daily-schedules/bulk', [DailyScheduleController::class, 'bulkStore'])->name('daily-schedules.bulk-store');
+    Route::get('daily-schedules/create-range', [DailyScheduleController::class, 'createRange'])->name('daily-schedules.create-range');
+    Route::post('daily-schedules/store-range', [DailyScheduleController::class, 'storeRange'])->name('daily-schedules.store-range');
+    Route::get('daily-schedules/export', [DailyScheduleController::class, 'export'])->name('daily-schedules.export');
+    Route::get('daily-schedules/weekly', [DailyScheduleController::class, 'weeklySchedule'])->name('daily-schedules.weekly');
+    Route::get('daily-schedules/weekly-report', [DailyScheduleController::class, 'weeklyReport'])->name('daily-schedules.weekly-report');
+    Route::get('daily-schedules/get-users-by-division', [DailyScheduleController::class, 'getUsersByDivision'])->name('daily-schedule.get-users-by-division');
+    Route::get('daily-schedules/get-weekly-schedules', [DailyScheduleController::class, 'getWeeklySchedules'])->name('daily-schedule.get-weekly-schedules');
+    Route::post('daily-schedules/save-weekly-schedule', [DailyScheduleController::class, 'saveWeeklySchedule'])->name('daily-schedule.save-weekly-schedule');
+
+    Route::get('daily-schedules/{id}', [DailyScheduleController::class, 'show'])->name('daily-schedules.show');
+    Route::get('daily-schedules/{id}/edit', [DailyScheduleController::class, 'edit'])->name('daily-schedules.edit');
+    Route::put('daily-schedules/{id}', [DailyScheduleController::class, 'update'])->name('daily-schedules.update');
+    Route::delete('daily-schedules/{id}', [DailyScheduleController::class, 'destroy'])->name('daily-schedules.destroy');
+    Route::post('daily-schedules/{id}/status', [DailyScheduleController::class, 'updateStatus'])->name('daily-schedules.update-status');
+
+
+    // AttendanceController
+    Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('attendance/datatables', [AttendanceController::class, 'getDatatables'])->name('attendance.datatables');
+    Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
+    Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('attendance/upload', [AttendanceController::class, 'upload'])->name('attendance.upload');
+    Route::post('attendance/upload', [AttendanceController::class, 'processUpload'])->name('attendance.process-upload');
+    Route::get('attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
+    Route::get('attendance/{id}', [AttendanceController::class, 'show'])->name('attendance.show');
+    Route::get('attendance/{id}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::put('attendance/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
+    Route::delete('attendance/{id}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
+    Route::get('attendance/{id}/process-status', [AttendanceController::class, 'processStatus'])->name('attendance.process-status');
+    Route::post('attendance/reprocess-all', [AttendanceController::class, 'reprocessAll'])->name('attendance.reprocess-all');
+    Route::get('attendance/staff/{user_id}', [AttendanceController::class, 'staffDetail'])->name('attendance.staff-detail');
+    Route::get('attendance/staff/{user_id}/datatables', [AttendanceController::class, 'staffDatatables'])->name('attendance.staff-datatables');
+    Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
+
+    // BreakTimeController
+    Route::get('break-times', [BreakTimeController::class, 'index'])->name('break-times.index');
+    Route::get('break-times/report', [BreakTimeController::class, 'report'])->name('break-times.report');
+    Route::get('break-times/datatables', [BreakTimeController::class, 'getDatatables'])->name('break-times.datatables');
+    Route::get('break-times/create', [BreakTimeController::class, 'create'])->name('break-times.create');
+    Route::post('break-times', [BreakTimeController::class, 'store'])->name('break-times.store');
+    Route::get('break-times/{id}', [BreakTimeController::class, 'show'])->name('break-times.show');
+    Route::get('break-times/{id}/edit', [BreakTimeController::class, 'edit'])->name('break-times.edit');
+    Route::put('break-times/{id}', [BreakTimeController::class, 'update'])->name('break-times.update');
+    Route::delete('break-times/{id}', [BreakTimeController::class, 'destroy'])->name('break-times.destroy');
+    Route::post('break-times/clock-in', [BreakTimeController::class, 'clockIn'])->name('break-times.clock-in');
+    Route::post('break-times/clock-out', [BreakTimeController::class, 'clockOut'])->name('break-times.clock-out');
+
+
+    // LeaveTypeController
+    Route::get('leave-types', [LeaveTypeController::class, 'index'])->name('leave-types.index');
+    Route::get('leave-types/datatables', [LeaveTypeController::class, 'getDatatables'])->name('leave-types.datatables');
+    Route::get('leave-types/create', [LeaveTypeController::class, 'create'])->name('leave-types.create');
+    Route::post('leave-types', [LeaveTypeController::class, 'store'])->name('leave-types.store');
+    Route::get('leave-types/{id}', [LeaveTypeController::class, 'show'])->name('leave-types.show');
+    Route::get('leave-types/{id}/edit', [LeaveTypeController::class, 'edit'])->name('leave-types.edit');
+    Route::put('leave-types/{id}', [LeaveTypeController::class, 'update'])->name('leave-types.update');
+    Route::delete('leave-types/{id}', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
+    Route::get('leave-types/{id}/toggle-status', [LeaveTypeController::class, 'toggleStatus'])->name('leave-types.toggle-status');
+    Route::get('leave-types/type/{type}', [LeaveTypeController::class, 'getLeaveTypesByType'])->name('leave-types.by-type');
+
+    // LeaveRequestController
+    Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
+    Route::get('leave-requests/datatables', [LeaveRequestController::class, 'getDatatables'])->name('leave-requests.datatables');
+    Route::get('leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
+    Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
+    Route::get('leave-requests/{id}', [LeaveRequestController::class, 'show'])->name('leave-requests.show');
+    Route::get('leave-requests/{id}/edit', [LeaveRequestController::class, 'edit'])->name('leave-requests.edit');
+    Route::put('leave-requests/{id}', [LeaveRequestController::class, 'update'])->name('leave-requests.update');
+    Route::delete('leave-requests/{id}', [LeaveRequestController::class, 'destroy'])->name('leave-requests.destroy');
+    Route::get('leave-requests/{id}/process-status', [LeaveRequestController::class, 'processStatus'])->name('leave-requests.process-status');
+    Route::post('leave-requests/reprocess-all', [LeaveRequestController::class, 'reprocessAll'])->name('leave-requests.reprocess-all');
+    Route::post('leave-requests/{id}/approve', [LeaveRequestController::class, 'approve'])->name('leave-requests.approve');
+    Route::post('leave-requests/{id}/reject', [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
+    Route::get('leave-requests/balance/{leaveTypeId}', [LeaveRequestController::class, 'getLeaveBalance'])->name('leave-requests.balance');
+
+    // UserPositionController
+    Route::get('user-positions', [UserPositionController::class, 'index'])->name('user-positions.index');
+    Route::get('user-positions/datatables', [UserPositionController::class, 'getDatatables'])->name('user-positions.datatables');
+    Route::get('user-positions/create', [UserPositionController::class, 'create'])->name('user-positions.create');
+    Route::post('user-positions', [UserPositionController::class, 'store'])->name('user-positions.store');
+    Route::get('user-positions/{id}', [UserPositionController::class, 'show'])->name('user-positions.show');
+    Route::get('user-positions/{id}/edit', [UserPositionController::class, 'edit'])->name('user-positions.edit');
+    Route::put('user-positions/{id}', [UserPositionController::class, 'update'])->name('user-positions.update');
+    Route::delete('user-positions/{id}', [UserPositionController::class, 'destroy'])->name('user-positions.destroy');
+
+    // UserDivisionController
+    Route::get('user-divisions', [UserDivisionController::class, 'index'])->name('user-divisions.index');
+    Route::get('user-divisions/datatables', [UserDivisionController::class, 'getDatatables'])->name('user-divisions.datatables');
+    Route::get('user-divisions/create', [UserDivisionController::class, 'create'])->name('user-divisions.create');
+    Route::post('user-divisions', [UserDivisionController::class, 'store'])->name('user-divisions.store');
+    Route::get('user-divisions/{id}', [UserDivisionController::class, 'show'])->name('user-divisions.show');
+    Route::get('user-divisions/{id}/edit', [UserDivisionController::class, 'edit'])->name('user-divisions.edit');
+    Route::put('user-divisions/{id}', [UserDivisionController::class, 'update'])->name('user-divisions.update');
+    Route::delete('user-divisions/{id}', [UserDivisionController::class, 'destroy'])->name('user-divisions.destroy');
+
+    // UserTypeController
+    Route::get('user-types', [UserTypeController::class, 'index'])->name('user-types.index');
+    Route::get('user-types/datatables', [UserTypeController::class, 'getDatatables'])->name('user-types.datatables');
+    Route::post('user-types', [UserTypeController::class, 'store'])->name('user-types.store');
+    Route::put('user-types/{id}', [UserTypeController::class, 'update'])->name('user-types.update');
+    Route::delete('user-types/{id}', [UserTypeController::class, 'destroy'])->name('user-types.destroy');
+
+    // StaffController
+    Route::get('staff', [StaffController::class, 'index'])->name('staff.index');
+    Route::get('staff/datatables', [StaffController::class, 'getDatatables'])->name('staff.datatables');
+    Route::post('staff/{id}/position', [StaffController::class, 'updatePosition'])->name('staff.update-position');
+    Route::post('staff/{id}/division', [StaffController::class, 'updateDivision'])->name('staff.update-division');
+    Route::post('staff/{id}/user-type', [StaffController::class, 'updateUserType'])->name('staff.update-user-type');
+    Route::post('staff/{id}/leave-balance', [StaffController::class, 'updateLeaveBalance'])->name('staff.update-leave-balance');
+
+    // User Select for AJAX
+    Route::get('users/select', [UserController::class, 'select'])->name('users.select');
+
+    // Announcement System
+    Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('announcements/manage', [AnnouncementController::class, 'manage'])->name('announcements.manage');
+    Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+    Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::get('announcements/{id}/edit', [AnnouncementController::class, 'edit'])->name('announcements.edit');
+    Route::put('announcements/{id}', [AnnouncementController::class, 'update'])->name('announcements.update');
+    Route::delete('announcements/{id}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::post('announcements/react', [AnnouncementController::class, 'react'])->name('announcements.react');
+    Route::post('announcements/{id}/pin', [AnnouncementController::class, 'togglePin'])->name('announcements.toggle-pin');
+    Route::get('announcements/{id}/reactions', [AnnouncementController::class, 'getReactionDetails'])->name('announcements.reaction-details');
+    Route::post('announcements/{id}/view', [AnnouncementController::class, 'trackView'])->name('announcements.track-view');
+    Route::get('announcements/{id}/viewers', [AnnouncementController::class, 'getViewers'])->name('announcements.viewers');
+
+
+    // Announcement Categories
+    Route::get('announcement-categories', [AnnouncementCategoryController::class, 'index'])->name('announcement-categories.index');
+    Route::post('announcement-categories', [AnnouncementCategoryController::class, 'store'])->name('announcement-categories.store');
+    Route::put('announcement-categories/{id}', [AnnouncementCategoryController::class, 'update'])->name('announcement-categories.update');
+    Route::delete('announcement-categories/{id}', [AnnouncementCategoryController::class, 'destroy'])->name('announcement-categories.destroy');
+
+    // Announcement Reactions
+    Route::get('announcement-reactions', [AnnouncementReactionController::class, 'index'])->name('announcement-reactions.index');
+    Route::post('announcement-reactions', [AnnouncementReactionController::class, 'store'])->name('announcement-reactions.store');
+    Route::put('announcement-reactions/{id}', [AnnouncementReactionController::class, 'update'])->name('announcement-reactions.update');
+    Route::delete('announcement-reactions/{id}', [AnnouncementReactionController::class, 'destroy'])->name('announcement-reactions.destroy');
+
+    Route::get('daily-schedules/get-weekly-schedules', [DailyScheduleController::class, 'getWeeklySchedules'])->name('daily-schedule.get-weekly-schedules');
+    Route::get('daily-schedules/test-data', [DailyScheduleController::class, 'testData'])->name('daily-schedule.test-data');
+
+    // Export routes for weekly schedule and report
+    Route::get('daily-schedules/export-weekly', [DailyScheduleController::class, 'exportWeekly'])->name('daily-schedules.export-weekly');
+
+    Route::get('daily-schedules/export-weekly-report', [DailyScheduleController::class, 'exportWeeklyReport'])->name('daily-schedules.export-weekly-report');
+
+    // Test export route for debugging
 
     // Grup rute untuk locking, hanya bisa diakses oleh user yang sudah login
     Route::prefix('lock')->controller(LockController::class)->group(function () {
