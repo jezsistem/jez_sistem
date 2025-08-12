@@ -135,6 +135,7 @@ class PurchaseOrderController extends Controller
                 'ps_name',
                 'po_invoice',
                 'po_description',
+                'status_dispute',
                 'po_draft',
                 'purchase_order_article_detail_statuses.u_id_approve',
                 'purchase_order_article_detail_statuses.created_at as status_created_at',
@@ -772,6 +773,7 @@ class PurchaseOrderController extends Controller
             $r['acc_id'] = $draft->acc_id;
             $r['dispute'] = $draft->dispute;
             $r['dispute_description'] = $draft->dispute_description;
+            $r['status_dispute'] = $draft->status_dispute;
             $r['pay_date'] = $draft->pay_date;
             $r['due_date'] = $draft->due_date;
             $r['po_total_purchase'] = $draft->po_total_purchase;
@@ -941,5 +943,24 @@ class PurchaseOrderController extends Controller
             $r['status'] = '400';
         }
         return json_encode($r);
+    }
+
+    public function statusdisputeSave(Request $request)
+    {
+        $request->validate([
+            'po_invoice' => 'required|string',
+            'status_dispute' => 'required|in:0,1',
+        ]);
+
+        $po = PurchaseOrder::where('po_invoice', $request->po_invoice)->first();
+
+        if (!$po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        $po->status_dispute = $request->status_dispute;
+        $po->save();
+
+        return response()->json(['message' => 'Status Dispute berhasil disimpan']);
     }
 }

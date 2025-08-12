@@ -63,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_total_purchase', [PurchaseOrderController::class, 'totalPurchasePo']);
     Route::post('po_total_qty', [PurchaseOrderController::class, 'totalQtyPo']);
     Route::post('po_payment_amount', [PurchaseOrderController::class, 'paymentAmountPo']);
+    Route::post('status_dispute_save', [PurchaseOrderController::class, 'statusdisputeSave']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');

@@ -230,12 +230,19 @@
                             </div>
                         </div>
                     </div>
-                    
+                    <div class="col-4 mt-5">
+                        <label>Status Dispute</label>
+                        <select class="form-control" name="status_dispute" id="status_dispute" required>
+                            <option value="">- Pilih Status -</option>
+                            <option value="1">Progress</option>
+                            <option value="0">Closed</option>
+                        </select>
+                    </div>
                     <div class="col-4 mt-5">
                         <label>Dispute</label>
                         <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
                     </div>
-                    <div class="col-4 mt-5"></div>
+                    {{-- <div class="col-4 mt-5"></div> --}}
                     <div class="col-4 mt-5">
                         <label class="badge badge-primary">Bukti Gambar Invoice dan Paket                               </label>
                         <div class="row justify-content-start">
