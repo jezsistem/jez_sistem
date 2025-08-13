@@ -339,6 +339,7 @@
             var dispute = po_approval_table.row(this).data().dispute;
             var putaway = po_approval_table.row(this).data().putaway;
             var dispute_description = po_approval_table.row(this).data().dispute_description;
+            var status_dispute = po_approval_table.row(this).data().status_dispute;
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
             approval = po_approval_table.row(this).data().u_receive;
@@ -346,6 +347,7 @@
 
             let dispute_text = '';
             let putaway_text = '';
+            let status_dispute_text = '';
 
             if (dispute === 1) {
                 dispute_text = 'Yes';
@@ -361,6 +363,14 @@
                 putaway_text = 'No';
             } else {
                 putaway_text = 'Empty';
+            }
+
+            if (status_dispute === 1) {
+                status_dispute_text = 'Progress';
+            } else if (status_dispute === 0) {
+                status_dispute_text = 'Closed';
+            } else {
+                status_dispute_text = '';
             }
 
             // Coba dapatkan lock sebelum buka modal
@@ -430,6 +440,7 @@
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
                     $('#putaway').val(putaway_text);
+                    $('#status_dispute').val(status_dispute_text);
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
