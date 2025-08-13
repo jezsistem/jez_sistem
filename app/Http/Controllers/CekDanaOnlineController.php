@@ -417,9 +417,10 @@ class CekDanaOnlineController extends Controller
             $affiliate_cut = (float) $item[5];
             $marketplace_commision_fee = (float) $item[6];
             $service_fee = (float) $item[7];
-            $voucher_xtra_service_fee = (float) $item[8];
-            $cashback_service_fee = (float) $item[9];
-            $total_online_cut = $affiliate_cut + $marketplace_commision_fee + $service_fee + $voucher_xtra_service_fee + $cashback_service_fee;
+            $dynamic_commission = (float) $item[8]; // Assuming dynamic_commission is at index 10
+            $voucher_xtra_service_fee = (float) $item[9];
+            $cashback_service_fee = (float) $item[10];
+            $total_online_cut = $affiliate_cut + $marketplace_commision_fee + $service_fee + $voucher_xtra_service_fee + $cashback_service_fee+$dynamic_commission;
 
             DB::table('online_funds')->insert([
                 'st_id' => $st_id_form, // assuming $st_id_form passed from controller
@@ -432,6 +433,7 @@ class CekDanaOnlineController extends Controller
                 'affiliate_cut' => $affiliate_cut,
                 'marketplace_commision_fee' => $marketplace_commision_fee,
                 'service_fee' => $service_fee,
+                'dynamic_commission' => $dynamic_commission,
                 'voucher_xtra_service_fee' => $voucher_xtra_service_fee,
                 'cashback_service_fee' => $cashback_service_fee,
                 'cashout_date' => $cashout_date,
@@ -481,6 +483,7 @@ class CekDanaOnlineController extends Controller
                 affiliate_cut             FLOAT,
                 marketplace_commision_fee FLOAT,
                 service_fee               FLOAT,
+                dynamic_commission        FLOAT,
                 voucher_xtra_service_fee  FLOAT,
                 cashback_service_fee      FLOAT
             );
@@ -491,7 +494,7 @@ class CekDanaOnlineController extends Controller
             INSERT INTO temp_lastest_pos_transaction (order_number, st_id, platform_name, settle_date, revenue,
                                                     total_settle, seller_discount, total_fee, trx_date, jezpro_price,
                                                     status_trx, status_print, affiliate_cut, marketplace_commision_fee,
-                                                    service_fee,
+                                                    service_fee, dynamic_commission,
                                                     voucher_xtra_service_fee, cashback_service_fee)
             WITH ranked_messages AS (SELECT pos_order_number,
                                             st_id,
@@ -517,6 +520,7 @@ class CekDanaOnlineController extends Controller
                 NULL                                 AS affiliate_cut,
                 NULL                                 AS marketplace_commision_fee,
                 NULL                                 AS service_fee,
+                NULL                                 AS dynamic_commission,
                 NULL                                 AS voucher_xtra_service_fee,
                 NULL                                 AS cashback_service_fee
 
@@ -532,7 +536,7 @@ class CekDanaOnlineController extends Controller
             INSERT INTO temp_lastest_pos_transaction (order_number, st_id, platform_name, settle_date, revenue,
                                                     total_settle, seller_discount, total_fee, trx_date, jezpro_price,
                                                     status_trx, status_print, affiliate_cut, marketplace_commision_fee,
-                                                    service_fee,
+                                                    service_fee, dynamic_commission,
                                                     voucher_xtra_service_fee, cashback_service_fee)
             SELECT order_number              AS order_number,
                 st_id                     AS st_id,
@@ -550,6 +554,7 @@ class CekDanaOnlineController extends Controller
                 affiliate_cut             AS affiliate_cut,
                 marketplace_commision_fee AS marketplace_commision_fee,
                 service_fee               AS service_fee,
+                dynamic_commission         AS dynamic_commission,
                 voucher_xtra_service_fee  AS voucher_xtra_service_fee,
                 cashback_service_fee      AS cashback_service_fee
             FROM ts_online_funds
@@ -575,6 +580,7 @@ class CekDanaOnlineController extends Controller
                         MAX(affiliate_cut)             AS affiliate_cut,
                         MAX(marketplace_commision_fee) AS marketplace_commision_fee,
                         MAX(service_fee)               AS service_fee,
+                        MAX(dynamic_commission)        AS dynamic_commission,
                         MAX(voucher_xtra_service_fee)  AS voucher_xtra_service_fee,
                         MAX(cashback_service_fee)      AS cashback_service_fee
                 FROM temp_lastest_pos_transaction t
