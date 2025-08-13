@@ -2331,7 +2331,7 @@ class PointOfSaleController extends Controller
                     ->whereIn('plst_status', $plst_status_new)
                     ->update([
                         'plst_status' => $plst_status,
-                        'u_id' => Auth::user()->id,
+                        // 'u_id' => Auth::user()->id,
                     ]);
                 if (!empty($update)) {
                     $create = PosTransactionDetail::create([
