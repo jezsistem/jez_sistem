@@ -243,7 +243,7 @@
                         <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
                     </div>
                     {{-- <div class="col-4 mt-5"></div> --}}
-                    <div class="col-4 mt-5">
+                    <div class="col-4 mt-3 d-flex flex-column">
                         <label class="badge badge-primary">Bukti Gambar Invoice dan Paket                               </label>
                         <div class="row justify-content-start">
                             <a class="input-group col-5" type="button" id="InvoiceImagesBtn" aria-haspopup="true" aria-expanded="false">

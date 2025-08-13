@@ -82,7 +82,7 @@
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_cabang" name="filter_cabang">
+                                            <select class="form-control" id="filter_cabang" name="filter_cabang" style="border: 1px solid #ced4da;">
                                                 <option value="">- Pilih Cabang -</option>
                                                 <option value="SURABAYA">Surabaya</option>
                                                 <option value="MALANG">Malang</option>
@@ -93,7 +93,7 @@
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_status" name="filter_status">
+                                            <select class="form-control" id="filter_status" name="filter_status" style="border: 1px solid #ced4da;">
                                                 <option value="">- Pilih Status transaksi -</option>
                                                 <option value="approve">Approve</option>
                                                 <option value="wait_cod">Menunggu Pembayaran</option>
@@ -103,7 +103,7 @@
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_dispute" name="filter_dispute">
+                                            <select class="form-control" id="filter_dispute" name="filter_dispute" style="border: 1px solid #ced4da;">
                                                 <option value="">- Pilih Status Dispute -</option>
                                                 <option value="1">Yes</option>
                                                 <option value="0">No</option>
