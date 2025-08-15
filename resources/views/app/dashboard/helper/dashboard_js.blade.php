@@ -1429,7 +1429,8 @@
     $(document).on('click', '.ambil-dari-bin', function(e) {
         // e.preventDefault();
         var pl_code = $(this).data('pl_code');
-        $('#bin_out_search').focus().val(pl_code);
+        var bin_id = $(this).data('bin_id');
+        $('#bin_out_search').focus().val(pl_code).data('bin_id', bin_id);
 
         // Trigger keyup event with ENTER key using native KeyboardEvent
         var event = new KeyboardEvent('keyup', {
@@ -1476,7 +1477,7 @@
                             <td>${bin.pls_qty}</td>
                             <td>
                                 <button class="btn btn-primary btn-sm ambil-dari-bin"
-                                        data-bin_id="${bin.id}"
+                                        data-bin_id="${bin.pls_id}"
                                         data-pl_code="${bin.pl_code}">
                                     Ambil
                                 </button>
@@ -1503,6 +1504,7 @@
     $('#bin_out_search').on('keyup', function (event) {
         let searchText = $(this).val().toLowerCase();
         let bin_search = $(this).val();
+        let bin_id = $(this).data('bin_id');
         let matchingRows = [];
 
         let bin = bin_search;
@@ -1568,6 +1570,7 @@
                                             // cari ini
                                             _sku: enteredSku,
                                             _bin: bin,
+                                            _bin_id: bin_id,
                                             _plst_qty: 1,
                                             _plst_id: plst_id,
                                             _status: status

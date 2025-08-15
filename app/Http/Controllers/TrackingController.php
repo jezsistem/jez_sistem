@@ -295,6 +295,7 @@ class TrackingController extends Controller
         $plst_id = $request->_plst_id;
         $sku = $request->_sku;
         $bin = $request->_bin;
+        $bin_id = $request->_bin_id; // New variable to hold bin_id
         $u_id = Auth::user()->id;
         $plst_qty = $request->_plst_qty;
 //        dd($plst_id, $sku, $bin);
@@ -303,10 +304,10 @@ class TrackingController extends Controller
         $pst_id = DB::table('product_stocks')->where('ps_barcode', $sku)->first()->id;
 
         //pl_id selected
-        $pl_id_selected = DB::table('product_locations')->where('pl_code', "=", "$bin")->first()->id;
+        // $pl_id_selected = DB::table('product_locations')->where('pl_code', "=", "$bin")->first()->id;
 
         //get pls_id
-        $pls_id_selected = DB::table('product_location_setups')->where('pl_id', "=", "$pl_id_selected")->where('pst_id', $pst_id)->first()->id;
+        $pls_id_selected = DB::table('product_location_setups')->where('id',$bin_id)->where('pst_id', $pst_id)->first()->id;
 
         $update_pls = DB::table('product_location_setups')->where('id', $pls_id_selected)
             ->update([
