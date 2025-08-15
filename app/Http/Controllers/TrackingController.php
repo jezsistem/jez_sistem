@@ -631,7 +631,14 @@ class TrackingController extends Controller
                     $p_name = $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name;
                     $dateTime = $data->plst_created; // '2024-08-07 14:13:46'
                     $time = Carbon::parse($dateTime)->format('H:i:s'); // '14:13:46'
-                    $real_stock = $data->pls_qty + 1;
+                    $real_stock = DB::select(DB::raw('
+                        SELECT COALESCE(SUM(pls_qty), 0) as total_stock
+                        FROM ts_product_location_setup_transactions plst
+                        LEFT JOIN ts_product_location_setups pls ON plst.pst_id = pls.pst_id
+                        LEFT JOIN ts_product_locations pl ON pls.pl_id = pl.id
+                        WHERE pl.sa_id = plst.sa_id
+                        AND plst.id = ?
+                    '), [$data->plst_id])[0]->total_stock ?? 0;
                     return '
                 <span class="btn btn-sm  7btn-primary" style="white-space: nowrap; font-weight:bold;">' . $data->plst_status . '</span>
                 <span style="white-space: nowrap; font-weight:bold;">[' . $data->br_name . ']<br/>' . $data->ps_barcode . ' - ' . $data->p_name . '<br/>' . $data->p_color . ' (' . $data->sz_name . ')</span><br/><span style="white-space: nowrap; font-weight:bold; font-size: 10px;">' . $time . ' </span><br/>
