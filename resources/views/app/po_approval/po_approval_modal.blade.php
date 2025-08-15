@@ -202,7 +202,7 @@
                         </div>
                         <div class="col-4 mt-3">
                             <label>Status Dispute</label>
-                            <input type="text" id="status_dispute" class="form-control" name="status_dispute" disabled />
+                            <input type="text" id="status_dispute" class="form-control" name="status_dispute" disabled/>
                         </div>
                         <div class="col-4 mt-3">
                             <label>Putaway</label>

@@ -313,6 +313,14 @@
                                 onchange="updateCogs()" required />
                         </div>
                         <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Status Dispute</label>
+                            <select class="form-control" name="status_dispute" id="status_dispute" required>
+                                <option value="">- Pilih Status -</option>
+                                <option value="1">Progress</option>
+                                <option value="0">Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-4 mt-4">
                             <label class="badge badge-primary">Putaway</label>
                             <select class="form-control" id="putaway" name="putaway" required>
                                 <option value="">- Pilih Salah Satu -</option>

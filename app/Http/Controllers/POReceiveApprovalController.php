@@ -222,6 +222,15 @@ class POReceiveApprovalController extends Controller
                             $instance->where('dispute', 0);
                         }
                     }
+                    if ($request->has('filter_status_dispute')) {
+                        $filter = $request->get('filter_status_dispute');
+
+                        if ($filter === '1') {
+                            $instance->where('status_dispute', 1);
+                        } elseif ($filter === '0') {
+                            $instance->where('status_dispute', 0);
+                        }
+                    }
                     if (!empty($request->get('date'))) {
                         $dateParts = explode('|', $request->get('date'));
 

@@ -28,6 +28,7 @@
                     d.filter_status = $('#filter_status').val();
                     d.filter_cabang = $('#filter_cabang').val();
                     d.filter_dispute = $('#filter_dispute').val();
+                    d.filter_status_dispute = $('#filter_status_dispute').val();
                     d.date = $('#po_date').val();
 
                 }
@@ -77,7 +78,7 @@
             ],
             rowCallback: function(row, data, index) {
                 console.log('Dispute:', data.dispute);
-                if (data.dispute == 1) {
+                if (data.dispute == 1 && data.status_dispute == 1) {
                     $(row).css('background-color', '#f8d7da'); // Bootstrap's light red alert bg
                 }
             },
@@ -106,6 +107,11 @@
 
         $('#filter_dispute').on('change', function() {
             console.log($('#filter_dispute').val())
+            po_approval_table.draw();
+        });
+
+        $('#filter_status_dispute').on('change', function() {
+            console.log($('#filter_status_dispute').val())
             po_approval_table.draw();
         });
 
@@ -196,6 +202,7 @@
             ],
         });
 
+        
         var apd_table = $('#APDtb').DataTable({
             destroy: true,
             processing: true,
