@@ -307,6 +307,33 @@
         });
     });
 
+    $('#status_dispute').on('change', function() {
+        var status_disputeValue = $(this).val();
+        var no_order = $('#po_invoice_label').text();
+
+        if (status_disputeValue === "") {
+        return;
+    }
+
+        $.ajax({
+            url: "{{ url('status_dispute_save') }}",
+            type: 'POST',
+            data: {
+                status_dispute: status_disputeValue,
+                po_invoice: no_order,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                console.log(response);
+                toastr.success("Status Dispute berhasil disimpan", "Berhasil");
+            },
+            error: function(xhr) {
+                console.error(xhr);
+                toastr.error("Gagal menyimpan Status Dispute", "Gagal");
+            }
+        });
+    });
+
     $('#f_upload_dispute_file').on('submit', function(e) {
         e.preventDefault();
         $('#upload_file_dispute_btn').html('Proses...');
@@ -390,6 +417,7 @@
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
         var putaway = $('#putaway').val();
+        var status_dispute = $('#status_dispute').val();
 
         if (dispute == '' || dispute == null) {
             swal("Tanggal Terima", "Tentukan tanggal terima", "warning");
@@ -446,6 +474,7 @@
                 var shipping_cost = $('#shipping_cost').val();
                 var dispute = $('#dispute').val();
                 var dispute_description = $('#dispute_description').val();
+                var status_dispute = $('#status_dispute').val();
                 var putaway = $('#putaway').val();
 
 
@@ -531,6 +560,7 @@
         var invoice_date = $('#invoice_date').val();
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
+        var status_dispute = $('#status_dispute').val();
         var putaway = $('#putaway').val();
         var poads_cogs = replaceComma($('#cogs_' + poa_id + '_' + index).val());
 
@@ -551,6 +581,7 @@
         formData.append('_poads_cogs', poads_cogs);
         formData.append('shipping_cost', shipping_cost);
         formData.append('dispute', dispute);
+        formData.append('status_dispute', status_dispute);
         formData.append('putaway', putaway);
         formData.append('no_order', no_order);
 
@@ -1840,7 +1871,7 @@
                         $('#po_description').val(r.po_description);
                         $('#dispute_parent').val(String(r.dispute ?? ''));
                         $('#dispute_description').val(r.dispute_description);
-                        console.log('Setting putaway to:', String(r.putaway));
+                        $('#status_dispute').val(String(r.status_dispute)).trigger('change');
                         $('#putaway').val(String(r.putaway)).trigger('change');
 
 
