@@ -77,9 +77,8 @@
                 // },
             ],
             rowCallback: function(row, data, index) {
-                console.log('Dispute:', data.dispute);
-                if (data.dispute == 1 && data.status_dispute == 1) {
-                    $(row).css('background-color', '#f8d7da'); // Bootstrap's light red alert bg
+                if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute == 1)) {
+                    $(row).css('background-color', '#f8d7da');
                 }
             },
             columnDefs: [{
