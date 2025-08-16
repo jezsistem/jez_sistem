@@ -102,8 +102,8 @@
                             <label>Deskripsi</label>
                             <textarea class="form-control" name="po_description" id="po_description" rows="3" readonly></textarea>
                         </div>
-                        <div class="col-4">
-                            <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
+                        <div class="col-4 mt-2">
+                            <label>Tipe Stok</label>
                             <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
                                 <option value="">- Pilih Tipe Stok -</option>
                                 @foreach ($data['stkt_id'] as $key => $value)
@@ -112,7 +112,7 @@
                             </select>
                             <div id="stkt_id_parent"></div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-4 mt-2">
                             <label>Pajak</label>
                             <select class="form-control" id="tax_id" name="tax_id" required disabled>
                                 <option value="">- Pajak -</option>
@@ -122,8 +122,8 @@
                             </select>
                             <div id="tax_id_parent"></div>
                         </div>
-                        <div class="col-4">
-                            <label>Tanggal Terima</label>
+                        <div class="col-4 mt-2">
+                            <label>Tanggal Proses Terima</label>
                             <input type="date" id="receive_date" class="form-control" value=""
                                 max="{{ date('Y-m-d') }}" />
                         </div>
