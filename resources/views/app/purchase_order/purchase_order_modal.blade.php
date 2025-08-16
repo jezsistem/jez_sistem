@@ -22,7 +22,7 @@
                                     <!--end::Svg Icon-->
                                 </span>Export</a>
                     </div>
-                    <div class="dropdown dropdown-inline mr-2">
+                    <div class="dropdown dropdown-inline mr-10">
                         <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
                                 <span class="svg-icon svg-icon-md">
                                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -36,6 +36,9 @@
                                     <!--end::Svg Icon-->
                                 </span>Import</a>
                     </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
                     <!--begin::Dropdown Menu-->
                     <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
                         <!--begin::Navigation-->
