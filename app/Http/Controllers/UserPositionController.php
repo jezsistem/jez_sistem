@@ -220,6 +220,7 @@ class UserPositionController extends Controller
 
     public function getDatatables(Request $request)
     {
+        try {
         if(request()->ajax()) {
             $query = DB::table('user_positions')
                 ->select([
@@ -230,8 +231,7 @@ class UserPositionController extends Controller
                     'up_level',
                     'up_can_approve_leave',
                     'up_is_active'
-                ])
-                ->where('up_is_active', '!=', 'deleted');
+                    ]);
             
             // Apply search filter
             if ($request->filled('search')) {
@@ -243,7 +243,11 @@ class UserPositionController extends Controller
                 });
             }
 
-            return datatables()->of($query)
+                // Get total count for debugging
+                $totalCount = $query->count();
+                \Log::info('UserPositions total count: ' . $totalCount);
+
+                $result = datatables()->of($query)
                 ->addIndexColumn()
                 ->editColumn('up_is_active', function($row) {
                     if ($row->up_is_active == 1) {
@@ -253,15 +257,58 @@ class UserPositionController extends Controller
                     }
                 })
                 ->addColumn('action', function($row){
-                    $btn = '<div class="btn-group btn-group-sm">';
-                    $btn .= '<a href="'.route('user-positions.show', $row->id).'" class="btn btn-info btn-xs" title="View"><i class="ki-outline ki-eye"></i></a>';
-                    $btn .= '<a href="'.route('user-positions.edit', $row->id).'" class="btn btn-warning btn-xs" title="Edit"><i class="ki-outline ki-notepad-edit"></i></a>';
-                    $btn .= '<button type="button" class="btn btn-danger btn-xs" onclick="deleteUserPosition('.$row->id.')" title="Delete"><i class="ki-outline ki-trash-square"></i></button>';
+                        $btn = '<div class="dropdown">';
+                        $btn .= '    <!--begin::Toggle-->';
+                        $btn .= '    <button type="button" class="btn btn-sm text-dark btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
+                        $btn .= '        Actions';
+                        $btn .= '        <span class="svg-icon fs-5 m-0">';
+                        $btn .= '            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                        $btn .= '                <rect opacity="0.5" x="11" y="18" width="12" height="2" rx="1" transform="rotate(-90 11 18)" fill="currentColor"/>';
+                        $btn .= '                <rect x="6" y="11" width="12" height="2" rx="1" fill="currentColor"/>';
+                        $btn .= '            </svg>';
+                        $btn .= '        </span>';
+                        $btn .= '    </button>';
+                        $btn .= '    <!--end::Toggle-->';
+                        
+                        $btn .= '    <!--begin::Menu-->';
+                        $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
+                        $btn .= '        <!--begin::Menu item-->';
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="'.route('user-positions.show', $row->id).'" class="menu-link px-3">View</a>';
+                        $btn .= '        </div>';
+                        $btn .= '        <!--end::Menu item-->';
+                        
+                        $btn .= '        <!--begin::Menu item-->';
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="'.route('user-positions.edit', $row->id).'" class="menu-link px-3">Edit</a>';
+                        $btn .= '        </div>';
+                        $btn .= '        <!--end::Menu item-->';
+                        
+                        $btn .= '        <!--begin::Menu item-->';
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="javascript:void(0)" onclick="deleteUserPosition('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
+                        $btn .= '        </div>';
+                        $btn .= '        <!--end::Menu item-->';
+                        $btn .= '    </div>';
+                        $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
+                        
                     return $btn;
                 })
                 ->rawColumns(['action', 'up_is_active'])
                 ->make(true);
+
+                \Log::info('UserPositions datatables response generated successfully');
+                return $result;
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error in getDatatables: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            // Return error response
+            return response()->json([
+                'error' => 'Failed to load data: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

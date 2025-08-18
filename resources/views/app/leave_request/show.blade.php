@@ -188,3 +188,5 @@
 </div>
 <!--end::Entry-->
 @endsection 
+
+@include('app._partials.js')

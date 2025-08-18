@@ -117,3 +117,4 @@
 <!--end::Content-->
 
 @endsection 
+@include('app._partials.js')

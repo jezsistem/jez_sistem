@@ -45,6 +45,96 @@
     .table-striped tbody tr:nth-of-type(odd) {
         background-color: rgba(0,0,0,.02);
     }
+
+    /* Custom CSS for Metronic dropdown menu */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .menu.menu-sub-dropdown {
+        z-index: 9999 !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        margin-top: 5px !important;
+        min-width: 150px !important;
+        background: white !important;
+        border: 1px solid #e4e6ef !important;
+        border-radius: 0.475rem !important;
+        box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+    }
+
+    /* Ensure proper positioning for DataTables */
+    .dataTables_wrapper .dataTables_processing {
+        z-index: 9998;
+    }
+
+    /* Fix for menu positioning in table cells */
+    #attendanceTable td {
+        position: relative;
+    }
+
+    /* Menu item styling */
+    .menu-item .menu-link {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        color: #3f4254 !important;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+
+    .menu-item .menu-link:hover {
+        background-color: #f3f6f9 !important;
+        color: #3699FF !important;
+    }
+
+    .menu-item .menu-link.text-danger {
+        color: #f64e60 !important;
+    }
+
+    .menu-item .menu-link.text-danger:hover {
+        background-color: #ffe2e5 !important;
+        color: #f64e60 !important;
+    }
+
+    /* Button styling for menu trigger */
+    [data-kt-menu-trigger="click"] {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    /* SVG icon styling */
+    .svg-icon {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .svg-icon svg {
+        width: 1em;
+        height: 1em;
+    }
+
+    /* Fallback menu system styles */
+    .menu.show {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    .menu:not(.show) {
+        display: none !important;
+    }
+
+    .bg-all {
+    background-color: #FFEBEB;
+    }
+    .bg-other {
+        background-color: #F1F1F4;
+    }
 </style>
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
@@ -58,6 +148,19 @@
                 <!--begin::Page Title-->
                     <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
                 <!--end::Page Title-->
+                <!--begin::Breadcrumb-->
+                <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                    <li class="breadcrumb-item text-muted">
+                        <span class="text-muted">
+                            @if($data['dateFilter'] && $data['dateFilter'] !== 'custom')
+                                {{ date('d M Y', strtotime($data['startDate'])) }} to {{ date('d M Y', strtotime($data['endDate'])) }}
+                            @else
+                                {{ $data['startDate'] }} to {{ $data['endDate'] }}
+                            @endif
+                        </span>
+                    </li>
+                </ul>
+                <!--end::Breadcrumb-->
                 </div>
                 <!--end::Page Heading-->
             </div>
@@ -69,20 +172,7 @@
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
         <div class="container">
-            <!-- Date Range Info -->
-            <div class="row mb-3">
-                <div class="col-12">
-                    <div class="alert alert-info">
-                        <strong>Date Range:</strong> 
-                        @if(request('date_filter') && request('date_filter') !== 'custom')
-                            {{ ucfirst(str_replace('_', ' ', request('date_filter'))) }} 
-                            ({{ request('start_date') }} to {{ request('end_date') }})
-                        @else
-                            {{ request('start_date') }} to {{ request('end_date') }}
-                        @endif
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Statistics Cards -->
             <div class="row mb-4">
@@ -91,59 +181,59 @@
                         <div class="card card-custom rounded-lg 
                             @switch($stat->at_status)
                                 @case('present')
-                                    bg-success
+                                    bg-all
                                     @break
                                 @case('late')
-                                    bg-warning
+                                    bg-other
                                     @break
                                 @case('absent')
-                                    bg-danger
+                                    bg-other
                                     @break
                                 @case('early_leave')
-                                    bg-info
+                                    bg-other
                                     @break
                                 @case('scan_once')
-                                    bg-secondary
+                                    bg-other
                                     @break
                                 @default
                                     @if(strpos($stat->at_status, 'leave_') === 0)
-                                        bg-primary
+                                        bg-other
                                     @else
-                                        bg-dark
+                                        bg-other
                                     @endif
                             @endswitch">
-                            <div class="card-body">
+                            <div class="card-body px-7">
                                 <div class="d-flex align-items-center">
                                     <div class="symbol symbol-40 mr-4">
                                         <span class="symbol-label">
                                             @switch($stat->at_status)
                                                 @case('present')
-                                                    <i class="ki-outline ki-check text-white"></i>
+                                                    <i class="ki-outline ki-check-circle text-dark"></i>
                                                     @break
                                                 @case('late')
-                                                    <i class="ki-outline ki-clock text-white"></i>
+                                                    <i class="ki-outline ki-clock text-dark"></i>
                                                     @break
                                                 @case('absent')
-                                                    <i class="ki-outline ki-cross text-white"></i>
+                                                    <i class="ki-outline ki-cross-circle text-dark"></i>
                                                     @break
                                                 @case('early_leave')
-                                                    <i class="ki-outline ki-arrow-left text-white"></i>
+                                                    <i class="ki-outline ki-arrow-left text-dark"></i>
                                                     @break
                                                 @case('scan_once')
-                                                    <i class="ki-outline ki-calendar-tick text-white"></i>
+                                                    <i class="ki-outline ki-calendar-tick text-dark"></i>
                                                     @break
                                                 @default
                                                     @if(strpos($stat->at_status, 'leave_') === 0)
-                                                        <i class="ki-outline ki-calendar text-white"></i>
+                                                        <i class="ki-outline ki-calendar text-dark"></i>
                                                     @else
-                                                        <i class="ki-outline ki-calendar text-white"></i>
+                                                        <i class="ki-outline ki-calendar text-dark"></i>
                                                     @endif
                                             @endswitch
                                         </span>
                                     </div>
                                     <div>
-                                        <div class="text-white font-weight-bold font-size-h6">{{ $stat->total }}</div>
-                                        <div class="text-white-50">
+                                        <div class="text-dark font-weight-bold font-size-h5">{{ $stat->total }}</div>
+                                        <div class="text-dark-50">
                                             @switch($stat->at_status)
                                                 @case('present')
                                                     Hadir
@@ -203,7 +293,7 @@
                                             <option value="this_week" {{ request('date_filter', 'this_week') == 'this_week' ? 'selected' : '' }}>This Week</option>
                                             <option value="past_week" {{ request('date_filter', 'this_week') == 'past_week' ? 'selected' : '' }}>Past Week</option>
                                             <option value="this_month" {{ request('date_filter', 'this_week') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                                            <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                                            <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Past Month</option>
                                             <option value="custom" {{ request('date_filter', 'this_week') == 'custom' ? 'selected' : '' }}>Custom Range</option>
                                         </select>
                                     </div>
@@ -279,7 +369,36 @@
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <!--begin::Button-->
-                                    <a href="{{ route('attendance.create') }}" class="btn btn-dark font-weight-bolder mr-2">
+                                    <a href="{{ route('attendance.upload') }}" class="btn btn-green font-weight-bolder mr-2">
+                                        <span class="svg-icon svg-icon-md">
+                                            <i class="ki-outline ki-file-up"></i>
+                                        </span>Upload Excel</a>
+                                    <!--end::Button-->
+                                    <!--begin::Button-->
+                                    <button type="button" class="btn btn-light-green font-weight-bolder mr-2" onclick="exportToExcel()">
+                                        <span class="svg-icon svg-icon-md">
+                                            <i class="ki-outline ki-file-down"></i>
+                                        </span>Export Excel</button>
+                                    <!--end::Button-->
+                                    <!--begin::Button-->
+                                    <button type="button" class="btn btn-secondary font-weight-bolder mr-2" onclick="exportToPDF()">
+                                        <span class="svg-icon svg-icon-md">
+                                            <i class="ki-outline ki-file-down"></i>
+                                        </span>Export PDF</button>
+                                    <!--end::Button-->
+                                    <!--begin::Button-->
+                                    <form method="POST" action="{{ route('attendance.reprocess-all') }}" style="display: inline; margin-bottom: 0px;">
+                                        @csrf
+                                        <input type="hidden" name="start_date" value="{{ request('start_date', date('Y-m-d')) }}">
+                                        <input type="hidden" name="end_date" value="{{ request('end_date', date('Y-m-d')) }}">
+                                        <button type="submit" class="btn btn-light-primary font-weight-bolder mr-2" onclick="return confirm('Yakin ingin memproses ulang semua data absensi?')">
+                                            <span class="svg-icon svg-icon-md">
+                                                <i class="ki-outline ki-update-folder"></i>
+                                            </span>Reprocess All</button>
+                                    </form>
+                                    <!--end::Button-->
+                                    <!--begin::Button-->
+                                    <a href="{{ route('attendance.create') }}" class="btn btn-dark font-weight-bolder">
                                         <span class="svg-icon svg-icon-md">
                                             <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -292,42 +411,19 @@
                                             <!--end::Svg Icon-->
                                         </span>Data Baru</a>
                                     <!--end::Button-->
-                                    <!--begin::Button-->
-                                    <a href="{{ route('attendance.upload') }}" class="btn btn-info font-weight-bolder mr-2">
-                                        <span class="svg-icon svg-icon-md">
-                                            <i class="ki-outline ki-file-up"></i>
-                                        </span>Upload Excel</a>
-                                    <!--end::Button-->
-                                    <!--begin::Button-->
-                                    <!-- <a href="{{ route('attendance.export') }}" class="btn btn-success font-weight-bolder mr-2">
-                                        <span class="svg-icon svg-icon-md">
-                                            <i class="ki-outline ki-file-down"></i>
-                                        </span>Export</a> -->
-                                    <!--end::Button-->
-                                    <!--begin::Button-->
-                                    <form method="POST" action="{{ route('attendance.reprocess-all') }}" style="display: inline; margin-bottom: 0px;">
-                                        @csrf
-                                        <input type="hidden" name="start_date" value="{{ request('start_date', date('Y-m-d')) }}">
-                                        <input type="hidden" name="end_date" value="{{ request('end_date', date('Y-m-d')) }}">
-                                        <button type="submit" class="btn btn-warning font-weight-bolder" onclick="return confirm('Yakin ingin memproses ulang semua data absensi?')">
-                                            <span class="svg-icon svg-icon-md">
-                                                <i class="ki-outline ki-update-folder"></i>
-                                            </span>Reprocess All</button>
-                                    </form>
-                                    <!--end::Button-->
                                 </div>
                             </div>
                         </div>
                         <div class="card-body table-responsive">
                             @if(session('success'))
-                                <div class="alert alert-success alert-dismissible">
+                                <div class="alert alert-success alert-dismissible" id="successAlert">
                                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                                     {{ session('success') }}
                                 </div>
                             @endif
 
                             @if(session('error'))
-                                <div class="alert alert-danger alert-dismissible">
+                                <div class="alert alert-danger alert-dismissible" id="errorAlert">
                                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                                     {{ session('error') }}
                                 </div>
@@ -340,14 +436,14 @@
                                     <th>No</th>
                                     <th>Tanggal</th>
                                         <th>Staff</th>
-                                    <th>NIP</th>
+                                    <!-- <th>NIP</th> -->
                                     <th>Divisi</th>
                                     <th>Shift</th>
                                     <th>Jam Masuk</th>
                                     <th>Jam Keluar</th>
                                     <th>Status</th>
                                     <th>Catatan</th>
-                                    <th>Aksi</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -366,6 +462,35 @@
     <!--end::Entry-->
 </div>
 <!--end::Content-->
+@endsection
+
+@section('scripts')
+<script>
+$(document).ready(function() {
+    // Check for session messages and ensure they're visible
+    if ($('#successAlert').length > 0) {
+        console.log('Success message found:', $('#successAlert').text());
+        // Ensure success message is visible and doesn't get hidden
+        $('#successAlert').show();
+        
+        // Auto-hide after 5 seconds
+        setTimeout(function() {
+            $('#successAlert').fadeOut();
+        }, 5000);
+    }
+    
+    if ($('#errorAlert').length > 0) {
+        console.log('Error message found:', $('#errorAlert').text());
+        // Ensure error message is visible and doesn't get hidden
+        $('#errorAlert').show();
+        
+        // Auto-hide after 5 seconds
+        setTimeout(function() {
+            $('#errorAlert').fadeOut();
+        }, 5000);
+    }
+});
+</script>
 @endsection
 
 <script>
@@ -389,12 +514,16 @@ function handleDateFilterChange(value) {
         
         switch (value) {
             case 'this_week':
-                startDate = new Date(today.setDate(today.getDate() - today.getDay() + 1)); // Monday
-                endDate = new Date(today.setDate(today.getDate() - today.getDay() + 7)); // Sunday
+                startDate = new Date(today.getTime());
+                startDate.setDate(today.getDate() - today.getDay() + 1); // Monday
+                endDate = new Date(today.getTime());
+                endDate.setDate(today.getDate() - today.getDay() + 7); // Sunday
                 break;
             case 'past_week':
-                startDate = new Date(today.setDate(today.getDate() - today.getDay() - 6)); // Last Monday
-                endDate = new Date(today.setDate(today.getDate() - today.getDay())); // Last Sunday
+                startDate = new Date(today.getTime());
+                startDate.setDate(today.getDate() - today.getDay() - 6); // Last Monday
+                endDate = new Date(today.getTime());
+                endDate.setDate(today.getDate() - today.getDay()); // Last Sunday
                 break;
             case 'this_month':
                 startDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of month
@@ -428,6 +557,85 @@ document.addEventListener('DOMContentLoaded', function() {
         handleDateFilterChange(dateFilter.value);
     }
 });
+
+// Export functions
+function exportToExcel() {
+    const url = new URL('{{ route("attendance.export-excel") }}');
+    
+    // Add current filters to URL
+    const dateFilter = document.getElementById('date_filter').value;
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    const userId = document.getElementById('user_id').value;
+    const divisionId = document.getElementById('division_id').value;
+    const status = document.getElementById('status').value;
+    
+    if (dateFilter && dateFilter !== 'custom') {
+        url.searchParams.append('date_filter', dateFilter);
+    }
+    if (startDate) {
+        url.searchParams.append('start_date', startDate);
+    }
+    if (endDate) {
+        url.searchParams.append('end_date', endDate);
+    }
+    if (userId) {
+        url.searchParams.append('user_id', userId);
+    }
+    if (divisionId) {
+        url.searchParams.append('division_id', divisionId);
+    }
+    if (status) {
+        url.searchParams.append('status', status);
+    }
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = url.toString();
+    link.download = 'attendance_export.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportToPDF() {
+    const url = new URL('{{ route("attendance.export-pdf") }}');
+    
+    // Add current filters to URL
+    const dateFilter = document.getElementById('date_filter').value;
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    const userId = document.getElementById('user_id').value;
+    const divisionId = document.getElementById('division_id').value;
+    const status = document.getElementById('status').value;
+    
+    if (dateFilter && dateFilter !== 'custom') {
+        url.searchParams.append('date_filter', dateFilter);
+    }
+    if (startDate) {
+        url.searchParams.append('start_date', startDate);
+    }
+    if (endDate) {
+        url.searchParams.append('end_date', endDate);
+    }
+    if (userId) {
+        url.searchParams.append('user_id', userId);
+    }
+    if (divisionId) {
+        url.searchParams.append('division_id', divisionId);
+    }
+    if (status) {
+        url.searchParams.append('status', status);
+    }
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = url.toString();
+    link.download = 'attendance_export.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 </script>
 
 @include('app._partials.js')

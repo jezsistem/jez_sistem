@@ -11,6 +11,9 @@ use App\Models\User;
 use App\Models\UserDivision;
 use App\Models\WebConfig;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\BreakTimeExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BreakTimeController extends Controller
 {
@@ -184,10 +187,22 @@ class BreakTimeController extends Controller
             $result = datatables()->of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $btn = '<div class="btn-group btn-group-sm">';
-                    $btn .= '<a href="'.route('break-times.show', $row->id).'" class="btn btn-info btn-xs" title="View"><i class="ki-outline ki-eye"></i></a>';
-                    $btn .= '<a href="'.route('break-times.edit', $row->id).'" class="btn btn-warning btn-xs" title="Edit"><i class="ki-outline ki-notepad-edit"></i></a>';
-                    $btn .= '<button type="button" class="btn btn-danger btn-xs" onclick="deleteBreakTime('.$row->id.')" title="Delete"><i class="ki-outline ki-trash-square"></i></button>';
+                    $btn = '<div class="dropdown">';
+                    $btn .= '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">';
+                    $btn .= 'Actions';
+                    $btn .= '<i class="ki-duotone ki-down fs-5 ms-1"></i>';
+                    $btn .= '</a>';
+                    $btn .= '<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
+                    $btn .= '<div class="menu-item px-3">';
+                    $btn .= '<a href="'.route('break-times.show', $row->id).'" class="menu-link px-3">View</a>';
+                    $btn .= '</div>';
+                    $btn .= '<div class="menu-item px-3">';
+                    $btn .= '<a href="'.route('break-times.edit', $row->id).'" class="menu-link px-3">Edit</a>';
+                    $btn .= '</div>';
+                    $btn .= '<div class="menu-item px-3">';
+                    $btn .= '<a href="#" class="menu-link px-3 text-danger" onclick="deleteBreakTime('.$row->id.')">Delete</a>';
+                    $btn .= '</div>';
+                    $btn .= '</div>';
                     $btn .= '</div>';
                     return $btn;
                 })
@@ -882,5 +897,319 @@ class BreakTimeController extends Controller
         $start = \Carbon\Carbon::parse($startTime);
         $end = \Carbon\Carbon::parse($endTime);
         return $start->diffInMinutes($end);
+    }
+
+    // Export methods for break times report
+    public function exportToExcel(Request $request)
+    {
+        try {
+            \Log::info('BreakTimeController exportToExcel called with request:', $request->all());
+            
+            // Build query directly without using buildBreakTimeQuery method
+            $query = DB::table('break_times')
+                ->join('users', 'break_times.user_id', '=', 'users.id')
+                ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+                ->select([
+                    'break_times.*',
+                    'users.u_name',
+                    'users.u_nip',
+                    'user_divisions.ud_name'
+                ]);
+
+            // Apply filters
+            if ($request->filled('start_date')) {
+                $query->where('break_times.bt_date', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->where('break_times.bt_date', '<=', $request->end_date);
+            }
+            if ($request->filled('user_id') && $request->user_id !== '') {
+                $query->where('break_times.user_id', $request->user_id);
+            }
+            if ($request->filled('division_id') && $request->division_id !== '') {
+                $query->where('users.ud_id', $request->division_id);
+            }
+            if ($request->filled('status') && $request->status !== '') {
+                $query->where('break_times.bt_status', $request->status);
+            }
+            if ($request->filled('search') && $request->search !== '') {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('users.u_name', 'like', '%' . $search . '%')
+                      ->orWhere('users.u_nip', 'like', '%' . $search . '%');
+                });
+            }
+
+            $breakTimes = $query->orderBy('break_times.bt_date', 'desc')->get();
+            
+            \Log::info('BreakTimeController exportToExcel query result:', [
+                'count' => $breakTimes->count(),
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            if ($breakTimes->isEmpty()) {
+                \Log::warning('No data found for Excel export');
+                return response()->json(['error' => 'No data found'], 404);
+            }
+
+            // Generate filename with filters like attendance
+            $filename = 'break_times_' . date('Y-m-d_H-i-s');
+            if ($request->get('division_id')) {
+                $division = DB::table('user_divisions')->find($request->get('division_id'));
+                $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
+            }
+            if ($request->get('start_date') && $request->get('end_date')) {
+                $filename .= '_' . $request->get('start_date') . '_to_' . $request->get('end_date');
+            }
+            $filename .= '.xlsx';
+            
+            \Log::info('Starting Excel download with filename:', ['filename' => $filename]);
+            
+            $response = Excel::download(new BreakTimeExport($breakTimes), $filename);
+            
+            \Log::info('Excel download response created successfully');
+            
+            return $response;
+        } catch (\Exception $e) {
+            \Log::error('Error exporting break times to Excel: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            \Log::error('Request data: ' . json_encode($request->all()));
+            
+            // Return JSON error for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'error' => 'Error exporting data: ' . $e->getMessage(),
+                    'details' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ], 500);
+            }
+            
+            return back()->with('error', 'Error exporting data: ' . $e->getMessage());
+        }
+    }
+
+    public function exportToPDF(Request $request)
+    {
+        try {
+            \Log::info('BreakTimeController exportToPDF called with request:', $request->all());
+            
+            $query = $this->buildBreakTimeQuery($request);
+            $breakTimes = $query->get();
+            
+            \Log::info('BreakTimeController exportToPDF query result:', [
+                'count' => $breakTimes->count(),
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            $html = $this->generateBreakTimeHTML($breakTimes, $request);
+            
+            \Log::info('BreakTimeController exportToPDF HTML generated:', [
+                'html_length' => strlen($html),
+                'html_preview' => substr($html, 0, 500)
+            ]);
+            
+            // Generate filename
+            $filename = 'break_times_report_' . date('Y-m-d_H-i-s');
+            if ($request->get('division_id')) {
+                $division = DB::table('user_divisions')->find($request->get('division_id'));
+                $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
+            }
+            if ($request->get('start_date') && $request->get('end_date')) {
+                $filename .= '_' . $request->get('start_date') . '_to_' . $request->get('end_date');
+            }
+            $filename .= '.pdf';
+            
+            $pdf = \PDF::loadHTML($html);
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            \Log::error('Error exporting break times to PDF: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return back()->with('error', 'Error exporting data: ' . $e->getMessage());
+        }
+    }
+
+    private function buildBreakTimeQuery(Request $request)
+    {
+        \Log::info('BreakTimeController buildBreakTimeQuery called with filters:', $request->all());
+        
+        $query = DB::table('break_times')
+            ->join('users', 'break_times.user_id', '=', 'users.id')
+            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->select([
+                'break_times.*',
+                'users.u_name',
+                'users.u_nip',
+                'user_divisions.ud_name'
+            ]);
+
+        // Apply filters
+        if ($request->filled('start_date')) {
+            $query->where('break_times.bt_date', '>=', $request->start_date);
+            \Log::info('Applied start_date filter:', ['start_date' => $request->start_date]);
+        }
+        if ($request->filled('end_date')) {
+            $query->where('break_times.bt_date', '<=', $request->end_date);
+            \Log::info('Applied end_date filter:', ['end_date' => $request->end_date]);
+        }
+        if ($request->filled('user_id') && $request->user_id !== '') {
+            $query->where('break_times.user_id', $request->user_id);
+            \Log::info('Applied user_id filter:', ['user_id' => $request->user_id]);
+        }
+        if ($request->filled('division_id') && $request->division_id !== '') {
+            $query->where('users.ud_id', $request->division_id);
+            \Log::info('Applied division_id filter:', ['division_id' => $request->division_id]);
+        }
+        if ($request->filled('status') && $request->status !== '') {
+            $query->where('break_times.bt_status', $request->status);
+            \Log::info('Applied status filter:', ['status' => $request->status]);
+        }
+        if ($request->filled('search') && $request->search !== '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('users.u_name', 'like', '%' . $search . '%')
+                  ->orWhere('users.u_nip', 'like', '%' . $search . '%');
+            });
+            \Log::info('Applied search filter:', ['search' => $search]);
+        }
+
+        $finalQuery = $query->orderBy('break_times.bt_date', 'desc');
+        
+        \Log::info('BreakTimeController buildBreakTimeQuery final query:', [
+            'sql' => $finalQuery->toSql(),
+            'bindings' => $finalQuery->getBindings()
+        ]);
+        
+        return $finalQuery;
+    }
+
+    private function generateBreakTimeHTML($breakTimes, $request)
+    {
+        $html = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Break Times Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 12px; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .header h1 { margin: 0; color: #2E75B6; }
+                .header p { margin: 5px 0; color: #666; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #4472C4; color: white; font-weight: bold; }
+                .text-center { text-align: center; }
+                .status-active { background-color: #fff3cd; }
+                .status-completed { background-color: #d4edda; }
+                .status-cancelled { background-color: #f8d7da; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>LAPORAN BREAK TIME</h1>
+                <p>Periode: ' . date('d/m/Y', strtotime($request->get('start_date', date('Y-m-d')))) . ' - ' . date('d/m/Y', strtotime($request->get('end_date', date('Y-m-d')))) . '</p>
+                <p>Dibuat pada: ' . date('d/m/Y H:i:s') . '</p>';
+
+        // Add filter information
+        $filterInfo = [];
+        if ($request->filled('user_id') && $request->user_id !== '') {
+            $user = DB::table('users')->where('id', $request->user_id)->first();
+            if ($user) {
+                $filterInfo[] = 'Karyawan: ' . $user->u_name . ' (' . $user->u_nip . ')';
+            }
+        }
+        if ($request->filled('division_id') && $request->division_id !== '') {
+            $division = DB::table('user_divisions')->where('id', $request->division_id)->first();
+            if ($division) {
+                $filterInfo[] = 'Divisi: ' . $division->ud_name;
+            }
+        }
+        if ($request->filled('status') && $request->status !== '') {
+            $filterInfo[] = 'Status: ' . ucfirst($request->status);
+        }
+        if ($request->filled('search') && $request->search !== '') {
+            $filterInfo[] = 'Pencarian: ' . $request->search;
+        }
+        
+        if (!empty($filterInfo)) {
+            $html .= '<p><strong>Filter yang Diterapkan:</strong> ' . implode(' | ', $filterInfo) . '</p>';
+        }
+        
+        $html .= '<p><strong>Total Data:</strong> ' . $breakTimes->count() . ' record</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>Nama Karyawan</th>
+                        <th>NIP</th>
+                        <th>Divisi</th>
+                        <th>Tipe Break</th>
+                        <th>Jam Mulai</th>
+                        <th>Jam Selesai</th>
+                        <th>Durasi</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>';
+
+        $no = 1;
+        foreach ($breakTimes as $breakTime) {
+            $breakType = $breakTime->bt_type === 'break_1' ? 'Break 1' : 'Break 2';
+            $startTime = $breakTime->bt_start_time ? date('H:i', strtotime($breakTime->bt_start_time)) : '-';
+            $endTime = $breakTime->bt_end_time ? date('H:i', strtotime($breakTime->bt_end_time)) : '-';
+            $duration = $breakTime->bt_duration_minutes ? 
+                sprintf('%02d:%02d', floor($breakTime->bt_duration_minutes / 60), $breakTime->bt_duration_minutes % 60) : '-';
+            
+            $statusClass = 'status-' . ($breakTime->bt_status ?? 'unknown');
+            $statusText = $this->getStatusTextForPDF($breakTime->bt_status);
+
+            $html .= '
+                    <tr>
+                        <td class="text-center">' . $no . '</td>
+                        <td>' . date('d/m/Y', strtotime($breakTime->bt_date)) . '</td>
+                        <td>' . ($breakTime->u_name ?? '-') . '</td>
+                        <td>' . ($breakTime->u_nip ?? '-') . '</td>
+                        <td>' . ($breakTime->ud_name ?? '-') . '</td>
+                        <td class="text-center">' . $breakType . '</td>
+                        <td class="text-center">' . $startTime . '</td>
+                        <td class="text-center">' . $endTime . '</td>
+                        <td class="text-center">' . $duration . '</td>
+                        <td class="' . $statusClass . '">' . $statusText . '</td>
+                    </tr>';
+            $no++;
+        }
+
+        $html .= '
+                </tbody>
+            </table>
+        </body>
+        </html>';
+
+        \Log::info('BreakTimeController generateBreakTimeHTML completed:', [
+            'total_rows' => $no - 1,
+            'html_length' => strlen($html)
+        ]);
+
+        return $html;
+    }
+
+    private function getStatusTextForPDF($status)
+    {
+        switch($status) {
+            case 'active':
+                return 'Active';
+            case 'completed':
+                return 'Completed';
+            case 'cancelled':
+                return 'Cancelled';
+            default:
+                return ucfirst($status);
+        }
     }
 } 

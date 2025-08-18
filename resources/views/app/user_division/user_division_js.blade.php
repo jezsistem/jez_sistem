@@ -1,20 +1,27 @@
 <script>
+    // Simple and robust DataTables initialization
     $(document).ready(function() {
+        // Wait for DataTables to be available
+        function initDataTable() {
+            if (typeof $.fn.DataTable !== 'undefined') {
+                try {
+                    // Set up CSRF token
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         
+                    // Initialize DataTable with safe settings
         var userDivisionTable = $('#userDivisionTable').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: true,
+                        responsive: false, // Disable responsive to prevent conflicts
             dom: 'rt<"pagination-class"ip>',
             ajax: {
-                url : "{{ url('user-divisions/datatables') }}",
-                data : function (d) {
+                            url: "{{ url('user-divisions/datatables') }}",
+                            data: function(d) {
                     d.search = $('#user_division_search').val();
                 }
             },
@@ -53,24 +60,89 @@
                 "sInfoPostFix":  "",
                 "sSearch":       "Cari:",
                 "sUrl":          "",
-                // "oPaginate": {
-                //     "sFirst":    "Pertama",
-                //     "sPrevious": "Sebelumnya",
-                //     "sNext":     "Selanjutnya",
-                //     "sLast":     "Terakhir"
-                // }
+                        }
+                    });
+
+                    // Search functionality
+                    $('#user_division_search').on('keyup', function() {
+                        userDivisionTable.draw();
+                    });
+
+                    // Store reference for delete function
+                    window.userDivisionTable = userDivisionTable;
+                    
+                    console.log('User Division DataTable initialized successfully');
+                    
+                    // Initialize dropdown menu system
+                    initializeSimpleDropdown();
+                    
+                } catch (error) {
+                    console.error('Error initializing DataTable:', error);
+                }
+            } else {
+                // Wait a bit and try again
+                setTimeout(initDataTable, 100);
+            }
+        }
+        
+        // Start initialization
+        initDataTable();
+    });
+
+    // Simple working dropdown solution
+    function initializeSimpleDropdown() {
+        console.log('Initializing simple dropdown system for User Division');
+        
+        // Remove any existing event handlers
+        $(document).off('click', '[data-kt-menu-trigger="click"]');
+        
+        // Add click handler for dropdown toggle
+        $(document).on('click', '[data-kt-menu-trigger="click"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var $this = $(this);
+            var $menu = $this.siblings('.menu');
+            
+            console.log('Dropdown clicked, menu found:', $menu.length);
+            
+            // Close all other menus first
+            $('.menu').not($menu).removeClass('show');
+            
+            // Toggle current menu
+            $menu.toggleClass('show');
+            
+            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+        });
+        
+        // Close menu when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.dropdown').length) {
+                $('.menu').removeClass('show');
             }
         });
         
-        // Search functionality with debounce
-        var searchTimeout;
-        $('#user_division_search').on('keyup input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                userDivisionTable.draw(false);
-            }, 300);
+        // Close menu when clicking on menu items
+        $(document).on('click', '.menu-link', function(e) {
+            if ($(this).attr('onclick')) {
+                // For delete button, let the onclick handle it
+                return;
+            }
+            // For view/edit links, close menu after a short delay
+            setTimeout(function() {
+                $('.menu').removeClass('show');
+            }, 100);
         });
-    });
+        
+        console.log('Simple dropdown system initialized for User Division');
+    }
+
+    // Re-initialize dropdown on each draw
+    if (window.userDivisionTable) {
+        window.userDivisionTable.on('draw.dt', function() {
+            setTimeout(initializeSimpleDropdown, 100);
+        });
+    }
 
     // Delete user division function
     function deleteUserDivision(id) {
@@ -83,7 +155,11 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        $('#userDivisionTable').DataTable().ajax.reload();
+                        if (window.userDivisionTable && typeof window.userDivisionTable.ajax !== 'undefined') {
+                            window.userDivisionTable.ajax.reload();
+                        } else {
+                            location.reload();
+                        }
                         alert('User division deleted successfully');
                     } else {
                         alert('Failed to delete user division');

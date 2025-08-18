@@ -357,12 +357,48 @@ class StaffController extends Controller
                     return $row->lb_remaining_balance ?: '0';
                 })
                 ->addColumn('action', function($row){
-                    $btn = '<div class="btn-group btn-group-sm">';
-                    $btn .= '<button type="button" class="btn btn-warning btn-xs" onclick="editPosition('.$row->id.')" title="Edit Position"><i class="ki-outline ki-user-square"></i></button>';
-                    $btn .= '<button type="button" class="btn btn-info btn-xs" onclick="editDivision('.$row->id.')" title="Edit Division"><i class="ki-outline ki-office-bag"></i></button>';
-                    $btn .= '<button type="button" class="btn btn-success btn-xs" onclick="editUserType('.$row->id.')" title="Edit User Type"><i class="ki-outline ki-profile-user"></i></button>';
-                    $btn .= '<button type="button" class="btn btn-danger btn-xs" onclick="editLeaveBalance('.$row->id.')" title="Edit Leave Balance"><i class="ki-outline ki-calendar-search"></i></button>';
+                    $btn = '<div class="dropdown">';
+                    $btn .= '    <!--begin::Toggle-->';
+                    $btn .= '    <button type="button" class="btn btn-sm text-dark btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
+                    $btn .= '        Actions';
+                    $btn .= '        <span class="svg-icon fs-5 m-0">';
+                    $btn .= '            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                    $btn .= '                <rect opacity="0.5" x="11" y="18" width="12" height="2" rx="1" transform="rotate(-90 11 18)" fill="currentColor"/>';
+                    $btn .= '                <rect x="6" y="11" width="12" height="2" rx="1" fill="currentColor"/>';
+                    $btn .= '            </svg>';
+                    $btn .= '        </span>';
+                    $btn .= '    </button>';
+                    $btn .= '    <!--end::Toggle-->';
+                    
+                    $btn .= '    <!--begin::Menu-->';
+                    $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editPosition('.$row->id.')" class="menu-link px-3">Edit Position</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editDivision('.$row->id.')" class="menu-link px-3">Edit Division</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editUserType('.$row->id.')" class="menu-link px-3">Edit User Type</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editLeaveBalance('.$row->id.')" class="menu-link px-3">Edit Leave Balance</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    $btn .= '    </div>';
+                    $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
+                    
                     return $btn;
                 })
                 ->rawColumns(['action'])

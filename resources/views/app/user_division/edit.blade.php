@@ -25,7 +25,7 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="card-tools">
-                                <a href="{{ route('user-positions.index') }}" class="btn btn-secondary btn-sm">
+                                <a href="{{ route('user-divisions.index') }}" class="btn btn-secondary btn-sm">
                                     <i class="ki-outline ki-left"></i> Back
                                 </a>
                             </div>
@@ -87,9 +87,9 @@
                                 </div>
                                 </div></div>
                             </div>
-                            <div class="card-footer float-right">
-                                <button type="submit" class="btn btn-primary mr-2">Update</button>
-                                <a href="{{ route('user-divisions.index') }}" class="btn btn-dark">Cancel</a>
+                            <div class="card-footer d-flex justify-content-end">
+                                <a href="{{ route('user-divisions.index') }}" class="btn btn-dark mr-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Update</button>
                             </div>
                         </form>
                     </div>
@@ -112,3 +112,4 @@ $(document).ready(function() {
 });
 </script>
 @endsection 
+@include('app._partials.js')

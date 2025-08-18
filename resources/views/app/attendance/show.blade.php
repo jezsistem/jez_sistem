@@ -52,11 +52,11 @@
                             <table class="table table-borderless">
                                 <tr>
                                     <td width="150"><strong>Nama Karyawan</strong></td>
-                                    <td>: {{ $attendance->user->u_name ?? '-' }}</td>
+                                    <td>: {{ $attendance->u_name ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>NIP</strong></td>
-                                    <td>: {{ $attendance->user->u_nip ?? '-' }}</td>
+                                    <td>: {{ $attendance->u_nip ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Tanggal</strong></td>

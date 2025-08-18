@@ -1,6 +1,124 @@
 @extends('app.structure')
 @section('content')
 
+<style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 2px;
+        width: 30px;
+        height: 30px;
+        padding: 5px;
+        font-size: 12px;
+    }
+    
+    .btn-group-vertical .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .badge {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        font-weight: 600;
+        font-size: 12px;
+    }
+    
+    .table td {
+        font-size: 12px;
+        vertical-align: middle;
+    }
+    
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0,0,0,.02);
+    }
+
+    /* Custom CSS for Metronic dropdown menu */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .menu.menu-sub-dropdown {
+        z-index: 9999 !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        margin-top: 5px !important;
+        min-width: 150px !important;
+        background: white !important;
+        border: 1px solid #e4e6ef !important;
+        border-radius: 0.475rem !important;
+        box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+    }
+
+    /* Fix for menu positioning in table cells */
+    #announcementsTable td {
+        position: relative;
+    }
+
+    /* Menu item styling */
+    .menu-item .menu-link {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        color: #3f4254 !important;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+
+    .menu-item .menu-link:hover {
+        background-color: #f3f6f9 !important;
+        color: #3699FF !important;
+    }
+
+    .menu-item .menu-link.text-danger {
+        color: #f64e60 !important;
+    }
+
+    .menu-item .menu-link.text-danger:hover {
+        background-color: #ffe2e5 !important;
+        color: #f64e60 !important;
+    }
+
+    /* Button styling for menu trigger */
+    [data-kt-menu-trigger="click"] {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    /* SVG icon styling */
+    .svg-icon {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .svg-icon svg {
+        width: 1em;
+        height: 1em;
+    }
+
+    /* Fallback menu system styles */
+    .menu.show {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    .menu:not(.show) {
+        display: none !important;
+    }
+
+</style>
+
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <!--begin::Subheader-->
@@ -146,13 +264,31 @@
                                         {{ $announcement->creator->u_name ?? 'Unknown' }}
                                     </span>
                                 </td>
-                                <td nowrap="nowrap">
-                                    <a href="{{ route('announcements.edit', $announcement->id) }}" class="btn btn-sm btn-clean btn-icon" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="#" class="btn btn-sm btn-clean btn-icon" onclick="deleteAnnouncement({{ $announcement->id }}, '{{ $announcement->title }}')" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                            Actions
+                                            <i class="ki-duotone ki-down fs-5 ms-1"></i>
+                                        </a>
+                                        <!--begin::Menu-->
+                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">
+                                            <!--begin::Menu item-->
+                                            <div class="menu-item px-3">
+                                                <a href="{{ route('announcements.edit', $announcement->id) }}" class="menu-link px-3">
+                                                    Edit
+                                                </a>
+                                            </div>
+                                            <!--end::Menu item-->
+                                            <!--begin::Menu item-->
+                                            <div class="menu-item px-3">
+                                                <a href="#" class="menu-link px-3 text-danger" onclick="deleteAnnouncement({{ $announcement->id }}, '{{ $announcement->title }}')">
+                                                    Delete
+                                                </a>
+                                            </div>
+                                            <!--end::Menu item-->
+                                        </div>
+                                        <!--end::Menu-->
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
@@ -254,6 +390,60 @@
     
     window.addEventListener('load', initializeManageAnnouncementPage);
 })();
+
+// Simple working dropdown solution
+function initializeSimpleDropdown() {
+    console.log('Initializing simple dropdown system for Announcements Manage');
+    
+    // Remove any existing event handlers
+    $(document).off('click', '[data-kt-menu-trigger="click"]');
+    
+    // Add click handler for dropdown toggle
+    $(document).on('click', '[data-kt-menu-trigger="click"]', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var $this = $(this);
+        var $menu = $this.siblings('.menu');
+        
+        console.log('Dropdown clicked, menu found:', $menu.length);
+        
+        // Close all other menus first
+        $('.menu').not($menu).removeClass('show');
+        
+        // Toggle current menu
+        $menu.toggleClass('show');
+        
+        console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+    });
+    
+    // Close menu when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.dropdown').length) {
+            $('.menu').removeClass('show');
+        }
+    });
+    
+    // Close menu when clicking on menu items
+    $(document).on('click', '.menu-link', function(e) {
+        if ($(this).attr('onclick')) {
+            // For buttons with onclick, let the onclick handle it
+            return;
+        }
+        // For other links, close menu after a short delay
+        setTimeout(function() {
+            $('.menu').removeClass('show');
+        }, 100);
+    });
+    
+    console.log('Simple dropdown system initialized for Announcements Manage');
+}
+
+// Initialize dropdown menu when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSimpleDropdown();
+});
 </script>
 
 @endsection
+@include('app._partials.js')

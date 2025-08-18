@@ -1,5 +1,91 @@
 @extends('app.structure')
 @section('content')
+
+<style>
+/* Custom CSS for Metronic dropdown menu */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.menu.menu-sub-dropdown {
+    z-index: 9999 !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    margin-top: 5px !important;
+    min-width: 150px !important;
+    background: white !important;
+    border: 1px solid #e4e6ef !important;
+    border-radius: 0.475rem !important;
+    box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Ensure proper positioning for DataTables */
+.dataTables_wrapper .dataTables_processing {
+    z-index: 9998;
+}
+
+/* Fix for menu positioning in table cells */
+#userTypeTable td {
+    position: relative;
+}
+
+/* Menu item styling */
+.menu-item .menu-link {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: #3f4254 !important;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.menu-item .menu-link:hover {
+    background-color: #FFEBEB !important;
+    border: 1px solid #ecd8d8;
+}
+
+.menu-item .menu-link.text-danger {
+    color: #f64e60 !important;
+}
+
+.menu-item .menu-link.text-danger:hover {
+    background-color: #ffe2e5 !important;
+    color: #f64e60 !important;
+}
+
+/* Button styling for menu trigger */
+[data-kt-menu-trigger="click"] {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* SVG icon styling */
+.svg-icon {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.svg-icon svg {
+    width: 1em;
+    height: 1em;
+}
+
+/* Fallback menu system styles */
+.menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.menu:not(.show) {
+    display: none !important;
+}
+</style>
+
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <!--begin::Subheader-->
@@ -93,6 +179,8 @@
             <form id="userTypeForm">
                 <div class="modal-body">
                     <input type="hidden" id="userTypeId" name="id">
+                    <input type="hidden" name="_method" id="httpMethod" value="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -124,7 +212,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="saveUserTypeBtn">Save User Type</button>
+                    <button type="submit" class="btn btn-primary" id="saveUserTypeBtn">Save</button>
                 </div>
             </form>
         </div>

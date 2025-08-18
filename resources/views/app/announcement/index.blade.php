@@ -8,10 +8,10 @@
         border: 1px solid #e1e5e9;
     }
     
-    .compact-card:hover {
+    /* .compact-card:hover {
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         border-color: #007bff;
-    }
+    } */
     
     .cursor-pointer {
         cursor: pointer;
@@ -58,7 +58,7 @@
     
     /* Hover effects */
     .announcement-card:hover .card-body {
-        background-color: #f8f9fa;
+        /* background-color: #f8f9fa; */
     }
     
     /* Read more button styling */
@@ -103,10 +103,14 @@
     }
     
     .pinned-announcements-section .announcement-card:hover {
-        background-color:rgba(44, 138, 201, 0.1) !important;
-        border-color:rgb(122, 174, 209) !important;
-        box-shadow: 0 1px 4px rgba(52, 152, 219, 0.2);
+        background-color:#3498db2e !important;
+        border-color: #c6e8ff !important;
     }
+
+    .pinned-announcements-section .announcement-card .btn {
+        background-color: #ffffff !important;
+    }
+
 </style>
 
 <!--begin::Content-->
@@ -1329,3 +1333,4 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
 </script>
 
 @endsection
+@include('app._partials.js')

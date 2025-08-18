@@ -43,6 +43,18 @@
         margin: 5px 0;
         opacity: 0.9;
     }
+
+    /* Dropdown menu styling */
+    .dropdown { position: relative; display: inline-block; }
+    .menu.menu-sub-dropdown { z-index: 9999 !important; position: absolute !important; top: 100% !important; left: 0 !important; margin-top: 5px !important; min-width: 150px !important; background: white !important; border: 1px solid #e4e6ef !important; border-radius: 0.475rem !important; box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important; }
+    #staffAttendanceTable td { position: relative; }
+    .menu-item .menu-link { cursor: pointer; transition: all 0.3s ease; display: block; padding: 0.5rem 1rem; text-decoration: none; color: #3f4254 !important; font-weight: 500; font-size: 1rem; }
+    .menu-item .menu-link:hover { background-color: #f3f6f9 !important; color: #3699FF !important; }
+    [data-kt-menu-trigger="click"] { cursor: pointer; user-select: none; }
+    .svg-icon { display: inline-block; vertical-align: middle; }
+    .svg-icon svg { width: 1em; height: 1em; }
+    .menu.show { display: block !important; opacity: 1 !important; visibility: visible !important; }
+    .menu:not(.show) { display: none !important; }
 </style>
 
 <!--begin::Content-->
@@ -107,17 +119,27 @@
                         <div class="card-body">
                             <form id="filterForm">
                                 <div class="row">
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
+                                        <label for="date_filter">Date Filter</label>
+                                        <select class="form-control" id="date_filter" name="date_filter" onchange="handleDateFilterChange(this.value)">
+                                            <option value="this_week" {{ request('date_filter', 'this_week') == 'this_week' ? 'selected' : '' }}>This Week</option>
+                                            <option value="past_week" {{ request('date_filter', 'this_week') == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                            <option value="this_month" {{ request('date_filter', 'this_week') == 'this_month' ? 'selected' : '' }}>This Month</option>
+                                            <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Past Month</option>
+                                            <option value="custom" {{ request('date_filter', 'this_week') == 'custom' ? 'selected' : '' }}>Custom Range</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2" id="start_date_container" style="display: none;">
                                         <label for="start_date">Tanggal Mulai</label>
                                         <input type="date" class="form-control" id="start_date" name="start_date" 
                                                value="{{ request('start_date', date('Y-m-d', strtotime('-30 days'))) }}">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2" id="end_date_container" style="display: none;">
                                         <label for="end_date">Tanggal Akhir</label>
                                         <input type="date" class="form-control" id="end_date" name="end_date" 
                                                value="{{ request('end_date', date('Y-m-d')) }}">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="status">Status</label>
                                         <select class="form-control" id="status" name="status">
                                             <option value="">Semua Status</option>
@@ -128,7 +150,7 @@
                                             <option value="scan_once">Scan Once</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label>&nbsp;</label>
                                         <button type="submit" class="btn btn-primary btn-block">
                                             <i class="ki-outline ki-filter-tick"></i> Filter
@@ -253,11 +275,21 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card card-custom">
-                        <!-- <div class="card-header">
-                            <h6 class="card-title mb-0">
-                                <i class="ki-outline ki-calendar"></i> Data Absensi
-                            </h6>
-                        </div> -->
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="card-title mb-0">
+                                    <i class="ki-outline ki-calendar"></i> Data Absensi
+                                </h6>
+                                <div class="d-flex">
+                                    <button type="button" class="btn btn-success btn-sm mr-2" onclick="exportStaffToExcel()">
+                                        <i class="ki-outline ki-file-down"></i> Export Excel
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="exportStaffToPDF()">
+                                        <i class="ki-outline ki-file-down"></i> Export PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card-body table-responsive">
                             <table class="table table-hover table-striped" id="staffAttendanceTable">
                                 <thead>

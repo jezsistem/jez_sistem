@@ -5,14 +5,14 @@
             <div class="d-flex align-items-center flex-grow-1">
                 <!-- Avatar -->
                 <div class="symbol symbol-35 symbol-light-primary mr-3">
-                    <span class="symbol-label">
-                        <i class="fas fa-user text-primary"></i>
+                    <span class="symbol symbol-lg-35 symbol-25 symbol-primary">
+                        <span class="symbol-label font-size-h5 font-weight-bold">{{ substr($announcement->creator->u_name, 0, 1) }}</span>
                     </span>
                 </div>
                 
                 <!-- Sender Info and Title (1 baris saat minimize) -->
                 <div class="d-flex flex-column flex-grow-1">
-                    <div class="d-flex align-items-center mb-1">
+                    <div class="d-flex align-items-center">
                         <span class="text-dark fw-bold fs-6 mr-3">{{ $announcement->creator->u_name ?? 'Unknown' }}</span>
                         <span class="text-dark fw-bold fs-6 mr-3" style="color: #6c757d !important;">•</span>
                         <span class="text-dark fw-bold fs-5 mr-3 compact-title" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $announcement->title }}</span>

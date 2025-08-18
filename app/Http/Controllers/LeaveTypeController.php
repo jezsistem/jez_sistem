@@ -298,11 +298,42 @@ class LeaveTypeController extends Controller
                     return '<span class="' . $statusClass . '">' . $statusText . '</span>';
                 })
                 ->addColumn('action', function($row){
-                    $btn = '<div class="btn-group btn-group-sm">';
-                    $btn .= '<a href="'.route('leave-types.show', $row->id).'" class="btn btn-info btn-xs" title="View"><i class="ki-outline ki-eye"></i></a>';
-                    $btn .= '<a href="'.route('leave-types.edit', $row->id).'" class="btn btn-warning btn-xs" title="Edit"><i class="ki-outline ki-notepad-edit"></i></a>';
-                    $btn .= '<button type="button" class="btn btn-danger btn-xs" onclick="deleteLeaveType('.$row->id.')" title="Delete"><i class="ki-outline ki-trash-square"></i></button>';
+                    $btn = '<div class="dropdown">';
+                    $btn .= '    <!--begin::Toggle-->';
+                    $btn .= '    <button type="button" class="btn btn-sm btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
+                    $btn .= '        Actions';
+                    $btn .= '        <span class="svg-icon fs-5 m-0">';
+                    $btn .= '            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                    $btn .= '                <rect opacity="0.5" x="11" y="18" width="12" height="2" rx="1" transform="rotate(-90 11 18)" fill="currentColor"/>';
+                    $btn .= '                <rect x="6" y="11" width="12" height="2" rx="1" fill="currentColor"/>';
+                    $btn .= '            </svg>';
+                    $btn .= '        </span>';
+                    $btn .= '    </button>';
+                    $btn .= '    <!--end::Toggle-->';
+                    
+                    $btn .= '    <!--begin::Menu-->';
+                    $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="'.route('leave-types.show', $row->id).'" class="menu-link px-3">View</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="'.route('leave-types.edit', $row->id).'" class="menu-link px-3">Edit</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveType('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    $btn .= '    </div>';
+                    $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
+                    
                     return $btn;
                 })
                 ->rawColumns(['action', 'lt_status'])

@@ -1,52 +1,79 @@
 <script>
+    // Simple and robust DataTables initialization
     $(document).ready(function() {
+        // Wait for DataTables to be available
+        function initDataTable() {
+            if (typeof $.fn.DataTable !== 'undefined') {
+                try {
+                    // Set up CSRF token
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
         
+                    // Initialize DataTable with safe settings
         var userPositionTable = $('#userPositionTable').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: true,
+                        responsive: false, // Disable responsive to prevent conflicts
             dom: 'rt<"pagination-class"ip>',
             ajax: {
-                url : "{{ url('user-positions/datatables') }}",
-                data : function (d) {
+                            url: "{{ url('user-positions/datatables') }}",
+                            data: function(d) {
                     d.search = $('#user_position_search').val();
                 }
             },
-            columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
-                { data: 'up_code', name: 'up_code', width: '15%' },
-                { data: 'up_name', name: 'up_name', width: '20%' },
-                { data: 'up_description', name: 'up_description', width: '25%' },
-                { data: 'up_level', name: 'up_level', width: '10%' },
-                { data: 'up_is_active', name: 'up_is_active', width: '10%' },
-                { data: 'action', name: 'action', orderable: false, searchable: false, width: '15%' },
-            ],
-            columnDefs: [
-                {
+                        columns: [{
+                                data: 'DT_RowIndex',
+                                name: 'id',
+                                searchable: false
+                            },
+                            {
+                                data: 'up_code',
+                                name: 'up_code'
+                            },
+                            {
+                                data: 'up_name',
+                                name: 'up_name'
+                            },
+                            {
+                                data: 'up_description',
+                                name: 'up_description'
+                            },
+                            {
+                                data: 'up_level',
+                                name: 'up_level'
+                            },
+                            {
+                                data: 'up_is_active',
+                                name: 'up_is_active'
+                            },
+                            {
+                                data: 'action',
+                                name: 'action',
+                                orderable: false,
+                                searchable: false
+                            }
+                        ],
+                        columnDefs: [{
                     "targets": 0,
                     "className": "text-center",
                     "width": "5%"
-                },
-                {
+                        }, {
                     "targets": 4,
                     "className": "text-center"
-                },
-                {
+                        }, {
                     "targets": 5,
                     "className": "text-center"
-                },
-                {
+                        }, {
                     "targets": 6,
                     "className": "text-center"
-                }
+                        }],
+                        order: [
+                            [0, 'desc']
             ],
-            order: [[0, 'desc']],
             pageLength: 10,
             language: {
                 "sProcessing":   "Loading...",
@@ -61,17 +88,94 @@
             }
         });
         
-        // Search functionality with debounce
-        var searchTimeout;
-        $('#user_position_search').on('keyup input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                userPositionTable.draw(false);
-            }, 300);
-        });
+                    // Search functionality
+                    $('#user_position_search').on('keyup', function() {
+                        userPositionTable.draw();
+                    });
+
+                    // Store reference for delete function
+                    window.userPositionTable = userPositionTable;
+                    
+                    console.log('User Position DataTable initialized successfully');
+                    
+                    // Debug: Check what Metronic components are available
+                    console.log('=== Metronic Components Check ===');
+                    console.log('typeof KTMenu:', typeof KTMenu);
+                    console.log('typeof KT:', typeof KT);
+                    console.log('typeof KT.Menu:', typeof KT !== 'undefined' ? typeof KT.Menu : 'KT undefined');
+                    console.log('window.KTMenu:', window.KTMenu);
+                    console.log('window.KT:', window.KT);
+                    
+                    // Simple working dropdown solution
+                    function initializeSimpleDropdown() {
+                        console.log('Initializing simple dropdown system');
+                        
+                        // Remove any existing event handlers
+                        $(document).off('click', '[data-kt-menu-trigger="click"]');
+                        
+                        // Add click handler for dropdown toggle
+                        $(document).on('click', '[data-kt-menu-trigger="click"]', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            var $this = $(this);
+                            var $menu = $this.siblings('.menu');
+                            
+                            console.log('Dropdown clicked, menu found:', $menu.length);
+                            
+                            // Close all other menus first
+                            $('.menu').not($menu).removeClass('show');
+                            
+                            // Toggle current menu
+                            $menu.toggleClass('show');
+                            
+                            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+                        });
+                        
+                        // Close menu when clicking outside
+                        $(document).on('click', function(e) {
+                            if (!$(e.target).closest('.dropdown').length) {
+                                $('.menu').removeClass('show');
+                            }
+                        });
+                        
+                        // Close menu when clicking on menu items
+                        $(document).on('click', '.menu-link', function(e) {
+                            if ($(this).attr('onclick')) {
+                                // For delete button, let the onclick handle it
+                                return;
+                            }
+                            // For view/edit links, close menu after a short delay
+                            setTimeout(function() {
+                                $('.menu').removeClass('show');
+                            }, 100);
+                        });
+                        
+                        console.log('Simple dropdown system initialized');
+                    }
+                    
+                    // Initialize simple dropdown after a delay
+                    setTimeout(initializeSimpleDropdown, 500);
+                    
+                    // Re-initialize on each draw
+                    userPositionTable.on('draw.dt', function() {
+                        setTimeout(initializeSimpleDropdown, 100);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error initializing DataTable:', error);
+                }
+            } else {
+                // Wait a bit and try again
+                setTimeout(initDataTable, 100);
+            }
+        }
+        
+        // Start initialization
+        initDataTable();
     });
 
-    // Delete user position function
+    // Delete function
     function deleteUserPosition(id) {
         if (confirm('Are you sure you want to delete this user position?')) {
             $.ajax({
@@ -82,7 +186,11 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        $('#userPositionTable').DataTable().ajax.reload();
+                        if (window.userPositionTable && typeof window.userPositionTable.ajax !== 'undefined') {
+                            window.userPositionTable.ajax.reload();
+                        } else {
+                            location.reload();
+                        }
                         alert('User position deleted successfully');
                     } else {
                         alert('Failed to delete user position');

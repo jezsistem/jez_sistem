@@ -1,5 +1,4 @@
 @extends('app.structure')
-
 @section('content')
 <div class="container-fluid">
     <div class="row">
@@ -116,7 +115,7 @@
         </div>
     </div>
 </div>
-
+@endsection 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const unitSelect = document.getElementById('lr_unit');
@@ -134,4 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleTimeFields(); // Initial call
 });
 </script>
-@endsection 
+
+@include('app._partials.js')
+

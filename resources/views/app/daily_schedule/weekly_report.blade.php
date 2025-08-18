@@ -47,7 +47,7 @@
                                     <option value="this_week" {{ request('date_filter', 'this_week') == 'this_week' ? 'selected' : '' }}>This Week</option>
                                     <option value="past_week" {{ request('date_filter', 'this_week') == 'past_week' ? 'selected' : '' }}>Past Week</option>
                                     <option value="this_month" {{ request('date_filter', 'this_week') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                                    <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                                    <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Past Month</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -84,7 +84,7 @@
                             <div class="col-md-2">
                                 <label>&nbsp;</label>
                                 <div>
-                                    <button type="submit" class="btn btn-primary btn-sm">
+                                    <button type="submit" class="btn btn-primary btn-sm mr-2">
                                         <i class="ki-outline ki-filter-search"></i> Filter
                                     </button>
                                     <a href="{{ route('daily-schedules.weekly-report') }}" class="btn btn-secondary btn-sm">
@@ -100,22 +100,22 @@
             <!-- Report Content -->
             <div class="card card-custom">
                 <div class="card-header flex-wrap py-3">
-                    <div class="card-title">
+                    <!-- <div class="card-title">
                         <h3 class="card-label">
                             Weekly Schedule Report
                             <span class="text-muted pt-2 font-size-sm d-block">
                                 {{ date('l, d F Y', strtotime($startDate)) }} - {{ date('l, d F Y', strtotime($endDate)) }}
                             </span>
                         </h3>
-                    </div>
+                    </div> -->
                     <div class="card-toolbar">
-                        <button type="button" class="btn btn-light-success btn-sm" onclick="window.print()">
+                        <!-- <button type="button" class="btn btn-light-success btn-sm" onclick="window.print()">
                             <i class="ki-outline ki-printer"></i> Print
-                        </button>
-                        <button type="button" class="btn btn-light-primary btn-sm ml-2" onclick="exportToExcel()">
+                        </button> -->
+                        <button type="button" class="btn btn-light-green btn-sm ml-2" onclick="exportToExcel()">
                             <i class="ki-outline ki-file-down"></i> Export Excel
                         </button>
-                        <button type="button" class="btn btn-light-danger btn-sm ml-2" onclick="exportToPDF()">
+                        <button type="button" class="btn btn-secondary btn-sm ml-2" onclick="exportToPDF()">
                             <i class="ki-outline ki-file-down"></i> Export PDF
                         </button>
                     </div>
@@ -136,9 +136,9 @@
                                 <table class="table table-bordered table-hover schedule-report-table">
                                     <thead class="bg-light-primary">
                                         <tr>
-                                            <th rowspan="2" class="text-center align-middle" style="width: 250px;">NAMA</th>
+                                            <th rowspan="2" class="text-center align-middle" style="min-width: 250px;">NAMA</th>
                                             @foreach($weekDates as $date)
-                                                <th colspan="2" class="text-center" style="min-width: 240px;">
+                                                <th colspan="2" style="min-width: 240px;">
                                                     <div class="font-weight-bold">{{ date('l', strtotime($date)) }}</div>
                                                     <div class="font-size-sm">{{ date('d M', strtotime($date)) }}</div>
                                                 </th>
@@ -150,7 +150,7 @@
                                                     <small>Shift Name</small>
                                                 </th>
                                                 <th class="text-center bg-light-warning" style="width: 120px;">
-                                                    <small>Start Shift</small>
+                                                    <small>Start-End Shift</small>
                                                 </th>
                                             @endforeach
                                         </tr>
@@ -158,7 +158,7 @@
                                     <tbody>
                                         @foreach($users as $user)
                                             <tr>
-                                                <td class="text-center align-middle font-weight-bold" style="font-size: 14px; width: 250px;">
+                                                <td class="align-middle font-weight-bold" style="font-size: 14px; width: 250px;">
                                                     {{ $user['u_name'] }}
                                                     <br>
                                                     <small class="text-muted">{{ $user['u_nip'] }}</small>
@@ -187,7 +187,7 @@
                                                     @endphp
                                                     
                                                     <!-- Shift Name Column -->
-                                                    <td class="text-center align-middle {{ $cellClass }}" style="font-size: 12px;">
+                                                    <td class="text-center align-middle {{ $cellClass }}" style="font-size: 13px;">
                                                         @if($schedule)
                                                             <div class="font-weight-bold">{{ $shiftName ?: $shiftCode }}</div>
                                                             @if($shiftName)
@@ -199,7 +199,7 @@
                                                     </td>
                                                     
                                                     <!-- Start Shift Column (Time Range) -->
-                                                    <td class="text-center align-middle {{ $cellClass }}" style="font-size: 12px;">
+                                                    <td class="text-center align-middle {{ $cellClass }}" style="font-size: 13px;">
                                                         @if($schedule && $startTime && $endTime)
                                                             <span class="font-weight-bold">{{ date('H:i', strtotime($startTime)) }} - {{ date('H:i', strtotime($endTime)) }}</span>
                                                         @elseif($schedule && $startTime)

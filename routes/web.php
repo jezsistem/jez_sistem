@@ -124,8 +124,8 @@ Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printO
 Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
 Route::post('/upload-photo', [PhotoController::class, 'upload'])->name('upload.photo');
 
+Route::get('daily-schedules/export-weekly-public', [DailyScheduleController::class, 'exportWeeklyPublic'])->name('daily-schedules.export-weekly-public');
 
-// Break time routes (no auth required for public info)
 Route::get('break-times/allowance', [BreakTimeController::class, 'getBreakAllowance'])->name('break-times.allowance');
 Route::get('break-times/current-list', [BreakTimeController::class, 'getCurrentBreakList'])->name('break-times.current-list');
 Route::get('break-times/test-filter', [BreakTimeController::class, 'testFilter'])->name('break-times.test-filter');
@@ -133,7 +133,6 @@ Route::get('break-times/debug-current-list', [BreakTimeController::class, 'debug
 Route::get('break-times/current', [BreakTimeController::class, 'getCurrentBreak'])->name('break-times.current');
 Route::post('break-times/start', [BreakTimeController::class, 'startBreak'])->name('break-times.start');
 Route::post('break-times/end', [BreakTimeController::class, 'endBreak'])->name('break-times.end');
-Route::get('daily-schedules/export-weekly-public', [DailyScheduleController::class, 'exportWeeklyPublic'])->name('daily-schedules.export-weekly-public');
 Route::get('daily-schedules/export-weekly-report-public', [DailyScheduleController::class, 'exportWeeklyReportPublic'])->name('daily-schedules.export-weekly-report-public');
 Route::get('daily-schedules/export-weekly-report-pdf', [DailyScheduleController::class, 'exportWeeklyReportPDF'])->name('daily-schedules.export-weekly-report-pdf');
 Route::get('daily-schedules/export-weekly-pdf', [DailyScheduleController::class, 'exportWeeklyPDF'])->name('daily-schedules.export-weekly-pdf');
@@ -141,6 +140,9 @@ Route::get('daily-schedules/export-weekly-pdf', [DailyScheduleController::class,
 // Public PDF export routes (no auth required)
 Route::get('daily-schedules/export-weekly-pdf-public', [DailyScheduleController::class, 'exportWeeklyPDFPublic'])->name('daily-schedules.export-weekly-pdf-public');
 Route::get('daily-schedules/export-weekly-report-pdf-public', [DailyScheduleController::class, 'exportWeeklyReportPDFPublic'])->name('daily-schedules.export-weekly-report-pdf-public');
+
+// Public Excel export routes (no auth required)
+Route::get('break-times/export/excel', [BreakTimeController::class, 'exportToExcel'])->name('break-times.export-excel');
 
 
 
@@ -768,10 +770,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('attendance/staff/{user_id}/datatables', [AttendanceController::class, 'staffDatatables'])->name('attendance.staff-datatables');
     Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
 
+    // Export routes
+    Route::get('attendance/export/excel', [AttendanceController::class, 'exportToExcel'])->name('attendance.export-excel');
+    Route::get('attendance/export/pdf', [AttendanceController::class, 'exportToPDF'])->name('attendance.export-pdf');
+    Route::get('attendance/staff/{user_id}/export/excel', [AttendanceController::class, 'exportStaffToExcel'])->name('attendance.staff-export-excel');
+    Route::get('attendance/staff/{user_id}/export/pdf', [AttendanceController::class, 'exportStaffToPDF'])->name('attendance.staff-export-pdf');
+
     // BreakTimeController
     Route::get('break-times', [BreakTimeController::class, 'index'])->name('break-times.index');
     Route::get('break-times/report', [BreakTimeController::class, 'report'])->name('break-times.report');
     Route::get('break-times/datatables', [BreakTimeController::class, 'getDatatables'])->name('break-times.datatables');
+    Route::get('break-times/export/pdf', [BreakTimeController::class, 'exportToPDF'])->name('break-times.export-pdf');
     Route::get('break-times/create', [BreakTimeController::class, 'create'])->name('break-times.create');
     Route::post('break-times', [BreakTimeController::class, 'store'])->name('break-times.store');
     Route::get('break-times/{id}', [BreakTimeController::class, 'show'])->name('break-times.show');
@@ -832,6 +841,7 @@ Route::group(['middleware' => 'auth'], function () {
     // UserTypeController
     Route::get('user-types', [UserTypeController::class, 'index'])->name('user-types.index');
     Route::get('user-types/datatables', [UserTypeController::class, 'getDatatables'])->name('user-types.datatables');
+    Route::get('user-types/{id}', [UserTypeController::class, 'show'])->name('user-types.show');
     Route::post('user-types', [UserTypeController::class, 'store'])->name('user-types.store');
     Route::put('user-types/{id}', [UserTypeController::class, 'update'])->name('user-types.update');
     Route::delete('user-types/{id}', [UserTypeController::class, 'destroy'])->name('user-types.destroy');

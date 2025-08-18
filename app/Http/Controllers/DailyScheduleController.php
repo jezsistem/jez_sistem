@@ -1378,11 +1378,13 @@ class DailyScheduleController extends Controller
                     'daily_schedules.user_id',
                     'daily_schedules.ds_date',
                     'daily_schedules.sc_id',
-                    'shift_codes.sc_code'
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate])
-                ->get();
+                ->whereBetween('ds_date', [$startDate, $endDate]);
 
             // Generate HTML content untuk dimasukkan ke PDF
             $htmlContent = $this->generateWeeklyScheduleHTML($users, $schedules, $startDate, $endDate);
@@ -1528,11 +1530,13 @@ class DailyScheduleController extends Controller
                     'daily_schedules.user_id',
                     'daily_schedules.ds_date',
                     'daily_schedules.sc_id',
-                    'shift_codes.sc_code'
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate])
-                ->get();
+                ->whereBetween('ds_date', [$startDate, $endDate]);
 
             // Generate HTML content for report
             $htmlContent = $this->generateWeeklyReportHTML($users, $schedules, $startDate, $endDate);
@@ -1563,7 +1567,12 @@ class DailyScheduleController extends Controller
     {
         try {
             \Log::info('Public Export Weekly Schedule Started', [
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
+                'filters_applied' => [
+                    'division_id' => $request->get('division_id'),
+                    'search' => $request->get('search'),
+                    'date_filter' => $request->get('date_filter', 'this_week')
+                ]
             ]);
 
             $divisionId = $request->get('division_id');
@@ -1572,6 +1581,12 @@ class DailyScheduleController extends Controller
 
             $startDate = $this->getDateRangeFromFilter($dateFilter)['startDate'];
             $endDate = $this->getDateRangeFromFilter($dateFilter)['endDate'];
+
+            \Log::info('Date range calculated', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
 
             // Build query to get users with their schedules
             $users = DB::table('users')
@@ -1589,6 +1604,7 @@ class DailyScheduleController extends Controller
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
+                \Log::info('Division filter applied', ['division_id' => $divisionId]);
             }
 
             if ($search) {
@@ -1596,9 +1612,15 @@ class DailyScheduleController extends Controller
                     $q->where('users.u_name', 'like', '%' . $search . '%')
                       ->orWhere('users.u_nip', 'like', '%' . $search . '%');
                 });
+                \Log::info('Search filter applied', ['search' => $search]);
             }
 
             $users = $users->get();
+
+            \Log::info('Users query result', [
+                'users_count' => $users->count(),
+                'query_success' => true
+            ]);
 
             // Get schedules for the date range
             $schedules = DB::table('daily_schedules')
@@ -1606,25 +1628,80 @@ class DailyScheduleController extends Controller
                     'daily_schedules.user_id',
                     'daily_schedules.ds_date',
                     'daily_schedules.sc_id',
-                    'shift_codes.sc_code'
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate])
-                ->get();
+                ->whereBetween('ds_date', [$startDate, $endDate]);
+
+            \Log::info('Schedules query result', [
+                'schedules_count' => $schedules->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
 
             // Combine users with their schedules
             $exportData = [];
+            
+            // Group schedules by division and user (same structure as weeklyReport)
+            $groupedSchedules = [];
+            
+            // First, create a map of user data for easy access
+            $userMap = [];
             foreach ($users as $user) {
-                $userSchedules = $schedules->where('user_id', $user->user_id);
+                $userMap[$user->user_id] = $user;
+            }
+            
+            foreach ($schedules as $schedule) {
+                $userId = $schedule->user_id;
+                $user = $userMap[$userId] ?? null;
                 
-                $exportData[] = (object) [
-                    'user_id' => $user->user_id,
+                if ($user) {
+                    $divisionName = $user->ud_name ?: 'No Division';
+                    $date = $schedule->ds_date;
+                    
+                    if (!isset($groupedSchedules[$divisionName])) {
+                        $groupedSchedules[$divisionName] = [];
+                    }
+                    
+                    if (!isset($groupedSchedules[$divisionName][$userId])) {
+                        $groupedSchedules[$divisionName][$userId] = [
+                            'user_id' => $userId,
                     'u_nip' => $user->u_nip,
                     'u_name' => $user->u_name,
                     'ud_name' => $user->ud_name,
-                    'ut_name' => $user->ut_name,
-                    'schedules' => $userSchedules
-                ];
+                            'schedules' => []
+                        ];
+                    }
+                    
+                    $groupedSchedules[$divisionName][$userId]['schedules'][$date] = [
+                        'sc_code' => $schedule->sc_code,
+                        'sc_shift_name' => $schedule->sc_shift_name,
+                        'sc_start_time' => $schedule->sc_start_time,
+                        'sc_end_time' => $schedule->sc_end_time
+                    ];
+                }
+            }
+            
+            // Add users without schedules
+            foreach ($users as $user) {
+                $divisionName = $user->ud_name ?: 'No Division';
+                $userId = $user->user_id;
+                
+                if (!isset($groupedSchedules[$divisionName])) {
+                    $groupedSchedules[$divisionName] = [];
+                }
+                
+                if (!isset($groupedSchedules[$divisionName][$userId])) {
+                    $groupedSchedules[$divisionName][$userId] = [
+                        'user_id' => $userId,
+                        'u_nip' => $user->u_nip,
+                        'u_name' => $user->u_name,
+                        'ud_name' => $user->ud_name,
+                        'schedules' => []
+                    ];
+                }
             }
 
             \Log::info('Public Export Weekly Schedule - Data Prepared', [
@@ -1633,7 +1710,12 @@ class DailyScheduleController extends Controller
                 'export_data_count' => count($exportData),
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
-                'end_date' => $endDate
+                'end_date' => $endDate,
+                'filters_summary' => [
+                    'division_filtered' => $divisionId ? 'Yes' : 'No',
+                    'search_filtered' => $search ? 'Yes' : 'No',
+                    'date_filtered' => $dateFilter
+                ]
             ]);
 
             // Generate filename
@@ -1654,7 +1736,8 @@ class DailyScheduleController extends Controller
             \Log::error('Public Export Weekly Schedule Error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
             ]);
             return response()->json([
                 'success' => false,
@@ -1670,12 +1753,22 @@ class DailyScheduleController extends Controller
     {
         try {
             \Log::info('Public Export Weekly Report Started', [
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
+                'filters_applied' => [
+                    'division_id' => $request->get('division_id'),
+                    'shift_id' => $request->get('shift_id'),
+                    'user_name' => $request->get('user_name'),
+                    'date_filter' => $request->get('date_filter', 'this_week'),
+                    'start_date' => $request->get('start_date'),
+                    'end_date' => $request->get('end_date')
+                ]
             ]);
 
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
             $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
             $divisionId = $request->get('division_id');
+            $shiftId = $request->get('shift_id');
+            $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
 
             // If date filter is provided, calculate dates
@@ -1684,6 +1777,12 @@ class DailyScheduleController extends Controller
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
             }
+
+            \Log::info('Date range calculated for report', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
 
             // Build query to get users with their schedules
             $users = DB::table('users')
@@ -1701,9 +1800,20 @@ class DailyScheduleController extends Controller
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
+                \Log::info('Division filter applied', ['division_id' => $divisionId]);
+            }
+
+            if ($userName) {
+                $users->where('users.u_name', 'like', '%' . $userName . '%');
+                \Log::info('User name filter applied', ['user_name' => $userName]);
             }
 
             $users = $users->get();
+
+            \Log::info('Users query result', [
+                'users_count' => $users->count(),
+                'query_success' => true
+            ]);
 
             // Get schedules for the date range
             $schedules = DB::table('daily_schedules')
@@ -1711,25 +1821,88 @@ class DailyScheduleController extends Controller
                     'daily_schedules.user_id',
                     'daily_schedules.ds_date',
                     'daily_schedules.sc_id',
-                    'shift_codes.sc_code'
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate])
-                ->get();
+                ->whereBetween('ds_date', [$startDate, $endDate]);
+
+            // Apply shift filter if provided
+            if ($shiftId) {
+                $schedules->where('daily_schedules.sc_id', $shiftId);
+                \Log::info('Shift filter applied', ['shift_id' => $shiftId]);
+            }
+
+            $schedules = $schedules->get();
+
+            \Log::info('Schedules query result', [
+                'schedules_count' => $schedules->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
 
             // Combine users with their schedules
             $exportData = [];
+            
+            // Group schedules by division and user (same structure as weeklyReport)
+            $groupedSchedules = [];
+            
+            // First, create a map of user data for easy access
+            $userMap = [];
             foreach ($users as $user) {
-                $userSchedules = $schedules->where('user_id', $user->user_id);
+                $userMap[$user->user_id] = $user;
+            }
+            
+            foreach ($schedules as $schedule) {
+                $userId = $schedule->user_id;
+                $user = $userMap[$userId] ?? null;
                 
-                $exportData[] = (object) [
-                    'user_id' => $user->user_id,
+                if ($user) {
+                    $divisionName = $user->ud_name ?: 'No Division';
+                    $date = $schedule->ds_date;
+                    
+                    if (!isset($groupedSchedules[$divisionName])) {
+                        $groupedSchedules[$divisionName] = [];
+                    }
+                    
+                    if (!isset($groupedSchedules[$divisionName][$userId])) {
+                        $groupedSchedules[$divisionName][$userId] = [
+                            'user_id' => $userId,
                     'u_nip' => $user->u_nip,
                     'u_name' => $user->u_name,
                     'ud_name' => $user->ud_name,
-                    'ut_name' => $user->ut_name,
-                    'schedules' => $userSchedules
-                ];
+                            'schedules' => []
+                        ];
+                    }
+                    
+                    $groupedSchedules[$divisionName][$userId]['schedules'][$date] = [
+                        'sc_code' => $schedule->sc_code,
+                        'sc_shift_name' => $schedule->sc_shift_name,
+                        'sc_start_time' => $schedule->sc_start_time,
+                        'sc_end_time' => $schedule->sc_end_time
+                    ];
+                }
+            }
+            
+            // Add users without schedules
+            foreach ($users as $user) {
+                $divisionName = $user->ud_name ?: 'No Division';
+                $userId = $user->user_id;
+                
+                if (!isset($groupedSchedules[$divisionName])) {
+                    $groupedSchedules[$divisionName] = [];
+                }
+                
+                if (!isset($groupedSchedules[$divisionName][$userId])) {
+                    $groupedSchedules[$divisionName][$userId] = [
+                        'user_id' => $userId,
+                        'u_nip' => $user->u_nip,
+                        'u_name' => $user->u_name,
+                        'ud_name' => $user->ud_name,
+                        'schedules' => []
+                    ];
+                }
             }
 
             \Log::info('Public Export Weekly Report - Data Prepared', [
@@ -1738,7 +1911,13 @@ class DailyScheduleController extends Controller
                 'export_data_count' => count($exportData),
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
-                'end_date' => $endDate
+                'end_date' => $endDate,
+                'filters_summary' => [
+                    'division_filtered' => $divisionId ? 'Yes' : 'No',
+                    'shift_filtered' => $shiftId ? 'Yes' : 'No',
+                    'user_name_filtered' => $userName ? 'Yes' : 'No',
+                    'date_filtered' => $dateFilter
+                ]
             ]);
 
             // Generate filename
@@ -1759,7 +1938,8 @@ class DailyScheduleController extends Controller
             \Log::error('Public Export Weekly Report Error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
             ]);
             return response()->json([
                 'success' => false,
@@ -1775,7 +1955,12 @@ class DailyScheduleController extends Controller
     {
         try {
             \Log::info('Public Export Weekly Schedule PDF Started', [
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
+                'filters_applied' => [
+                    'division_id' => $request->get('division_id'),
+                    'search' => $request->get('search'),
+                    'date_filter' => $request->get('date_filter', 'this_week')
+                ]
             ]);
 
             $divisionId = $request->get('division_id');
@@ -1784,6 +1969,12 @@ class DailyScheduleController extends Controller
 
             $startDate = $this->getDateRangeFromFilter($dateFilter)['startDate'];
             $endDate = $this->getDateRangeFromFilter($dateFilter)['endDate'];
+
+            \Log::info('Date range calculated for PDF', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
 
             // Build query to get users with their schedules
             $users = DB::table('users')
@@ -1801,6 +1992,7 @@ class DailyScheduleController extends Controller
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
+                \Log::info('Division filter applied for PDF', ['division_id' => $divisionId]);
             }
 
             if ($search) {
@@ -1808,9 +2000,15 @@ class DailyScheduleController extends Controller
                     $q->where('users.u_name', 'like', '%' . $search . '%')
                       ->orWhere('users.u_nip', 'like', '%' . $search . '%');
                 });
+                \Log::info('Search filter applied for PDF', ['search' => $search]);
             }
 
             $users = $users->get();
+
+            \Log::info('Users query result for PDF', [
+                'users_count' => $users->count(),
+                'query_success' => true
+            ]);
 
             // Get schedules for the date range
             $schedules = DB::table('daily_schedules')
@@ -1818,18 +2016,30 @@ class DailyScheduleController extends Controller
                     'daily_schedules.user_id',
                     'daily_schedules.ds_date',
                     'daily_schedules.sc_id',
-                    'shift_codes.sc_code'
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate])
-                ->get();
+                ->whereBetween('ds_date', [$startDate, $endDate]);
+
+            \Log::info('Schedules query result for PDF', [
+                'schedules_count' => $schedules->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
 
             \Log::info('Public Export Weekly Schedule PDF - Data Prepared', [
                 'users_count' => $users->count(),
                 'schedules_count' => $schedules->count(),
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
-                'end_date' => $endDate
+                'end_date' => $endDate,
+                'filters_summary' => [
+                    'division_filtered' => $divisionId ? 'Yes' : 'No',
+                    'search_filtered' => $search ? 'Yes' : 'No',
+                    'date_filtered' => $dateFilter
+                ]
             ]);
 
             // Generate HTML content untuk dimasukkan ke PDF
@@ -1853,103 +2063,12 @@ class DailyScheduleController extends Controller
             \Log::error('Public Export Weekly Schedule PDF Error: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
             ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat export PDF: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Export weekly report to PDF (Public - No Auth Required)
-     */
-    public function exportWeeklyReportPDFPublic(Request $request)
-    {
-        try {
-            \Log::info('Public Export Weekly Report PDF Started', [
-                'request_data' => $request->all()
-            ]);
-
-            $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
-            $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
-            $divisionId = $request->get('division_id');
-            $dateFilter = $request->get('date_filter', 'this_week');
-
-            // If date filter is provided, calculate dates
-            if ($dateFilter && $dateFilter !== 'custom') {
-                $dateRange = $this->getDateRangeFromFilter($dateFilter);
-                $startDate = $dateRange['startDate'];
-                $endDate = $dateRange['endDate'];
-            }
-
-            // Build query to get users with their schedules
-            $users = DB::table('users')
-                ->select([
-                    'users.id as user_id',
-                    'users.u_nip',
-                    'users.u_name',
-                    'user_divisions.ud_name',
-                    'user_types.ut_name'
-                ])
-                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
-
-            // Apply filters
-            if ($divisionId) {
-                $users->where('users.ud_id', $divisionId);
-            }
-
-            $users = $users->get();
-
-            // Get schedules for the date range
-            $schedules = DB::table('daily_schedules')
-                ->select([
-                    'daily_schedules.user_id',
-                    'daily_schedules.ds_date',
-                    'daily_schedules.sc_id',
-                    'shift_codes.sc_code'
-                ])
-                ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate])
-                ->get();
-
-            \Log::info('Public Export Weekly Report PDF - Data Prepared', [
-                'users_count' => $users->count(),
-                'schedules_count' => $schedules->count(),
-                'date_filter' => $dateFilter,
-                'start_date' => $startDate,
-                'end_date' => $endDate
-            ]);
-
-            // Generate HTML content for report
-            $htmlContent = $this->generateWeeklyReportHTML($users, $schedules, $startDate, $endDate);
-            
-            // Generate PDF
-            $pdf = Pdf::loadHTML($htmlContent)
-                      ->setPaper('a4', 'landscape'); // Use landscape for better table fit
-            
-            // Generate filename
-            $filename = 'weekly-schedule-report-' . $startDate . '-' . $endDate . '.pdf';
-            
-            \Log::info('Public Export Weekly Report PDF - Using PDF Facade', [
-                'filename' => $filename
-            ]);
-
-            // Download PDF
-            return $pdf->download($filename);
-
-        } catch (\Exception $e) {
-            \Log::error('Public Export Weekly Report PDF Error: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat export report PDF: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -2075,6 +2194,8 @@ class DailyScheduleController extends Controller
             th { background-color: #f5f5f5; font-weight: bold; }
             .user-info { background-color: #f9f9f9; }
             .shift-cell { min-width: 80px; }
+            .shift-name { background-color: #e3f2fd; }
+            .start-shift { background-color: #fff3e0; }
         </style></head><body>";
         
         $html .= "<h1>Weekly Schedule Report</h1>";
@@ -2082,17 +2203,27 @@ class DailyScheduleController extends Controller
         
         $html .= "<table>";
         
-        // Header row
+        // First header row - Date headers with colspan=2
         $html .= "<tr>";
-        $html .= "<th>NIP</th>";
-        $html .= "<th>Nama Staff</th>";
-        $html .= "<th>Divisi</th>";
-        $html .= "<th>User Type</th>";
+        $html .= "<th rowspan='2' style='width: 250px;'>NAMA</th>";
         
-        // Daily headers
+        // Daily headers with colspan=2
         $currentDate = \Carbon\Carbon::parse($startDate);
         while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
-            $html .= "<th class='shift-cell'>" . $currentDate->format('D d-M') . "</th>";
+            $html .= "<th colspan='2' class='shift-cell' style='min-width: 240px;'>";
+            $html .= "<div style='font-weight: bold;'>" . $currentDate->format('l') . "</div>";
+            $html .= "<div style='font-size: 12px;'>" . $currentDate->format('d M') . "</div>";
+            $html .= "</th>";
+            $currentDate->addDay();
+        }
+        $html .= "</tr>";
+        
+        // Second header row - Shift Name and Start Shift
+        $html .= "<tr>";
+        $currentDate = \Carbon\Carbon::parse($startDate);
+        while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
+            $html .= "<th class='shift-name' style='width: 120px;'><small>Shift Name</small></th>";
+            $html .= "<th class='start-shift' style='width: 120px;'><small>Start Shift</small></th>";
             $currentDate->addDay();
         }
         $html .= "</tr>";
@@ -2100,12 +2231,14 @@ class DailyScheduleController extends Controller
         // Data rows
         foreach ($users as $user) {
             $html .= "<tr>";
-            $html .= "<td class='user-info'>" . ($user->u_nip ?? '-') . "</td>";
-            $html .= "<td class='user-info'>" . ($user->u_name ?? '-') . "</td>";
-            $html .= "<td class='user-info'>" . ($user->ud_name ?? '-') . "</td>";
-            $html .= "<td class='user-info'>" . ($user->ut_name ?? 'FULL TIME') . "</td>";
             
-            // Daily shift data
+            // NAMA column with NIP below (same format as weekly report table)
+            $html .= "<td class='user-info' style='font-size: 14px; width: 250px;'>";
+            $html .= "<div style='font-weight: bold;'>" . ($user->u_name ?? '-') . "</div>";
+            $html .= "<small style='color: #666;'>" . ($user->u_nip ?? '-') . "</small>";
+            $html .= "</td>";
+            
+            // Daily shift data - 2 columns per day
             $currentDate = \Carbon\Carbon::parse($startDate);
             while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
                 $dateStr = $currentDate->format('Y-m-d');
@@ -2115,10 +2248,31 @@ class DailyScheduleController extends Controller
                                        ->where('ds_date', $dateStr)
                                        ->first();
                 
-                if ($dailySchedule && $dailySchedule->sc_code) {
-                    $html .= "<td class='shift-cell'>" . $dailySchedule->sc_code . "</td>";
+                if ($dailySchedule) {
+                    // Shift Name Column
+                    $shiftName = $dailySchedule->sc_shift_name ?? '';
+                    $shiftCode = $dailySchedule->sc_code ?? '';
+                    
+                    if ($shiftName) {
+                        $html .= "<td class='shift-cell shift-name'>" . $shiftName . " (" . $shiftCode . ")" . "</td>";
                 } else {
-                    $html .= "<td class='shift-cell'>-</td>";
+                        $html .= "<td class='shift-cell shift-name'>" . ($shiftCode ?: '-') . "</td>";
+                    }
+                    
+                    // Start Shift Column
+                    $startTime = $dailySchedule->sc_start_time ?? '';
+                    $endTime = $dailySchedule->sc_end_time ?? '';
+                    
+                    if ($startTime && $endTime) {
+                        $html .= "<td class='shift-cell start-shift'>" . date('H:i', strtotime($startTime)) . " - " . date('H:i', strtotime($endTime)) . "</td>";
+                    } elseif ($startTime) {
+                        $html .= "<td class='shift-cell start-shift'>" . date('H:i', strtotime($startTime)) . "</td>";
+                    } else {
+                        $html .= "<td class='shift-cell start-shift'>-</td>";
+                    }
+                } else {
+                    $html .= "<td class='shift-cell shift-name'>-</td>";
+                    $html .= "<td class='shift-cell start-shift'>-</td>";
                 }
                 
                 $currentDate->addDay();
@@ -2245,6 +2399,147 @@ class DailyScheduleController extends Controller
                 'message' => 'Excel Export Test Failed: ' . $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export weekly report to PDF (Public - No Auth Required)
+     */
+    public function exportWeeklyReportPDFPublic(Request $request)
+    {
+        try {
+            \Log::info('Public Export Weekly Report PDF Started', [
+                'request_data' => $request->all(),
+                'filters_applied' => [
+                    'division_id' => $request->get('division_id'),
+                    'shift_id' => $request->get('shift_id'),
+                    'user_name' => $request->get('user_name'),
+                    'date_filter' => $request->get('date_filter', 'this_week'),
+                    'start_date' => $request->get('start_date'),
+                    'end_date' => $request->get('end_date')
+                ]
+            ]);
+
+            $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
+            $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
+            $divisionId = $request->get('division_id');
+            $shiftId = $request->get('shift_id');
+            $userName = $request->get('user_name');
+            $dateFilter = $request->get('date_filter', 'this_week');
+
+            // If date filter is provided, calculate dates
+            if ($dateFilter && $dateFilter !== 'custom') {
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+            }
+
+            \Log::info('Date range calculated for PDF report', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+
+            // Build query to get users with their schedules
+            $users = DB::table('users')
+                ->select([
+                    'users.id as user_id',
+                    'users.u_nip',
+                    'users.u_name',
+                    'user_divisions.ud_name',
+                    'user_types.ut_name'
+                ])
+                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->where('users.u_delete', '!=', '1');
+
+            // Apply filters
+            if ($divisionId) {
+                $users->where('users.ud_id', $divisionId);
+                \Log::info('Division filter applied for PDF report', ['division_id' => $divisionId]);
+            }
+
+            if ($userName) {
+                $users->where('users.u_name', 'like', '%' . $userName . '%');
+                \Log::info('User name filter applied for PDF report', ['user_name' => $userName]);
+            }
+
+            $users = $users->get();
+
+            \Log::info('Users query result for PDF report', [
+                'users_count' => $users->count(),
+                'query_success' => true
+            ]);
+
+            // Get schedules for the date range
+            $schedules = DB::table('daily_schedules')
+                ->select([
+                    'daily_schedules.user_id',
+                    'daily_schedules.ds_date',
+                    'daily_schedules.sc_id',
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_shift_name'
+                ])
+                ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+                ->whereBetween('ds_date', [$startDate, $endDate]);
+
+            // Apply shift filter if provided
+            if ($shiftId) {
+                $schedules->where('daily_schedules.sc_id', $shiftId);
+                \Log::info('Shift filter applied for PDF report', ['shift_id' => $shiftId]);
+            }
+
+            $schedules = $schedules->get();
+
+            \Log::info('Schedules query result for PDF report', [
+                'schedules_count' => $schedules->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
+
+            \Log::info('Public Export Weekly Report PDF - Data Prepared', [
+                'users_count' => $users->count(),
+                'schedules_count' => $schedules->count(),
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'filters_summary' => [
+                    'division_filtered' => $divisionId ? 'Yes' : 'No',
+                    'shift_filtered' => $shiftId ? 'Yes' : 'No',
+                    'user_name_filtered' => $userName ? 'Yes' : 'No',
+                    'date_filtered' => $dateFilter
+                ]
+            ]);
+
+            // Generate HTML content for report
+            $htmlContent = $this->generateWeeklyReportHTML($users, $schedules, $startDate, $endDate);
+            
+            // Generate PDF
+            $pdf = Pdf::loadHTML($htmlContent)
+                      ->setPaper('a4', 'landscape'); // Use landscape for better table fit
+            
+            // Generate filename
+            $filename = 'weekly-schedule-report-' . $startDate . '-' . $endDate . '.pdf';
+            
+            \Log::info('Public Export Weekly Report PDF - Using PDF Facade', [
+                'filename' => $filename
+            ]);
+
+            // Download PDF
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            \Log::error('Public Export Weekly Report PDF Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat export report PDF: ' . $e->getMessage()
             ], 500);
         }
     }

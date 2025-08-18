@@ -139,5 +139,25 @@ class User extends Authenticatable
             ->where('group_id', $adminGroupId)
             ->exists();
     }
+
+    public function userDivision()
+    {
+        return $this->belongsTo(UserDivision::class, 'ud_id');
+    }
+
+    public function userPosition()
+    {
+        return $this->belongsTo(UserPosition::class, 'up_id');
+    }
+
+    public function userType()
+    {
+        return $this->belongsTo(UserType::class, 'ut_id');
+    }
+
+    public function dailySchedules()
+    {
+        return $this->hasMany(DailySchedule::class, 'user_id');
+    }
     
 }

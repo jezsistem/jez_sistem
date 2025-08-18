@@ -1,5 +1,105 @@
 @extends('app.structure')
 @section('content')
+
+<style>
+/* Custom CSS for Metronic dropdown menu */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.menu.menu-sub-dropdown {
+    z-index: 9999 !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    margin-top: 5px !important;
+    min-width: 150px !important;
+    background: white !important;
+    border: 1px solid #e4e6ef !important;
+    border-radius: 0.475rem !important;
+    box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Ensure proper positioning for DataTables */
+.dataTables_wrapper .dataTables_processing {
+    z-index: 9998;
+}
+
+/* Fix for menu positioning in table cells */
+#leaveRequestTable td {
+    position: relative;
+}
+
+/* Menu item styling */
+.menu-item .menu-link {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: #3f4254 !important;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.menu-item .menu-link:hover {
+    background-color: #f3f6f9 !important;
+    color: #3699FF !important;
+}
+
+.menu-item .menu-link.text-danger {
+    color: #f64e60 !important;
+}
+
+.menu-item .menu-link.text-danger:hover {
+    background-color: #ffe2e5 !important;
+    color: #f64e60 !important;
+}
+
+.menu-item .menu-link.text-success {
+    color: #1bc5bd !important;
+}
+
+.menu-item .menu-link.text-success:hover {
+    background-color: #e1f0ff !important;
+    color: #1bc5bd !important;
+}
+.bg-all {
+    background-color: #FFEBEB;
+}
+.bg-other {
+    background-color: #F1F1F4;
+}
+/* Button styling for menu trigger */
+[data-kt-menu-trigger="click"] {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* SVG icon styling */
+.svg-icon {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.svg-icon svg {
+    width: 1em;
+    height: 1em;
+}
+
+/* Fallback menu system styles */
+.menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.menu:not(.show) {
+    display: none !important;
+}
+</style>
+
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <!--begin::Subheader-->
@@ -26,68 +126,68 @@
             <!-- Statistics Cards -->
             <div class="row mb-4">
                 <div class="col-lg-3 col-md-4">
-                    <div class="card card-custom rounded-lg bg-dark">
+                    <div class="card card-custom rounded-lg bg-all">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 symbol-primary mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-calendar-tick text-white"></i>
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label text-dark">
+                                        <i class="ki-outline ki-calendar-tick text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-white font-weight-bold font-size-h6">{{ $leaveRequests->count() }}</div>
-                                    <div class="text-white-50">Total Requests</div>
+                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->count() }}</div>
+                                    <div class="text-dark-50">Total Requests</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <div class="card card-custom rounded-lg bg-warning">
+                    <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 symbol-warning mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-clock text-white"></i>
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label bg-white text-dark">
+                                        <i class="ki-outline ki-loading text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-white font-weight-bold font-size-h6">{{ $leaveRequests->where('lr_status', 'pending')->count() }}</div>
-                                    <div class="text-white-50">Pending</div>
+                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->where('lr_status', 'pending')->count() }}</div>
+                                    <div class="text-dark-50">Pending</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <div class="card card-custom rounded-lg bg-success">
+                    <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 symbol-success mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-check text-white"></i>
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label bg-white text-dark">
+                                        <i class="ki-outline ki-check-circle text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-white font-weight-bold font-size-h6">{{ $leaveRequests->where('lr_status', 'approved')->count() }}</div>
-                                    <div class="text-white-50">Approved</div>
+                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->where('lr_status', 'approved')->count() }}</div>
+                                    <div class="text-dark-50">Approved</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <div class="card card-custom rounded-lg bg-danger">
+                    <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 symbol-danger mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-cross text-white"></i>
+                                <div class="symbol symbol-40  mr-4">
+                                    <span class="symbol-label bg-white text-dark">
+                                        <i class="ki-outline ki-cross-circle text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-white font-weight-bold font-size-h6">{{ $leaveRequests->where('lr_status', 'rejected')->count() }}</div>
-                                    <div class="text-white-50">Rejected</div>
+                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->where('lr_status', 'rejected')->count() }}</div>
+                                    <div class="text-dark-50">Rejected</div>
                                 </div>
                             </div>
                         </div>

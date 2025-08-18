@@ -46,6 +46,21 @@
     .table-striped tbody tr:nth-of-type(odd) {
         background-color: rgba(0,0,0,.02);
     }
+    .btn-red {
+        background-color: #EE2A41;
+        color: #ffffff;
+        border-color: #EE2A41;
+    }
+    .btn-red i{
+        color: #ffffff;
+    }
+
+    .btn-red:hover {
+        background-color:rgb(218, 31, 53);
+        color: #ffffff;
+        border-color: #EE2A41;
+    }
+    .btn-red:focus, .btn-red.focus {}
 </style>
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
@@ -115,7 +130,7 @@
                                          <span id="breakButtonText">Start Break</span>
                                     </button>
                                     <div id="breakTimer" class="text-white h4 mb-0" style="display: none;">
-                                        <i class="fas fa-clock"></i> <span id="timerDisplay">00:00</span>
+                                        <i class="fas fa-clock text-white mr-2"></i> <span id="timerDisplay">00:00</span>
                                         <div class="text-white-50 small mt-1">
                                             <span id="breakTypeDisplay">Break Time</span> - <span id="durationDisplay">Remaining</span>
                                         </div>

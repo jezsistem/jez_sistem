@@ -21,83 +21,80 @@
         <!--begin::Container-->
         <div class="container-fluid">
             <div class="card card-custom">
-                <div class="card-header">
-                    <h3 class="card-title">Upload Data Absensi</h3>
-                </div>
-                <div class="card-body">
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible">
-                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                            {{ session('error') }}
-                        </div>
-                    @endif
+                <form action="{{ route('attendance.process-upload') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                    <div class="card-body">
+                        @if(session('error'))
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                {{ session('error') }}
+                            </div>
+                        @endif
 
-                    <div class="alert alert-info">
-                        <h5><i class="fas fa-info-circle"></i> Format File Excel Fingerprint</h5>
-                        <p>File Excel harus memiliki format sesuai dengan hasil export dari mesin fingerprint:</p>
-                        <ul>
-                            <li><strong>Kolom A:</strong> Cloud ID</li>
-                            <li><strong>Kolom B:</strong> ID Karyawan (akan dicocokkan dengan NIP di database)</li>
-                            <li><strong>Kolom C:</strong> Nama Karyawan</li>
-                            <li><strong>Kolom D:</strong> Tanggal Absensi (format: YYYY-MM-DD)</li>
-                            <li><strong>Kolom E:</strong> Jam Absensi (format: HH:MM)</li>
-                            <li><strong>Kolom F:</strong> Verifikasi (Sidik Jari)</li>
-                            <li><strong>Kolom G:</strong> Tipe Absensi (Absensi Masuk/Absensi Pulang)</li>
-                        </ul>
-                        <p><strong>Catatan:</strong></p>
-                        <ul>
-                            <li>Baris pertama adalah header (akan diabaikan)</li>
-                            <li>ID Karyawan harus sesuai dengan NIP di database</li>
-                            <li>Sistem akan otomatis menggabungkan data masuk dan pulang untuk karyawan yang sama</li>
-                            <li>Status absensi akan diproses otomatis berdasarkan jadwal</li>
-                            <li>Data duplikat akan diupdate, bukan ditolak</li>
-                        </ul>
-                        <p><strong>Contoh Format:</strong></p>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Cloud ID</th>
-                                        <th>ID</th>
-                                        <th>Nama Karyawan</th>
-                                        <th>Tanggal</th>
-                                        <th>Jam</th>
-                                        <th>Verifikasi</th>
-                                        <th>Tipe</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>C263045107152E23</td>
-                                        <td>24030301</td>
-                                        <td>YAS MELLYSARI DWI ANGIONO PUTRI</td>
-                                        <td>2025-07-31</td>
-                                        <td>08:00</td>
-                                        <td>Sidik Jari</td>
-                                        <td>Absensi Masuk</td>
-                                    </tr>
-                                    <tr>
-                                        <td>C263045107152E23</td>
-                                        <td>24030301</td>
-                                        <td>YAS MELLYSARI DWI ANGIONO PUTRI</td>
-                                        <td>2025-07-31</td>
-                                        <td>17:00</td>
-                                        <td>Sidik Jari</td>
-                                        <td>Absensi Pulang</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="alert alert-light rounded-lg p-8">
+                            <h5 class="text-dark font-weight-bold  mb-3"><i class="ki-outline ki-info-circle"></i> Format File Excel Fingerprint</h5>
+                            <p>File Excel harus memiliki format sesuai dengan hasil export dari mesin fingerprint:</p>
+                            <ul>
+                                <li><strong>Kolom A:</strong> Cloud ID</li>
+                                <li><strong>Kolom B:</strong> ID Karyawan (akan dicocokkan dengan NIP di database)</li>
+                                <li><strong>Kolom C:</strong> Nama Karyawan</li>
+                                <li><strong>Kolom D:</strong> Tanggal Absensi (format: YYYY-MM-DD)</li>
+                                <li><strong>Kolom E:</strong> Jam Absensi (format: HH:MM)</li>
+                                <li><strong>Kolom F:</strong> Verifikasi (Sidik Jari)</li>
+                                <li><strong>Kolom G:</strong> Tipe Absensi (Absensi Masuk/Absensi Pulang)</li>
+                            </ul>
+                            <p><strong>Catatan:</strong></p>
+                            <ul>
+                                <li>Baris pertama adalah header (akan diabaikan)</li>
+                                <li>ID Karyawan harus sesuai dengan NIP di database</li>
+                                <li>Sistem akan otomatis menggabungkan data masuk dan pulang untuk karyawan yang sama</li>
+                                <li>Status absensi akan diproses otomatis berdasarkan jadwal</li>
+                                <li>Data duplikat akan diupdate, bukan ditolak</li>
+                            </ul>
+                            <p><strong>Contoh Format:</strong></p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Cloud ID</th>
+                                            <th>ID</th>
+                                            <th>Nama Karyawan</th>
+                                            <th>Tanggal</th>
+                                            <th>Jam</th>
+                                            <th>Verifikasi</th>
+                                            <th>Tipe</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>C263045107152E23</td>
+                                            <td>24030301</td>
+                                            <td>YAS MELLYSARI DWI ANGIONO PUTRI</td>
+                                            <td>2025-07-31</td>
+                                            <td>08:00</td>
+                                            <td>Sidik Jari</td>
+                                            <td>Absensi Masuk</td>
+                                        </tr>
+                                        <tr>
+                                            <td>C263045107152E23</td>
+                                            <td>24030301</td>
+                                            <td>YAS MELLYSARI DWI ANGIONO PUTRI</td>
+                                            <td>2025-07-31</td>
+                                            <td>17:00</td>
+                                            <td>Sidik Jari</td>
+                                            <td>Absensi Pulang</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-
-                    <form action="{{ route('attendance.process-upload') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
+                    
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="excel_file">File Excel <span class="text-danger">*</span></label>
                                     <input type="file" class="form-control @error('excel_file') is-invalid @enderror" 
-                                           id="excel_file" name="excel_file" accept=".xls,.xlsx" required>
+                                        id="excel_file" name="excel_file" accept=".xls,.xlsx" required>
                                     <small class="form-text text-muted">Format yang didukung: .xls, .xlsx (Maksimal 2MB)</small>
                                     @error('excel_file')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -105,18 +102,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-upload"></i> Upload dan Proses
-                                </button>
-                                <a href="{{ route('attendance.index') }}" class="btn btn-secondary">
-                                    <i class="ki-outline ki-left"></i> Kembali
-                                </a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                            
+                    </div>
+                    <div class="card-footer d-flex justify-content-end">
+                        <a href="{{ route('attendance.index') }}" class="btn btn-dark mr-2">
+                           Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                             Upload 
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
         <!--end::Container-->
@@ -160,3 +156,4 @@ $(document).ready(function() {
 });
 </script>
 @endsection 
+@include('app._partials.js')

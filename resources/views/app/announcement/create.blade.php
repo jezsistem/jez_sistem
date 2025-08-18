@@ -480,3 +480,4 @@
 </script>
 
 @endsection
+@include('app._partials.js')

@@ -98,7 +98,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="sc_start_time">Waktu Mulai</label>
+                                    <label for="sc_start_time">Jam Mulai</label>
                                     <input type="time" class="form-control @error('sc_start_time') is-invalid @enderror" 
                                            id="sc_start_time" name="sc_start_time" value="{{ old('sc_start_time') }}">
                                     @error('sc_start_time')
@@ -109,7 +109,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="sc_end_time">Waktu Berakhir</label>
+                                    <label for="sc_end_time">Jam Berakhir</label>
                                     <input type="time" class="form-control @error('sc_end_time') is-invalid @enderror" 
                                            id="sc_end_time" name="sc_end_time" value="{{ old('sc_end_time') }}">
                                     @error('sc_end_time')
@@ -122,12 +122,13 @@
                         <div class="card-footer">
                             <div class="row float-right">
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-primary mr-3">
-                                        Simpan
-                                    </button>
-                                    <a href="{{ route('shift-codes.index') }}" class="btn btn-dark">
-                                        Batal
+                                    <a href="{{ route('shift-codes.index') }}" class="btn btn-dark mr-2">
+                                        Cancel
                                     </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        Submit
+                                    </button>
+
                                 </div>
                             </div>
                         </div>
@@ -157,3 +158,4 @@ $(document).ready(function() {
 });
 </script>
 @endsection 
+@include('app._partials.js')

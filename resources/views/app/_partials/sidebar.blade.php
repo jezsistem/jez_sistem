@@ -27,13 +27,181 @@
                     <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
                 </li>
                 @if (!empty($row->ma))
+                    @if ($row->mt_title == 'Human Resource')
+                        <!-- HR Menu with Sub-menus -->
+                        <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
+                            <a href="javascript:;" class="menu-link menu-toggle">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Staff</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="menu-sub menu-sub-accordion">
+                                <ul class="menu-subnav">
+                                    <li class="menu-item">
+                                        <a href="{{ url('/user-positions') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">User Position</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/user-divisions') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">User Division</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/user-types') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">User Type</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/staff') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Staff</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
+                            <a href="javascript:;" class="menu-link menu-toggle">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Schedule</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="menu-sub menu-sub-accordion">
+                                <ul class="menu-subnav">
+                                    <li class="menu-item">
+                                        <a href="{{ url('/shift-codes') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Shift</span>
+                                        </a>
+                                    </li>
+                                    <!-- <li class="menu-item">
+                                        <a href="{{ url('/daily-schedules') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Schedule</span>
+                                        </a>
+                                    </li> -->
+                                    <li class="menu-item">
+                                        <a href="{{ url('/daily-schedules/weekly') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Weekly Input</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/daily-schedules/weekly-report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Weekly Report</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <li class="menu-item menu-accordion {{ request()->is('leave-types*') || request()->is('leave-requests*') ? 'active' : '' }}" data-menu-toggle="hover" aria-haspopup="true">
+                            <a href="javascript:;" class="menu-link menu-toggle">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Leave</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="menu-sub menu-sub-accordion">
+                                <ul class="menu-subnav">
+                                    <li class="menu-item {{ request()->is('leave-types*') ? 'active' : '' }}">
+                                        <a href="{{ url('/leave-types') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Leave Type</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
+                                        <a href="{{ url('/leave-requests') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Leave Request</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <li class="menu-item" aria-haspopup="true" data-menu-toggle="hover">
+                            <a href="{{ url('/attendance') }}" class="menu-link menu-toggle {{ request()->is('attendance*') ? 'active' : '' }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Attendance</span>
+                            </a>
+                        </li>
+                        
+                        <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
+                            <a href="javascript:;" class="menu-link menu-toggle">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Break Time</span>
+                                <i class="menu-arrow"></i>
+                            </a>
+                            <div class="menu-sub menu-sub-accordion">
+                                <ul class="menu-subnav">
+                                    <li class="menu-item">
+                                        <a href="{{ url('/break-times') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Break Control</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/break-times/report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Report</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
+                            <a href="javascript:;" class="menu-link menu-toggle">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Announcement</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="menu-sub menu-sub-accordion">
+                                <ul class="menu-subnav">
+                                    <li class="menu-item">
+                                        <a href="{{ url('/announcements') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">View Announcements</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/announcements/manage') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Manage</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/announcement-categories') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Category</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/announcement-reactions') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Reaction</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    @else
+                        <!-- Other menus without sub-menus -->
                 @foreach ($row->ma as $crow)
                 <li class="menu-item" aria-haspopup="true" data-menu-toggle="hover">
                     <a href="{{ url('/') }}/{{ $crow->ma_slug }}" class="menu-link menu-toggle">
-                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>                        <span class="menu-text">{{ $crow->ma_title }}</span>
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">{{ $crow->ma_title }}</span>
                     </a>
                 </li>
                 @endforeach
+                    @endif
                 @endif
                 @endforeach
                 @endif

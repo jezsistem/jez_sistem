@@ -184,3 +184,4 @@ $(document).ready(function() {
 });
 </script>
 @endsection 
+@include('app._partials.js')

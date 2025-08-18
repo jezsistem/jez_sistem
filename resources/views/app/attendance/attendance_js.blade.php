@@ -1,25 +1,24 @@
 <script>
-    $(document).ready(function() {
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-        
-        var attendanceTable = $('#attendanceTable').DataTable({
+    // Global reference for DataTable
+    window.attendanceTable = null;
+
+    // Robust DataTable initialization with retry mechanism
+    function initDataTable() {
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.log('DataTable not available, retrying in 100ms...');
+            setTimeout(initDataTable, 100);
+            return;
+        }
+
+        try {
+            console.log('Initializing attendance DataTable...');
+            
+            window.attendanceTable = $('#attendanceTable').DataTable({
             destroy: true,
             processing: true,
             serverSide: true,
-            responsive: true,
+                responsive: false, // Set to false to prevent conflicts
             dom: 'rt<"pagination-class"ip>',
-            // buttons: [
-            //     { 
-            //         "extend": 'excelHtml5', 
-            //         "text": '<i class="fas fa-file-excel"></i> Excel',
-            //         "className": 'btn btn-success btn-sm',
-            //         "title": 'Data Absensi'
-            //     }
-            // ],
             ajax: {
                 url : "{{ route('attendance.datatables') }}",
                 data : function (d) {
@@ -34,6 +33,8 @@
                     d.division_id = $('#division_id').val();
                     d.status = $('#status').val();
                     
+                        console.log('Status filter value:', $('#status').val());
+                        console.log('Status filter element:', $('#status').length);
                     console.log('AJAX Data sent:', d);
                 },
                 dataSrc: function(json) {
@@ -42,27 +43,26 @@
                 }
             },
             columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
-                { data: 'at_date', name: 'at_date', width: '10%' },
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '3%' },
+                { data: 'at_date', name: 'at_date', width: '7%' },
                 { 
                     data: 'u_name', 
                     name: 'u_name', 
-                    width: '18%',
+                    width: '14%',
                     render: function(data, type, row) {
                         if (type === 'display') {
-                            return '<a href="/attendance/staff/' + row.user_id + '" class="text-primary font-weight-bold" style="cursor: pointer;">' + data + '</a>';
+                            return '<a href="/attendance/staff/' + row.user_id + '" class="text-primary font-weight-bold" style="cursor: pointer;line-height: 1.2;">' + data + '</a><br><span class="text-muted">' + (row.u_nip || '-') + '</span>';
                         }
                         return data;
                     }
                 },
-                { data: 'u_nip', name: 'u_nip', width: '12%' },
-                { data: 'ud_name', name: 'ud_name', width: '15%' },
+                { data: 'ud_name', name: 'ud_name', width: '10%' },
                 { data: 'sc_code', name: 'sc_code', width: '10%' },
                 { data: 'at_time_in', name: 'at_time_in', width: '10%' },
                 { data: 'at_time_out', name: 'at_time_out', width: '10%' },
-                { data: 'at_status', name: 'at_status', width: '12%' },
+                { data: 'at_status', name: 'at_status', width: '10%' },
                 { data: 'at_notes', name: 'at_notes', width: '15%' },
-                { data: 'action', name: 'action', orderable: false, searchable: false, width: '8%' },
+                { data: 'action', name: 'action', orderable: false, searchable: false, width: '17%' },
             ],
             columnDefs: [
                 {
@@ -79,13 +79,13 @@
                     "className": "text-center"
                 },
                 {
-                    "targets": 10,
+                    "targets": 9,
                     "className": "text-center"
                 }
             ],
             "createdRow": function(row, data, dataIndex) {
                 // Handle status display for leave
-                var statusCell = $(row).find('td:eq(8)'); // Status column
+                var statusCell = $(row).find('td:eq(7)'); // Status column (index 7 karena kolom NIP dihilangkan)
                 var status = data.at_status;
                 
                 if (status && status.startsWith('leave_')) {
@@ -134,38 +134,21 @@
                 "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
                 "sInfoPostFix":  "",
                 "sSearch":       "Cari:",
-                "sUrl":          "",
-                // "oPaginate": {
-                //     "sFirst":    "Pertama",
-                //     "sPrevious": "Sebelumnya",
-                //     "sNext":     "Selanjutnya",
-                //     "sLast":     "Terakhir"
-                // }
-            }
-        });
-        
-        // Refresh table when filter form is submitted
-        $('form').on('submit', function() {
-            attendanceTable.draw();
-        });
-        
-        // Auto refresh table when filter values change
-        $('#start_date, #end_date, #user_id, #division_id, #status').on('change', function() {
-            attendanceTable.draw();
-        });
-        
-        // Handle form submission to update statistics
-        $('form[method="GET"]').on('submit', function(e) {
-            // Let the form submit normally to refresh the page with new statistics
-            // The table will be refreshed automatically
-        });
+                    "sUrl":          ""
+                }
+            });
+            
+            console.log('Attendance DataTable initialized successfully');
+            
+            // Initialize dropdown menu system
+            initializeSimpleDropdown();
         
         // Search functionality with debounce
         var searchTimeout;
         $('#attendance_search').on('keyup input', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(function() {
-                attendanceTable.draw(false);
+                    window.attendanceTable.draw(false);
             }, 300);
         });
         
@@ -174,14 +157,90 @@
         console.log('Search input value on load:', $('#attendance_search').val());
         
         // Auto reload table on page load to show data with default filters
+        // Delay longer to ensure session messages are visible
         setTimeout(function() {
-            attendanceTable.draw();
-        }, 500);
+                window.attendanceTable.draw();
+        }, 2000);
+            
+        } catch (error) {
+            console.error('Error initializing attendance DataTable:', error);
+            setTimeout(initDataTable, 100);
+        }
+    }
+
+    $(document).ready(function() {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        
+        // Initialize DataTable
+        initDataTable();
     });
+
+    // Simple working dropdown solution
+    function initializeSimpleDropdown() {
+        console.log('Initializing simple dropdown system for Attendance');
+        
+        // Remove any existing event handlers
+        $(document).off('click', '[data-kt-menu-trigger="click"]');
+        
+        // Add click handler for dropdown toggle
+        $(document).on('click', '[data-kt-menu-trigger="click"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var $this = $(this);
+            var $menu = $this.siblings('.menu');
+            
+            console.log('Dropdown clicked, menu found:', $menu.length);
+            
+            // Close all other menus first
+            $('.menu').not($menu).removeClass('show');
+            
+            // Toggle current menu
+            $menu.toggleClass('show');
+            
+            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+        });
+        
+        // Close menu when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.dropdown').length) {
+                $('.menu').removeClass('show');
+            }
+        });
+        
+        // Close menu when clicking on menu items
+        $(document).on('click', '.menu-link', function(e) {
+            if ($(this).attr('onclick')) {
+                // For buttons with onclick, let the onclick handle it
+                return;
+            }
+            // For other links, close menu after a short delay
+            setTimeout(function() {
+                $('.menu').removeClass('show');
+            }, 100);
+        });
+        
+        console.log('Simple dropdown system initialized for Attendance');
+    }
+
+    // Re-initialize dropdown on each draw
+    if (window.attendanceTable) {
+        window.attendanceTable.on('draw.dt', function() {
+            setTimeout(initializeSimpleDropdown, 100);
+        });
+    }
     
     // Apply filters function
     function applyFilters() {
+        if (window.attendanceTable) {
+            window.attendanceTable.ajax.reload();
+        } else {
         $('#attendanceTable').DataTable().ajax.reload();
+        }
     }
     
     // Delete attendance function
@@ -195,7 +254,11 @@
                 },
                 success: function(response) {
                     if (response.success) {
+                        if (window.attendanceTable) {
+                            window.attendanceTable.draw();
+                        } else {
                         $('#attendanceTable').DataTable().draw();
+                        }
                         // Show success message
                         $('<div class="alert alert-success alert-dismissible">' +
                           '<button type="button" class="close" data-dismiss="alert">&times;</button>' +

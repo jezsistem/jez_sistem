@@ -97,9 +97,29 @@ class UserTypeController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        $this->validateAccess();
+
+        $userType = DB::table('user_types')->where('id', $id)->first();
+
+        if ($userType) {
+            return response()->json(['success' => true, 'data' => $userType]);
+        } else {
+            return response()->json(['success' => false, 'message' => 'User type not found'], 404);
+        }
+    }
+
     public function update(Request $request, $id)
     {
         $this->validateAccess();
+
+        // Log the incoming request data
+        \Log::info('UserType Update Request', [
+            'id' => $id,
+            'request_data' => $request->all(),
+            'user' => auth()->user()->u_name ?? 'system'
+        ]);
 
         $request->validate([
             'ut_code' => 'required|unique:user_types,ut_code,' . $id,
@@ -117,11 +137,48 @@ class UserTypeController extends Controller
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
+        // Log the data to be updated
+        \Log::info('UserType Update Data', [
+            'id' => $id,
+            'update_data' => $data
+        ]);
+
+        // Check if record exists before update
+        $existingRecord = DB::table('user_types')->where('id', $id)->first();
+        if (!$existingRecord) {
+            \Log::error('UserType not found for update', ['id' => $id]);
+            return response()->json(['success' => false, 'message' => 'User type not found'], 404);
+        }
+
+        // Log existing record
+        \Log::info('Existing UserType Record', [
+            'id' => $id,
+            'existing_data' => $existingRecord
+        ]);
+
         $result = DB::table('user_types')->where('id', $id)->update($data);
 
-        if ($result) {
+        // Log the update result
+        \Log::info('UserType Update Result', [
+            'id' => $id,
+            'result' => $result,
+            'affected_rows' => $result
+        ]);
+
+        if ($result !== false) {
+            // Get updated record to verify
+            $updatedRecord = DB::table('user_types')->where('id', $id)->first();
+            \Log::info('Updated UserType Record', [
+                'id' => $id,
+                'updated_data' => $updatedRecord
+            ]);
+            
             return response()->json(['success' => true, 'message' => 'User type updated successfully']);
         } else {
+            \Log::error('UserType Update Failed', [
+                'id' => $id,
+                'error' => DB::getPdo()->errorInfo()
+            ]);
             return response()->json(['success' => false, 'message' => 'Failed to update user type'], 500);
         }
     }
@@ -182,10 +239,36 @@ class UserTypeController extends Controller
                     }
                 })
                 ->addColumn('action', function($row){
-                    $btn = '<div class="btn-group btn-group-sm">';
-                    $btn .= '<button type="button" class="btn btn-warning btn-xs" onclick="editUserType('.$row->id.')" title="Edit"><i class="ki-outline ki-pencil"></i></button>';
-                    $btn .= '<button type="button" class="btn btn-danger btn-xs" onclick="deleteUserType('.$row->id.')" title="Delete"><i class="ki-outline ki-trash"></i></button>';
+                    $btn = '<div class="dropdown">';
+                    $btn .= '    <!--begin::Toggle-->';
+                    $btn .= '    <button type="button" class="btn btn-sm text-dark btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
+                    $btn .= '        Actions';
+                    $btn .= '        <span class="svg-icon fs-5 m-0">';
+                    $btn .= '            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
+                    $btn .= '                <rect opacity="0.5" x="11" y="18" width="12" height="2" rx="1" transform="rotate(-90 11 18)" fill="currentColor"/>';
+                    $btn .= '                <rect x="6" y="11" width="12" height="2" rx="1" fill="currentColor"/>';
+                    $btn .= '            </svg>';
+                    $btn .= '        </span>';
+                    $btn .= '    </button>';
+                    $btn .= '    <!--end::Toggle-->';
+                    
+                    $btn .= '    <!--begin::Menu-->';
+                    $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="editUserType('.$row->id.')" class="menu-link px-3">Edit</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    
+                    $btn .= '        <!--begin::Menu item-->';
+                    $btn .= '        <div class="menu-item px-3">';
+                    $btn .= '            <a href="javascript:void(0)" onclick="deleteUserType('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
+                    $btn .= '        </div>';
+                    $btn .= '        <!--end::Menu item-->';
+                    $btn .= '    </div>';
+                    $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
+                    
                     return $btn;
                 })
                 ->rawColumns(['ut_status', 'action'])

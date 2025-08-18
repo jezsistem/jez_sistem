@@ -1,4 +1,93 @@
 <script>
+    // Global reference for DataTable
+    window.leaveTypeTable = null;
+
+    // Robust DataTable initialization with retry mechanism
+    function initDataTable() {
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.log('DataTable not available, retrying in 100ms...');
+            setTimeout(initDataTable, 100);
+            return;
+        }
+
+        try {
+            console.log('Initializing leave type DataTable...');
+            
+            window.leaveTypeTable = $('#leaveTypeTable').DataTable({
+                destroy: true,
+                processing: true,
+                serverSide: true,
+                responsive: false, // Set to false to prevent conflicts
+                dom: 'rt<"pagination-class"ip>',
+                ajax: {
+                    url : "{{ url('leave-types/datatables') }}",
+                    data : function (d) {
+                        d.search = $('#leave_type_search').val();
+                    }
+                },
+                columns: [
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
+                    { data: 'lt_code', name: 'lt_code', width: '15%' },
+                    { data: 'lt_name', name: 'lt_name', width: '20%' },
+                    { data: 'lt_description', name: 'lt_description', width: '25%' },
+                    { data: 'lt_duration', name: 'lt_duration', width: '10%' },
+                    { data: 'lt_status', name: 'lt_status', width: '10%' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false, width: '15%' },
+                ],
+                columnDefs: [
+                    {
+                        "targets": 0,
+                        "className": "text-center",
+                        "width": "5%"
+                    },
+                    {
+                        "targets": 4,
+                        "className": "text-center"
+                    },
+                    {
+                        "targets": 5,
+                        "className": "text-center"
+                    },
+                    {
+                        "targets": 6,
+                        "className": "text-center"
+                    }
+                ],
+                order: [[0, 'desc']],
+                pageLength: 10,
+                language: {
+                    "sProcessing":   "Loading...",
+                    "sLengthMenu":   "Tampilkan _MENU_ entri",
+                    "sZeroRecords":  "Tidak ditemukan data yang sesuai",
+                    "sInfo":         "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                    "sInfoEmpty":    "Menampilkan 0 sampai 0 dari 0 entri",
+                    "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
+                    "sInfoPostFix":  "",
+                    "sSearch":       "Cari:",
+                    "sUrl":          ""
+                }
+            });
+            
+            console.log('Leave type DataTable initialized successfully');
+            
+            // Initialize dropdown menu system
+            initializeSimpleDropdown();
+            
+            // Search functionality with debounce
+            var searchTimeout;
+            $('#leave_type_search').on('keyup input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    window.leaveTypeTable.draw(false);
+                }, 300);
+            });
+            
+        } catch (error) {
+            console.error('Error initializing leave type DataTable:', error);
+            setTimeout(initDataTable, 100);
+        }
+    }
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -6,80 +95,64 @@
             }
         });
         
-        var leaveTypeTable = $('#leaveTypeTable').DataTable({
-            destroy: true,
-            processing: true,
-            serverSide: true,
-            responsive: true,
-            dom: 'rt<"pagination-class"ip>',
-            // buttons: [
-            //     { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
-            // ],
-            ajax: {
-                url : "{{ url('leave-types/datatables') }}",
-                data : function (d) {
-                    d.search = $('#leave_type_search').val();
-                }
-            },
-            columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, width: '5%' },
-                { data: 'lt_code', name: 'lt_code', width: '15%' },
-                { data: 'lt_name', name: 'lt_name', width: '20%' },
-                { data: 'lt_description', name: 'lt_description', width: '25%' },
-                { data: 'lt_duration', name: 'lt_duration', width: '10%' },
-                { data: 'lt_status', name: 'lt_status', width: '10%' },
-                { data: 'action', name: 'action', orderable: false, searchable: false, width: '15%' },
-            ],
-            columnDefs: [
-                {
-                    "targets": 0,
-                    "className": "text-center",
-                    "width": "5%"
-                },
-                {
-                    "targets": 4,
-                    "className": "text-center"
-                },
-                {
-                    "targets": 5,
-                    "className": "text-center"
-                },
-                {
-                    "targets": 6,
-                    "className": "text-center"
-                }
-            ],
-            order: [[0, 'desc']],
-            pageLength: 10,
-            language: {
-                "sProcessing":   "Loading...",
-                "sLengthMenu":   "Tampilkan _MENU_ entri",
-                "sZeroRecords":  "Tidak ditemukan data yang sesuai",
-                "sInfo":         "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-                "sInfoEmpty":    "Menampilkan 0 sampai 0 dari 0 entri",
-                "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
-                "sInfoPostFix":  "",
-                "sSearch":       "Cari:",
-                "sUrl":          "",
-                // "oPaginate": {
-                //     "sFirst":    "Pertama",
-                //     "sPrevious": "Sebelumnya",
-                //     "sNext":     "Selanjutnya",
-                //     "sLast":     "Terakhir"
-                // }
+        // Initialize DataTable
+        initDataTable();
+    });
+
+    // Simple working dropdown solution
+    function initializeSimpleDropdown() {
+        console.log('Initializing simple dropdown system for Leave Type');
+        
+        // Remove any existing event handlers
+        $(document).off('click', '[data-kt-menu-trigger="click"]');
+        
+        // Add click handler for dropdown toggle
+        $(document).on('click', '[data-kt-menu-trigger="click"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var $this = $(this);
+            var $menu = $this.siblings('.menu');
+            
+            console.log('Dropdown clicked, menu found:', $menu.length);
+            
+            // Close all other menus first
+            $('.menu').not($menu).removeClass('show');
+            
+            // Toggle current menu
+            $menu.toggleClass('show');
+            
+            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+        });
+        
+        // Close menu when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.dropdown').length) {
+                $('.menu').removeClass('show');
             }
         });
         
-        // leaveTypeTable.buttons().container().appendTo($('#leave_type_excel_btn'));
-        // Search functionality with debounce
-        var searchTimeout;
-        $('#leave_type_search').on('keyup input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function() {
-                leaveTypeTable.draw(false);
-            }, 300);
+        // Close menu when clicking on menu items
+        $(document).on('click', '.menu-link', function(e) {
+            if ($(this).attr('onclick')) {
+                // For delete button, let the onclick handle it
+                return;
+            }
+            // For view/edit links, close menu after a short delay
+            setTimeout(function() {
+                $('.menu').removeClass('show');
+            }, 100);
         });
-    });
+        
+        console.log('Simple dropdown system initialized for Leave Type');
+    }
+
+    // Re-initialize dropdown on each draw
+    if (window.leaveTypeTable) {
+        window.leaveTypeTable.on('draw.dt', function() {
+            setTimeout(initializeSimpleDropdown, 100);
+        });
+    }
 
     // Delete leave type function
     function deleteLeaveType(id) {
@@ -92,7 +165,11 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        $('#leaveTypeTable').DataTable().ajax.reload();
+                        if (window.leaveTypeTable) {
+                            window.leaveTypeTable.ajax.reload();
+                        } else {
+                            $('#leaveTypeTable').DataTable().ajax.reload();
+                        }
                         alert('Leave type deleted successfully');
                     } else {
                         alert('Failed to delete leave type');

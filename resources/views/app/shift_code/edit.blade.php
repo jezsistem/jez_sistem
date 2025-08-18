@@ -125,12 +125,13 @@
                         <div class="card-footer">
                             <div class="row float-right">
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-primary mr-3">
+                                    <a href="{{ route('shift-codes.index') }}" class="btn btn-dark mr-2">
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
                                         Update
                                     </button>
-                                    <a href="{{ route('shift-codes.index') }}" class="btn btn-dark">
-                                        Batal
-                                    </a>
+
                                 </div>
                             </div>          
                         </div>
@@ -160,3 +161,4 @@ $(document).ready(function() {
 });
 </script>
 @endsection 
+@include('app._partials.js')

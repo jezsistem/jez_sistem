@@ -140,9 +140,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer float-right">
-                                <button type="submit" class="btn btn-primary mr-2">Update</button>
-                                <a href="{{ route('user-positions.index') }}" class="btn btn-dark">Cancel</a>
+                            <div class="card-footer w-full d-flex justify-content-end">
+                                <a href="{{ route('user-positions.index') }}" class="btn btn-dark mr-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Update</button>
+
                             </div>
                         </form>
                     </div>
@@ -165,3 +166,4 @@ $(document).ready(function() {
 });
 </script>
 @endsection 
+@include('app._partials.js')

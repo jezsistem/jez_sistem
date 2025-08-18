@@ -300,7 +300,7 @@
         var buttonText = $('#breakButtonText');
         
         // Update button state
-        button.removeClass('btn-white').addClass('btn-danger break-active');
+        button.removeClass('btn-white').addClass('btn-red break-active');
         buttonText.html('<i class="fas fa-stop"></i> End Break');
         
         // Show timer
