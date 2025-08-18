@@ -93,7 +93,12 @@ class AnnouncementController extends Controller
         // Track announcement views for all visible announcements
         if ($user) {
             $allAnnouncements = $pinnedAnnouncements->merge($regularAnnouncements);
-            $this->trackAnnouncementViews($allAnnouncements, $user, $request);
+            try {
+                $this->trackAnnouncementViews($allAnnouncements, $user, $request);
+            } catch (\Exception $e) {
+                // Log error but don't break the page
+                \Log::warning('Failed to track announcement views: ' . $e->getMessage());
+            }
         }
 
         $data = [
@@ -533,26 +538,29 @@ class AnnouncementController extends Controller
      */
     private function trackAnnouncementViews($announcements, $user, $request)
     {
-        $currentDate = now()->format('Y-m-d');
         $ipAddress = $request->ip();
         $userAgent = $request->userAgent();
 
         foreach ($announcements as $announcement) {
-            // Check if user already viewed this announcement today
+            // Check if user already viewed this announcement (ever)
             $existingView = AnnouncementView::where('announcement_id', $announcement->id)
                 ->where('user_id', $user->id)
-                ->whereDate('viewed_at', $currentDate)
                 ->first();
 
             if (!$existingView) {
-                // Create new view record
-                AnnouncementView::create([
-                    'announcement_id' => $announcement->id,
-                    'user_id' => $user->id,
-                    'viewed_at' => now(),
-                    'ip_address' => $ipAddress,
-                    'user_agent' => $userAgent
-                ]);
+                // Create new view record - first time viewing only
+                try {
+                    AnnouncementView::create([
+                        'announcement_id' => $announcement->id,
+                        'user_id' => $user->id,
+                        'viewed_at' => now(),
+                        'ip_address' => $ipAddress,
+                        'user_agent' => $userAgent
+                    ]);
+                } catch (\Exception $e) {
+                    // Log error but don't break the page
+                    \Log::warning('Failed to create announcement view record: ' . $e->getMessage());
+                }
             }
         }
     }
@@ -617,11 +625,12 @@ class AnnouncementController extends Controller
             
             $announcement = Announcement::with(['category', 'creator.userPosition'])->findOrFail($id);
             
-            // Get viewers with user details
+            // Get unique viewers with user details (1 user = 1 view)
             $viewers = AnnouncementView::with(['user.userPosition', 'user.userDivision'])
                 ->where('announcement_id', $id)
                 ->orderBy('viewed_at', 'desc')
                 ->get()
+                ->unique('user_id') // Remove duplicate users
                 ->map(function($view) {
                     return [
                         'user_name' => $view->user->u_name ?? 'Unknown',
