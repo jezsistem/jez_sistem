@@ -378,7 +378,7 @@ class ArticleReportExport implements FromCollection, withHeadings
                         3 => 'ON US',
                         4 => 'OFF US',
                         default => '',
-                    }, $row->pos_paid_dp, $row->pos_paid_dp_date, $row->pos_status, $row->pos_note];
+                    }, $row->pos_paid_dp, $row->pos_status, $row->pos_paid_dp_date, $row->pos_note];
                 }
             }
         }
