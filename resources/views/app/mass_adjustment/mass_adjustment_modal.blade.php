@@ -48,7 +48,7 @@
                                 <option value="RETUR IN">RETUR IN</option>
                                 <option value="RETUR OUT">RETUR OUT</option>
                                 <option value="MARKETPLACE IN">MARKETPLACE IN</option>
-                                <option value="MARKETPLACE IN">KERUGIAN RETUR MP</option>
+                                <option value="KERUGIAN RETUR MP">KERUGIAN RETUR MP</option>
                             </select>
                         </div>
                     </div>
