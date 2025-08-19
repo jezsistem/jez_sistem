@@ -307,6 +307,7 @@ class AdjustmentController extends Controller
                                 <option value="RETUR IN">RETUR IN</option>
                                 <option value="RETUR OUT">RETUR OUT</option>
                                 <option value="MARKETPLACE IN">MARKETPLACE IN</option>
+                                <option value="MARKETPLACE IN">KERUGIAN RETUR MP</option>
                             </select>
                             <i class="fa fa-eye d-none" onclick="return saveAdjustment(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ', ' . $row->pl_id . ')" id="saveAdjustment' . $this->table_row . '"></i>
                             </div>';
