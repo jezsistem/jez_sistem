@@ -82,6 +82,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
     Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
+    Route::get('purchase-order-receive/export', [PurchaseOrderController::class, 'exportpurchaseorderexport'])
+            ->name('purchase_order_receive.export');
     Route::get('/export-purchase-order/{po_id}', function ($po_id) {
         $timestamp = Carbon::now()->format('Ymd_His');
         $fileName = 'purchase_order_' . $timestamp . '.xlsx';

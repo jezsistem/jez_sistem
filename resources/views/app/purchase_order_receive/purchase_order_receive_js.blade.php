@@ -4,7 +4,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.25/webcam.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 
 <script>
     $('#dispute').select2({
@@ -312,8 +312,8 @@
         var no_order = $('#po_invoice_label').text();
 
         if (status_disputeValue === "") {
-        return;
-    }
+            return;
+        }
 
         $.ajax({
             url: "{{ url('status_dispute_save') }}",
@@ -1241,6 +1241,9 @@
                 data: function(d) {
                     d.search = $('#purchase_order_search').val();
                     d.st_id = $('#st_id_filter').val();
+                    d.po_status_filter = $('#po_status_filter').val();
+                    d.filter_dispute = $('#filter_dispute').val();
+                    d.date = $('#po_date').val();
                 }
             },
             columns: [{
@@ -1285,6 +1288,12 @@
                     orderable: false
                 },
             ],
+            rowCallback: function(row, data, index) {
+                if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute ==
+                        1)) {
+                    $(row).css('background-color', '#f8d7da');
+                }
+            },
             columnDefs: [{
                 "targets": 0,
                 "className": "text-center",
@@ -1692,8 +1701,18 @@
         });
 
         $('#st_id_filter').on('change', function() {
-            purchase_order_table.draw(false);
+            purchase_order_table.draw();
         });
+
+        $('#po_status_filter').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+        $('#filter_dispute').on('change', function() {
+            purchase_order_table.draw();
+        });
+
+
 
         $('#br_id_filter_item').select2({
             width: "150px",
@@ -1833,7 +1852,7 @@
             $('#_po_id').val(po_id);
 
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id,'penerimaan');
+            const lockResult = await openEditModal('purchase_order', po_id, 'penerimaan');
             if (lockResult === false) {
                 return;
             }
@@ -1841,7 +1860,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id,'penerimaan');
+                extendLock('purchase_order', po_id, 'penerimaan');
             }, 60000);
 
             // Update DataTables AJAX configuration with the new po_id
@@ -1871,7 +1890,8 @@
                         $('#po_description').val(r.po_description);
                         $('#dispute_parent').val(String(r.dispute ?? ''));
                         $('#dispute_description').val(r.dispute_description);
-                        $('#status_dispute').val(String(r.status_dispute)).trigger('change');
+                        $('#status_dispute').val(String(r.status_dispute)).trigger(
+                            'change');
                         $('#putaway').val(String(r.putaway)).trigger('change');
 
 
@@ -2240,83 +2260,97 @@
             });
         });
 
+        // $('#export_btn').on('click', function() {
+        //     $('#PoReporttb').find('tr:not(:has(th))').remove();
+        //     var po_date = $('#po_date').val();
+        //     var po_status = $('#po_status_filter').val();
+        //     var st_id = $('#st_id_filter').val();
+        //     var dt = $('#kt_dashboard_daterangepicker_date').text();
+        //     var status = $('#po_status_filter option:selected').text();
+        //     if (po_status == '') {
+        //         swal('Pilih Status', 'Silakan pilih status', 'info');
+        //         return false;
+        //     }
+        //     swal({
+        //         text: "Yakin export laporan penerimaan di tanggal " + dt + " dengan status " +
+        //             status + " .. ?",
+        //         icon: "info",
+        //         buttons: [
+        //             'Batal',
+        //             'Yakin'
+        //         ],
+        //         dangerMode: false,
+        //     }).then(function(isConfirm) {
+        //         if (isConfirm) {
+        //             $.ajaxSetup({
+        //                 headers: {
+        //                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //                 }
+        //             });
+        //             $.ajax({
+        //                 type: "POST",
+        //                 data: {
+        //                     po_date: po_date,
+        //                     po_status: po_status,
+        //                     st_id: st_id
+        //                 },
+        //                 dataType: 'json',
+        //                 url: "{{ url('po_export') }}",
+        //                 success: function(r) {
+        //                     if (r.status == '200') {
+        //                         $('#PoReportModal').modal('show');
+        //                         $(r.data).each(function(index, row) {
+        //                             jQuery('#PoReporttb tr:last').after(
+        //                                 "<tr><td>" + (parseInt(index) +
+        //                                     parseInt(1)) + "</td><td>" +
+        //                                 row['po_created'] +
+        //                                 "</td><td>" + row[
+        //                                     'po_invoice'] +
+        //                                 "</td><td>" +
+        //                                 row['store'] + "</td><td>" +
+        //                                 row['sku'] + "</td><td>" +
+        //                                 row['article'] + "</td><td>" +
+        //                                 row['brand'] + "</td><td>" +
+        //                                 row['color'] + "</td><td>" +
+        //                                 row['size'] + "</td><td>" + row[
+        //                                     'order'] + "</td><td>" +
+        //                                 row['receive'] + "</td><td>" +
+        //                                 row['hpp'] + "</td><td>" + row[
+        //                                     'total'] + "</td></tr>");
+        //                         });
+        //                     } else {
+        //                         swal('Gagal', 'Gagal menampilkan data', 'error');
+        //                     }
+        //                 }
+        //             });
+        //             return false;
+        //         }
+        //     })
+        // });
+
+        // $('#excel_report').on('click', function() {
+        //     const now = new Date();
+        //     const formattedDateTime = now.toISOString().replace(/[-:T]/g, '_').split('.')[0];
+        //     // Generate the filename with the formatted date and time
+        //     const fileName = `Laporan_penerimaan_${formattedDateTime}`;
+        //     jQuery("#PoReporttb").table2excel({
+        //         filename: fileName,
+        //     });
+        // });
+
         $('#export_btn').on('click', function() {
-            $('#PoReporttb').find('tr:not(:has(th))').remove();
-            var po_date = $('#po_date').val();
-            var po_status = $('#po_status_filter').val();
-            var st_id = $('#st_id_filter').val();
-            var dt = $('#kt_dashboard_daterangepicker_date').text();
-            var status = $('#po_status_filter option:selected').text();
-            if (po_status == '') {
-                swal('Pilih Status', 'Silakan pilih status', 'info');
-                return false;
-            }
-            swal({
-                text: "Yakin export laporan penerimaan di tanggal " + dt + " dengan status " +
-                    status + " .. ?",
-                icon: "info",
-                buttons: [
-                    'Batal',
-                    'Yakin'
-                ],
-                dangerMode: false,
-            }).then(function(isConfirm) {
-                if (isConfirm) {
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        }
-                    });
-                    $.ajax({
-                        type: "POST",
-                        data: {
-                            po_date: po_date,
-                            po_status: po_status,
-                            st_id: st_id
-                        },
-                        dataType: 'json',
-                        url: "{{ url('po_export') }}",
-                        success: function(r) {
-                            if (r.status == '200') {
-                                $('#PoReportModal').modal('show');
-                                $(r.data).each(function(index, row) {
-                                    jQuery('#PoReporttb tr:last').after(
-                                        "<tr><td>" + (parseInt(index) +
-                                            parseInt(1)) + "</td><td>" +
-                                        row['po_created'] +
-                                        "</td><td>" + row[
-                                            'po_invoice'] +
-                                        "</td><td>" +
-                                        row['store'] + "</td><td>" +
-                                        row['sku'] + "</td><td>" +
-                                        row['article'] + "</td><td>" +
-                                        row['brand'] + "</td><td>" +
-                                        row['color'] + "</td><td>" +
-                                        row['size'] + "</td><td>" + row[
-                                            'order'] + "</td><td>" +
-                                        row['receive'] + "</td><td>" +
-                                        row['hpp'] + "</td><td>" + row[
-                                            'total'] + "</td></tr>");
-                                });
-                            } else {
-                                swal('Gagal', 'Gagal menampilkan data', 'error');
-                            }
-                        }
-                    });
-                    return false;
-                }
-            })
+            let date = $('#po_date').val();
+            let status = $('#po_status_filter').val();
+            let dispute = $('#filter_dispute').val();
+
+            let url = "{{ route('purchase_order_receive.export') }}" +
+                "?date=" + date +
+                "&status=" + status +
+                "&dispute=" + dispute;
+
+            window.location.href = url;
         });
 
-        $('#excel_report').on('click', function() {
-            const now = new Date();
-            const formattedDateTime = now.toISOString().replace(/[-:T]/g, '_').split('.')[0];
-            // Generate the filename with the formatted date and time
-            const fileName = `Laporan_penerimaan_${formattedDateTime}`;
-            jQuery("#PoReporttb").table2excel({
-                filename: fileName,
-            });
-        });
 
         jQuery.noConflict();
         var picker = $('#kt_dashboard_daterangepicker');
@@ -2333,20 +2367,25 @@
 
             if ((end - start) < 100 || label == 'Today') {
                 title = 'Today:';
-                range = start.format('MMM D');
+                range = start.format('DD MMM YYYY');
                 hidden_range = start.format('YYYY-MM-DD');
             } else if (label == 'Yesterday') {
                 title = 'Yesterday:';
-                range = start.format('MMM D');
+                range = start.format('DD MMM YYYY');
                 hidden_range = start.format('YYYY-MM-DD');
+            } else if (label == 'All Days') {
+                title = 'All Days';
+                hidden_range = '';
             } else {
-                range = start.format('MMM D') + ' - ' + end.format('MMM D');
+                range = start.format('DD MMM YYYY') + ' - ' + end.format('DD MMM YYYY');
                 hidden_range = start.format('YYYY-MM-DD') + '|' + end.format('YYYY-MM-DD');
             }
-
+            console.log(hidden_range);
             $('#po_date').val(hidden_range);
             $('#kt_dashboard_daterangepicker_date').html(range);
             $('#kt_dashboard_daterangepicker_title').html(title);
+
+            purchase_order_table.draw();
         }
 
         picker.daterangepicker({
@@ -2357,6 +2396,7 @@
             applyClass: 'btn-primary',
             cancelClass: 'btn-light-primary',
             ranges: {
+                'All Days': [null, null],
                 'Today': [moment(), moment()],
                 'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
@@ -2366,7 +2406,6 @@
                     'month').endOf('month')]
             }
         }, cb);
-
         cb(start, end, '');
 
     });
