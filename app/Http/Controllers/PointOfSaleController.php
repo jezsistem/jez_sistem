@@ -37,14 +37,20 @@ class PointOfSaleController extends Controller
     protected function validateAccess()
     {
         $validate = DB::table('user_menu_accesses')
-            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-                'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
-            ])->exists();
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')
+            ->leftJoin('users', 'users.id', '=', 'user_menu_accesses.u_id')
+            ->where('u_id', Auth::user()->id)
+            ->where('ma_slug', request()->segment(1))
+            ->where(function ($q) {
+                $q->where('pos_access', 1);
+            })
+            ->exists();
+    
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
     }
+    
 
     protected function sidebar()
     {
