@@ -162,20 +162,59 @@ class PointOfSaleController extends Controller
 
         $startTime = $startTimeStamp = date('Y-m-d H:i:s', strtotime($startTimeStamp));
 
-        $query = DB::table('pos_transactions')
-            ->select(
-                'payment_methods.pm_name',
-                DB::raw('SUM(CASE WHEN ts_pos_transactions.created_at > "' . $startTime . '" AND ts_pos_transactions.st_id = ' . $storeId . ' THEN ts_pos_transactions.pos_real_price ELSE 0 END) AS total_pos_real_price')
-            )
-            ->join('payment_methods', 'pos_transactions.pm_id', '=', 'payment_methods.id')
-            ->join('stores', 'pos_transactions.st_id', '=', 'stores.id')
-            ->where('pos_transactions.created_at', '>', $startTime)
-            ->where('pos_transactions.kasir_id', '=', $user_id_login)
-            ->groupBy('stores.st_name', DB::raw('DATE(ts_pos_transactions.created_at)'), 'payment_methods.pm_name')
-            //            ->orderBy('stores.st_name')
-            ->orderBy('payment_methods.pm_name');
+        // Get payment methods data combined from main and partial payments
+        $main = PosTransaction::select('pm_name', DB::raw('SUM(pos_payment) as pos_payment'))
+            ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+            ->where('pos_transactions.st_id', $storeId)
+            ->where('pos_transactions.created_at', '>=', $startTime)
+            ->where('kasir_id', $user_id_login)
+            ->groupBy('pm_name')
+            ->get()
+            ->keyBy('pm_name')
+            ->toArray();
 
-        return DataTables::of($query)->make(true);
+        $partial = PosTransaction::select('pm_name', DB::raw('SUM(pos_payment_partial) as pos_payment_partial'))
+            ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id_partial')
+            ->where('pos_transactions.st_id', $storeId)
+            ->where('pos_transactions.created_at', '>=', $startTime)
+            ->where('kasir_id', $user_id_login)
+            ->whereNotNull('pm_id_partial')
+            ->groupBy('pm_name')
+            ->get()
+            ->keyBy('pm_name')
+            ->toArray();
+
+        // Combine payments efficiently
+        $combined = [];
+        foreach ($main as $pmName => $mainPayment) {
+            $combined[$pmName] = [
+                'pm_name' => $pmName,
+                'total_payment' => $mainPayment['pos_payment']
+            ];
+        }
+
+        foreach ($partial as $pmName => $partialPayment) {
+            if (isset($combined[$pmName])) {
+                $combined[$pmName]['total_payment'] += $partialPayment['pos_payment_partial'];
+            } else {
+                $combined[$pmName] = [
+                    'pm_name' => $pmName,
+                    'total_payment' => $partialPayment['pos_payment_partial']
+                ];
+            }
+        }
+
+        $paymentData = array_values($combined);
+
+        return DataTables::of(collect($paymentData))
+            ->addColumn('pm_name', function ($row) {
+                return $row['pm_name'] ?? 'Unknown';
+            })
+            ->addColumn('total_pos_real_price', function ($row) {
+                return 'Rp ' . number_format($row['total_payment'], 0, ',', '.');
+            })
+            ->rawColumns(['pm_name', 'total_pos_real_price'])
+            ->make(true);
     }
 
 
