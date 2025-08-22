@@ -17,6 +17,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('autocomplete_store', [UserController::class, 'autocompleteStore']);
     Route::post('load_user_menu', [UserController::class, 'loadUserMenu']);
     Route::post('/update-delete-status', [UserController::class, 'updateDeleteStatus']);
+    Route::post('/update-pos-access', [UserController::class, 'updatePosAccess']);
+    Route::post('/update-pick-access', [UserController::class, 'updatePickAccess']);
 
     // Route::post('auto_deactivate', [UserController::class, 'autoDeactivateUsers']);
 

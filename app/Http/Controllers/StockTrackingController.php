@@ -529,23 +529,36 @@ class StockTrackingController extends Controller
 
     public function pickupItem(Request $request)
     {
-//        dd($request->_sa_id);
-//        $pls_id = $request->_pls_id;
+        //        dd($request->_sa_id);
+        //        $pls_id = $request->_pls_id;
         $pst_id = $request->_pst_id;
-//        $pl_id = $request->_pl_id;
-//        $pl_code = $request->_pl_code;
-//        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+        //        $pl_id = $request->_pl_id;
+        //        $pl_code = $request->_pl_code;
+        //        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
         $st_id = $request->_st_id;
         $sa_id = $request->_sa_id;
 
-//        dd($request);
+        $user = DB::table('users')
+            ->select('pick_access')
+            ->where('id', Auth::user()->id)
+            ->first();
 
-//        dd($pls_id);
+        if (!$user || $user->pick_access != 1) {
+            return response()->json([
+                'status'  => '403',
+                'title' => 'Akses Ditolak',
+                'message' => 'Anda tidak memiliki Pick Up Access. Hubungi Administrator.'
+            ], 403);
+        }
 
-//        $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
-////            'pls_qty' => ($pls->pls_qty - 1),
-//            'updated_at' => date('Y-m-d H:i:s')
-//        ]);
+        //        dd($request);
+
+        //        dd($pls_id);
+
+        //        $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
+        ////            'pls_qty' => ($pls->pls_qty - 1),
+        //            'updated_at' => date('Y-m-d H:i:s')
+        //        ]);
 
         $insert = DB::table('product_location_setup_transactions')->insert([
             'pls_id' => null,
@@ -560,74 +573,74 @@ class StockTrackingController extends Controller
         ]);
 
 
-//        if ($insert) {
-//            dd($insert);
-//        }
+        //        if ($insert) {
+        //            dd($insert);
+        //        }
 
-//        if (!empty($update)) {
-//            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
-//                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-//                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-//                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                ->where('product_stocks.id', $pst_id)
-//                ->get()->first();
-//            $this->UserActivity('melakukan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
-//
-//            $st_user = Auth::user()->st_id;
-//            $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
-//            $st_city = $st_name->st_code;
+        //        if (!empty($update)) {
+        //            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+        //                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+        //                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+        //                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+        //                ->where('product_stocks.id', $pst_id)
+        //                ->get()->first();
+        //            $this->UserActivity('melakukan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
+        //
+        //            $st_user = Auth::user()->st_id;
+        //            $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
+        //            $st_city = $st_name->st_code;
 
-//            $insert = DB::table('product_location_setup_transactions')->insert([
-//                'pls_id' => NULL,
-//                'sa_id'     => $sa_id,
-//                'st_id' => $st_id,
-//                'u_id' => Auth::user()->id,
-//                'plst_qty' => '1',
-//                'plst_type' => 'OUT',
-//                'plst_status' => 'WAITING OFFLINE',
-//                'created_at' => date('Y-m-d H:i:s')
+        //            $insert = DB::table('product_location_setup_transactions')->insert([
+        //                'pls_id' => NULL,
+        //                'sa_id'     => $sa_id,
+        //                'st_id' => $st_id,
+        //                'u_id' => Auth::user()->id,
+        //                'plst_qty' => '1',
+        //                'plst_type' => 'OUT',
+        //                'plst_status' => 'WAITING OFFLINE',
+        //                'created_at' => date('Y-m-d H:i:s')
 
 
-//            if (strtoupper($pl_code) == 'TOKO' && stripos($st_name->st_name, 'ONLINE') === true) {
-//                $insert = DB::table('product_location_setup_transactions')->insert([
-//                    'pls_id' => $pls_id,
-//                    'st_id'  => $st_id,
-//                    'u_id' => Auth::user()->id,
-//                    'plst_qty' => '1',
-//                    'plst_type' => 'OUT',
-//                    'plst_status' => 'WAITING OFFLINE',
-//                    'created_at' => date('Y-m-d H:i:s')
-//                ]);
-//            } else {
-//                if ($st_name && stripos($st_name->st_name, 'ONLINE') === false) {
-//                    $insert = DB::table('product_location_setup_transactions')->insert([
-//                        'pls_id' => $pls_id,
-//                        'st_id'  => $st_id,
-//                        'u_id' => Auth::user()->id,
-//                        'plst_qty' => '1',
-//                        'plst_type' => 'OUT',
-//                        'plst_status' => 'WAITING TO TAKE',
-//                        'created_at' => date('Y-m-d H:i:s')
-//                    ]);
-//                } else {
-//                    dd($pls_id);
-//                    $insert = DB::table('product_location_setup_transactions')->insert([
-//                        'pls_id' => $pls_id,
-//                        'st_id'  => $st_id,
-//                        'u_id' => Auth::user()->id,
-//                        'plst_qty' => '1',
-//                        'plst_type' => 'OUT',
-//                        'plst_status' => 'WAITING ONLINE',
-//                        'created_at' => date('Y-m-d H:i:s')
-//                    ]);
-//                }
-//            }
-//            if (!empty($insert)) {
-//                $r['status'] = '200';
-//            } else {
-//                $r['status'] = '400';
-//            }
-//        }
+        //            if (strtoupper($pl_code) == 'TOKO' && stripos($st_name->st_name, 'ONLINE') === true) {
+        //                $insert = DB::table('product_location_setup_transactions')->insert([
+        //                    'pls_id' => $pls_id,
+        //                    'st_id'  => $st_id,
+        //                    'u_id' => Auth::user()->id,
+        //                    'plst_qty' => '1',
+        //                    'plst_type' => 'OUT',
+        //                    'plst_status' => 'WAITING OFFLINE',
+        //                    'created_at' => date('Y-m-d H:i:s')
+        //                ]);
+        //            } else {
+        //                if ($st_name && stripos($st_name->st_name, 'ONLINE') === false) {
+        //                    $insert = DB::table('product_location_setup_transactions')->insert([
+        //                        'pls_id' => $pls_id,
+        //                        'st_id'  => $st_id,
+        //                        'u_id' => Auth::user()->id,
+        //                        'plst_qty' => '1',
+        //                        'plst_type' => 'OUT',
+        //                        'plst_status' => 'WAITING TO TAKE',
+        //                        'created_at' => date('Y-m-d H:i:s')
+        //                    ]);
+        //                } else {
+        //                    dd($pls_id);
+        //                    $insert = DB::table('product_location_setup_transactions')->insert([
+        //                        'pls_id' => $pls_id,
+        //                        'st_id'  => $st_id,
+        //                        'u_id' => Auth::user()->id,
+        //                        'plst_qty' => '1',
+        //                        'plst_type' => 'OUT',
+        //                        'plst_status' => 'WAITING ONLINE',
+        //                        'created_at' => date('Y-m-d H:i:s')
+        //                    ]);
+        //                }
+        //            }
+        //            if (!empty($insert)) {
+        //                $r['status'] = '200';
+        //            } else {
+        //                $r['status'] = '400';
+        //            }
+        //        }
 
         if ($insert) {
             $r['status'] = '200';
