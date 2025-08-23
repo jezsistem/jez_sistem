@@ -55,6 +55,29 @@
     .bg-leave-maternity {
         background-color: #F3E5F5;
     }
+    .staff-info {
+        background: #FFEBEB;
+        color: ##071437;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .staff-info h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .staff-info p {
+        margin: 5px 0;
+        opacity: 0.9;
+    }
+    .bg-all {
+    background-color: #FFEBEB;
+    }
+    .bg-other {
+        background-color: #F1F1F4;
+    }
 </style>
 
 <!--begin::Content-->
@@ -67,28 +90,23 @@
                 <!--begin::Page Heading-->
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                     <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">Staff Leave Detail - {{ $data['user']->u_name }}</h5>
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">Staff Leave Details</h5>
                     <!--end::Page Title-->
                     <!--begin::Breadcrumb-->
-                    <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
-                        <li class="breadcrumb-item">
-                            <a href="{{ url('/dashboard') }}" class="text-muted">Dashboard</a>
-                        </li>
-                        <li class="breadcrumb-item">
-                            <a href="{{ url('/leave-requests') }}" class="text-muted">Leave Requests</a>
-                        </li>
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('leave-requests.summary-report') }}" class="text-muted">Summary Report</a>
-                        </li>
-                        <li class="breadcrumb-item">
-                            <span class="text-muted">Staff Detail</span>
-                        </li>
-                    </ul>
+                    
                     <!--end::Breadcrumb-->
                 </div>
                 <!--end::Page Heading-->
+                
             </div>
             <!--end::Info-->
+             <!--begin::Toolbar-->
+             <div class="d-flex align-items-center">
+                <a href="{{ route('leave-requests.summary-report') }}" class="btn btn-secondary font-weight-bolder">
+                    <i class="ki-outline ki-arrow-left"></i> Back
+                </a>
+            </div>
+            <!--end::Toolbar-->
         </div>
     </div>
     <!--end::Subheader-->
@@ -98,10 +116,30 @@
         <!--begin::Container-->
         <div class="container-fluid">
             
+        <!-- Staff Information Card -->
+        <div class="row">
+                <div class="col-md-6">
+                    <div class="staff-info">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h4>{{ $data['user']->u_name }}</h4>
+                                <p><strong>NIP:</strong> {{ $data['user']->u_nip }}</p>
+                                <p><strong>Position:</strong> {{ $data['user']->position_name }}</p>
+                                <p><strong>Division:</strong> {{ $data['user']->division_name }}</p>
+                                <p><strong>Work Type:</strong> {{ $data['user']->work_type }}</p>
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <div class="d-flex flex-column align-items-end">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Statistics Cards -->
             <div class="row mb-4">
                 <div class="col-lg-3 col-md-6">
-                    <div class="card card-custom rounded-lg bg-leave-approved">
+                    <div class="card card-custom rounded-lg bg-all">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
@@ -118,12 +156,12 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="card card-custom rounded-lg bg-leave-pending">
+                    <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
                                     <span class="symbol-label">
-                                        <i class="ki-outline ki-clock text-dark"></i>
+                                        <i class="ki-outline ki-loading text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
@@ -135,7 +173,7 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="card card-custom rounded-lg bg-leave-rejected">
+                    <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
@@ -152,7 +190,7 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="card card-custom rounded-lg bg-leave-annual">
+                    <div class="card card-custom rounded-lg bg-other">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
@@ -170,130 +208,99 @@
                 </div>
             </div>
 
+            <div class="row mb-4">
+                <div class="col-lg-12">
+                    <div class="card card-custom">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                Filter
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form id="filterForm" method="GET">
+                                <div class="row w-100">
+                                    <div class="col-md-2">
+                                        <label for="date_filter">Date Filter</label>
+                                        <select class="form-control" id="date_filter" name="date_filter" onchange="handleDateFilterChange(this.value)">
+                                            <option value="this_week" {{ $data['dateFilter'] == 'this_week' ? 'selected' : '' }}>This Week</option>
+                                            <option value="past_week" {{ $data['dateFilter'] == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                            <option value="this_month" {{ $data['dateFilter'] == 'this_month' ? 'selected' : '' }}>This Month</option>
+                                            <option value="last_month" {{ $data['dateFilter'] == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                                            <option value="custom" {{ $data['dateFilter'] == 'custom' ? 'selected' : '' }}>Custom Range</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-2" id="start_date_container" style="display: {{ $data['dateFilter'] == 'custom' ? 'block' : 'none' }};">
+                                        <label for="start_date" class="mr-2">Start Date</label>
+                                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $data['startDate'] }}">
+                                    </div>
+                                    
+                                    <div class="col-md-2" id="end_date_container" style="display: {{ $data['dateFilter'] == 'custom' ? 'block' : 'none' }};">
+                                        <label for="end_date" class="mr-2">End Date</label>
+                                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $data['endDate'] }}">
+                                    </div>
+                                    
+                                    <div class="col-md-2">
+                                        <label for="status" class="mr-2">Status</label>
+                                        <select class="form-control" id="status" name="status">
+                                            <option value="">All Status</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="approved">Approved</option>
+                                            <option value="rejected">Rejected</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label>&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary btn-block">
+                                            <i class="ki-outline ki-filter-tick"></i> Filter
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!--begin::Card-->
             <div class="card card-custom gutter-b">
                 <div class="card-header flex-wrap py-3">
                     <div class="card-toolbar d-flex justify-content-between w-100">
                         <div class="d-flex align-items-center">
-                            <h3 class="card-label">Staff Leave Detail - {{ $data['user']->u_name }}</h3>
-                        </div>
+                            <!-- <input type="search" class="form-control" style="width: 300px;" id="summary_search" placeholder="Search"/> -->
+                            </div>
                         <div class="d-flex align-items-center">
-                            <!--begin::Button-->
-                            <button type="button" class="btn btn-success font-weight-bolder mr-2" onclick="exportToExcel()">
-                                <span class="svg-icon svg-icon-md">
-                                    <i class="ki-outline ki-file-down"></i>
-                                </span>Export Excel</button>
-                            <!--end::Button-->
-                            <!--begin::Button-->
-                            <button type="button" class="btn btn-danger font-weight-bolder" onclick="exportToPDF()">
-                                <span class="svg-icon svg-icon-md">
-                                    <i class="ki-outline ki-file-down"></i>
-                                </span>Export PDF</button>
-                            <!--end::Button-->
+                             <!--begin::Button-->
+                             <button type="button" class="btn btn-light-green font-weight-bolder mr-2" onclick="exportToExcel()">
+                                        <span class="svg-icon svg-icon-md">
+                                            <i class="ki-outline ki-file-down"></i>
+                                        </span>Export Excel</button>
+                                    <!--end::Button-->
+                                    <!--begin::Button-->
+                                    <button type="button" class="btn btn-secondary font-weight-bolder mr-2" onclick="exportToPDF()">
+                                        <span class="svg-icon svg-icon-md">
+                                            <i class="ki-outline ki-file-down"></i>
+                                        </span>Export PDF</button>
+                                    <!--end::Button-->
                         </div>
                     </div>
                 </div>
 
                 <div class="card-body">
-                    <!--begin::Staff Information-->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card card-custom bg-light-primary">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="symbol symbol-50 symbol-light-primary mr-4">
-                                            <span class="symbol-label">
-                                                <i class="fas fa-user text-primary"></i>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <div class="text-muted font-weight-bold">Staff Information</div>
-                                            <div class="font-size-h6 font-weight-bold text-primary">{{ $data['user']->u_name }}</div>
-                                            <div class="text-muted">{{ $data['user']->u_nip }}</div>
-                                            <div class="text-muted">{{ $data['user']->position_name }}</div>
-                                            <div class="text-muted">{{ $data['user']->division_name }}</div>
-                                            <div class="text-muted">{{ $data['user']->work_type }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card card-custom bg-light-info">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <div class="symbol symbol-50 symbol-light-info mr-4">
-                                            <span class="symbol-label">
-                                                <i class="fas fa-chart-pie text-info"></i>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <div class="text-muted font-weight-bold">Leave Statistics</div>
-                                            <div id="leaveStats">
-                                                <div class="text-muted">Loading statistics...</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--end::Staff Information-->
-
-                    <!--begin::Filter Section-->
-                    <div class="card card-custom bg-light-secondary mb-4">
-                        <div class="card-body">
-                            <form id="filterForm" method="GET" class="form-inline">
-                                <div class="form-group mr-3">
-                                    <label for="date_filter" class="mr-2">Date Filter:</label>
-                                    <select class="form-control" id="date_filter" name="date_filter" onchange="handleDateFilterChange(this.value)">
-                                        <option value="this_week" {{ $data['dateFilter'] == 'this_week' ? 'selected' : '' }}>This Week</option>
-                                        <option value="past_week" {{ $data['dateFilter'] == 'past_week' ? 'selected' : '' }}>Past Week</option>
-                                        <option value="this_month" {{ $data['dateFilter'] == 'this_month' ? 'selected' : '' }}>This Month</option>
-                                        <option value="last_month" {{ $data['dateFilter'] == 'last_month' ? 'selected' : '' }}>Last Month</option>
-                                        <option value="custom" {{ $data['dateFilter'] == 'custom' ? 'selected' : '' }}>Custom Range</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group mr-3" id="start_date_container" style="display: {{ $data['dateFilter'] == 'custom' ? 'block' : 'none' }};">
-                                    <label for="start_date" class="mr-2">Start Date:</label>
-                                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ $data['startDate'] }}">
-                                </div>
-                                
-                                <div class="form-group mr-3" id="end_date_container" style="display: {{ $data['dateFilter'] == 'custom' ? 'block' : 'none' }};">
-                                    <label for="end_date" class="mr-2">End Date:</label>
-                                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ $data['endDate'] }}">
-                                </div>
-                                
-                                <div class="form-group mr-3">
-                                    <label for="status" class="mr-2">Status:</label>
-                                    <select class="form-control" id="status" name="status">
-                                        <option value="">All Status</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="approved">Approved</option>
-                                        <option value="rejected">Rejected</option>
-                                    </select>
-                                </div>
-                                
-                                <button type="submit" class="btn btn-primary">Filter</button>
-                            </form>
-                        </div>
-                    </div>
-                    <!--end::Filter Section-->
-
+                
                     <!--begin::DataTable-->
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover" id="staffTable">
+                        <table class="table table-checkable table-hover" id="staffTable">
                             <thead>
                                 <tr>
                                     <th width="5%">No.</th>
-                                    <th width="12%">Tanggal Mulai</th>
-                                    <th width="12%">Tanggal Selesai</th>
-                                    <th width="10%">Durasi</th>
-                                    <th width="15%">Jenis Leave</th>
+                                    <th width="12%">Start Date</th>
+                                    <th width="12%">End Date</th>
+                                    <th width="10%">Duration</th>
+                                    <th width="15%">Leave Type</th>
                                     <th width="10%">Status</th>
-                                    <th width="20%">Alasan</th>
-                                    <th width="16%">Tanggal Request</th>
+                                    <th width="20%">Reason</th>
+                                    <th width="16%">Request Date</th>
                                 </tr>
                             </thead>
                             <tbody>

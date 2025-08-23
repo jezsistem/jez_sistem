@@ -110,23 +110,23 @@
             <!-- Staff Information Card -->
              <div class="row">
                 <div class="col-md-6">
-            <div class="staff-info">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h4>{{ $staff->u_name }}</h4>
-                        <p><strong>NIP:</strong> {{ $staff->u_nip }}</p>
-                        <p><strong>Divisi:</strong> {{ $staff->ud_name ?? 'Tidak ada divisi' }}</p>
-                        <p><strong>Email:</strong> {{ $staff->u_email ?? 'Tidak ada email' }}</p>
-                    </div>
-                    <div class="col-md-4 text-right">
-                        <div class="d-flex flex-column align-items-end">
-                            <!-- <span class="badge badge-light badge-pill mb-2">Staff ID: {{ $staff->id }}</span> -->
-                            <span class="badge badge-primary badge-pill">{{ $staff->u_status ?? 'Active' }}</span>
+                    <div class="staff-info">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h4>{{ $staff->u_name }}</h4>
+                                <p><strong>NIP:</strong> {{ $staff->u_nip }}</p>
+                                <p><strong>Divisi:</strong> {{ $staff->ud_name ?? 'Tidak ada divisi' }}</p>
+                                <p><strong>Email:</strong> {{ $staff->u_email ?? 'Tidak ada email' }}</p>
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <div class="d-flex flex-column align-items-end">
+                                    <!-- <span class="badge badge-light badge-pill mb-2">Staff ID: {{ $staff->id }}</span> -->
+                                    <span class="badge badge-primary badge-pill">{{ $staff->u_status ?? 'Active' }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            </div>
             </div>
 
 

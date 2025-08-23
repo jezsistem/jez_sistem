@@ -121,19 +121,7 @@
                                     </div>
                                 </div>
                                 
-                                <!-- <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="lt_color">Color <span class="text-danger">*</span></label>
-                                            <input type="color" class="form-control @error('lt_color') is-invalid @enderror" 
-                                                id="lt_color" name="lt_color" value="{{ old('lt_color', '#3699FF') }}" required>
-                                            @error('lt_color')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    
-                                </div> -->
+
                             </div>
                             <div class="card-footer d-flex justify-content-end">
                                 <a href="{{ route('leave-types.index') }}" class="btn btn-dark mr-2">

@@ -1331,12 +1331,56 @@ class BreakTimeController extends Controller
                 $breakAllowance = 1; // default 1 break
         }
         
-        // Count completed breaks today
+        // Count completed breaks today (all types combined)
         $completedBreaks = DB::table('break_times')
             ->where('user_id', $userId)
             ->where('bt_date', $today)
             ->where('bt_status', 'completed')
             ->count();
+            
+        // Get detailed break info for debugging
+        $breakDetails = DB::table('break_times')
+            ->where('user_id', $userId)
+            ->where('bt_date', $today)
+            ->select('bt_type', 'bt_status', 'bt_start_time', 'bt_end_time', 'bt_duration_minutes')
+            ->get();
+            
+        \Log::info('Break details for debugging', [
+            'user_id' => $userId,
+            'date' => $today,
+            'break_details' => $breakDetails,
+            'total_completed' => $completedBreaks
+        ]);
+        
+        // Clean up invalid break records (breaks without end time but marked as completed)
+        $invalidBreaks = DB::table('break_times')
+            ->where('user_id', $userId)
+            ->where('bt_date', $today)
+            ->where('bt_status', 'completed')
+            ->whereNull('bt_end_time')
+            ->get();
+            
+        if ($invalidBreaks->count() > 0) {
+            \Log::warning('Found invalid completed breaks without end time', [
+                'user_id' => $userId,
+                'invalid_breaks' => $invalidBreaks
+            ]);
+            
+            // Update invalid breaks to cancelled status
+            DB::table('break_times')
+                ->where('user_id', $userId)
+                ->where('bt_date', $today)
+                ->where('bt_status', 'completed')
+                ->whereNull('bt_end_time')
+                ->update(['bt_status' => 'cancelled']);
+                
+            // Recalculate completed breaks
+            $completedBreaks = DB::table('break_times')
+                ->where('user_id', $userId)
+                ->where('bt_date', $today)
+                ->where('bt_status', 'completed')
+                ->count();
+        }
 
         \Log::info('Returning break allowance', [
             'shift_type' => $shiftType,
@@ -1350,6 +1394,125 @@ class BreakTimeController extends Controller
             'break_allowance' => $breakAllowance,
             'completed_breaks' => $completedBreaks
         ]);
+    }
+
+    /**
+     * Clean up invalid break records for a specific user
+     * This method can be called manually to fix data inconsistencies
+     */
+    public function cleanupInvalidBreaks(Request $request)
+    {
+        try {
+            $userId = $request->get('user_id', auth()->user()->id);
+            $date = $request->get('date', date('Y-m-d'));
+            
+            \Log::info('Starting cleanup for invalid breaks', [
+                'user_id' => $userId,
+                'date' => $date
+            ]);
+
+            // Find all breaks for the user on the specified date
+            $allBreaks = DB::table('break_times')
+                ->where('user_id', $userId)
+                ->where('bt_date', $date)
+                ->orderBy('bt_start_time')
+                ->get();
+
+            \Log::info('Found breaks before cleanup', [
+                'user_id' => $userId,
+                'date' => $date,
+                'total_breaks' => $allBreaks->count(),
+                'breaks' => $allBreaks
+            ]);
+
+            // Get user's shift type for this date
+            $dailySchedule = DB::table('daily_schedules')
+                ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+                ->select('shift_codes.sc_type')
+                ->where('daily_schedules.user_id', $userId)
+                ->where('daily_schedules.ds_date', $date)
+                ->first();
+
+            $shiftType = $dailySchedule ? $dailySchedule->sc_type : 'Unknown';
+            
+            // Get break allowance for this shift type
+            $breakTime = new BreakTime();
+            $breakAllowance = $breakTime->getBreakAllowance($shiftType);
+            $maxAllowedBreaks = array_sum(array_column($breakAllowance, 'count'));
+
+            \Log::info('Break allowance info', [
+                'shift_type' => $shiftType,
+                'break_allowance' => $breakAllowance,
+                'max_allowed_breaks' => $maxAllowedBreaks
+            ]);
+
+            // If user has more breaks than allowed, keep only the first ones
+            if ($allBreaks->count() > $maxAllowedBreaks) {
+                $breaksToKeep = $allBreaks->take($maxAllowedBreaks);
+                $breaksToRemove = $allBreaks->slice($maxAllowedBreaks);
+                
+                \Log::info('Breaks to keep', [
+                    'count' => $breaksToKeep->count(),
+                    'breaks' => $breaksToKeep
+                ]);
+                
+                \Log::info('Breaks to remove', [
+                    'count' => $breaksToRemove->count(),
+                    'breaks' => $breaksToRemove
+                ]);
+
+                // Update excess breaks to cancelled status
+                foreach ($breaksToRemove as $break) {
+                    DB::table('break_times')
+                        ->where('id', $break->id)
+                        ->update([
+                            'bt_status' => 'cancelled',
+                            'bt_notes' => 'Cancelled - Exceeded break allowance limit',
+                            'updated_at' => now()
+                        ]);
+                }
+
+                \Log::info('Cleanup completed', [
+                    'user_id' => $userId,
+                    'date' => $date,
+                    'breaks_kept' => $breaksToKeep->count(),
+                    'breaks_cancelled' => $breaksToRemove->count()
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cleanup completed successfully',
+                    'data' => [
+                        'shifts_kept' => $breaksToKeep->count(),
+                        'shifts_cancelled' => $breaksToRemove->count(),
+                        'max_allowed' => $maxAllowedBreaks,
+                        'shift_type' => $shiftType
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No cleanup needed - breaks within allowance',
+                    'data' => [
+                        'current_breaks' => $allBreaks->count(),
+                        'max_allowed' => $maxAllowedBreaks,
+                        'shift_type' => $shiftType
+                    ]
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Error during cleanup: ' . $e->getMessage(), [
+                'user_id' => $userId ?? 'unknown',
+                'date' => $date ?? 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error during cleanup: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function create()
@@ -1387,7 +1550,55 @@ class BreakTimeController extends Controller
             'bt_notes' => 'nullable|string'
         ]);
 
-        $breakTime = DB::table('break_times')->insert([
+        // Validate using BreakTime model rules
+        $breakTime = new BreakTime();
+        
+        // Check if user can start break (for active status)
+        if ($request->bt_status === 'active') {
+            // Check if this is a new break (not editing existing)
+            $existingBreak = DB::table('break_times')
+                ->where('user_id', $request->user_id)
+                ->where('bt_date', $request->bt_date)
+                ->where('bt_type', $request->bt_type)
+                ->where('bt_status', 'active')
+                ->first();
+                
+            if ($existingBreak) {
+                return back()->with('error', 'User already has an active break of this type for today')->withInput();
+            }
+            
+            // Check if user has schedule for this date
+            $dailySchedule = \App\Models\DailySchedule::where('user_id', $request->user_id)
+                ->where('ds_date', $request->bt_date)
+                ->with('shiftCode')
+                ->first();
+                
+            if (!$dailySchedule || !$dailySchedule->shiftCode) {
+                return back()->with('error', 'User does not have a schedule for this date')->withInput();
+            }
+            
+            // Check break quota
+            $shiftType = $dailySchedule->shiftCode->sc_type;
+            $breakAllowance = $breakTime->getBreakAllowance($shiftType);
+            
+            if (!isset($breakAllowance[$request->bt_type])) {
+                return back()->with('error', 'This break type is not allowed for user\'s shift type')->withInput();
+            }
+            
+            $completedBreaksCount = DB::table('break_times')
+                ->where('user_id', $request->user_id)
+                ->where('bt_date', $request->bt_date)
+                ->where('bt_type', $request->bt_type)
+                ->where('bt_status', 'completed')
+                ->count();
+                
+            if ($completedBreaksCount >= $breakAllowance[$request->bt_type]['count']) {
+                return back()->with('error', 'Break quota exceeded for today')->withInput();
+            }
+        }
+
+        // If validation passes, insert the break time
+        $breakTimeData = [
             'user_id' => $request->user_id,
             'bt_date' => $request->bt_date,
             'bt_start_time' => $request->bt_start_time,
@@ -1398,9 +1609,15 @@ class BreakTimeController extends Controller
             'bt_duration_minutes' => $this->calculateDuration($request->bt_start_time, $request->bt_end_time),
             'created_by' => auth()->user()->u_name,
             'created_at' => now()
-        ]);
+        ];
 
-        return redirect()->route('break-times.index')->with('success', 'Break time created successfully');
+        $result = DB::table('break_times')->insert($breakTimeData);
+
+        if ($result) {
+            return redirect()->route('break-times.index')->with('success', 'Break time created successfully');
+        } else {
+            return back()->with('error', 'Failed to create break time')->withInput();
+        }
     }
 
     public function show($id)
@@ -1682,33 +1899,46 @@ class BreakTimeController extends Controller
                 return response()->json(['success' => false, 'message' => 'User not found']);
             }
             
-            // Check if user is already on break
-            $existingBreak = DB::table('break_times')
-                ->where('user_id', $user->id)
-                ->where('bt_date', date('Y-m-d'))
-                ->where('bt_status', 'active')
-                ->first();
+            // Use BreakTime model validation
+            $breakTime = new BreakTime();
             
-            if ($existingBreak) {
-                return response()->json(['success' => false, 'message' => 'User is already on break']);
+            // Check if user can start break using model validation
+            if (!$breakTime->canStartBreak($user->id, $breakType)) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cannot start break. Please check your schedule, existing breaks, or break quota.'
+                ], 400);
             }
             
-            // Start break
-            $breakTimeId = DB::table('break_times')->insertGetId([
-                'user_id' => $user->id,
-                'bt_date' => date('Y-m-d'),
-                'bt_start_time' => now(),
-                'bt_type' => $breakType,
-                'bt_status' => 'active',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            // Start break using model method
+            $result = $breakTime->startBreak($user->id, $breakType);
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Break started successfully',
-                'break_duration' => 30 // Default 30 minutes
-            ]);
+            if ($result) {
+                // Get break duration from allowance
+                $today = date('Y-m-d');
+                $dailySchedule = \App\Models\DailySchedule::where('user_id', $user->id)
+                    ->where('ds_date', $today)
+                    ->with('shiftCode')
+                    ->first();
+                
+                $breakDuration = 30; // default
+                if ($dailySchedule && $dailySchedule->shiftCode) {
+                    $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
+                    $breakDuration = $allowance[$breakType]['duration'] ?? 30;
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Break started successfully',
+                    'break_id' => $result,
+                    'break_duration' => $breakDuration
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Failed to start break. Please try again.'
+                ], 400);
+            }
             
         } catch (\Exception $e) {
             \Log::error('Error starting break: ' . $e->getMessage());

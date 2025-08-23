@@ -155,4 +155,56 @@
             setTimeout(initializeSimpleDropdown, 100);
         });
     }
+
+    // Delete shift code function
+    function deleteShiftCode(id) {
+        if (confirm('Apakah Anda yakin ingin menghapus shift code ini?')) {
+            // Show loading state
+            const deleteBtn = document.querySelector(`[onclick="deleteShiftCode(${id})"]`);
+            if (deleteBtn) {
+                deleteBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Deleting...';
+                deleteBtn.style.pointerEvents = 'none';
+            }
+
+            // Send delete request
+            $.ajax({
+                url: `/shift-codes/${id}`,
+                type: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    // Show success message
+                    if (response.success) {
+                        // Refresh DataTable
+                        if (window.shiftCodeTable) {
+                            window.shiftCodeTable.ajax.reload();
+                        }
+                        
+                        // Show success notification
+                        alert('Shift code berhasil dihapus!');
+                    } else {
+                        alert('Gagal menghapus shift code: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Delete error:', xhr.responseText);
+                    
+                    // Show error message
+                    let errorMessage = 'Gagal menghapus shift code';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage += ': ' + xhr.responseJSON.message;
+                    }
+                    alert(errorMessage);
+                },
+                complete: function() {
+                    // Reset button state
+                    if (deleteBtn) {
+                        deleteBtn.innerHTML = 'Delete';
+                        deleteBtn.style.pointerEvents = 'auto';
+                    }
+                }
+            });
+        }
+    }
 </script> 

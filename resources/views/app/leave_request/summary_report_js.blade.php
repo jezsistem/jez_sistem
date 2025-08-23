@@ -109,26 +109,26 @@
         const url = new URL('{{ route("leave-requests.summary-report-export-excel") }}');
         
         // Add current filters to URL
-        const dateFilter = document.getElementById('date_filter').value;
-        const startDate = document.getElementById('start_date').value;
-        const endDate = document.getElementById('end_date').value;
-        const divisionId = document.getElementById('division_id').value;
-        const search = document.getElementById('search').value;
+        const dateFilter = document.getElementById('date_filter');
+        const startDate = document.getElementById('start_date');
+        const endDate = document.getElementById('end_date');
+        const divisionId = document.getElementById('division_id');
+        const summarySearch = document.getElementById('summary_search');
         
-        if (dateFilter && dateFilter !== 'custom') {
-            url.searchParams.append('date_filter', dateFilter);
+        if (dateFilter && dateFilter.value && dateFilter.value !== 'custom') {
+            url.searchParams.append('date_filter', dateFilter.value);
         }
-        if (startDate) {
-            url.searchParams.append('start_date', startDate);
+        if (startDate && startDate.value) {
+            url.searchParams.append('start_date', startDate.value);
         }
-        if (endDate) {
-            url.searchParams.append('end_date', endDate);
+        if (endDate && endDate.value) {
+            url.searchParams.append('end_date', endDate.value);
         }
-        if (divisionId) {
-            url.searchParams.append('division_id', divisionId);
+        if (divisionId && divisionId.value) {
+            url.searchParams.append('division_id', divisionId.value);
         }
-        if (search) {
-            url.searchParams.append('search', search);
+        if (summarySearch && summarySearch.value) {
+            url.searchParams.append('search', summarySearch.value);
         }
         
         console.log('Export Excel URL:', url.toString());
@@ -146,26 +146,26 @@
         const url = new URL('{{ route("leave-requests.summary-report-export-pdf") }}');
         
         // Add current filters to URL
-        const dateFilter = document.getElementById('date_filter').value;
-        const startDate = document.getElementById('start_date').value;
-        const endDate = document.getElementById('end_date').value;
-        const divisionId = document.getElementById('division_id').value;
-        const search = document.getElementById('search').value;
+        const dateFilter = document.getElementById('date_filter');
+        const startDate = document.getElementById('start_date');
+        const endDate = document.getElementById('end_date');
+        const divisionId = document.getElementById('division_id');
+        const summarySearch = document.getElementById('summary_search');
         
-        if (dateFilter && dateFilter !== 'custom') {
-            url.searchParams.append('date_filter', dateFilter);
+        if (dateFilter && dateFilter.value && dateFilter.value !== 'custom') {
+            url.searchParams.append('date_filter', dateFilter.value);
         }
-        if (startDate) {
-            url.searchParams.append('start_date', startDate);
+        if (startDate && startDate.value) {
+            url.searchParams.append('start_date', startDate.value);
         }
-        if (endDate) {
-            url.searchParams.append('end_date', endDate);
+        if (endDate && endDate.value) {
+            url.searchParams.append('end_date', endDate.value);
         }
-        if (divisionId) {
-            url.searchParams.append('division_id', divisionId);
+        if (divisionId && divisionId.value) {
+            url.searchParams.append('division_id', divisionId.value);
         }
-        if (search) {
-            url.searchParams.append('search', search);
+        if (summarySearch && summarySearch.value) {
+            url.searchParams.append('search', summarySearch.value);
         }
         
         console.log('Export PDF URL:', url.toString());

@@ -211,13 +211,41 @@ class ShiftCodeController extends Controller
 
     public function destroy($id)
     {
-        $shiftCode = new ShiftCode();
-        $result = $shiftCode->deleteData($id);
+        try {
+            $shiftCode = new ShiftCode();
+            $result = $shiftCode->deleteData($id);
 
-        if ($result) {
-            return redirect()->route('shift-codes.index')->with('success', 'Shift code berhasil dihapus');
-        } else {
-            return back()->with('error', 'Gagal menghapus shift code');
+            if ($result) {
+                if (request()->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Shift code berhasil dihapus'
+                    ]);
+                }
+                return redirect()->route('shift-codes.index')->with('success', 'Shift code berhasil dihapus');
+            } else {
+                if (request()->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal menghapus shift code'
+                    ]);
+                }
+                return back()->with('error', 'Gagal menghapus shift code');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error deleting shift code: ' . $e->getMessage(), [
+                'shift_code_id' => $id,
+                'user_id' => auth()->user()->id ?? 'not authenticated',
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

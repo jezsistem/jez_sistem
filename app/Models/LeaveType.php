@@ -11,7 +11,7 @@ class LeaveType extends Model
     protected $fillable = [
         'lt_code', 'lt_name', 'lt_description', 'lt_default_days',
         'lt_default_hours', 'lt_unit', 'lt_requires_approval',
-        'lt_is_active', 'lt_color', 'created_by', 'updated_by'
+        'lt_is_active', 'created_by', 'updated_by'
     ];
 
     protected $casts = [

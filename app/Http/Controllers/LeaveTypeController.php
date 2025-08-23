@@ -96,8 +96,7 @@ class LeaveTypeController extends Controller
             'lt_default_hours' => 'nullable|integer|min:0',
             'lt_unit' => 'required|in:days,hours',
             'lt_requires_approval' => 'boolean',
-            'lt_is_active' => 'boolean',
-            'lt_color' => 'required|string|max:7'
+            'lt_is_active' => 'boolean'
         ]);
 
         try {
@@ -106,9 +105,10 @@ class LeaveTypeController extends Controller
             // Filter out unwanted fields
             $data = $request->only([
                 'lt_code', 'lt_name', 'lt_description', 'lt_default_days',
-                'lt_default_hours', 'lt_unit', 'lt_requires_approval', 'lt_is_active', 'lt_color'
+                'lt_default_hours', 'lt_unit', 'lt_requires_approval', 'lt_is_active'
             ]);
             
+            // Set default values
             $data['lt_requires_approval'] = $request->input('lt_requires_approval', 0) == 1;
             $data['lt_is_active'] = $request->input('lt_is_active', 0) == 1;
 

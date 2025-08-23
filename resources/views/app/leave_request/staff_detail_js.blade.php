@@ -305,11 +305,11 @@
                         className: 'text-center',
                         render: function(data, type, row) {
                             if (type === 'display') {
-                                let badgeClass = 'secondary';
-                                if (data === 'approved') badgeClass = 'success';
-                                else if (data === 'pending') badgeClass = 'warning';
-                                else if (data === 'rejected') badgeClass = 'danger';
-                                return '<span class="badge bg-' + badgeClass + '">' + data.charAt(0).toUpperCase() + data.slice(1) + '</span>';
+                                let badgeClass = 'light-green';
+                                if (data === 'approved') badgeClass = 'light-blue';
+                                else if (data === 'pending') badgeClass = 'light-yellow';
+                                else if (data === 'rejected') badgeClass = 'light-red';
+                                return '<span class="badge badge-' + badgeClass + '">' + data.charAt(0).toUpperCase() + data.slice(1) + '</span>';
                             }
                             return data;
                         }

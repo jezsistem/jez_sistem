@@ -814,6 +814,7 @@ Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'get
     Route::delete('break-times/{id}', [BreakTimeController::class, 'destroy'])->name('break-times.destroy');
     Route::post('break-times/clock-in', [BreakTimeController::class, 'clockIn'])->name('break-times.clock-in');
     Route::post('break-times/clock-out', [BreakTimeController::class, 'clockOut'])->name('break-times.clock-out');
+Route::post('break-times/cleanup', [BreakTimeController::class, 'cleanupInvalidBreaks'])->name('break-times.cleanup');
 
 
     // LeaveTypeController
