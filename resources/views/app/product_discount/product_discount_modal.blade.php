@@ -51,7 +51,11 @@
                         <input type="text" class="form-control" id="pd_value" name="pd_value" required />
                     </div>
                     <div class="form-group mb-1 pb-1">
-                        <label for="exampleTextarea">Berakhir</label>
+                        <label for="exampleTextarea">Tanggal Mulai</label>
+                        <input type="date" class="form-control" id="pd_date_start" name="pd_date_start" required />
+                    </div>
+                    <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Tanggal Berakhir</label>
                         <input type="date" class="form-control" id="pd_date" name="pd_date" required />
                     </div>
                 </div>

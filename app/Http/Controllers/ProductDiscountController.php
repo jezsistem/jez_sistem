@@ -96,7 +96,7 @@ class ProductDiscountController extends Controller
     public function getDatatables(Request $request)
     {
         if(request()->ajax()) {
-            return datatables()->of(ProductDiscount::select('product_discounts.id as pd_id', 'store_type_divisions.id as std_id', 'stores.id as st_id', 'st_name', 'dv_name', 'pd_date', 'pd_name', 'pd_type', 'pd_value')
+            return datatables()->of(ProductDiscount::select('product_discounts.id as pd_id', 'store_type_divisions.id as std_id', 'stores.id as st_id', 'st_name', 'dv_name', 'pd_date_start','pd_date', 'pd_name', 'pd_type', 'pd_value')
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'product_discounts.std_id')
             ->leftJoin('stores', 'stores.id', '=', 'product_discounts.st_id')
             ->orderByDesc('product_discounts.pd_date'))
@@ -139,6 +139,9 @@ class ProductDiscountController extends Controller
             })
             ->editColumn('pd_date_show', function($data) {
                 return date('d-m-Y', strtotime($data->pd_date));
+            })
+            ->editColumn('pd_date_start_show', function($data) {
+                return date('d-m-Y', strtotime($data->pd_date_start));
             })
             ->rawColumns(['pd_type_show', 'article'])
             ->filter(function ($instance) use ($request) {
@@ -332,6 +335,7 @@ class ProductDiscountController extends Controller
             'std_id' => $request->input('std_id'),
             'pd_type' => $request->input('pd_type'),
             'pd_value' => $request->input('pd_value'),
+            'pd_date_start' => $request->input('pd_date_start'),
             'pd_date' => $request->input('pd_date'),
         ];
 

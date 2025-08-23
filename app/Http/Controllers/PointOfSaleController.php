@@ -45,12 +45,12 @@ class PointOfSaleController extends Controller
                 $q->where('pos_access', 1);
             })
             ->exists();
-    
+
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
     }
-    
+
 
     protected function sidebar()
     {
@@ -506,12 +506,15 @@ class PointOfSaleController extends Controller
                         $sell_price = $check->first()->p_sell_price;
                     }
                 }
-                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'std_id', 'pd_date')
+                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'std_id', 'pd_date_start', 'pd_date')
                     ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                     ->where('pst_id', '=', $check->first()->pst_id)
                     ->where('std_id', '=', $std_id)->get()->first();
                 if (!empty($set_discount)) {
-                    if (date('Y-m-d') <= $set_discount->pd_date) {
+                    $today = date('Y-m-d');
+
+                    if ($today >= $set_discount->pd_date_start && $today <= $set_discount->pd_date) {
+
                         if (!empty($check->first()->ps_price_tag)) {
                             $price_tag = $check->first()->ps_price_tag;
                         } else {
@@ -1367,7 +1370,7 @@ class PointOfSaleController extends Controller
             $date2_remain_po = date('Y-m-d H:i:s');
             $diff_remain_po = abs(strtotime($date1_remain_po) - strtotime($date2_remain_po));
             if ($date1_remain_po > $date2_remain_po) {
-                $diff_remain_po = -($diff_remain_po);
+                $diff_remain_po = - ($diff_remain_po);
             }
             $days_remain_po = round($diff_remain_po / 86400);
         }
@@ -1376,7 +1379,7 @@ class PointOfSaleController extends Controller
             $date2_remain_tf = date('Y-m-d H:i:s');
             $diff_remain_tf = abs(strtotime($date1_remain_tf) - strtotime($date2_remain_tf));
             if ($date1_remain_tf > $date2_remain_tf) {
-                $diff_remain_tf = -($diff_remain_tf);
+                $diff_remain_tf = - ($diff_remain_tf);
             }
             $days_remain_tf = round($diff_remain_tf / 86400);
         }
@@ -1462,51 +1465,42 @@ class PointOfSaleController extends Controller
                             $sell_price = $row->p_sell_price;
                         }
                     }
-                    $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                    $today = date('Y-m-d');
+
+                    $set_discount = ProductDiscountDetail::select(
+                        'pd_type',
+                        'pd_value',
+                        'st_id',
+                        'std_id',
+                        'pd_date',
+                        'pd_date_start'
+                    )
                         ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
-                        ->where('pst_id', '=', $row->pst_id)
-                        ->where('std_id', '=', $std_id)
+                        ->where('pst_id', $row->pst_id)
+                        ->where('std_id', $std_id)
+                        ->where('product_discounts.pd_date_start', '<=', $today)
+                        ->where('product_discounts.pd_date', '>=', $today)
                         ->orderByDesc('product_discounts.created_at')
-                        ->where('product_discounts.pd_date', '>=', date('Y-m-d'))
-                        ->get()->first();
+                        ->first();
+
                     if (!empty($set_discount)) {
-                        if (date('Y-m-d') <= $set_discount->pd_date) {
-                            if (empty($set_discount->st_id)) {
-                                if (!empty($row->ps_price_tag)) {
-                                    $price_tag = $row->ps_price_tag;
-                                } else {
-                                    $price_tag = $row->p_price_tag;
-                                }
-                                if ($set_discount->pd_type == 'percent') {
-                                    $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
-                                    $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
-                                } else if ($set_discount->pd_type == 'amount') {
-                                    $sell_price_discount = $set_discount->pd_value;
-                                    $sell_price = $price_tag - $set_discount->pd_value;
-                                } else {
-                                    $sell_price = $price_tag;
-                                    $b1g1_id = $row->pst_id;
-                                    $b1g1_price = $sell_price;
-                                }
+                        // Ambil harga dasar
+                        $price_tag = !empty($row->ps_price_tag) ? $row->ps_price_tag : $row->p_price_tag;
+
+                        // Jika diskon berlaku untuk semua store
+                        if (empty($set_discount->st_id) || Auth::user()->st_id == $set_discount->st_id) {
+
+                            if ($set_discount->pd_type == 'percent') {
+                                $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
+                                $sell_price = $price_tag - $sell_price_discount;
+                            } elseif ($set_discount->pd_type == 'amount') {
+                                $sell_price_discount = $set_discount->pd_value;
+                                $sell_price = $price_tag - $set_discount->pd_value;
                             } else {
-                                if (Auth::user()->st_id == $set_discount->st_id) {
-                                    if (!empty($row->ps_price_tag)) {
-                                        $price_tag = $row->ps_price_tag;
-                                    } else {
-                                        $price_tag = $row->p_price_tag;
-                                    }
-                                    if ($set_discount->pd_type == 'percent') {
-                                        $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
-                                        $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
-                                    } else if ($set_discount->pd_type == 'amount') {
-                                        $sell_price_discount = $set_discount->pd_value;
-                                        $sell_price = $price_tag - $set_discount->pd_value;
-                                    } else {
-                                        $sell_price = $price_tag;
-                                        $b1g1_id = $row->pst_id;
-                                        $b1g1_price = $sell_price;
-                                    }
-                                }
+                                // Misalnya tipe = buy1get1
+                                $sell_price = $price_tag;
+                                $b1g1_id = $row->pst_id;
+                                $b1g1_price = $sell_price;
                             }
                         }
                     }
@@ -1671,7 +1665,7 @@ class PointOfSaleController extends Controller
                     'products.article_id as article_id',
                     'product_location_setup_transactions.id as plst_id'
                 )
-                    ->join('product_location_setups', 'product_location_setup_transactions.pls_id','=','product_location_setups.id')
+                    ->join('product_location_setups', 'product_location_setup_transactions.pls_id', '=', 'product_location_setups.id')
                     ->join('product_stocks', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                     ->join('products', 'product_stocks.p_id', '=', 'products.id')
                     ->join('sizes', 'product_stocks.sz_id', '=', 'sizes.id')
@@ -1710,62 +1704,63 @@ class PointOfSaleController extends Controller
                             $sell_price = $row->p_sell_price;
                         }
                     }
-                    $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                    $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                         ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                         ->where('pst_id', '=', $row->pst_id)
-//                        ->where('std_id', '=', $std_id)
+                        //                        ->where('std_id', '=', $std_id)
                         ->where('product_discounts.st_id', '=', Auth::user()->st_id)
                         ->where('pd_type', '=', 'b1g1')
+                        ->where('pd_date_start', '<=', date('Y-m-d'))
                         ->where('pd_date', '>=', date('Y-m-d'))
                         ->orderByDesc('product_discount_details.created_at')
                         ->exists();
                     if ($set_discount_check) {
-                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                             ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                             ->where('pst_id', '=', $row->pst_id)
-//                            ->where('std_id', '=', $std_id)
+                            //                            ->where('std_id', '=', $std_id)
                             ->where('product_discounts.st_id', '=', Auth::user()->st_id)->where('pd_type', '=', 'b1g1')
+                            ->where('product_discounts.pd_date_start', '<=', date('Y-m-d'))
                             ->where('product_discounts.pd_date', '>=', date('Y-m-d'))
                             ->orderByDesc('product_discount_details.created_at')
                             ->get()->first();
                     } else {
-                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                        $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                             ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                             ->where('pst_id', '=', $row->pst_id)
+                            ->where('pd_date_start', '<=', date('Y-m-d'))
                             ->where('pd_date', '>=', date('Y-m-d'))
                             ->where('product_discounts.st_id', '=', Auth::user()->st_id)
-//                            ->where('std_id', '=', $std_id)
+                            //                            ->where('std_id', '=', $std_id)
                             ->where('pd_type', '!=', 'b1g1')
                             ->orderByDesc('product_discount_details.created_at')->get()->first();
                         if (empty($set_discount)) {
-                            $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                            $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                                 ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                                 ->where('pst_id', '=', $row->pst_id)
                                 ->whereNull('product_discounts.st_id')
+                                ->where('pd_date_start', '<=', date('Y-m-d'))
                                 ->where('pd_date', '>=', date('Y-m-d'))
-//                                ->where('std_id', '=', $std_id)
+                                //                                ->where('std_id', '=', $std_id)
                                 ->where('pd_type', '!=', 'b1g1')
                                 ->orderByDesc('product_discount_details.created_at')->get()->first();
                         }
                     }
                     if (!empty($set_discount)) {
-                        if (date('Y-m-d') <= $set_discount->pd_date) {
-                            if (!empty($row->ps_price_tag)) {
-                                $price_tag = $row->ps_price_tag;
-                            } else {
-                                $price_tag = $row->p_price_tag;
-                            }
-                            if ($set_discount->pd_type == 'percent') {
-                                $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
-                                $sell_price = $price_tag - ($price_tag / 100 * $set_discount->pd_value);
-                            } else if ($set_discount->pd_type == 'amount') {
-                                $sell_price_discount = $set_discount->pd_value;
-                                $sell_price = $price_tag - $set_discount->pd_value;
-                            } else {
-                                $sell_price = $price_tag;
-                                $b1g1_id = $row->pst_id;
-                                $b1g1_price = $sell_price;
-                            }
+                        // Ambil harga dasar
+                        $price_tag = !empty($row->ps_price_tag) ? $row->ps_price_tag : $row->p_price_tag;
+                    
+                        if ($set_discount->pd_type == 'percent') {
+                            $sell_price_discount = $price_tag / 100 * $set_discount->pd_value;
+                            $sell_price = $price_tag - $sell_price_discount;
+                        } elseif ($set_discount->pd_type == 'amount') {
+                            $sell_price_discount = $set_discount->pd_value;
+                            $sell_price = $price_tag - $set_discount->pd_value;
+                        } else {
+                            // B1G1
+                            $sell_price = $price_tag;
+                            $b1g1_id = $row->pst_id;
+                            $b1g1_price = $sell_price;
                         }
                     }
                     if ($item_type == 'waiting') {
@@ -1878,7 +1873,7 @@ class PointOfSaleController extends Controller
             ->leftJoin('product_locations', 'product_locations.id', '=', 'exception_locations.pl_id')->get()->toArray();
 
 
-        $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
+        $check = ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'product_discounts.st_id as st_id', 'pd_date_start','pd_date', 'pd_type', 'pd_value', 'pl_code', 'p_name', 'br_name', 'p_color', 'p_sell_price', 'p_price_tag', 'ps_price_tag', 'ps_sell_price', 'sz_name', 'ps_qty', 'pls_qty', 'product_stocks.id as pst_id', 'product_locations.id as pl_id')
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -2691,40 +2686,43 @@ class PointOfSaleController extends Controller
                     $sell_price = $row->p_sell_price;
                 }
             }
-            $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+            $set_discount_check = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                 ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                 ->where('pst_id', '=', $row->pst_id)
                 ->where('std_id', '=', $std_id)
                 ->where('product_discounts.st_id', '=', Auth::user()->st_id)
                 ->where('pd_type', '=', 'b1g1')
+                ->where('pd_date_start', '<=', date('Y-m-d'))
                 ->where('pd_date', '>=', date('Y-m-d'))
                 ->exists();
             if ($set_discount_check) {
-                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                     ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                     ->where('pst_id', '=', $row->pst_id)
                     ->where('std_id', '=', $std_id)
+                    ->where('pd_date_start', '<=', date('Y-m-d'))
                     ->where('pd_date', '>=', date('Y-m-d'))
                     ->where('product_discounts.st_id', '=', Auth::user()->st_id)->where('pd_type', '=', 'b1g1')
                     ->get()->first();
             } else {
-                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                     ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                     ->where('pst_id', '=', $row->pst_id)
+                    ->where('pd_date_start', '<=', date('Y-m-d'))
                     ->where('pd_date', '>=', date('Y-m-d'))
                     ->where('product_discounts.st_id', '=', Auth::user()->st_id)
                     ->where('std_id', '=', $std_id)->where('pd_type', '!=', 'b1g1')->get()->first();
                 if (empty($set_discount)) {
-                    $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date')
+                    $set_discount = ProductDiscountDetail::select('pd_type', 'pd_value', 'st_id', 'std_id', 'pd_date_start','pd_date')
                         ->leftJoin('product_discounts', 'product_discounts.id', '=', 'product_discount_details.pd_id')
                         ->where('pst_id', '=', $row->pst_id)
                         ->whereNull('product_discounts.st_id')
+                        ->where('pd_date_start', '<=', date('Y-m-d'))
                         ->where('pd_date', '>=', date('Y-m-d'))
                         ->where('std_id', '=', $std_id)->where('pd_type', '!=', 'b1g1')->get()->first();
                 }
             }
             if (!empty($set_discount)) {
-                if (date('Y-m-d') <= $set_discount->pd_date) {
                     if (!empty($row->ps_price_tag)) {
                         $price_tag = $row->ps_price_tag;
                     } else {
@@ -2739,7 +2737,6 @@ class PointOfSaleController extends Controller
                         $b1g1_id = $row->pst_id;
                         $b1g1_price = $sell_price;
                     }
-                }
             }
             if (!empty($check_setup)) {
                 if ($item_type == 'waiting') {
@@ -2824,7 +2821,7 @@ class PointOfSaleController extends Controller
 
             return response()->json($r);
         }
-            
+
         if ($data->plst_status == 'WAITING TO TAKE') {
             $r['status'] = '200';
             $r['message'] = 'Barang masih dalam proses pengambilan. Silakan tunggu hingga selesai atau yakin ambil dari display?';
