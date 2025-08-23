@@ -162,9 +162,6 @@
             <div class="card card-custom">
                 <div class="card-header">
                     <div class="card-title">
-                        <span class="card-icon">
-                            <i class="fas fa-tags text-primary"></i>
-                        </span>
                         <h3 class="card-label">Announcement Categories</h3>
                     </div>
                     <div class="card-toolbar">

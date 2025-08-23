@@ -27,6 +27,7 @@
                         d.search = $('#break_time_search').val();
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
+                        d.date_filter = $('#date_filter').val();
                         d.user_id = $('#user_id').val();
                         d.division_id = $('#division_id').val();
                         d.status = $('#status').val();
@@ -86,10 +87,12 @@
                 window.breakTimeTable.draw();
             });
             
-            // Auto refresh table when filter values change
-            $('#start_date, #end_date, #user_id, #division_id, #status').on('change', function() {
-                window.breakTimeTable.draw();
-            });
+                    // Auto refresh table when filter values change
+        $('#start_date, #end_date, #user_id, #division_id, #status').on('change', function() {
+            window.breakTimeTable.draw();
+            // Update statistics when filters change
+            updateStatistics();
+        });
             
             // Search functionality with debounce
             var searchTimeout;
@@ -218,14 +221,123 @@
                     return `${year}-${month}-${day}`;
                 };
                 
-                startDateInput.value = formatDate(startDate);
-                endDateInput.value = formatDate(endDate);
+                const formattedStartDate = formatDate(startDate);
+                const formattedEndDate = formatDate(endDate);
+                
+                startDateInput.value = formattedStartDate;
+                endDateInput.value = formattedEndDate;
+                
+                // Update breadcrumb display
+                updateBreadcrumbDates(formattedStartDate, formattedEndDate, value);
             }
         }
         
         // Apply filters after date change
         if (window.breakTimeTable) {
             window.breakTimeTable.draw();
+        }
+        
+        // Update statistics after date filter change
+        updateStatistics();
+    }
+
+    // Function to update breadcrumb dates
+    function updateBreadcrumbDates(startDate, endDate, dateFilter) {
+        const breadcrumbElement = document.querySelector('.breadcrumb-item .text-muted');
+        if (breadcrumbElement) {
+            if (dateFilter && dateFilter !== 'custom') {
+                // Format dates for display
+                const formatDisplayDate = (dateString) => {
+                    const date = new Date(dateString);
+                    const day = date.getDate();
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const year = date.getFullYear();
+                    return `${day} ${month} ${year}`;
+                };
+                
+                const displayStartDate = formatDisplayDate(startDate);
+                const displayEndDate = formatDisplayDate(endDate);
+                breadcrumbElement.textContent = `${displayStartDate} to ${displayEndDate}`;
+            } else {
+                breadcrumbElement.textContent = `${startDate} to ${endDate}`;
+            }
+        }
+    }
+
+    // Function to update statistics
+    function updateStatistics() {
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        const dateFilter = document.getElementById('date_filter').value;
+        const userId = document.getElementById('user_id').value;
+        const divisionId = document.getElementById('division_id').value;
+        const status = document.getElementById('status').value;
+        
+        // Show loading state
+        const statsContainer = document.getElementById('statsContainer');
+        if (statsContainer) {
+            statsContainer.style.opacity = '0.6';
+        }
+        
+        // Fetch updated statistics
+        fetch('{{ route("break-times.stats") }}?' + new URLSearchParams({
+            start_date: startDate,
+            end_date: endDate,
+            date_filter: dateFilter,
+            user_id: userId,
+            division_id: divisionId,
+            status: status
+        }))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateStatsDisplay(data.stats);
+            } else {
+                console.error('Error updating stats:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching stats:', error);
+        })
+        .finally(() => {
+            // Restore opacity
+            if (statsContainer) {
+                statsContainer.style.opacity = '1';
+            }
+        });
+    }
+
+    // Function to update stats display
+    function updateStatsDisplay(stats) {
+        // Update status-based stats
+        if (stats.status_stats) {
+            stats.status_stats.forEach(stat => {
+                const element = document.getElementById(`stat-${stat.bt_status}-count`);
+                if (element) {
+                    element.textContent = stat.total;
+                }
+            });
+        }
+        
+        // Update type-based stats
+        if (stats.type_stats) {
+            stats.type_stats.forEach(stat => {
+                const element = document.getElementById(`stat-${stat.bt_type}-count`);
+                if (element) {
+                    element.textContent = stat.total;
+                }
+            });
+        }
+        
+        // Update total count
+        const totalElement = document.getElementById('stat-total-count');
+        if (totalElement && stats.total_break_times !== undefined) {
+            totalElement.textContent = stats.total_break_times;
+        }
+        
+        // Update average duration if needed
+        if (stats.average_duration !== undefined) {
+            console.log('Average duration:', stats.average_duration, 'minutes');
         }
     }
     
@@ -418,4 +530,46 @@
             });
         }
     }
+
+    // Initialize when document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form submit event listener for date filter
+        const filterForm = document.querySelector('form[action*="break-times.report"]');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevent form submission
+                
+                // Update breadcrumb before reloading DataTable
+                const dateFilter = document.getElementById('date_filter').value;
+                const startDate = document.getElementById('start_date').value;
+                const endDate = document.getElementById('end_date').value;
+                
+                if (dateFilter && dateFilter !== 'custom') {
+                    updateBreadcrumbDates(startDate, endDate, dateFilter);
+                } else {
+                    updateBreadcrumbDates(startDate, endDate, 'custom');
+                }
+                
+                // Reload DataTable
+                if (window.breakTimeTable) {
+                    window.breakTimeTable.ajax.reload();
+                }
+                
+                // Update statistics
+                updateStatistics();
+            });
+        }
+        
+        // Initialize breadcrumb with current values
+        const dateFilter = document.getElementById('date_filter').value;
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        
+        if (dateFilter && dateFilter !== 'custom') {
+            updateBreadcrumbDates(startDate, endDate, dateFilter);
+        }
+        
+        // Initialize statistics
+        updateStatistics();
+    });
 </script>

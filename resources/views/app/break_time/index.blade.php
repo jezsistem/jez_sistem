@@ -80,9 +80,13 @@
             <!--end::Info-->
             <!--begin::Toolbar-->
             <div class="d-flex align-items-center">
-                <a href="{{ route('break-times.report') }}" class="btn btn-light-primary font-weight-bolder">
+                <a href="{{ route('break-times.report') }}" class="btn btn-light-primary font-weight-bolder mr-2">
                     <i class="ki-outline ki-graph-2"></i>
                     View Report
+                </a>
+                <a href="{{ route('break-times.summary-report') }}" class="btn btn-light-info font-weight-bolder">
+                    <i class="ki-outline ki-chart-line"></i>
+                    Summary Report
                 </a>
             </div>
             <!--end::Toolbar-->

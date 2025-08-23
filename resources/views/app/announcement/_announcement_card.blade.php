@@ -22,9 +22,6 @@
                                 {{ $announcement->category->name }}
                             </span>
                         @endif
-                        <!-- @if($announcement->is_pinned)
-                            <i class="fas fa-thumbtack text-primary" style="font-size: 0.8rem;" title="Pinned"></i>
-                        @endif -->
                     </div>
                     <span class="text-muted fs-6">{{ $announcement->creator->userPosition->up_name ?? 'Unknown Position' }} • {{ $announcement->published_at->format('M d, H:i') }}</span>
                 </div>
@@ -37,11 +34,6 @@
                         title="{{ $announcement->is_pinned ? 'Unpin' : 'Pin' }} announcement">
                     <i class="fas fa-thumbtack" style="color: {{ $announcement->is_pinned ? '#007bff' : '#6c757d' }} !important;"></i>
                 </button>
-                <!-- <button class="btn btn-sm btn-icon btn-light-primary" 
-                        onclick="toggleAnnouncementContent({{ $announcement->id }})" 
-                        title="Toggle content">
-                    <i class="fas fa-chevron-down" id="chevron-{{ $announcement->id }}"></i>
-                </button> -->
             </div>
         </div>
         <!--end::Compact Header-->

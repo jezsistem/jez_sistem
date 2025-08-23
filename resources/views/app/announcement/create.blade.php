@@ -1,4 +1,117 @@
 @extends('app.structure')
+
+<style>
+.user-item {
+    padding: 10px;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    margin-bottom: 2px;
+}
+
+.user-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.user-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.user-item label {
+    margin-bottom: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.user-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.1);
+}
+
+.user-item strong {
+    color: #495057;
+    font-weight: 600;
+}
+
+.user-item small {
+    font-size: 0.85em;
+}
+
+.user-item .badge {
+    font-size: 0.75em;
+    padding: 0.25em 0.5em;
+}
+
+#usersList {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#usersList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#usersList::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+#usersList::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+#usersList::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.btn-group-sm .btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+#user_division_filter,
+#user_search {
+    font-size: 1rem;
+}
+
+.selected-users-summary {
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 10px;
+}
+
+#selectedUsersTags .badge {
+    transition: all 0.2s ease;
+    border: 1px solid #007bff;
+}
+
+#selectedUsersTags .badge:hover {
+    background-color: #0056b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#selectedUsersTags .badge i {
+    transition: all 0.2s ease;
+}
+
+#selectedUsersTags .badge:hover i {
+    transform: scale(1.1);
+}
+
+#selectedUsersContainer {
+    max-height: 200px;
+    overflow-y: auto;
+}
+</style>
 @section('content')
 
 <!--begin::Content-->
@@ -45,7 +158,7 @@
                     @csrf
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-md-7">
                                 <!-- Title -->
                                 <div class="form-group">
                                     <label for="title">Title <span class="text-danger">*</span></label>
@@ -85,7 +198,7 @@
                                 </div>
                             </div>
                             
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <!-- Target Type -->
                                 <div class="form-group">
                                     <label for="target_type">Target Audience <span class="text-danger">*</span></label>
@@ -109,13 +222,74 @@
                                 </div>
                                 
                                 <!-- Individual Users Selection (hidden by default) -->
-                                <div class="form-group" id="usersGroup" style="display: none;">
+                                <div class="form-group bg-light p-4 rounded border" id="usersGroup" style="display: none;">
                                     <label for="user_ids">Select Users <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="user_ids" name="user_ids[]" multiple>
-                                        @foreach($users as $user)
-                                            <option value="{{ $user->id }}">{{ $user->u_name }} ({{ $user->u_nip }})</option>
+                                    <div class="mb-3">
+                                        <label for="user_division_filter" class="small text-muted">Filter by Division (Optional)</label>
+                                        <select class="form-control" id="user_division_filter">
+                                            <option value="">All Divisions</option>
+                                            <option value="no_division">No Division</option>
+                                            @foreach($divisions as $division)
+                                                <option value="{{ $division->id }}">{{ $division->ud_name }}</option>
                                         @endforeach
                                     </select>
+                                    </div>
+                                    
+                                    <!-- Search Users -->
+                                    <div class="mb-5">
+                                        <input type="text" class="form-control" id="user_search" placeholder="Search users by name or NIP...">
+                                        <small class="form-text text-muted">
+                                            <span id="visibleUserCount">{{ count($users) }}</span> users available
+                                        </small>
+                                    </div>
+                                    
+                                    <!-- User Selection Methods -->
+                                    <div class="mb-3">
+                                        <div class="w-100" role="group">
+                                            <button type="button" class="btn btn-primary mr-3" id="selectAllBtn">Select All</button>
+                                            <button type="button" class="btn btn-dark" id="clearAllBtn">Clear All</button>
+                                        </div>
+                                    </div>
+                                    
+
+                                    
+                                    <!-- Users List -->
+                                    <div class="border bg-white rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                                        <div id="usersList">
+                                            @foreach($users as $user)
+                                                @php
+                                                    // Get division name from divisions collection
+                                                    $division = $divisions->firstWhere('id', $user->ud_id);
+                                                    $divisionName = $division ? $division->ud_name : 'No Division';
+                                                    $divisionId = $user->ud_id ?? '';
+                                                @endphp
+                                                <div class="user-item" data-user-id="{{ $user->id }}" data-user-name="{{ strtolower($user->u_name) }}" data-user-nip="{{ $user->u_nip }}" data-division-id="{{ $divisionId }}" data-division-name="{{ $divisionName }}">
+                                                    <label class="checkbox-inline mb-2">
+                                                        <input type="checkbox" name="user_ids[]" value="{{ $user->id }}" class="user-checkbox">
+                                                        <span></span>
+                                                        <strong>{{ $user->u_name }}</strong>
+                                                        <small class="text-muted ml-2">({{ $user->u_nip }})</small>
+                                                        <small class="badge badge-light ml-2">{{ $divisionName }}</small>
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Selected Users Summary -->
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <span id="selectedCount">0</span> user(s) selected
+                                        </small>
+                                    </div>
+                                    
+                                    <!-- Selected Users Tags -->
+                                    <div class="mt-4" id="selectedUsersTags" style="display: none;">
+                                        <label class="small text-muted mb-2">Selected Users:</label>
+                                        <div class="d-flex flex-wrap gap-1" id="selectedUsersContainer">
+                                            <!-- Selected user tags will be displayed here -->
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <!-- Status -->
@@ -210,14 +384,7 @@
                     usersGroup.style.display = 'block';
                     console.log('Showing users group');
                     
-                    // Style multiple select for better UX
-                    var userSelect = document.getElementById('user_ids');
-                    if (userSelect) {
-                        userSelect.style.height = 'auto';
-                        userSelect.style.minHeight = '120px';
-                        userSelect.setAttribute('size', '8');
-                        userSelect.style.width = '100%';
-                    }
+
                 }
             });
         }
@@ -270,9 +437,8 @@
                 }
                 
                 if (targetType === 'individual') {
-                    var userIds = document.getElementById('user_ids');
-                    var selectedUsers = Array.from(userIds.selectedOptions);
-                    if (selectedUsers.length === 0) {
+                    var checkedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+                    if (checkedCheckboxes.length === 0) {
                         alert('Please select at least one user.');
                         return false;
                     }
@@ -429,14 +595,170 @@
             });
         }
         
-        // Make multiple select more user-friendly by default
-        var userSelect = document.getElementById('user_ids');
-        if (userSelect && userSelect.multiple) {
-            // Add instruction text
-            var instructionDiv = document.createElement('div');
-            instructionDiv.className = 'small text-muted mt-1';
-            instructionDiv.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Hold Ctrl (Cmd on Mac) to select multiple users';
-            userSelect.parentNode.appendChild(instructionDiv);
+        // Initialize user selection functionality
+        initializeUserSelection();
+        
+        function initializeUserSelection() {
+            var userDivisionFilter = document.getElementById('user_division_filter');
+            var userSearch = document.getElementById('user_search');
+            var selectAllBtn = document.getElementById('selectAllBtn');
+            var clearAllBtn = document.getElementById('clearAllBtn');
+            var userCheckboxes = document.querySelectorAll('.user-checkbox');
+            var selectedCountSpan = document.getElementById('selectedCount');
+            var visibleUserCountSpan = document.getElementById('visibleUserCount');
+            
+            // Division filter change handler
+            if (userDivisionFilter) {
+                userDivisionFilter.addEventListener('change', function() {
+                    filterUsers();
+                });
+            }
+            
+            // Search input handler
+            if (userSearch) {
+                userSearch.addEventListener('input', function() {
+                    filterUsers();
+                });
+            }
+            
+            // Select all users
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', function() {
+                    var visibleCheckboxes = getVisibleUserCheckboxes();
+                    visibleCheckboxes.forEach(function(checkbox) {
+                        checkbox.checked = true;
+                    });
+                    updateSelectedCount();
+                });
+            }
+            
+            // Clear all selections
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', function() {
+                    userCheckboxes.forEach(function(checkbox) {
+                        checkbox.checked = false;
+                    });
+                    updateSelectedCount();
+                });
+            }
+            
+
+            
+
+            
+            // Update selected count when checkboxes change
+            userCheckboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('change', updateSelectedCount);
+            });
+            
+            // Initial count update
+            updateSelectedCount();
+            
+            function filterUsers() {
+                var selectedDivision = userDivisionFilter ? userDivisionFilter.value : '';
+                var searchTerm = userSearch ? userSearch.value.toLowerCase() : '';
+                
+                var userItems = document.querySelectorAll('.user-item');
+                var visibleCount = 0;
+                
+                userItems.forEach(function(userItem) {
+                    var userName = userItem.dataset.userName || '';
+                    var userNip = userItem.dataset.userNip || '';
+                    var divisionId = userItem.dataset.divisionId || '';
+                    
+                    // Handle "No Division" case
+                    var matchesDivision = true;
+                    if (selectedDivision) {
+                        if (selectedDivision === 'no_division') {
+                            // Show only users with no division
+                            matchesDivision = divisionId === '';
+                        } else if (divisionId === '') {
+                            // If filtering by specific division and user has no division, don't show
+                            matchesDivision = false;
+                        } else {
+                            matchesDivision = divisionId === selectedDivision;
+                        }
+                    }
+                    
+                    var matchesSearch = !searchTerm || 
+                        userName.includes(searchTerm) || 
+                        userNip.includes(searchTerm);
+                    
+                    if (matchesDivision && matchesSearch) {
+                        userItem.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        userItem.style.display = 'none';
+                    }
+                });
+                
+                // Update visible user count
+                if (visibleUserCountSpan) {
+                    visibleUserCountSpan.textContent = visibleCount;
+                }
+                
+                updateSelectedCount();
+            }
+            
+            function getVisibleUserCheckboxes() {
+                var visibleUserItems = document.querySelectorAll('.user-item[style*="display: block"], .user-item:not([style*="display: none"])');
+                var visibleCheckboxes = [];
+                
+                visibleUserItems.forEach(function(userItem) {
+                    var checkbox = userItem.querySelector('.user-checkbox');
+                    if (checkbox) {
+                        visibleCheckboxes.push(checkbox);
+                    }
+                });
+                
+                return visibleCheckboxes;
+            }
+            
+            function updateSelectedCount() {
+                var checkedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+                if (selectedCountSpan) {
+                    selectedCountSpan.textContent = checkedCheckboxes.length;
+                }
+                
+                // Update selected users tags
+                updateSelectedUsersTags();
+            }
+            
+            function updateSelectedUsersTags() {
+                var selectedUsersTags = document.getElementById('selectedUsersTags');
+                var selectedUsersContainer = document.getElementById('selectedUsersContainer');
+                var checkedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+                
+                if (checkedCheckboxes.length === 0) {
+                    selectedUsersTags.style.display = 'none';
+                    return;
+                }
+                
+                selectedUsersTags.style.display = 'block';
+                selectedUsersContainer.innerHTML = '';
+                
+                checkedCheckboxes.forEach(function(checkbox) {
+                    var userItem = checkbox.closest('.user-item');
+                    if (userItem) {
+                        var userId = userItem.dataset.userId;
+                        var userName = userItem.querySelector('strong').textContent;
+                        var userNip = userItem.dataset.userNip;
+                        var divisionName = userItem.dataset.divisionName;
+                        
+                        var tag = document.createElement('div');
+                        tag.className = 'badge badge-primary d-flex align-items-center';
+                        tag.style.cssText = 'font-size: 0.9rem; padding: 0.5rem 0.7rem; margin: 0.2rem; cursor: pointer;';
+                        
+                        tag.innerHTML = `
+                            <span class="mr-2">${userName} (${userNip})</span>
+                            <small class="text-white-50 mr-2">${divisionName}</small>
+                            <i class="fas fa-times text-white" onclick="removeUserSelection('${userId}')"></i>
+                        `;
+                        
+                        selectedUsersContainer.appendChild(tag);
+                    }
+                });
+            }
         }
     }
     
@@ -459,6 +781,20 @@
         // Trigger change event to update preview
         var event = new Event('change', { bubbles: true });
         fileInput.dispatchEvent(event);
+    };
+    
+    // Global function for removing user selection
+    window.removeUserSelection = function(userId) {
+        var userItem = document.querySelector(`[data-user-id="${userId}"]`);
+        if (userItem) {
+            var checkbox = userItem.querySelector('.user-checkbox');
+            if (checkbox) {
+                checkbox.checked = false;
+                // Trigger change event to update counts and tags
+                var event = new Event('change', { bubbles: true });
+                checkbox.dispatchEvent(event);
+            }
+        }
     };
     
     // Initialize when DOM is ready (only once)

@@ -114,6 +114,10 @@ Route::get('', [AuthController::class, 'index'])->name('login');
 Route::get('login_amel', [AuthController::class, 'index_two'])->name('login_amel');
 Route::post('user_login', [AuthController::class, 'login']);
 
+// Google OAuth Routes
+Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
+
 Route::get('payment_check/88991703/show', [PaymentCheckController::class, 'checkData']);
 Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAutoUpdateArticleInformation']);
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
@@ -144,7 +148,9 @@ Route::get('daily-schedules/export-weekly-report-pdf-public', [DailyScheduleCont
 // Public Excel export routes (no auth required)
 Route::get('break-times/export/excel', [BreakTimeController::class, 'exportToExcel'])->name('break-times.export-excel');
 
-
+// Export routes (outside auth middleware)
+Route::get('attendance/summary-report/export/excel', [AttendanceController::class, 'exportSummaryToExcel'])->name('attendance.summary-report-export-excel');
+Route::get('attendance/summary-report/export/pdf', [AttendanceController::class, 'exportSummaryToPDF'])->name('attendance.summary-report-export-pdf');
 
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
@@ -741,6 +747,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('daily-schedules/export', [DailyScheduleController::class, 'export'])->name('daily-schedules.export');
     Route::get('daily-schedules/weekly', [DailyScheduleController::class, 'weeklySchedule'])->name('daily-schedules.weekly');
     Route::get('daily-schedules/weekly-report', [DailyScheduleController::class, 'weeklyReport'])->name('daily-schedules.weekly-report');
+    Route::get('daily-schedules/monthly-report', [DailyScheduleController::class, 'monthlyReport'])->name('daily-schedules.monthly-report');
+    Route::get('daily-schedules/export-monthly-excel', [DailyScheduleController::class, 'exportMonthlyExcel'])->name('daily-schedules.export-monthly-excel');
+    Route::get('daily-schedules/export-monthly-pdf', [DailyScheduleController::class, 'exportMonthlyPDF'])->name('daily-schedules.export-monthly-pdf');
     Route::get('daily-schedules/get-users-by-division', [DailyScheduleController::class, 'getUsersByDivision'])->name('daily-schedule.get-users-by-division');
     Route::get('daily-schedules/get-weekly-schedules', [DailyScheduleController::class, 'getWeeklySchedules'])->name('daily-schedule.get-weekly-schedules');
     Route::post('daily-schedules/save-weekly-schedule', [DailyScheduleController::class, 'saveWeeklySchedule'])->name('daily-schedule.save-weekly-schedule');
@@ -759,13 +768,18 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
     Route::get('attendance/upload', [AttendanceController::class, 'upload'])->name('attendance.upload');
     Route::post('attendance/upload', [AttendanceController::class, 'processUpload'])->name('attendance.process-upload');
+
     Route::get('attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
+    Route::get('attendance/summary-report', [AttendanceController::class, 'summaryReport'])->name('attendance.summary-report');
+    Route::get('attendance/summary-report/datatables', [AttendanceController::class, 'getSummaryReportDatatables'])->name('attendance.summary-report-datatables');
+
     Route::get('attendance/{id}', [AttendanceController::class, 'show'])->name('attendance.show');
     Route::get('attendance/{id}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
     Route::put('attendance/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
     Route::delete('attendance/{id}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
-    Route::get('attendance/{id}/process-status', [AttendanceController::class, 'processStatus'])->name('attendance.process-status');
+
     Route::post('attendance/reprocess-all', [AttendanceController::class, 'reprocessAll'])->name('attendance.reprocess-all');
+    Route::post('attendance/reprocess-status', [AttendanceController::class, 'reprocessAttendanceStatus'])->name('attendance.reprocess-status');
     Route::get('attendance/staff/{user_id}', [AttendanceController::class, 'staffDetail'])->name('attendance.staff-detail');
     Route::get('attendance/staff/{user_id}/datatables', [AttendanceController::class, 'staffDatatables'])->name('attendance.staff-datatables');
     Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
@@ -779,8 +793,19 @@ Route::group(['middleware' => 'auth'], function () {
     // BreakTimeController
     Route::get('break-times', [BreakTimeController::class, 'index'])->name('break-times.index');
     Route::get('break-times/report', [BreakTimeController::class, 'report'])->name('break-times.report');
+    Route::get('break-times/summary-report', [BreakTimeController::class, 'summaryReport'])->name('break-times.summary-report');
+    Route::get('break-times/summary-report/datatables', [BreakTimeController::class, 'getSummaryReportDatatables'])->name('break-times.summary-report-datatables');
+Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'getSummaryReportStats'])->name('break-times.summary-report-stats');
     Route::get('break-times/datatables', [BreakTimeController::class, 'getDatatables'])->name('break-times.datatables');
     Route::get('break-times/export/pdf', [BreakTimeController::class, 'exportToPDF'])->name('break-times.export-pdf');
+    Route::get('break-times/summary-report/export/excel', [BreakTimeController::class, 'exportSummaryToExcel'])->name('break-times.summary-report-export-excel');
+    Route::get('break-times/summary-report/export/pdf', [BreakTimeController::class, 'exportSummaryToPDF'])->name('break-times.summary-report-export-pdf');
+    Route::get('break-times/staff/{user_id}', [BreakTimeController::class, 'staffDetail'])->name('break-times.staff-detail');
+    Route::get('break-times/staff/{user_id}/datatables', [BreakTimeController::class, 'staffDatatables'])->name('break-times.staff-datatables');
+    Route::get('break-times/staff/{user_id}/stats', [BreakTimeController::class, 'staffStats'])->name('break-times.staff-stats');
+    Route::get('break-times/stats', [BreakTimeController::class, 'getBreakTimeStats'])->name('break-times.stats');
+    Route::get('break-times/staff/{user_id}/export/excel', [BreakTimeController::class, 'exportStaffToExcel'])->name('break-times.staff-export-excel');
+    Route::get('break-times/staff/{user_id}/export/pdf', [BreakTimeController::class, 'exportStaffToPDF'])->name('break-times.staff-export-pdf');
     Route::get('break-times/create', [BreakTimeController::class, 'create'])->name('break-times.create');
     Route::post('break-times', [BreakTimeController::class, 'store'])->name('break-times.store');
     Route::get('break-times/{id}', [BreakTimeController::class, 'show'])->name('break-times.show');
@@ -808,6 +833,22 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('leave-requests/datatables', [LeaveRequestController::class, 'getDatatables'])->name('leave-requests.datatables');
     Route::get('leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
     Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
+    
+    // Leave Summary Report Routes (MUST be before {id} routes to avoid conflicts)
+    Route::get('leave-requests/summary-report', [LeaveRequestController::class, 'summaryReport'])->name('leave-requests.summary-report');
+    Route::get('leave-requests/summary-report/datatables', [LeaveRequestController::class, 'getSummaryReportDatatables'])->name('leave-requests.summary-report-datatables');
+    Route::get('leave-requests/summary-report/export/excel', [LeaveRequestController::class, 'exportSummaryToExcel'])->name('leave-requests.summary-report-export-excel');
+    Route::get('leave-requests/summary-report/export/pdf', [LeaveRequestController::class, 'exportSummaryToPDF'])->name('leave-requests.summary-report-export-pdf');
+    Route::get('leave-requests/staff/{user_id}', [LeaveRequestController::class, 'staffDetail'])->name('leave-requests.staff-detail');
+    Route::get('leave-requests/staff/{user_id}/datatables', [LeaveRequestController::class, 'staffDatatables'])->name('leave-requests.staff-datatables');
+    Route::get('leave-requests/staff/{user_id}/stats', [LeaveRequestController::class, 'staffStats'])->name('leave-requests.staff-stats');
+    Route::get('leave-requests/staff/{user_id}/export/excel', [LeaveRequestController::class, 'exportStaffToExcel'])->name('leave-requests.staff-export-excel');
+    Route::get('leave-requests/staff/{user_id}/export/pdf', [LeaveRequestController::class, 'exportStaffToPDF'])->name('leave-requests.staff-export-pdf');
+    
+    // Leave Balance Route
+    Route::get('leave-requests/balance/{leaveTypeId}', [LeaveRequestController::class, 'getLeaveBalance'])->name('leave-requests.balance');
+    
+    // Leave Request CRUD Routes (with {id} parameter)
     Route::get('leave-requests/{id}', [LeaveRequestController::class, 'show'])->name('leave-requests.show');
     Route::get('leave-requests/{id}/edit', [LeaveRequestController::class, 'edit'])->name('leave-requests.edit');
     Route::put('leave-requests/{id}', [LeaveRequestController::class, 'update'])->name('leave-requests.update');
@@ -816,7 +857,15 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('leave-requests/reprocess-all', [LeaveRequestController::class, 'reprocessAll'])->name('leave-requests.reprocess-all');
     Route::post('leave-requests/{id}/approve', [LeaveRequestController::class, 'approve'])->name('leave-requests.approve');
     Route::post('leave-requests/{id}/reject', [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
-    Route::get('leave-requests/balance/{leaveTypeId}', [LeaveRequestController::class, 'getLeaveBalance'])->name('leave-requests.balance');
+
+// Debug route for testing CSRF
+Route::get('test-csrf', function() {
+    return response()->json([
+        'csrf_token' => csrf_token(),
+        'session_id' => session()->getId(),
+        'user_id' => auth()->id()
+    ]);
+})->middleware('auth');
 
     // UserPositionController
     Route::get('user-positions', [UserPositionController::class, 'index'])->name('user-positions.index');

@@ -43,16 +43,15 @@
                         <div class="row">
                             <div class="col-md-2">
                                 <label>Date Filter:</label>
-                                <select class="form-control" name="date_filter" onchange="this.form.submit()">
-                                    <option value="this_week" {{ request('date_filter', 'this_week') == 'this_week' ? 'selected' : '' }}>This Week</option>
-                                    <option value="past_week" {{ request('date_filter', 'this_week') == 'past_week' ? 'selected' : '' }}>Past Week</option>
-                                    <option value="this_month" {{ request('date_filter', 'this_week') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                                    <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Past Month</option>
+                                <select class="form-control" name="date_filter">
+                                    <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
+                                    <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                    <option value="custom" {{ $dateFilter == 'custom' ? 'selected' : '' }}>Custom Range</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label>Week Range:</label>
-                                <input type="date" class="form-control" name="start_date" value="{{ $startDate }}" onchange="this.form.submit()">
+                                <input type="date" class="form-control" name="start_date" value="{{ $startDate }}">
                                 <small class="form-text text-muted">Select Monday to show full week</small>
                             </div>
                             <div class="col-md-2">
@@ -108,7 +107,7 @@
                             </span>
                         </h3>
                     </div> -->
-                    <div class="card-toolbar">
+                    <div class="card-toolbar d-flex justify-content-end w-100">
                         <!-- <button type="button" class="btn btn-light-success btn-sm" onclick="window.print()">
                             <i class="ki-outline ki-printer"></i> Print
                         </button> -->
@@ -121,6 +120,27 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <div class="color-legend mb-4">
+                        <h6 class="text-muted mb-2">Shift Color Legend:</h6>
+                        <div class="d-flex flex-wrap">
+                            <div class="legend-item mr-3 mb-2">
+                                <span class="legend-color" style="background-color: #eaf5fb;"></span>
+                                <span class="legend-text">Shift 1 & Shift 0</span>
+                            </div>
+                            <div class="legend-item mr-3 mb-2">
+                                <span class="legend-color" style="background-color: #e5f6f3;"></span>
+                                <span class="legend-text">Shift 2</span>
+                            </div>
+                            <div class="legend-item mr-3 mb-2">
+                                <span class="legend-color" style="background-color: #FFF9ED;"></span>
+                                <span class="legend-text">Full & Full Shift 0</span>
+                            </div>
+                            <div class="legend-item mr-3 mb-2">
+                                <span class="legend-color" style="background-color: #f8e8e6;"></span>
+                                <span class="legend-text">Sakit, Libur & Izin</span>
+                            </div>
+                        </div>
+                    </div>
                     @if(count($groupedSchedules) > 0)
                         @foreach($groupedSchedules as $divisionName => $users)
                             <!-- Division Header -->
@@ -171,9 +191,22 @@
                                                         $startTime = $schedule['sc_start_time'] ?? '';
                                                         $endTime = $schedule['sc_end_time'] ?? '';
                                                         
-                                                        // Color coding based on shift type
+                                                        // Color coding based on shift name (same as monthly report)
                                                         $cellClass = '';
-                                                        if ($shiftCode) {
+                                                        if ($schedule && $shiftName) {
+                                                            if (strpos(strtolower($shiftName), 'shift 1') !== false || strpos(strtolower($shiftName), 'shift 0') !== false) {
+                                                                $cellClass = 'bg-light-info'; // light blue for shift 1 & 0
+                                                            } elseif (strpos(strtolower($shiftName), 'shift 2') !== false) {
+                                                                $cellClass = 'bg-light-success'; // light green for shift 2
+                                                            } elseif (strpos(strtolower($shiftName), 'full') !== false) {
+                                                                $cellClass = 'bg-light-warning'; // light yellow for full
+                                                            } elseif (strpos(strtolower($shiftName), 'sakit') !== false || strpos(strtolower($shiftName), 'libur') !== false || strpos(strtolower($shiftName), 'izin') !== false) {
+                                                                $cellClass = 'bg-light-danger'; // light red for sakit/libur/izin
+                                                            } else {
+                                                                $cellClass = 'bg-light-primary'; // default blue for other shifts
+                                                            }
+                                                        } elseif ($shiftCode) {
+                                                            // Fallback to old logic for shift codes
                                                             if (in_array($shiftCode, ['L', 'LL', 'LPH'])) {
                                                                 $cellClass = 'bg-light-success'; // Green for leave
                                                             } elseif (in_array($shiftCode, ['S', 'I'])) {
@@ -232,30 +265,33 @@
     <!--end::Entry-->
 </div>
 
-<!-- Legend -->
-<div class="card card-custom mt-3">
+<!-- Color Legend -->
+<!-- <div class="card card-custom mt-3">
     <div class="card-body py-3">
         <div class="row align-items-center">
             <div class="col-md-2">
-                <strong>Legend:</strong>
+                <strong>Shift Color Legend:</strong>
             </div>
             <div class="col-md-10">
+                <span class="badge bg-light-info text-info mr-2">
+                    <span class="bullet bullet-bar bg-info mr-2"></span>Shift 1 & Shift 0
+                </span>
                 <span class="badge bg-light-success text-success mr-2">
-                    <span class="bullet bullet-bar bg-success mr-2"></span>Libur/Leave
+                    <span class="bullet bullet-bar bg-success mr-2"></span>Shift 2
+                </span>
+                <span class="badge bg-light-warning text-warning mr-2">
+                    <span class="bullet bullet-bar bg-warning mr-2"></span>Full & Full Shift 0
                 </span>
                 <span class="badge bg-light-danger text-danger mr-2">
-                    <span class="bullet bullet-bar bg-danger mr-2"></span>Sakit/Izin
+                    <span class="bullet bullet-bar bg-danger mr-2"></span>Sakit, Libur & Izin
                 </span>
                 <span class="badge bg-light-primary text-primary mr-2">
-                    <span class="bullet bullet-bar bg-primary mr-2"></span>Work Shift
-                </span>
-                <span class="badge bg-light-secondary text-secondary mr-2">
-                    <span class="bullet bullet-bar bg-secondary mr-2"></span>Not Set
+                    <span class="bullet bullet-bar bg-primary mr-2"></span>Other Shifts
                 </span>
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <style>
 @media print {
@@ -332,9 +368,167 @@
 .bg-light-warning {
     background-color: rgba(255, 193, 7, 0.1) !important;
 }
+
+/* Color Legend Styles */
+.color-legend {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e1e5e9;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #e1e5e9;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 8px;
+    border: 1px solid #dee2e6;
+}
+
+
 </style>
 
 <script>
+// Two-way synchronization between date filter and week range
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFilterSelect = document.querySelector('select[name="date_filter"]');
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    
+    if (dateFilterSelect && startDateInput) {
+
+        
+        // Handle start date change
+        startDateInput.addEventListener('change', function() {
+            const selectedDate = this.value;
+            console.log('Start date changed to:', selectedDate);
+            
+            if (selectedDate) {
+                // Calculate end date (Sunday)
+                const endDate = calculateEndDate(selectedDate);
+                console.log('Calculated end date:', endDate);
+                
+                // Detect if this matches any predefined filter
+                const detectedFilter = detectFilterFromDateRange(selectedDate, endDate);
+                console.log('Detected filter:', detectedFilter);
+                
+                if (detectedFilter !== 'custom') {
+                    dateFilterSelect.value = detectedFilter;
+                    console.log('Updated date filter to:', detectedFilter);
+                } else {
+                    dateFilterSelect.value = 'custom';
+                    console.log('Set date filter to custom');
+                }
+                
+                // Auto-submit form after synchronization
+                setTimeout(() => {
+                    document.querySelector('form[method="GET"]').submit();
+                }, 100);
+            }
+        });
+        
+        // Handle date filter change
+        dateFilterSelect.addEventListener('change', function() {
+            const selectedFilter = this.value;
+            console.log('Date filter changed to:', selectedFilter);
+            
+            if (selectedFilter !== 'custom') {
+                // Calculate dates based on selected filter
+                const dates = calculateDatesFromFilter(selectedFilter);
+                if (dates) {
+                    startDateInput.value = dates.startDate;
+                    console.log('Updated start date to:', dates.startDate);
+                    
+                    // Auto-submit form after synchronization
+                    setTimeout(() => {
+                        document.querySelector('form[method="GET"]').submit();
+                    }, 100);
+                }
+            }
+        });
+    }
+});
+
+// Helper function to calculate dates from filter
+function calculateDatesFromFilter(filter) {
+    const today = new Date();
+    let startDate, endDate;
+    
+    switch (filter) {
+        case 'this_week':
+            startDate = getMondayOfWeek(today);
+            break;
+        case 'past_week':
+            startDate = getMondayOfWeek(new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000));
+            break;
+        default:
+            return null;
+    }
+    
+    if (startDate) {
+        endDate = calculateEndDate(startDate.toISOString().split('T')[0]);
+        return {
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate
+        };
+    }
+    
+    return null;
+}
+
+// Helper function to get Monday of a week
+function getMondayOfWeek(date) {
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    return new Date(date.setDate(diff));
+}
+
+// Helper function to calculate end date (Sunday)
+function calculateEndDate(startDate) {
+    const start = new Date(startDate);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6); // Add 6 days to get to Sunday
+    return end.toISOString().split('T')[0];
+}
+
+// Helper function to detect filter from date range
+function detectFilterFromDateRange(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    
+    // Get Monday of current week
+    const mondayThisWeek = getMondayOfWeek(today);
+    const sundayThisWeek = new Date(mondayThisWeek);
+    sundayThisWeek.setDate(mondayThisWeek.getDate() + 6);
+    
+    // Get Monday of previous week
+    const mondayLastWeek = new Date(mondayThisWeek);
+    mondayLastWeek.setDate(mondayThisWeek.getDate() - 7);
+    const sundayLastWeek = new Date(mondayLastWeek);
+    sundayLastWeek.setDate(mondayLastWeek.getDate() + 6);
+    
+    // Compare date ranges
+    if (start.toDateString() === mondayThisWeek.toDateString() && 
+        end.toDateString() === sundayThisWeek.toDateString()) {
+        return 'this_week';
+    } else if (start.toDateString() === mondayLastWeek.toDateString() && 
+               end.toDateString() === sundayLastWeek.toDateString()) {
+        return 'past_week';
+    } else {
+        return 'custom';
+    }
+}
+
 function exportToExcel() {
     console.log('Export Excel clicked');
     const loadingIndicator = document.createElement('div');

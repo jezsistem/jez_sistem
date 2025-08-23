@@ -675,6 +675,68 @@ class DailyScheduleController extends Controller
         // Get parameters from request
         $divisionId = $request->get('division_id');
         $search = $request->get('search'); // Search by name or NIP
+        $dateFilter = $request->get('date_filter', 'this_week');
+        $startDate = $request->get('start_date');
+        
+        // Calculate date range for weekly input with two-way synchronization (same as weekly report)
+        $originalStartDate = $request->get('start_date');
+        
+        if ($originalStartDate && $originalStartDate !== '') {
+            // User manually selected a week range - PRIORITY HIGH
+            // Calculate Monday of the week containing the selected date
+            $selectedDate = Carbon::parse($originalStartDate);
+            $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+            
+            $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+            $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+            
+            // Auto-detect if this matches any predefined filter
+            $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+            if ($detectedFilter !== 'custom') {
+                $dateFilter = $detectedFilter;
+            } else {
+                $dateFilter = 'custom';
+            }
+            
+            // Log for debugging
+            \Log::info('Weekly Input - Week Range Selected', [
+                'original_start_date' => $originalStartDate,
+                'selected_date_day_of_week' => $dayOfWeek,
+                'days_to_subtract' => $daysToSubtract,
+                'calculated_start_date' => $startDate,
+                'calculated_end_date' => $endDate,
+                'detected_filter' => $detectedFilter,
+                'final_date_filter' => $dateFilter
+            ]);
+            
+        } elseif ($dateFilter && $dateFilter !== 'custom') {
+            // User selected a predefined date filter - PRIORITY MEDIUM
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+            
+            // Log for debugging
+            \Log::info('Weekly Input - Date Filter Selected', [
+                'date_filter' => $dateFilter,
+                'calculated_start_date' => $startDate,
+                'calculated_end_date' => $endDate
+            ]);
+            
+        } else {
+            // Default: this week - PRIORITY LOW
+            $dateRange = $this->getDateRangeFromFilter('this_week');
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+            $dateFilter = 'this_week';
+            
+            // Log for debugging
+            \Log::info('Weekly Input - Default Filter', [
+                'default_filter' => 'this_week',
+                'calculated_start_date' => $startDate,
+                'calculated_end_date' => $endDate
+            ]);
+        }
         
         // Get divisions (only show if user is director/manager)
         $divisions = collect();
@@ -761,10 +823,7 @@ class DailyScheduleController extends Controller
             ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
             ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
             ->select('daily_schedules.user_id', 'daily_schedules.sc_id', 'shift_codes.sc_code', 'shift_codes.sc_type')
-            ->whereBetween('daily_schedules.ds_date', [
-                date('Y-m-d', strtotime('monday this week')),
-                date('Y-m-d', strtotime('sunday this week'))
-            ])
+            ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
             ->get();
             
         $data = [
@@ -783,9 +842,14 @@ class DailyScheduleController extends Controller
             'users', 
             'data',
             'currentUser',
-            'search'
+            'search',
+            'startDate',
+            'endDate',
+            'dateFilter'
         ));
     }
+    
+
 
     /**
      * Menampilkan laporan jadwal mingguan
@@ -809,15 +873,64 @@ class DailyScheduleController extends Controller
         $userName = $request->get('user_name');
         $dateFilter = $request->get('date_filter', 'this_week');
         
-        // Process date filter if provided
-        if ($dateFilter && $dateFilter !== 'custom') {
+        // Process date filter and start_date with two-way synchronization
+        $originalStartDate = $request->get('start_date');
+        
+        if ($originalStartDate && $originalStartDate !== '') {
+            // User manually selected a week range - PRIORITY HIGH
+            // Calculate Monday of the week containing the selected date
+            $selectedDate = Carbon::parse($originalStartDate);
+            $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+            
+            $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+            $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+            
+            // Auto-detect if this matches any predefined filter
+            $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+            if ($detectedFilter !== 'custom') {
+                $dateFilter = $detectedFilter;
+            } else {
+                $dateFilter = 'custom';
+            }
+            
+            // Log for debugging
+            \Log::info('Weekly Report - Week Range Selected', [
+                'original_start_date' => $originalStartDate,
+                'selected_date_day_of_week' => $dayOfWeek,
+                'days_to_subtract' => $daysToSubtract,
+                'calculated_start_date' => $startDate,
+                'calculated_end_date' => $endDate,
+                'detected_filter' => $detectedFilter,
+                'final_date_filter' => $dateFilter
+            ]);
+            
+        } elseif ($dateFilter && $dateFilter !== 'custom') {
+            // User selected a predefined date filter - PRIORITY MEDIUM
             $dateRange = $this->getDateRangeFromFilter($dateFilter);
             $startDate = $dateRange['startDate'];
             $endDate = $dateRange['endDate'];
+            
+            // Log for debugging
+            \Log::info('Weekly Report - Date Filter Selected', [
+                'date_filter' => $dateFilter,
+                'calculated_start_date' => $startDate,
+                'calculated_end_date' => $endDate
+            ]);
+            
         } else {
-            // Ensure we have a full week (Monday to Sunday)
-            $startDate = date('Y-m-d', strtotime('monday', strtotime($startDate)));
-            $endDate = date('Y-m-d', strtotime('sunday', strtotime($startDate)));
+            // Default: this week - PRIORITY LOW
+            $dateRange = $this->getDateRangeFromFilter('this_week');
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+            $dateFilter = 'this_week';
+            
+            // Log for debugging
+            \Log::info('Weekly Report - Default Filter', [
+                'default_filter' => 'this_week',
+                'calculated_start_date' => $startDate,
+                'calculated_end_date' => $endDate
+            ]);
         }
         
         // Get divisions for filter
@@ -924,7 +1037,8 @@ class DailyScheduleController extends Controller
             'data',
             'divisionId',
             'shiftId',
-            'userName'
+            'userName',
+            'dateFilter'
         ));
     }
     
@@ -1329,9 +1443,65 @@ class DailyScheduleController extends Controller
             $divisionId = $request->get('division_id');
             $search = $request->get('search');
             $dateFilter = $request->get('date_filter', 'this_week');
-
-            $startDate = $this->getDateRangeFromFilter($dateFilter)['startDate'];
-            $endDate = $this->getDateRangeFromFilter($dateFilter)['endDate'];
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+            
+            // Process date filter and start_date with two-way synchronization (same as other methods)
+            $originalStartDate = $request->get('start_date');
+            
+            if ($originalStartDate && $originalStartDate !== '') {
+                // User manually selected a week range - PRIORITY HIGH
+                // Calculate Monday of the week containing the selected date
+                $selectedDate = Carbon::parse($originalStartDate);
+                $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+                
+                $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+                $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+                
+                // Auto-detect if this matches any predefined filter
+                $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+                if ($detectedFilter !== 'custom') {
+                    $dateFilter = $detectedFilter;
+                } else {
+                    $dateFilter = 'custom';
+                }
+                
+                \Log::info('PDF Export - Week Range Selected', [
+                    'original_start_date' => $originalStartDate,
+                    'selected_date_day_of_week' => $dayOfWeek,
+                    'days_to_subtract' => $daysToSubtract,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate,
+                    'detected_filter' => $detectedFilter,
+                    'final_date_filter' => $dateFilter
+                ]);
+                
+            } elseif ($dateFilter && $dateFilter !== 'custom') {
+                // User selected a predefined date filter - PRIORITY MEDIUM
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                
+                \Log::info('PDF Export - Date Filter Selected', [
+                    'date_filter' => $dateFilter,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+                
+            } else {
+                // Default: this week - PRIORITY LOW
+                $dateRange = $this->getDateRangeFromFilter('this_week');
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                $dateFilter = 'this_week';
+                
+                \Log::info('PDF Export - Default Filter', [
+                    'default_filter' => 'this_week',
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+            }
 
             // Build query to get users with their schedules
             $users = DB::table('users')
@@ -1384,7 +1554,8 @@ class DailyScheduleController extends Controller
                     'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate]);
+                ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
+                ->get();
 
             // Generate HTML content untuk dimasukkan ke PDF
             $htmlContent = $this->generateWeeklyScheduleHTML($users, $schedules, $startDate, $endDate);
@@ -1393,8 +1564,8 @@ class DailyScheduleController extends Controller
             $pdf = Pdf::loadHTML($htmlContent)
                       ->setPaper('a4', 'landscape'); // Use landscape for better table fit
 
-            // Nama file
-            $filename = 'weekly-schedule-' . $dateFilter . '-' . date('Y-m-d') . '.pdf';
+            // Nama file dengan date range yang benar
+            $filename = 'weekly-schedule-' . date('Y-m-d', strtotime($startDate)) . '-to-' . date('Y-m-d', strtotime($endDate)) . '.pdf';
 
             // Download PDF
             return $pdf->download($filename);
@@ -1504,7 +1675,7 @@ class DailyScheduleController extends Controller
                 $endDate = $dateRange['endDate'];
             }
 
-            // Build query to get users with their schedules
+            // Build query to get users with their schedules (only users with NIP)
             $users = DB::table('users')
                 ->select([
                     'users.id as user_id',
@@ -1515,7 +1686,8 @@ class DailyScheduleController extends Controller
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
@@ -1578,9 +1750,62 @@ class DailyScheduleController extends Controller
             $divisionId = $request->get('division_id');
             $search = $request->get('search');
             $dateFilter = $request->get('date_filter', 'this_week');
+            $originalStartDate = $request->get('start_date');
 
-            $startDate = $this->getDateRangeFromFilter($dateFilter)['startDate'];
-            $endDate = $this->getDateRangeFromFilter($dateFilter)['endDate'];
+            // Use same synchronization logic as weekly input (updated to match other methods)
+            if ($originalStartDate && $originalStartDate !== '') {
+                // User manually selected a week range - PRIORITY HIGH
+                // Calculate Monday of the week containing the selected date
+                $selectedDate = Carbon::parse($originalStartDate);
+                $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+                
+                $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+                $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+                
+                // Auto-detect if this matches any predefined filter
+                $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+                if ($detectedFilter !== 'custom') {
+                    $dateFilter = $detectedFilter;
+                } else {
+                    $dateFilter = 'custom';
+                }
+                
+                \Log::info('Export - Week Range Selected', [
+                    'original_start_date' => $originalStartDate,
+                    'selected_date_day_of_week' => $dayOfWeek,
+                    'days_to_subtract' => $daysToSubtract,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate,
+                    'detected_filter' => $detectedFilter,
+                    'final_date_filter' => $dateFilter
+                ]);
+                
+            } elseif ($dateFilter && $dateFilter !== 'custom') {
+                // User selected a predefined date filter - PRIORITY MEDIUM
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                
+                \Log::info('Export - Date Filter Selected', [
+                    'date_filter' => $dateFilter,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+                
+            } else {
+                // Default: this week - PRIORITY LOW
+                $dateRange = $this->getDateRangeFromFilter('this_week');
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                $dateFilter = 'this_week';
+                
+                \Log::info('Export - Default Filter', [
+                    'default_filter' => 'this_week',
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+            }
 
             \Log::info('Date range calculated', [
                 'date_filter' => $dateFilter,
@@ -1588,7 +1813,7 @@ class DailyScheduleController extends Controller
                 'end_date' => $endDate
             ]);
 
-            // Build query to get users with their schedules
+            // Build query to get users with their schedules (only users with NIP)
             $users = DB::table('users')
                 ->select([
                     'users.id as user_id',
@@ -1599,7 +1824,8 @@ class DailyScheduleController extends Controller
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
@@ -1634,7 +1860,8 @@ class DailyScheduleController extends Controller
                     'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate]);
+                ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
+                ->get();
 
             \Log::info('Schedules query result', [
                 'schedules_count' => $schedules->count(),
@@ -1718,8 +1945,80 @@ class DailyScheduleController extends Controller
                 ]
             ]);
 
-            // Generate filename
-            $filename = 'weekly-schedule-' . $dateFilter . '-' . date('Y-m-d') . '.xlsx';
+            // Convert groupedSchedules to exportData format (same as weeklyReport)
+            $exportData = [];
+            
+            foreach ($groupedSchedules as $divisionName => $divisionUsers) {
+                // Add division header row
+                $exportData[] = [
+                    'Division' => $divisionName,
+                    'Staff' => count($divisionUsers),
+                    'NIP' => '',
+                    'Nama' => '',
+                    'Divisi' => '',
+                    'User Type' => ''
+                ];
+                
+                // Add date header row
+                $dateHeader = ['Division', 'Staff', 'NIP', 'Nama', 'Divisi', 'User Type'];
+                $currentDate = \Carbon\Carbon::parse($startDate);
+                $endDateCarbon = \Carbon\Carbon::parse($endDate);
+                
+                while ($currentDate->lte($endDateCarbon)) {
+                    $dateHeader[] = $currentDate->format('d/m (D)');
+                    $currentDate = $currentDate->copy()->addDay();
+                }
+                $exportData[] = $dateHeader;
+                
+                // Add user data rows
+                foreach ($divisionUsers as $userId => $userData) {
+                    $userRow = [
+                        'Division' => '',
+                        'Staff' => '',
+                        'NIP' => $userData['u_nip'] ?? '-',
+                        'Nama' => $userData['u_name'] ?? '-',
+                        'Divisi' => $userData['ud_name'] ?? '-',
+                        'User Type' => 'FULL TIME' // Default value
+                    ];
+                    
+                    // Add schedule data for each day
+                    $currentDate = \Carbon\Carbon::parse($startDate);
+                    while ($currentDate->lte($endDateCarbon)) {
+                        $dateStr = $currentDate->format('Y-m-d');
+                        $schedule = $userData['schedules'][$dateStr] ?? null;
+                        
+                        if ($schedule && $schedule['sc_code']) {
+                            $userRow[] = $schedule['sc_code'];
+                        } else {
+                            $userRow[] = '-';
+                        }
+                        
+                        $currentDate = $currentDate->copy()->addDay();
+                    }
+                    
+                    $exportData[] = $userRow;
+                }
+                
+                // Add empty row between divisions
+                $exportData[] = [];
+            }
+
+            \Log::info('Public Export Weekly Schedule - Data Prepared', [
+                'users_count' => $users->count(),
+                'schedules_count' => $schedules->count(),
+                'export_data_count' => count($exportData),
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'filters_summary' => [
+                    'division_filtered' => $divisionId ? 'Yes' : 'No',
+                    'search_filtered' => $search ? 'Yes' : 'No',
+                    'date_filtered' => $dateFilter
+                ]
+            ]);
+
+            // Generate filename dengan date range yang benar
+            $filename = 'weekly-schedule-' . date('Y-m-d', strtotime($startDate)) . '-to-' . date('Y-m-d', strtotime($endDate)) . '.xlsx';
             
             \Log::info('Public Export Weekly Schedule - Using Excel Facade', [
                 'filename' => $filename,
@@ -1747,6 +2046,714 @@ class DailyScheduleController extends Controller
     }
 
     /**
+     * Menampilkan laporan jadwal bulanan dengan calendar view
+     */
+    public function monthlyReport(Request $request)
+    {
+        $this->validateAccess();
+        
+        $user = new User;
+        $select = ['*'];
+        $where = [
+            'users.id' => Auth::user()->id
+        ];
+        $user_data = $user->checkJoinData($select, $where)->first();
+        
+        // Get parameters from request
+        $month = $request->get('month', date('Y-m'));
+        $divisionId = $request->get('division_id');
+        $shiftId = $request->get('shift_id');
+        $userName = $request->get('user_name');
+        $monthFilter = $request->get('month_filter', 'this_month');
+        
+        // Process month filter if provided
+        if ($monthFilter && $monthFilter !== 'custom') {
+            $month = $this->getMonthFromFilter($monthFilter);
+        }
+        
+        // Parse month to get start and end dates
+        $startDate = date('Y-m-01', strtotime($month . '-01'));
+        $endDate = date('Y-m-t', strtotime($month . '-01'));
+        
+        // Get divisions for filter
+        $divisions = DB::table('user_divisions')
+            ->where('ud_status', 'active')
+            ->orderBy('ud_name')
+            ->get();
+            
+        // Get shift codes for filter
+        $shiftCodes = DB::table('shift_codes')
+            ->where('sc_status', '!=', 'deleted')
+            ->orderBy('sc_code')
+            ->get();
+        
+        // Get users based on filters (only users with NIP)
+        $usersQuery = DB::table('users as u')
+            ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+            ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->select([
+                'u.id as user_id',
+                'u.u_nip',
+                'u.u_name',
+                'ud.ud_name',
+                'up.up_name as position_name'
+            ])
+            ->where('u.u_delete', '!=', '1')
+            ->whereNotNull('u.u_nip'); // ✅ Hanya user dengan NIP
+        
+        if ($divisionId) {
+            $usersQuery->where('u.ud_id', $divisionId);
+        }
+        
+        if ($userName) {
+            $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
+        }
+        
+        $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+        
+        // Ensure we always have division grouping even if no division filter
+        if ($users->count() > 0) {
+            // If no division filter, group by actual divisions
+            // If division filter applied, still group by division name for consistency
+            // Don't change ud_name to 'No Division' - keep original division names
+        }
+        
+        // Get schedules for the month with user and division info
+        $schedulesQuery = DB::table('daily_schedules as ds')
+            ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+            ->leftJoin('users as u', 'ds.user_id', '=', 'u.id')
+            ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+            ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->select([
+                'ds.user_id',
+                'ds.ds_date',
+                'ds.sc_id',
+                'sc.sc_code',
+                'sc.sc_shift_name',
+                'sc.sc_start_time',
+                'sc.sc_end_time',
+                'u.u_nip',
+                'u.u_name',
+                'ud.ud_name',
+                'up.up_name as position_name'
+            ])
+            ->whereBetween('ds.ds_date', [$startDate, $endDate])
+            ->where('u.u_delete', '!=', '1');
+        
+        // Apply division filter to schedules query
+        if ($divisionId) {
+            $schedulesQuery->where('u.ud_id', $divisionId);
+        }
+        
+        // Apply shift filter to schedules query
+        if ($shiftId) {
+            $schedulesQuery->where('ds.sc_id', $shiftId);
+        }
+        
+        // Apply user name filter to schedules query
+        if ($userName) {
+            $schedulesQuery->where('u.u_name', 'like', '%' . $userName . '%');
+        }
+        
+        $schedules = $schedulesQuery->orderBy('ud.ud_name')
+            ->orderBy('u.u_name')
+            ->orderBy('ds.ds_date')
+            ->get();
+        
+        // Get all users that match the filters (even if they don't have schedules)
+        $allUsersQuery = DB::table('users as u')
+            ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+            ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->select([
+                'u.id as user_id',
+                'u.u_nip',
+                'u.u_name',
+                'ud.ud_name',
+                'up.up_name as position_name'
+            ])
+            ->where('u.u_delete', '!=', '1')
+            ->whereNotNull('u.u_nip'); // Only users with NIP
+        
+        // Apply the same filters to users query
+        if ($divisionId) {
+            $allUsersQuery->where('u.ud_id', $divisionId);
+        }
+        
+        if ($userName) {
+            $allUsersQuery->where('u.u_name', 'like', '%' . $userName . '%');
+        }
+        
+        $allUsers = $allUsersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+        
+        // Group schedules by division and user (same logic as weekly report)
+        $groupedSchedules = [];
+        
+        // First, create structure for all users
+        foreach ($allUsers as $user) {
+            $divisionName = $user->ud_name ?: 'No Division';
+            $userId = $user->user_id;
+            
+            if (!isset($groupedSchedules[$divisionName])) {
+                $groupedSchedules[$divisionName] = [];
+            }
+            
+            $groupedSchedules[$divisionName][$userId] = [
+                'user_id' => $userId,
+                'u_nip' => $user->u_nip,
+                'u_name' => $user->u_name,
+                'ud_name' => $user->ud_name,
+                'position_name' => $user->position_name,
+                'schedules' => []
+            ];
+        }
+        
+        // Then, add schedules for users who have them
+        foreach ($schedules as $schedule) {
+            $divisionName = $schedule->ud_name ?: 'No Division';
+            $userId = $schedule->user_id;
+            $date = $schedule->ds_date;
+            
+            if (isset($groupedSchedules[$divisionName][$userId])) {
+                $groupedSchedules[$divisionName][$userId]['schedules'][$date] = [
+                    'sc_code' => $schedule->sc_code,
+                    'sc_shift_name' => $schedule->sc_shift_name,
+                    'sc_start_time' => $schedule->sc_start_time,
+                    'sc_end_time' => $schedule->sc_end_time
+                ];
+            }
+        }
+        
+        // Generate calendar dates for the month
+        $calendarDates = $this->generateCalendarDates($startDate, $endDate);
+        
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Monthly Schedule Report',
+            'sidebar' => $this->sidebar(),
+            'user' => $user_data,
+            'segment' => request()->segment(1)
+        ];
+        
+        return view('app.daily_schedule.monthly_report', compact(
+            'groupedSchedules', 
+            'calendarDates', 
+            'startDate', 
+            'endDate',
+            'month',
+            'divisions', 
+            'shiftCodes',
+            'data',
+            'divisionId',
+            'shiftId',
+            'userName',
+            'users'
+        ));
+    }
+    
+    /**
+     * Generate calendar dates for a month
+     */
+    private function generateCalendarDates($startDate, $endDate)
+    {
+        $dates = [];
+        
+        // Find the Monday of the week containing the start date
+        $startTimestamp = strtotime($startDate);
+        $dayOfWeek = date('N', $startTimestamp); // 1 (Monday) to 7 (Sunday)
+        
+        // Calculate days to subtract to get to Monday
+        $daysToSubtract = $dayOfWeek - 1; // If start date is Monday (1), subtract 0; if Tuesday (2), subtract 1, etc.
+        
+        // Start from Monday of the week containing start date
+        $calendarStartDate = strtotime('-' . $daysToSubtract . ' days', $startTimestamp);
+        
+        // End date should be Sunday of the week containing end date
+        $endTimestamp = strtotime($endDate);
+        $endDayOfWeek = date('N', $endTimestamp);
+        $daysToAdd = 7 - $endDayOfWeek; // If end date is Sunday (7), add 0; if Saturday (6), add 1, etc.
+        
+        $calendarEndDate = strtotime('+' . $daysToAdd . ' days', $endTimestamp);
+        
+        $currentDate = $calendarStartDate;
+        
+        while ($currentDate <= $calendarEndDate) {
+            $date = date('Y-m-d', $currentDate);
+            $dayOfWeek = date('N', $currentDate); // 1 (Monday) to 7 (Sunday)
+            
+            $dates[] = [
+                'date' => $date,
+                'day' => date('d', $currentDate),
+                'day_name' => date('D', $currentDate),
+                'day_of_week' => $dayOfWeek,
+                'is_weekend' => $dayOfWeek >= 6,
+                'is_current_month' => $currentDate >= $startTimestamp && $currentDate <= $endTimestamp
+            ];
+            
+            $currentDate = strtotime('+1 day', $currentDate);
+        }
+        
+        return $dates;
+    }
+    
+    /**
+     * Get month from filter
+     */
+    private function getMonthFromFilter($filter)
+    {
+        $today = now();
+        
+        switch ($filter) {
+            case 'this_month':
+                return $today->format('Y-m');
+            case 'last_month':
+                return $today->subMonth()->format('Y-m');
+            case 'next_month':
+                return $today->addMonth()->format('Y-m');
+            default:
+                return $today->format('Y-m');
+        }
+    }
+    
+    /**
+     * Export monthly report to Excel
+     */
+    public function exportMonthlyExcel(Request $request)
+    {
+        try {
+            $this->validateAccess();
+            
+            // Get parameters from request
+            $month = $request->get('month', date('Y-m'));
+            $divisionId = $request->get('division_id');
+            $shiftId = $request->get('shift_id');
+            $userName = $request->get('user_name');
+            $monthFilter = $request->get('month_filter', 'this_month');
+            
+            // Process month filter if provided
+            if ($monthFilter && $monthFilter !== 'custom') {
+                $month = $this->getMonthFromFilter($monthFilter);
+            }
+            
+            // Parse month to get start and end dates
+            $startDate = date('Y-m-01', strtotime($month . '-01'));
+            $endDate = date('Y-m-t', strtotime($month . '-01'));
+            
+            // Get users based on filters
+            $usersQuery = DB::table('users as u')
+                ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+                ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->select([
+                    'u.id as user_id',
+                    'u.u_nip',
+                    'u.u_name',
+                    'ud.ud_name',
+                    'up.up_name as position_name'
+                ])
+                ->where('u.u_delete', '!=', '1')
+                ->whereNotNull('u.u_nip'); // Only users with NIP
+            
+            if ($divisionId) {
+                $usersQuery->where('u.ud_id', $divisionId);
+            }
+            
+            if ($userName) {
+                $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
+            }
+            
+            $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+            
+            // Get schedules for the month
+            $schedulesQuery = DB::table('daily_schedules as ds')
+                ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+                ->select([
+                    'ds.user_id',
+                    'ds.ds_date',
+                    'sc.sc_code',
+                    'sc.sc_shift_name',
+                    'sc.sc_start_time',
+                    'sc.sc_end_time'
+                ])
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]);
+            
+            if ($shiftId) {
+                $schedulesQuery->where('ds.sc_id', $shiftId);
+            }
+            
+            $schedules = $schedulesQuery->get();
+            
+            // Group schedules by user and date
+            $groupedSchedules = [];
+            foreach ($schedules as $schedule) {
+                $userId = $schedule->user_id;
+                $date = $schedule->ds_date;
+                
+                if (!isset($groupedSchedules[$userId])) {
+                    $groupedSchedules[$userId] = [];
+                }
+                
+                $groupedSchedules[$userId][$date] = [
+                    'sc_code' => $schedule->sc_code,
+                    'sc_shift_name' => $schedule->sc_shift_name,
+                    'sc_start_time' => $schedule->sc_start_time,
+                    'sc_end_time' => $schedule->sc_end_time
+                ];
+            }
+            
+            // Prepare export data in table format (similar to weekly report but with more columns)
+            $exportData = [];
+            
+            // Generate calendar dates for the month
+            $calendarDates = $this->generateCalendarDates($startDate, $endDate);
+            
+            // Group users by division
+            $usersByDivision = $users->groupBy('ud_name');
+            
+            foreach ($usersByDivision as $divisionName => $divisionUsers) {
+                // Add division header row (same format as weekly input - only division name and staff count)
+                $exportData[] = [
+                    'Division' => $divisionName,
+                    'Staff' => count($divisionUsers),
+                    'NIP' => '',
+                    'Nama' => '',
+                    'Divisi' => '',
+                    'User Type' => ''
+                ];
+                
+                // Add date header row (same format as weekly input)
+                $dateHeader = ['Division', 'Staff', 'NIP', 'Nama', 'Divisi', 'User Type'];
+                foreach ($calendarDates as $dateInfo) {
+                    $dateHeader[] = date('d/m', strtotime($dateInfo['date'])) . ' (' . date('D', strtotime($dateInfo['date'])) . ')';
+                }
+                $exportData[] = $dateHeader;
+                
+                // Add user data rows (keep original monthly report format)
+                foreach ($divisionUsers as $user) {
+                    $row = [
+                        'Division' => '',
+                        'Staff' => '',
+                        'NIP' => $user->u_nip,
+                        'Nama' => $user->u_name,
+                        'Divisi' => $user->ud_name,
+                        'User Type' => 'FULL TIME' // Default value
+                    ];
+                    
+                    // Add schedule data for each day of the month (keep original format)
+                    foreach ($calendarDates as $dateInfo) {
+                        $date = $dateInfo['date'];
+                        $schedule = $groupedSchedules[$user->user_id][$date] ?? null;
+                        
+                        if ($schedule) {
+                            $row[] = $schedule['sc_code'] . ' - ' . $schedule['sc_shift_name'] . 
+                                   ' (' . date('H:i', strtotime($schedule['sc_start_time'])) . '-' . date('H:i', strtotime($schedule['sc_end_time'])) . ')';
+                        } else {
+                            $row[] = 'No Schedule';
+                        }
+                    }
+                    
+                    $exportData[] = $row;
+                }
+                
+                // Add empty row between divisions (same as weekly input)
+                $exportData[] = [];
+            }
+            
+            // Generate filename
+            $filename = 'monthly-schedule-report-' . $startDate . '-' . $endDate . '.xlsx';
+            
+            // Debug: Log export data structure (same format as weekly report)
+            \Log::info('Export Monthly Data Structure Debug', [
+                'export_data_count' => count($exportData),
+                'first_row' => $exportData[0] ?? 'No data',
+                'data_structure' => array_keys($exportData[0] ?? []),
+                'export_class' => 'MonthlyScheduleExport',
+                'calendar_dates_sample' => array_slice($calendarDates, 0, 3),
+                'sample_user_row' => $exportData[1] ?? 'No user data',
+                'month_filter' => $monthFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+            
+            // Use Excel facade to export
+            try {
+                $export = new \App\Exports\MonthlyScheduleExport($exportData, $startDate, $endDate);
+                \Log::info('Export object created successfully', [
+                    'export_class' => get_class($export),
+                    'data_count' => count($exportData)
+                ]);
+                
+                return Excel::download($export, $filename);
+            } catch (\Exception $e) {
+                \Log::error('Excel download error: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Export Monthly Report Excel Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat export report Excel: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Export monthly report to PDF
+     */
+    public function exportMonthlyPDF(Request $request)
+    {
+        try {
+            $this->validateAccess();
+            
+            // Get parameters from request
+            $month = $request->get('month', date('Y-m'));
+            $divisionId = $request->get('division_id');
+            $shiftId = $request->get('shift_id');
+            $userName = $request->get('user_name');
+            $monthFilter = $request->get('month_filter', 'this_month');
+            
+            // Process month filter if provided
+            if ($monthFilter && $monthFilter !== 'custom') {
+                $month = $this->getMonthFromFilter($monthFilter);
+            }
+            
+            // Parse month to get start and end dates
+            $startDate = date('Y-m-01', strtotime($month . '-01'));
+            $endDate = date('Y-m-t', strtotime($month . '-01'));
+            
+            // Get users based on filters
+            $usersQuery = DB::table('users as u')
+                ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
+                ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->select([
+                    'u.id as user_id',
+                    'u.u_nip',
+                    'u.u_name',
+                    'ud.ud_name',
+                    'up.up_name as position_name'
+                ])
+                ->where('u.u_delete', '!=', '1')
+                ->whereNotNull('u.u_nip'); // Only users with NIP
+            
+            if ($divisionId) {
+                $usersQuery->where('u.ud_id', $divisionId);
+            }
+            
+            if ($userName) {
+                $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
+            }
+            
+            $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+            
+            // Get schedules for the month
+            $schedulesQuery = DB::table('daily_schedules as ds')
+                ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+                ->select([
+                    'ds.user_id',
+                    'ds.ds_date',
+                    'sc.sc_code',
+                    'sc.sc_shift_name',
+                    'sc.sc_start_time',
+                    'sc.sc_end_time'
+                ])
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]);
+            
+            if ($shiftId) {
+                $schedulesQuery->where('ds.sc_id', $shiftId);
+            }
+            
+            $schedules = $schedulesQuery->get();
+            
+            // Group schedules by user and date
+            $groupedSchedules = [];
+            foreach ($schedules as $schedule) {
+                $userId = $schedule->user_id;
+                $date = $schedule->ds_date;
+                
+                if (!isset($groupedSchedules[$userId])) {
+                    $groupedSchedules[$userId] = [];
+                }
+                
+                $groupedSchedules[$userId][$date] = [
+                    'sc_code' => $schedule->sc_code,
+                    'sc_shift_name' => $schedule->sc_shift_name,
+                    'sc_start_time' => $schedule->sc_start_time,
+                    'sc_end_time' => $schedule->sc_end_time
+                ];
+            }
+            
+            // Generate HTML content for report
+            $htmlContent = $this->generateMonthlyReportHTML($users, $groupedSchedules, $startDate, $endDate);
+            
+            // Generate PDF
+            $pdf = Pdf::loadHTML($htmlContent)
+                      ->setPaper('a4', 'landscape'); // Use landscape for better table fit
+            
+            // Generate filename
+            $filename = 'monthly-schedule-report-' . $startDate . '-' . $endDate . '.pdf';
+            
+            // Download PDF
+            return $pdf->download($filename);
+            
+        } catch (\Exception $e) {
+            \Log::error('Export Monthly Report PDF Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat export report PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Generate HTML content for monthly report PDF
+     */
+    private function generateMonthlyReportHTML($users, $groupedSchedules, $startDate, $endDate)
+    {
+        $html = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Monthly Schedule Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 12px; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .header h1 { margin: 0; color: #333; }
+                .header p { margin: 5px 0; color: #666; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                .division-header { background-color: #e3f2fd; font-weight: bold; padding: 10px; margin: 10px 0; }
+                .user-header { background-color: #f5f5f5; font-weight: bold; }
+                .weekend { background-color: #fff3cd; }
+                .no-schedule { color: #999; font-style: italic; }
+                .other-month { background-color: #f8f9fa; opacity: 0.7; }
+                .other-month .no-schedule { color: #ccc; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Monthly Schedule Report</h1>
+                <p>Period: ' . date('d F Y', strtotime($startDate)) . ' - ' . date('d F Y', strtotime($endDate)) . '</p>
+                <p>Generated on: ' . date('d F Y H:i:s') . '</p>
+            </div>';
+        
+        // Group users by division
+        $usersByDivision = $users->groupBy('ud_name');
+        
+        foreach ($usersByDivision as $divisionName => $divisionUsers) {
+            $html .= '<div class="division-header">Division: ' . $divisionName . ' (' . count($divisionUsers) . ' staff)</div>';
+            
+            foreach ($divisionUsers as $user) {
+                $html .= '<table>
+                    <tr class="user-header">
+                        <td colspan="7">' . $user->u_name . ' (' . $user->u_nip . ') - ' . $user->position_name . '</td>
+                    </tr>
+                    <tr>
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Sat</th>
+                        <th>Sun</th>
+                    </tr>';
+                
+                // Generate weeks for this user
+                $userSchedules = $groupedSchedules[$user->user_id] ?? [];
+                $weeks = $this->generateWeeksForUser($startDate, $endDate, $userSchedules);
+                
+                foreach ($weeks as $week) {
+                    $html .= '<tr>';
+                    foreach ($week as $dateInfo) {
+                        $cellClass = '';
+                        if ($dateInfo['is_weekend']) $cellClass = 'weekend';
+                        if (!$dateInfo['is_current_month']) $cellClass .= ' other-month';
+                        
+                        $html .= '<td class="' . $cellClass . '">';
+                        $html .= '<div style="font-weight: bold;' . (!$dateInfo['is_current_month'] ? ' color: #999;' : '') . '">' . $dateInfo['day'] . '</div>';
+                        
+                        if ($dateInfo['schedule']) {
+                            $html .= '<div>' . $dateInfo['schedule']['sc_code'] . '</div>';
+                            $html .= '<div>' . $dateInfo['schedule']['sc_shift_name'] . '</div>';
+                            $html .= '<div style="font-size: 10px;">' . date('H:i', strtotime($dateInfo['schedule']['sc_start_time'])) . ' - ' . date('H:i', strtotime($dateInfo['schedule']['sc_end_time'])) . '</div>';
+                        } else {
+                            $html .= '<div class="no-schedule"' . (!$dateInfo['is_current_month'] ? ' style="color: #ccc;"' : '') . '>No Schedule</div>';
+                        }
+                        
+                        $html .= '</td>';
+                    }
+                    $html .= '</tr>';
+                }
+                
+                $html .= '</table><br>';
+            }
+        }
+        
+        $html .= '</body></html>';
+        
+        return $html;
+    }
+    
+    /**
+     * Generate weeks for a specific user
+     */
+    private function generateWeeksForUser($startDate, $endDate, $userSchedules)
+    {
+        $weeks = [];
+        
+        // Find the Monday of the week containing the start date
+        $startTimestamp = strtotime($startDate);
+        $dayOfWeek = date('N', $startTimestamp); // 1 (Monday) to 7 (Sunday)
+        
+        // Calculate days to subtract to get to Monday
+        $daysToSubtract = $dayOfWeek - 1; // If start date is Monday (1), subtract 0; if Tuesday (2), subtract 1, etc.
+        
+        // Start from Monday of the week containing start date
+        $calendarStartDate = strtotime('-' . $daysToSubtract . ' days', $startTimestamp);
+        
+        // End date should be Sunday of the week containing end date
+        $endTimestamp = strtotime($endDate);
+        $endDayOfWeek = date('N', $endTimestamp);
+        $daysToAdd = 7 - $endDayOfWeek; // If end date is Sunday (7), add 0; if Saturday (6), add 1, etc.
+        
+        $calendarEndDate = strtotime('+' . $daysToAdd . ' days', $endTimestamp);
+        
+        $currentDate = $calendarStartDate;
+        $currentWeek = [];
+        
+        while ($currentDate <= $calendarEndDate) {
+            $date = date('Y-m-d', $currentDate);
+            $dayOfWeek = date('N', $currentDate);
+            $schedule = $userSchedules[$date] ?? null;
+            $isCurrentMonth = $currentDate >= $startTimestamp && $currentDate <= $endTimestamp;
+            
+            $currentWeek[] = [
+                'day' => date('d', $currentDate),
+                'date' => $date,
+                'is_weekend' => $dayOfWeek >= 6,
+                'schedule' => $schedule,
+                'is_current_month' => $isCurrentMonth
+            ];
+            
+            if ($dayOfWeek == 7) { // Sunday
+                $weeks[] = $currentWeek;
+                $currentWeek = [];
+            }
+            
+            $currentDate = strtotime('+1 day', $currentDate);
+        }
+        
+        // Add remaining days if any
+        if (!empty($currentWeek)) {
+            $weeks[] = $currentWeek;
+        }
+        
+        return $weeks;
+    }
+
+    /**
      * Export weekly report to Excel (Public - No Auth Required)
      */
     public function exportWeeklyReportPublic(Request $request)
@@ -1764,18 +2771,68 @@ class DailyScheduleController extends Controller
                 ]
             ]);
 
-            $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
-            $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
             $divisionId = $request->get('division_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
-
-            // If date filter is provided, calculate dates
-            if ($dateFilter && $dateFilter !== 'custom') {
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+            
+            // Process date filter and start_date with two-way synchronization (same as weeklyReport)
+            $originalStartDate = $request->get('start_date');
+            
+            if ($originalStartDate && $originalStartDate !== '') {
+                // User manually selected a week range - PRIORITY HIGH
+                // Calculate Monday of the week containing the selected date
+                $selectedDate = Carbon::parse($originalStartDate);
+                $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+                
+                $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+                $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+                
+                // Auto-detect if this matches any predefined filter
+                $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+                if ($detectedFilter !== 'custom') {
+                    $dateFilter = $detectedFilter;
+                } else {
+                    $dateFilter = 'custom';
+                }
+                
+                \Log::info('Excel Export - Week Range Selected', [
+                    'original_start_date' => $originalStartDate,
+                    'selected_date_day_of_week' => $dayOfWeek,
+                    'days_to_subtract' => $daysToSubtract,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate,
+                    'detected_filter' => $detectedFilter,
+                    'final_date_filter' => $dateFilter
+                ]);
+                
+            } elseif ($dateFilter && $dateFilter !== 'custom') {
+                // User selected a predefined date filter - PRIORITY MEDIUM
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
+                
+                \Log::info('Excel Export - Date Filter Selected', [
+                    'date_filter' => $dateFilter,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+                
+            } else {
+                // Default: this week - PRIORITY LOW
+                $dateRange = $this->getDateRangeFromFilter('this_week');
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                $dateFilter = 'this_week';
+                
+                \Log::info('Excel Export - Default Filter', [
+                    'default_filter' => 'this_week',
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
             }
 
             \Log::info('Date range calculated for report', [
@@ -1905,6 +2962,69 @@ class DailyScheduleController extends Controller
                 }
             }
 
+            // Generate week dates (Monday to Sunday)
+            $weekDates = [];
+            for ($i = 0; $i < 7; $i++) {
+                $weekDates[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
+            }
+            
+            // Debug: Log week dates and date range
+            \Log::info('Weekly Export - Date Range Debug', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'week_dates' => $weekDates,
+                'date_filter' => $dateFilter
+            ]);
+            
+            // Prepare export data in table format (same as view)
+            $exportData = [];
+            
+            foreach ($groupedSchedules as $divisionName => $divisionUsers) {
+                // Add division header
+                $exportData[] = [
+                    'Division' => $divisionName,
+                    'Staff' => count($divisionUsers),
+                    'NIP' => '',
+                    'Nama' => '',
+                    'Divisi' => ''
+                ];
+                
+                // Add date headers for each day of the week
+                $dateHeaders = ['Division', 'Staff', 'NIP', 'Nama', 'Divisi'];
+                foreach ($weekDates as $date) {
+                    $dateHeaders[] = date('d/m', strtotime($date)) . ' (' . date('l', strtotime($date)) . ')';
+                }
+                $exportData[] = $dateHeaders;
+                
+                foreach ($divisionUsers as $userId => $userData) {
+                    $row = [
+                        'Division' => '',
+                        'Staff' => '',
+                        'NIP' => $userData['u_nip'],
+                        'Nama' => $userData['u_name'],
+                        'Divisi' => $userData['ud_name']
+                    ];
+                    
+                    // Add schedule data for each day
+                    foreach ($weekDates as $date) {
+                        $schedule = $userData['schedules'][$date] ?? null;
+                        
+                        if ($schedule) {
+                            $row[] = $schedule['sc_code'] . ' - ' . $schedule['sc_shift_name'] . 
+                                   ' (' . date('H:i', strtotime($schedule['sc_start_time'])) . '-' . date('H:i', strtotime($schedule['sc_end_time'])) . ')';
+                        } else {
+                            $row[] = 'No Schedule';
+                        }
+                    }
+                    
+                    $exportData[] = $row;
+                }
+                
+                // Add empty row between divisions
+                $emptyRow = array_fill(0, count($dateHeaders), '');
+                $exportData[] = $emptyRow;
+            }
+
             \Log::info('Public Export Weekly Report - Data Prepared', [
                 'users_count' => $users->count(),
                 'schedules_count' => $schedules->count(),
@@ -1928,11 +3048,32 @@ class DailyScheduleController extends Controller
                 'export_data_count' => count($exportData)
             ]);
 
+            // Debug: Log export data structure
+            \Log::info('Export Data Structure Debug', [
+                'export_data_count' => count($exportData),
+                'first_row' => $exportData[0] ?? 'No data',
+                'data_structure' => array_keys($exportData[0] ?? []),
+                'export_class' => 'WeeklyReportExport',
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+
             // Use Excel facade to export
-            return Excel::download(
-                new \App\Exports\WeeklyReportExport($exportData, $startDate, $endDate), 
-                $filename
-            );
+            try {
+                $export = new \App\Exports\WeeklyReportExport($exportData, $startDate, $endDate);
+                \Log::info('Export object created successfully', [
+                    'export_class' => get_class($export),
+                    'data_count' => count($exportData)
+                ]);
+                
+                return Excel::download($export, $filename);
+            } catch (\Exception $e) {
+                \Log::error('Excel download error: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw $e;
+            }
 
         } catch (\Exception $e) {
             \Log::error('Public Export Weekly Report Error: ' . $e->getMessage(), [
@@ -1958,17 +3099,76 @@ class DailyScheduleController extends Controller
                 'request_data' => $request->all(),
                 'filters_applied' => [
                     'division_id' => $request->get('division_id'),
-                    'search' => $request->get('search'),
-                    'date_filter' => $request->get('date_filter', 'this_week')
+                    'shift_id' => $request->get('shift_id'),
+                    'user_name' => $request->get('user_name'),
+                    'date_filter' => $request->get('date_filter', 'this_week'),
+                    'start_date' => $request->get('start_date')
                 ]
             ]);
 
             $divisionId = $request->get('division_id');
-            $search = $request->get('search');
+            $shiftId = $request->get('shift_id');
+            $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
-
-            $startDate = $this->getDateRangeFromFilter($dateFilter)['startDate'];
-            $endDate = $this->getDateRangeFromFilter($dateFilter)['endDate'];
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+            
+            // Process date filter and start_date with two-way synchronization (same as weeklyReport)
+            $originalStartDate = $request->get('start_date');
+            
+            if ($originalStartDate && $originalStartDate !== '') {
+                // User manually selected a week range - PRIORITY HIGH
+                // Calculate Monday of the week containing the selected date
+                $selectedDate = Carbon::parse($originalStartDate);
+                $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+                
+                $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+                $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+                
+                // Auto-detect if this matches any predefined filter
+                $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+                if ($detectedFilter !== 'custom') {
+                    $dateFilter = $detectedFilter;
+                } else {
+                    $dateFilter = 'custom';
+                }
+                
+                \Log::info('PDF Export - Week Range Selected', [
+                    'original_start_date' => $originalStartDate,
+                    'selected_date_day_of_week' => $dayOfWeek,
+                    'days_to_subtract' => $daysToSubtract,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate,
+                    'detected_filter' => $detectedFilter,
+                    'final_date_filter' => $dateFilter
+                ]);
+                
+            } elseif ($dateFilter && $dateFilter !== 'custom') {
+                // User selected a predefined date filter - PRIORITY MEDIUM
+                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                
+                \Log::info('PDF Export - Date Filter Selected', [
+                    'date_filter' => $dateFilter,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+                
+            } else {
+                // Default: this week - PRIORITY LOW
+                $dateRange = $this->getDateRangeFromFilter('this_week');
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                $dateFilter = 'this_week';
+                
+                \Log::info('PDF Export - Default Filter', [
+                    'default_filter' => 'this_week',
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+            }
 
             \Log::info('Date range calculated for PDF', [
                 'date_filter' => $dateFilter,
@@ -1976,7 +3176,7 @@ class DailyScheduleController extends Controller
                 'end_date' => $endDate
             ]);
 
-            // Build query to get users with their schedules
+            // Build query to get users with their schedules (only users with NIP)
             $users = DB::table('users')
                 ->select([
                     'users.id as user_id',
@@ -1987,7 +3187,8 @@ class DailyScheduleController extends Controller
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
@@ -1995,12 +3196,12 @@ class DailyScheduleController extends Controller
                 \Log::info('Division filter applied for PDF', ['division_id' => $divisionId]);
             }
 
-            if ($search) {
-                $users->where(function($q) use ($search) {
-                    $q->where('users.u_name', 'like', '%' . $search . '%')
-                      ->orWhere('users.u_nip', 'like', '%' . $search . '%');
+            if ($userName) {
+                $users->where(function($q) use ($userName) {
+                    $q->where('users.u_name', 'like', '%' . $userName . '%')
+                      ->orWhere('users.u_nip', 'like', '%' . $userName . '%');
                 });
-                \Log::info('Search filter applied for PDF', ['search' => $search]);
+                \Log::info('User name filter applied for PDF', ['user_name' => $userName]);
             }
 
             $users = $users->get();
@@ -2022,7 +3223,8 @@ class DailyScheduleController extends Controller
                     'shift_codes.sc_shift_name'
                 ])
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate]);
+                ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
+                ->get();
 
             \Log::info('Schedules query result for PDF', [
                 'schedules_count' => $schedules->count(),
@@ -2037,9 +3239,18 @@ class DailyScheduleController extends Controller
                 'end_date' => $endDate,
                 'filters_summary' => [
                     'division_filtered' => $divisionId ? 'Yes' : 'No',
-                    'search_filtered' => $search ? 'Yes' : 'No',
+                    'shift_filtered' => $shiftId ? 'Yes' : 'No',
+                    'user_name_filtered' => $userName ? 'Yes' : 'No',
                     'date_filtered' => $dateFilter
                 ]
+            ]);
+
+            // Log the dates being sent to HTML generator
+            \Log::info('PDF Export - Dates sent to HTML generator', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'start_date_formatted' => date('d M Y', strtotime($startDate)),
+                'end_date_formatted' => date('d M Y', strtotime($endDate))
             ]);
 
             // Generate HTML content untuk dimasukkan ke PDF
@@ -2049,11 +3260,13 @@ class DailyScheduleController extends Controller
             $pdf = Pdf::loadHTML($htmlContent)
                       ->setPaper('a4', 'landscape'); // Use landscape for better table fit
 
-            // Nama file
-            $filename = 'weekly-schedule-' . $dateFilter . '-' . date('Y-m-d') . '.pdf';
+            // Nama file dengan date range yang benar
+            $filename = 'weekly-schedule-' . date('Y-m-d', strtotime($startDate)) . '-to-' . date('Y-m-d', strtotime($endDate)) . '.pdf';
 
             \Log::info('Public Export Weekly Schedule PDF - Using PDF Facade', [
-                'filename' => $filename
+                'filename' => $filename,
+                'start_date' => $startDate,
+                'end_date' => $endDate
             ]);
 
             // Download PDF
@@ -2089,14 +3302,6 @@ class DailyScheduleController extends Controller
                 $startDate = $today->copy()->subWeek()->startOfWeek()->format('Y-m-d');
                 $endDate = $today->copy()->subWeek()->endOfWeek()->format('Y-m-d');
                 break;
-            case 'this_month':
-                $startDate = $today->copy()->startOfMonth()->format('Y-m-d');
-                $endDate = $today->copy()->endOfMonth()->format('Y-m-d');
-                break;
-            case 'last_month':
-                $startDate = $today->copy()->subMonth()->startOfMonth()->format('Y-m-d');
-                $endDate = $today->copy()->subMonth()->endOfMonth()->format('Y-m-d');
-                break;
             default:
                 $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
                 $endDate = $today->copy()->endOfWeek()->format('Y-m-d');
@@ -2113,16 +3318,26 @@ class DailyScheduleController extends Controller
      */
     private function generateWeeklyScheduleHTML($users, $schedules, $startDate, $endDate): string
     {
+        // Log the parameters received by this method
+        \Log::info('generateWeeklyScheduleHTML - Parameters received', [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'start_date_formatted' => date('d M Y', strtotime($startDate)),
+            'end_date_formatted' => date('d M Y', strtotime($endDate)),
+            'users_count' => $users->count(),
+            'schedules_count' => $schedules->count()
+        ]);
+        
         $html = "<html><head><title>Weekly Schedule</title>";
         $html .= "<style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h1 { color: #333; text-align: center; }
-            .date-range { text-align: center; margin-bottom: 20px; color: #666; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 10px; font-size: 10px; }
+            h1 { color: #333; text-align: center; font-size: 16px; margin: 10px 0; }
+            .date-range { text-align: center; margin-bottom: 15px; color: #666; font-size: 11px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; font-size: 9px; }
+            th, td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 9px; }
             th { background-color: #f5f5f5; font-weight: bold; }
             .user-info { background-color: #f9f9f9; }
-            .shift-cell { min-width: 80px; }
+            .shift-cell { min-width: 60px; max-width: 80px; }
         </style></head><body>";
         
         $html .= "<h1>Weekly Schedule Report</h1>";
@@ -2139,9 +3354,10 @@ class DailyScheduleController extends Controller
         
         // Daily headers
         $currentDate = \Carbon\Carbon::parse($startDate);
-        while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
+        $endDateCarbon = \Carbon\Carbon::parse($endDate);
+        while ($currentDate->lte($endDateCarbon)) {
             $html .= "<th class='shift-cell'>" . $currentDate->format('D d-M') . "</th>";
-            $currentDate->addDay();
+            $currentDate = $currentDate->copy()->addDay();
         }
         $html .= "</tr>";
         
@@ -2153,15 +3369,22 @@ class DailyScheduleController extends Controller
             $html .= "<td class='user-info'>" . ($user->ud_name ?? '-') . "</td>";
             $html .= "<td class='user-info'>" . ($user->ut_name ?? 'FULL TIME') . "</td>";
             
+            // Log user data for debugging
+            \Log::info('Processing user for PDF', [
+                'user_id' => $user->user_id,
+                'user_name' => $user->u_name,
+                'user_schedules_count' => $schedules->where('user_id', $user->user_id)->count()
+            ]);
+            
             // Daily shift data
             $currentDate = \Carbon\Carbon::parse($startDate);
-            while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
+            while ($currentDate->lte($endDateCarbon)) {
                 $dateStr = $currentDate->format('Y-m-d');
                 
-                // Find schedule for this date
-                $dailySchedule = $schedules->where('user_id', $user->user_id)
-                                       ->where('ds_date', $dateStr)
-                                       ->first();
+                // Find schedule for this date using collection filter
+                $dailySchedule = $schedules->filter(function($schedule) use ($user, $dateStr) {
+                    return $schedule->user_id == $user->user_id && $schedule->ds_date == $dateStr;
+                })->first();
                 
                 if ($dailySchedule && $dailySchedule->sc_code) {
                     $html .= "<td class='shift-cell'>" . $dailySchedule->sc_code . "</td>";
@@ -2169,7 +3392,7 @@ class DailyScheduleController extends Controller
                     $html .= "<td class='shift-cell'>-</td>";
                 }
                 
-                $currentDate->addDay();
+                $currentDate = $currentDate->copy()->addDay();
             }
             $html .= "</tr>";
         }
@@ -2186,16 +3409,17 @@ class DailyScheduleController extends Controller
     {
         $html = "<html><head><title>Weekly Schedule Report</title>";
         $html .= "<style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            h1 { color: #333; text-align: center; }
-            .date-range { text-align: center; margin-bottom: 20px; color: #666; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+            body { font-family: Arial, sans-serif; margin: 10px; font-size: 10px; }
+            h1 { color: #333; text-align: center; font-size: 16px; margin: 10px 0; }
+            .date-range { text-align: center; margin-bottom: 15px; color: #666; font-size: 11px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; font-size: 9px; }
+            th, td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 9px; }
             th { background-color: #f5f5f5; font-weight: bold; }
             .user-info { background-color: #f9f9f9; }
-            .shift-cell { min-width: 80px; }
+            .shift-cell { min-width: 60px; max-width: 80px; }
             .shift-name { background-color: #e3f2fd; }
             .start-shift { background-color: #fff3e0; }
+            .nama-column { width: 120px; }
         </style></head><body>";
         
         $html .= "<h1>Weekly Schedule Report</h1>";
@@ -2205,25 +3429,25 @@ class DailyScheduleController extends Controller
         
         // First header row - Date headers with colspan=2
         $html .= "<tr>";
-        $html .= "<th rowspan='2' style='width: 250px;'>NAMA</th>";
+        $html .= "<th rowspan='2' class='nama-column'>NAMA</th>";
         
-        // Daily headers with colspan=2
+        // Daily headers with colspan=2 (more compact)
         $currentDate = \Carbon\Carbon::parse($startDate);
         while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
-            $html .= "<th colspan='2' class='shift-cell' style='min-width: 240px;'>";
-            $html .= "<div style='font-weight: bold;'>" . $currentDate->format('l') . "</div>";
-            $html .= "<div style='font-size: 12px;'>" . $currentDate->format('d M') . "</div>";
+            $html .= "<th colspan='2' class='shift-cell'>";
+            $html .= "<div style='font-weight: bold; font-size: 10px;'>" . $currentDate->format('l') . "</div>";
+            $html .= "<div style='font-size: 9px;'>" . $currentDate->format('d M') . "</div>";
             $html .= "</th>";
             $currentDate->addDay();
         }
         $html .= "</tr>";
         
-        // Second header row - Shift Name and Start Shift
+        // Second header row - Shift Name and Start Shift (more compact)
         $html .= "<tr>";
         $currentDate = \Carbon\Carbon::parse($startDate);
         while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
-            $html .= "<th class='shift-name' style='width: 120px;'><small>Shift Name</small></th>";
-            $html .= "<th class='start-shift' style='width: 120px;'><small>Start Shift</small></th>";
+            $html .= "<th class='shift-name'><small style='font-size: 8px;'>Shift Name</small></th>";
+            $html .= "<th class='start-shift'><small style='font-size: 8px;'>Start Shift</small></th>";
             $currentDate->addDay();
         }
         $html .= "</tr>";
@@ -2232,10 +3456,10 @@ class DailyScheduleController extends Controller
         foreach ($users as $user) {
             $html .= "<tr>";
             
-            // NAMA column with NIP below (same format as weekly report table)
-            $html .= "<td class='user-info' style='font-size: 14px; width: 250px;'>";
-            $html .= "<div style='font-weight: bold;'>" . ($user->u_name ?? '-') . "</div>";
-            $html .= "<small style='color: #666;'>" . ($user->u_nip ?? '-') . "</small>";
+            // NAMA column with NIP below (more compact)
+            $html .= "<td class='user-info nama-column'>";
+            $html .= "<div style='font-weight: bold; font-size: 10px;'>" . ($user->u_name ?? '-') . "</div>";
+            $html .= "<small style='color: #666; font-size: 8px;'>" . ($user->u_nip ?? '-') . "</small>";
             $html .= "</td>";
             
             // Daily shift data - 2 columns per day
@@ -2421,24 +3645,76 @@ class DailyScheduleController extends Controller
                 ]
             ]);
 
-            $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
-            $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
             $divisionId = $request->get('division_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
-
-            // If date filter is provided, calculate dates
-            if ($dateFilter && $dateFilter !== 'custom') {
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+            
+            // Process date filter and start_date with two-way synchronization (same as exportWeeklyPDFPublic)
+            $originalStartDate = $request->get('start_date');
+            
+            if ($originalStartDate && $originalStartDate !== '') {
+                // User manually selected a week range - PRIORITY HIGH
+                // Calculate Monday of the week containing the selected date
+                $selectedDate = Carbon::parse($originalStartDate);
+                $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+                $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
+                
+                $startDate = $selectedDate->copy()->subDays($daysToSubtract)->format('Y-m-d');
+                $endDate = $selectedDate->copy()->addDays(6 - $daysToSubtract)->format('Y-m-d');
+                
+                // Auto-detect if this matches any predefined filter
+                $detectedFilter = $this->detectFilterFromDateRange($startDate, $endDate);
+                if ($detectedFilter !== 'custom') {
+                    $dateFilter = $detectedFilter;
+                } else {
+                    $dateFilter = 'custom';
+                }
+                
+                \Log::info('PDF Report Export - Week Range Selected', [
+                    'original_start_date' => $originalStartDate,
+                    'selected_date_day_of_week' => $dayOfWeek,
+                    'days_to_subtract' => $daysToSubtract,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate,
+                    'detected_filter' => $detectedFilter,
+                    'final_date_filter' => $dateFilter
+                ]);
+                
+            } elseif ($dateFilter && $dateFilter !== 'custom') {
+                // User selected a predefined date filter - PRIORITY MEDIUM
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
+                
+                \Log::info('PDF Report Export - Date Filter Selected', [
+                    'date_filter' => $dateFilter,
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
+                
+            } else {
+                // Default: this week - PRIORITY LOW
+                $dateRange = $this->getDateRangeFromFilter('this_week');
+                $startDate = $dateRange['startDate'];
+                $endDate = $dateRange['endDate'];
+                $dateFilter = 'this_week';
+                
+                \Log::info('PDF Report Export - Default Filter', [
+                    'default_filter' => 'this_week',
+                    'calculated_start_date' => $startDate,
+                    'calculated_end_date' => $endDate
+                ]);
             }
 
             \Log::info('Date range calculated for PDF report', [
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
-                'end_date' => $endDate
+                'end_date' => $endDate,
+                'start_date_formatted' => date('d M Y', strtotime($startDate)),
+                'end_date_formatted' => date('d M Y', strtotime($endDate))
             ]);
 
             // Build query to get users with their schedules
@@ -2513,6 +3789,14 @@ class DailyScheduleController extends Controller
                 ]
             ]);
 
+            // Log the dates being sent to HTML generator
+            \Log::info('PDF Report Export - Dates sent to HTML generator', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'start_date_formatted' => date('d M Y', strtotime($startDate)),
+                'end_date_formatted' => date('d M Y', strtotime($endDate))
+            ]);
+
             // Generate HTML content for report
             $htmlContent = $this->generateWeeklyReportHTML($users, $schedules, $startDate, $endDate);
             
@@ -2541,6 +3825,33 @@ class DailyScheduleController extends Controller
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat export report PDF: ' . $e->getMessage()
             ], 500);
+        }
+    }
+    
+    /**
+     * Helper method to detect date filter based on date range
+     */
+    private function detectFilterFromDateRange($startDate, $endDate)
+    {
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        $today = Carbon::now();
+        
+        // Get Monday of current week
+        $mondayThisWeek = $today->copy()->startOfWeek();
+        
+        // Get Monday of previous week
+        $mondayLastWeek = $today->copy()->subWeek()->startOfWeek();
+        
+        // Compare date ranges
+        if ($start->format('Y-m-d') === $mondayThisWeek->format('Y-m-d') && 
+            $end->format('Y-m-d') === $mondayThisWeek->copy()->endOfWeek()->format('Y-m-d')) {
+            return 'this_week';
+        } elseif ($start->format('Y-m-d') === $mondayLastWeek->format('Y-m-d') && 
+                   $end->format('Y-m-d') === $mondayLastWeek->copy()->endOfWeek()->format('Y-m-d')) {
+            return 'past_week';
+        } else {
+            return 'custom';
         }
     }
 }

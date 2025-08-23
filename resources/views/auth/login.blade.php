@@ -8,11 +8,65 @@
         background-size: cover;
         background-position: center;
     }
+    
+    /* Google Login Styling */
+    .divider {
+        position: relative;
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e1e5e9;
+    }
+    
+    .divider-text {
+        background: white;
+        padding: 0 15px;
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .btn-google {
+        transition: all 0.3s ease;
+        border: 2px solid #dc3545;
+        color: #dc3545;
+        background: white;
+    }
+    
+    .btn-google:hover {
+        background: #dc3545;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-google i {
+        font-size: 18px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .btn-google {
+            width: 100% !important;
+            max-width: 420px;
+        }
+    }
 </style>
 <!--begin::Body-->
 
 <!-- Toastr CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -60,9 +114,30 @@
                             <!--begin::Action-->
                             <div class="pb-lg-0 pb-5">
                                 <button type="submit" id="kt_login_signin_submit"
-                                    class="float-right btn btn-primary font-weight-bold fs-4 px-8 py-4 my-3 mr-2">Login</button>
+                                class="btn btn-primary btn-lg font-weight-bold px-8 py-4 w-100">Login</button>
                             </div>
                             <!--end::Action-->
+                            
+                            <!--begin::Google Login Divider-->
+                            <!-- <div class="text-center my-4">
+                                <div class="divider">
+                                    <span class="divider-text">atau</span>
+                                </div>
+                            </div> -->
+                            <!--end::Google Login Divider-->
+                            
+                            <!--begin::Google Login Button-->
+                            <div class="pt-4 pb-4 text-center">
+                                <span class="text-dark">or</span>
+                            </div>
+                            <div class="text-center mb-4">
+                                <a href="{{ route('google.login') }}" 
+                                   class="btn text-white btn-danger btn-lg font-weight-bold px-8 py-4 w-100">
+                                    <i class="fab fa-google mr-3"></i>
+                                    Continue with Google
+                                </a>
+                            </div>
+                            <!--end::Google Login Button-->
                         </form>
                         <!--end::Form-->
                     </div>

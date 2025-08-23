@@ -185,6 +185,10 @@
                                     <span class="svg-icon svg-icon-md">
                                         <i class="ki-outline ki-calendar-tick"></i>
                                     </span>Weekly Schedule</a>
+                                    <a href="{{ route('daily-schedules.monthly-report') }}" class="btn btn-success font-weight-bolder">
+                                    <span class="svg-icon svg-icon-md">
+                                        <i class="ki-outline ki-calendar-8"></i>
+                                    </span>Monthly Report</a>
                                     <!--end::Button-->
                                 </div>
                             </div>

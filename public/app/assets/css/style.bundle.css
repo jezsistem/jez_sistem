@@ -5607,7 +5607,7 @@ input[type="button"].btn-block {
     display: inline-block;
     padding: 0.5em 0.75em;
     font-size: 85%;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1;
     text-align: center;
     white-space: nowrap;
@@ -5776,6 +5776,37 @@ a.badge-white:focus, a.badge-white.focus {
     box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.5);
 }
 
+/* Light Colors */
+.badge-light-blue {
+    background-color: #e0f2fe; /* light blue */
+    color: #0369a1;            /* darker text for contrast */
+  }
+  
+  .badge-light-green {
+    background-color: #d1fae5; /* light green */
+    color: #047857;
+  }
+  
+  .badge-light-yellow {
+    background-color: #fef9c3; /* light yellow */
+    color: #92400e;
+  }
+  
+  .badge-light-red {
+    background-color: #fee2e2; /* light red */
+    color: #b91c1c;
+  }
+  
+  .badge-light-purple {
+    background-color: #ede9fe; /* light purple */
+    color: #6b21a8;
+  }
+  
+  .badge-light-gray {
+    background-color: #f3f4f6;
+    color: #374151;
+  }
+  
 .jumbotron {
     padding: 2rem 1rem;
     margin-bottom: 2rem;
@@ -82532,7 +82563,7 @@ code {
 }
 
 .dataTables_wrapper .dataTable th.sorting_asc, .dataTables_wrapper .dataTable td.sorting_asc {
-    color: #fff !important;
+    color: #171b30 !important;
 }
 
 .dataTables_wrapper .dataTable th.sorting_asc:before, .dataTables_wrapper .dataTable td.sorting_asc:before {

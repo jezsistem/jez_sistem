@@ -146,7 +146,7 @@
                 <!--begin::Page Heading-->
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">Log {{ $data['subtitle'] }}</h5>
                 <!--end::Page Title-->
                 <!--begin::Breadcrumb-->
                 <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -211,7 +211,7 @@
                                                     <i class="ki-outline ki-check-circle text-dark"></i>
                                                     @break
                                                 @case('late')
-                                                    <i class="ki-outline ki-clock text-dark"></i>
+                                                    <i class="ki-outline ki-entrance-left text-dark"></i>
                                                     @break
                                                 @case('absent')
                                                     <i class="ki-outline ki-cross-circle text-dark"></i>
@@ -298,12 +298,12 @@
                                         </select>
                                     </div>
                                     <div class="col-md-2" id="start_date_container" style="display: none;">
-                                        <label for="start_date">Tanggal Mulai</label>
+                                        <label for="start_date">Start Date</label>
                                         <input type="date" class="form-control" id="start_date" name="start_date" 
                                                value="{{ request('start_date', date('Y-m-d')) }}">
                                     </div>
                                     <div class="col-md-2" id="end_date_container" style="display: none;">
-                                        <label for="end_date">Tanggal Akhir</label>
+                                        <label for="end_date">End Date</label>
                                         <input type="date" class="form-control" id="end_date" name="end_date" 
                                                value="{{ request('end_date', date('Y-m-d')) }}">
                                     </div>
@@ -348,7 +348,7 @@
                                     <div class="col-md-2">
                                         <label>&nbsp;</label>
                                         <button type="submit" class="btn btn-primary btn-block">
-                                            <i class="ki-outline ki-filter-tick"></i> Apply Filters
+                                            <i class="ki-outline ki-filter-tick"></i> Filter
                                         </button>
                                     </div>
                                 </div>
@@ -369,11 +369,13 @@
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <!--begin::Button-->
-                                    <a href="{{ route('attendance.upload') }}" class="btn btn-green font-weight-bolder mr-2">
+                                    <!-- <a href="{{ route('attendance.summary-report') }}" class="btn btn-info font-weight-bolder mr-2">
                                         <span class="svg-icon svg-icon-md">
-                                            <i class="ki-outline ki-file-up"></i>
-                                        </span>Upload Excel</a>
+                                            <i class="ki-outline ki-chart-line"></i>
+                                        </span>Summary Report</a> -->
                                     <!--end::Button-->
+                                   
+
                                     <!--begin::Button-->
                                     <button type="button" class="btn btn-light-green font-weight-bolder mr-2" onclick="exportToExcel()">
                                         <span class="svg-icon svg-icon-md">
@@ -396,6 +398,12 @@
                                                 <i class="ki-outline ki-update-folder"></i>
                                             </span>Reprocess All</button>
                                     </form>
+                                    <!--end::Button-->
+                                     <!--begin::Button-->
+                                     <a href="{{ route('attendance.upload') }}" class="btn btn-green font-weight-bolder mr-2">
+                                        <span class="svg-icon svg-icon-md">
+                                            <i class="ki-outline ki-file-up"></i>
+                                        </span>Upload Excel</a>
                                     <!--end::Button-->
                                     <!--begin::Button-->
                                     <a href="{{ route('attendance.create') }}" class="btn btn-dark font-weight-bolder">

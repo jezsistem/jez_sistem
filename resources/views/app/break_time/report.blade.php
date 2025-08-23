@@ -156,8 +156,21 @@
                 <!--begin::Page Heading-->
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">Break Time Report</h5>
-                <!--end::Page Title-->
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">Log Break Time</h5>
+                    <!--end::Page Title-->
+                    <!--begin::Breadcrumb-->
+                    <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                        <li class="breadcrumb-item text-muted">
+                            <span class="text-muted">
+                                @if($dateFilter && $dateFilter !== 'custom')
+                                    {{ date('d M Y', strtotime($startDate)) }} to {{ date('d M Y', strtotime($endDate)) }}
+                                @else
+                                    {{ $startDate }} to {{ $endDate }}
+                                @endif
+                            </span>
+                        </li>
+                    </ul>
+                    <!--end::Breadcrumb-->
                 </div>
                 <!--end::Page Heading-->
             </div>
@@ -177,14 +190,13 @@
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
         <div class="container">
-             <!-- Filters -->
-             <div class="row mb-4">
-                <!-- Statistics Cards -->
+            <!-- Statistics Cards -->
+            <div class="row mb-4" id="statsContainer">
                 @foreach($stats ?? [] as $stat)
                     <div class="col-md-2">
                         <div class="card bg-all">
                             <div class="card-body text-center">
-                                <h4 class="text-primary">{{ $stat->total }}</h4>
+                                <h4 class="text-primary" id="stat-{{ $stat->bt_status }}-count">{{ $stat->total }}</h4>
                                 <small class="text-muted">
                                     @switch($stat->bt_status)
                                         @case('active')
@@ -204,6 +216,32 @@
                         </div>
                     </div>
                 @endforeach
+                
+                <!-- Additional stats cards -->
+                <div class="col-md-2">
+                    <div class="card bg-other">
+                        <div class="card-body text-center">
+                            <h4 class="text-primary" id="stat-total-count">{{ $stats->sum('total') ?? 0 }}</h4>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-other">
+                        <div class="card-body text-center">
+                            <h4 class="text-primary" id="stat-break1-count">0</h4>
+                            <small class="text-muted">Break 1</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-other">
+                        <div class="card-body text-center">
+                            <h4 class="text-primary" id="stat-break2-count">0</h4>
+                            <small class="text-muted">Break 2</small>
+                        </div>
+                    </div>
+                </div>
             </div>
              <div class="row mb-4">
                 <div class="col-12">
@@ -218,33 +256,33 @@
                                         <div class="form-group">
                                             <label for="date_filter">Date Filter</label>
                                             <select class="form-control" id="date_filter" name="date_filter" onchange="handleDateFilterChange(this.value)">
-                                                <option value="this_week" {{ request('date_filter', 'this_week') == 'this_week' ? 'selected' : '' }}>This Week</option>
-                                                <option value="past_week" {{ request('date_filter', 'this_week') == 'past_week' ? 'selected' : '' }}>Past Week</option>
-                                                <option value="this_month" {{ request('date_filter', 'this_week') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                                                <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Past Month</option>
-                                                <option value="custom" {{ request('date_filter', 'this_week') == 'custom' ? 'selected' : '' }}>Custom Range</option>
+                                                <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
+                                                <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                                <option value="this_month" {{ $dateFilter == 'this_month' ? 'selected' : '' }}>This Month</option>
+                                                <option value="last_month" {{ $dateFilter == 'last_month' ? 'selected' : '' }}>Past Month</option>
+                                                <option value="custom" {{ $dateFilter == 'custom' ? 'selected' : '' }}>Custom Range</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-2" id="start_date_container" style="display: none;">
+                                    <div class="col-md-2" id="start_date_container" style="display: {{ $dateFilter == 'custom' ? 'block' : 'none' }};">
                                         <div class="form-group">
                                             <label for="start_date">Start Date</label>
                                             <input type="date" class="form-control" id="start_date" name="start_date" 
-                                                   value="{{ request('start_date', date('Y-m-d')) }}">
+                                                   value="{{ $startDate }}">
                                         </div>
                                     </div>
-                                    <div class="col-md-2" id="end_date_container" style="display: none;">
+                                    <div class="col-md-2" id="end_date_container" style="display: {{ $dateFilter == 'custom' ? 'block' : 'none' }};">
                                         <div class="form-group">
                                             <label for="end_date">End Date</label>
                                             <input type="date" class="form-control" id="end_date" name="end_date" 
-                                                   value="{{ request('end_date', date('Y-m-d')) }}">
+                                                   value="{{ $endDate }}">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label for="user_id">Karyawan</label>
+                                            <label for="user_id">Staff</label>
                                             <select class="form-control" id="user_id" name="user_id">
-                                                <option value="">Semua Karyawan</option>
+                                                <option value="">Semua Staff</option>
                                                 @foreach($users as $user)
                                                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
                                                         {{ $user->u_name }} ({{ $user->u_nip }})
@@ -288,7 +326,7 @@
                                         <div class="form-group">
                                             <label>&nbsp;</label>
                                             <button type="button" class="btn btn-primary btn-block" onclick="applyFilters()">
-                                                <i class="fas fa-search"></i> Apply Filters
+                                                <i class="fas fa-search"></i> Filter
                                             </button>
                                         </div>
                                     </div>
@@ -304,6 +342,10 @@
                     <div class="card card-custom gutter-b">
                         <div class="card-header flex-wrap py-3">
                             <div class="card-toolbar d-flex justify-content-between w-100">
+                            <div class="d-flex align-items-center">
+                            <!-- <input type="search" class="form-control" style="width: 300px;" id="summary_search" placeholder="Search"/> -->
+                            </div>
+
                                 <!-- Export Buttons -->
                                 <div class="row">
                                     <div class="col-12">

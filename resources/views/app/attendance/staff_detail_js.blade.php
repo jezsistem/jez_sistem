@@ -116,7 +116,7 @@
                         switch(status) {
                             case 'present':
                                 statusText = 'Present';
-                                statusClass = 'badge-success';
+                                statusClass = 'badge-info';
                                 break;
                             case 'absent':
                                 statusText = 'Absent';
@@ -201,20 +201,12 @@
                 success: function(response) {
                     console.log('Statistics response:', response);
                     if (response.stats) {
-                        $('#present_count').text(response.stats.present || 0);
-                        $('#late_count').text(response.stats.late || 0);
-                        $('#absent_count').text(response.stats.absent || 0);
-                        $('#early_leave_count').text(response.stats.early_leave || 0);
-                        $('#scan_once_count').text(response.stats.scan_once || 0);
-                        $('#total_days').text(response.stats.total || 0);
-                        
-                        // Update leave statistics
-                        $('#leave_annual_count').text(response.stats.leave_annual || 0);
-                        $('#leave_sick_count').text(response.stats.leave_sick || 0);
-                        $('#leave_maternity_count').text(response.stats.leave_maternity || 0);
-                        $('#leave_emergency_count').text(response.stats.leave_emergency || 0);
-                        $('#leave_half_day_count').text(response.stats.leave_half_day || 0);
-                        $('#leave_special_count').text(response.stats.leave_special || 0);
+                        $('#total_shifts').text(response.stats.total_shifts || 0);
+                        $('#present_days').text(response.stats.present_days || 0);
+                        $('#sick_days').text(response.stats.sick_days || 0);
+                        $('#leave_days').text(response.stats.leave_days || 0);
+                        $('#late_days').text(response.stats.late_days || 0);
+                        $('#alpha_days').text(response.stats.alpha_days || 0);
                     }
                 },
                 error: function(xhr, status, error) {

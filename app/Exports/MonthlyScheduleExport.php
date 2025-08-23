@@ -7,19 +7,19 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class MonthlyScheduleExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
-    protected $data;
+    protected $schedules;
     protected $startDate;
     protected $endDate;
 
-    public function __construct($data, $startDate, $endDate)
+    public function __construct($schedules, $startDate, $endDate)
     {
-        $this->data = $data;
+        $this->schedules = $schedules;
         $this->startDate = $startDate;
         $this->endDate = $endDate;
     }
@@ -27,17 +27,17 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
     public function collection()
     {
         // Data sudah dalam format yang benar dari controller
-        return collect($this->data);
+        return collect($this->schedules);
     }
 
     public function headings(): array
     {
         // Get the first row to determine column count
-        if (empty($this->data)) {
+        if (empty($this->schedules)) {
             return ['No Data'];
         }
         
-        $firstRow = $this->data[0];
+        $firstRow = $this->schedules[0];
         $columnCount = count($firstRow);
         
         // Return array with column letters (A, B, C, etc.)
@@ -49,10 +49,10 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
         return $headings;
     }
 
-    public function map($row): array
+    public function map($schedule): array
     {
         // Return the row data as is (already in correct format)
-        return array_values($row);
+        return array_values($schedule);
     }
 
     public function styles(Worksheet $sheet)
@@ -64,16 +64,16 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
         $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
             'font' => [
                 'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
+                'color' => ['rgb' => 'FFFFFF']
             ],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '4472C4'],
+                'startColor' => ['rgb' => '007BFF']
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
+                'vertical' => Alignment::VERTICAL_CENTER
+            ]
         ]);
 
         // Style division header rows (background color)
@@ -97,13 +97,13 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000'],
-                ],
+                    'color' => ['rgb' => '000000']
+                ]
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
+                'vertical' => Alignment::VERTICAL_CENTER
+            ]
         ]);
 
         // Auto-size columns
@@ -114,7 +114,7 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
         // Add title row
         $sheet->insertNewRowBefore(1, 2);
         $sheet->mergeCells('A1:' . $highestColumn . '1');
-        $sheet->setCellValue('A1', 'WEEKLY SCHEDULE REPORT');
+        $sheet->setCellValue('A1', 'MONTHLY SCHEDULE REPORT');
         $sheet->getStyle('A1')->applyFromArray([
             'font' => [
                 'bold' => true,

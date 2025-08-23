@@ -51,7 +51,7 @@
                     width: '14%',
                     render: function(data, type, row) {
                         if (type === 'display') {
-                            return '<a href="/attendance/staff/' + row.user_id + '" class="text-primary font-weight-bold" style="cursor: pointer;line-height: 1.2;">' + data + '</a><br><span class="text-muted">' + (row.u_nip || '-') + '</span>';
+                            return '<a href="/attendance/staff/' + row.user_id + '" class="text-primary font-weight-bold" style="cursor: pointer;line-height: 1.2;">' + data + '</a><br><span class="text-muted" style="line-height: 1.8;">' + (row.u_nip || '-') + '</span>';
                         }
                         return data;
                     }

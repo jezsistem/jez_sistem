@@ -3,6 +3,73 @@
 
 <style>
 /* Custom CSS for Metronic dropdown menu */
+/* Modal styles using vanilla CSS (like staff) */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 0;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 15px;
+}
+
+.modal-footer {
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+/* Custom CSS for Metronic dropdown menu */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -112,6 +179,19 @@
                     <!--begin::Page Title-->
                     <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
                     <!--end::Page Title-->
+                    <!--begin::Breadcrumb-->
+                    <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                        <li class="breadcrumb-item text-muted">
+                            <span class="text-muted">
+                                @if($dateFilter && $dateFilter !== 'custom')
+                                    {{ date('d M Y', strtotime($startDate)) }} to {{ date('d M Y', strtotime($endDate)) }}
+                                @else
+                                    {{ $startDate }} to {{ $endDate }}
+                                @endif
+                            </span>
+                        </li>
+                    </ul>
+                    <!--end::Breadcrumb-->
                 </div>
                 <!--end::Page Heading-->
             </div>
@@ -203,14 +283,24 @@
                             <h3 class="card-title">Filters</h3>
                         </div>
                         <div class="card-body">
-                            <form method="GET" action="{{ route('leave-requests.index') }}">
+                            <form method="GET" action="{{ route('leave-requests.index') }}" id="filterForm">
                                 <div class="row">
                                     <div class="col-md-2">
+                                        <label for="date_filter">Date Filter</label>
+                                        <select class="form-control" id="date_filter" name="date_filter" onchange="handleDateFilterChange(this.value)">
+                                            <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
+                                            <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                            <option value="this_month" {{ $dateFilter == 'this_month' ? 'selected' : '' }}>This Month</option>
+                                            <option value="last_month" {{ $dateFilter == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                                            <option value="custom" {{ $dateFilter == 'custom' ? 'selected' : '' }}>Custom Range</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2" id="start_date_container" style="display: {{ $dateFilter == 'custom' ? 'block' : 'none' }};">
                                         <label for="start_date">Start Date</label>
                                         <input type="date" class="form-control" id="start_date" name="start_date" 
                                                value="{{ $startDate }}">
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-2" id="end_date_container" style="display: {{ $dateFilter == 'custom' ? 'block' : 'none' }};">
                                         <label for="end_date">End Date</label>
                                         <input type="date" class="form-control" id="end_date" name="end_date" 
                                                value="{{ $endDate }}">
@@ -250,8 +340,8 @@
                                     <div class="col-md-2">
                                         <label>&nbsp;</label>
                                         <button type="submit" class="btn btn-primary btn-block">
-                                            <i class="ki-outline ki-filter-tick"></i> Apply Filters
-                                        </button>
+                                            <i class="ki-outline ki-filter-tick"></i> Filter
+                                        </button>   
                                     </div>
                                 </div>
                             </form>
@@ -271,6 +361,17 @@
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <!--begin::Button-->
+                                    <a href="{{ route('leave-requests.summary-report') }}" class="btn btn-primary font-weight-bolder mr-2">
+                                    <span class="svg-icon svg-icon-md">
+                                        <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
+                                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <rect x="0" y="0" width="24" height="24" />
+                                                <path d="M9,12 L11,12 L11,10 L9,10 L9,12 Z M9,16 L11,16 L11,14 L9,14 L9,16 Z M9,8 L11,8 L11,6 L9,6 L9,8 Z M17,12 L19,12 L19,10 L17,10 L17,12 Z M17,16 L19,16 L19,14 L17,14 L17,16 Z M17,8 L19,8 L19,6 L17,6 L17,8 Z M5,6 L7,6 L7,18 L5,18 L5,6 Z M13,6 L15,6 L15,18 L13,18 L13,6 Z" fill="#000000" />
+                                            </g>
+                                        </svg>
+                                        <!--end::Svg Icon-->
+                                    </span>Summary Report</a>
                                     <a href="{{ route('leave-requests.create') }}" class="btn btn-dark font-weight-bolder">
                                     <span class="svg-icon svg-icon-md">
                                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
@@ -333,6 +434,33 @@
     <!--end::Entry-->
 </div>
 <!--end::Content-->
+
+<!-- Approval Modal -->
+<div id="approvalModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="approvalModalLabel">Process Leave Request</h5>
+            <button type="button" class="close" onclick="hideModal('approvalModal')" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <form id="approvalForm" method="POST">
+            @csrf
+                            <div class="modal-body">
+                    <div class="form-group">
+                        <label for="approval_notes" id="notes_label">Notes (Optional)</label>
+                        <textarea class="form-control" id="approval_notes" name="notes" rows="3" placeholder="Enter approval/rejection notes..."></textarea>
+                        <small class="text-muted" id="notes_help">Notes are required for rejection</small>
+                    </div>
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideModal('approvalModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="approvalSubmitBtn">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @include('app._partials.js')

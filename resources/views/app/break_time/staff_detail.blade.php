@@ -1,5 +1,9 @@
 @extends('app.structure')
+
+@section('title', 'Staff Break Time Detail')
+
 @section('content')
+
 <style>
     .table-responsive {
         overflow-x: auto;
@@ -25,7 +29,20 @@
     .table-striped tbody tr:nth-of-type(odd) {
         background-color: rgba(0,0,0,.02);
     }
-    
+
+    /* Light statistics cards */
+    .bg-break-total {
+        background-color: #E8F5E8;
+    }
+    .bg-break-shifts {
+        background-color: #FFF3CD;
+    }
+    .bg-break-exceeded {
+        background-color: #F8D7DA;
+    }
+    .bg-break-avg {
+        background-color: #F1F1F4;
+    }
     .staff-info {
         background: #FFEBEB;
         color: ##071437;
@@ -44,35 +61,6 @@
         opacity: 0.9;
     }
 
-    /* Dropdown menu styling */
-    .dropdown { position: relative; display: inline-block; }
-    .menu.menu-sub-dropdown { z-index: 9999 !important; position: absolute !important; top: 100% !important; left: 0 !important; margin-top: 5px !important; min-width: 150px !important; background: white !important; border: 1px solid #e4e6ef !important; border-radius: 0.475rem !important; box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important; }
-    #staffAttendanceTable td { position: relative; }
-    .menu-item .menu-link { cursor: pointer; transition: all 0.3s ease; display: block; padding: 0.5rem 1rem; text-decoration: none; color: #3f4254 !important; font-weight: 500; font-size: 1rem; }
-    .menu-item .menu-link:hover { background-color: #f3f6f9 !important; color: #3699FF !important; }
-    [data-kt-menu-trigger="click"] { cursor: pointer; user-select: none; }
-    .svg-icon { display: inline-block; vertical-align: middle; }
-    .svg-icon svg { width: 1em; height: 1em; }
-    .menu.show { display: block !important; opacity: 1 !important; visibility: visible !important; }
-    .menu:not(.show) { display: none !important; }
-    .bg-attendance-total {
-        background-color: #E8F5E8;
-    }
-    .bg-attendance-shifts {
-        background-color: #FFF3CD;
-    }
-    .bg-attendance-late {
-        background-color: #F8D7DA;
-    }
-    .bg-attendance-alpha {
-        background-color: #F1F1F4;
-    }
-    .bg-all {
-    background-color: #FFEBEB;
-    }
-    .bg-other {
-        background-color: #F1F1F4;
-    }
 </style>
 
 <!--begin::Content-->
@@ -85,44 +73,55 @@
                 <!--begin::Page Heading-->
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                     <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">Break Time Details - {{ $data['staff']->u_name }}</h5>
                     <!--end::Page Title-->
+                    <!--begin::Breadcrumb-->
+                    <!-- <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url('/dashboard') }}" class="text-muted">Dashboard</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ url('/break-times') }}" class="text-muted">Break Times</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('break-times.summary-report') }}" class="text-muted">Summary Report</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="text-muted">Staff Detail</span>
+                        </li>
+                    </ul> -->
+                    <!--end::Breadcrumb-->
                 </div>
                 <!--end::Page Heading-->
             </div>
-            <!--end::Info-->
-            
             <!--begin::Toolbar-->
             <div class="d-flex align-items-center">
-                <a href="{{ route('attendance.index') }}" class="btn btn-secondary font-weight-bolder">
+                <a href="{{ route('break-times.report') }}" class="btn btn-secondary font-weight-bolder">
                     <i class="ki-outline ki-arrow-left"></i> Back
                 </a>
             </div>
             <!--end::Toolbar-->
+            <!--end::Info-->
         </div>
     </div>
     <!--end::Subheader-->
-    
+
     <!--begin::Entry-->
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
-        <div class="container">
-            <!-- Staff Information Card -->
-             <div class="row">
-                <div class="col-md-6">
+        <div class="container-fluid">
+            <div class="row">
+            <div class="col-md-6">
             <div class="staff-info">
                 <div class="row">
                     <div class="col-md-8">
-                        <h4>{{ $staff->u_name }}</h4>
-                        <p><strong>NIP:</strong> {{ $staff->u_nip }}</p>
-                        <p><strong>Divisi:</strong> {{ $staff->ud_name ?? 'Tidak ada divisi' }}</p>
-                        <p><strong>Email:</strong> {{ $staff->u_email ?? 'Tidak ada email' }}</p>
+                       <h4>{{ $data['staff']->u_name }}</h4>
+                       <p><strong>NIP:</strong> {{ $data['staff']->u_nip }}</p>
+                       <p><strong>Position:</strong> {{ $data['staff']->position_name }}</p>
+                       <p><strong>Division:</strong> {{ $data['staff']->division_name }}</p>
+                       <p><strong>Work Type:</strong> {{ $data['staff']->work_type }}</p>
                     </div>
                     <div class="col-md-4 text-right">
-                        <div class="d-flex flex-column align-items-end">
-                            <!-- <span class="badge badge-light badge-pill mb-2">Staff ID: {{ $staff->id }}</span> -->
-                            <span class="badge badge-primary badge-pill">{{ $staff->u_status ?? 'Active' }}</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -130,44 +129,28 @@
             </div>
 
 
+            
             <!-- Statistics Cards -->
             <div class="row mb-4">
-                <div class="col-lg-2 col-md-4">
-                    <div class="card card-custom rounded-lg bg-attendance-shifts">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-custom rounded-lg bg-break-total">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
                                     <span class="symbol-label">
-                                        <i class="ki-outline ki-user-square text-dark"></i>
+                                        <i class="ki-outline ki-coffee text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="total_shifts">0</div>
-                                    <div class="text-dark-50">Total Shifts</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="totalBreaks">-</div>
+                                    <div class="text-dark-50">Total Break</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
-                    <div class="card card-custom rounded-lg bg-attendance-total">
-                        <div class="card-body px-7">
-                            <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-calendar text-dark"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="present_days">0</div>
-                                    <div class="text-dark-50">Present Days</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-4">
-                    <div class="card card-custom rounded-lg bg-other">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-custom rounded-lg bg-break-shifts">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
@@ -176,68 +159,48 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="sick_days">0</div>
-                                    <div class="text-dark-50">Sick Days</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="totalShifts">-</div>
+                                    <div class="text-dark-50">Total Shift</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
-                    <div class="card card-custom rounded-lg bg-other">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-custom rounded-lg bg-break-exceeded">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
                                     <span class="symbol-label">
-                                        <i class="ki-outline ki-calendar text-dark"></i>
+                                        <i class="ki-outline ki-time text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="leave_days">0</div>
-                                    <div class="text-dark-50">Leave Days</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="exceededBreaks">-</div>
+                                    <div class="text-dark-50">Exceeded Breaks <small class="text-dark-50" id="breakAllowanceInfo">-</small></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
-                    <div class="card card-custom rounded-lg bg-other">
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-custom rounded-lg bg-break-avg">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
                                     <span class="symbol-label">
-                                        <i class="ki-outline ki-calendar text-dark"></i>
+                                        <i class="ki-outline ki-calculator text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="late_days">0</div>
-                                    <div class="text-dark-50">Late Days</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="avgDuration">-</div>
+                                    <div class="text-dark-50">Avg Duration</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
-                    <div class="card card-custom rounded-lg bg-all">
-                        <div class="card-body px-7">
-                            <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-calendar text-dark"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="alpha_days">0</div>
-                                    <div class="text-dark-50">Alpha Days</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            
             </div>
-
-            <!-- Filter Section -->
             <div class="row mb-4">
                 <div class="col-lg-12">
                     <div class="card card-custom">
@@ -247,7 +210,7 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            <form id="filterForm">
+                        <form id="filterForm">
                                 <div class="row">
                                     <div class="col-md-2">
                                         <label for="date_filter">Date Filter</label>
@@ -267,17 +230,15 @@
                                     <div class="col-md-2" id="end_date_container" style="display: none;">
                                         <label for="end_date">Tanggal Akhir</label>
                                         <input type="date" class="form-control" id="end_date" name="end_date" 
-                                               value="{{ request('end_date', date('Y-m-d')) }}">
+                                               value="{{ request('start_date', date('Y-m-d')) }}">
                                     </div>
                                     <div class="col-md-2">
                                         <label for="status">Status</label>
                                         <select class="form-control" id="status" name="status">
                                             <option value="">Semua Status</option>
-                                            <option value="present">Present</option>
-                                            <option value="absent">Absent</option>
-                                            <option value="late">Late</option>
-                                            <option value="early_leave">Early Leave</option>
-                                            <option value="scan_once">Scan Once</option>
+                                            <option value="active">Active</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="cancelled">Cancelled</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
@@ -292,27 +253,22 @@
                     </div>
                 </div>
             </div>
-
-            
-
-            <!-- Attendance Table -->
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card card-custom">
-                        <div class="card-header">
+            <!--begin::Card-->
+            <div class="card card-custom gutter-b">
+            <div class="card-header">
                             <div class="card-toolbar d-flex justify-content-between align-items-center w-100">
                             <div class="d-flex align-items-center">
                             <!-- <input type="search" class="form-control" style="width: 300px;" id="summary_search" placeholder="Search"/> -->
                             </div>
                                 <div class="d-flex align-items-center">
                                 <!--begin::Button-->
-                            <button type="button" class="btn btn-light-green font-weight-bolder mr-2" onclick="exportStaffToExcel()">
+                            <button type="button" class="btn btn-light-green font-weight-bolder mr-2" onclick="exportToExcel()">
                                         <span class="svg-icon svg-icon-md">
                                             <i class="ki-outline ki-file-down"></i>
                                         </span>Export Excel</button>
                                     <!--end::Button-->
                                     <!--begin::Button-->
-                                    <button type="button" class="btn btn-secondary font-weight-bolder mr-2" onclick="exportStaffToPDF()">
+                                    <button type="button" class="btn btn-secondary font-weight-bolder mr-2" onclick="exportToPDF()">
                                         <span class="svg-icon svg-icon-md">
                                             <i class="ki-outline ki-file-down"></i>
                                         </span>Export PDF</button>
@@ -320,35 +276,41 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body table-responsive">
-                            <table class="table table-hover table-checkable" id="staffAttendanceTable">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Date</th>
-                                        <th>Shift</th>
-                                        <th>Jam Masuk</th>
-                                        <th>Jam Keluar</th>
-                                        <th>Status</th>
-                                        <th>Notes</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- DataTables will populate this -->
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="card-body">
+                    <!--begin::DataTable-->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-checkable" id="staffTable">
+                            <thead>
+                                <tr>
+                                    <th width="5%">No</th>
+                                    <th width="10%">Date</th>
+                                    <th width="8%">Break Type</th>
+                                    <th width="8%">Start Time</th>
+                                    <th width="8%">End Time</th>
+                                    <th width="8%">Duration</th>
+                                    <th width="8%">Status</th>
+                                    <th width="8%">Shift Start</th>
+                                    <th width="8%">Shift End</th>
+                                    <th width="20%">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be loaded by DataTables -->
+                            </tbody>
+                        </table>
                     </div>
+                    <!--end::DataTable-->
                 </div>
             </div>
+            <!--end::Card-->
         </div>
         <!--end::Container-->
     </div>
     <!--end::Entry-->
 </div>
 <!--end::Content-->
+
 @endsection
 
 @include('app._partials.js')
-@include('app.attendance.staff_detail_js')
+@include('app.break_time.staff_detail_js')

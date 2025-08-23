@@ -13,6 +13,13 @@
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
                     <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
+                    <!--begin::Breadcrumb-->
+                    <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                        <li class="breadcrumb-item text-muted">
+                            <span class="text-muted">{{ date('d M Y', strtotime($startDate)) }} - {{ date('d M Y', strtotime($endDate)) }}</span>
+                        </li>
+                    </ul>
+                    <!--end::Breadcrumb-->
                 <!--end::Page Title-->
                 </div>
                 <!--end::Page Heading-->
@@ -41,11 +48,16 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
+                    <div class="card card-custom mb-5">
+                        <div class="card-header flex-wrap py-3">
+                            <div class="card-title">
+                                <h3 class="card-label">Filters</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
                             <form method="GET" id="filterForm">
                                 <div class="card-toolbar d-flex justify-content-between w-100">
-                                    <div class="row w-50">
+                                    <div class="row w-100">
                                         @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
                                         <div class="col-md-3">
                                         <!-- <label for="division_filter">Division</label> -->
@@ -55,47 +67,64 @@
                                                     <option value="{{ $division->id }}" {{ request('division_id') == $division->id ? 'selected' : '' }}>{{ $division->ud_code }} - {{ $division->ud_name }}</option>
                                             @endforeach
                                         </select>
-                                    </div>
-                                    @endif
-                                    <div class="col-md-3">
-                                        <select class="form-control" id="date_filter" name="date_filter">
-                                            <option value="this_week" {{ request('date_filter', 'this_week') == 'this_week' ? 'selected' : '' }}>This Week</option>
-                                            <option value="past_week" {{ request('date_filter', 'this_week') == 'past_week' ? 'selected' : '' }}>Past Week</option>
-                                            <option value="this_month" {{ request('date_filter', 'this_week') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                                            <option value="last_month" {{ request('date_filter', 'this_week') == 'last_month' ? 'selected' : '' }}>Past Month</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="text" class="form-control w-100" id="search_filter" name="search" placeholder="Search by name or NIP..." value="{{ $search ?? '' }}">
-                                    </div>
-                                    @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
-                                    <div class="col-md-3">
-                                        <label>&nbsp;</label>
-                                            <button type="button" class="btn btn-dark btn-block" id="load_schedule" onclick="loadScheduleDirectly()">
-                                                <i class="ki-outline ki-filter-search"></i> Load Schedule
+                                        </div>
+                                        @endif
+                                        <div class="col-md-2">
+                                            <label>Date Filter:</label>
+                                            <select class="form-control" id="date_filter" name="date_filter">
+                                                <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
+                                                <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                                <option value="custom" {{ $dateFilter == 'custom' ? 'selected' : '' }}>Custom Range</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label>Week Range:</label>
+                                            <input type="date" class="form-control" name="start_date" value="{{ $startDate }}">
+                                            <small class="form-text text-muted">Select Monday to show full week</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                        <label>Search Staff:</label>
+                                            <input type="text" class="form-control w-100" id="search_filter" name="search" placeholder="Search by name or NIP..." value="{{ $search ?? '' }}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label>&nbsp;</label>
+                                            <button type="submit" class="btn btn-primary btn-block">
+                                                <i class="ki-outline ki-filter-search"></i> Apply Filters
                                             </button>
                                         </div>
-                                    @endif
+                                        @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
+                                        <div class="col-md-3">
+                                            <label>&nbsp;</label>
+                                                <button type="button" class="btn btn-dark btn-block" id="load_schedule" onclick="loadScheduleDirectly()">
+                                                    <i class="ki-outline ki-filter-search"></i> Load Schedule
+                                                </button>
+                                            </div>
+                                        @endif
+                                        </div>
                                     </div>
-                                                                    <div class="d-flex align-items-center">
-                                        <button type="button" class="btn btn-light btn-sm mr-2" onclick="loadExistingSchedules()">
-                                            <i class="ki-outline ki-arrows-circle"></i> Load Schedules
-                                        </button>
-                                        <!-- Export Buttons -->
-                                        <button type="button" class="btn btn-light-green btn-sm mr-2" onclick="exportToExcel()">
-                                            <i class="ki-outline ki-file-down"></i> Export Excel
-                                        </button>
-                                        <button type="button" class="btn btn-secondary btn-sm mr-2" onclick="exportToPDF()">
-                                            <i class="ki-outline ki-file-down"></i> Export PDF
-                                        </button>
-                                        <!-- <a href="{{ route('daily-schedules.index') }}" class="btn btn-secondary">
-                                            <i class="ki-outline ki-arrow-left"></i> Back to Daily Schedules
-                                        </a> -->
+                                </div>
+                            </form>
                         </div>
                     </div>
-                </form>
-            </div>
-
+                </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center justify-content-end">
+                                <button type="button" class="btn btn-light btn-sm mr-2" onclick="loadExistingSchedules()">
+                                    <i class="ki-outline ki-arrows-circle"></i> Load Schedules
+                                </button>
+                                <!-- Export Buttons -->
+                                <button type="button" class="btn btn-light-green btn-sm mr-2" onclick="exportToExcel()">
+                                    <i class="ki-outline ki-file-down"></i> Export Excel
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm mr-2" onclick="exportToPDF()">
+                                    <i class="ki-outline ki-file-down"></i> Export PDF
+                                </button>
+                            </div>
+                        </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-hover table-checkable" id="weeklyScheduleTable">
@@ -105,13 +134,13 @@
                                             <th style="min-width: 200px;">Nama Staff</th>
                                             <th style="min-width: 150px;">Divisi</th>
                                             <th style="min-width: 100px;">User Type</th>
-                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime('monday this week')) }}" id="date-header-0">{{ date('D d-M', strtotime('monday this week')) }}</th>
-                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime('monday this week +1 day')) }}" id="date-header-1">{{ date('D d-M', strtotime('monday this week +1 day')) }}</th>
-                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime('monday this week +2 day')) }}" id="date-header-2">{{ date('D d-M', strtotime('monday this week +2 day')) }}</th>
-                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime('monday this week +3 day')) }}" id="date-header-3">{{ date('D d-M', strtotime('monday this week +3 day')) }}</th>
-                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime('monday this week +4 day')) }}" id="date-header-4">{{ date('D d-M', strtotime('monday this week +4 day')) }}</th>
-                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime('monday this week +5 day')) }}" id="date-header-5">{{ date('D d-M', strtotime('monday this week +5 day')) }}</th>
-                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime('monday this week +6 day')) }}" id="date-header-6">{{ date('D d-M', strtotime('monday this week +6 day')) }}</th>
+                                            <th style="min-width: 100px;" class="date-header" data-date="{{ $startDate }}" id="date-header-0">{{ date('D d-M', strtotime($startDate)) }}</th>
+                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime($startDate . ' +1 day')) }}" id="date-header-1">{{ date('D d-M', strtotime($startDate . ' +1 day')) }}</th>
+                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime($startDate . ' +2 day')) }}" id="date-header-2">{{ date('D d-M', strtotime($startDate . ' +2 day')) }}</th>
+                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime($startDate . ' +3 day')) }}" id="date-header-3">{{ date('D d-M', strtotime($startDate . ' +3 day')) }}</th>
+                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime($startDate . ' +4 day')) }}" id="date-header-4">{{ date('D d-M', strtotime($startDate . ' +4 day')) }}</th>
+                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime($startDate . ' +5 day')) }}" id="date-header-5">{{ date('D d-M', strtotime($startDate . ' +5 day')) }}</th>
+                                            <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime($startDate . ' +6 day')) }}" id="date-header-6">{{ date('D d-M', strtotime($startDate . ' +6 day')) }}</th>
                                         </tr>
                                     </thead>
                                     <tbody id="schedule_tbody">
@@ -146,56 +175,56 @@
                                             <td>{{ $user->u_name }}</td>
                                             <td>{{ $user->ud_name ?? '-' }}</td>
                                             <td><small class="badge badge-primary">{{ $userType }}</small></td>
-                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week')) }}">
-                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week')) }}" onchange="saveScheduleDirectly(this)">
+                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ $startDate }}">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ $startDate }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +1 day')) }}">
-                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +1 day')) }}" onchange="saveScheduleDirectly(this)">
+                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +1 day')) }}">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +1 day')) }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +2 day')) }}">
-                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +2 day')) }}" onchange="saveScheduleDirectly(this)">
+                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +2 day')) }}">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +2 day')) }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +3 day')) }}">
-                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +3 day')) }}" onchange="saveScheduleDirectly(this)">
+                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +3 day')) }}">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +3 day')) }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +4 day')) }}">
-                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +4 day')) }}" onchange="saveScheduleDirectly(this)">
+                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +4 day')) }}">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +4 day')) }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +5 day')) }}">
-                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +5 day')) }}" onchange="saveScheduleDirectly(this)">
+                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +5 day')) }}">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +5 day')) }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
-                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +6 day')) }}">
-                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime('monday this week +6 day')) }}" onchange="saveScheduleDirectly(this)">
+                                            <td class="schedule-cell" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +6 day')) }}">
+                                                <select class="form-control shift-select" style="font-size: 1rem;" data-user-id="{{ $user->id }}" data-date="{{ date('Y-m-d', strtotime($startDate . ' +6 day')) }}" onchange="saveScheduleDirectly(this)">
                                                     <option value="">-</option>
                                                     @foreach($availableShiftCodes as $shiftCode)
                                                         <option value="{{ $shiftCode->id }}">{{ $shiftCode->sc_code }}</option>
@@ -212,6 +241,8 @@
                 </div>
             </div>
         </div>
+        </div>
+
     </div>
     <!--end::Entry-->
 </div>
@@ -226,6 +257,11 @@
 
 <!-- DIRECT SCRIPT - LOADED IMMEDIATELY -->
 <script>
+// Backend date variables from PHP
+window.backendStartDate = '{{ $startDate ?? date('Y-m-d', strtotime('monday this week')) }}';
+window.backendEndDate = '{{ $endDate ?? date('Y-m-d', strtotime('sunday this week')) }}';
+window.backendDateFilter = '{{ $dateFilter ?? 'this_week' }}';
+
 // Helper functions - must be defined first
 function getDateRange(filter) {
     const today = new Date();
@@ -432,7 +468,7 @@ function saveScheduleDirectly(selectElement) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
         body: JSON.stringify({
-            start_date: '{{ date('Y-m-d', strtotime('monday this week')) }}',
+            start_date: '{{ $startDate }}',
             schedules: [{
                 user_id: parseInt(userId),
                 dates: [{
@@ -484,8 +520,19 @@ function loadExistingSchedulesForAll(divisionId = null, searchValue = null, date
     loadingIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#17a2b8;color:white;padding:10px;border-radius:5px;z-index:9999;';
     document.body.appendChild(loadingIndicator);
     
-    // Get date range based on filter
-    const { startDate, endDate } = getDateRange(dateFilter || 'this_week');
+    // Get date range from backend or filter
+    let startDate, endDate;
+    
+    // Check if we have dates from backend (PHP variables)
+    if (typeof window.backendStartDate !== 'undefined' && typeof window.backendEndDate !== 'undefined') {
+        startDate = new Date(window.backendStartDate);
+        endDate = new Date(window.backendEndDate);
+    } else {
+        // Fallback to filter-based calculation
+        const dateRange = getDateRange(dateFilter || 'this_week');
+        startDate = dateRange.startDate;
+        endDate = dateRange.endDate;
+    }
     
     // Build URL with optional division filter and search
     let url = '{{ route("daily-schedule.get-weekly-schedules") }}?start_date=' + encodeURIComponent(startDate.toISOString().split('T')[0]);
@@ -587,11 +634,120 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listener for date filter change
     if (dateFilter) {
         dateFilter.addEventListener('change', function() {
+            const selectedFilter = this.value;
+            if (selectedFilter !== 'custom') {
+                const dates = calculateDatesFromFilter(selectedFilter);
+                if (dates) {
+                    const startDateInput = document.querySelector('input[name="start_date"]');
+                    if (startDateInput) {
+                        startDateInput.value = dates.startDate;
+                    }
+                }
+            }
             // Update table dates first
             updateTableDates(this.value);
             // Then reload schedules
             loadExistingSchedules();
         });
+    }
+    
+    // Add event listener for start date change (two-way synchronization)
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    if (startDateInput) {
+        startDateInput.addEventListener('change', function() {
+            const selectedDate = this.value;
+            if (selectedDate) {
+                const endDate = calculateEndDate(selectedDate);
+                const detectedFilter = detectFilterFromDateRange(selectedDate, endDate);
+                if (detectedFilter !== 'custom') {
+                    dateFilter.value = detectedFilter;
+                } else {
+                    dateFilter.value = 'custom';
+                }
+                // Submit form to apply changes
+                setTimeout(() => {
+                    document.getElementById('filterForm').submit();
+                }, 100);
+            }
+        });
+    }
+    
+    // Two-way synchronization functions (same as weekly report)
+    function calculateDatesFromFilter(filter) {
+        const today = new Date();
+        let startDate, endDate;
+        
+        switch (filter) {
+            case 'this_week':
+                const mondayThisWeek = new Date(today);
+                const dayOfWeek = today.getDay();
+                const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                mondayThisWeek.setDate(today.getDate() - daysToSubtract);
+                startDate = mondayThisWeek.toISOString().split('T')[0];
+                
+                const sundayThisWeek = new Date(mondayThisWeek);
+                sundayThisWeek.setDate(mondayThisWeek.getDate() + 6);
+                endDate = sundayThisWeek.toISOString().split('T')[0];
+                break;
+                
+            case 'past_week':
+                const mondayLastWeek = new Date(today);
+                const dayOfWeekLast = today.getDay();
+                const daysToSubtractLast = dayOfWeekLast === 0 ? 6 : dayOfWeekLast - 1;
+                mondayLastWeek.setDate(today.getDate() - daysToSubtractLast - 7);
+                startDate = mondayLastWeek.toISOString().split('T')[0];
+                
+                const sundayLastWeek = new Date(mondayLastWeek);
+                sundayLastWeek.setDate(mondayLastWeek.getDate() + 6);
+                endDate = sundayLastWeek.toISOString().split('T')[0];
+                break;
+                
+            default:
+                return null;
+        }
+        
+        return { startDate, endDate };
+    }
+    
+    function getMondayOfWeek(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    }
+    
+    function calculateEndDate(startDate) {
+        const monday = getMondayOfWeek(startDate);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        return sunday.toISOString().split('T')[0];
+    }
+    
+    function detectFilterFromDateRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const today = new Date();
+        
+        // Get Monday of current week
+        const mondayThisWeek = new Date(today);
+        const dayOfWeek = today.getDay();
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        mondayThisWeek.setDate(today.getDate() - daysToSubtract);
+        
+        // Get Monday of previous week
+        const mondayLastWeek = new Date(mondayThisWeek);
+        mondayLastWeek.setDate(mondayThisWeek.getDate() - 7);
+        
+        // Compare date ranges
+        if (start.toDateString() === mondayThisWeek.toDateString() && 
+            end.toDateString() === new Date(mondayThisWeek.getTime() + 6 * 24 * 60 * 60 * 1000).toDateString()) {
+            return 'this_week';
+        } else if (start.toDateString() === mondayLastWeek.toDateString() && 
+                   end.toDateString() === new Date(mondayLastWeek.getTime() + 6 * 24 * 60 * 60 * 1000).toDateString()) {
+            return 'past_week';
+        } else {
+            return 'custom';
+        }
     }
 });
 
@@ -751,80 +907,8 @@ window.handleSearch = handleSearch;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Weekly Schedule JS loaded');
     
-    // Check if jQuery is available
-    if (typeof $ === 'undefined') {
-        console.warn('jQuery not available, using vanilla JavaScript');
-        
-        // Initialize DataTable with vanilla JS if available
-        if (typeof $.fn !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
-            $('#weeklyScheduleTable').DataTable({
-                destroy: true,
-                processing: false,
-                serverSide: false,
-                responsive: true,
-                dom: 'rt<"pagination-class"ip>',
-                pageLength: 25,
-                language: {
-                    "sProcessing":   "Loading...",
-                    "sLengthMenu":   "Tampilkan _MENU_ entri",
-                    "sZeroRecords":  "Tidak ditemukan data yang sesuai",
-                    "sInfo":         "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-                    "sInfoEmpty":    "Menampilkan 0 sampai 0 dari 0 entri",
-                    "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
-                    "sSearch":       "Cari:",
-                    "sUrl":          ""
-                },
-                columnDefs: [
-                    {
-                        "targets": [0, 1, 2, 3],
-                        "orderable": true
-                    },
-                    {
-                        "targets": [4, 5, 6, 7, 8, 9, 10],
-                        "orderable": false
-                    }
-                ],
-                order: [[1, 'asc']]
-            });
-            console.log('Weekly Schedule DataTable initialized with jQuery');
-        } else {
-            console.log('DataTable not available, skipping initialization');
-        }
-    } else {
-        // jQuery is available, use it
-        $(document).ready(function() {
-            $('#weeklyScheduleTable').DataTable({
-                destroy: true,
-                processing: false,
-                serverSide: false,
-                responsive: true,
-                dom: 'rt<"pagination-class"ip>',
-                pageLength: 25,
-                language: {
-                    "sProcessing":   "Loading...",
-                    "sLengthMenu":   "Tampilkan _MENU_ entri",
-                    "sZeroRecords":  "Tidak ditemukan data yang sesuai",
-                    "sInfo":         "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-                    "sInfoEmpty":    "Menampilkan 0 sampai 0 dari 0 entri",
-                    "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
-                    "sSearch":       "Cari:",
-                    "sUrl":          ""
-                },
-                columnDefs: [
-                    {
-                        "targets": [0, 1, 2, 3],
-                        "orderable": true
-                    },
-                    {
-                        "targets": [4, 5, 6, 7, 8, 9, 10],
-                        "orderable": false
-                    }
-                ],
-                order: [[1, 'asc']]
-            });
-            console.log('Weekly Schedule DataTable initialized with jQuery');
-        });
-    }
+            // No DataTable needed for weekly schedule input
+        console.log('Weekly Schedule - No DataTable initialization needed');
     
     // Debug: Log current filter values
     function logCurrentFilters() {
@@ -867,6 +951,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Filter interaction - form auto-submit on change
+document.addEventListener('DOMContentLoaded', function() {
+    // All filters now use onchange="this.form.submit()" for immediate effect
+    console.log('Weekly schedule filters loaded with auto-submit');
+});
+
 // Export functions
 function exportToExcel() {
     console.log('Export to Excel called');
@@ -880,9 +970,11 @@ function exportToExcel() {
     // Get all current filter values
     const divisionId = document.getElementById('division_filter')?.value || '';
     const dateFilter = document.getElementById('date_filter')?.value || 'this_week';
+    const startDate = document.getElementById('start_date')?.value || '';
+    const endDate = document.getElementById('end_date')?.value || '';
     const searchValue = document.getElementById('search_filter')?.value?.trim() || '';
     
-    console.log('Export filters:', { divisionId, dateFilter, searchValue });
+    console.log('Export filters:', { divisionId, dateFilter, startDate, endDate, searchValue });
 
     // Build export URL with all filters
     let exportUrl = '{{ route("daily-schedules.export-weekly-public") }}';
@@ -893,6 +985,12 @@ function exportToExcel() {
     }
     if (dateFilter) {
         params.append('date_filter', dateFilter);
+    }
+    if (startDate) {
+        params.append('start_date', startDate);
+    }
+    if (endDate) {
+        params.append('end_date', endDate);
     }
     if (searchValue) {
         params.append('search', searchValue);
@@ -960,9 +1058,11 @@ function exportToPDF() {
     // Get all current filter values
     const divisionId = document.getElementById('division_filter')?.value || '';
     const dateFilter = document.getElementById('date_filter')?.value || 'this_week';
+    const startDate = document.getElementById('start_date')?.value || '';
+    const endDate = document.getElementById('end_date')?.value || '';
     const searchValue = document.getElementById('search_filter')?.value?.trim() || '';
     
-    console.log('Export PDF filters:', { divisionId, dateFilter, searchValue });
+    console.log('Export PDF filters:', { divisionId, dateFilter, startDate, endDate, searchValue });
     
     // Build export URL with all filters
     let exportUrl = '{{ route("daily-schedules.export-weekly-pdf-public") }}';
@@ -973,6 +1073,12 @@ function exportToPDF() {
     }
     if (dateFilter) {
         params.append('date_filter', dateFilter);
+    }
+    if (startDate) {
+        params.append('start_date', startDate);
+    }
+    if (endDate) {
+        params.append('end_date', endDate);
     }
     if (searchValue) {
         params.append('search', searchValue);

@@ -13,6 +13,13 @@
                 <!--end::Page Title-->
             </div>
             <!--end::Info-->
+            <!--begin::Toolbar-->
+            <div class="d-flex align-items-center">
+                <a href="{{ route('attendance.index') }}" class="btn btn-secondary font-weight-bolder">
+                    <i class="ki-outline ki-arrow-left"></i> Back
+                </a>
+            </div>
+            <!--end::Toolbar-->
         </div>
     </div>
     <!--end::Subheader-->
@@ -21,17 +28,6 @@
         <!--begin::Container-->
         <div class="container-fluid">
             <div class="card card-custom">
-                <div class="card-header">
-                    <h3 class="card-title">Detail Absensi</h3>
-                    <div class="card-tools">
-                        <a href="{{ route('attendance.index') }}" class="btn btn-secondary btn-sm">
-                            <i class="ki-outline ki-left"></i> Kembali
-                        </a>
-                        <a href="{{ route('attendance.edit', $attendance->id) }}" class="btn btn-warning btn-sm">
-                            <i class="ki-outline ki-notepad-edit"></i> Edit
-                        </a>
-                    </div>
-                </div>
                 <div class="card-body">
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible">
@@ -51,7 +47,7 @@
                         <div class="col-md-6">
                             <table class="table table-borderless">
                                 <tr>
-                                    <td width="150"><strong>Nama Karyawan</strong></td>
+                                    <td width="150"><strong>Nama Staff</strong></td>
                                     <td>: {{ $attendance->u_name ?? '-' }}</td>
                                 </tr>
                                 <tr>

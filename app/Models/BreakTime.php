@@ -231,6 +231,21 @@ class BreakTime extends Model
         return $activeBreak ? true : false;
     }
 
+    // Check if break has expired automatically
+    public function isBreakExpired($userId, $breakType = 'break_1')
+    {
+        $today = date('Y-m-d');
+        
+        $expiredBreak = DB::table($this->table)
+            ->where('user_id', $userId)
+            ->where('bt_date', $today)
+            ->where('bt_type', $breakType)
+            ->where('bt_status', 'expired')
+            ->first();
+
+        return $expiredBreak ? true : false;
+    }
+
     // Start break
     public function startBreak($userId, $breakType = 'break_1')
     {

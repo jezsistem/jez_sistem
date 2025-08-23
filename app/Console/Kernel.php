@@ -25,6 +25,18 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        
+        // Auto-expire break times every 30 minutes
+        $schedule->command('break:expire')
+                 ->everyThirtyMinutes()
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Force expire all active breaks daily at 6 AM
+        $schedule->command('break:expire --force')
+                 ->dailyAt('06:00')
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**

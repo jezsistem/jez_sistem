@@ -23,7 +23,12 @@ class User extends Authenticatable
         'u_name',
         'u_email',
         'password',
-        'u_photo'
+        'u_photo',
+        'google_id',
+        'avatar',
+        'provider',
+        'google_linked',
+        'google_linked_at'
     ];
 
     /**
@@ -158,6 +163,58 @@ class User extends Authenticatable
     public function dailySchedules()
     {
         return $this->hasMany(DailySchedule::class, 'user_id');
+    }
+
+    /**
+     * Google OAuth Helper Methods
+     */
+    
+    /**
+     * Check if user has Google account linked
+     */
+    public function hasGoogleAccount()
+    {
+        return !empty($this->google_id);
+    }
+    
+    /**
+     * Check if user has local password
+     */
+    public function hasLocalPassword()
+    {
+        return !empty($this->password) && $this->password !== '';
+    }
+    
+    /**
+     * Check if user can use Google login
+     */
+    public function canUseGoogleLogin()
+    {
+        return $this->hasGoogleAccount();
+    }
+    
+    /**
+     * Check if user can use password login
+     */
+    public function canUsePasswordLogin()
+    {
+        return $this->hasLocalPassword();
+    }
+    
+    /**
+     * Get user's avatar (Google or local)
+     */
+    public function getAvatar()
+    {
+        return $this->avatar ?: $this->u_photo;
+    }
+    
+    /**
+     * Get user's display name
+     */
+    public function getDisplayName()
+    {
+        return $this->u_name ?: $this->name;
     }
     
 }

@@ -97,6 +97,12 @@
                                             <span class="menu-text">Weekly Report</span>
                                         </a>
                                     </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/daily-schedules/monthly-report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Monthly Report</span>
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
@@ -121,16 +127,46 @@
                                             <span class="menu-text">Leave Request</span>
                                         </a>
                                     </li>
+                                    <li class="menu-item {{ request()->is('leave-requests/summary-report*') ? 'active' : '' }}">
+                                        <a href="{{ url('/leave-requests/summary-report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Summary Report</span>
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
+                        <li class="menu-item menu-accordion {{ request()->is('attendance*') || request()->is('leave-requests*') ? 'active' : '' }}" data-menu-toggle="hover" aria-haspopup="true">
+                            <a href="javascript:;" class="menu-link menu-toggle">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Attendance</span>
+                                <span class="menu-arrow"></span>
+                            </a>
+                            <div class="menu-sub menu-sub-accordion">
+                                <ul class="menu-subnav">
+                                    <li class="menu-item {{ request()->is('attendance*') ? 'active' : '' }}">
+                                        <a href="{{ url('/attendance') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Log Attendance</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item {{ request()->is('attendance/summary-report*') ? 'active' : '' }}">
+                                        <a href="{{ url('/attendance/summary-report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Summary Report</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+
                         
-                        <li class="menu-item" aria-haspopup="true" data-menu-toggle="hover">
+                        <!-- <li class="menu-item" aria-haspopup="true" data-menu-toggle="hover">
                             <a href="{{ url('/attendance') }}" class="menu-link menu-toggle {{ request()->is('attendance*') ? 'active' : '' }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                                 <span class="menu-text">Attendance</span>
                             </a>
-                        </li>
+                        </li> -->
                         
                         <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
                             <a href="javascript:;" class="menu-link menu-toggle">
@@ -149,7 +185,13 @@
                                     <li class="menu-item">
                                         <a href="{{ url('/break-times/report') }}" class="menu-link">
                                             <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                            <span class="menu-text">Report</span>
+                                            <span class="menu-text">Log Break Time</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/break-times/summary-report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Summary Report</span>
                                         </a>
                                     </li>
                                 </ul>

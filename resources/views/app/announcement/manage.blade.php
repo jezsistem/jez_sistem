@@ -157,9 +157,6 @@
             <div class="card card-custom">
                 <div class="card-header">
                     <div class="card-title">
-                        <span class="card-icon">
-                            <i class="fas fa-bullhorn text-primary"></i>
-                        </span>
                         <h3 class="card-label">Manage Announcements</h3>
                     </div>
                 </div>
@@ -220,7 +217,7 @@
                                     <div class="d-flex align-items-center">
                                         <div class="symbol symbol-40 symbol-light-primary mr-4">
                                             <span class="symbol-label">
-                                                <i class="fas fa-bullhorn text-primary"></i>
+                                                <i class="ki-outline ki-speaker text-primary"></i>
                                             </span>
                                         </div>
                                         <div class="d-flex flex-column">

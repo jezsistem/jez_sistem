@@ -8,11 +8,6 @@
         border: 1px solid #e1e5e9;
     }
     
-    /* .compact-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border-color: #007bff;
-    } */
-    
     .cursor-pointer {
         cursor: pointer;
     }
@@ -56,6 +51,10 @@
         font-size: 0.875rem;
     }
     
+    .fs-7 {
+        font-size: 0.75rem;
+    }
+    
     /* Hover effects */
     .announcement-card:hover .card-body {
         /* background-color: #f8f9fa; */
@@ -83,8 +82,6 @@
         display: none !important;
     }
     
-
-    
     /* Ensure icons stay in one line */
     .compact-stats {
         flex-wrap: nowrap !important;
@@ -110,6 +107,28 @@
     .pinned-announcements-section .announcement-card .btn {
         background-color: #ffffff !important;
     }
+
+    /* Basic mobile responsiveness */
+    @media (max-width: 767.98px) {
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        .announcement-card .card-body {
+            padding: 1rem !important;
+        }
+        
+        .compact-title {
+            max-width: 100% !important;
+        }
+        
+        .btn-icon {
+            min-width: 44px;
+            min-height: 44px;
+        }
+    }
+</style>
 
 </style>
 
@@ -149,30 +168,6 @@
     <!--begin::Container-->
     <div class="container">
         <div class="row">
-            <!--begin::Sidebar-->
-            <div class="col-lg-3">
-                <div class="card card-custom">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <h3 class="card-label">Categories</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group list-group-flush fs-6">
-                            <a href="#" class="list-group-item list-group-item-action rounded mb-2 active" data-category="all">
-                                All Categories
-                            </a>
-                            @foreach($categories as $category)
-                                <a href="#" class="list-group-item list-group-item-action rounded mb-2" data-category="{{ $category->id }}" style="border-left: 4px solid {{ $category->color }};">
-                                    {{ $category->name }}
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!--end::Sidebar-->
-            
             <!--begin::Main Content-->
             <div class="col-lg-9">
                 <!--begin::Pinned Announcements-->
@@ -198,9 +193,11 @@
                     @else
                         <div class="card card-custom">
                             <div class="card-body text-center py-8 bg-light">
-                                <i class="fas fa-bullhorn text-muted" style="font-size: 3rem;"></i>
-                                <h5 class="text-muted mt-3">No announcements yet</h5>
-                                <p class="text-muted">Check back later for updates.</p>
+                                <div class="text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <p class="font-size-h6">No announcements found</p>
+                                    <p class="font-size-h5">There are no announcements to display at the moment.</p>
+                                </div>
                             </div>
                         </div>
                     @endif
@@ -208,6 +205,30 @@
                 <!--end::Regular Announcements-->
             </div>
             <!--end::Main Content-->
+            
+            <!--begin::Sidebar-->
+            <div class="col-lg-3">
+                <div class="card card-custom">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h3 class="card-label">Categories</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush fs-6">
+                            <a href="#" class="list-group-item list-group-item-action rounded mb-2 active" data-category="all">
+                                All Categories
+                            </a>
+                            @foreach($categories as $category)
+                                <a href="#" class="list-group-item list-group-item-action rounded mb-2" data-category="{{ $category->id }}" style="border-left: 4px solid {{ $category->color }};">
+                                    {{ $category->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Sidebar-->
         </div>
     </div>
     <!--end::Container-->
