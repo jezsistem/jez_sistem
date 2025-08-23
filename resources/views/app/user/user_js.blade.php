@@ -318,10 +318,6 @@
                     name: 'u_secret_code'
                 },
                 {
-                    data: 'u_email',
-                    name: 'u_email'
-                },
-                {
                     data: 'u_delete',
                     name: 'u_delete'
                 },

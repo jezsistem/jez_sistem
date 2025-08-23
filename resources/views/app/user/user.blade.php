@@ -276,7 +276,6 @@
                                             <th class="text-dark">Divisi</th>
                                             <th class="text-dark">Store</th>
                                             <th class="text-dark">Kode</th>
-                                            <th class="text-dark">Email</th>
                                             <th class="text-dark">Status</th>
                                             <th class="text-dark">POS Access</th>
                                             <th class="text-dark">Pick Access</th>
