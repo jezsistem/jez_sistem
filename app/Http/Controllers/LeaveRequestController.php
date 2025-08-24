@@ -1411,7 +1411,7 @@ class LeaveRequestController extends Controller
         </head>
         <body>
             <div class="header">
-                <h1>LAPORAN RINGKASAN LEAVE</h1>
+                <h1>LAPORAN REKAPITULASI CUTI</h1>
                 <p>Periode: ' . date('d/m/Y', strtotime($request->get('start_date', date('Y-m-d')))) . ' - ' . date('d/m/Y', strtotime($request->get('end_date', date('Y-m-d')))) . '</p>
                 <p>Dibuat pada: ' . date('d/m/Y H:i:s') . '</p>
             </div>
