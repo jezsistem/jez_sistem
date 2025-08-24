@@ -1148,7 +1148,7 @@ class DailyScheduleController extends Controller
                             ->where('id', $userId)
                             ->first();
                         
-                        DB::table('daily_schedules')->insert([
+                        DailySchedule::create([
                             'user_id' => $userId,
                             'ud_id' => $user->ud_id,
                             'sc_id' => $shiftCodeId,
@@ -1157,9 +1157,7 @@ class DailyScheduleController extends Controller
                             'ds_end_time' => $shiftCode->sc_end_time,
                             'ds_status' => 'scheduled',
                             'created_by' => Auth::user()->id,
-                            'updated_by' => Auth::user()->id,
-                            'created_at' => now(),
-                            'updated_at' => now()
+                            'updated_by' => Auth::user()->id
                         ]);
                     }
                 }
