@@ -388,28 +388,73 @@ class AttendanceController extends Controller
                 }
             }
             
-            // Now save the grouped data
+            // Now save the grouped data with duplicate handling
+            \Log::info('Starting to save grouped attendance data', ['total_records' => count($groupedData)]);
             foreach ($groupedData as $key => $attendanceData) {
                 try {
                     \Log::info('Saving grouped attendance data', ['attendance_data' => $attendanceData]);
                     
-                    $attendance = new Attendance();
-                    $result = $attendance->storeData('add', null, $attendanceData);
+                    // Cek apakah data sudah ada
+                    $existingAttendance = DB::table('attendance')
+                        ->where('user_id', $attendanceData['user_id'])
+                        ->where('at_date', $attendanceData['at_date'])
+                        ->first();
                     
-                    if ($result) {
-                        $successCount++;
-                        \Log::info('Grouped data saved successfully', ['key' => $key, 'result_id' => $result]);
+                    if ($existingAttendance) {
+                        // Data sudah ada, UPDATE
+                        \Log::info('Updating existing attendance data', [
+                            'existing_id' => $existingAttendance->id,
+                            'key' => $key
+                        ]);
+                        
+                        $updateData = [
+                            'at_time_in' => $attendanceData['at_time_in'] ?: $existingAttendance->at_time_in,
+                            'at_time_out' => $attendanceData['at_time_out'] ?: $existingAttendance->at_time_out,
+                            'at_notes' => $attendanceData['at_notes'],
+                            'at_source' => $attendanceData['at_source'],
+                            'updated_by' => Auth::user()->id,
+                            'updated_at' => now()
+                        ];
+                        
+                        $result = DB::table('attendance')
+                            ->where('id', $existingAttendance->id)
+                            ->update($updateData);
+                            
+                        if ($result) {
+                            $successCount++;
+                            \Log::info('Existing data updated successfully', ['key' => $key, 'attendance_id' => $existingAttendance->id]);
+                        } else {
+                            $errorCount++;
+                            $errors[] = "Failed to update data for user {$attendanceData['user_id']} on {$attendanceData['at_date']}";
+                            \Log::error('Update failed', ['key' => $key, 'attendance_data' => $attendanceData]);
+                        }
                     } else {
-                        $errorCount++;
-                        $errors[] = "Failed to save data for user {$attendanceData['user_id']} on {$attendanceData['at_date']}";
-                        \Log::error('Grouped data save failed', ['key' => $key, 'attendance_data' => $attendanceData]);
+                        // Data baru, INSERT
+                        $attendance = new Attendance();
+                        $result = $attendance->storeData('add', null, $attendanceData);
+                        
+                        if ($result) {
+                            $successCount++;
+                            \Log::info('New data inserted successfully', ['key' => $key, 'result_id' => $result]);
+                        } else {
+                            $errorCount++;
+                            $errors[] = "Failed to save data for user {$attendanceData['user_id']} on {$attendanceData['at_date']}";
+                            \Log::error('Insert failed', ['key' => $key, 'attendance_data' => $attendanceData]);
+                        }
                     }
                 } catch (\Exception $e) {
                     $errorCount++;
                     $errors[] = "Error saving data for user {$attendanceData['user_id']} on {$attendanceData['at_date']}: " . $e->getMessage();
-                    \Log::error('Grouped data save error', ['key' => $key, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                    \Log::error('Save error', ['key' => $key, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
                 }
             }
+            
+            // Log summary of save operations
+            \Log::info('Attendance data save operations completed', [
+                'total_records' => count($groupedData),
+                'success_count' => $successCount,
+                'error_count' => $errorCount
+            ]);
             
             // Process attendance status based on daily schedule
             \Log::info('Starting attendance status processing after upload');
