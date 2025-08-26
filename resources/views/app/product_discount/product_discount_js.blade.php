@@ -73,6 +73,18 @@
             ],
         });
 
+
+        $('#st_id_filter').select2({
+            width: "300px",
+            dropdownParent: $('#st_id_filter_parent')
+        });
+        
+        $('#st_id_filter').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
         $('#st_id_filter').on('change', function() {
             product_discount_table.draw();
         });
