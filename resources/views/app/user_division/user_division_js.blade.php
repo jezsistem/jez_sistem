@@ -1,4 +1,34 @@
 <script>
+    // Custom toast function
+    function showToast(title, message, type) {
+        console.log('showToast called with:', title, message, type);
+        showSimpleToast(title, message, type);
+    }
+
+    // Simple custom toast function
+    function showSimpleToast(title, message, type) {
+        console.log('showSimpleToast executed with:', title, message, type);
+        const toastHtml = `
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                        background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                        color: white; padding: 15px 20px; border-radius: 2px; 
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+                 id="customToast">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+        `;
+        
+        $('body').append(toastHtml);
+        
+        // Auto remove after 3 seconds
+        setTimeout(function() {
+            $('#customToast').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+
     // Simple and robust DataTables initialization
     $(document).ready(function() {
         // Wait for DataTables to be available
@@ -160,13 +190,13 @@
                         } else {
                             location.reload();
                         }
-                        alert('User division deleted successfully');
+                        showToast('Success', 'User division deleted successfully', 'success');
                     } else {
-                        alert('Failed to delete user division');
+                        showToast('Error', 'Failed to delete user division', 'error');
                     }
                 },
                 error: function() {
-                    alert('Error occurred while deleting user division');
+                    showToast('Error', 'Error occurred while deleting user division', 'error');
                 }
             });
         }

@@ -11,7 +11,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class BreakTimeExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class BreakTimeBackupExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
     protected $data;
 
@@ -45,7 +45,10 @@ class BreakTimeExport implements FromCollection, WithHeadings, WithMapping, With
     {
         static $no = 1;
         
-        $breakType = $row->bt_type === 'break_1' ? 'Break 1' : 'Break 2';
+        // Dynamic break type handling
+        $breakNumber = str_replace('break_', '', $row->bt_type);
+        $breakType = 'Break ' . ucfirst($breakNumber);
+        
         $startTime = $row->bt_start_time ? date('H:i', strtotime($row->bt_start_time)) : '-';
         $endTime = $row->bt_end_time ? date('H:i', strtotime($row->bt_end_time)) : '-';
         

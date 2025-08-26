@@ -1,4 +1,34 @@
 <script>
+    // Custom toast function
+    function showToast(title, message, type) {
+        console.log('showToast called with:', title, message, type);
+        showSimpleToast(title, message, type);
+    }
+
+    // Simple custom toast function
+    function showSimpleToast(title, message, type) {
+        console.log('showSimpleToast executed with:', title, message, type);
+        const toastHtml = `
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                        background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                        color: white; padding: 15px 20px; border-radius: 2px; 
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+                 id="customToast">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+        `;
+        
+        $('body').append(toastHtml);
+        
+        // Auto remove after 3 seconds
+        setTimeout(function() {
+            $('#customToast').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+
     // Modal functions using vanilla JavaScript
     function showModal(modalId) {
         var modal = document.getElementById(modalId);
@@ -185,7 +215,7 @@
 
             // Validate form data
             if (!formData.ut_code || !formData.ut_name || !formData.ut_status) {
-                alert('Please fill in all required fields');
+                showToast('Validation Error', 'Please fill in all required fields', 'error');
                 return;
             }
 
@@ -210,9 +240,9 @@
                         hideModal('userTypeModal');
                         
                         // Show success message
-                        alert('User type ' + (isEdit ? 'updated' : 'created') + ' successfully');
+                        showToast('Success', 'User type ' + (isEdit ? 'updated' : 'created') + ' successfully', 'success');
                     } else {
-                        alert('Failed to ' + (isEdit ? 'update' : 'create') + ' user type: ' + (response.message || 'Unknown error'));
+                        showToast('Error', 'Failed to ' + (isEdit ? 'update' : 'create') + ' user type: ' + (response.message || 'Unknown error'), 'error');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -227,7 +257,7 @@
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage += ': ' + xhr.responseJSON.message;
                     }
-                    alert(errorMessage);
+                    showToast('Error', errorMessage, 'error');
                 }
             });
         });
@@ -323,7 +353,7 @@
                     });
                 } else {
                     console.error('Failed to load user type data:', response);
-                    alert('Failed to load user type data');
+                    showToast('Error', 'Failed to load user type data', 'error');
                 }
             },
             error: function(xhr, status, error) {
@@ -333,7 +363,7 @@
                     'error': error,
                     'responseText': xhr.responseText
                 });
-                alert('Error occurred while loading user type data');
+                showToast('Error', 'Error occurred while loading user type data', 'error');
             }
         });
     }
@@ -355,13 +385,13 @@
                         } else {
                             location.reload();
                         }
-                        alert('User type deleted successfully');
+                        showToast('Success', 'User type deleted successfully', 'success');
                     } else {
-                        alert('Failed to delete user type');
+                        showToast('Error', 'Failed to delete user type', 'error');
                     }
                 },
                 error: function() {
-                    alert('Error occurred while deleting user type');
+                    showToast('Error', 'Error occurred while deleting user type', 'error');
                 }
             });
         }

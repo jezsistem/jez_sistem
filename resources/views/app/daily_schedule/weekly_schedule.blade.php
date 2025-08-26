@@ -58,15 +58,25 @@
                             <form method="GET" id="filterForm">
                                 <div class="card-toolbar d-flex justify-content-between w-100">
                                     <div class="row w-100">
-                                        @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
-                                        <div class="col-md-3">
-                                        <!-- <label for="division_filter">Division</label> -->
-                                        <select class="form-control" id="division_filter" name="division_id">
-                                            <option value="">All Divisions</option>
+                                        @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER', 'SUPERVISOR']))
+                                        <div class="col-md-2">
+                                        <label>Division</label>
+                                        <select class="form-control {{ in_array($currentUser->up_code ?? '', ['SUPERVISOR']) ? 'bg-light' : '' }}" 
+                                                id="division_filter" name="division_id" 
+                                                {{ in_array($currentUser->up_code ?? '', ['SUPERVISOR']) ? 'disabled' : '' }}
+                                                {{ in_array($currentUser->up_code ?? '', ['SUPERVISOR']) ? 'title="You can only view your own division"' : '' }}>
+                                            @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
+                                                <option value="">All Divisions</option>
+                                            @endif
                                             @foreach($divisions as $division)
-                                                    <option value="{{ $division->id }}" {{ request('division_id') == $division->id ? 'selected' : '' }}>{{ $division->ud_code }} - {{ $division->ud_name }}</option>
+                                                    <option value="{{ $division->id }}" {{ $divisionId == $division->id ? 'selected' : '' }}>{{ $division->ud_code }} - {{ $division->ud_name }}</option>
                                             @endforeach
                                         </select>
+                                        @if(in_array($currentUser->up_code ?? '', ['SUPERVISOR']))
+                                            <small class="form-text text-muted">
+                                                You can only view your division
+                                            </small>
+                                        @endif
                                         </div>
                                         @endif
                                         <div class="col-md-2">
@@ -86,17 +96,17 @@
                                         <label>Search Staff:</label>
                                             <input type="text" class="form-control w-100" id="search_filter" name="search" placeholder="Search by name or NIP..." value="{{ $search ?? '' }}">
                                         </div>
-                                        <div class="col-md-2">
+                                        <div class="col-md-1">
                                             <label>&nbsp;</label>
                                             <button type="submit" class="btn btn-primary btn-block">
-                                                <i class="ki-outline ki-filter-search"></i> Apply Filters
+                                                <i class="ki-outline ki-filter-search"></i> Filter
                                             </button>
                                         </div>
                                         @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
-                                        <div class="col-md-3">
+                                        <div class="col-md-1">
                                             <label>&nbsp;</label>
                                                 <button type="button" class="btn btn-dark btn-block" id="load_schedule" onclick="loadScheduleDirectly()">
-                                                    <i class="ki-outline ki-filter-search"></i> Load Schedule
+                                                    <i class="ki-outline ki-loading"></i> Load
                                                 </button>
                                             </div>
                                         @endif
@@ -422,23 +432,8 @@ function handleSearch() {
             if (document.getElementById('load_schedule')) {
                 loadScheduleDirectly();
             } else {
-                // Direct page reload for supervisor/staff
-                const searchValue = searchInput.value.trim();
-                const dateFilter = document.getElementById('date_filter')?.value || 'this_week';
-                let url = '{{ route("daily-schedules.weekly") }}';
-                const params = new URLSearchParams();
-                
-                if (searchValue) {
-                    params.append('search', searchValue);
-                }
-                if (dateFilter) {
-                    params.append('date_filter', dateFilter);
-                }
-                
-                if (params.toString()) {
-                    url += '?' + params.toString();
-                }
-                window.location.href = url;
+                // Use form submission for consistency with other filters
+                document.getElementById('filterForm').submit();
             }
         }, 500);
     }
@@ -616,12 +611,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Always load schedules, regardless of division filter
     setTimeout(loadExistingSchedulesForAll, 500); // Small delay to ensure everything is ready
     
-    // Add event listener for division filter change
+    // Add event listener for division filter change (auto-submit like other filters)
     if (divisionFilter) {
         divisionFilter.addEventListener('change', function() {
-            if (!this.value) {
-                // Clear filter when "All Divisions" is selected
-                window.location.href = '{{ route("daily-schedules.weekly") }}';
+            // Only submit if not disabled (for supervisor restriction)
+            if (!this.disabled) {
+                setTimeout(() => {
+                    document.getElementById('filterForm').submit();
+                }, 100);
             }
         });
     }
@@ -631,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchFilter.addEventListener('input', handleSearch);
     }
 
-    // Add event listener for date filter change
+    // Add event listener for date filter change (auto-submit like other filters)
     if (dateFilter) {
         dateFilter.addEventListener('change', function() {
             const selectedFilter = this.value;
@@ -644,10 +641,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-            // Update table dates first
-            updateTableDates(this.value);
-            // Then reload schedules
-            loadExistingSchedules();
+            // Submit form to apply date filter (consistent with division filter)
+            setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 100);
         });
     }
     

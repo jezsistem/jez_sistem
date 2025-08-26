@@ -7,6 +7,7 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\LeaveBalance;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
@@ -178,6 +179,9 @@ class LeaveRequestController extends Controller
         $result = $leaveRequest->storeData('add', null, $data);
 
         if ($result) {
+            // Send notification to supervisors and managers in the same division
+            $this->sendLeaveRequestNotification($userId, $data);
+            
             return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully');
         } else {
             return back()->with('error', 'Failed to submit leave request')->withInput();
@@ -345,12 +349,26 @@ class LeaveRequestController extends Controller
             'lr_reason' => $request->lr_reason
         ];
 
-        $result = $leaveRequest->storeData('edit', $id, $data);
-
-        if ($result) {
+        // Use direct Eloquent update instead of custom storeData method
+        try {
+            $leaveRequest->update($data);
+            
+            \Log::info('Leave request updated successfully', [
+                'id' => $id,
+                'data' => $data,
+                'user_id' => auth()->user()->id
+            ]);
+            
             return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully');
-        } else {
-            return back()->with('error', 'Failed to update leave request')->withInput();
+        } catch (\Exception $e) {
+            \Log::error('Failed to update leave request', [
+                'id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage(),
+                'user_id' => auth()->user()->id
+            ]);
+            
+            return back()->with('error', 'Failed to update leave request: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -401,30 +419,46 @@ class LeaveRequestController extends Controller
             'division_id' => $currentUser->ud_id
         ]);
         
+        // Get leave requester info first to check if they're trying to approve their own request
+        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
+        
+        // Check if user is trying to approve their own leave request
+        if ($currentUser->id == $leaveRequest->user_id) {
+            \Log::warning('User trying to approve their own leave request');
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You cannot approve your own leave request'
+                ]);
+            }
+            return back()->with('error', 'You cannot approve your own leave request');
+        }
+        
         $currentUserPosition = DB::table('user_positions')
             ->where('id', $currentUser->up_id ?? 0)
             ->where('up_is_active', true)
             ->where('up_can_approve_leave', true)
+            ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
             ->first();
         
         \Log::info('Position check result', [
             'position_found' => $currentUserPosition ? true : false,
-            'position_data' => $currentUserPosition
+            'position_data' => $currentUserPosition,
+            'required_level' => 'Supervisor (level 2) or above'
         ]);
         
         if (!$currentUserPosition) {
-            \Log::warning('User does not have approval permission');
+            \Log::warning('User does not have approval permission - must be Supervisor or above');
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'You do not have permission to approve leave requests'
+                    'message' => 'Only Supervisor level and above can approve leave requests'
                 ]);
             }
-            return back()->with('error', 'You do not have permission to approve leave requests');
+            return back()->with('error', 'Only Supervisor level and above can approve leave requests');
         }
 
-        // Get leave requester's division
-        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
+        // Leave requester already retrieved above for self-approval check
         
         \Log::info('Division check', [
             'current_user_division' => $currentUser->ud_id,
@@ -442,6 +476,36 @@ class LeaveRequestController extends Controller
                 ]);
             }
             return back()->with('error', 'You can only approve leave requests from your division');
+        }
+
+        // Check hierarchy - user cannot approve someone with higher or equal level
+        $requesterPosition = DB::table('user_positions')
+            ->where('id', $leaveRequester->up_id ?? 0)
+            ->where('up_is_active', true)
+            ->first();
+
+        if ($requesterPosition) {
+            $currentUserLevel = $currentUserPosition->up_level;
+            $requesterLevel = $requesterPosition->up_level;
+            
+            \Log::info('Hierarchy check', [
+                'current_user_level' => $currentUserLevel,
+                'requester_level' => $requesterLevel,
+                'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
+                'requester_position' => $requesterPosition->up_name ?? 'Unknown'
+            ]);
+            
+            // User can only approve someone with lower level
+            if ($currentUserLevel <= $requesterLevel) {
+                \Log::warning('User trying to approve someone with higher or equal level');
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You cannot approve leave requests from someone with higher or equal position level'
+                    ]);
+                }
+                return back()->with('error', 'You cannot approve leave requests from someone with higher or equal position level');
+            }
         }
 
         // Check if leave request is pending
@@ -552,6 +616,9 @@ class LeaveRequestController extends Controller
             DB::commit();
             \Log::info('Database transaction committed successfully');
             
+            // Send notification to the requester
+            $this->sendLeaveStatusChangeNotification($leaveRequest->id, 'approved', $currentUser->u_name);
+            
             if ($request->ajax()) {
                 \Log::info('Sending AJAX response', ['success' => true]);
                 return response()->json([
@@ -595,26 +662,41 @@ class LeaveRequestController extends Controller
 
         $leaveRequest = LeaveRequest::findOrFail($id);
         
-        // Check if user can approve (must be supervisor or higher in same division)
+        // Check if user can reject (must be supervisor or higher in same division)
         $currentUser = auth()->user();
+        
+        // Get leave requester info first to check if they're trying to reject their own request
+        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
+        
+        // Check if user is trying to reject their own leave request
+        if ($currentUser->id == $leaveRequest->user_id) {
+            \Log::warning('User trying to reject their own leave request');
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You cannot reject your own leave request'
+                ]);
+            }
+            return back()->with('error', 'You cannot reject your own leave request');
+        }
+        
         $currentUserPosition = DB::table('user_positions')
             ->where('id', $currentUser->up_id ?? 0)
             ->where('up_is_active', true)
             ->where('up_can_approve_leave', true)
+            ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
             ->first();
         
         if (!$currentUserPosition) {
+            \Log::warning('User does not have rejection permission - must be Supervisor or above');
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'You do not have permission to reject leave requests'
+                    'message' => 'Only Supervisor level and above can reject leave requests'
                 ]);
             }
-            return back()->with('error', 'You do not have permission to reject leave requests');
+            return back()->with('error', 'Only Supervisor level and above can reject leave requests');
         }
-
-        // Get leave requester's division
-        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
         
         // Check if user is in same division as the leave requester
         if ($currentUser->ud_id != $leaveRequester->ud_id) {
@@ -625,6 +707,36 @@ class LeaveRequestController extends Controller
                 ]);
             }
             return back()->with('error', 'You can only reject leave requests from your division');
+        }
+
+        // Check hierarchy - user cannot reject someone with higher or equal level
+        $requesterPosition = DB::table('user_positions')
+            ->where('id', $leaveRequester->up_id ?? 0)
+            ->where('up_is_active', true)
+            ->first();
+
+        if ($requesterPosition) {
+            $currentUserLevel = $currentUserPosition->up_level;
+            $requesterLevel = $requesterPosition->up_level;
+            
+            \Log::info('Hierarchy check for rejection', [
+                'current_user_level' => $currentUserLevel,
+                'requester_level' => $requesterLevel,
+                'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
+                'requester_position' => $requesterPosition->up_name ?? 'Unknown'
+            ]);
+            
+            // User can only reject someone with lower level
+            if ($currentUserLevel <= $requesterLevel) {
+                \Log::warning('User trying to reject someone with higher or equal level');
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You cannot reject leave requests from someone with higher or equal position level'
+                    ]);
+                }
+                return back()->with('error', 'You cannot reject leave requests from someone with higher or equal position level');
+            }
         }
 
         // Check if leave request is pending
@@ -677,6 +789,9 @@ class LeaveRequestController extends Controller
                 'leave_request_id' => $leaveRequest->id,
                 'new_status' => $leaveRequest->lr_status
             ]);
+
+            // Send notification to the requester
+            $this->sendLeaveStatusChangeNotification($leaveRequest->id, 'rejected', $currentUser->u_name);
 
             if ($request->ajax()) {
                 \Log::info('Sending AJAX response for rejection', ['success' => true]);
@@ -2044,5 +2159,110 @@ class LeaveRequestController extends Controller
         </html>';
 
         return $html;
+    }
+
+    /**
+     * Send notification to supervisors and managers when a leave request is submitted
+     */
+    private function sendLeaveRequestNotification($userId, $leaveData)
+    {
+        try {
+            // Get the requesting user details
+            $requestingUser = User::find($userId);
+            if (!$requestingUser) {
+                return;
+            }
+
+            // Get leave type name
+            $leaveType = DB::table('leave_types')->where('id', $leaveData['leave_type_id'])->first();
+            $leaveTypeName = $leaveType ? $leaveType->lt_name : 'Leave';
+
+            // Find users who can approve leave requests in the same division
+            $approvers = User::where('ud_id', $requestingUser->ud_id)
+                ->whereHas('userPosition', function($query) {
+                    $query->where('up_level', '>=', 2) // Supervisor level or higher
+                          ->where('up_can_approve_leave', true);
+                })
+                ->where('id', '!=', $userId) // Don't notify the requester
+                ->get();
+
+            foreach ($approvers as $approver) {
+                $message = "New leave request from {$requestingUser->u_name} ({$requestingUser->u_nip}) for {$leaveTypeName} from {$leaveData['lr_start_date']} to {$leaveData['lr_end_date']}";
+                
+                $notificationData = [
+                    'leave_request_id' => null, // Will be set when we have the actual ID
+                    'requester_name' => $requestingUser->u_name,
+                    'requester_nip' => $requestingUser->u_nip,
+                    'leave_type' => $leaveTypeName,
+                    'start_date' => $leaveData['lr_start_date'],
+                    'end_date' => $leaveData['lr_end_date'],
+                    'reason' => $leaveData['lr_reason']
+                ];
+
+                Notification::createHRNotification(
+                    $approver->ud_id,
+                    $approver->id,
+                    $message,
+                    'leave_request',
+                    $notificationData
+                );
+            }
+
+            \Log::info('Leave request notifications sent', [
+                'requester_id' => $userId,
+                'approvers_count' => $approvers->count(),
+                'division_id' => $requestingUser->ud_id
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send leave request notifications', [
+                'user_id' => $userId,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Send notification when leave request status changes
+     */
+    private function sendLeaveStatusChangeNotification($leaveRequestId, $newStatus, $approverName)
+    {
+        try {
+            $leaveRequest = LeaveRequest::find($leaveRequestId);
+            if (!$leaveRequest) {
+                return;
+            }
+
+            $requestingUser = $leaveRequest->user;
+            if (!$requestingUser) {
+                return;
+            }
+
+            $statusText = $newStatus === 'approved' ? 'approved' : 'rejected';
+            $message = "Your leave request has been {$statusText} by {$approverName}";
+
+            $notificationData = [
+                'leave_request_id' => $leaveRequestId,
+                'status' => $newStatus,
+                'approver_name' => $approverName,
+                'start_date' => $leaveRequest->lr_start_date,
+                'end_date' => $leaveRequest->lr_end_date
+            ];
+
+            Notification::createHRNotification(
+                $requestingUser->ud_id,
+                $requestingUser->id,
+                $message,
+                'leave_status_change',
+                $notificationData
+            );
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send leave status change notification', [
+                'leave_request_id' => $leaveRequestId,
+                'new_status' => $newStatus,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

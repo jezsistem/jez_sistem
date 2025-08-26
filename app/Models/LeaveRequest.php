@@ -146,7 +146,14 @@ class LeaveRequest extends Model
                 $update = DB::table($this->table)->where('id', $id)->update($data);
                 return $update;
             }
+            return false;
         } catch (\Illuminate\Database\QueryException $ex) {
+            \Log::error('LeaveRequest storeData error', [
+                'mode' => $mode,
+                'id' => $id,
+                'data' => $data,
+                'error' => $ex->getMessage()
+            ]);
             return false;
         }
     }

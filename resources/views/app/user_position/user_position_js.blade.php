@@ -1,4 +1,53 @@
 <script>
+    // Local toast function to ensure it works
+    function showToast(title, message, type) {
+        console.log('showToast called with:', title, message, type);
+        // Try to use jQuery toast first
+        if (typeof jQuery !== 'undefined' && typeof jQuery.toast === 'function') {
+            console.log('Using jQuery.toast');
+            jQuery.toast({
+                heading: title,
+                text: message,
+                icon: type,
+                loader: true,
+                loaderBg: '#072544',
+                position: 'top-right',
+                stack: false,
+                hideAfter: 3000
+            });
+        } 
+        // Skip global toast function since it has jQuery.toast dependency issues
+        // Fallback to simple notification div
+        else {
+            console.log('Using simple custom toast');
+            showSimpleToast(title, message, type);
+        }
+    }
+
+    // Simple custom toast as final fallback
+    function showSimpleToast(title, message, type) {
+        console.log('showSimpleToast executed with:', title, message, type);
+        const toastHtml = `
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                        background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                        color: white; padding: 15px 20px; border-radius: 2px; 
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+                 id="customToast">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+        `;
+        
+        $('body').append(toastHtml);
+        
+        // Auto remove after 3 seconds
+        setTimeout(function() {
+            $('#customToast').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+
     // Simple and robust DataTables initialization
     $(document).ready(function() {
         // Wait for DataTables to be available
@@ -185,19 +234,28 @@
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
+                    console.log('Delete response:', response); // Debug log
+                    console.log('Calling showToast function...'); // Debug
+                    
                     if (response.success) {
                         if (window.userPositionTable && typeof window.userPositionTable.ajax !== 'undefined') {
                             window.userPositionTable.ajax.reload();
                         } else {
                             location.reload();
                         }
-                        alert('User position deleted successfully');
+                        
+                        // Use our custom toast function
+                        console.log('About to show success toast'); // Debug
+                        showToast('Success', 'User position deleted successfully', 'success');
+                        console.log('Success toast called'); // Debug
                     } else {
-                        alert('Failed to delete user position');
+                        console.log('About to show error toast'); // Debug
+                        showToast('Error', 'Failed to delete user position', 'error');
+                        console.log('Error toast called'); // Debug
                     }
                 },
                 error: function() {
-                    alert('Error occurred while deleting user position');
+                    showToast('Error', 'Error occurred while deleting user position', 'error');
                 }
             });
         }

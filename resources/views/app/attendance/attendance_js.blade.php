@@ -33,8 +33,13 @@
                     d.division_id = $('#division_id').val();
                     d.status = $('#status').val();
                     
-                        console.log('Status filter value:', $('#status').val());
-                        console.log('Status filter element:', $('#status').length);
+                    // Debug division filter
+                    console.log('Division filter value:', $('#division_id').val());
+                    console.log('Division filter element:', $('#division_id').length);
+                    console.log('Division filter selected option:', $('#division_id option:selected').text());
+                    
+                    console.log('Status filter value:', $('#status').val());
+                    console.log('Status filter element:', $('#status').length);
                     console.log('AJAX Data sent:', d);
                 },
                 dataSrc: function(json) {

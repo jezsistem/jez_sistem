@@ -201,6 +201,36 @@
                         <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
                             <a href="javascript:;" class="menu-link menu-toggle">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-text">Break Time Backup</span>
+                                <i class="menu-arrow"></i>
+                            </a>
+                            <div class="menu-sub menu-sub-accordion">
+                                <ul class="menu-subnav">
+                                    <li class="menu-item">
+                                        <a href="{{ url('/break-times-backup') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Break Control</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/break-times-backup/report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Log Break Time</span>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a href="{{ url('/break-times-backup/summary-report') }}" class="menu-link">
+                                            <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                            <span class="menu-text">Summary Report</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
+                            <a href="javascript:;" class="menu-link menu-toggle">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                                 <span class="menu-text">Announcement</span>
                                 <span class="menu-arrow"></span>
                             </a>

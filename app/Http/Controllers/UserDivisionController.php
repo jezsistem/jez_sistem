@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\UserDivision;
 
 class UserDivisionController extends Controller
 {
@@ -50,9 +51,7 @@ class UserDivisionController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
         
-        $divisions = DB::table('user_divisions')
-            ->orderBy('ud_name')
-            ->get();
+        $divisions = UserDivision::where('ud_status', 'active')->orderBy('ud_name')->get();
 
         $data = [
             'title' => $title,
@@ -99,19 +98,24 @@ class UserDivisionController extends Controller
             'ud_code' => strtoupper($request->ud_code),
             'ud_name' => $request->ud_name,
             'ud_description' => $request->ud_description,
-            'ud_status' => $request->ud_status,
-            'created_by' => auth()->user()->u_name ?? 'system',
-            'updated_by' => auth()->user()->u_name ?? 'system',
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
+            'ud_status' => $request->ud_status
         ];
 
-        $result = DB::table('user_divisions')->insert($data);
+        $userDivision = new UserDivision();
+        $result = $userDivision->storeData('add', null, $data);
 
-        if ($result) {
-            return redirect()->route('user-divisions.index')->with('success', 'User division created successfully');
+        if (request()->ajax()) {
+            if ($result) {
+                return response()->json(['success' => true, 'message' => 'User division created successfully']);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Failed to create user division'], 500);
+            }
         } else {
-            return back()->with('error', 'Failed to create user division')->withInput();
+            if ($result) {
+                return redirect()->route('user-divisions.index')->with('success', 'User division created successfully');
+            } else {
+                return back()->with('error', 'Failed to create user division')->withInput();
+            }
         }
     }
 
@@ -123,7 +127,7 @@ class UserDivisionController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
-        $division = DB::table('user_divisions')->where('id', $id)->first();
+        $division = UserDivision::find($id);
 
         if (!$division) {
             return redirect()->route('user-divisions.index')->with('error', 'Division not found');
@@ -148,7 +152,7 @@ class UserDivisionController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
-        $division = DB::table('user_divisions')->where('id', $id)->first();
+        $division = UserDivision::find($id);
 
         if (!$division) {
             return redirect()->route('user-divisions.index')->with('error', 'Division not found');
@@ -180,17 +184,24 @@ class UserDivisionController extends Controller
             'ud_code' => strtoupper($request->ud_code),
             'ud_name' => $request->ud_name,
             'ud_description' => $request->ud_description,
-            'ud_status' => $request->ud_status,
-            'updated_by' => auth()->user()->u_name ?? 'system',
-            'updated_at' => date('Y-m-d H:i:s')
+            'ud_status' => $request->ud_status
         ];
 
-        $result = DB::table('user_divisions')->where('id', $id)->update($data);
+        $userDivision = new UserDivision();
+        $result = $userDivision->storeData('edit', $id, $data);
 
-        if ($result) {
-            return redirect()->route('user-divisions.index')->with('success', 'User division updated successfully');
+        if (request()->ajax()) {
+            if ($result) {
+                return response()->json(['success' => true, 'message' => 'User division updated successfully']);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Failed to update user division'], 500);
+            }
         } else {
-            return back()->with('error', 'Failed to update user division')->withInput();
+            if ($result) {
+                return redirect()->route('user-divisions.index')->with('success', 'User division updated successfully');
+            } else {
+                return back()->with('error', 'Failed to update user division')->withInput();
+            }
         }
     }
 
@@ -198,7 +209,8 @@ class UserDivisionController extends Controller
     {
         $this->validateAccess();
 
-        $result = DB::table('user_divisions')->where('id', $id)->delete();
+        $userDivision = new UserDivision();
+        $result = $userDivision->deleteData($id);
 
         if (request()->ajax()) {
             if ($result) {
@@ -221,19 +233,19 @@ class UserDivisionController extends Controller
             $query = DB::table('user_divisions')
                 ->select([
                     'id',
-                    'ud_code',
                     'ud_name',
+                    'ud_code',
                     'ud_description',
                     'ud_status'
                 ])
-                ->where('ud_status', '!=', 'deleted');
+                ->where('ud_status', '!=', 'inactive');
             
             // Apply search filter
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
-                    $q->where('ud_code', 'like', '%' . $search . '%')
-                      ->orWhere('ud_name', 'like', '%' . $search . '%')
+                    $q->where('ud_name', 'like', '%' . $search . '%')
+                      ->orWhere('ud_code', 'like', '%' . $search . '%')
                       ->orWhere('ud_description', 'like', '%' . $search . '%');
                 });
             }

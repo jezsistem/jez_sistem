@@ -13,7 +13,9 @@ use App\Models\AnnouncementRecipient;
 use App\Models\AnnouncementAttachment;
 use App\Models\AnnouncementView;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class AnnouncementController extends Controller
 {
@@ -24,7 +26,7 @@ class AnnouncementController extends Controller
     {
         $this->validateAccess();
         $user = Auth::user();
-        $currentDate = now();
+        $currentDate = Carbon::now();
 
         // Base query with proper target audience filtering
         $baseQuery = Announcement::with(['category', 'creator.userPosition', 'userReactions.reaction', 'userReactions.user', 'attachments'])
@@ -212,7 +214,7 @@ class AnnouncementController extends Controller
                 'target_type' => $request->target_type,
                 'is_pinned' => $request->boolean('is_pinned'),
                 'status' => $request->input('status', 'active'),
-                'published_at' => $request->boolean('publish_now', true) ? now() : ($request->published_at ?: now())
+                'published_at' => $request->boolean('publish_now', true) ? Carbon::now() : ($request->published_at ?: Carbon::now())
             ]);
 
             // Create recipients if not for all
@@ -259,6 +261,10 @@ class AnnouncementController extends Controller
             }
 
             DB::commit();
+            
+            // Send notifications to recipients
+            $this->sendAnnouncementNotifications($announcement);
+            
             return redirect()->route('announcements.manage')->with('success', 'Announcement created successfully!');
         } catch (\Exception $e) {
             DB::rollback();
@@ -327,7 +333,7 @@ class AnnouncementController extends Controller
                 'target_type' => $request->target_type,
                 'is_pinned' => $request->boolean('is_pinned'),
                 'status' => $request->input('status', 'active'),
-                'published_at' => $request->boolean('publish_now', true) ? now() : ($request->published_at ?: now())
+                'published_at' => $request->boolean('publish_now', true) ? Carbon::now() : ($request->published_at ?: Carbon::now())
             ]);
 
             // Delete existing recipients
@@ -553,7 +559,7 @@ class AnnouncementController extends Controller
                     AnnouncementView::create([
                         'announcement_id' => $announcement->id,
                         'user_id' => $user->id,
-                        'viewed_at' => now(),
+                        'viewed_at' => Carbon::now(),
                         'ip_address' => $ipAddress,
                         'user_agent' => $userAgent
                     ]);
@@ -588,7 +594,7 @@ class AnnouncementController extends Controller
                 AnnouncementView::create([
                     'announcement_id' => $id,
                     'user_id' => $user->id,
-                    'viewed_at' => now(),
+                    'viewed_at' => Carbon::now(),
                     'ip_address' => request()->ip(),
                     'user_agent' => request()->userAgent()
                 ]);
@@ -659,6 +665,97 @@ class AnnouncementController extends Controller
                 'success' => false,
                 'message' => 'Error fetching viewers: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Send notifications to recipients when a new announcement is created
+     */
+    private function sendAnnouncementNotifications($announcement)
+    {
+        try {
+            $creator = User::find($announcement->created_by);
+            $creatorName = $creator ? $creator->u_name : 'System';
+            
+            $message = "New announcement: {$announcement->title}";
+            
+            $notificationData = [
+                'announcement_id' => $announcement->id,
+                'title' => $announcement->title,
+                'creator_name' => $creatorName,
+                'published_at' => $announcement->published_at,
+                'category' => $announcement->category->name ?? 'General'
+            ];
+
+            if ($announcement->target_type === 'all') {
+                // Send to all active users
+                $users = User::where('u_delete', '0')->get();
+                
+                foreach ($users as $user) {
+                    if ($user->ud_id) {
+                        Notification::createHRNotification(
+                            $user->ud_id,
+                            $user->id,
+                            $message,
+                            'announcement',
+                            $notificationData
+                        );
+                    }
+                }
+                
+            } elseif ($announcement->target_type === 'division') {
+                // Send to users in specific division
+                $recipients = $announcement->recipients()
+                    ->where('recipient_type', 'division')
+                    ->get();
+                
+                foreach ($recipients as $recipient) {
+                    $users = User::where('ud_id', $recipient->recipient_id)
+                        ->where('u_delete', '0')
+                        ->get();
+                    
+                    foreach ($users as $user) {
+                        Notification::createHRNotification(
+                            $user->ud_id,
+                            $user->id,
+                            $message,
+                            'announcement',
+                            $notificationData
+                        );
+                    }
+                }
+                
+            } elseif ($announcement->target_type === 'individual') {
+                // Send to specific users
+                $recipients = $announcement->recipients()
+                    ->where('recipient_type', 'user')
+                    ->get();
+                
+                foreach ($recipients as $recipient) {
+                    $user = User::find($recipient->recipient_id);
+                    if ($user && $user->ud_id) {
+                        Notification::createHRNotification(
+                            $user->ud_id,
+                            $user->id,
+                            $message,
+                            'announcement',
+                            $notificationData
+                        );
+                    }
+                }
+            }
+
+            \Log::info('Announcement notifications sent', [
+                'announcement_id' => $announcement->id,
+                'target_type' => $announcement->target_type,
+                'title' => $announcement->title
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to send announcement notifications', [
+                'announcement_id' => $announcement->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 }

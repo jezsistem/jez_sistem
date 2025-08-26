@@ -320,7 +320,7 @@
                                     </div>
                                     <div class="col-md-2">
                                         <label for="division_id">Division</label>
-                                        <select class="form-control" id="division_id" name="division_id">
+                                        <select class="form-control" id="division_id" name="division_id" onchange="applyFilters()">
                                             <option value="">All Divisions</option>
                                             @foreach($divisions as $division)
                                                 <option value="{{ $division->id }}" {{ request('division_id') == $division->id ? 'selected' : '' }}>

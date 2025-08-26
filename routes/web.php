@@ -81,6 +81,7 @@ use App\Http\Controllers\ShiftCodeController;
 use App\Http\Controllers\DailyScheduleController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BreakTimeController;
+use App\Http\Controllers\BreakTimeBackupController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\UserPositionController;
@@ -141,12 +142,22 @@ Route::get('daily-schedules/export-weekly-report-public', [DailyScheduleControll
 Route::get('daily-schedules/export-weekly-report-pdf', [DailyScheduleController::class, 'exportWeeklyReportPDF'])->name('daily-schedules.export-weekly-report-pdf');
 Route::get('daily-schedules/export-weekly-pdf', [DailyScheduleController::class, 'exportWeeklyPDF'])->name('daily-schedules.export-weekly-pdf');
 
+
+Route::get('break-times-backup/allowance', [BreakTimeBackupController::class, 'getBreakAllowance'])->name('break-times-backup.allowance');
+Route::get('break-times-backup/current-list', [BreakTimeBackupController::class, 'getCurrentBreakList'])->name('break-times-backup.current-list');
+Route::get('break-times-backup/test-filter', [BreakTimeBackupController::class, 'testFilter'])->name('break-times-backup.test-filter');
+Route::get('break-times-backup/debug-current-list', [BreakTimeBackupController::class, 'debugCurrentBreakList'])->name('break-times-backup.debug-current-list');
+Route::get('break-times-backup/current', [BreakTimeBackupController::class, 'getCurrentBreak'])->name('break-times-backup.current');
+Route::post('break-times-backup/start', [BreakTimeBackupController::class, 'startBreak'])->name('break-times-backup.start');
+Route::post('break-times-backup/end', [BreakTimeBackupController::class, 'endBreak'])->name('break-times-backup.end');
+
 // Public PDF export routes (no auth required)
 Route::get('daily-schedules/export-weekly-pdf-public', [DailyScheduleController::class, 'exportWeeklyPDFPublic'])->name('daily-schedules.export-weekly-pdf-public');
 Route::get('daily-schedules/export-weekly-report-pdf-public', [DailyScheduleController::class, 'exportWeeklyReportPDFPublic'])->name('daily-schedules.export-weekly-report-pdf-public');
 
 // Public Excel export routes (no auth required)
 Route::get('break-times/export/excel', [BreakTimeController::class, 'exportToExcel'])->name('break-times.export-excel');
+Route::get('break-times-backup/export/excel', [BreakTimeBackupController::class, 'exportToExcel'])->name('break-times-backup.export-excel');
 
 // Export routes (outside auth middleware)
 Route::get('attendance/summary-report/export/excel', [AttendanceController::class, 'exportSummaryToExcel'])->name('attendance.summary-report-export-excel');
@@ -720,6 +731,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('export-perusahaan', [DataPerusahaanController::class, 'exportData']);
 
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'fetchNotifications']);
+    Route::post('/notifications/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markSingleAsRead']);
 
     // HR Management Routes
     // ShiftCodeController
@@ -816,8 +829,35 @@ Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'get
     Route::post('break-times/clock-out', [BreakTimeController::class, 'clockOut'])->name('break-times.clock-out');
 Route::post('break-times/cleanup', [BreakTimeController::class, 'cleanupInvalidBreaks'])->name('break-times.cleanup');
 
+    // BreakTimeBackupController
+    Route::get('break-times-backup', [BreakTimeBackupController::class, 'index'])->name('break-times-backup.index');
+    Route::get('break-times-backup/report', [BreakTimeBackupController::class, 'report'])->name('break-times-backup.report');
+    Route::get('break-times-backup/summary-report', [BreakTimeBackupController::class, 'summaryReport'])->name('break-times-backup.summary-report');
+    Route::get('break-times-backup/summary-report/datatables', [BreakTimeBackupController::class, 'getSummaryReportDatatables'])->name('break-times-backup.summary-report-datatables');
+Route::get('break-times-backup/summary-report/stats', [BreakTimeBackupController::class, 'getSummaryReportStats'])->name('break-times-backup.summary-report-stats');
+    Route::get('break-times-backup/datatables', [BreakTimeBackupController::class, 'getDatatables'])->name('break-times-backup.datatables');
+    Route::get('break-times-backup/export/pdf', [BreakTimeBackupController::class, 'exportToPDF'])->name('break-times-backup.export-pdf');
+    Route::get('break-times-backup/summary-report/export/excel', [BreakTimeBackupController::class, 'exportSummaryToExcel'])->name('break-times-backup.summary-report-export-excel');
+    Route::get('break-times-backup/summary-report/export/pdf', [BreakTimeBackupController::class, 'exportSummaryToPDF'])->name('break-times-backup.summary-report-export-pdf');
+    Route::get('break-times-backup/staff/{user_id}', [BreakTimeBackupController::class, 'staffDetail'])->name('break-times-backup.staff-detail');
+    Route::get('break-times-backup/staff/{user_id}/datatables', [BreakTimeBackupController::class, 'staffDatatables'])->name('break-times-backup.staff-datatables');
+    Route::get('break-times-backup/staff/{user_id}/stats', [BreakTimeBackupController::class, 'staffStats'])->name('break-times-backup.staff-stats');
+    Route::get('break-times-backup/stats', [BreakTimeBackupController::class, 'getBreakTimeStats'])->name('break-times-backup.stats');
+    Route::get('break-times-backup/staff/{user_id}/export/excel', [BreakTimeBackupController::class, 'exportStaffToExcel'])->name('break-times-backup.staff-export-excel');
+    Route::get('break-times-backup/staff/{user_id}/export/pdf', [BreakTimeBackupController::class, 'exportStaffToPDF'])->name('break-times-backup.staff-export-pdf');
+    Route::get('break-times-backup/create', [BreakTimeBackupController::class, 'create'])->name('break-times-backup.create');
+    Route::post('break-times-backup', [BreakTimeBackupController::class, 'store'])->name('break-times-backup.store');
+    Route::get('break-times-backup/{id}', [BreakTimeBackupController::class, 'show'])->name('break-times-backup.show');
+    Route::get('break-times-backup/{id}/edit', [BreakTimeBackupController::class, 'edit'])->name('break-times-backup.edit');
+    Route::put('break-times-backup/{id}', [BreakTimeBackupController::class, 'update'])->name('break-times-backup.update');
+    Route::delete('break-times-backup/{id}', [BreakTimeBackupController::class, 'destroy'])->name('break-times-backup.destroy');
+    Route::post('break-times-backup/clock-in', [BreakTimeBackupController::class, 'clockIn'])->name('break-times-backup.clock-in');
+    Route::post('break-times-backup/clock-out', [BreakTimeBackupController::class, 'clockOut'])->name('break-times-backup.clock-out');
+Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cleanupInvalidBreaks'])->name('break-times-backup.cleanup');
 
-    // LeaveTypeController
+
+
+// LeaveTypeController
     Route::get('leave-types', [LeaveTypeController::class, 'index'])->name('leave-types.index');
     Route::get('leave-types/datatables', [LeaveTypeController::class, 'getDatatables'])->name('leave-types.datatables');
     Route::get('leave-types/create', [LeaveTypeController::class, 'create'])->name('leave-types.create');

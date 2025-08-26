@@ -95,17 +95,17 @@
     
     /* Pinned announcement styling */
     .pinned-announcements-section .announcement-card {
-        background-color: #3498db1a !important;
-        border-color: #c6e8ff !important;
+        background-color: #e7eff6 !important;
+        border-color: #e2f3fe !important;
     }
     
     .pinned-announcements-section .announcement-card:hover {
-        background-color:#3498db2e !important;
-        border-color: #c6e8ff !important;
+        background-color:rgb(225, 237, 248) !important;
+        border-color: #e2f3fe !important;
     }
 
     .pinned-announcements-section .announcement-card .btn {
-        background-color: #ffffff !important;
+        background-color: #ffffff;
     }
 
     /* Basic mobile responsiveness */
@@ -735,7 +735,6 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     };
     
     window.showReactionDetails = function(announcementId) {
-        console.log('Show reaction details for:', announcementId);
         
         fetch(`/announcements/${announcementId}/reactions`, {
             method: 'GET',

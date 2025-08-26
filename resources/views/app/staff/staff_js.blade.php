@@ -1,4 +1,32 @@
 <script>
+    // Custom toast function
+    function showToast(title, message, type) {
+        showSimpleToast(title, message, type);
+    }
+
+    // Simple custom toast function
+    function showSimpleToast(title, message, type) {
+        const toastHtml = `
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                        background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                        color: white; padding: 15px 20px; border-radius: 2px; 
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+                 id="customToast">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+        `;
+        
+        $('body').append(toastHtml);
+        
+        // Auto remove after 3 seconds
+        setTimeout(function() {
+            $('#customToast').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+
     // Modal functions using vanilla JavaScript
     function showModal(modalId) {
         var modal = document.getElementById(modalId);
@@ -145,13 +173,13 @@
                 success: function(response) {
                     if (response.success) {
                         $('#userDivisionTable').DataTable().ajax.reload();
-                        alert('User division deleted successfully');
+                        showToast('Success', 'User division deleted successfully', 'success');
                     } else {
-                        alert('Failed to delete user division');
+                        showToast('Error', 'Failed to delete user division', 'error');
                     }
                 },
                 error: function() {
-                    alert('Error occurred while deleting user division');
+                    showToast('Error', 'Error occurred while deleting user division', 'error');
                 }
             });
         }
@@ -236,17 +264,17 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert(response.message);
+                        showToast('Success', response.message, 'success');
                         hideModal('positionModal');
                         if (window.staffTable && typeof window.staffTable.ajax !== 'undefined') {
                             window.staffTable.ajax.reload();
                         }
                     } else {
-                        alert('Error: ' + response.message);
+                        showToast('Error', response.message, 'error');
                     }
                 },
                 error: function() {
-                    alert('An error occurred while updating position');
+                    showToast('Error', 'An error occurred while updating position', 'error');
                 }
             });
         });
@@ -267,17 +295,17 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert(response.message);
+                        showToast('Success', response.message, 'success');
                         hideModal('divisionModal');
                         if (window.staffTable && typeof window.staffTable.ajax !== 'undefined') {
                             window.staffTable.ajax.reload();
                         }
                     } else {
-                        alert('Error: ' + response.message);
+                        showToast('Error', response.message, 'error');
                     }
                 },
                 error: function() {
-                    alert('An error occurred while updating division');
+                    showToast('Error', 'An error occurred while updating division', 'error');
                 }
             });
         });
@@ -298,17 +326,17 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert(response.message);
+                        showToast('Success', response.message, 'success');
                         hideModal('userTypeModal');
                         if (window.staffTable && typeof window.staffTable.ajax !== 'undefined') {
                             window.staffTable.ajax.reload();
                         }
                     } else {
-                        alert('Error: ' + response.message);
+                        showToast('Error', response.message, 'error');
                     }
                 },
                 error: function() {
-                    alert('An error occurred while updating user type');
+                    showToast('Error', 'An error occurred while updating user type', 'error');
                 }
             });
         });
@@ -329,17 +357,17 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert(response.message);
+                        showToast('Success', response.message, 'success');
                         hideModal('leaveBalanceModal');
                         if (window.staffTable && typeof window.staffTable.ajax !== 'undefined') {
                             window.staffTable.ajax.reload();
                         }
                     } else {
-                        alert('Error: ' + response.message);
+                        showToast('Error', response.message, 'error');
                     }
                 },
                 error: function() {
-                    alert('An error occurred while updating leave balance');
+                    showToast('Error', 'An error occurred while updating leave balance', 'error');
                 }
             });
         });

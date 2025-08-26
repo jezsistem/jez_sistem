@@ -5,17 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\BreakTime;
+use App\Models\BreakTimeBackup;
 use App\Models\DailySchedule;
 use App\Models\User;
 use App\Models\UserDivision;
 use App\Models\WebConfig;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\BreakTimeExport;
+use App\Exports\BreakTimeBackupExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class BreakTimeController extends Controller
+class BreakTimeBackupController extends Controller
 {
     protected function validateAccess()
     {
@@ -110,7 +110,7 @@ class BreakTimeController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
 
-        $breakTime = new BreakTime();
+        $breakTime = new BreakTimeBackup();
         $breakTimes = $breakTime->getBreakTimesByDateRange(
             $request->get('start_date', date('Y-m-d')),
             $request->get('end_date', date('Y-m-d')),
@@ -130,7 +130,7 @@ class BreakTimeController extends Controller
             'segment' => request()->segment(1)
         ];
 
-        return view('app.break_time.index', compact('data'));
+        return view('app.break_time_backup.index', compact('data'));
     }
 
     /**
@@ -143,7 +143,7 @@ class BreakTimeController extends Controller
             $this->validateAccess();
             \Log::info('Break Time Summary Report - Access validated');
             
-            $title = 'Break Time Summary Report';
+            $title = 'Break Time Backup Summary Report';
             $user = auth()->user();
             $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
             
@@ -183,10 +183,10 @@ class BreakTimeController extends Controller
 
             $data = [
                 'title' => $title,
-                'subtitle' => 'Break Time Summary Report',
+                'subtitle' => 'Break Time Backup Summary Report',
                 'sidebar' => $this->sidebar(),
                 'user' => $user_data,
-                'segment' => 'break-times',
+                'segment' => 'break-times-backup',
                 'startDate' => $startDate,
                 'endDate' => $endDate,
                 'dateFilter' => $dateFilter
@@ -205,7 +205,7 @@ class BreakTimeController extends Controller
                     'total_count' => $summaryData->count()
                 ]);
                 
-                return view('app.break_time.summary_report', compact('summaryData', 'divisions', 'data'));
+                return view('app.break_time_backup.summary_report', compact('summaryData', 'divisions', 'data'));
             } catch (\Exception $e) {
                 \Log::error('Break Time Summary Report - Error in view', [
                     'error' => $e->getMessage(),
@@ -242,7 +242,7 @@ class BreakTimeController extends Controller
                     $join->on('u.id', '=', 'ds.user_id')
                          ->whereBetween('ds.ds_date', [$startDate, $endDate]);
                 })
-                ->leftJoin('break_times as bt', function($join) use ($startDate, $endDate) {
+                ->leftJoin('break_times_backup as bt', function($join) use ($startDate, $endDate) {
                     $join->on('u.id', '=', 'bt.user_id')
                          ->whereBetween('bt.bt_date', [$startDate, $endDate]);
                 })
@@ -273,90 +273,7 @@ class BreakTimeController extends Controller
                 'first_record' => $result->first()
             ]);
 
-            // Calculate exceeded break time manually for each user based on their user type
-            foreach ($result as $user) {
-                // Get user's shift type to determine break allowance
-                $userShiftType = DB::table('users as u')
-                    ->leftJoin('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
-                    ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
-                    ->where('u.id', $user->user_id)
-                    ->whereBetween('ds.ds_date', [$startDate, $endDate])
-                    ->select('sc.sc_type')
-                    ->first();
-                
-                $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time'; // Default fallback
-                
-                // Get break allowance based on shift type
-                $breakTime = new \App\Models\BreakTime();
-                $breakAllowance = $breakTime->getBreakAllowance($shiftType);
-                
-                // Determine max duration for this user type
-                $maxDuration = 30; // Default
-                if (isset($breakAllowance['break_1'])) {
-                    $maxDuration = $breakAllowance['break_1']['duration'];
-                }
-                
-                \Log::info('User break allowance calculation', [
-                    'user_id' => $user->user_id,
-                    'shift_type' => $shiftType,
-                    'break_allowance' => $breakAllowance,
-                    'max_duration' => $maxDuration
-                ]);
-                
-                $exceededBreaks = DB::table('break_times as bt')
-                    ->where('bt.user_id', $user->user_id)
-                    ->whereBetween('bt.bt_date', [$startDate, $endDate])
-                    ->where(function($query) use ($maxDuration) {
-                        $query->where('bt.bt_duration_minutes', '>', $maxDuration)
-                              ->orWhere(function($q) {
-                                  $q->where('bt.bt_duration_minutes', '=', 0)
-                                    ->whereNotNull('bt.bt_start_time')
-                                    ->whereNotNull('bt.bt_end_time');
-                              });
-                    })
-                    ->get();
 
-                $exceededCount = 0;
-                foreach ($exceededBreaks as $break) {
-                    if ($break->bt_duration_minutes > $maxDuration) {
-                        $exceededCount++;
-                    } else if ($break->bt_duration_minutes == 0 && $break->bt_start_time && $break->bt_end_time) {
-                        try {
-                            $startTime = \Carbon\Carbon::parse($break->bt_start_time);
-                            $endTime = \Carbon\Carbon::parse($break->bt_end_time);
-                            $durationMinutes = $endTime->diffInMinutes($startTime);
-                            if ($durationMinutes > $maxDuration) {
-                                $exceededCount++;
-                                
-                                \Log::info('Calculated exceeded break time manually:', [
-                                    'user_id' => $user->user_id,
-                                    'break_id' => $break->id,
-                                    'shift_type' => $shiftType,
-                                    'max_duration' => $maxDuration,
-                                    'start_time' => $break->bt_start_time,
-                                    'end_time' => $break->bt_end_time,
-                                    'calculated_duration' => $durationMinutes,
-                                    'exceeded_by' => $durationMinutes - $maxDuration
-                                ]);
-                            }
-                        } catch (\Exception $e) {
-                            \Log::error('Error calculating exceeded break time:', [
-                                'user_id' => $user->user_id,
-                                'break_id' => $break->id,
-                                'shift_type' => $shiftType,
-                                'max_duration' => $maxDuration,
-                                'start_time' => $break->bt_start_time,
-                                'end_time' => $break->bt_end_time,
-                                'error' => $e->getMessage()
-                            ]);
-                        }
-                    }
-                }
-                
-                $user->exceeded_break_time = $exceededCount;
-                $user->user_shift_type = $shiftType; // Add for debugging
-                $user->max_break_duration = $maxDuration; // Add for debugging
-            }
 
             return $result;
 
@@ -397,7 +314,7 @@ class BreakTimeController extends Controller
             $totalShifts = $summaryData->sum('total_shifts');
             $totalBreaks = $summaryData->sum('total_breaks');
             $noBreakShifts = $summaryData->sum('no_break_shifts');
-            $exceededBreakTime = $summaryData->sum('exceeded_break_time');
+
             
             // Calculate averages
             $avgBreaksPerStaff = $totalStaff > 0 ? round($totalBreaks / $totalStaff, 1) : 0;
@@ -408,7 +325,7 @@ class BreakTimeController extends Controller
                 'total_shifts' => $totalShifts,
                 'total_breaks' => $totalBreaks,
                 'no_break_shifts' => $noBreakShifts,
-                'exceeded_break_time' => $exceededBreakTime,
+
                 'avg_breaks_per_staff' => $avgBreaksPerStaff,
                 'avg_shifts_per_staff' => $avgShiftsPerStaff
             ];
@@ -577,13 +494,13 @@ class BreakTimeController extends Controller
                 'subtitle' => 'Staff Break Time Detail',
                 'sidebar' => $this->sidebar(),
                 'user' => $user_data,
-                'segment' => 'break-times',
+                'segment' => 'break-times-backup',
                 'staff' => $staff,
                 'startDate' => $startDate,
                 'endDate' => $endDate
             ];
             
-            return view('app.break_time.staff_detail', compact('data'));
+            return view('app.break_time_backup.staff_detail', compact('data'));
             
         } catch (\Exception $e) {
             \Log::error('Staff Detail Error', [
@@ -607,7 +524,7 @@ class BreakTimeController extends Controller
                 $startDate = $request->get('start_date', date('Y-m-01'));
                 $endDate = $request->get('end_date', date('Y-m-t'));
                 
-                $query = DB::table('break_times as bt')
+                $query = DB::table('break_times_backup as bt')
                     ->leftJoin('daily_schedules as ds', function($join) use ($user_id, $startDate, $endDate) {
                         $join->on('bt.user_id', '=', 'ds.user_id')
                              ->where('ds.user_id', $user_id)
@@ -674,47 +591,9 @@ class BreakTimeController extends Controller
                         }
                     }
                     
-                    // Get user's shift type to determine break allowance and add exceeded note
-                    $userShiftType = DB::table('users as u')
-                        ->leftJoin('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
-                        ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
-                        ->where('u.id', $user_id)
-                        ->where('ds.ds_date', $itemArray['bt_date'])
-                        ->select('sc.sc_type')
-                        ->first();
+
                     
-                    $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time';
-                    $breakTime = new \App\Models\BreakTime();
-                    $breakAllowance = $breakTime->getBreakAllowance($shiftType);
-                    
-                    // Determine max duration for this user type
-                    $maxDuration = 30; // Default
-                    if (isset($breakAllowance['break_1'])) {
-                        $maxDuration = $breakAllowance['break_1']['duration'];
-                    }
-                    
-                    // Add exceeded note if break duration exceeds allowance
-                    $currentDuration = $itemArray['bt_duration_minutes'] ?? 0;
-                    if ($currentDuration > $maxDuration) {
-                        $exceededMinutes = $currentDuration - $maxDuration;
-                        $originalNotes = $itemArray['bt_notes'] ?? '';
-                        $exceededNote = "⚠️ EXCEEDED: Break melebihi jatah {$maxDuration} menit sebanyak {$exceededMinutes} menit";
-                        
-                        if (!empty($originalNotes)) {
-                            $itemArray['bt_notes'] = $originalNotes . ' | ' . $exceededNote;
-                        } else {
-                            $itemArray['bt_notes'] = $exceededNote;
-                        }
-                        
-                        \Log::info('Added exceeded note:', [
-                            'break_id' => $itemArray['id'],
-                            'user_id' => $user_id,
-                            'shift_type' => $shiftType,
-                            'max_duration' => $maxDuration,
-                            'actual_duration' => $currentDuration,
-                            'exceeded_by' => $exceededMinutes
-                        ]);
-                    }
+
                     
                     $data[] = $itemArray;
                     $data[$index]['DT_RowIndex'] = $index + 1;
@@ -757,36 +636,10 @@ class BreakTimeController extends Controller
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             
-            // Get user's shift type to determine break allowance
-            $userShiftType = DB::table('users as u')
-                ->leftJoin('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
-                ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
-                ->where('u.id', $user_id)
-                ->whereBetween('ds.ds_date', [$startDate, $endDate])
-                ->select('sc.sc_type')
-                ->first();
-            
-            $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time'; // Default fallback
-            
-            // Get break allowance based on shift type
-            $breakTime = new \App\Models\BreakTime();
-            $breakAllowance = $breakTime->getBreakAllowance($shiftType);
-            
-            // Determine max duration for this user type
-            $maxDuration = 30; // Default
-            if (isset($breakAllowance['break_1'])) {
-                $maxDuration = $breakAllowance['break_1']['duration'];
-            }
-            
-            \Log::info('Staff stats - User break allowance calculation', [
-                'user_id' => $user_id,
-                'shift_type' => $shiftType,
-                'break_allowance' => $breakAllowance,
-                'max_duration' => $maxDuration
-            ]);
+
             
             // Get break time statistics
-            $statsQuery = DB::table('break_times')
+            $statsQuery = DB::table('break_times_backup')
                 ->where('user_id', $user_id)
                 ->whereBetween('bt_date', [$startDate, $endDate]);
             
@@ -797,7 +650,7 @@ class BreakTimeController extends Controller
             
             $stats = $statsQuery->select([
                 DB::raw('COUNT(*) as total_breaks'),
-                DB::raw('COUNT(CASE WHEN bt_duration_minutes > ' . $maxDuration . ' THEN 1 END) as exceeded_breaks'),
+
                 DB::raw('COUNT(CASE WHEN bt_status = "completed" THEN 1 END) as completed_breaks'),
                 DB::raw('COUNT(CASE WHEN bt_status = "active" THEN 1 END) as active_breaks'),
                 DB::raw('AVG(bt_duration_minutes) as avg_duration'),
@@ -817,7 +670,7 @@ class BreakTimeController extends Controller
             
             // Get no break shifts (shifts without break)
             $noBreakShifts = DB::table('daily_schedules as ds')
-                ->leftJoin('break_times as bt', function($join) use ($startDate, $endDate) {
+                ->leftJoin('break_times_backup as bt', function($join) use ($startDate, $endDate) {
                     $join->on('ds.user_id', '=', 'bt.user_id')
                          ->whereBetween('bt.bt_date', [$startDate, $endDate]);
                 })
@@ -827,10 +680,7 @@ class BreakTimeController extends Controller
                 ->count();
             
             $response = [
-                'break_stats' => array_merge((array) $stats, [
-                    'shift_type' => $shiftType,
-                    'max_duration' => $maxDuration
-                ]),
+                'break_stats' => (array) $stats,
                 'shift_stats' => $shiftStats,
                 'no_break_shifts' => $noBreakShifts,
                 'period' => [
@@ -871,7 +721,7 @@ class BreakTimeController extends Controller
             $endDate = $dateRange['endDate'];
         }
 
-        $breakTime = new BreakTime();
+        $breakTime = new BreakTimeBackup();
         $breakTimes = $breakTime->getBreakTimesByDateRange(
             $startDate,
             $endDate,
@@ -881,7 +731,7 @@ class BreakTimeController extends Controller
         );
 
         // Get stats for the report
-        $stats = DB::table('break_times')
+        $stats = DB::table('break_times_backup')
             ->select('bt_status', DB::raw('count(*) as total'))
             ->where('bt_date', '>=', $startDate)
             ->where('bt_date', '<=', $endDate)
@@ -902,7 +752,7 @@ class BreakTimeController extends Controller
             'dateFilter' => $dateFilter
         ];
 
-        return view('app.break_time.report', compact('breakTimes', 'users', 'divisions', 'data', 'stats', 'startDate', 'endDate', 'dateFilter'));
+        return view('app.break_time_backup.report', compact('breakTimes', 'users', 'divisions', 'data', 'stats', 'startDate', 'endDate', 'dateFilter'));
     }
 
     /**
@@ -929,20 +779,20 @@ class BreakTimeController extends Controller
             }
             
             // Build query for stats
-            $statsQuery = DB::table('break_times')
-                ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+            $statsQuery = DB::table('break_times_backup')
+                ->leftJoin('users', 'users.id', '=', 'break_times_backup.user_id')
                 ->where('bt_date', '>=', $startDate)
                 ->where('bt_date', '<=', $endDate);
             
             // Apply additional filters
             if ($userId) {
-                $statsQuery->where('break_times.user_id', $userId);
+                $statsQuery->where('break_times_backup.user_id', $userId);
             }
             if ($divisionId) {
                 $statsQuery->where('users.ud_id', $divisionId);
             }
             if ($status) {
-                $statsQuery->where('break_times.bt_status', $status);
+                $statsQuery->where('break_times_backup.bt_status', $status);
             }
             
             // Get status-based statistics
@@ -1014,31 +864,31 @@ class BreakTimeController extends Controller
                 $endDate = $dateRange['endDate'];
             }
             
-            $query = DB::table('break_times')
+            $query = DB::table('break_times_backup')
                 ->select([
-                    'break_times.*',
+                    'break_times_backup.*',
                     'users.u_name',
                     'users.u_nip',
                     'user_divisions.ud_name'
                 ])
-                ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+                ->leftJoin('users', 'users.id', '=', 'break_times_backup.user_id')
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id');
 
             // Apply filters
             if ($startDate) {
-                $query->where('break_times.bt_date', '>=', $startDate);
+                $query->where('break_times_backup.bt_date', '>=', $startDate);
             }
             if ($endDate) {
-                $query->where('break_times.bt_date', '<=', $endDate);
+                $query->where('break_times_backup.bt_date', '<=', $endDate);
             }
             if ($request->filled('user_id')) {
-                $query->where('break_times.user_id', $request->user_id);
+                $query->where('break_times_backup.user_id', $request->user_id);
             }
             if ($request->filled('division_id')) {
                 $query->where('users.ud_id', $request->division_id);
             }
             if ($request->filled('status')) {
-                $query->where('break_times.bt_status', $request->status);
+                $query->where('break_times_backup.bt_status', $request->status);
             }
             
             // Apply search filter
@@ -1060,10 +910,10 @@ class BreakTimeController extends Controller
                     $btn .= '</a>';
                     $btn .= '<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
                     $btn .= '<div class="menu-item px-3">';
-                    $btn .= '<a href="'.route('break-times.show', $row->id).'" class="menu-link px-3">View</a>';
+                    $btn .= '<a href="'.route('break-times-backup.show', $row->id).'" class="menu-link px-3">View</a>';
                     $btn .= '</div>';
                     $btn .= '<div class="menu-item px-3">';
-                    $btn .= '<a href="'.route('break-times.edit', $row->id).'" class="menu-link px-3">Edit</a>';
+                    $btn .= '<a href="'.route('break-times-backup.edit', $row->id).'" class="menu-link px-3">Edit</a>';
                     $btn .= '</div>';
                     $btn .= '<div class="menu-item px-3">';
                     $btn .= '<a href="#" class="menu-link px-3 text-danger" onclick="deleteBreakTime('.$row->id.')">Delete</a>';
@@ -1103,8 +953,22 @@ class BreakTimeController extends Controller
                     return '-';
                 })
                 ->editColumn('bt_type', function($row) {
-                    $typeClass = $row->bt_type === 'break_1' ? 'badge badge-primary' : 'badge badge-info';
-                    $typeText = $row->bt_type === 'break_1' ? 'Break 1' : 'Break 2';
+                    // Dynamic break type handling
+                    $breakNumber = str_replace('break_', '', $row->bt_type);
+                    $typeText = 'Break ' . ucfirst($breakNumber);
+                    
+                    // Assign different colors based on break number
+                    $colorClasses = [
+                        1 => 'badge badge-primary',
+                        2 => 'badge badge-info', 
+                        3 => 'badge badge-success',
+                        4 => 'badge badge-warning',
+                        5 => 'badge badge-danger'
+                    ];
+                    
+                    $breakNum = is_numeric($breakNumber) ? (int)$breakNumber : 1;
+                    $typeClass = $colorClasses[$breakNum] ?? 'badge badge-secondary';
+                    
                     return '<span class="' . $typeClass . '">' . $typeText . '</span>';
                 })
                 ->editColumn('bt_status', function($row) {
@@ -1146,36 +1010,32 @@ class BreakTimeController extends Controller
     public function clockIn(Request $request)
     {
         $userId = Auth::user()->id;
-        $breakType = $request->get('break_type', 'break_1');
+        // Remove specific break type - let system auto-assign
+        // $breakType = $request->get('break_type', 'break_1');
 
-        $breakTime = new BreakTime();
-        $result = $breakTime->startBreak($userId, $breakType);
+        $breakTime = new BreakTimeBackup();
+        $result = $breakTime->startBreak($userId); // Auto-assign break type
 
         if ($result) {
-            // Get break duration from allowance
-            $today = date('Y-m-d');
-            $dailySchedule = \App\Models\DailySchedule::where('user_id', $userId)
-                ->where('ds_date', $today)
-                ->with('shiftCode')
-                ->first();
+            // Get the actual break type that was assigned
+            $activeBreak = $breakTime->getCurrentUserActiveBreak($userId);
+            $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'break_1';
             
-            $breakDuration = 30; // default
-            if ($dailySchedule && $dailySchedule->shiftCode) {
-                $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
-                $breakDuration = $allowance[$breakType]['duration'] ?? 30;
-            }
+            // Default break duration (can be customized later)
+            $breakDuration = 30; // Set default duration
             
             return response()->json([
                 'success' => true,
                 'message' => 'Break started successfully',
                 'break_id' => $result,
+                'break_type' => $assignedBreakType,
                 'start_time' => date('H:i:s'),
                 'duration_minutes' => $breakDuration
             ]);
         } else {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot start break. Please check your schedule or existing breaks.'
+                'message' => 'Cannot start break. You may already have an active break.'
             ], 400);
         }
     }
@@ -1183,10 +1043,11 @@ class BreakTimeController extends Controller
     public function clockOut(Request $request)
     {
         $userId = Auth::user()->id;
-        $breakType = $request->get('break_type', 'break_1');
+        // Remove specific break type - end any active break
+        // $breakType = $request->get('break_type', 'break_1');
 
-        $breakTime = new BreakTime();
-        $result = $breakTime->endBreak($userId, $breakType);
+        $breakTime = new BreakTimeBackup();
+        $result = $breakTime->endBreak($userId); // End any active break
 
         if ($result) {
             return response()->json([
@@ -1233,7 +1094,7 @@ class BreakTimeController extends Controller
             'authenticated' => Auth::check()
         ]);
 
-        $breakTime = new BreakTime();
+        $breakTime = new BreakTimeBackup();
         $activeBreak = $breakTime->getCurrentUserActiveBreak($userId);
 
         if ($activeBreak) {
@@ -1325,34 +1186,18 @@ class BreakTimeController extends Controller
 
         $shiftType = $dailySchedule->sc_type;
 
-        // Define break allowance based on shift type
-        $breakAllowance = 0;
-        switch ($shiftType) {
-            case 'Full Time':
-                $breakAllowance = 1; // 1 break for full time (60 minutes)
-                break;
-            case 'Part Full':
-                $breakAllowance = 2; // 2 breaks for part full (30 minutes each)
-                break;
-            case 'Part Time':
-                $breakAllowance = 1; // 1 break for part time (30 minutes)
-                break;
-            case 'ALL':
-                $breakAllowance = 1; // 1 break for ALL type
-                break;
-            default:
-                $breakAllowance = 1; // default 1 break
-        }
+        // Remove break allowance restrictions - allow unlimited breaks
+        $breakAllowance = 999; // Set to unlimited (high number)
         
         // Count completed breaks today (all types combined)
-        $completedBreaks = DB::table('break_times')
+        $completedBreaks = DB::table('break_times_backup')
             ->where('user_id', $userId)
             ->where('bt_date', $today)
             ->where('bt_status', 'completed')
             ->count();
             
         // Get detailed break info for debugging
-        $breakDetails = DB::table('break_times')
+        $breakDetails = DB::table('break_times_backup')
             ->where('user_id', $userId)
             ->where('bt_date', $today)
             ->select('bt_type', 'bt_status', 'bt_start_time', 'bt_end_time', 'bt_duration_minutes')
@@ -1366,7 +1211,7 @@ class BreakTimeController extends Controller
         ]);
         
         // Clean up invalid break records (breaks without end time but marked as completed)
-        $invalidBreaks = DB::table('break_times')
+        $invalidBreaks = DB::table('break_times_backup')
             ->where('user_id', $userId)
             ->where('bt_date', $today)
             ->where('bt_status', 'completed')
@@ -1380,7 +1225,7 @@ class BreakTimeController extends Controller
             ]);
             
             // Update invalid breaks to cancelled status
-            DB::table('break_times')
+            DB::table('break_times_backup')
                 ->where('user_id', $userId)
                 ->where('bt_date', $today)
                 ->where('bt_status', 'completed')
@@ -1388,7 +1233,7 @@ class BreakTimeController extends Controller
                 ->update(['bt_status' => 'cancelled']);
                 
             // Recalculate completed breaks
-            $completedBreaks = DB::table('break_times')
+            $completedBreaks = DB::table('break_times_backup')
                 ->where('user_id', $userId)
                 ->where('bt_date', $today)
                 ->where('bt_status', 'completed')
@@ -1425,7 +1270,7 @@ class BreakTimeController extends Controller
             ]);
 
             // Find all breaks for the user on the specified date
-            $allBreaks = DB::table('break_times')
+            $allBreaks = DB::table('break_times_backup')
                 ->where('user_id', $userId)
                 ->where('bt_date', $date)
                 ->orderBy('bt_start_time')
@@ -1449,7 +1294,7 @@ class BreakTimeController extends Controller
             $shiftType = $dailySchedule ? $dailySchedule->sc_type : 'Unknown';
             
             // Get break allowance for this shift type
-            $breakTime = new BreakTime();
+            $breakTime = new BreakTimeBackup();
             $breakAllowance = $breakTime->getBreakAllowance($shiftType);
             $maxAllowedBreaks = array_sum(array_column($breakAllowance, 'count'));
 
@@ -1476,7 +1321,7 @@ class BreakTimeController extends Controller
 
                 // Update excess breaks to cancelled status
                 foreach ($breaksToRemove as $break) {
-                    DB::table('break_times')
+                    DB::table('break_times_backup')
                         ->where('id', $break->id)
                         ->update([
                             'bt_status' => 'cancelled',
@@ -1546,7 +1391,7 @@ class BreakTimeController extends Controller
             'segment' => request()->segment(1)
         ];
 
-        return view('app.break_time.create', compact('users', 'divisions', 'data'));
+        return view('app.break_time_backup.create', compact('users', 'divisions', 'data'));
     }
 
     public function store(Request $request)
@@ -1558,56 +1403,29 @@ class BreakTimeController extends Controller
             'bt_date' => 'required|date',
             'bt_start_time' => 'required',
             'bt_end_time' => 'required|after:bt_start_time',
-            'bt_type' => 'required|in:break_1,break_2',
+            'bt_type' => 'nullable|string', // Allow any break type (break_1, break_2, break_3, etc.)
             'bt_status' => 'required|in:active,completed,cancelled',
             'bt_notes' => 'nullable|string'
         ]);
 
-        // Validate using BreakTime model rules
-        $breakTime = new BreakTime();
-        
-        // Check if user can start break (for active status)
+        // Simplified validation - only check for existing active breaks
         if ($request->bt_status === 'active') {
-            // Check if this is a new break (not editing existing)
-            $existingBreak = DB::table('break_times')
+            // Check if user already has any active break for today (not type-specific)
+            $existingActiveBreak = DB::table('break_times_backup')
                 ->where('user_id', $request->user_id)
                 ->where('bt_date', $request->bt_date)
-                ->where('bt_type', $request->bt_type)
                 ->where('bt_status', 'active')
                 ->first();
                 
-            if ($existingBreak) {
-                return back()->with('error', 'User already has an active break of this type for today')->withInput();
+            if ($existingActiveBreak) {
+                return back()->with('error', 'User already has an active break for today')->withInput();
             }
-            
-            // Check if user has schedule for this date
-            $dailySchedule = \App\Models\DailySchedule::where('user_id', $request->user_id)
-                ->where('ds_date', $request->bt_date)
-                ->with('shiftCode')
-                ->first();
-                
-            if (!$dailySchedule || !$dailySchedule->shiftCode) {
-                return back()->with('error', 'User does not have a schedule for this date')->withInput();
-            }
-            
-            // Check break quota
-            $shiftType = $dailySchedule->shiftCode->sc_type;
-            $breakAllowance = $breakTime->getBreakAllowance($shiftType);
-            
-            if (!isset($breakAllowance[$request->bt_type])) {
-                return back()->with('error', 'This break type is not allowed for user\'s shift type')->withInput();
-            }
-            
-            $completedBreaksCount = DB::table('break_times')
-                ->where('user_id', $request->user_id)
-                ->where('bt_date', $request->bt_date)
-                ->where('bt_type', $request->bt_type)
-                ->where('bt_status', 'completed')
-                ->count();
-                
-            if ($completedBreaksCount >= $breakAllowance[$request->bt_type]['count']) {
-                return back()->with('error', 'Break quota exceeded for today')->withInput();
-            }
+        }
+        
+        // Auto-assign break type if not provided or if creating a new break
+        if (!$request->bt_type || $request->bt_type === '') {
+            $breakTime = new BreakTimeBackup();
+            $request->merge(['bt_type' => $breakTime->getNextBreakType($request->user_id)]);
         }
 
         // If validation passes, insert the break time
@@ -1624,10 +1442,10 @@ class BreakTimeController extends Controller
             'created_at' => now()
         ];
 
-        $result = DB::table('break_times')->insert($breakTimeData);
+        $result = DB::table('break_times_backup')->insert($breakTimeData);
 
         if ($result) {
-            return redirect()->route('break-times.index')->with('success', 'Break time created successfully');
+            return redirect()->route('break-times-backup.index')->with('success', 'Break time created successfully');
         } else {
             return back()->with('error', 'Failed to create break time')->withInput();
         }
@@ -1640,15 +1458,15 @@ class BreakTimeController extends Controller
         $title = 'Break Times';
         $user_data = $this->getUserData();
         
-        $breakTime = DB::table('break_times')
-            ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+        $breakTime = DB::table('break_times_backup')
+            ->leftJoin('users', 'users.id', '=', 'break_times_backup.user_id')
             ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-            ->select('break_times.*', 'users.u_name', 'users.u_nip', 'user_divisions.ud_name')
-            ->where('break_times.id', $id)
+            ->select('break_times_backup.*', 'users.u_name', 'users.u_nip', 'user_divisions.ud_name')
+            ->where('break_times_backup.id', $id)
             ->first();
 
         if (!$breakTime) {
-            return redirect()->route('break-times.index')->with('error', 'Break time not found');
+            return redirect()->route('break-times-backup.index')->with('error', 'Break time not found');
         }
 
         $data = [
@@ -1659,7 +1477,7 @@ class BreakTimeController extends Controller
             'segment' => request()->segment(1)
         ];
 
-        return view('app.break_time.show', compact('breakTime', 'data'));
+        return view('app.break_time_backup.show', compact('breakTime', 'data'));
     }
 
     public function edit($id)
@@ -1669,10 +1487,10 @@ class BreakTimeController extends Controller
         $title = 'Break Times';
         $user_data = $this->getUserData();
         
-        $breakTime = DB::table('break_times')->where('id', $id)->first();
+        $breakTime = DB::table('break_times_backup')->where('id', $id)->first();
         
         if (!$breakTime) {
-            return redirect()->route('break-times.index')->with('error', 'Break time not found');
+            return redirect()->route('break-times-backup.index')->with('error', 'Break time not found');
         }
 
         $users = DB::table('users')->where('u_delete', '!=', '1')->get();
@@ -1686,7 +1504,7 @@ class BreakTimeController extends Controller
             'segment' => request()->segment(1)
         ];
 
-        return view('app.break_time.edit', compact('breakTime', 'users', 'divisions', 'data'));
+        return view('app.break_time_backup.edit', compact('breakTime', 'users', 'divisions', 'data'));
     }
 
     public function update(Request $request, $id)
@@ -1698,23 +1516,30 @@ class BreakTimeController extends Controller
             'bt_date' => 'required|date',
             'bt_start_time' => 'required',
             'bt_end_time' => 'required|after:bt_start_time',
-            'bt_type' => 'required|in:break_1,break_2',
+            'bt_type' => 'nullable|string', // Allow any break type (break_1, break_2, break_3, etc.)
             'bt_status' => 'required|in:active,completed,cancelled',
             'bt_notes' => 'nullable|string'
         ]);
 
-        $breakTime = DB::table('break_times')->where('id', $id)->first();
+        $breakTime = DB::table('break_times_backup')->where('id', $id)->first();
         
         if (!$breakTime) {
-            return redirect()->route('break-times.index')->with('error', 'Break time not found');
+            return redirect()->route('break-times-backup.index')->with('error', 'Break time not found');
         }
 
-        DB::table('break_times')->where('id', $id)->update([
+        // Auto-assign break type if not provided
+        $btType = $request->bt_type;
+        if (!$btType || $btType === '') {
+            $breakTimeModel = new BreakTimeBackup();
+            $btType = $breakTimeModel->getNextBreakType($request->user_id);
+        }
+
+        DB::table('break_times_backup')->where('id', $id)->update([
             'user_id' => $request->user_id,
             'bt_date' => $request->bt_date,
             'bt_start_time' => $request->bt_start_time,
             'bt_end_time' => $request->bt_end_time,
-            'bt_type' => $request->bt_type,
+            'bt_type' => $btType,
             'bt_status' => $request->bt_status,
             'bt_notes' => $request->bt_notes,
             'bt_duration_minutes' => $this->calculateDuration($request->bt_start_time, $request->bt_end_time),
@@ -1722,20 +1547,20 @@ class BreakTimeController extends Controller
             'updated_at' => now()
         ]);
 
-        return redirect()->route('break-times.index')->with('success', 'Break time updated successfully');
+        return redirect()->route('break-times-backup.index')->with('success', 'Break time updated successfully');
     }
 
     public function destroy($id)
     {
         $this->validateAccess();
         
-        $breakTime = DB::table('break_times')->where('id', $id)->first();
+        $breakTime = DB::table('break_times_backup')->where('id', $id)->first();
         
         if (!$breakTime) {
             return response()->json(['success' => false, 'message' => 'Break time not found']);
         }
 
-        DB::table('break_times')->where('id', $id)->delete();
+        DB::table('break_times_backup')->where('id', $id)->delete();
 
         return response()->json(['success' => true, 'message' => 'Break time deleted successfully'        ]);
     }
@@ -1743,6 +1568,8 @@ class BreakTimeController extends Controller
     public function getCurrentBreakList(Request $request)
     {
         try {
+            $divisionId = $request->get('division_id');
+
             \Log::info('getCurrentBreakList called', [
                 'authenticated' => Auth::check(),
                 'user_id' => Auth::check() ? Auth::user()->id : null,
@@ -1754,29 +1581,28 @@ class BreakTimeController extends Controller
             
             // This endpoint is public (no auth required) for displaying current break list
             
-            $query = DB::table('break_times')
+            $query = DB::table('break_times_backup')
             ->select([
-                'break_times.id',
-                'break_times.bt_start_time',
-                'break_times.bt_type',
+                'break_times_backup.id',
+                'break_times_backup.bt_start_time',
+                'break_times_backup.bt_type',
                 'users.u_name as user_name',
                 'users.u_nip',
                 'user_divisions.ud_name as division_name',
                 'shift_codes.sc_code as shift_code',
-                DB::raw('TIMESTAMPDIFF(MINUTE, ts_break_times.bt_start_time, NOW()) as duration_minutes')
+                DB::raw('TIMESTAMPDIFF(MINUTE, ts_break_times_backup.bt_start_time, NOW()) as duration_minutes')
             ])
-            ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+            ->leftJoin('users', 'users.id', '=', 'break_times_backup.user_id')
             ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
             ->leftJoin('daily_schedules', function($join) {
-                $join->on('daily_schedules.user_id', '=', 'break_times.user_id')
+                $join->on('daily_schedules.user_id', '=', 'break_times_backup.user_id')
                      ->where('daily_schedules.ds_date', date('Y-m-d'));
             })
             ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-            ->where('break_times.bt_status', 'active')
-            ->where('break_times.bt_date', date('Y-m-d'));
+            ->where('break_times_backup.bt_status', 'active')
+            ->where('break_times_backup.bt_date', date('Y-m-d'));
             
             // Add division filter if provided
-            $divisionId = $request->get('division_id');
             \Log::info('Division filter check', [
                 'has_division_id' => $request->has('division_id'),
                 'division_id_value' => $divisionId,
@@ -1794,7 +1620,7 @@ class BreakTimeController extends Controller
                 \Log::info('No division filter applied - showing all divisions');
             }
             
-            $currentBreaks = $query->orderBy('break_times.bt_start_time', 'desc')->get();
+            $currentBreaks = $query->orderBy('break_times_backup.bt_start_time', 'desc')->get();
 
         $data = [];
         foreach ($currentBreaks as $break) {
@@ -1858,26 +1684,25 @@ class BreakTimeController extends Controller
         $divisionId = $request->get('division_id');
         
         // Build the same query as getCurrentBreakList
-        $query = DB::table('break_times')
+        $query = DB::table('break_times_backup')
             ->select([
-                'break_times.id',
-                'break_times.bt_start_time',
-                'break_times.bt_type',
+                'break_times_backup.id',
+                'break_times_backup.bt_start_time',
+                'break_times_backup.bt_type',
                 'users.u_name as user_name',
-                'users.u_nip',
                 'user_divisions.ud_name as division_name',
                 'shift_codes.sc_code as shift_code',
-                DB::raw('TIMESTAMPDIFF(MINUTE, ts_break_times.bt_start_time, NOW()) as duration_minutes')
+                DB::raw('TIMESTAMPDIFF(MINUTE, ts_break_times_backup.bt_start_time, NOW()) as duration_minutes')
             ])
-            ->leftJoin('users', 'users.id', '=', 'break_times.user_id')
+            ->leftJoin('users', 'users.id', '=', 'break_times_backup.user_id')
             ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
             ->leftJoin('daily_schedules', function($join) {
-                $join->on('daily_schedules.user_id', '=', 'break_times.user_id')
+                $join->on('daily_schedules.user_id', '=', 'break_times_backup.user_id')
                      ->where('daily_schedules.ds_date', date('Y-m-d'));
             })
             ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-            ->where('break_times.bt_status', 'active')
-            ->where('break_times.bt_date', date('Y-m-d'));
+            ->where('break_times_backup.bt_status', 'active')
+            ->where('break_times_backup.bt_date', date('Y-m-d'));
         
         // Add division filter if provided
         if ($divisionId && $divisionId !== '' && $divisionId !== null) {
@@ -1904,7 +1729,8 @@ class BreakTimeController extends Controller
     {
         try {
             $userNip = $request->get('user_nip');
-            $breakType = $request->get('break_type', 'break_1');
+            // Remove specific break type - let system auto-assign
+            // $breakType = $request->get('break_type', 'break_1');
             
             // Find user by NIP
             $user = DB::table('users')->where('u_nip', $userNip)->first();
@@ -1912,38 +1738,33 @@ class BreakTimeController extends Controller
                 return response()->json(['success' => false, 'message' => 'User not found']);
             }
             
-            // Use BreakTime model validation
-            $breakTime = new BreakTime();
+            // Use BreakTime model validation (simplified)
+            $breakTime = new BreakTimeBackup();
             
-            // Check if user can start break using model validation
-            if (!$breakTime->canStartBreak($user->id, $breakType)) {
+            // Check if user can start break using simplified validation
+            if (!$breakTime->canStartBreak($user->id)) {
                 return response()->json([
                     'success' => false, 
-                    'message' => 'Cannot start break. Please check your schedule, existing breaks, or break quota.'
+                    'message' => 'Cannot start break. You may already have an active break.'
                 ], 400);
             }
             
-            // Start break using model method
-            $result = $breakTime->startBreak($user->id, $breakType);
+            // Start break using model method (auto-assign break type)
+            $result = $breakTime->startBreak($user->id);
             
             if ($result) {
-                // Get break duration from allowance
-                $today = date('Y-m-d');
-                $dailySchedule = \App\Models\DailySchedule::where('user_id', $user->id)
-                    ->where('ds_date', $today)
-                    ->with('shiftCode')
-                    ->first();
+                // Get the assigned break type
+                $activeBreak = $breakTime->getCurrentUserActiveBreak($user->id);
+                $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'break_1';
                 
-                $breakDuration = 30; // default
-                if ($dailySchedule && $dailySchedule->shiftCode) {
-                    $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
-                    $breakDuration = $allowance[$breakType]['duration'] ?? 30;
-                }
+                // Default break duration
+                $breakDuration = 30; // Set default duration
                 
                 return response()->json([
                     'success' => true,
                     'message' => 'Break started successfully',
                     'break_id' => $result,
+                    'break_type' => $assignedBreakType,
                     'break_duration' => $breakDuration
                 ]);
             } else {
@@ -1971,7 +1792,7 @@ class BreakTimeController extends Controller
             }
             
             // Find active break
-            $activeBreak = DB::table('break_times')
+            $activeBreak = DB::table('break_times_backup')
                 ->where('user_id', $user->id)
                 ->where('bt_date', date('Y-m-d'))
                 ->where('bt_status', 'active')
@@ -1982,7 +1803,7 @@ class BreakTimeController extends Controller
             }
             
             // End break
-            DB::table('break_times')
+            DB::table('break_times_backup')
                 ->where('id', $activeBreak->id)
                 ->update([
                     'bt_end_time' => now(),
@@ -2015,11 +1836,11 @@ class BreakTimeController extends Controller
             \Log::info('BreakTimeController exportToExcel called with request:', $request->all());
             
             // Build query directly without using buildBreakTimeQuery method
-            $query = DB::table('break_times')
-                ->join('users', 'break_times.user_id', '=', 'users.id')
+            $query = DB::table('break_times_backup')
+                ->join('users', 'break_times_backup.user_id', '=', 'users.id')
                 ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
                 ->select([
-                    'break_times.*',
+                    'break_times_backup.*',
                     'users.u_name',
                     'users.u_nip',
                     'user_divisions.ud_name'
@@ -2027,19 +1848,19 @@ class BreakTimeController extends Controller
 
             // Apply filters
             if ($request->filled('start_date')) {
-                $query->where('break_times.bt_date', '>=', $request->start_date);
+                $query->where('break_times_backup.bt_date', '>=', $request->start_date);
             }
             if ($request->filled('end_date')) {
-                $query->where('break_times.bt_date', '<=', $request->end_date);
+                $query->where('break_times_backup.bt_date', '<=', $request->end_date);
             }
             if ($request->filled('user_id') && $request->user_id !== '') {
-                $query->where('break_times.user_id', $request->user_id);
+                $query->where('break_times_backup.user_id', $request->user_id);
             }
             if ($request->filled('division_id') && $request->division_id !== '') {
                 $query->where('users.ud_id', $request->division_id);
             }
             if ($request->filled('status') && $request->status !== '') {
-                $query->where('break_times.bt_status', $request->status);
+                $query->where('break_times_backup.bt_status', $request->status);
             }
             if ($request->filled('search') && $request->search !== '') {
                 $search = $request->search;
@@ -2049,7 +1870,7 @@ class BreakTimeController extends Controller
                 });
             }
 
-            $breakTimes = $query->orderBy('break_times.bt_date', 'desc')->get();
+            $breakTimes = $query->orderBy('break_times_backup.bt_date', 'desc')->get();
             
             \Log::info('BreakTimeController exportToExcel query result:', [
                 'count' => $breakTimes->count(),
@@ -2063,7 +1884,7 @@ class BreakTimeController extends Controller
             }
 
             // Generate filename with filters like attendance
-            $filename = 'break_times_' . date('Y-m-d_H-i-s');
+            $filename = 'break_times_backup_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -2075,7 +1896,7 @@ class BreakTimeController extends Controller
             
             \Log::info('Starting Excel download with filename:', ['filename' => $filename]);
             
-            $response = Excel::download(new BreakTimeExport($breakTimes), $filename);
+            $response = Excel::download(new BreakTimeBackupExport($breakTimes), $filename);
             
             \Log::info('Excel download response created successfully');
             
@@ -2121,7 +1942,7 @@ class BreakTimeController extends Controller
             ]);
             
             // Generate filename
-            $filename = 'break_times_report_' . date('Y-m-d_H-i-s');
+            $filename = 'break_times_backup_report_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -2144,11 +1965,11 @@ class BreakTimeController extends Controller
     {
         \Log::info('BreakTimeController buildBreakTimeQuery called with filters:', $request->all());
         
-        $query = DB::table('break_times')
-            ->join('users', 'break_times.user_id', '=', 'users.id')
+        $query = DB::table('break_times_backup')
+            ->join('users', 'break_times_backup.user_id', '=', 'users.id')
             ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
             ->select([
-                'break_times.*',
+                'break_times_backup.*',
                 'users.u_name',
                 'users.u_nip',
                 'user_divisions.ud_name'
@@ -2156,15 +1977,15 @@ class BreakTimeController extends Controller
 
         // Apply filters
         if ($request->filled('start_date')) {
-            $query->where('break_times.bt_date', '>=', $request->start_date);
+            $query->where('break_times_backup.bt_date', '>=', $request->start_date);
             \Log::info('Applied start_date filter:', ['start_date' => $request->start_date]);
         }
         if ($request->filled('end_date')) {
-            $query->where('break_times.bt_date', '<=', $request->end_date);
+            $query->where('break_times_backup.bt_date', '<=', $request->end_date);
             \Log::info('Applied end_date filter:', ['end_date' => $request->end_date]);
         }
         if ($request->filled('user_id') && $request->user_id !== '') {
-            $query->where('break_times.user_id', $request->user_id);
+            $query->where('break_times_backup.user_id', $request->user_id);
             \Log::info('Applied user_id filter:', ['user_id' => $request->user_id]);
         }
         if ($request->filled('division_id') && $request->division_id !== '') {
@@ -2172,7 +1993,7 @@ class BreakTimeController extends Controller
             \Log::info('Applied division_id filter:', ['division_id' => $request->division_id]);
         }
         if ($request->filled('status') && $request->status !== '') {
-            $query->where('break_times.bt_status', $request->status);
+            $query->where('break_times_backup.bt_status', $request->status);
             \Log::info('Applied status filter:', ['status' => $request->status]);
         }
         if ($request->filled('search') && $request->search !== '') {
@@ -2184,7 +2005,7 @@ class BreakTimeController extends Controller
             \Log::info('Applied search filter:', ['search' => $search]);
         }
 
-        $finalQuery = $query->orderBy('break_times.bt_date', 'desc');
+        $finalQuery = $query->orderBy('break_times_backup.bt_date', 'desc');
         
         \Log::info('BreakTimeController buildBreakTimeQuery final query:', [
             'sql' => $finalQuery->toSql(),
@@ -2269,7 +2090,10 @@ class BreakTimeController extends Controller
 
         $no = 1;
         foreach ($breakTimes as $breakTime) {
-            $breakType = $breakTime->bt_type === 'break_1' ? 'Break 1' : 'Break 2';
+            // Dynamic break type handling
+            $breakNumber = str_replace('break_', '', $breakTime->bt_type);
+            $breakType = 'Break ' . ucfirst($breakNumber);
+            
             $startTime = $breakTime->bt_start_time ? date('H:i', strtotime($breakTime->bt_start_time)) : '-';
             $endTime = $breakTime->bt_end_time ? date('H:i', strtotime($breakTime->bt_end_time)) : '-';
             
@@ -2364,7 +2188,7 @@ class BreakTimeController extends Controller
                 });
             }
             
-            $filename = 'break_time_summary_' . date('Y-m-d_H-i-s');
+            $filename = 'break_time_backup_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -2374,7 +2198,7 @@ class BreakTimeController extends Controller
             }
             $filename .= '.xlsx';
             
-            return Excel::download(new BreakTimeSummaryExport($summaryData), $filename);
+            return Excel::download(new BreakTimeBackupSummaryExport($summaryData), $filename);
         } catch (\Exception $e) {
             return back()->with('error', 'Error exporting data: ' . $e->getMessage());
         }
@@ -2413,7 +2237,7 @@ class BreakTimeController extends Controller
             $html = $this->generateSummaryReportHTML($summaryData, $request);
             
             // Generate filename
-            $filename = 'break_time_summary_' . date('Y-m-d_H-i-s');
+            $filename = 'break_time_backup_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -2442,7 +2266,7 @@ class BreakTimeController extends Controller
         <html>
         <head>
             <meta charset="utf-8">
-            <title>Break Time Summary Report</title>
+            <title>Break Time Backup Summary Report</title>
             <style>
                 body { font-family: Arial, sans-serif; font-size: 12px; }
                 .header { text-align: center; margin-bottom: 20px; }
@@ -2477,7 +2301,7 @@ class BreakTimeController extends Controller
         </head>
         <body>
             <div class="header">
-                <h1>LAPORAN REKAPITULASI BREAK TIME</h1>
+                <h1>LAPORAN REKAPITULASI BREAK TIME BACKUP</h1>
                 <p>Periode: ' . date('d/m/Y', strtotime($request->get('start_date', date('Y-m-d')))) . ' - ' . date('d/m/Y', strtotime($request->get('end_date', date('Y-m-d')))) . '</p>
                 <p>Dibuat pada: ' . date('d/m/Y H:i:s') . '</p>
             </div>
@@ -2512,7 +2336,7 @@ class BreakTimeController extends Controller
                         <th>Jam Kerja/User Type</th>
                         <th class="text-center">Total Break</th>
                         <th class="text-center">No Break (ada jadwal shift namun tidak ceklog Break)</th>
-                        <th class="text-center">Melebihi Waktu Break</th>
+
                     </tr>
                 </thead>
                 <tbody>';
@@ -2529,7 +2353,7 @@ class BreakTimeController extends Controller
                         <td>' . ($item->work_type ?? '-') . '</td>
                         <td class="text-center">' . ($item->total_breaks ?? 0) . '</td>
                         <td class="text-center">' . ($item->no_break_shifts ?? 0) . '</td>
-                        <td class="text-center">' . ($item->exceeded_break_time ?? 0) . '</td>
+
                     </tr>';
         }
 
@@ -2575,7 +2399,7 @@ class BreakTimeController extends Controller
             }
             
             // Get break time data - Fixed to avoid duplicates
-            $breakTimesQuery = DB::table('break_times as bt')
+            $breakTimesQuery = DB::table('break_times_backup as bt')
                 ->leftJoin('daily_schedules as ds', function($join) use ($user_id) {
                     $join->on('bt.user_id', '=', 'ds.user_id')
                          ->where('ds.user_id', $user_id)
@@ -2622,64 +2446,20 @@ class BreakTimeController extends Controller
                     }
                 }
                 
-                // Get user's shift type to determine break allowance and add exceeded note
-                $userShiftType = DB::table('users as u')
-                    ->leftJoin('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
-                    ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
-                    ->where('u.id', $user_id)
-                    ->where('ds.ds_date', $breakTimeArray['bt_date'])
-                    ->select('sc.sc_type')
-                    ->first();
+
                 
-                $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time';
-                $breakTimeModel = new \App\Models\BreakTime();
-                $breakAllowance = $breakTimeModel->getBreakAllowance($shiftType);
-                
-                // Determine max duration for this user type
-                $maxDuration = 30; // Default
-                if (isset($breakAllowance['break_1'])) {
-                    $maxDuration = $breakAllowance['break_1']['duration'];
-                }
-                
-                // Add exceeded note if break duration exceeds allowance
-                $currentDuration = $breakTimeArray['bt_duration_minutes'] ?? 0;
-                if ($currentDuration > $maxDuration) {
-                    $exceededMinutes = $currentDuration - $maxDuration;
-                    $originalNotes = $breakTimeArray['bt_notes'] ?? '';
-                    $exceededNote = "⚠️ EXCEEDED: Break melebihi jatah {$maxDuration} menit sebanyak {$exceededMinutes} menit";
-                    
-                    if (!empty($originalNotes)) {
-                        $breakTimeArray['bt_notes'] = $originalNotes . ' | ' . $exceededNote;
-                    } else {
-                        $breakTimeArray['bt_notes'] = $exceededNote;
-                    }
-                }
+
                 
                 $processedBreakTimes->push((object) $breakTimeArray);
             }
             
-            // Get user's shift type for break allowance info
-            $userShiftType = DB::table('users as u')
-                ->leftJoin('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
-                ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
-                ->where('u.id', $user_id)
-                ->whereBetween('ds.ds_date', [$startDate, $endDate])
-                ->select('sc.sc_type')
-                ->first();
+
             
-            $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time';
-            $breakTime = new \App\Models\BreakTime();
-            $breakAllowance = $breakTime->getBreakAllowance($shiftType);
+
             
-            \Log::info('Staff Excel export - User break allowance', [
-                'user_id' => $user_id,
-                'shift_type' => $shiftType,
-                'break_allowance' => $breakAllowance
-            ]);
+            $filename = 'break_time_backup_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.xlsx';
             
-            $filename = 'break_time_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.xlsx';
-            
-            return Excel::download(new BreakTimeStaffExport($processedBreakTimes, $staff), $filename);
+            return Excel::download(new BreakTimeBackupStaffExport($processedBreakTimes, $staff), $filename);
             
         } catch (\Exception $e) {
             return back()->with('error', 'Error exporting data: ' . $e->getMessage());
@@ -2719,7 +2499,7 @@ class BreakTimeController extends Controller
             }
             
             // Get break time data - Fixed to avoid duplicates
-            $breakTimesQuery = DB::table('break_times as bt')
+            $breakTimesQuery = DB::table('break_times_backup as bt')
                 ->leftJoin('daily_schedules as ds', function($join) use ($user_id) {
                     $join->on('bt.user_id', '=', 'ds.user_id')
                          ->where('ds.user_id', $user_id)
@@ -2766,38 +2546,9 @@ class BreakTimeController extends Controller
                     }
                 }
                 
-                // Get user's shift type to determine break allowance and add exceeded note
-                $userShiftType = DB::table('users as u')
-                    ->leftJoin('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
-                    ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
-                    ->where('u.id', $user_id)
-                    ->where('ds.ds_date', $breakTimeArray['bt_date'])
-                    ->select('sc.sc_type')
-                    ->first();
+
                 
-                $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time';
-                $breakTimeModel = new \App\Models\BreakTime();
-                $breakAllowance = $breakTimeModel->getBreakAllowance($shiftType);
-                
-                // Determine max duration for this user type
-                $maxDuration = 30; // Default
-                if (isset($breakAllowance['break_1'])) {
-                    $maxDuration = $breakAllowance['break_1']['duration'];
-                }
-                
-                // Add exceeded note if break duration exceeds allowance
-                $currentDuration = $breakTimeArray['bt_duration_minutes'] ?? 0;
-                if ($currentDuration > $maxDuration) {
-                    $exceededMinutes = $currentDuration - $maxDuration;
-                    $originalNotes = $breakTimeArray['bt_notes'] ?? '';
-                    $exceededNote = "⚠️ EXCEEDED: Break melebihi jatah {$maxDuration} menit sebanyak {$exceededMinutes} menit";
-                    
-                    if (!empty($originalNotes)) {
-                        $breakTimeArray['bt_notes'] = $originalNotes . ' | ' . $exceededNote;
-                    } else {
-                        $breakTimeArray['bt_notes'] = $exceededNote;
-                    }
-                }
+
                 
                 $processedBreakTimes->push((object) $breakTimeArray);
             }
@@ -2805,7 +2556,7 @@ class BreakTimeController extends Controller
             // Generate HTML for PDF
             $html = $this->generateStaffReportHTML($processedBreakTimes, $staff, $request);
             
-            $filename = 'break_time_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.pdf';
+            $filename = 'break_time_backup_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.pdf';
             
             $pdf = \PDF::loadHTML($html);
             return $pdf->download($filename);
@@ -2891,7 +2642,10 @@ class BreakTimeController extends Controller
 
         $no = 1;
         foreach ($breakTimes as $breakTime) {
-            $breakType = $breakTime->bt_type === 'break_1' ? 'Break 1' : 'Break 2';
+            // Dynamic break type handling
+            $breakNumber = str_replace('break_', '', $breakTime->bt_type);
+            $breakType = 'Break ' . ucfirst($breakNumber);
+            
             $startTime = $breakTime->bt_start_time ? date('H:i', strtotime($breakTime->bt_start_time)) : '-';
             $endTime = $breakTime->bt_end_time ? date('H:i', strtotime($breakTime->bt_end_time)) : '-';
             

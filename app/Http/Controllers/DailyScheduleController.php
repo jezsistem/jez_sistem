@@ -674,6 +674,12 @@ class DailyScheduleController extends Controller
         
         // Get parameters from request
         $divisionId = $request->get('division_id');
+        
+        // If no division filter specified, default to current user's division for non-DIRECTOR/MANAGER
+        if (!$divisionId && !in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER'])) {
+            $divisionId = $currentUser->ud_id;
+        }
+        
         $search = $request->get('search'); // Search by name or NIP
         $dateFilter = $request->get('date_filter', 'this_week');
         $startDate = $request->get('start_date');
@@ -738,11 +744,19 @@ class DailyScheduleController extends Controller
             ]);
         }
         
-        // Get divisions (only show if user is director/manager)
+        // Get divisions based on user role
         $divisions = collect();
         if (in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER'])) {
+            // DIRECTOR/MANAGER can see all divisions
             $divisions = DB::table('user_divisions')
                 ->where('ud_status', 'active')
+                ->orderBy('ud_name')
+                ->get();
+        } elseif ($currentUser->up_code === 'SUPERVISOR') {
+            // SUPERVISOR can only see their own division
+            $divisions = DB::table('user_divisions')
+                ->where('ud_status', 'active')
+                ->where('id', $currentUser->ud_id)
                 ->orderBy('ud_name')
                 ->get();
         }
@@ -845,7 +859,8 @@ class DailyScheduleController extends Controller
             'search',
             'startDate',
             'endDate',
-            'dateFilter'
+            'dateFilter',
+            'divisionId'
         ));
     }
     
@@ -1148,17 +1163,54 @@ class DailyScheduleController extends Controller
                             ->where('id', $userId)
                             ->first();
                         
-                        DailySchedule::create([
-                            'user_id' => $userId,
-                            'ud_id' => $user->ud_id,
-                            'sc_id' => $shiftCodeId,
-                            'ds_date' => $date,
-                            'ds_start_time' => $shiftCode->sc_start_time,
-                            'ds_end_time' => $shiftCode->sc_end_time,
-                            'ds_status' => 'scheduled',
-                            'created_by' => Auth::user()->id,
-                            'updated_by' => Auth::user()->id
-                        ]);
+                        try {
+                            // Try using Eloquent first
+                            $newSchedule = DailySchedule::create([
+                                'user_id' => $userId,
+                                'ud_id' => $user->ud_id,
+                                'sc_id' => $shiftCodeId,
+                                'ds_date' => $date,
+                                'ds_start_time' => $shiftCode->sc_start_time,
+                                'ds_end_time' => $shiftCode->sc_end_time,
+                                'ds_status' => 'scheduled',
+                                'created_by' => Auth::user()->id,
+                                'updated_by' => Auth::user()->id
+                            ]);
+                            
+                            \Log::info('Schedule created successfully with Eloquent', [
+                                'schedule_id' => $newSchedule->id,
+                                'user_id' => $userId,
+                                'date' => $date
+                            ]);
+                            
+                        } catch (\Exception $eloquentError) {
+                            \Log::warning('Eloquent create failed, trying DB facade', [
+                                'error' => $eloquentError->getMessage(),
+                                'user_id' => $userId,
+                                'date' => $date
+                            ]);
+                            
+                            // Fallback to DB facade with explicit ID handling
+                            $scheduleId = DB::table('daily_schedules')->insertGetId([
+                                'user_id' => $userId,
+                                'ud_id' => $user->ud_id,
+                                'sc_id' => $shiftCodeId,
+                                'ds_date' => $date,
+                                'ds_start_time' => $shiftCode->sc_start_time,
+                                'ds_end_time' => $shiftCode->sc_end_time,
+                                'ds_status' => 'scheduled',
+                                'created_by' => Auth::user()->id,
+                                'updated_by' => Auth::user()->id,
+                                'created_at' => now(),
+                                'updated_at' => now()
+                            ]);
+                            
+                            \Log::info('Schedule created successfully with DB facade', [
+                                'schedule_id' => $scheduleId,
+                                'user_id' => $userId,
+                                'date' => $date
+                            ]);
+                        }
                     }
                 }
             }
@@ -1173,9 +1225,22 @@ class DailyScheduleController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             
+            \Log::error('Weekly schedule save error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+                'user_id' => Auth::user()->id
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Error saving schedule: ' . $e->getMessage()
+                'message' => 'Error saving schedule: ' . $e->getMessage(),
+                'debug_info' => [
+                    'error_type' => get_class($e),
+                    'error_code' => $e->getCode(),
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine()
+                ]
             ], 500);
         }
     }
