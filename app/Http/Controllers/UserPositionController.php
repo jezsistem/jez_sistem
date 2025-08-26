@@ -177,22 +177,56 @@ class UserPositionController extends Controller
             'up_name' => 'required|string|max:255',
             'up_description' => 'nullable|string',
             'up_level' => 'required|integer|min:1|max:10',
-            'up_can_approve_leave' => 'boolean',
-            'up_is_active' => 'boolean',
-            'up_color' => 'required|string|max:7'
+            'up_can_approve_leave' => 'nullable|in:on',
+            'up_is_active' => 'nullable|in:on', 
+            'up_color' => 'nullable|string|max:7'
         ]);
 
-        $userPosition = new UserPosition();
-        $data = $request->all();
-        $data['up_can_approve_leave'] = $request->has('up_can_approve_leave');
-        $data['up_is_active'] = $request->has('up_is_active');
+        try {
+            $userPosition = new UserPosition();
+            
+            // Filter out unwanted fields
+            $data = $request->only([
+                'up_code', 'up_name', 'up_description', 'up_level'
+            ]);
+            
+            // Handle checkboxes properly (convert 'on' to 1, missing to 0)
+            $data['up_can_approve_leave'] = $request->input('up_can_approve_leave') === 'on' ? 1 : 0;
+            $data['up_is_active'] = $request->input('up_is_active') === 'on' ? 1 : 0;
+            
+            // Preserve existing color or set default if not exists
+            $existingPosition = UserPosition::find($id);
+            $data['up_color'] = $existingPosition->up_color ?? '#007bff';
 
-        $result = $userPosition->storeData('edit', $id, $data);
+            \Log::info('Updating user position', ['id' => $id, 'data' => $data]);
 
-        if ($result) {
-            return redirect()->route('user-positions.index')->with('success', 'User position updated successfully');
-        } else {
-            return back()->with('error', 'Failed to update user position')->withInput();
+            $result = $userPosition->storeData('edit', $id, $data);
+
+            if ($result) {
+                \Log::info('User position updated successfully', ['id' => $id]);
+                
+                if (request()->ajax()) {
+                    return response()->json(['success' => true, 'message' => 'User position updated successfully']);
+                } else {
+                    return redirect()->route('user-positions.index')->with('success', 'User position updated successfully');
+                }
+            } else {
+                \Log::error('Failed to update user position', ['id' => $id]);
+                
+                if (request()->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Failed to update user position'], 500);
+                } else {
+                    return back()->with('error', 'Failed to update user position')->withInput();
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error updating user position: ' . $e->getMessage(), ['id' => $id]);
+            
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error updating user position: ' . $e->getMessage()], 500);
+            } else {
+                return back()->with('error', 'Error updating user position: ' . $e->getMessage())->withInput();
+            }
         }
     }
 

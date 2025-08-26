@@ -33,7 +33,7 @@
                                 </a>
                             </div>
                         </div>
-                        <form action="{{ route('user-positions.update', $position->id) }}" method="POST">
+                        <form id="userPositionEditForm" action="{{ route('user-positions.update', $position->id) }}" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="card-body">
@@ -142,7 +142,7 @@
                             </div>
                             <div class="card-footer w-full d-flex justify-content-end">
                                 <a href="{{ route('user-positions.index') }}" class="btn btn-dark mr-2">Cancel</a>
-                                <button type="submit" class="btn btn-primary">Update</button>
+                                <button type="submit" class="btn btn-primary" id="updateBtn">Update</button>
 
                             </div>
                         </form>
@@ -160,9 +160,132 @@
 </style>
 
 <script>
+// Custom toast function
+function showToast(title, message, type) {
+    showSimpleToast(title, message, type);
+}
+
+// Simple custom toast function
+function showSimpleToast(title, message, type) {
+    const toastHtml = `
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                    background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                    color: white; padding: 15px 20px; border-radius: 2px; 
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+         id="customToast">
+            <strong>${title}</strong><br>
+            ${message}
+        </div>
+    `;
+    
+    $('body').append(toastHtml);
+    
+    // Auto remove after 3 seconds
+    setTimeout(function() {
+        $('#customToast').fadeOut(function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
 $(document).ready(function() {
     loadStore();
     clockUpdate();
+    
+    // Set up CSRF token
+    const csrfToken = $('meta[name="csrf-token"]').attr('content') || 
+                      $('input[name="_token"]').val() || 
+                      "{{ csrf_token() }}";
+    
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': csrfToken
+        }
+    });
+    
+    // Handle form submission
+    $('#userPositionEditForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate required fields
+        const upCode = $('#up_code').val().trim();
+        const upName = $('#up_name').val().trim();
+        const upLevel = $('#up_level').val();
+        
+        if (!upCode || !upName || !upLevel) {
+            showToast('Validation Error', 'Please fill in all required fields', 'error');
+            return;
+        }
+        
+        const updateBtn = $('#updateBtn');
+        const originalText = updateBtn.text();
+        
+        // Disable button and show loading
+        updateBtn.prop('disabled', true).text('Updating...');
+        
+        // Get form data
+        const formData = {
+            up_code: upCode,
+            up_name: upName,
+            up_description: $('#up_description').val(),
+            up_level: upLevel,
+            up_can_approve_leave: $('#up_can_approve_leave').is(':checked') ? 'on' : '',
+            up_is_active: $('#up_is_active').is(':checked') ? 'on' : '',
+            _method: 'PUT',
+            _token: csrfToken
+        };
+        
+        // Submit via AJAX
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                showToast('Success', 'User position updated successfully', 'success');
+                
+                // Redirect after a short delay
+                setTimeout(function() {
+                    window.location.href = "{{ route('user-positions.index') }}";
+                }, 1500);
+            },
+            error: function(xhr) {
+                console.log('Error Response:', xhr);
+                console.log('Status:', xhr.status);
+                console.log('Response Text:', xhr.responseText);
+                
+                let errorMessage = 'Failed to update user position';
+                
+                if (xhr.status === 419) {
+                    // CSRF token mismatch - try regular form submission
+                    errorMessage = 'CSRF token issue. Trying regular form submission...';
+                    showToast('Warning', errorMessage, 'error');
+                    
+                    // Submit form traditionally after short delay
+                    setTimeout(function() {
+                        $('#userPositionEditForm')[0].submit();
+                    }, 1000);
+                    return;
+                } else if (xhr.status === 422) {
+                    // Validation errors
+                    const errors = xhr.responseJSON?.errors;
+                    if (errors) {
+                        const firstError = Object.values(errors)[0];
+                        errorMessage = firstError[0];
+                    }
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Internal server error. Please contact administrator.';
+                }
+                
+                showToast('Error', errorMessage, 'error');
+            },
+            complete: function() {
+                // Re-enable button
+                updateBtn.prop('disabled', false).text(originalText);
+            }
+        });
+    });
 });
 </script>
 @endsection 

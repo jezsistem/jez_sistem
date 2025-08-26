@@ -143,9 +143,15 @@ $(document).ready(function() {
     clockUpdate();
     
     // Set up CSRF token
+    const csrfToken = $('meta[name="csrf-token"]').attr('content') || 
+                      $('input[name="_token"]').val() || 
+                      "{{ csrf_token() }}";
+    
+    console.log('CSRF Token found:', csrfToken);
+    
     $.ajaxSetup({
         headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            'X-CSRF-TOKEN': csrfToken
         }
     });
     
@@ -175,8 +181,13 @@ $(document).ready(function() {
             ud_name: udName,
             ud_description: $('#ud_description').val(),
             ud_status: udStatus,
-            _method: 'PUT'
+            _method: 'PUT',
+            _token: csrfToken
         };
+        
+        // Debug logging
+        console.log('Form Data:', formData);
+        console.log('CSRF Token:', csrfToken);
         
         // Submit via AJAX
         $.ajax({
@@ -192,17 +203,33 @@ $(document).ready(function() {
                 }, 1500);
             },
             error: function(xhr) {
+                console.log('Error Response:', xhr);
+                console.log('Status:', xhr.status);
+                console.log('Response Text:', xhr.responseText);
+                
                 let errorMessage = 'Failed to update user division';
                 
-                if (xhr.status === 422) {
+                if (xhr.status === 419) {
+                    // CSRF token mismatch - try regular form submission
+                    errorMessage = 'CSRF token issue. Trying regular form submission...';
+                    showToast('Warning', errorMessage, 'error');
+                    
+                    // Submit form traditionally after short delay
+                    setTimeout(function() {
+                        $('#userDivisionEditForm')[0].submit();
+                    }, 1000);
+                    return;
+                } else if (xhr.status === 422) {
                     // Validation errors
-                    const errors = xhr.responseJSON.errors;
+                    const errors = xhr.responseJSON?.errors;
                     if (errors) {
                         const firstError = Object.values(errors)[0];
                         errorMessage = firstError[0];
                     }
                 } else if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Internal server error. Please contact administrator.';
                 }
                 
                 showToast('Error', errorMessage, 'error');
