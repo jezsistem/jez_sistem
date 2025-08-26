@@ -99,7 +99,8 @@
                                         <th class="text-dark">Divisi</th>
                                         <th class="text-dark">Tipe</th>
                                         <th class="text-dark">Jumlah</th>
-                                        <th class="text-dark">Selesai</th>
+                                        <th class="text-dark">Start</th>
+                                        <th class="text-dark">End</th>
                                         <th class="text-dark">Item</th>
                                     </tr>
                                 </thead>
