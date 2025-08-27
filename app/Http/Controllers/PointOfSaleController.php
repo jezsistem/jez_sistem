@@ -168,6 +168,13 @@ class PointOfSaleController extends Controller
             ->where('pos_transactions.st_id', $storeId)
             ->where('pos_transactions.created_at', '>=', $startTime)
             ->where('kasir_id', $user_id_login)
+            ->where(function($query) {
+            $query->where('pm_name', '!=', 'CASH')
+                  ->orWhere(function($subQuery) {
+                  $subQuery->where('pm_name', '=', 'CASH')
+                       ->whereNotNull('pm_id_partial');
+                  });
+            })
             ->groupBy('pm_name')
             ->get()
             ->keyBy('pm_name')
@@ -184,23 +191,46 @@ class PointOfSaleController extends Controller
             ->keyBy('pm_name')
             ->toArray();
 
+        $cash = PosTransaction::select('pm_name', DB::raw('SUM(pos_real_price) as pos_payment'))
+        ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+        ->where('pos_transactions.st_id', $storeId)
+        ->where('pos_transactions.created_at', '>=', $startTime)
+        ->where('kasir_id', $user_id_login)
+        ->where('pm_name', '=', 'CASH')
+        ->where('pm_id_partial', '=', null)
+        ->groupBy('pm_name')
+        ->get()
+        ->keyBy('pm_name')
+        ->toArray();
+
         // Combine payments efficiently
         $combined = [];
         foreach ($main as $pmName => $mainPayment) {
             $combined[$pmName] = [
-                'pm_name' => $pmName,
-                'total_payment' => $mainPayment['pos_payment']
+            'pm_name' => $pmName,
+            'total_payment' => $mainPayment['pos_payment']
             ];
         }
 
         foreach ($partial as $pmName => $partialPayment) {
             if (isset($combined[$pmName])) {
-                $combined[$pmName]['total_payment'] += $partialPayment['pos_payment_partial'];
+            $combined[$pmName]['total_payment'] += $partialPayment['pos_payment_partial'];
             } else {
-                $combined[$pmName] = [
-                    'pm_name' => $pmName,
-                    'total_payment' => $partialPayment['pos_payment_partial']
-                ];
+            $combined[$pmName] = [
+                'pm_name' => $pmName,
+                'total_payment' => $partialPayment['pos_payment_partial']
+            ];
+            }
+        }
+
+        foreach ($cash as $pmName => $cashPayment) {
+            if (isset($combined[$pmName])) {
+            $combined[$pmName]['total_payment'] += $cashPayment['pos_payment'];
+            } else {
+            $combined[$pmName] = [
+                'pm_name' => $pmName,
+                'total_payment' => $cashPayment['pos_payment']
+            ];
             }
         }
 
