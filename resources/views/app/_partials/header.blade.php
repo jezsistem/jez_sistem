@@ -19,10 +19,13 @@
         </div>
         <div class="topbar">
             <div class="header-mobile header-mobile-fixed col-2">
-                <div class="topbar-item btn-sm bg" id="kt_aside_mobile_toggle">
-                    <img alt="Logo" src="{{ asset('logo') }}/jez_pro.png" width="100px"/>
+                <div class="topbar-item btn-sm bg" id="kt_aside_mobile_toggle" style="padding-left: 0px !important;">
+                    <div class="d-flex align-items-center">
+                        <!-- Mobile Menu Toggle Button -->
+                        <i class="ki-outline ki-burger-menu mr-3" style="font-size: 2.3rem; transform: scaleX(-1);"></i>
+                        <img alt="Logo" src="{{ asset('logo') }}/jez_pro.png" width="100px"/>
+                    </div>  
                 </div>
-
             </div>
 
             <style>

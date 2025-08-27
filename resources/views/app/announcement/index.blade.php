@@ -1,141 +1,11 @@
 @extends('app.structure')
 @section('content')
 
-<style>
-    /* Compact Card Styling */
-    .compact-card {
-        transition: all 0.3s ease;
-        border: 1px solid #e1e5e9;
-    }
-    
-    .cursor-pointer {
-        cursor: pointer;
-    }
-    
-    .content-preview {
-        line-height: 1.4;
-        color: #6c757d;
-    }
-    
-    .expandable-content {
-        animation: slideDown 0.3s ease;
-    }
-    
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .chevron-rotate {
-        transform: rotate(180deg);
-        transition: transform 0.3s ease;
-    }
-    
-    /* Compact layout improvements */
-    .announcement-card {
-        margin-bottom: 1rem !important;
-    }
-    
-    .symbol-35 {
-        width: 35px;
-        height: 35px;
-    }
-    
-    .fs-7 {
-        font-size: 0.875rem;
-    }
-    
-    .fs-7 {
-        font-size: 0.75rem;
-    }
-    
-    /* Hover effects */
-    .announcement-card:hover .card-body {
-        /* background-color: #f8f9fa; */
-    }
-    
-    /* Read more button styling */
-    .btn-light-primary {
-        background-color: #e3f2fd;
-        border-color: #2196f3;
-        color: #1976d2;
-    }
-    
-    .btn-light-primary:hover {
-        background-color: #bbdefb;
-        border-color: #1976d2;
-        color: #1565c0;
-    }
-    
-    /* Compact stats visibility control */
-    .announcement-card .compact-stats {
-        display: flex !important;
-    }
-    
-    .announcement-card.expanded-content .compact-stats {
-        display: none !important;
-    }
-    
-    /* Ensure icons stay in one line */
-    .compact-stats {
-        flex-wrap: nowrap !important;
-        overflow: hidden;
-    }
-    
-    .compact-stats > div {
-        white-space: nowrap !important;
-        flex-shrink: 0;
-    }
-    
-    /* Pinned announcement styling */
-    .pinned-announcements-section .announcement-card {
-        background-color: #e7eff6 !important;
-        border-color: #e2f3fe !important;
-    }
-    
-    .pinned-announcements-section .announcement-card:hover {
-        background-color:rgb(225, 237, 248) !important;
-        border-color: #e2f3fe !important;
-    }
-
-    .pinned-announcements-section .announcement-card .btn {
-        background-color: #ffffff;
-    }
-
-    /* Basic mobile responsiveness */
-    @media (max-width: 767.98px) {
-        .container {
-            padding-left: 15px;
-            padding-right: 15px;
-        }
-        
-        .announcement-card .card-body {
-            padding: 1rem !important;
-        }
-        
-        .compact-title {
-            max-width: 100% !important;
-        }
-        
-        .btn-icon {
-            min-width: 44px;
-            min-height: 44px;
-        }
-    }
-</style>
-
-</style>
 
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <!--begin::Subheader-->
-    <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
+    <div class="subheader py-6 subheader-solid" id="kt_subheader">
         <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
             <!--begin::Info-->
             <div class="d-flex align-items-center flex-wrap mr-1">
@@ -151,11 +21,11 @@
             
             <!--begin::Toolbar-->
             <div class="d-flex align-items-center">
-                <a href="{{ route('announcements.create') }}" class="btn btn-primary font-weight-bolder">
+                <a href="{{ route('announcements.create') }}" class="btn btn-primary font-weight-bolder btn-mobile-sm">
                     <i class="ki-outline ki-plus"></i>
                     New Announcement
                 </a>
-                <a href="{{ route('announcements.manage') }}" class="btn btn-light-primary font-weight-bolder ml-2">
+                <a href="{{ route('announcements.manage') }}" class="btn btn-light-primary font-weight-bolder ml-2 btn-mobile-sm">
                     <i class="ki-outline ki-setting-4"></i>
                     Manage
                 </a>
@@ -168,11 +38,26 @@
     <!--begin::Container-->
     <div class="container">
         <div class="row">
+            <!-- Mobile Dropdown Categories -->
+            <div class="d-lg-none col-12 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="text-dark font-weight-bold">Categories</h4>
+                    <select class="form-control" id="mobileCategorySelect" style="width: 40%;">
+                        <option value="all">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" data-color="{{ $category->color }}">
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <!--begin::Main Content-->
-            <div class="col-lg-9">
+            <div class="col-lg-9 col-md-12 col-12">
                 <!--begin::Pinned Announcements-->
                 @if($pinnedAnnouncements->count() > 0)
-                <div class="mb-6 pinned-announcements-section mb-8">
+                <div class="mb-6 pinned-announcements-section">
                     <h4 class="text-dark font-weight-bold mb-6">
                         Pinned Announcements
                     </h4>
@@ -207,23 +92,25 @@
             <!--end::Main Content-->
             
             <!--begin::Sidebar-->
-            <div class="col-lg-3">
-                <div class="card card-custom">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <h3 class="card-label">Categories</h3>
+            <div class="col-lg-3 col-md-12 col-12">
+                <div class="d-none d-lg-block">
+                    <div class="card card-custom">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="card-label">Categories</h3>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group list-group-flush fs-6">
-                            <a href="#" class="list-group-item list-group-item-action rounded mb-2 active" data-category="all">
-                                All Categories
-                            </a>
-                            @foreach($categories as $category)
-                                <a href="#" class="list-group-item list-group-item-action rounded mb-2" data-category="{{ $category->id }}" style="border-left: 4px solid {{ $category->color }};">
-                                    {{ $category->name }}
+                        <div class="card-body">
+                            <div class="list-group list-group-flush fs-6">
+                                <a href="#" class="list-group-item list-group-item-action rounded mb-2 active" data-category="all">
+                                    All Categories
                                 </a>
-                            @endforeach
+                                @foreach($categories as $category)
+                                    <a href="#" class="list-group-item list-group-item-action rounded mb-2" data-category="{{ $category->id }}" style="border-left: 4px solid {{ $category->color }};">
+                                        {{ $category->name }}
+                                    </a>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -303,7 +190,133 @@
 </div>
 
 <style>
-/* Light and simple styling for announcement page */
+ /* Compact Card Styling */
+.compact-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e1e5e9;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.content-preview {
+    line-height: 1.4;
+    color: #6c757d;
+}
+
+.expandable-content {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chevron-rotate {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+/* Compact layout improvements */
+.announcement-card {
+    margin-bottom: 1rem !important;
+}
+
+.symbol-35 {
+    width: 35px;
+    height: 35px;
+}
+
+.fs-7 {
+    font-size: 0.875rem;
+}
+
+.fs-7 {
+    font-size: 0.75rem;
+}
+
+/* Hover effects */
+.announcement-card:hover .card-body {
+    /* background-color: #f8f9fa; */
+}
+
+/* Read more button styling */
+.btn-light-primary {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+}
+
+.btn-light-primary:hover {
+    background-color: #bbdefb;
+    border-color: #1976d2;
+    color: #1565c0;
+}
+
+/* Compact stats visibility control */
+.announcement-card .compact-stats {
+    display: flex !important;
+}
+
+.announcement-card.expanded-content .compact-stats {
+    display: none !important;
+}
+
+/* Ensure icons stay in one line */
+.compact-stats {
+    flex-wrap: nowrap !important;
+    overflow: hidden;
+}
+
+.compact-stats > div {
+    white-space: nowrap !important;
+    flex-shrink: 0;
+}
+
+/* Pinned announcement styling */
+.pinned-announcements-section .announcement-card {
+    background-color: #e7eff6 !important;
+    border-color: #e2f3fe !important;
+}
+
+.pinned-announcements-section .announcement-card:hover {
+    background-color:rgb(225, 237, 248) !important;
+    border-color: #e2f3fe !important;
+}
+
+.pinned-announcements-section .announcement-card .btn {
+    background-color: #ffffff;
+}
+
+/* Basic mobile responsiveness */
+@media (max-width: 767.98px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .announcement-card .card-body {
+        padding: 1rem !important;
+    }
+    
+    .compact-title {
+        max-width: 100% !important;
+    }
+    
+    .btn-icon {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
 .list-group-item {
     border: none !important;
     background-color: #f8f9fa !important;
@@ -340,6 +353,7 @@
     border: 1px solid #e9ecef !important;
     /* box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important; */
     transition: all 0.2s ease;
+    max-width: 100% !important;
 }
 
 .announcement-card:hover {
@@ -505,7 +519,20 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     color: #495057 !important;
     transition: all 0.3s ease;
 }
-
+.compact-title-mobile {
+    display: none;
+}
+.fw-bold {
+    font-weight: 600 !important;
+}
+@media (max-width: 768px) {
+    .compact-title {
+        display: none;
+    }
+    .compact-title-mobile {
+        display: block;
+    }
+}
 .compact-content {
     transition: all 0.3s ease;
 }
@@ -547,6 +574,22 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     /* Optional: different styling for viewed announcements */
     color: #6c757d !important;
 }
+.reactions-container-mobile {
+    display: none;
+}
+@media (max-width: 767px) {
+  .btn-mobile-sm {
+    padding: 0.375rem 0.75rem; /* sekitar ukuran btn-sm */
+    font-size: 0.9rem;
+  }
+  .reactions-container-mobile {
+    display: block;
+  }
+  .reactions-container {
+    display: none !important;
+  }
+}
+
 </style>
 
 <script>
@@ -895,6 +938,70 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     }
     
     window.addEventListener('load', initializeAnnouncementPage);
+    
+    // Initialize mobile category select functionality
+    function initializeMobileCategorySelect() {
+        console.log('Initializing mobile category select...');
+        
+        // Wait for jQuery to be available
+        if (typeof $ !== 'undefined') {
+            // Mobile Category Select Handler
+            $('#mobileCategorySelect').on('change', function() {
+                const selectedCategory = $(this).val();
+                console.log('Mobile select changed to category:', selectedCategory);
+                
+                // Update active state in all category lists
+                $('.list-group-item').removeClass('active');
+                $(`.list-group-item[data-category="${selectedCategory}"]`).addClass('active');
+                
+                // Call the existing filter function
+                if (typeof window.filterAnnouncementsByCategory === 'function') {
+                    window.filterAnnouncementsByCategory(selectedCategory);
+                } else {
+                    console.warn('filterAnnouncementsByCategory function not found');
+                }
+                
+                // Visual feedback
+                $(this).addClass('is-valid');
+                setTimeout(() => {
+                    $(this).removeClass('is-valid');
+                }, 1000);
+            });
+
+            // Sync mobile select with list item clicks
+            $('.list-group-item').on('click', function() {
+                const categoryId = $(this).data('category');
+                console.log('List item clicked, category:', categoryId);
+                
+                // Update mobile select
+                $('#mobileCategorySelect').val(categoryId);
+                
+                // Update active states
+                $('.list-group-item').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Initialize mobile select with current active category
+            const activeCategory = $('.list-group-item.active').data('category');
+            if (activeCategory) {
+                $('#mobileCategorySelect').val(activeCategory);
+                console.log('Initialized mobile select with category:', activeCategory);
+            }
+            
+            // Debug: Log all available categories
+            console.log('Available categories in mobile select:', $('#mobileCategorySelect option').map(function() {
+                return { value: $(this).val(), text: $(this).text() };
+            }).get());
+        } else {
+            console.warn('jQuery not available, retrying in 100ms...');
+            setTimeout(initializeMobileCategorySelect, 100);
+        }
+    }
+    
+    // Initialize mobile category select after page loads
+    window.addEventListener('load', function() {
+        setTimeout(initializeMobileCategorySelect, 500);
+    });
     
     // Toggle announcement content with view tracking
     window.toggleAnnouncementContent = function(announcementId) {
@@ -1351,6 +1458,60 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     }
 })();
 </script>
+
+<!-- Responsive Categories Styling and Functionality -->
+<style>
+    /* Mobile Category Select Styling */
+    #mobileCategorySelect {
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 1rem;
+        padding: 8px 12px;
+        background: #fff;
+        transition: all 0.3s ease;
+        height: 40px;
+    }
+
+    #mobileCategorySelect:focus {
+        border-color: #3699ff;
+        box-shadow: 0 0 0 0.2rem rgba(54, 153, 255, 0.25);
+        outline: none;
+    }
+
+
+    /* Responsive Adjustments */
+    @media (max-width: 991px) {
+        .d-lg-none {
+            display: block !important;
+        }
+        
+        .d-none.d-lg-block {
+            display: none !important;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .d-md-block {
+            display: none !important;
+        }
+        
+        .d-lg-none {
+            display: block !important;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .d-lg-none {
+            display: none !important;
+        }
+        
+        .d-none.d-lg-block {
+            display: block !important;
+        }
+    }
+</style>
+
+
 
 @endsection
 @include('app._partials.js')

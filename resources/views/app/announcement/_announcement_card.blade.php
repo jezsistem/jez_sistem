@@ -40,10 +40,11 @@
         
         <!--begin::Content Preview (saat minimize)-->
         <div class="mb-3 compact-content" id="compact-content-{{ $announcement->id }}">
+            <span class="text-dark fw-bold fs-5 mb-3 compact-title-mobile" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $announcement->title }}</span>
             <div class="text-gray-600 fs-5 content-preview" id="preview-{{ $announcement->id }}">
                 {{ Str::limit(strip_tags($announcement->content), 100) }}
                 @if(strlen(strip_tags($announcement->content)) > 100)
-                    <span class="text-primary fw-bold">... read more</span>
+                    <span class="text-primary fw-bold">... <a href="#" onclick="toggleAnnouncementContent({{ $announcement->id }})" class="text-primary">read more</a></span>
                 @endif
             </div>
         </div>
@@ -139,7 +140,7 @@
             <!--end::Full Content-->
             
             <!--begin::Reactions-->
-            <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center justify-content-between reactions-container">
                 <div class="d-flex align-items-center">
                     @foreach($reactions as $reaction)
                     <button class="btn btn-sm mr-2 reaction-btn" 
@@ -167,6 +168,35 @@
                         Show Less
                     </button>
                 </div>
+            </div>
+            <!--end::Reactions-->
+            <!--begin::Reactions-->
+            <div class="d-flex align-items-center reactions-container-mobile mb-4">
+                @foreach($reactions as $reaction)
+                <button class="btn btn-sm mr-2 reaction-btn" 
+                        data-announcement="{{ $announcement->id }}" 
+                        data-reaction="{{ $reaction->id }}"
+                        onclick="reactToAnnouncement({{ $announcement->id }}, {{ $reaction->id }})"
+                        style="background-color: #6c757d20; color: #6c757d; border: none;">
+                     {{ $reaction->name }}
+                    <span class="reaction-count">{{ $announcement->userReactions->where('reaction_id', $reaction->id)->count() }}</span>
+                </button>
+                @endforeach
+            </div>
+                
+            <div class="d-flex align-items-center reactions-container-mobile">
+                <button class="btn btn-sm btn-light mr-2" onclick="showReactionDetails({{ $announcement->id }})">
+                    <i class="ki-outline ki-eye"></i> View Reactions ({{ $announcement->userReactions->count() }})
+                </button>
+                <button class="btn btn-sm btn-light mr-2" onclick="showViewDetails({{ $announcement->id }})">
+                    <i class="fas fa-users"></i> Viewers ({{ $announcement->views_count ?? 0 }})
+                </button>
+                <button class="btn btn-sm btn-light-primary" 
+                        onclick="toggleAnnouncementContent({{ $announcement->id }})" 
+                        id="show-less-btn-{{ $announcement->id }}" 
+                        style="display: none;">
+                    Show Less
+                </button>
             </div>
             <!--end::Reactions-->
         </div>

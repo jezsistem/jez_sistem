@@ -141,16 +141,10 @@
             <!--begin::Card-->
             <div class="card card-custom">
                 <div class="card-header">
-                    <div class="card-title">
-                        <span class="card-icon">
-                            <i class="fas fa-plus text-primary"></i>
-                        </span>
-                        <h3 class="card-label">Create New Announcement</h3>
-                    </div>
                     <div class="card-toolbar">
-                        <a href="{{ route('announcements.manage') }}" class="btn btn-light-primary font-weight-bolder">
+                        <a href="{{ route('announcements.index') }}" class="btn btn-light-primary font-weight-bolder">
                             <i class="fas fa-arrow-left"></i>
-                            Back to Manage
+                            Back
                         </a>
                     </div>
                 </div>

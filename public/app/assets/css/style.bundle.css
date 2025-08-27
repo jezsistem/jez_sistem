@@ -87288,7 +87288,11 @@ body {
         padding: 0 18px;
     }
 }
-
+@media (max-width: 767px) {
+    .aside-menu {
+        padding-left: 20px;
+    }
+}
 @media (max-width: 991.98px) {
     .header-mobile-fixed .wrapper {
         padding-top: 55px;
