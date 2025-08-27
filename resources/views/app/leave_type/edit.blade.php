@@ -32,7 +32,7 @@
                                 </a>
                             </div>
                         </div>
-                        <form action="{{ route('leave-types.update', $leaveType->id) }}" method="POST">
+                        <form id="leaveTypeEditForm" action="{{ route('leave-types.update', $leaveType->id) }}" method="POST">
                                 @csrf
                                 @method('PUT')
 
@@ -141,7 +141,7 @@
                                 <a href="{{ route('leave-types.index') }}" class="btn btn-dark mr-2">
                                     Cancel
                                 </a>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" id="updateBtn">
                                     Update
                                 </button>
                             </div>
@@ -156,4 +156,157 @@
 </div>
 <!--end::Content-->
 @endsection 
+
+<script>
+// Custom toast function
+function showToast(title, message, type) {
+    showSimpleToast(title, message, type);
+}
+
+// Simple custom toast function
+function showSimpleToast(title, message, type) {
+    const toastHtml = `
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                    background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                    color: white; padding: 15px 20px; border-radius: 2px; 
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+         id="customToast">
+            <strong>${title}</strong><br>
+            ${message}
+        </div>
+    `;
+    
+    $('body').append(toastHtml);
+    
+    // Auto remove after 3 seconds
+    setTimeout(function() {
+        $('#customToast').fadeOut(function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
+$(document).ready(function() {
+    console.log('Leave Type Edit - Document Ready');
+    
+    // Check if jQuery is available
+    if (typeof $ === 'undefined') {
+        console.error('jQuery is not available!');
+        return;
+    }
+    
+    console.log('jQuery version:', $.fn.jquery);
+    
+    loadStore();
+    clockUpdate();
+    
+    // Set up CSRF token
+    const csrfToken = $('meta[name="csrf-token"]').attr('content') || 
+                      $('input[name="_token"]').val() || 
+                      "{{ csrf_token() }}";
+    
+    console.log('CSRF Token found:', csrfToken);
+    
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': csrfToken
+        }
+    });
+    
+    // Handle form submission
+    $('#leaveTypeEditForm').on('submit', function(e) {
+        console.log('Form submission triggered');
+        e.preventDefault();
+        
+        // Validate required fields
+        const ltCode = $('#lt_code').val().trim();
+        const ltName = $('#lt_name').val().trim();
+        const ltUnit = $('#lt_unit').val();
+        
+        console.log('Form values:', { ltCode, ltName, ltUnit });
+        
+        if (!ltCode || !ltName || !ltUnit) {
+            console.log('Validation failed, showing toast');
+            showToast('Validation Error', 'Please fill in all required fields', 'error');
+            return;
+        }
+        
+        const updateBtn = $('#updateBtn');
+        const originalText = updateBtn.text();
+        
+        // Disable button and show loading
+        updateBtn.prop('disabled', true).text('Updating...');
+        
+        // Get form data
+        const formData = {
+            lt_code: ltCode,
+            lt_name: ltName,
+            lt_description: $('#lt_description').val(),
+            lt_default_days: $('#lt_default_days').val() || 0,
+            lt_default_hours: $('#lt_default_hours').val() || 0,
+            lt_unit: ltUnit,
+            lt_requires_approval: $('#lt_requires_approval').is(':checked') ? 1 : 0,
+            lt_is_active: $('#lt_is_active').is(':checked') ? 1 : 0,
+            _method: 'PUT',
+            _token: csrfToken
+        };
+        
+        // Debug logging
+        console.log('Form Data:', formData);
+        console.log('CSRF Token:', csrfToken);
+        
+        // Submit via AJAX
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                showToast('Success', 'Leave type updated successfully', 'success');
+                
+                // Redirect after a short delay
+                setTimeout(function() {
+                    window.location.href = "{{ route('leave-types.index') }}";
+                }, 1500);
+            },
+            error: function(xhr) {
+                console.log('Error Response:', xhr);
+                console.log('Status:', xhr.status);
+                console.log('Response Text:', xhr.responseText);
+                
+                let errorMessage = 'Failed to update leave type';
+                
+                if (xhr.status === 419) {
+                    // CSRF token mismatch - try regular form submission
+                    errorMessage = 'CSRF token issue. Trying regular form submission...';
+                    showToast('Warning', errorMessage, 'error');
+                    
+                    // Submit form traditionally after short delay
+                    setTimeout(function() {
+                        $('#leaveTypeEditForm')[0].submit();
+                    }, 1000);
+                    return;
+                } else if (xhr.status === 422) {
+                    // Validation errors
+                    const errors = xhr.responseJSON?.errors;
+                    if (errors) {
+                        const firstError = Object.values(errors)[0];
+                        errorMessage = firstError[0];
+                    }
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Internal server error. Please contact administrator.';
+                }
+                
+                showToast('Error', errorMessage, 'error');
+            },
+            complete: function() {
+                // Re-enable button
+                updateBtn.prop('disabled', false).text(originalText);
+            }
+        });
+    });
+});
+</script>
+
 @include('app._partials.js')

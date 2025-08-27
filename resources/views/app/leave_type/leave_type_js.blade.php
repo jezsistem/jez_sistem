@@ -154,6 +154,34 @@
         });
     }
 
+    // Custom toast function
+    function showToast(title, message, type) {
+        showSimpleToast(title, message, type);
+    }
+
+    // Simple custom toast function
+    function showSimpleToast(title, message, type) {
+        const toastHtml = `
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                        background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                        color: white; padding: 15px 20px; border-radius: 2px; 
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+             id="customToast">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+        `;
+        
+        $('body').append(toastHtml);
+        
+        // Auto remove after 3 seconds
+        setTimeout(function() {
+            $('#customToast').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+
     // Delete leave type function
     function deleteLeaveType(id) {
         if (confirm('Are you sure you want to delete this leave type?')) {
@@ -170,13 +198,13 @@
                         } else {
                             $('#leaveTypeTable').DataTable().ajax.reload();
                         }
-                        alert('Leave type deleted successfully');
+                        showToast('Success', 'Leave type deleted successfully', 'success');
                     } else {
-                        alert('Failed to delete leave type');
+                        showToast('Error', 'Failed to delete leave type', 'error');
                     }
                 },
                 error: function() {
-                    alert('Error occurred while deleting leave type');
+                    showToast('Error', 'Error occurred while deleting leave type', 'error');
                 }
             });
         }

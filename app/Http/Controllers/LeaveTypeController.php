@@ -188,8 +188,7 @@ class LeaveTypeController extends Controller
             'lt_default_hours' => 'nullable|integer|min:0',
             'lt_unit' => 'required|in:days,hours',
             'lt_requires_approval' => 'boolean',
-            'lt_is_active' => 'boolean',
-            'lt_color' => 'required|string|max:7'
+            'lt_is_active' => 'boolean'
         ]);
 
         try {
@@ -208,7 +207,8 @@ class LeaveTypeController extends Controller
             $leaveType->lt_unit = $request->lt_unit;
             $leaveType->lt_requires_approval = $request->input('lt_requires_approval', 0) == 1;
             $leaveType->lt_is_active = $request->input('lt_is_active', 0) == 1;
-            $leaveType->lt_color = $request->lt_color;
+            // Preserve existing color or set default
+            $leaveType->lt_color = $leaveType->lt_color ?? '#007bff';
             $leaveType->updated_by = auth()->user()->u_name ?? 'system';
             
             \Log::info('Leave type after update', [
@@ -220,17 +220,32 @@ class LeaveTypeController extends Controller
 
             if ($result) {
                 \Log::info('Leave type update successful', ['id' => $id]);
-                return redirect()->route('leave-types.index')->with('success', 'Leave type updated successfully');
+                
+                if (request()->ajax()) {
+                    return response()->json(['success' => true, 'message' => 'Leave type updated successfully']);
+                } else {
+                    return redirect()->route('leave-types.index')->with('success', 'Leave type updated successfully');
+                }
             } else {
                 \Log::error('Leave type update failed', ['id' => $id]);
-                return back()->with('error', 'Failed to update leave type')->withInput();
+                
+                if (request()->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Failed to update leave type'], 500);
+                } else {
+                    return back()->with('error', 'Failed to update leave type')->withInput();
+                }
             }
         } catch (\Exception $e) {
             \Log::error('Leave type update error: ' . $e->getMessage(), [
                 'id' => $id,
                 'exception' => $e
             ]);
-            return back()->with('error', 'Failed to update leave type: ' . $e->getMessage())->withInput();
+            
+            if (request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Failed to update leave type: ' . $e->getMessage()], 500);
+            } else {
+                return back()->with('error', 'Failed to update leave type: ' . $e->getMessage())->withInput();
+            }
         }
     }
 
