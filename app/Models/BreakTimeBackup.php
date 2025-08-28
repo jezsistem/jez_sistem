@@ -331,6 +331,18 @@ class BreakTimeBackup extends Model
         return $this->storeData('edit', $activeBreak->id, $data);
     }
 
+    // Get current active break for a user
+    public function getCurrentBreak($userId)
+    {
+        $today = date('Y-m-d');
+        
+        return DB::table($this->table)
+            ->where('user_id', $userId)
+            ->where('bt_date', $today)
+            ->where('bt_status', 'active')
+            ->first();
+    }
+
     // Get break statistics
     public function getBreakStats($startDate, $endDate, $userId = null)
     {

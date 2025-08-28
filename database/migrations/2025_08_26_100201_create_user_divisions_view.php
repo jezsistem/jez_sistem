@@ -14,23 +14,41 @@ class CreateUserDivisionsView extends Migration
      */
     public function up()
     {
-        // First, drop foreign key constraints that reference user_divisions
-        $foreignKeys = [
-            'ts_daily_schedules_ud_id_foreign' => 'ts_daily_schedules',
-            'ts_users_ud_id_foreign' => 'ts_users'
-        ];
+        // Check if view already exists
+        $viewExists = DB::select("
+            SELECT COUNT(*) as count 
+            FROM information_schema.views 
+            WHERE table_schema = DATABASE() 
+            AND table_name = 'ts_user_divisions'
+        ");
         
-        foreach ($foreignKeys as $constraint => $table) {
-            try {
-                DB::statement("ALTER TABLE {$table} DROP FOREIGN KEY {$constraint}");
-            } catch (\Exception $e) {
-                // Ignore if foreign key doesn't exist
-                \Log::info("Foreign key {$constraint} not found or already dropped: " . $e->getMessage());
-            }
+        if ($viewExists[0]->count > 0) {
+            \Log::info("View ts_user_divisions already exists, skipping creation");
+            return;
         }
         
-        // Drop existing user_divisions table if exists
-        Schema::dropIfExists('user_divisions');
+        // Check if table exists
+        $tableExists = Schema::hasTable('user_divisions');
+        
+        if ($tableExists) {
+            // First, drop foreign key constraints that reference user_divisions
+            $foreignKeys = [
+                'ts_daily_schedules_ud_id_foreign' => 'ts_daily_schedules',
+                'ts_users_ud_id_foreign' => 'ts_users'
+            ];
+            
+            foreach ($foreignKeys as $constraint => $table) {
+                try {
+                    DB::statement("ALTER TABLE {$table} DROP FOREIGN KEY {$constraint}");
+                } catch (\Exception $e) {
+                    // Ignore if foreign key doesn't exist
+                    \Log::info("Foreign key {$constraint} not found or already dropped: " . $e->getMessage());
+                }
+            }
+            
+            // Drop existing user_divisions table if exists
+            Schema::dropIfExists('user_divisions');
+        }
         
         // Create a view that maps store_types to user_divisions structure
         DB::statement("
