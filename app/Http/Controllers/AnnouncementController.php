@@ -279,7 +279,7 @@ class AnnouncementController extends Controller
     {
         $this->validateAccess();
         $announcement = Announcement::with(['category', 'creator', 'recipients'])->findOrFail($id);
-        $categories = AnnouncementCategory::active()->orderBy('name')->get();
+        $categories = AnnouncementCategstorery::active()->orderBy('name')->get();
         $divisions = DB::table('user_divisions')->where('ud_status', 'active')->orderBy('ud_name')->get();
         $users = DB::table('users')->where('u_delete', '0')->whereNotNull('u_nip')->orderBy('u_name')->get();
 
