@@ -117,7 +117,7 @@
                                     @endif
                                 </div>
                                 <div class="flex-grow-1">
-                                    <div class="font-weight-bold">{{ $attachment->original_name }}</div>
+                                    <div class="font-weight-bold" style="max-width: 280px">{{ $attachment->original_name }}</div>
                                     <small class="text-muted">{{ $attachment->file_size_human }}</small>
                                 </div>
                                 <div class="ml-2">
