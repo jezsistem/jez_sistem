@@ -38,6 +38,7 @@ class AttendanceSummaryExport implements FromCollection, WithHeadings, WithMappi
             'Divisi',
             'Jam Kerja',
             'Total Shift',
+            'Total Libur',
             'Hadir',
             'Sakit',
             'Cuti',
@@ -63,6 +64,7 @@ class AttendanceSummaryExport implements FromCollection, WithHeadings, WithMappi
             $row->division_name ?? '-',
             $row->work_type ?? '-',
             $row->total_shifts ?? 0,
+            $row->total_libur ?? 0,
             $row->present_days ?? 0,
             $row->sick_days ?? 0,
             $row->leave_days ?? 0,
@@ -90,7 +92,7 @@ class AttendanceSummaryExport implements FromCollection, WithHeadings, WithMappi
                 ]
             ],
             // Auto-size columns
-            'A:L' => [
+            'A:M' => [
                 'alignment' => [
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER

@@ -29,11 +29,11 @@
                     <div class="card card-custom gutter-b">
                         <div class="card-header flex-wrap py-3">
                             <div class="card-title">
-                                <h3 class="card-label">Edit Break Time</h3>
+                                <h3 class="card-label">Edit Backup Time</h3>
                             </div>
                             <div class="card-toolbar">
                                 <a href="{{ route('break-times-backup.index') }}" class="btn btn-secondary btn-sm mr-2">
-                                    <i class="ki-outline ki-left"></i> Kembali
+                                    <i class="ki-outline ki-left"></i> Back
                                 </a>
                             </div>
                         </div>
@@ -59,9 +59,9 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="user_id">Karyawan <span class="text-danger">*</span></label>
+                                            <label for="user_id">Staff <span class="text-danger">*</span></label>
                                             <select class="form-control" id="user_id" name="user_id" required>
-                                                <option value="">Pilih Karyawan</option>
+                                                <option value="">Pilih Staff</option>
                                                 @foreach($users as $user)
                                                     <option value="{{ $user->id }}" {{ $breakTime->user_id == $user->id ? 'selected' : '' }}>
                                                         {{ $user->u_name }} ({{ $user->u_nip }})
@@ -99,12 +99,12 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="bt_type">Jenis Break</label>
+                                            <label for="bt_type">Jenis Backup</label>
                                             <input type="text" class="form-control" id="bt_type" name="bt_type" 
                                                    value="{{ $breakTime->bt_type }}" 
-                                                   placeholder="break_1, break_2, break_3, etc."
+                                                   placeholder="backup_1, backup_2, backup_3, etc."
                                                    readonly>
-                                            <small class="text-muted">Break type ditentukan otomatis oleh sistem</small>
+                                            <small class="text-muted">Backup type ditentukan otomatis oleh sistem</small>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -126,7 +126,7 @@
 
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save"></i> Update Break Time
+                                        <i class="fas fa-save"></i> Update Backup Time
                                     </button>
                                     <a href="{{ route('break-times-backup.index') }}" class="btn btn-secondary">
                                         <i class="fas fa-times"></i> Batal

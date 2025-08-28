@@ -942,19 +942,37 @@ class AttendanceController extends Controller
             'bindings' => $query->getBindings()
         ]);
         
-        // Get daily schedules count for total shifts
-        $totalShifts = DB::table('daily_schedules')
-            ->where('user_id', $user_id)
-            ->where('ds_status', 'scheduled');
+        // Get daily schedules count for total shifts (excluding libur)
+        $totalShifts = DB::table('daily_schedules as ds')
+            ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+            ->where('ds.user_id', $user_id)
+            ->where('ds.ds_status', 'scheduled')
+            ->where('sc.sc_code', '!=', 'L'); // Exclude libur
         
         if (request('start_date')) {
-            $totalShifts->where('ds_date', '>=', request('start_date'));
+            $totalShifts->where('ds.ds_date', '>=', request('start_date'));
         }
         if (request('end_date')) {
-            $totalShifts->where('ds_date', '<=', request('end_date'));
+            $totalShifts->where('ds.ds_date', '<=', request('end_date'));
         }
         
         $totalShiftsCount = $totalShifts->count();
+        
+        // Get total libur count
+        $totalLibur = DB::table('daily_schedules as ds')
+            ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+            ->where('ds.user_id', $user_id)
+            ->where('ds.ds_status', 'scheduled')
+            ->where('sc.sc_code', '=', 'L'); // Only libur
+        
+        if (request('start_date')) {
+            $totalLibur->where('ds.ds_date', '>=', request('start_date'));
+        }
+        if (request('end_date')) {
+            $totalLibur->where('ds.ds_date', '<=', request('end_date'));
+        }
+        
+        $totalLiburCount = $totalLibur->count();
         
         $stats = $query->selectRaw('
             SUM(CASE WHEN at_status = "present" THEN 1 ELSE 0 END) as present_days,
@@ -963,7 +981,7 @@ class AttendanceController extends Controller
             SUM(CASE WHEN at_status LIKE "leave_%" AND at_status != "leave_SICK" AND at_status != "leave_HALF_DAY" THEN 1 ELSE 0 END) as leave_days
         ')->first();
         
-        // Calculate alpha days
+        // Calculate alpha days (excluding libur)
         $presentDays = $stats->present_days ?? 0;
         $leaveDays = $stats->leave_days ?? 0;
         $sickDays = $stats->sick_days ?? 0;
@@ -972,6 +990,7 @@ class AttendanceController extends Controller
         // Create final stats object
         $finalStats = (object) [
             'total_shifts' => $totalShiftsCount,
+            'total_libur' => $totalLiburCount,
             'present_days' => $presentDays,
             'sick_days' => $sickDays,
             'leave_days' => $leaveDays,
@@ -986,6 +1005,83 @@ class AttendanceController extends Controller
         ]);
         
         return response()->json(['stats' => $finalStats]);
+    }
+
+    /**
+     * Get alpha dates for specific staff
+     */
+    public function getStaffAlphaDates($user_id, Request $request)
+    {
+        $this->validateAccess();
+        
+        try {
+            $startDate = $request->get('start_date', date('Y-m-d', strtotime('-30 days')));
+            $endDate = $request->get('end_date', date('Y-m-d'));
+            
+            \Log::info('Getting alpha dates for staff', [
+                'user_id' => $user_id,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+            
+            // Get dates where user has schedule (excluding libur/L) but no attendance or leave
+            $alphaDates = DB::table('daily_schedules as ds')
+                ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+                ->leftJoin('attendance as a', function($join) use ($user_id) {
+                    $join->on('ds.user_id', '=', 'a.user_id')
+                         ->on('ds.ds_date', '=', 'a.at_date');
+                })
+                ->leftJoin('leave_requests as lr', function($join) use ($user_id) {
+                    $join->on('ds.user_id', '=', 'lr.user_id')
+                         ->where('lr.lr_status', '=', 'approved')
+                         ->whereRaw('ts_ds.ds_date BETWEEN ts_lr.lr_start_date AND ts_lr.lr_end_date');
+                })
+                ->select([
+                    'ds.ds_date',
+                    'sc.sc_code',
+                    'sc.sc_start_time',
+                    'sc.sc_end_time',
+                    'sc.sc_shift_name',
+                    DB::raw('CASE WHEN ts_a.id IS NOT NULL THEN "HADIR" WHEN ts_lr.id IS NULL THEN "CUTI" ELSE "ALFA" END as status_type'),
+                    DB::raw('CASE 
+                        WHEN ts_a.id IS NULL AND ts_lr.id IS NULL THEN "Tidak ada fingerprint attendance atau cuti yang disetujui"
+                        WHEN ts_a.id IS NOT NULL THEN "Sudah hadir"
+                        WHEN ts_lr.id IS NOT NULL THEN "Sedang cuti"
+                        ELSE "Tidak ada data"
+                    END as keterangan')
+                ])
+                ->where('ds.user_id', $user_id)
+                ->where('ds.ds_status', 'scheduled')
+                ->where('ds.ds_date', '>=', $startDate)
+                ->where('ds.ds_date', '<=', $endDate)
+                ->where('sc.sc_code', '!=', 'L') // Exclude libur
+                ->whereNull('a.id') // No attendance record
+                ->whereNull('lr.id') // No approved leave
+                ->orderBy('ds.ds_date', 'desc')
+                ->get();
+            
+            \Log::info('Alpha dates query result', [
+                'alpha_dates_count' => $alphaDates->count(),
+                'sample_dates' => $alphaDates->take(5)->toArray()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $alphaDates
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error getting alpha dates', [
+                'user_id' => $user_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     private function getActionButtons($id)
@@ -1512,11 +1608,12 @@ class AttendanceController extends Controller
                     'ud.ud_name as division_name',
                     'ut.ut_name as work_type',
                     DB::raw('COUNT(DISTINCT ts_daily_schedules.id) as total_shifts'),
+                    DB::raw('COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code = "L" THEN ts_daily_schedules.id END) as total_libur'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) as present_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "late" THEN ts_attendance.id END) as late_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "leave_SICK" THEN ts_attendance.id END) as sick_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" AND ts_attendance.at_status != "leave_SICK" AND ts_attendance.at_status != "leave_HALF_DAY" THEN ts_attendance.id END) as leave_days'),
-                    DB::raw('(COUNT(DISTINCT ts_daily_schedules.id) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" THEN ts_attendance.id END)) as alpha_days')
+                    DB::raw('(COUNT(DISTINCT ts_daily_schedules.id) - COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code = "L" THEN ts_daily_schedules.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" THEN ts_attendance.id END)) as alpha_days')
                 ])
                 ->leftJoin('attendance', function($join) use ($startDate, $endDate) {
                     $join->on('u.id', '=', 'attendance.user_id')
@@ -1527,6 +1624,7 @@ class AttendanceController extends Controller
                          ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
                          ->where('daily_schedules.ds_status', 'scheduled');
                 })
+                ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
                 ->where('u.u_delete', '!=', '1')
                 ->whereNotNull('u.u_nip')
                 ->where('u.u_nip', '!=', '')
@@ -1922,7 +2020,11 @@ class AttendanceController extends Controller
             \Log::info('Processing single attendance status', [
                 'attendance_id' => $attendance->id,
                 'user_id' => $attendance->user_id,
-                'date' => $attendance->at_date
+                'date' => $attendance->at_date,
+                'time_in' => $attendance->at_time_in,
+                'time_out' => $attendance->at_time_out,
+                'current_status' => $attendance->at_status,
+                'current_notes' => $attendance->at_notes
             ]);
 
             // Get daily schedule for this user and date with shift codes
@@ -1939,6 +2041,20 @@ class AttendanceController extends Controller
                     'shift_codes.sc_shift_name'
                 ])
                 ->first();
+
+            \Log::info('Daily schedule lookup result', [
+                'user_id' => $attendance->user_id,
+                'date' => $attendance->at_date,
+                'schedule_found' => !is_null($dailySchedule),
+                'schedule_data' => $dailySchedule ? [
+                    'ds_id' => $dailySchedule->id,
+                    'sc_id' => $dailySchedule->sc_id,
+                    'sc_start_time' => $dailySchedule->sc_start_time,
+                    'sc_end_time' => $dailySchedule->sc_end_time,
+                    'sc_code' => $dailySchedule->sc_code,
+                    'sc_shift_name' => $dailySchedule->sc_shift_name
+                ] : null
+            ]);
 
             // Check if user has both time_in and time_out
             $hasTimeIn = !empty($attendance->at_time_in);
@@ -1978,7 +2094,11 @@ class AttendanceController extends Controller
                     'user_id' => $attendance->user_id,
                     'date' => $attendance->at_date,
                     'calculated_status' => $status,
-                    'notes' => $notes
+                    'notes' => $notes,
+                    'schedule_start' => $dailySchedule->sc_start_time,
+                    'schedule_end' => $dailySchedule->sc_end_time,
+                    'user_time_in' => $attendance->at_time_in,
+                    'user_time_out' => $attendance->at_time_out
                 ]);
             }
 
@@ -2046,8 +2166,22 @@ class AttendanceController extends Controller
             $shiftStartMinutes = $this->timeToMinutes($shiftStart);
             $shiftEndMinutes = $this->timeToMinutes($shiftEnd);
 
+            \Log::info('Time comparison details', [
+                'time_in' => $timeIn,
+                'time_in_minutes' => $timeInMinutes,
+                'shift_start' => $shiftStart,
+                'shift_start_minutes' => $shiftStartMinutes,
+                'is_late' => $timeInMinutes > $shiftStartMinutes,
+                'difference_minutes' => $timeInMinutes - $shiftStartMinutes
+            ]);
+
             // Check for late arrival
             if ($timeInMinutes > $shiftStartMinutes) {
+                \Log::info('User is LATE', [
+                    'late_minutes' => $timeInMinutes - $shiftStartMinutes,
+                    'time_in' => $timeIn,
+                    'schedule_start' => $shiftStart
+                ]);
                 return 'late';
             }
 
@@ -2120,9 +2254,200 @@ class AttendanceController extends Controller
         if (empty($time)) return 0;
         
         $parts = explode(':', $time);
-        if (count($parts) !== 2) return 0;
+        // Handle both HH:MM and HH:MM:SS formats
+        if (count($parts) < 2 || count($parts) > 3) return 0;
         
         return (int)$parts[0] * 60 + (int)$parts[1];
+    }
+
+    /**
+     * Reprocess single attendance status
+     */
+    public function reprocessSingleAttendance(Request $request)
+    {
+        $this->validateAccess();
+        
+        try {
+            $attendanceId = $request->get('attendance_id');
+            $userId = $request->get('user_id');
+            $date = $request->get('date');
+            
+            if (!$attendanceId && !$userId) {
+                return response()->json(['error' => 'Please provide attendance_id or user_id and date']);
+            }
+            
+            $query = DB::table('attendance');
+            if ($attendanceId) {
+                $query->where('id', $attendanceId);
+            } else {
+                $query->where('user_id', $userId)->where('at_date', $date);
+            }
+            
+            $attendance = $query->first();
+            
+            if (!$attendance) {
+                return response()->json(['error' => 'Attendance record not found']);
+            }
+            
+            // Get daily schedule
+            $dailySchedule = DB::table('daily_schedules')
+                ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->where('daily_schedules.user_id', $attendance->user_id)
+                ->where('daily_schedules.ds_date', $attendance->at_date)
+                ->where('daily_schedules.ds_status', 'scheduled')
+                ->select([
+                    'daily_schedules.*',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_shift_name'
+                ])
+                ->first();
+            
+            // Calculate status manually
+            $calculatedStatus = $this->calculateAttendanceStatus((object)$attendance, $dailySchedule);
+            $notes = $this->generateAttendanceNotes((object)$attendance, $dailySchedule, $calculatedStatus);
+            
+            // Update attendance record
+            $updateResult = DB::table('attendance')
+                ->where('id', $attendance->id)
+                ->update([
+                    'at_status' => $calculatedStatus,
+                    'at_notes' => $notes,
+                    'updated_at' => now()
+                ]);
+            
+            if ($dailySchedule) {
+                DB::table('attendance')
+                    ->where('id', $attendance->id)
+                    ->update(['daily_schedule_id' => $dailySchedule->id]);
+            }
+            
+            $debugInfo = [
+                'attendance' => [
+                    'id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                    'date' => $attendance->at_date,
+                    'time_in' => $attendance->at_time_in,
+                    'time_out' => $attendance->at_time_out,
+                    'old_status' => $attendance->at_status,
+                    'new_status' => $calculatedStatus,
+                    'old_notes' => $attendance->at_notes,
+                    'new_notes' => $notes
+                ],
+                'daily_schedule' => $dailySchedule ? [
+                    'id' => $dailySchedule->id,
+                    'sc_id' => $dailySchedule->sc_id,
+                    'sc_start_time' => $dailySchedule->sc_start_time,
+                    'sc_end_time' => $dailySchedule->sc_end_time,
+                    'sc_code' => $dailySchedule->sc_code,
+                    'sc_shift_name' => $dailySchedule->sc_shift_name
+                ] : null,
+                'calculation' => [
+                    'time_in_minutes' => $this->timeToMinutes($attendance->at_time_in),
+                    'shift_start_minutes' => $dailySchedule ? $this->timeToMinutes($dailySchedule->sc_start_time) : null,
+                    'is_late' => $dailySchedule ? ($this->timeToMinutes($attendance->at_time_in) > $this->timeToMinutes($dailySchedule->sc_start_time)) : null,
+                    'late_minutes' => $dailySchedule ? ($this->timeToMinutes($attendance->at_time_in) - $this->timeToMinutes($dailySchedule->sc_start_time)) : null,
+                    'update_result' => $updateResult
+                ]
+            ];
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Attendance status reprocessed successfully',
+                'data' => $debugInfo
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error reprocessing single attendance status: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Debug method to test attendance status calculation
+     */
+    public function debugAttendanceStatus(Request $request)
+    {
+        $this->validateAccess();
+        
+        try {
+            $attendanceId = $request->get('attendance_id');
+            $userId = $request->get('user_id');
+            $date = $request->get('date');
+            
+            if (!$attendanceId && !$userId) {
+                return response()->json(['error' => 'Please provide attendance_id or user_id and date']);
+            }
+            
+            $query = DB::table('attendance');
+            if ($attendanceId) {
+                $query->where('id', $attendanceId);
+            } else {
+                $query->where('user_id', $userId)->where('at_date', $date);
+            }
+            
+            $attendance = $query->first();
+            
+            if (!$attendance) {
+                return response()->json(['error' => 'Attendance record not found']);
+            }
+            
+            // Get daily schedule
+            $dailySchedule = DB::table('daily_schedules')
+                ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->where('daily_schedules.user_id', $attendance->user_id)
+                ->where('daily_schedules.ds_date', $attendance->at_date)
+                ->where('daily_schedules.ds_status', 'scheduled')
+                ->select([
+                    'daily_schedules.*',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time',
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_shift_name'
+                ])
+                ->first();
+            
+            // Calculate status manually
+            $calculatedStatus = $this->calculateAttendanceStatus($attendance, $dailySchedule);
+            $notes = $this->generateAttendanceNotes($attendance, $dailySchedule, $calculatedStatus);
+            
+            $debugInfo = [
+                'attendance' => [
+                    'id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                    'date' => $attendance->at_date,
+                    'time_in' => $attendance->at_time_in,
+                    'time_out' => $attendance->at_time_out,
+                    'current_status' => $attendance->at_status,
+                    'current_notes' => $attendance->at_notes
+                ],
+                'daily_schedule' => $dailySchedule ? [
+                    'id' => $dailySchedule->id,
+                    'sc_id' => $dailySchedule->sc_id,
+                    'sc_start_time' => $dailySchedule->sc_start_time,
+                    'sc_end_time' => $dailySchedule->sc_end_time,
+                    'sc_code' => $dailySchedule->sc_code,
+                    'sc_shift_name' => $dailySchedule->sc_shift_name
+                ] : null,
+                'calculation' => [
+                    'time_in_minutes' => $this->timeToMinutes($attendance->at_time_in),
+                    'shift_start_minutes' => $dailySchedule ? $this->timeToMinutes($dailySchedule->sc_start_time) : null,
+                    'is_late' => $dailySchedule ? ($this->timeToMinutes($attendance->at_time_in) > $this->timeToMinutes($dailySchedule->sc_start_time)) : null,
+                    'late_minutes' => $dailySchedule ? ($this->timeToMinutes($attendance->at_time_in) - $this->timeToMinutes($dailySchedule->sc_start_time)) : null,
+                    'calculated_status' => $calculatedStatus,
+                    'calculated_notes' => $notes
+                ]
+            ];
+            
+            return response()->json($debugInfo);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Debug failed: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -2271,6 +2596,10 @@ class AttendanceController extends Controller
                     <div class="stat-label">Total Shift</div>
                 </div>
                 <div class="stat-item">
+                    <div class="stat-number">' . $summaryData->sum('total_libur') . '</div>
+                    <div class="stat-label">Total Libur</div>
+                </div>
+                <div class="stat-item">
                     <div class="stat-number">' . $summaryData->sum('late_days') . '</div>
                     <div class="stat-label">Total Terlambat</div>
                 </div>
@@ -2290,6 +2619,7 @@ class AttendanceController extends Controller
                         <th>Divisi</th>
                         <th>Jenis Kerja</th>
                         <th class="text-center">Total Shift</th>
+                        <th class="text-center">Total Libur</th>
                         <th class="text-center">Hadir</th>
                         <th class="text-center">Sakit</th>
                         <th class="text-center">Cuti</th>
@@ -2310,6 +2640,7 @@ class AttendanceController extends Controller
                         <td>' . ($item->division_name ?? '-') . '</td>
                         <td>' . ($item->work_type ?? '-') . '</td>
                         <td class="text-center">' . ($item->total_shifts ?? 0) . '</td>
+                        <td class="text-center">' . ($item->total_libur ?? 0) . '</td>
                         <td class="text-center">' . ($item->present_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->sick_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->leave_days ?? 0) . '</td>

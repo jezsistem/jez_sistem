@@ -23,7 +23,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <form action="{{ route('leave-requests.store') }}" method="POST">
+                            <form action="{{ route('leave-requests.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="row">
                                     <div class="col-md-6">
@@ -113,14 +113,41 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
                                 
-                                <div class="form-group">
-                                    <label for="lr_reason">Reason <span class="text-danger">*</span></label>
-                                    <textarea class="form-control @error('lr_reason') is-invalid @enderror" 
-                                            id="lr_reason" name="lr_reason" rows="4" required>{{ old('lr_reason') }}</textarea>
-                                    @error('lr_reason')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                        <div class="form-group">
+                                            <label for="lr_reason">Reason <span class="text-danger">*</span></label>
+                                            <textarea class="form-control @error('lr_reason') is-invalid @enderror" 
+                                                    id="lr_reason" name="lr_reason" rows="4" required>{{ old('lr_reason') }}</textarea>
+                                            @error('lr_reason')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-6">
+                                        
+                                        <div class="form-group">
+                                            <label for="lr_attachment">Attachment (Optional)</label>
+                                            <div class="input-group">
+                                                <div class="custom-file">
+                                                    <input type="file" class="custom-file-input @error('lr_attachment') is-invalid @enderror" 
+                                                        id="lr_attachment" name="lr_attachment" 
+                                                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                                    <label class="custom-file-label" for="lr_attachment">Choose file</label>
+                                                </div>
+                                            </div>
+                                            <small class="form-text text-muted">
+                                                Supported formats: PDF, JPG, JPEG, PNG, DOC, DOCX (Max: 10MB)<br>
+                                                <strong>Recommended:</strong> Surat dokter, surat keterangan, atau dokumen pendukung lainnya
+                                            </small>
+                                            @error('lr_attachment')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div class="form-group float-right">
@@ -147,6 +174,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const timeFields = document.getElementById('time_fields');
     const leaveTypeSelect = document.getElementById('leave_type_id');
     const leaveBalanceInfo = document.getElementById('leaveBalanceInfo');
+    const fileInput = document.getElementById('lr_attachment');
+    const fileLabel = document.querySelector('.custom-file-label');
     
     function toggleTimeFields() {
         if (unitSelect.value === 'hours') {
@@ -193,6 +222,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 leaveBalanceInfo.innerHTML = '<p class="text-danger">Error loading balance information.</p>';
             });
     }
+    
+    // File input handling
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Update label with filename
+            fileLabel.textContent = file.name;
+            
+            // Validate file size (10MB = 10 * 1024 * 1024 bytes)
+            const maxSize = 10 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('File size exceeds 10MB limit. Please choose a smaller file.');
+                this.value = '';
+                fileLabel.textContent = 'Choose file';
+                return;
+            }
+            
+            // Validate file type
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('File type not supported. Please choose PDF, JPG, PNG, DOC, or DOCX file.');
+                this.value = '';
+                fileLabel.textContent = 'Choose file';
+                return;
+            }
+        } else {
+            fileLabel.textContent = 'Choose file';
+        }
+    });
     
     unitSelect.addEventListener('change', toggleTimeFields);
     leaveTypeSelect.addEventListener('change', loadLeaveBalance);

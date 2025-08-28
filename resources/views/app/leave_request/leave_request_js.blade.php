@@ -139,6 +139,7 @@
                     { data: 'lt_name', name: 'lt_name', width: '12%' },
                     { data: 'lr_start_date', name: 'lr_start_date', width: '10%' },
                     { data: 'lr_end_date', name: 'lr_end_date', width: '10%' },
+                    { data: 'lr_attachment', name: 'lr_attachment', orderable: false, searchable: false, width: '8%' },
                     { data: 'lr_status', name: 'lr_status', width: '10%' },
                     { data: 'action', name: 'action', orderable: false, searchable: false, width: '16%' },
                 ],
@@ -158,6 +159,10 @@
                     },
                     {
                         "targets": 8,
+                        "className": "text-center"
+                    },
+                    {
+                        "targets": 9,
                         "className": "text-center"
                     }
                 ],
@@ -590,5 +595,60 @@
             resetModal();
         });
     });
+    
+    // Function to view attachment
+    function viewAttachment(leaveRequestId, filePath, fileName, fileType) {
+        const modal = document.getElementById('attachmentModal');
+        const content = document.getElementById('attachmentContent');
+        const downloadLink = document.getElementById('downloadAttachment');
+        const modalTitle = document.getElementById('attachmentModalLabel');
+        
+        // Set modal title
+        modalTitle.textContent = `View Attachment: ${fileName}`;
+        
+        // Set download link
+        downloadLink.href = `/storage/${filePath}`;
+        downloadLink.download = fileName;
+        
+        // Clear previous content
+        content.innerHTML = '';
+        
+        // Show loading
+        content.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading attachment...</p></div>';
+        
+        // Show modal
+        showModal('attachmentModal');
+        
+        // Load attachment content based on file type
+        if (fileType && fileType.includes('image')) {
+            // For images, show directly
+            content.innerHTML = `
+                <div class="text-center">
+                    <img src="/storage/${filePath}" alt="${fileName}" class="img-fluid" style="max-height: 500px;">
+                    <p class="mt-2"><strong>${fileName}</strong></p>
+                </div>
+            `;
+        } else if (fileType && fileType.includes('pdf')) {
+            // For PDFs, show in iframe
+            content.innerHTML = `
+                <div class="text-center">
+                    <iframe src="/storage/${filePath}" width="100%" height="500" frameborder="0"></iframe>
+                    <p class="mt-2"><strong>${fileName}</strong></p>
+                </div>
+            `;
+        } else {
+            // For other file types, show file info
+            content.innerHTML = `
+                <div class="text-center">
+                    <div class="alert alert-info">
+                        <i class="fas fa-file fa-3x mb-3"></i>
+                        <h5>${fileName}</h5>
+                        <p>This file type cannot be previewed directly.</p>
+                        <p>Please download the file to view its contents.</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
     
 </script> 

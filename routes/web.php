@@ -792,10 +792,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('attendance/{id}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
 
     Route::post('attendance/reprocess-all', [AttendanceController::class, 'reprocessAll'])->name('attendance.reprocess-all');
+Route::get('attendance/debug-status', [AttendanceController::class, 'debugAttendanceStatus'])->name('attendance.debug-status');
     Route::post('attendance/reprocess-status', [AttendanceController::class, 'reprocessAttendanceStatus'])->name('attendance.reprocess-status');
+Route::post('attendance/reprocess-single', [AttendanceController::class, 'reprocessSingleAttendance'])->name('attendance.reprocess-single');
     Route::get('attendance/staff/{user_id}', [AttendanceController::class, 'staffDetail'])->name('attendance.staff-detail');
     Route::get('attendance/staff/{user_id}/datatables', [AttendanceController::class, 'staffDatatables'])->name('attendance.staff-datatables');
-    Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
+Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
+Route::get('attendance/staff/{user_id}/alpha-dates', [AttendanceController::class, 'getStaffAlphaDates'])->name('attendance.staff-alpha-dates');
 
     // Export routes
     Route::get('attendance/export/excel', [AttendanceController::class, 'exportToExcel'])->name('attendance.export-excel');

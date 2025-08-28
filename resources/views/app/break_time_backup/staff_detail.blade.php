@@ -1,6 +1,6 @@
 @extends('app.structure')
 
-@section('title', 'Staff Break Time Detail')
+@section('title', 'Staff Backup Time Detail')
 
 @section('content')
 
@@ -73,7 +73,7 @@
                 <!--begin::Page Heading-->
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                     <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">Break Time Backup Details - {{ $data['staff']->u_name }}</h5>
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">Backup Time Details - {{ $data['staff']->u_name }}</h5>
                     <!--end::Page Title-->
                     <!--begin::Breadcrumb-->
                     <!-- <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -143,7 +143,7 @@
                                 </div>
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="totalBreaks">-</div>
-                                    <div class="text-dark-50">Total Break</div>
+                                    <div class="text-dark-50">Total Backup</div>
                                 </div>
                             </div>
                         </div>
@@ -166,7 +166,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <!-- <div class="col-lg-3 col-md-6">
                     <div class="card card-custom rounded-lg bg-break-exceeded">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -177,12 +177,12 @@
                                 </div>
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="exceededBreaks">-</div>
-                                    <div class="text-dark-50">Exceeded Breaks <small class="text-dark-50" id="breakAllowanceInfo">-</small></div>
+                                    <div class="text-dark-50">Exceeded Backup <small class="text-dark-50" id="breakAllowanceInfo">-</small></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
                 <div class="col-lg-3 col-md-6">
                     <div class="card card-custom rounded-lg bg-break-avg">
                         <div class="card-body px-7">
@@ -284,9 +284,9 @@
                                 <tr>
                                     <th width="5%">No</th>
                                     <th width="10%">Date</th>
-                                    <th width="8%">Break Type</th>
-                                    <th width="8%">Start Time</th>
-                                    <th width="8%">End Time</th>
+                                    <th width="8%">Backup Type</th>
+                                    <th width="8%">Backup Start</th>
+                                    <th width="8%">Backup End</th>
                                     <th width="8%">Duration</th>
                                     <th width="8%">Status</th>
                                     <th width="8%">Shift Start</th>

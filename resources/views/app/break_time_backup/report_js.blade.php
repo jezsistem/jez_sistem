@@ -424,7 +424,7 @@
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = 'break_times_report.xlsx';
+                a.download = 'backup_times_report.xlsx';
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
@@ -485,7 +485,7 @@
         // Create temporary link for download
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'break_times_report.pdf';
+                    link.download = 'backup_times_report.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -502,7 +502,7 @@
     
     // Delete break time function
     function deleteBreakTime(id) {
-        if (confirm('Apakah Anda yakin ingin menghapus data break time ini?')) {
+        if (confirm('Apakah Anda yakin ingin menghapus data backup time ini?')) {
             $.ajax({
                 url: "{{ route('break-times-backup.destroy', ':id') }}".replace(':id', id),
                 type: 'DELETE',
@@ -519,9 +519,9 @@
                         // Show success message
                         $('<div class="alert alert-success alert-dismissible">' +
                           '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
-                          'Data break time berhasil dihapus!</div>').insertBefore('#breakTimeTable').delay(3000).fadeOut();
+                          'Data backup time berhasil dihapus!</div>').insertBefore('#breakTimeTable').delay(3000).fadeOut();
                     } else {
-                        alert('Gagal menghapus data break time');
+                                                  alert('Gagal menghapus data backup time');
                     }
                 },
                 error: function() {

@@ -408,12 +408,13 @@
                                 <thead class="bg-light text-dark">
                                 <tr>
                                         <th class="text-dark">No</th>
-                                        <th class="text-dark">Date</th>
+                                        <th class="text-dark">Request Date</th>
                                         <th class="text-dark">Staff</th>
                                         <th class="text-dark">Division</th>
                                         <th class="text-dark">Leave Type</th>
                                         <th class="text-dark">Start Date</th>
                                         <th class="text-dark">End Date</th>
+                                        <th class="text-dark">Attachment</th>
                                         <th class="text-dark">Status</th>
                                         <th class="text-dark">Actions</th>
                                 </tr>
@@ -434,6 +435,27 @@
     <!--end::Entry-->
 </div>
 <!--end::Content-->
+
+<!-- Attachment View Modal -->
+<div id="attachmentModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h5 class="modal-title" id="attachmentModalLabel">View Attachment</h5>
+            <button type="button" class="close" onclick="hideModal('attachmentModal')" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="attachmentContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="hideModal('attachmentModal')">Close</button>
+            <a href="#" id="downloadAttachment" class="btn btn-primary" download>Download</a>
+        </div>
+    </div>
+</div>
 
 <!-- Approval Modal -->
 <div id="approvalModal" class="modal">

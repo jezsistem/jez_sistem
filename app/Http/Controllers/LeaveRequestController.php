@@ -133,7 +133,8 @@ class LeaveRequestController extends Controller
             'lr_start_time' => 'nullable|date_format:H:i',
             'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
             'lr_unit' => 'required|in:days,hours',
-            'lr_reason' => 'required|string'
+            'lr_reason' => 'required|string',
+            'lr_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240' // Max 10MB
         ]);
 
         $userId = auth()->user()->id;
@@ -162,6 +163,21 @@ class LeaveRequestController extends Controller
             $totalHours = 0;
         }
 
+        // Handle file upload
+        $attachmentData = null;
+        if ($request->hasFile('lr_attachment')) {
+            $file = $request->file('lr_attachment');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
+            
+            $attachmentData = [
+                'lr_attachment_path' => $filePath,
+                'lr_attachment_name' => $file->getClientOriginalName(),
+                'lr_attachment_type' => $file->getClientMimeType(),
+                'lr_attachment_size' => $file->getSize()
+            ];
+        }
+
         $data = [
             'user_id' => $userId,
             'leave_type_id' => $request->leave_type_id,
@@ -175,6 +191,11 @@ class LeaveRequestController extends Controller
             'lr_reason' => $request->lr_reason,
             'lr_status' => 'pending'
         ];
+
+        // Merge attachment data if exists
+        if ($attachmentData) {
+            $data = array_merge($data, $attachmentData);
+        }
 
         $result = $leaveRequest->storeData('add', null, $data);
 
@@ -315,7 +336,8 @@ class LeaveRequestController extends Controller
             'lr_start_time' => 'nullable|date_format:H:i',
             'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
             'lr_unit' => 'required|in:days,hours',
-            'lr_reason' => 'required|string'
+            'lr_reason' => 'required|string',
+            'lr_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240' // Max 10MB
         ]);
 
         // Calculate total days/hours
@@ -337,6 +359,29 @@ class LeaveRequestController extends Controller
             $totalHours = 0;
         }
 
+        // Handle file upload
+        $attachmentData = null;
+        if ($request->hasFile('lr_attachment')) {
+            // Delete old attachment if exists
+            if ($leaveRequest->lr_attachment_path) {
+                $oldFilePath = storage_path('app/public/' . $leaveRequest->lr_attachment_path);
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
+            }
+            
+            $file = $request->file('lr_attachment');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
+            
+            $attachmentData = [
+                'lr_attachment_path' => $filePath,
+                'lr_attachment_name' => $file->getClientOriginalName(),
+                'lr_attachment_type' => $file->getClientMimeType(),
+                'lr_attachment_size' => $file->getSize()
+            ];
+        }
+
         $data = [
             'leave_type_id' => $request->leave_type_id,
             'lr_start_date' => $startDate,
@@ -348,6 +393,11 @@ class LeaveRequestController extends Controller
             'lr_unit' => $request->lr_unit,
             'lr_reason' => $request->lr_reason
         ];
+
+        // Merge attachment data if exists
+        if ($attachmentData) {
+            $data = array_merge($data, $attachmentData);
+        }
 
         // Use direct Eloquent update instead of custom storeData method
         try {
@@ -911,7 +961,9 @@ class LeaveRequestController extends Controller
             return datatables()->of($query)
                 ->addIndexColumn()
                 ->addColumn('lr_date', function($row) {
-                    return date('d/m/Y', strtotime($row->lr_start_date));
+                    $requestDate = date('d/m/Y', strtotime($row->created_at));
+                    $requestTime = date('H:i', strtotime($row->created_at));
+                    return '<span title="Request submitted on ' . $requestDate . ' at ' . $requestTime . '">' . $requestDate . '</span>';
                 })
                 ->addColumn('action', function($row){
                     $btn = '<div class="dropdown">';
@@ -959,6 +1011,33 @@ class LeaveRequestController extends Controller
                     $btn .= '</div>';
                     
                     return $btn;
+                })
+                ->addColumn('lr_attachment', function($row) {
+                    if ($row->lr_attachment_path) {
+                        $fileIcon = '';
+                        $fileType = strtolower($row->lr_attachment_type ?? '');
+                        
+                        if (strpos($fileType, 'pdf') !== false) {
+                            $fileIcon = '<i class="fas fa-file-pdf text-danger"></i>';
+                        } elseif (strpos($fileType, 'image') !== false) {
+                            $fileIcon = '<i class="fas fa-file-image text-primary"></i>';
+                        } elseif (strpos($fileType, 'word') !== false) {
+                            $fileIcon = '<i class="fas fa-file-word text-info"></i>';
+                        } else {
+                            $fileIcon = '<i class="fas fa-file text-secondary"></i>';
+                        }
+                        
+                        $fileName = $row->lr_attachment_name ?: 'Attachment';
+                        $fileSize = $row->lr_attachment_size ? $this->formatFileSize($row->lr_attachment_size) : '';
+                        
+                        return '<div class="text-center">' .
+                               '<button type="button" class="btn btn-sm btn-light-primary" onclick="viewAttachment(' . $row->id . ', \'' . $row->lr_attachment_path . '\', \'' . $row->lr_attachment_name . '\', \'' . $row->lr_attachment_type . '\')">' .
+                               $fileIcon . ' View</button>' .
+                               '<br><small class="text-muted">' . $fileName . '</small>' .
+                               ($fileSize ? '<br><small class="text-muted">' . $fileSize . '</small>' : '') .
+                               '</div>';
+                    }
+                    return '<span class="text-muted">-</span>';
                 })
                 ->editColumn('lr_start_date', function($row) {
                     return date('d/m/Y', strtotime($row->lr_start_date));
@@ -1011,7 +1090,7 @@ class LeaveRequestController extends Controller
                     $color = $row->lt_color ?: '#007bff';
                     return '<span style="color: ' . $color . ';">' . $row->lt_name . '</span>';
                 })
-                ->rawColumns(['action', 'lr_status', 'lt_name'])
+                ->rawColumns(['action', 'lr_status', 'lt_name', 'lr_attachment', 'lr_date'])
                 ->make(true);
         }
     }
@@ -2263,6 +2342,22 @@ class LeaveRequestController extends Controller
                 'new_status' => $newStatus,
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * Format file size to human readable format
+     */
+    private function formatFileSize($bytes)
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        } else {
+            return $bytes . ' bytes';
         }
     }
 }

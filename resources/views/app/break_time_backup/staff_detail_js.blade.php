@@ -100,7 +100,7 @@
         // Create download link
         const link = document.createElement('a');
         link.href = url.toString();
-        link.download = 'break_time_staff_{{ $data["staff"]->u_nip }}_export.xlsx';
+                    link.download = 'backup_time_staff_{{ $data["staff"]->u_nip }}_export.xlsx';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -129,7 +129,7 @@
         // Create download link
         const link = document.createElement('a');
         link.href = url.toString();
-        link.download = 'break_time_staff_{{ $data["staff"]->u_nip }}_export.pdf';
+                    link.download = 'backup_time_staff_{{ $data["staff"]->u_nip }}_export.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -163,7 +163,7 @@
                     document.getElementById('breakAllowanceInfo').textContent = 
                         `${shiftType} - Max: ${maxDuration}m`;
                 } else {
-                    document.getElementById('breakAllowanceInfo').textContent = 'Part Time - Max: 30m';
+                    document.getElementById('breakAllowanceInfo').textContent = 'Part Time - Max: 60m';
                 }
                 
                 // Format average duration
@@ -239,7 +239,8 @@
                         width: '8%',
                         render: function(data, type, row) {
                             if (type === 'display') {
-                                const breakType = data === 'break_1' ? 'Break 1' : 'Break 2';
+                                // Convert break_1, break_2, break_3, etc. to backup 1, backup 2, backup 3, etc.
+                                const breakType = data.replace('break_', 'backup ');
                                 return '<span class="badge badge-light-green">' + breakType + '</span>';
                             }
                             return data;

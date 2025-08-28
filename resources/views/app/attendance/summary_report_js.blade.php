@@ -214,6 +214,7 @@
                         }
                     },
                     { data: 'total_shifts', name: 'total_shifts', width: '8%', className: 'text-center' },
+                    { data: 'total_libur', name: 'total_libur', width: '8%', className: 'text-center' },
                     { data: 'present_days', name: 'present_days', width: '8%', className: 'text-center' },
                     { data: 'sick_days', name: 'sick_days', width: '8%', className: 'text-center' },
                     { data: 'leave_days', name: 'leave_days', width: '8%', className: 'text-center' },
@@ -227,7 +228,7 @@
                         "width": "5%"
                     },
                     {
-                        "targets": [6, 7, 8, 9, 10, 11],
+                        "targets": [6, 7, 8, 9, 10, 11, 12],
                         "className": "text-center"
                     }
                 ],

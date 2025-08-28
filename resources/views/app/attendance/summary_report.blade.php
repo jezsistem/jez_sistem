@@ -151,6 +151,23 @@
                         </div>
                     </div>
                 </div>
+                <!-- <div class="col-lg-3 col-md-6">
+                    <div class="card card-custom rounded-lg bg-attendance-shifts">
+                        <div class="card-body px-7">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label">
+                                        <i class="ki-outline ki-calendar-tick text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5">{{ $summaryData->sum('total_libur') ?? 0 }}</div>
+                                    <div class="text-dark-50">Total Libur</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
                 <div class="col-lg-3 col-md-6">
                     <div class="card card-custom rounded-lg bg-attendance-alpha">
                         <div class="card-body px-7">
@@ -264,6 +281,7 @@
                                     <th width="12%">Division</th>
                                     <th width="10%">User Type</th>
                                     <th width="8%" class="text-center">Total Shifts</th>
+                                    <th width="8%" class="text-center">Total Day off</th>
                                     <th width="8%" class="text-center">Present Days</th>
                                     <th width="8%" class="text-center">Sick Days</th>
                                     <th width="8%" class="text-center">Leave Days</th>

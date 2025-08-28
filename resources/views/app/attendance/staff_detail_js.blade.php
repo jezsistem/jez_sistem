@@ -405,4 +405,170 @@
         link.click();
         document.body.removeChild(link);
     }
+
+    // Function to update staff statistics
+    function updateStaffStats() {
+        const urlParts = window.location.pathname.split('/');
+        const userId = urlParts[urlParts.length - 1];
+        
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        
+        console.log('Updating staff stats for user:', userId, 'with dates:', startDate, 'to', endDate);
+        
+        // Update attendance stats
+        $.ajax({
+            url: `/attendance/staff/${userId}/stats`,
+            method: 'GET',
+            data: {
+                start_date: startDate,
+                end_date: endDate
+            },
+            success: function(response) {
+                console.log('Stats API response:', response);
+                if (response.stats) {
+                    $('#total_shifts').text(response.stats.total_shifts || 0);
+                    $('#total_libur').text(response.stats.total_libur || 0);
+                    $('#present_days').text(response.stats.present_days || 0);
+                    $('#sick_days').text(response.stats.sick_days || 0);
+                    $('#leave_days').text(response.stats.leave_days || 0);
+                    $('#late_days').text(response.stats.late_days || 0);
+                    $('#alpha_days').text(response.stats.alpha_days || 0);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating stats:', error);
+                console.log('Response:', xhr.responseText);
+            }
+        });
+        
+        // Update alpha dates
+        updateAlphaDates(userId, startDate, endDate);
+    }
+
+    // Function to update alpha dates
+    function updateAlphaDates(userId, startDate, endDate) {
+        console.log('Updating alpha dates for user:', userId, 'with dates:', startDate, 'to', endDate);
+        
+        $.ajax({
+            url: `/attendance/staff/${userId}/alpha-dates`,
+            method: 'GET',
+            data: {
+                start_date: startDate,
+                end_date: endDate
+            },
+            success: function(response) {
+                console.log('Alpha dates API response:', response);
+                if (response.success && response.data) {
+                    displayAlphaDates(response.data);
+                } else {
+                    displayAlphaDates([]);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error getting alpha dates:', error);
+                console.log('Response:', xhr.responseText);
+                displayAlphaDates([]);
+            }
+        });
+    }
+
+    // Function to display alpha dates
+    function displayAlphaDates(alphaDates) {
+        const container = $('#alpha_dates_container');
+        
+        if (!alphaDates || alphaDates.length === 0) {
+            container.html(`
+                <div class="text-center text-muted">
+                    <i class="ki-outline ki-calendar-tick" style="font-size: 2rem;"></i>
+                    <p>No alpha dates in the selected period</p>
+                </div>
+            `);
+            return;
+        }
+        
+        let html = '<div class="row">';
+        alphaDates.forEach(function(date) {
+            const formattedDate = new Date(date.ds_date).toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Get keterangan from API response
+            const keterangan = date.keterangan || 'No fingerprint attendance or approved leave';
+            
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="card border-danger">
+                        <div class="card-body p-5">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title text-danger mb-3">${formattedDate}</h6>
+                                    <p class="card-text mb-1">
+                                        <strong>Shift:</strong> ${date.sc_code} (${date.sc_start_time} - ${date.sc_end_time})
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Shift Name:</strong> ${date.sc_shift_name || 'N/A'}
+                                    </p>
+                                </div>
+                                <div class="text-right ml-2">
+                                    <span class="badge badge-light-red">Alpha</span>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <p class="text-muted d-flex align-items-center">
+                                    <i class="ki-outline ki-information-5 mr-2"></i>
+                                    <strong>Notes:</strong> ${keterangan}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        container.html(html);
+    }
+
+    // Function to toggle alpha accordion
+    function toggleAlphaAccordion() {
+        const accordionBody = $('#alphaAccordionBody');
+        const accordionIcon = $('#alphaAccordionIcon');
+        
+        if (accordionBody.hasClass('show')) {
+            accordionBody.removeClass('show');
+            accordionIcon.removeClass('ki-arrow-up').addClass('ki-arrow-down');
+        } else {
+            accordionBody.addClass('show');
+            accordionIcon.removeClass('ki-arrow-down').addClass('ki-arrow-up');
+        }
+    }
+
+    // Initialize stats on page load
+    $(document).ready(function() {
+        // Update stats when page loads
+        setTimeout(updateStaffStats, 500);
+        
+        // Update stats when filter form is submitted
+        $('#filterForm').on('submit', function(e) {
+            e.preventDefault();
+            if (window.staffAttendanceTable) {
+                window.staffAttendanceTable.ajax.reload();
+            }
+            updateStaffStats();
+        });
+        
+        // Update stats when date filter changes
+        $('#date_filter').on('change', function() {
+            setTimeout(updateStaffStats, 100);
+        });
+        
+        // Update stats when date inputs change
+        $('#start_date, #end_date').on('change', function() {
+            setTimeout(updateStaffStats, 100);
+        });
+    });
 </script>

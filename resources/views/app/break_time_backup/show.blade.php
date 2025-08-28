@@ -29,11 +29,11 @@
                     <div class="card card-custom gutter-b">
                         <div class="card-header flex-wrap py-3">
                             <div class="card-title">
-                                <h3 class="card-label">Detail Break Time Backup</h3>
+                                <h3 class="card-label">Detail Backup Time</h3>
                             </div>
                             <div class="card-toolbar">
                                 <a href="{{ route('break-times-backup.index') }}" class="btn btn-secondary btn-sm mr-2">
-                                    <i class="ki-outline ki-left"></i> Kembali
+                                    <i class="ki-outline ki-left"></i> Back
                                 </a>
                                 <a href="{{ route('break-times-backup.edit', $breakTime->id) }}" class="btn btn-warning btn-sm mr-2">
                                     <i class="ki-outline ki-notepad-edit"></i> Edit
@@ -69,7 +69,7 @@
                                             <td>{{ date('d/m/Y', strtotime($breakTime->bt_date)) }}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Nama Karyawan</strong></td>
+                                            <td><strong>Nama Staff</strong></td>
                                             <td>:</td>
                                             <td>{{ $breakTime->u_name }}</td>
                                         </tr>
@@ -109,14 +109,14 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Jenis Break</strong></td>
+                                            <td><strong>Jenis Backup</strong></td>
                                             <td>:</td>
                                             <td>
                                                 @php
-                                                    $breakNumber = str_replace('break_', '', $breakTime->bt_type);
-                                                    $typeText = 'Break ' . ucfirst($breakNumber);
+                                                    $backupNumber = str_replace('backup_', '', $breakTime->bt_type);
+                                                    $typeText = 'Backup ' . ucfirst($backupNumber);
                                                     
-                                                    // Assign different colors based on break number
+                                                    // Assign different colors based on backup number
                                                     $colorClasses = [
                                                         1 => 'badge badge-primary',
                                                         2 => 'badge badge-info', 
@@ -125,8 +125,8 @@
                                                         5 => 'badge badge-danger'
                                                     ];
                                                     
-                                                    $breakNum = is_numeric($breakNumber) ? (int)$breakNumber : 1;
-                                                    $typeClass = $colorClasses[$breakNum] ?? 'badge badge-secondary';
+                                                    $backupNum = is_numeric($backupNumber) ? (int)$backupNumber : 1;
+                                                    $typeClass = $colorClasses[$backupNum] ?? 'badge badge-secondary';
                                                 @endphp
                                                 <span class="{{ $typeClass }}">{{ $typeText }}</span>
                                             </td>

@@ -201,7 +201,7 @@
                         <li class="menu-item menu-accordion" data-menu-toggle="hover" aria-haspopup="true">
                             <a href="javascript:;" class="menu-link menu-toggle">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-text">Break Time Backup</span>
+                                <span class="menu-text">Backup Time</span>
                                 <i class="menu-arrow"></i>
                             </a>
                             <div class="menu-sub menu-sub-accordion">
@@ -209,13 +209,13 @@
                                     <li class="menu-item">
                                         <a href="{{ url('/break-times-backup') }}" class="menu-link">
                                             <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                            <span class="menu-text">Break Control</span>
+                                            <span class="menu-text">Backup Control</span>
                                         </a>
                                     </li>
                                     <li class="menu-item">
                                         <a href="{{ url('/break-times-backup/report') }}" class="menu-link">
                                             <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                            <span class="menu-text">Log Break Time</span>
+                                            <span class="menu-text">Log Backup</span>
                                         </a>
                                     </li>
                                     <li class="menu-item">

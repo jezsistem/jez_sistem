@@ -1,6 +1,6 @@
 @extends('app.structure')
 
-@section('title', 'Break Time Summary Report')
+@section('title', 'Backup Time Summary Report')
 
 @section('content')
 
@@ -63,7 +63,7 @@
                 <!--begin::Page Heading-->
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                     <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">Break Time Backup Summary Report</h5>
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">Backup Time Summary Report</h5>
                     <!--end::Page Title-->
                     <!--begin::Breadcrumb-->
                     <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -138,13 +138,13 @@
                                 </div>
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="stat-total-breaks">{{ $summaryData->sum('total_breaks') ?? 0 }}</div>
-                                    <div class="text-dark-50">Total Breaks</div>
+                                    <div class="text-dark-50">Total Backup</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-6">
+                <!-- <div class="col-lg-2 col-md-6">
                     <div class="card card-custom rounded-lg bg-break-no-break">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -160,7 +160,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="col-lg-2 col-md-6">
                     <div class="card card-custom rounded-lg bg-break-shifts">
@@ -173,7 +173,7 @@
                                 </div>
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="stat-avg-breaks-per-staff">{{ $summaryData->count() > 0 ? round($summaryData->sum('total_breaks') / $summaryData->count(), 1) : 0 }}</div>
-                                    <div class="text-dark-50">Avg Breaks/Staff</div>
+                                    <div class="text-dark-50">Avg Backup/Staff</div>
                                 </div>
                             </div>
                         </div>
@@ -274,9 +274,8 @@
                                     <th width="15%">Position</th>
                                     <th width="15%">Division</th>
                                     <th width="15%">User Type</th>
-                                    <th width="10%" class="text-center">Total Break</th>
-                                    <th width="20%" class="text-center">No Break</th>
-
+                                    <th width="10%" class="text-center">Total Backup</th>
+                                    <!-- <th width="20%" class="text-center">No Backup</th> -->
                                 </tr>
                             </thead>
                             <tbody>

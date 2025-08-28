@@ -54,7 +54,7 @@
             },
             success: function(response) {
                 if (response.success) {
-                    var text = response.completed_breaks + '/' + response.break_allowance + ' breaks (' + response.shift_type + ')';
+                    var text = response.completed_breaks + '/' + response.break_allowance + ' backups (' + response.shift_type + ')';
                     $('#allowanceText').text(text);
                 } else {
                     $('#allowanceText').text(response.message || 'No schedule found for today');
@@ -301,7 +301,7 @@
         
         // Update button state
         button.removeClass('btn-white').addClass('btn-red break-active');
-        buttonText.html('<i class="fas fa-stop"></i> End Break');
+        buttonText.html('<i class="fas fa-stop"></i> End Backup');
         
         // Show timer
         timer.show();
@@ -320,7 +320,7 @@
         
         // Update button state
         button.removeClass('btn-danger break-active').addClass('btn-white');
-        buttonText.html('<i class="fas fa-play"></i> Start Break');
+        buttonText.html('<i class="fas fa-play"></i> Start Backup');
         
         // Hide timer
         timer.hide();
@@ -350,7 +350,7 @@
             type: 'POST',
             data: {
                 user_nip: userNip,
-                break_type: 'break_1' // Default break type
+                break_type: 'backup_1' // Default backup type
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -359,11 +359,11 @@
             success: function(response) {
                 if (response.success) {
                     // Set break active state
-                    setBreakActiveState(0, response.break_duration || 30);
+                    setBreakActiveState(0, response.break_duration || 60);
                     
                     // Start timer
                     timerStartTime = new Date();
-                    countdownEndTime = new Date().getTime() + ((response.break_duration || 30) * 60 * 1000);
+                    countdownEndTime = new Date().getTime() + ((response.break_duration || 60) * 60 * 1000);
                     
                     // Clear existing interval if any
                     if (timerInterval) {
@@ -388,12 +388,12 @@
                         buttons: false
                     });
                 } else {
-                    swal('Error', response.message || 'Failed to start break', 'error');
+                    swal('Error', response.message || 'Failed to start backup', 'error');
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Error starting break:', error);
-                swal('Error', 'Failed to start break. Please try again.', 'error');
+                swal('Error', 'Failed to start backup. Please try again.', 'error');
             }
         });
     }

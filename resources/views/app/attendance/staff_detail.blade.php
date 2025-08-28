@@ -73,6 +73,31 @@
     .bg-other {
         background-color: #F1F1F4;
     }
+    
+    /* Accordion styles */
+    .collapse {
+        display: none;
+    }
+    
+    .collapse.show {
+        display: block;
+    }
+    
+    .card-header[style*="cursor: pointer"]:hover {
+        background-color: #f8f9fa;
+    }
+    
+    #alphaAccordionIcon {
+        transition: all 0.3s ease;
+    }
+    
+    #alphaAccordionIcon.ki-arrow-up {
+        transform: rotate(180deg);
+    }
+    
+    #alphaAccordionIcon.ki-arrow-down {
+        color: #6c757d !important;
+    }
 </style>
 
 <!--begin::Content-->
@@ -150,6 +175,23 @@
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-4">
+                    <div class="card card-custom rounded-lg bg-attendance-shifts">
+                        <div class="card-body px-7">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label">
+                                        <i class="ki-outline ki-calendar-tick text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="total_libur">0</div>
+                                    <div class="text-dark-50">Total Libur</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4">
                     <div class="card card-custom rounded-lg bg-attendance-total">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -217,7 +259,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
+                <div class="col-lg-2 col-md-4 mt-4">
                     <div class="card card-custom rounded-lg bg-all">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -236,6 +278,8 @@
                 </div>
             
             </div>
+
+
 
             <!-- Filter Section -->
             <div class="row mb-4">
@@ -293,7 +337,37 @@
                 </div>
             </div>
 
-            
+            <!-- Alpha Details Section (Accordion) -->
+            <div class="row mb-4">
+                <div class="col-lg-12">
+                    <div class="card card-custom">
+                        <div class="card-header" id="alphaAccordionHeader" style="cursor: pointer;" onclick="toggleAlphaAccordion()">
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <h6 class="card-title mb-0 mt-0">
+                                    <i class="ki-outline ki-calendar-remove mr-3" style="font-size: 1.7rem; color: #FF5D5D;"></i>
+                                   Alpha Details
+                                </h6>
+                                <i class="ki-outline ki-down" id="alphaAccordionIcon" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="card-body collapse" id="alphaAccordionBody">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="text-muted mb-5 fs-6">
+                                        <strong>Alpha Logics:</strong> Date with shift (except day off), no absent, no leave, and no sick.
+                                    </p>
+                                    <div id="alpha_dates_container">
+                                        <div class="text-center text-muted">
+                                            <i class="ki-outline ki-calendar-tick" style="font-size: 2rem;"></i>
+                                            <p>Alpha dates will be displayed here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Attendance Table -->
             <div class="row">

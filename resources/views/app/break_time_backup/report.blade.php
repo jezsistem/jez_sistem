@@ -156,7 +156,7 @@
                 <!--begin::Page Heading-->
                 <div class="d-flex align-items-baseline flex-wrap mr-5">
                 <!--begin::Page Title-->
-                    <h5 class="text-dark font-weight-bold my-1 mr-5">Log Break Time Backup</h5>
+                    <h5 class="text-dark font-weight-bold my-1 mr-5">Log Backup Time</h5>
                     <!--end::Page Title-->
                     <!--begin::Breadcrumb-->
                     <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
@@ -230,7 +230,7 @@
                     <div class="card bg-other">
                         <div class="card-body text-center">
                             <h4 class="text-primary" id="stat-break1-count">0</h4>
-                            <small class="text-muted">Break 1</small>
+                            <small class="text-muted">Backup 1</small>
                         </div>
                     </div>
                 </div>
@@ -238,7 +238,7 @@
                     <div class="card bg-other">
                         <div class="card-body text-center">
                             <h4 class="text-primary" id="stat-break2-count">0</h4>
-                            <small class="text-muted">Break 2</small>
+                            <small class="text-muted">Backup 2</small>
                         </div>
                     </div>
                 </div>
@@ -386,14 +386,14 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Tanggal</th>
-                                        <th>Nama Karyawan</th>
+                                        <th>Date</th>
+                                        <th>Staff</th>
                                         <th>NIP</th>
-                                        <th>Divisi</th>
-                                                <th>Tipe Break</th>
-                                        <th>Jam Mulai Istirahat</th>
-                                        <th>Jam Selesai Istirahat</th>
-                                                <th>Durasi</th>
+                                        <th>Division</th>
+                                                <th>Backup Type</th>
+                                        <th>Backup Start</th>
+                                        <th>Backup End</th>
+                                                <th>Duration</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>

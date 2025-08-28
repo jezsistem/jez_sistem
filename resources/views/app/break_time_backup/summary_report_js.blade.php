@@ -197,7 +197,7 @@
         // Create download link
         const link = document.createElement('a');
         link.href = url.toString();
-        link.download = 'break_time_summary_export.xlsx';
+                    link.download = 'backup_time_summary_export.xlsx';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -234,7 +234,7 @@
         // Create download link
         const link = document.createElement('a');
         link.href = url.toString();
-        link.download = 'break_time_summary_export.pdf';
+                    link.download = 'backup_time_summary_export.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -279,7 +279,7 @@
                     { 
                         data: 'u_name', 
                         name: 'u_name', 
-                        width: '15%',
+                        width: '20%',
                         render: function(data, type, row) {
                             if (type === 'display') {
                                 return '<a href="/break-times-backup/staff/' + row.user_id + '" class="text-primary font-weight-bold" style="cursor: pointer;line-height: 1.2;">' + data + '</a><br><span class="text-muted" style="line-height: 1.8;>' + (row.u_nip || '-') + '</span>';
@@ -287,8 +287,8 @@
                             return data;
                         }
                     },
-                    { data: 'position_name', name: 'position_name', width: '12%' },
-                    { data: 'division_name', name: 'division_name', width: '12%' },
+                    { data: 'position_name', name: 'position_name', width: '17%' },
+                    { data: 'division_name', name: 'division_name', width: '17%' },
                     { 
                         data: 'work_type', 
                         name: 'work_type', 
@@ -303,9 +303,7 @@
                             return data;
                         }
                     },
-                    { data: 'total_breaks', name: 'total_breaks', width: '10%', className: 'text-center' },
-                    { data: 'no_break_shifts', name: 'no_break_shifts', width: '20%', className: 'text-center' },
-
+                    { data: 'total_breaks', name: 'total_breaks', width: '15%', className: 'text-center' },
                 ],
                 columnDefs: [
                     {
@@ -314,7 +312,7 @@
                         "width": "5%"
                     },
                     {
-                        "targets": [6, 7],
+                        "targets": [6],
                         "className": "text-center"
                     }
                 ],

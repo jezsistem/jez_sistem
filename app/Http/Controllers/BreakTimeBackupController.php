@@ -106,7 +106,7 @@ class BreakTimeBackupController extends Controller
         // Temporarily comment out for testing
         // $this->validateAccess();
         
-        $title = 'Break Times';
+        $title = 'Backup Times';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
 
@@ -124,7 +124,7 @@ class BreakTimeBackupController extends Controller
 
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Break Times',
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Backup Times',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1)
@@ -139,11 +139,11 @@ class BreakTimeBackupController extends Controller
     public function summaryReport(Request $request)
     {
         try {
-            \Log::info('Break Time Summary Report - Starting method');
+            \Log::info('Backup Time Summary Report - Starting method');
             $this->validateAccess();
-            \Log::info('Break Time Summary Report - Access validated');
+            \Log::info('Backup Time Summary Report - Access validated');
             
-            $title = 'Break Time Backup Summary Report';
+            $title = 'Backup Time Summary Report';
             $user = auth()->user();
             $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
             
@@ -183,7 +183,7 @@ class BreakTimeBackupController extends Controller
 
             $data = [
                 'title' => $title,
-                'subtitle' => 'Break Time Backup Summary Report',
+                'subtitle' => 'Backup Time Summary Report',
                 'sidebar' => $this->sidebar(),
                 'user' => $user_data,
                 'segment' => 'break-times-backup',
@@ -193,28 +193,28 @@ class BreakTimeBackupController extends Controller
             ];
             
             try {
-                \Log::info('Break Time Summary Report - Data structure', [
+                \Log::info('Backup Time Summary Report - Data structure', [
                     'data_type' => gettype($data),
                     'data_keys' => array_keys($data),
                     'sidebar_type' => gettype($data['sidebar']),
                     'user_type' => gettype($data['user'])
                 ]);
                 
-                \Log::info('Break Time Summary Report - Summary data sample', [
+                \Log::info('Backup Time Summary Report - Summary data sample', [
                     'first_item' => $summaryData->first(),
                     'total_count' => $summaryData->count()
                 ]);
                 
                 return view('app.break_time_backup.summary_report', compact('summaryData', 'divisions', 'data'));
             } catch (\Exception $e) {
-                \Log::error('Break Time Summary Report - Error in view', [
+                \Log::error('Backup Time Summary Report - Error in view', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
                 throw $e;
             }
         } catch (\Exception $e) {
-            \Log::error('Break Time Summary Report - Error in method', [
+            \Log::error('Backup Time Summary Report - Error in method', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -228,7 +228,7 @@ class BreakTimeBackupController extends Controller
     protected function getBreakTimeSummary($startDate, $endDate, $divisionId = null)
     {
         try {
-            \Log::info('Getting break time summary data', [
+            \Log::info('Getting backup time summary data', [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'division_id' => $divisionId
@@ -268,7 +268,7 @@ class BreakTimeBackupController extends Controller
 
             $result = $query->get();
 
-            \Log::info('Break time summary data result', [
+            \Log::info('Backup time summary data result', [
                 'total_records' => $result->count(),
                 'first_record' => $result->first()
             ]);
@@ -278,7 +278,7 @@ class BreakTimeBackupController extends Controller
             return $result;
 
         } catch (\Exception $e) {
-            \Log::error('Error getting break time summary data', [
+            \Log::error('Error getting backup time summary data', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -324,13 +324,13 @@ class BreakTimeBackupController extends Controller
                 'total_staff' => $totalStaff,
                 'total_shifts' => $totalShifts,
                 'total_breaks' => $totalBreaks,
-                'no_break_shifts' => $noBreakShifts,
+                'no_break_shifts' => $noBreakShifts,    
 
                 'avg_breaks_per_staff' => $avgBreaksPerStaff,
                 'avg_shifts_per_staff' => $avgShiftsPerStaff
             ];
             
-            \Log::info('Break Time Summary Report Stats calculated', [
+            \Log::info('Backup Time Summary Report Stats calculated', [
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
@@ -358,7 +358,7 @@ class BreakTimeBackupController extends Controller
      */
     public function getSummaryReportDatatables(Request $request)
     {
-        \Log::info('Break Time Summary Report Datatables - Method called', [
+        \Log::info('Backup Time Summary Report Datatables - Method called', [
             'is_ajax' => request()->ajax(),
             'method' => $request->method(),
             'url' => $request->url(),
@@ -368,10 +368,10 @@ class BreakTimeBackupController extends Controller
         if(request()->ajax()) {
             try {
                 $this->validateAccess();
-                \Log::info('Break Time Summary Report Datatables - Access validated');
+                \Log::info('Backup Time Summary Report Datatables - Access validated');
                 
                 // Debug: Log request parameters
-                \Log::info('Break Time Summary Report Datatables Request', [
+                \Log::info('Backup Time Summary Report Datatables Request', [
                     'start_date' => $request->start_date,
                     'end_date' => $request->end_date,
                     'division_id' => $request->division_id,
@@ -382,7 +382,7 @@ class BreakTimeBackupController extends Controller
                 ]);
             
             } catch (\Exception $e) {
-                \Log::error('Break Time Summary Report Datatables - Error in access validation', [
+                \Log::error('Backup Time Summary Report Datatables - Error in access validation', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
@@ -415,7 +415,7 @@ class BreakTimeBackupController extends Controller
             }
             
             // Debug: Log data before DataTables processing
-            \Log::info('Break Time Summary Report Data Before DataTables', [
+            \Log::info('Backup Time Summary Report Data Before DataTables', [
                 'total_count' => $summaryData->count(),
                 'first_item' => $summaryData->first()
             ]);
@@ -433,7 +433,7 @@ class BreakTimeBackupController extends Controller
             $length = $request->get('length', 25);
             $paginatedData = array_slice($data, $start, $length);
             
-            \Log::info('Break Time Summary Report Datatables Response', [
+            \Log::info('Backup Time Summary Report Datatables Response', [
                 'total_records' => $totalRecords,
                 'displayed_records' => count($paginatedData),
                 'draw' => $request->get('draw', 1)
@@ -459,7 +459,7 @@ class BreakTimeBackupController extends Controller
         try {
             $this->validateAccess();
             
-            $title = 'Staff Break Time Detail';
+            $title = 'Staff Backup Time Detail';
             $user = auth()->user();
             $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
             
@@ -491,7 +491,7 @@ class BreakTimeBackupController extends Controller
             
             $data = [
                 'title' => $title,
-                'subtitle' => 'Staff Break Time Detail',
+                'subtitle' => 'Staff Backup Time Detail',
                 'sidebar' => $this->sidebar(),
                 'user' => $user_data,
                 'segment' => 'break-times-backup',
@@ -705,7 +705,7 @@ class BreakTimeBackupController extends Controller
         // Temporarily comment out for testing
         // $this->validateAccess();
         
-        $title = 'Break Time Report';
+        $title = 'Backup Time Report';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
 
@@ -743,7 +743,7 @@ class BreakTimeBackupController extends Controller
 
         $data = [
             'title' => $title,
-            'subtitle' => 'Break Time Report',
+            'subtitle' => 'Backup Time Report',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1),
@@ -953,11 +953,11 @@ class BreakTimeBackupController extends Controller
                     return '-';
                 })
                 ->editColumn('bt_type', function($row) {
-                    // Dynamic break type handling
-                    $breakNumber = str_replace('break_', '', $row->bt_type);
-                    $typeText = 'Break ' . ucfirst($breakNumber);
+                    // Dynamic backup type handling
+                    $backupNumber = str_replace('break_', '', $row->bt_type);
+                    $typeText = 'Backup ' . ucfirst($backupNumber);
                     
-                    // Assign different colors based on break number
+                    // Assign different colors based on backup number
                     $colorClasses = [
                         1 => 'badge badge-primary',
                         2 => 'badge badge-info', 
@@ -966,8 +966,8 @@ class BreakTimeBackupController extends Controller
                         5 => 'badge badge-danger'
                     ];
                     
-                    $breakNum = is_numeric($breakNumber) ? (int)$breakNumber : 1;
-                    $typeClass = $colorClasses[$breakNum] ?? 'badge badge-secondary';
+                    $backupNum = is_numeric($backupNumber) ? (int)$backupNumber : 1;
+                    $typeClass = $colorClasses[$backupNum] ?? 'badge badge-secondary';
                     
                     return '<span class="' . $typeClass . '">' . $typeText . '</span>';
                 })
@@ -1019,10 +1019,10 @@ class BreakTimeBackupController extends Controller
         if ($result) {
             // Get the actual break type that was assigned
             $activeBreak = $breakTime->getCurrentUserActiveBreak($userId);
-            $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'break_1';
+            $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'backup_1';
             
             // Default break duration (can be customized later)
-            $breakDuration = 30; // Set default duration
+            $breakDuration = 60; // Set default duration
             
             return response()->json([
                 'success' => true,
@@ -1108,10 +1108,10 @@ class BreakTimeBackupController extends Controller
                 ->with('shiftCode')
                 ->first();
             
-            $breakDuration = 30; // default
+            $breakDuration = 60; // default
             if ($dailySchedule && $dailySchedule->shiftCode) {
                 $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
-                $breakDuration = $allowance[$activeBreak->bt_type]['duration'] ?? 30;
+                $breakDuration = $allowance[$activeBreak->bt_type]['duration'] ?? 60;
             }
 
             return response()->json([
@@ -1377,7 +1377,7 @@ class BreakTimeBackupController extends Controller
     {
         $this->validateAccess();
         
-        $title = 'Break Times';
+        $title = 'Backup Times';
         $user_data = $this->getUserData();
         
         $users = DB::table('users')->where('u_delete', '!=', '1')->get();
@@ -1385,7 +1385,7 @@ class BreakTimeBackupController extends Controller
 
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Break Times',
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Backup Times',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1)
@@ -1403,7 +1403,7 @@ class BreakTimeBackupController extends Controller
             'bt_date' => 'required|date',
             'bt_start_time' => 'required',
             'bt_end_time' => 'required|after:bt_start_time',
-            'bt_type' => 'nullable|string', // Allow any break type (break_1, break_2, break_3, etc.)
+            'bt_type' => 'nullable|string', // Allow any backup type (backup_1, backup_2, backup_3, etc.)
             'bt_status' => 'required|in:active,completed,cancelled',
             'bt_notes' => 'nullable|string'
         ]);
@@ -1445,9 +1445,9 @@ class BreakTimeBackupController extends Controller
         $result = DB::table('break_times_backup')->insert($breakTimeData);
 
         if ($result) {
-            return redirect()->route('break-times-backup.index')->with('success', 'Break time created successfully');
+            return redirect()->route('break-times-backup.index')->with('success', 'Backup time created successfully');
         } else {
-            return back()->with('error', 'Failed to create break time')->withInput();
+            return back()->with('error', 'Failed to create backup time')->withInput();
         }
     }
 
@@ -1455,7 +1455,7 @@ class BreakTimeBackupController extends Controller
     {
         $this->validateAccess();
         
-        $title = 'Break Times';
+        $title = 'Backup Times';
         $user_data = $this->getUserData();
         
         $breakTime = DB::table('break_times_backup')
@@ -1466,12 +1466,12 @@ class BreakTimeBackupController extends Controller
             ->first();
 
         if (!$breakTime) {
-            return redirect()->route('break-times-backup.index')->with('error', 'Break time not found');
+            return redirect()->route('break-times-backup.index')->with('error', 'Backup time not found');
         }
 
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Break Times',
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Backup Times',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1)
@@ -1484,13 +1484,13 @@ class BreakTimeBackupController extends Controller
     {
         $this->validateAccess();
         
-        $title = 'Break Times';
+        $title = 'Backup Times';
         $user_data = $this->getUserData();
         
         $breakTime = DB::table('break_times_backup')->where('id', $id)->first();
         
         if (!$breakTime) {
-            return redirect()->route('break-times-backup.index')->with('error', 'Break time not found');
+            return redirect()->route('break-times-backup.index')->with('error', 'Backup time not found');
         }
 
         $users = DB::table('users')->where('u_delete', '!=', '1')->get();
@@ -1498,7 +1498,7 @@ class BreakTimeBackupController extends Controller
 
         $data = [
             'title' => $title,
-            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Break Times',
+            'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title ?? 'Backup Times',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'segment' => request()->segment(1)
@@ -1516,7 +1516,7 @@ class BreakTimeBackupController extends Controller
             'bt_date' => 'required|date',
             'bt_start_time' => 'required',
             'bt_end_time' => 'required|after:bt_start_time',
-            'bt_type' => 'nullable|string', // Allow any break type (break_1, break_2, break_3, etc.)
+            'bt_type' => 'nullable|string', // Allow any backup type (backup_1, backup_2, backup_3, etc.)
             'bt_status' => 'required|in:active,completed,cancelled',
             'bt_notes' => 'nullable|string'
         ]);
@@ -1524,7 +1524,7 @@ class BreakTimeBackupController extends Controller
         $breakTime = DB::table('break_times_backup')->where('id', $id)->first();
         
         if (!$breakTime) {
-            return redirect()->route('break-times-backup.index')->with('error', 'Break time not found');
+            return redirect()->route('break-times-backup.index')->with('error', 'Backup time not found');
         }
 
         // Auto-assign break type if not provided
@@ -1547,7 +1547,7 @@ class BreakTimeBackupController extends Controller
             'updated_at' => now()
         ]);
 
-        return redirect()->route('break-times-backup.index')->with('success', 'Break time updated successfully');
+        return redirect()->route('break-times-backup.index')->with('success', 'Backup time updated successfully');
     }
 
     public function destroy($id)
@@ -1557,12 +1557,12 @@ class BreakTimeBackupController extends Controller
         $breakTime = DB::table('break_times_backup')->where('id', $id)->first();
         
         if (!$breakTime) {
-            return response()->json(['success' => false, 'message' => 'Break time not found']);
+            return response()->json(['success' => false, 'message' => 'Backup time not found']);
         }
 
         DB::table('break_times_backup')->where('id', $id)->delete();
 
-        return response()->json(['success' => true, 'message' => 'Break time deleted successfully'        ]);
+        return response()->json(['success' => true, 'message' => 'Backup time deleted successfully'        ]);
     }
 
     public function getCurrentBreakList(Request $request)
@@ -1754,11 +1754,11 @@ class BreakTimeBackupController extends Controller
             
             if ($result) {
                 // Get the assigned break type
-                $activeBreak = $breakTime->getCurrentUserActiveBreak($user->id);
-                $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'break_1';
+                $activeBreak = $breakTime->getCurrentBreak($user->id);
+                $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'backup_1';
                 
                 // Default break duration
-                $breakDuration = 30; // Set default duration
+                $breakDuration = 60; // Set default duration
                 
                 return response()->json([
                     'success' => true,
@@ -1884,7 +1884,7 @@ class BreakTimeBackupController extends Controller
             }
 
             // Generate filename with filters like attendance
-            $filename = 'break_times_backup_' . date('Y-m-d_H-i-s');
+            $filename = 'backup_times_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -1902,7 +1902,7 @@ class BreakTimeBackupController extends Controller
             
             return $response;
         } catch (\Exception $e) {
-            \Log::error('Error exporting break times to Excel: ' . $e->getMessage());
+            \Log::error('Error exporting backup times to Excel: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             \Log::error('Request data: ' . json_encode($request->all()));
             
@@ -1942,7 +1942,7 @@ class BreakTimeBackupController extends Controller
             ]);
             
             // Generate filename
-            $filename = 'break_times_backup_report_' . date('Y-m-d_H-i-s');
+            $filename = 'backup_times_report_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -1955,7 +1955,7 @@ class BreakTimeBackupController extends Controller
             $pdf = \PDF::loadHTML($html);
             return $pdf->download($filename);
         } catch (\Exception $e) {
-            \Log::error('Error exporting break times to PDF: ' . $e->getMessage());
+            \Log::error('Error exporting backup times to PDF: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             return back()->with('error', 'Error exporting data: ' . $e->getMessage());
         }
@@ -2022,7 +2022,7 @@ class BreakTimeBackupController extends Controller
         <html>
         <head>
             <meta charset="utf-8">
-            <title>Break Times Report</title>
+            <title>Backup Times Report</title>
             <style>
                 body { font-family: Arial, sans-serif; font-size: 12px; }
                 .header { text-align: center; margin-bottom: 20px; }
@@ -2039,7 +2039,7 @@ class BreakTimeBackupController extends Controller
         </head>
         <body>
             <div class="header">
-                <h1>LAPORAN BREAK TIME</h1>
+                <h1>LAPORAN BACKUP TIME</h1>
                 <p>Periode: ' . date('d/m/Y', strtotime($request->get('start_date', date('Y-m-d')))) . ' - ' . date('d/m/Y', strtotime($request->get('end_date', date('Y-m-d')))) . '</p>
                 <p>Dibuat pada: ' . date('d/m/Y H:i:s') . '</p>';
 
@@ -2188,7 +2188,7 @@ class BreakTimeBackupController extends Controller
                 });
             }
             
-            $filename = 'break_time_backup_summary_' . date('Y-m-d_H-i-s');
+            $filename = 'backup_time_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -2237,7 +2237,7 @@ class BreakTimeBackupController extends Controller
             $html = $this->generateSummaryReportHTML($summaryData, $request);
             
             // Generate filename
-            $filename = 'break_time_backup_summary_' . date('Y-m-d_H-i-s');
+            $filename = 'backup_time_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
                 $filename .= '_' . ($division ? str_replace(' ', '_', $division->ud_name) : 'all');
@@ -2251,7 +2251,7 @@ class BreakTimeBackupController extends Controller
             return $pdf->download($filename);
             
         } catch (\Exception $e) {
-            \Log::error('Export break time summary PDF error: ' . $e->getMessage());
+            \Log::error('Export backup time summary PDF error: ' . $e->getMessage());
             return back()->with('error', 'Export PDF failed: ' . $e->getMessage());
         }
     }
@@ -2266,7 +2266,7 @@ class BreakTimeBackupController extends Controller
         <html>
         <head>
             <meta charset="utf-8">
-            <title>Break Time Backup Summary Report</title>
+            <title>Backup Time Summary Report</title>
             <style>
                 body { font-family: Arial, sans-serif; font-size: 12px; }
                 .header { text-align: center; margin-bottom: 20px; }
@@ -2301,7 +2301,7 @@ class BreakTimeBackupController extends Controller
         </head>
         <body>
             <div class="header">
-                <h1>LAPORAN REKAPITULASI BREAK TIME BACKUP</h1>
+                <h1>LAPORAN REKAPITULASI BACKUP TIME</h1>
                 <p>Periode: ' . date('d/m/Y', strtotime($request->get('start_date', date('Y-m-d')))) . ' - ' . date('d/m/Y', strtotime($request->get('end_date', date('Y-m-d')))) . '</p>
                 <p>Dibuat pada: ' . date('d/m/Y H:i:s') . '</p>
             </div>
@@ -2457,7 +2457,7 @@ class BreakTimeBackupController extends Controller
             
 
             
-            $filename = 'break_time_backup_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.xlsx';
+            $filename = 'backup_time_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.xlsx';
             
             return Excel::download(new BreakTimeBackupStaffExport($processedBreakTimes, $staff), $filename);
             
@@ -2556,13 +2556,13 @@ class BreakTimeBackupController extends Controller
             // Generate HTML for PDF
             $html = $this->generateStaffReportHTML($processedBreakTimes, $staff, $request);
             
-            $filename = 'break_time_backup_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.pdf';
+            $filename = 'backup_time_staff_' . $staff->u_nip . '_' . $startDate . '_to_' . $endDate . '.pdf';
             
             $pdf = \PDF::loadHTML($html);
             return $pdf->download($filename);
             
         } catch (\Exception $e) {
-            \Log::error('Export staff break time PDF error: ' . $e->getMessage());
+            \Log::error('Export staff backup time PDF error: ' . $e->getMessage());
             return back()->with('error', 'Export PDF failed: ' . $e->getMessage());
         }
     }
@@ -2577,7 +2577,7 @@ class BreakTimeBackupController extends Controller
         <html>
         <head>
             <meta charset="utf-8">
-            <title>Staff Break Time Report</title>
+            <title>Staff Backup Time Report</title>
             <style>
                 body { font-family: Arial, sans-serif; font-size: 12px; }
                 .header { text-align: center; margin-bottom: 20px; }
@@ -2595,7 +2595,7 @@ class BreakTimeBackupController extends Controller
         </head>
         <body>
             <div class="header">
-                <h1>LAPORAN BREAK TIME STAFF</h1>
+                <h1>LAPORAN BACKUP TIME STAFF</h1>
                 <p>Periode: ' . date('d/m/Y', strtotime($request->get('start_date', date('Y-m-01')))) . ' - ' . date('d/m/Y', strtotime($request->get('end_date', date('Y-m-t')))) . '</p>
                 <p>Dibuat pada: ' . date('d/m/Y H:i:s') . '</p>
             </div>

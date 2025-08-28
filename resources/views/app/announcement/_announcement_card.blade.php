@@ -121,14 +121,12 @@
                                     <small class="text-muted">{{ $attachment->file_size_human }}</small>
                                 </div>
                                 <div class="ml-2">
-                                    <a href="{{ $attachment->file_url }}" class="btn btn-sm btn-light" target="_blank" download>
-                                        <i class="ki-outline ki-cloud-download"></i>
-                                    </a>
-                                    @if($attachment->is_image)
-                                    <button class="btn btn-sm btn-light ml-1" onclick="viewImage('{{ $attachment->file_url }}', '{{ $attachment->original_name }}')">
-                                        <i class="ki-outline ki-eye"></i>
+                                    <button class="btn btn-sm btn-light-primary" onclick="viewAnnouncementAttachment('{{ $attachment->file_path }}', '{{ $attachment->original_name }}', '{{ $attachment->mime_type }}', '{{ $attachment->file_size }}')">
+                                        <i class="ki-outline ki-eye"></i> View/Download
                                     </button>
-                                    @endif
+                                    <!-- <a href="{{ $attachment->file_url }}" class="btn btn-sm btn-light ml-1" target="_blank" download>
+                                        <i class="ki-outline ki-cloud-download"></i> Download
+                                    </a> -->
                                 </div>
                             </div>
                         </div>

@@ -103,7 +103,7 @@
                     <div class="card card-custom gutter-b">
                         <!-- <div class="card-header flex-wrap py-3">
                             <div class="card-title">
-                                <h3 class="card-label">Data Break Time</h3>
+                                <h3 class="card-label">Data Backup Time</h3>
                             </div>
                 </div> -->
                 <div class="card-body">
@@ -131,12 +131,12 @@
                                         <i class="ki-outline ki-coffee text-white" style="font-size: 3rem;"></i>
                                     </div>
                                     <button type="button" class="btn btn-white btn-lg btn-block mb-3 rounded-lg" id="mainBreakButton" style="min-height: 60px; font-size: 1.2rem;">
-                                         <span id="breakButtonText">Start Break</span>
+                                         <span id="breakButtonText">Start Backup</span>
                                     </button>
                                     <div id="breakTimer" class="text-white h4 mb-0" style="display: none;">
                                         <i class="fas fa-clock text-white mr-2"></i> <span id="timerDisplay">00:00</span>
                                         <div class="text-white-50 small mt-1">
-                                            <span id="breakTypeDisplay">Break Time</span> - <span id="durationDisplay">Remaining</span>
+                                            <span id="breakTypeDisplay">Backup Time</span> - <span id="durationDisplay">Remaining</span>
                                         </div>
                                     </div>
                                 </div>
@@ -155,7 +155,7 @@
                                 <div class="card-header">
                                     <div class="card-title">
                                         <h3 class="card-label">
-                                            Currently on Break
+                                            Currently on Backup
                                         </h3>
                                     </div>
                                     <div class="card-toolbar">

@@ -63,6 +63,72 @@
         position: relative;
     }
 
+    /* Modal styles for attachment preview */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        padding: 0;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 800px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    .modal-footer {
+        padding: 15px;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    .close:hover {
+        color: #000;
+    }
+
+    .modal-open {
+        overflow: hidden;
+    }
+
     /* Menu item styling */
     .menu-item .menu-link {
         cursor: pointer;
@@ -206,6 +272,7 @@
                                 <th>Pinned</th>
                                 <th>Published</th>
                                 <th>Reactions</th>
+                                <th>Attachments</th>
                                 <th>Created By</th>
                                 <th>Actions</th>
                             </tr>
@@ -255,6 +322,34 @@
                                     <span class="badge badge-light-primary">
                                         {{ $announcement->userReactions->count() }} reactions
                                     </span>
+                                </td>
+                                <td>
+                                    @if($announcement->attachments->count() > 0)
+                                        <div class="d-flex flex-column">
+                                            <!-- <span class="badge badge-info mb-1">{{ $announcement->attachments->count() }} files</span> -->
+                                            @foreach($announcement->attachments->take(2) as $attachment)
+                                                <div class="d-flex align-items-center mb-1 justify-content-center">
+                                                    <!-- @if($attachment->is_image)
+                                                        <i class="fas fa-file-image text-primary mr-1"></i>
+                                                    @elseif(strpos($attachment->mime_type, 'pdf') !== false)
+                                                        <i class="fas fa-file-pdf text-danger mr-1"></i>
+                                                    @elseif(strpos($attachment->mime_type, 'word') !== false)
+                                                        <i class="fas fa-file-word text-info mr-1"></i>
+                                                    @else
+                                                        <i class="fas fa-file text-secondary mr-1"></i>
+                                                    @endif -->
+                                                    <button class="btn btn-xs btn-light-primary" onclick="viewAnnouncementAttachment('{{ $attachment->file_path }}', '{{ $attachment->original_name }}', '{{ $attachment->mime_type }}', '{{ $attachment->file_size }}')">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            @endforeach
+                                            @if($announcement->attachments->count() > 2)
+                                                <small class="text-muted">+{{ $announcement->attachments->count() - 2 }} more</small>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <span class="text-muted fw-semibold fs-7">
@@ -440,7 +535,137 @@ function initializeSimpleDropdown() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeSimpleDropdown();
 });
+
+// Modal functions for attachment preview
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+    }
+}
+
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+    }
+}
+
+// Function to view announcement attachment
+function viewAnnouncementAttachment(filePath, fileName, fileType, fileSize) {
+    const modal = document.getElementById('attachmentModal');
+    const content = document.getElementById('attachmentContent');
+    const downloadLink = document.getElementById('downloadAttachment');
+    const modalTitle = document.getElementById('attachmentModalLabel');
+    
+    // Set modal title
+    modalTitle.textContent = `View Attachment: ${fileName}`;
+    
+    // Set download link
+    downloadLink.href = `/storage/${filePath}`;
+    downloadLink.download = fileName;
+    
+    // Clear previous content
+    content.innerHTML = '';
+    
+    // Show loading
+    content.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading attachment...</p></div>';
+    
+    // Show modal
+    showModal('attachmentModal');
+    
+    // Load attachment content based on file type
+    if (fileType && fileType.includes('image')) {
+        // For images, show directly
+        content.innerHTML = `
+            <div class="text-center">
+                <img src="/storage/${filePath}" alt="${fileName}" class="img-fluid" style="max-height: 500px;">
+                <p class="mt-2"><strong>${fileName}</strong></p>
+                <small class="text-muted">File size: ${formatFileSize(fileSize)}</small>
+            </div>
+        `;
+    } else if (fileType && fileType.includes('pdf')) {
+        // For PDFs, show in iframe
+        content.innerHTML = `
+            <div class="text-center">
+                <iframe src="/storage/${filePath}" width="100%" height="500" frameborder="0"></iframe>
+                <p class="mt-2"><strong>${fileName}</strong></p>
+                <small class="text-muted">File size: ${formatFileSize(fileSize)}</small>
+            </div>
+        `;
+    } else {
+        // For other file types, show file info
+        content.innerHTML = `
+            <div class="text-center">
+                <div class="alert alert-info">
+                    <i class="fas fa-file fa-3x mb-3"></i>
+                    <h5>${fileName}</h5>
+                    <p>This file type cannot be previewed directly.</p>
+                    <p>Please download the file to view its contents.</p>
+                    <small class="text-muted">File size: ${formatFileSize(fileSize)}</small>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Function to format file size
+function formatFileSize(bytes) {
+    if (bytes >= 1073741824) {
+        return (bytes / 1073741824).toFixed(2) + ' GB';
+    } else if (bytes >= 1048576) {
+        return (bytes / 1048576).toFixed(2) + ' MB';
+    } else if (bytes >= 1024) {
+        return (bytes / 1024).toFixed(2) + ' KB';
+    } else {
+        return bytes + ' bytes';
+    }
+}
+
+// Handle modal backdrop click and escape key
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.modal').forEach(function(modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideModal(this.id);
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal').forEach(function(modal) {
+                if (modal.classList.contains('show')) {
+                    hideModal(modal.id);
+                }
+            });
+        }
+    });
+});
 </script>
+
+<!-- Attachment Preview Modal -->
+<div id="attachmentModal" class="modal">
+    <div class="modal-content" style="max-width: 1200px; max-height: 800px;">
+        <div class="modal-header">
+            <h5 class="modal-title" id="attachmentModalLabel">View Attachment</h5>
+            <button type="button" class="close" onclick="hideModal('attachmentModal')" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="attachmentContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="hideModal('attachmentModal')">Close</button>
+            <a href="#" id="downloadAttachment" class="btn btn-primary" download>Download</a>
+        </div>
+    </div>
+</div>
 
 @endsection
 @include('app._partials.js')
