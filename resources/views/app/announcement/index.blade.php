@@ -575,7 +575,7 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     color: #6c757d !important;
 }
 .reactions-container-mobile {
-    display: none;
+    display: none !important;
 }
 @media (max-width: 767px) {
   .btn-mobile-sm {
