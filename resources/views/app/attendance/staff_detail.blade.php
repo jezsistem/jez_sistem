@@ -185,7 +185,7 @@
                                 </div>
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="total_libur">0</div>
-                                    <div class="text-dark-50">Total Libur</div>
+                                    <div class="text-dark-50">Total Day off</div>
                                 </div>
                             </div>
                         </div>
