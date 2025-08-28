@@ -9,7 +9,7 @@ use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\DebtListController;
 use App\Http\Controllers\CekDanaOnlineController;
-
+use App\Http\Controllers\SettlementController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -99,4 +99,9 @@ Route::middleware(['auth'])->group(function () {
 //    Route::get('cek_dana_detail_datatables', [CekDanaOnlineController::class, 'getDetailDatatables']);
     Route::post('cek_dana_online_import', [CekDanaOnlineController::class, 'importData']);
     Route::get('export_transaction_settle', [CekDanaOnlineController::class, 'exportExcel'])->name('export_transaction_settle');
+
+    Route::get('settlement', [SettlementController::class, 'index'])->name('settlement');
+    Route::get('settlement_reload_payment_method', [SettlementController::class, 'reloadPaymentMethod'])->name('settlement.reload_payment_method');
+    Route::get('settlement_datatables', [SettlementController::class, 'getDatatables'])->name('settlement_datatables');
+    Route::get('settlement_netsales_per_payment_method', [SettlementController::class, 'getNetsalesPerPaymentMethod'])->name('settlement.netsales_per_payment_method');
 });
