@@ -154,10 +154,10 @@
                 
                 <div class="d-flex align-items-center">
                     <button class="btn btn-sm btn-light mr-2" onclick="showReactionDetails({{ $announcement->id }})">
-                        <i class="ki-outline ki-eye"></i> View Reactions ({{ $announcement->userReactions->count() }})
+                        <i class="ki-solid ki-emoji-happy text-gray-600"></i> View Reactions ({{ $announcement->userReactions->count() }})
                     </button>
                     <button class="btn btn-sm btn-light mr-2" onclick="showViewDetails({{ $announcement->id }})">
-                        <i class="fas fa-users"></i> Viewers ({{ $announcement->views_count ?? 0 }})
+                        <i class="ki-solid ki-eye text-gray-600"></i> Viewers ({{ $announcement->views_count ?? 0 }})
                     </button>
                     <button class="btn btn-sm btn-light-primary" 
                             onclick="toggleAnnouncementContent({{ $announcement->id }})" 
@@ -184,10 +184,10 @@
                 
             <div class="d-flex align-items-center reactions-container-mobile">
                 <button class="btn btn-sm btn-light mr-2" onclick="showReactionDetails({{ $announcement->id }})">
-                    <i class="ki-outline ki-eye"></i> View Reactions ({{ $announcement->userReactions->count() }})
+                    <i class="ki-solid ki-emoji-happy"></i> View Reactions ({{ $announcement->userReactions->count() }})
                 </button>
                 <button class="btn btn-sm btn-light mr-2" onclick="showViewDetails({{ $announcement->id }})">
-                    <i class="fas fa-users"></i> Viewers ({{ $announcement->views_count ?? 0 }})
+                    <i class="ki-solid ki-eye"></i> Viewers ({{ $announcement->views_count ?? 0 }})
                 </button>
                 <button class="btn btn-sm btn-light-primary" 
                         onclick="toggleAnnouncementContent({{ $announcement->id }})" 

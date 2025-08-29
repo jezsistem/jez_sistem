@@ -167,21 +167,25 @@
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewDetailsModal" tabindex="-1" role="dialog" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewDetailsModalLabel">Announcement Viewers</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content" style="max-height: 80vh;">
+            <div class="modal-header bg-light border-0 py-4">
+                <h5 class="modal-title text-dark font-weight-bold" id="viewDetailsModalLabel">
+                    Announcement Viewers
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div id="viewDetailsContent">
+            <div class="modal-body p-0" style="max-height: 60vh; overflow-y: auto;">
+                <div id="viewDetailsContent" class="p-4">
                     <!-- Content will be loaded here -->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-white font-weight-bold px-4 text-dark" data-dismiss="modal">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -189,21 +193,25 @@
 
 <!-- Reaction Details Modal -->
 <div class="modal fade" id="reactionDetailsModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="reactionDetailsModalTitle">Reaction Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content" style="max-height: 80vh;">
+            <div class="modal-header bg-light border-0 py-4">
+                <h5 class="modal-title text-dark font-weight-bold" id="reactionDetailsModalTitle">
+                    Reaction Details
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div id="reactionDetailsContent">
+            <div class="modal-body p-0" style="max-height: 60vh; overflow-y: auto;">
+                <div id="reactionDetailsContent" class="p-4">
                     <!-- Content will be loaded here -->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light font-weight-bold" data-dismiss="modal">Close</button>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-white font-weight-bold px-4 text-dark" data-dismiss="modal">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -212,21 +220,25 @@
 <!-- Image Viewer Modal -->
 <div class="modal fade" id="imageViewerModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="imageViewerTitle">Image Viewer</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
+        <div class="modal-content" style="max-height: 90vh;">
+            <div class="modal-header bg-light border-0 py-3">
+                <h5 class="modal-title text-dark font-weight-bold" id="imageViewerTitle">
+                    <i class="fas fa-image text-success mr-2"></i>Image Viewer
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
                 </button>
             </div>
-            <div class="modal-body text-center">
-                <img id="imageViewerImage" src="" alt="" class="img-fluid" style="max-height: 70vh;">
+            <div class="modal-body text-center p-2" style="max-height: 75vh; overflow-y: auto;">
+                <img id="imageViewerImage" src="" alt="" class="img-fluid" style="max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             </div>
-            <div class="modal-footer">
-                <a id="imageDownloadLink" href="" class="btn btn-light" download>
-                    <i class="fas fa-download"></i> Download
+            <div class="modal-footer bg-light border-0 py-2">
+                <a id="imageDownloadLink" href="" class="btn btn-light-success font-weight-bold px-4 mr-2" download>
+                    <i class="fas fa-download mr-1"></i>Download
                 </a>
-                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-light-secondary font-weight-bold px-4" data-dismiss="modal">
+                    <i class="ki ki-close mr-1"></i>Close
+                </button>
             </div>
         </div>
     </div>
@@ -466,21 +478,133 @@
     border-radius: 8px !important;
 }
 
-/* Modal styling */
+/* Enhanced Modal styling */
 .modal-content {
     border: none !important;
     border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+    backdrop-filter: blur(10px);
 }
 
 .modal-header {
-    border-bottom: 1px solid #e9ecef !important;
-    background-color: #f8f9fa !important;
+    border-bottom: none !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-radius: 8px 8px 0 0 !important;
 }
 
 .modal-footer {
-    border-top: 1px solid #e9ecef !important;
+    border-top: none !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-radius: 0 0 8px 8px !important;
+}
+
+/* Custom scrollbar for modal body */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Modal backdrop enhancement */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(3px);
+}
+
+/* Table styling in modals */
+.modal-body .table {
+    margin-bottom: 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.modal-body .table thead th {
+    background: #f8f9fa !important;
+    border: none !important;
+    font-weight: 600 !important;
+    color: #495057 !important;
+    font-size: 0.875rem;
+    padding: 12px 16px;
+}
+
+.modal-body .table tbody td {
+    border: none !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+.modal-body .table tbody tr:hover {
     background-color: #f8f9fa !important;
+}
+
+.modal-body .table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Enhanced close button */
+.modal-header .close {
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+/* Button styling in modals */
+.modal-footer .btn {
+    border-radius: 6px !important;
+    font-size: 0.875rem !important;
+    transition: all 0.3s ease;
+}
+
+.modal-footer .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Loading state styling */
+.modal-body .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Alert styling in modals */
+.modal-body .alert {
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 0.875rem;
+}
+
+.modal-body .alert-info {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%) !important;
+    color: #1976d2 !important;
+}
+
+.modal-body .alert-danger {
+    background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%) !important;
+    color: #d32f2f !important;
 }
 
 /* Pin icon styling */
@@ -1289,10 +1413,7 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     // Display view details in modal
     function displayViewDetails(viewers, announcement) {
         let html = `
-            <div class="mb-3">
-                <h6 class="text-dark font-weight-bold">${announcement.title}</h6>
-                <small class="text-muted">Published: ${announcement.published_at}</small>
-            </div>
+           
         `;
         
         if (viewers.length === 0) {
@@ -1308,7 +1429,6 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                                 <th>Position</th>
                                 <th>Division</th>
                                 <th>Viewed At</th>
-                                <th>IP Address</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1336,9 +1456,6 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                         <td>
                             <div class="font-weight-bold">${viewer.viewed_date}</div>
                             <small class="text-muted">${viewer.viewed_time}</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">${viewer.ip_address}</small>
                         </td>
                     </tr>
                 `;
@@ -1735,22 +1852,30 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
 </style>
 
 <!-- Attachment Preview Modal -->
-<div id="attachmentModal" class="modal">
-    <div class="modal-content" style="max-width: 1200px; max-height: 800px;">
-        <div class="modal-header">
-            <h5 class="modal-title" id="attachmentModalLabel">View Attachment</h5>
-            <button type="button" class="close" onclick="hideModal('attachmentModal')" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div id="attachmentContent">
-                <!-- Content will be loaded here -->
+<div id="attachmentModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content" style="max-height: 85vh;">
+            <div class="modal-header bg-light border-0 py-3">
+                <h5 class="modal-title text-dark font-weight-bold" id="attachmentModalLabel">
+                    <i class="fas fa-paperclip text-warning mr-2"></i>View Attachment
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" onclick="hideModal('attachmentModal')" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
+                </button>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="hideModal('attachmentModal')">Close</button>
-            <a href="#" id="downloadAttachment" class="btn btn-primary" download>Download</a>
+            <div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto;">
+                <div id="attachmentContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-light-secondary font-weight-bold px-4 mr-2" onclick="hideModal('attachmentModal')">
+                    <i class="ki ki-close mr-1"></i>Close
+                </button>
+                <a href="#" id="downloadAttachment" class="btn btn-light-warning font-weight-bold px-4" download>
+                    <i class="fas fa-download mr-1"></i>Download
+                </a>
+            </div>
         </div>
     </div>
 </div>
