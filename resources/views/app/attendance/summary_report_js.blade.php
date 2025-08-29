@@ -250,8 +250,8 @@
                         }
                     },
                     { 
-                        data: 'sick_days', 
-                        name: 'sick_days', 
+                        data: 'leave_days', 
+                        name: 'leave_days', 
                         width: '8%', 
                         className: 'text-center',
                         render: function(data, type, row) {
@@ -262,8 +262,8 @@
                         }
                     },
                     { 
-                        data: 'leave_days', 
-                        name: 'leave_days', 
+                        data: 'sick_days', 
+                        name: 'sick_days', 
                         width: '8%', 
                         className: 'text-center',
                         render: function(data, type, row) {

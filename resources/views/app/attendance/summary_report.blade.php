@@ -283,8 +283,8 @@
                                     <th width="8%" class="text-center">Total Shifts</th>
                                     <th width="8%" class="text-center">Present Days</th>
                                     <th width="8%" class="text-center">Total Day off</th>
-                                    <th width="8%" class="text-center">Sick Days</th>
                                     <th width="8%" class="text-center">Leave Days</th>
+                                    <th width="8%" class="text-center">Sick Days</th>
                                     <th width="8%" class="text-center">Late Days</th>
                                     <th width="8%" class="text-center">Alpha Days</th>
                                 </tr>

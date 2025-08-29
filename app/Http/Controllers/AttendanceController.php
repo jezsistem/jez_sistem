@@ -2621,8 +2621,8 @@ class AttendanceController extends Controller
                         <th class="text-center">Total Shift</th>
                         <th class="text-center">Hadir</th>
                         <th class="text-center">Libur</th>
-                        <th class="text-center">Sakit</th>
                         <th class="text-center">Cuti</th>
+                        <th class="text-center">Sakit</th>
                         <th class="text-center">Terlambat</th>
                         <th class="text-center">Alpha</th>
                     </tr>
@@ -2642,8 +2642,8 @@ class AttendanceController extends Controller
                         <td class="text-center">' . ($item->total_shifts ?? 0) . '</td>
                         <td class="text-center">' . ($item->present_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->total_libur ?? 0) . '</td>
-                        <td class="text-center">' . ($item->sick_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->leave_days ?? 0) . '</td>
+                        <td class="text-center">' . ($item->sick_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->late_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->alpha_days ?? 0) . '</td>
                     </tr>';
@@ -2746,11 +2746,11 @@ class AttendanceController extends Controller
                 ->editColumn('present_days', function($row) {
                     return $row->present_days ?? 0;
                 })
-                ->editColumn('sick_days', function($row) {
-                    return $row->sick_days ?? 0;
-                })
                 ->editColumn('leave_days', function($row) {
                     return $row->leave_days ?? 0;
+                })
+                ->editColumn('sick_days', function($row) {
+                    return $row->sick_days ?? 0;
                 })
                 ->editColumn('late_days', function($row) {
                     return $row->late_days ?? 0;
