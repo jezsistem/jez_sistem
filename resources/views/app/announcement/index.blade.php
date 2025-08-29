@@ -21,21 +21,47 @@
             <!--end::Info-->
             <div style="width: 45%;">
                 <div style="position: relative;">
-                    <input type="text" 
-                    class="form-control" 
+                    <!-- Ikon search (kiri) -->
+                    <span
+                    style="
+                        position:absolute;
+                        left:.6rem;
+                        top:50%;
+                        transform:translateY(-50%);
+                        pointer-events:none;
+                        line-height:1;
+                        opacity:.75;
+                    ">
+                    <i class="ki-outline ki-magnifier"></i>
+                    </span>
+
+                    <input
+                    type="text"
+                    class="form-control"
                     id="searchInput"
-                    placeholder="Search announcements by title, content, or sender name..." 
+                    placeholder="Search announcements by title, content, or sender name..."
                     value="{{ request('search') }}"
-                    style="border-radius: 0.475rem; padding-right: 2rem;">
-                    
-                    <!-- Tombol clear -->
-                    <button type="button" 
-                    id="clearSearchBtn" 
-                    style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer;">
+                    style="border-radius: .475rem; padding-left: 2rem; padding-right: 2rem; height: 40px;"
+                    >
+
+                    <!-- Tombol clear (kanan) -->
+                    <button
+                    type="button"
+                    id="clearSearchBtn"
+                    aria-label="Clear search"
+                    style="
+                        position:absolute;
+                        right:.5rem;
+                        top:50%;
+                        transform:translateY(-50%);
+                        border:none;
+                        background:transparent;
+                        cursor:pointer;
+                    ">
                     <i class="ki-outline ki-cross"></i>
                     </button>
                 </div>
-            </div>
+                </div>
             <!--begin::Toolbar-->
             <div class="d-flex align-items-center mr-3">
                 <a href="{{ route('announcements.create') }}" class="btn btn-primary font-weight-bolder btn-mobile-sm">

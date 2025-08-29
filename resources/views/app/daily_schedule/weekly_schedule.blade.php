@@ -85,7 +85,7 @@
                                         </div>
                                         @endif
                                         <div class="col-md-2">
-                                            <label>Filter Tanggal:</label>
+                                            <label>Date Filter:</label>
                                             <select class="form-control" id="date_filter" name="date_filter">
                                                 <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
                                                 <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Last Week</option>
@@ -93,12 +93,12 @@
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <label>Rentang Minggu:</label>
+                                            <label>Week Range:</label>
                                             <input type="date" class="form-control" name="start_date" value="{{ $startDate }}">
                                             <small class="form-text text-muted">Select Monday to display full week</small>
                                         </div>
                                         <div class="col-md-3">
-                                        <label>Cari Staff:</label>
+                                        <label>Search Staff:</label>
                                             <input type="text" class="form-control w-100" id="search_filter" name="search" placeholder="Cari berdasarkan nama atau NIP..." value="{{ $search ?? '' }}">
                                         </div>
                                         <div class="col-md-1">
