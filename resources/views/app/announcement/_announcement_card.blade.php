@@ -1,5 +1,5 @@
 <div class="card card-custom mb-3 announcement-{{ $announcement->id }} announcement-card compact-card" data-category-id="{{ $announcement->category_id ?? '' }}" data-announcement-id="{{ $announcement->id }}">
-    <div class="card-body p-4">
+    <div class="card-body p-6">
         <!--begin::Compact Header-->
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div class="d-flex align-items-center flex-grow-1">
