@@ -424,25 +424,57 @@ class LeaveRequestController extends Controller
 
     public function destroy($id)
     {
+        \Log::info('Leave Request Delete Attempt', [
+            'request_id' => $id,
+            'user_id' => auth()->user()->id,
+            'method' => request()->method(),
+            'is_ajax' => request()->ajax(),
+            'headers' => request()->headers->all()
+        ]);
+        
         $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
         
         // Check if user can delete this request
         if ($leaveRequest->user_id != auth()->user()->id) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only delete your own leave requests'
+                ], 403);
+            }
             return redirect()->route('leave-requests.index')->with('error', 'You can only delete your own leave requests');
         }
 
         // Check if request can be deleted
         if ($leaveRequest->lr_status != 'pending') {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending requests can be deleted'
+                ], 403);
+            }
             return redirect()->route('leave-requests.index')->with('error', 'Only pending requests can be deleted');
         }
 
         $result = $leaveRequest->deleteData($id);
 
         if ($result) {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Leave request deleted successfully'
+                ]);
+            }
             return redirect()->route('leave-requests.index')->with('success', 'Leave request deleted successfully');
         } else {
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to delete leave request'
+                ], 500);
+            }
             return back()->with('error', 'Failed to delete leave request');
         }
     }
@@ -970,12 +1002,6 @@ class LeaveRequestController extends Controller
                     $btn .= '    <!--begin::Toggle-->';
                     $btn .= '    <button type="button" class="btn btn-sm btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
                     $btn .= '        Actions';
-                    $btn .= '        <span class="svg-icon fs-5 m-0">';
-                    $btn .= '            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
-                    $btn .= '                <rect opacity="0.5" x="11" y="18" width="12" height="2" rx="1" transform="rotate(-90 11 18)" fill="currentColor"/>';
-                    $btn .= '                <rect x="6" y="11" width="12" height="2" rx="1" fill="currentColor"/>';
-                    $btn .= '            </svg>';
-                    $btn .= '        </span>';
                     $btn .= '    </button>';
                     $btn .= '    <!--end::Toggle-->';
                     
@@ -1003,6 +1029,15 @@ class LeaveRequestController extends Controller
                         $btn .= '        <!--begin::Menu item-->';
                         $btn .= '        <div class="menu-item px-3">';
                         $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal('.$row->id.', \'reject\')" class="menu-link px-3 text-danger">Reject</a>';
+                        $btn .= '        </div>';
+                        $btn .= '        <!--end::Menu item-->';
+                    }
+                    
+                    // Add delete button only for the request owner
+                    if (auth()->check() && auth()->id() == $row->user_id) {
+                        $btn .= '        <!--begin::Menu item-->';
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveRequest('.$row->id.', \''.$row->u_name.'\')" class="menu-link px-3 text-danger">Delete</a>';
                         $btn .= '        </div>';
                         $btn .= '        <!--end::Menu item-->';
                     }
@@ -1237,6 +1272,10 @@ class LeaveRequestController extends Controller
                 $startDate = $today->copy()->subWeek()->startOfWeek();
                 $endDate = $today->copy()->subWeek()->endOfWeek();
                 break;
+            case 'next_week':
+                $startDate = $today->copy()->addWeek()->startOfWeek();
+                $endDate = $today->copy()->addWeek()->endOfWeek();
+                break;
             case 'this_month':
                 $startDate = $today->copy()->startOfMonth();
                 $endDate = $today->copy()->endOfMonth();
@@ -1244,6 +1283,10 @@ class LeaveRequestController extends Controller
             case 'last_month':
                 $startDate = $today->copy()->subMonth()->startOfMonth();
                 $endDate = $today->copy()->subMonth()->endOfMonth();
+                break;
+            case 'next_month':
+                $startDate = $today->copy()->addMonth()->startOfMonth();
+                $endDate = $today->copy()->addMonth()->endOfMonth();
                 break;
             default:
                 $startDate = $today->copy()->startOfMonth();
@@ -1262,12 +1305,14 @@ class LeaveRequestController extends Controller
     private function getLeaveSummary($startDate, $endDate, $divisionId = null)
     {
         try {
-            // Get all active users first
+            // Get all active users with NIP only
             $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
                 ->leftJoin('user_types as ut', 'u.ut_id', '=', 'ut.id')
                 ->where('u.u_delete', '!=', '1')
+                ->whereNotNull('u.u_nip')
+                ->where('u.u_nip', '!=', '')
                 ->select([
                     'u.id as user_id',
                     'u.u_nip',
@@ -2359,5 +2404,40 @@ class LeaveRequestController extends Controller
         } else {
             return $bytes . ' bytes';
         }
+    }
+
+    /**
+     * Get leave request stats for AJAX request
+     */
+    public function getStats(Request $request)
+    {
+        $this->validateAccess();
+        
+        // Get filters
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $dateFilter = $request->get('date_filter');
+        $userId = $request->get('user_id');
+        $status = $request->get('status');
+        $leaveTypeId = $request->get('leave_type_id');
+        
+        // Apply date filter if not custom
+        if ($dateFilter && $dateFilter !== 'custom') {
+            $dateRange = $this->getDateRangeFromFilter($dateFilter);
+            $startDate = $dateRange['startDate'];
+            $endDate = $dateRange['endDate'];
+        }
+        
+        $leaveRequest = new LeaveRequest();
+        $leaveRequests = $leaveRequest->getLeaveRequestsByFilters($startDate, $endDate, $userId, $status, $leaveTypeId);
+        
+        $stats = [
+            'total' => $leaveRequests->count(),
+            'pending' => $leaveRequests->where('lr_status', 'pending')->count(),
+            'approved' => $leaveRequests->where('lr_status', 'approved')->count(),
+            'rejected' => $leaveRequests->where('lr_status', 'rejected')->count(),
+        ];
+        
+        return response()->json($stats);
     }
 }

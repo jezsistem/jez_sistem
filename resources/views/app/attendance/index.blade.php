@@ -56,7 +56,7 @@
         z-index: 9999 !important;
         position: absolute !important;
         top: 100% !important;
-        left: 0 !important;
+        right: 0 !important;
         margin-top: 5px !important;
         min-width: 150px !important;
         background: white !important;

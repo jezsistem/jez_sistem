@@ -873,11 +873,6 @@ Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cl
     Route::get('leave-types/type/{type}', [LeaveTypeController::class, 'getLeaveTypesByType'])->name('leave-types.by-type');
 
     // LeaveRequestController
-    Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
-    Route::get('leave-requests/datatables', [LeaveRequestController::class, 'getDatatables'])->name('leave-requests.datatables');
-    Route::get('leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
-    Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
-    
     // Leave Summary Report Routes (MUST be before {id} routes to avoid conflicts)
     Route::get('leave-requests/summary-report', [LeaveRequestController::class, 'summaryReport'])->name('leave-requests.summary-report');
     Route::get('leave-requests/summary-report/datatables', [LeaveRequestController::class, 'getSummaryReportDatatables'])->name('leave-requests.summary-report-datatables');
@@ -892,15 +887,24 @@ Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cl
     // Leave Balance Route
     Route::get('leave-requests/balance/{leaveTypeId}', [LeaveRequestController::class, 'getLeaveBalance'])->name('leave-requests.balance');
     
+    // Leave Request Specific Routes (MUST be before {id} routes to avoid conflicts)
+    Route::get('leave-requests/datatables', [LeaveRequestController::class, 'getDatatables'])->name('leave-requests.datatables');
+    Route::get('leave-requests/stats', [LeaveRequestController::class, 'getStats'])->name('leave-requests.stats');
+    Route::get('leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
+    Route::post('leave-requests/reprocess-all', [LeaveRequestController::class, 'reprocessAll'])->name('leave-requests.reprocess-all');
+    
     // Leave Request CRUD Routes (with {id} parameter)
     Route::get('leave-requests/{id}', [LeaveRequestController::class, 'show'])->name('leave-requests.show');
     Route::get('leave-requests/{id}/edit', [LeaveRequestController::class, 'edit'])->name('leave-requests.edit');
     Route::put('leave-requests/{id}', [LeaveRequestController::class, 'update'])->name('leave-requests.update');
     Route::delete('leave-requests/{id}', [LeaveRequestController::class, 'destroy'])->name('leave-requests.destroy');
     Route::get('leave-requests/{id}/process-status', [LeaveRequestController::class, 'processStatus'])->name('leave-requests.process-status');
-    Route::post('leave-requests/reprocess-all', [LeaveRequestController::class, 'reprocessAll'])->name('leave-requests.reprocess-all');
     Route::post('leave-requests/{id}/approve', [LeaveRequestController::class, 'approve'])->name('leave-requests.approve');
     Route::post('leave-requests/{id}/reject', [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
+    
+    // Leave Request Index and Store Routes (MUST be AFTER {id} routes to avoid conflicts)
+    Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
+    Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
 
 // Debug route for testing CSRF
 Route::get('test-csrf', function() {
@@ -982,10 +986,10 @@ Route::get('test-csrf', function() {
 
     // Export routes for weekly schedule and report
     Route::get('daily-schedules/export-weekly', [DailyScheduleController::class, 'exportWeekly'])->name('daily-schedules.export-weekly');
-
+    Route::post('daily-schedules/import-weekly-excel', [DailyScheduleController::class, 'importWeeklyExcel'])->name('daily-schedules.import-weekly-excel');
     Route::get('daily-schedules/export-weekly-report', [DailyScheduleController::class, 'exportWeeklyReport'])->name('daily-schedules.export-weekly-report');
 
-    // Test export route for debugging
+    // Test export route for debugging
 
     // Grup rute untuk locking, hanya bisa diakses oleh user yang sudah login
     Route::prefix('lock')->controller(LockController::class)->group(function () {

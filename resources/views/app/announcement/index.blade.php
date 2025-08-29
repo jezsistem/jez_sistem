@@ -5,22 +5,39 @@
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <!--begin::Subheader-->
-    <div class="subheader py-6 subheader-solid" id="kt_subheader">
+    <div class="subheader py-12 subheader-solid" id="kt_subheader">
         <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
             <!--begin::Info-->
             <div class="d-flex align-items-center flex-wrap mr-1">
                 <!--begin::Page Heading-->
-                <div class="d-flex align-items-baseline flex-wrap mr-5">
+                <div class="d-flex align-items-baseline justify-content-between">
                     <!--begin::Page Title-->
                     <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
                     <!--end::Page Title-->
+                    
                 </div>
                 <!--end::Page Heading-->
             </div>
             <!--end::Info-->
-            
+            <div style="width: 45%;">
+                <div style="position: relative;">
+                    <input type="text" 
+                    class="form-control" 
+                    id="searchInput"
+                    placeholder="Search announcements by title, content, or sender name..." 
+                    value="{{ request('search') }}"
+                    style="border-radius: 0.475rem; padding-right: 2rem;">
+                    
+                    <!-- Tombol clear -->
+                    <button type="button" 
+                    id="clearSearchBtn" 
+                    style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer;">
+                    <i class="ki-outline ki-cross"></i>
+                    </button>
+                </div>
+            </div>
             <!--begin::Toolbar-->
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center mr-3">
                 <a href="{{ route('announcements.create') }}" class="btn btn-primary font-weight-bolder btn-mobile-sm">
                     <i class="ki-outline ki-plus"></i>
                     New Announcement
@@ -36,7 +53,7 @@
     <!--end::Subheader-->
     
     <!--begin::Container-->
-    <div class="container">
+    <div class="container pt-6">
         <div class="row">
             <!-- Mobile Dropdown Categories -->
             <div class="d-lg-none col-12 mb-3">
@@ -1713,4 +1730,7 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
 </div>
 
 @endsection
+
+@include('app.announcement.ajax-search')
+
 @include('app._partials.js')

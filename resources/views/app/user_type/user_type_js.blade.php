@@ -279,16 +279,20 @@
             
             var $this = $(this);
             var $menu = $this.siblings('.menu');
+            var $cardBody = $this.closest('.card.card-custom').find('> .card-body');
+            var $row = $this.closest('tr');
             
-            console.log('Dropdown clicked, menu found:', $menu.length);
-            
-            // Close all other menus first
+            // Tutup semua menu lain
             $('.menu').not($menu).removeClass('show');
+            $cardBody.removeClass('pb-extra'); // reset padding
             
-            // Toggle current menu
-            $menu.toggleClass('show');
+            // Toggle menu ini
+            $menu.toggleClass("show");
             
-            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+            // Jika menu terbuka & baris ini adalah row terakhir
+            if ($menu.hasClass('show') && $row.is(':last-child')) {
+                $cardBody.addClass('pb-extra');
+            }
         });
         
         // Close menu when clicking outside

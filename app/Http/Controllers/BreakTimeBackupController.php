@@ -912,9 +912,10 @@ class BreakTimeBackupController extends Controller
                     $btn .= '<div class="menu-item px-3">';
                     $btn .= '<a href="'.route('break-times-backup.show', $row->id).'" class="menu-link px-3">View</a>';
                     $btn .= '</div>';
-                    $btn .= '<div class="menu-item px-3">';
-                    $btn .= '<a href="'.route('break-times-backup.edit', $row->id).'" class="menu-link px-3">Edit</a>';
-                    $btn .= '</div>';
+                    // Edit button removed as requested
+                    // $btn .= '<div class="menu-item px-3">';
+                    // $btn .= '<a href="'.route('break-times-backup.edit', $row->id).'" class="menu-link px-3">Edit</a>';
+                    // $btn .= '</div>';
                     $btn .= '<div class="menu-item px-3">';
                     $btn .= '<a href="#" class="menu-link px-3 text-danger" onclick="deleteBreakTime('.$row->id.')">Delete</a>';
                     $btn .= '</div>';
@@ -1752,10 +1753,17 @@ class BreakTimeBackupController extends Controller
             // Start break using model method (auto-assign break type)
             $result = $breakTime->startBreak($user->id);
             
+            // Debug logging
+            \Log::info('Break started', [
+                'user_id' => $user->id,
+                'result' => $result,
+                'next_break_type' => $breakTime->getNextBreakType($user->id)
+            ]);
+            
             if ($result) {
-                // Get the assigned break type
+                // Get the assigned break type from the same instance
                 $activeBreak = $breakTime->getCurrentBreak($user->id);
-                $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'backup_1';
+                $assignedBreakType = $activeBreak ? $activeBreak->bt_type : 'break_1';
                 
                 // Default break duration
                 $breakDuration = 60; // Set default duration

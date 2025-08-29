@@ -303,7 +303,18 @@
                             return data;
                         }
                     },
-                    { data: 'total_breaks', name: 'total_breaks', width: '15%', className: 'text-center' },
+                    { 
+                        data: 'total_breaks', 
+                        name: 'total_breaks', 
+                        width: '15%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
                 ],
                 columnDefs: [
                     {

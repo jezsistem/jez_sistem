@@ -2619,8 +2619,8 @@ class AttendanceController extends Controller
                         <th>Divisi</th>
                         <th>Jenis Kerja</th>
                         <th class="text-center">Total Shift</th>
-                        <th class="text-center">Total Libur</th>
                         <th class="text-center">Hadir</th>
+                        <th class="text-center">Libur</th>
                         <th class="text-center">Sakit</th>
                         <th class="text-center">Cuti</th>
                         <th class="text-center">Terlambat</th>
@@ -2640,8 +2640,8 @@ class AttendanceController extends Controller
                         <td>' . ($item->division_name ?? '-') . '</td>
                         <td>' . ($item->work_type ?? '-') . '</td>
                         <td class="text-center">' . ($item->total_shifts ?? 0) . '</td>
-                        <td class="text-center">' . ($item->total_libur ?? 0) . '</td>
                         <td class="text-center">' . ($item->present_days ?? 0) . '</td>
+                        <td class="text-center">' . ($item->total_libur ?? 0) . '</td>
                         <td class="text-center">' . ($item->sick_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->leave_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->late_days ?? 0) . '</td>

@@ -809,28 +809,29 @@ class DailyScheduleController extends Controller
             ->get();
             
         // Group shift codes by user type for easier frontend access
-        $shiftCodesByType = [
-            'ALL' => DB::table('shift_codes')
+        $shiftCodesByType = [];
+        
+        // Get all active user types from database
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->orderBy('ut_name')
+            ->get();
+        
+        // Add 'ALL' option first
+        $shiftCodesByType['ALL'] = DB::table('shift_codes')
+            ->where('sc_status', 'active')
+            ->where('sc_type', 'ALL')
+            ->orderBy('sc_code')
+            ->get();
+        
+        // Add dynamic user types
+        foreach ($userTypes as $userType) {
+            $shiftCodesByType[$userType->ut_name] = DB::table('shift_codes')
                 ->where('sc_status', 'active')
-                ->where('sc_type', 'ALL')
+                ->whereIn('sc_type', ['ALL', $userType->ut_name])
                 ->orderBy('sc_code')
-                ->get(),
-            'FULL TIME' => DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->whereIn('sc_type', ['ALL', 'Full Time'])
-                ->orderBy('sc_code')
-                ->get(),
-            'PART TIME' => DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->whereIn('sc_type', ['ALL', 'Part Time'])
-                ->orderBy('sc_code')
-                ->get(),
-            'PART FULL' => DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->whereIn('sc_type', ['ALL', 'Part Full'])
-                ->orderBy('sc_code')
-                ->get(),
-        ];
+                ->get();
+        }
         
         // Get existing schedules for this week to ensure compatibility
         $existingSchedules = DB::table('daily_schedules')
@@ -3915,6 +3916,280 @@ class DailyScheduleController extends Controller
             return 'past_week';
         } else {
             return 'custom';
+        }
+    }
+
+    /**
+     * Import weekly schedules from Excel file
+     */
+    public function importWeeklyExcel(Request $request)
+    {
+        $this->validateAccess();
+        
+        \Log::info('Weekly Schedule Excel Import started', [
+            'request_data' => $request->all(),
+            'files' => $request->allFiles()
+        ]);
+        
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+            'start_date' => 'required|date'
+        ]);
+
+        try {
+            $file = $request->file('excel_file');
+            $startDate = $request->get('start_date');
+            
+            // Calculate end date (7 days from start date)
+            $endDate = Carbon::parse($startDate)->addDays(6)->format('Y-m-d');
+            
+            \Log::info('Import parameters', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'file_name' => $file->getClientOriginalName()
+            ]);
+            
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(storage_path('app/public/uploads'), $fileName);
+            
+            // Process Excel file
+            $extension = $file->getClientOriginalExtension();
+            $data = [];
+            
+            if (in_array($extension, ['xlsx', 'xls'])) {
+                $data = Excel::toArray([], storage_path('app/public/uploads/' . $fileName))[0];
+            } else {
+                // Handle CSV
+                $handle = fopen(storage_path('app/public/uploads/' . $fileName), 'r');
+                while (($row = fgetcsv($handle)) !== false) {
+                    $data[] = $row;
+                }
+                fclose($handle);
+            }
+            
+            \Log::info('Excel file processed', ['rows_count' => count($data)]);
+            
+            // Remove header row
+            array_shift($data);
+            
+            $successCount = 0;
+            $errorCount = 0;
+            $errors = [];
+            $processedUsers = [];
+            
+            // Get all active shift codes
+            $shiftCodes = DB::table('shift_codes')
+                ->where('sc_status', 'active')
+                ->get()
+                ->keyBy('sc_code');
+            
+            // Get all active user types
+            $userTypes = DB::table('user_types')
+                ->where('ut_status', 'active')
+                ->get()
+                ->keyBy('ut_name');
+            
+            // Process each row
+            foreach ($data as $index => $row) {
+                try {
+                    if (count($row) < 10) {
+                        $errorCount++;
+                        $errors[] = "Baris " . ($index + 2) . ": Jumlah kolom tidak cukup (harus 10 kolom, hanya ada " . count($row) . " kolom)";
+                        continue;
+                    }
+                    
+                    $nip = trim($row[0]);
+                    $nama = trim($row[1]);
+                    $userType = trim($row[2]);
+                    $senin = trim($row[3]);
+                    $selasa = trim($row[4]);
+                    $rabu = trim($row[5]);
+                    $kamis = trim($row[6]);
+                    $jumat = trim($row[7]);
+                    $sabtu = trim($row[8]);
+                    $minggu = trim($row[9]);
+                    
+                    \Log::info('Processing row', [
+                        'row_index' => $index + 2,
+                        'nip' => $nip,
+                        'nama' => $nama,
+                        'user_type' => $userType
+                    ]);
+                    
+                    // Validate NIP
+                    if (empty($nip)) {
+                        $errorCount++;
+                        $errors[] = "Baris " . ($index + 2) . ": NIP wajib diisi";
+                        continue;
+                    }
+                    
+                    // Find user by NIP
+                    $userQuery = DB::table('users')
+                        ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                        ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                        ->select('users.*', 'user_divisions.ud_name', 'user_types.ut_name')
+                        ->where('users.u_nip', $nip)
+                        ->where('users.u_delete', '0')
+                        ->whereNotNull('users.u_nip');
+                    
+                    $user = $userQuery->first();
+                    
+                    if (!$user) {
+                        $errorCount++;
+                        $errors[] = "Baris " . ($index + 2) . ": Staff dengan NIP {$nip} tidak ditemukan dalam sistem";
+                        continue;
+                    }
+                    
+                    // Validate user type - make it more flexible
+                    if (!empty($userType)) {
+                        // Check if the user type from Excel matches the database
+                        if ($user->ut_name !== $userType) {
+                            // Try to find a similar user type or suggest alternatives
+                            $suggestedUserTypes = $userTypes->pluck('ut_name')->toArray();
+                            $errorCount++;
+                            $errors[] = "Baris " . ($index + 2) . ": Jenis karyawan tidak sesuai - Excel: '{$userType}', Database: '{$user->ut_name}'. Jenis yang tersedia: " . implode(', ', $suggestedUserTypes);
+                            continue;
+                        }
+                    } else {
+                        // If user type is empty in Excel, use the one from database
+                        $userType = $user->ut_name;
+                        \Log::info('Auto-detected user type from database', [
+                            'row_index' => $index + 2,
+                            'nip' => $nip,
+                            'auto_detected_type' => $userType
+                        ]);
+                    }
+                    
+                    // Process daily schedules
+                    $dailySchedules = [
+                        ['date' => $startDate, 'shift_code' => $senin],
+                        ['date' => Carbon::parse($startDate)->addDay()->format('Y-m-d'), 'shift_code' => $selasa],
+                        ['date' => Carbon::parse($startDate)->addDays(2)->format('Y-m-d'), 'shift_code' => $rabu],
+                        ['date' => Carbon::parse($startDate)->addDays(3)->format('Y-m-d'), 'shift_code' => $kamis],
+                        ['date' => Carbon::parse($startDate)->addDays(4)->format('Y-m-d'), 'shift_code' => $jumat],
+                        ['date' => Carbon::parse($startDate)->addDays(5)->format('Y-m-d'), 'shift_code' => $sabtu],
+                        ['date' => Carbon::parse($startDate)->addDays(6)->format('Y-m-d'), 'shift_code' => $minggu]
+                    ];
+                    
+                    foreach ($dailySchedules as $schedule) {
+                        $date = $schedule['date'];
+                        $shiftCode = $schedule['shift_code'];
+                        
+                        if (empty($shiftCode) || $shiftCode === '-') {
+                            continue; // Skip empty schedules
+                        }
+                        
+                        // Validate shift code
+                        if (!$shiftCodes->has($shiftCode)) {
+                            $errorCount++;
+                            $errors[] = "Baris " . ($index + 2) . " ({$date}): Kode shift '{$shiftCode}' tidak dikenali dalam sistem";
+                            continue;
+                        }
+                        
+                        $shiftCodeData = $shiftCodes->get($shiftCode);
+                        
+                        // Check if shift code is compatible with user type
+                        if ($shiftCodeData->sc_type !== 'ALL' && $shiftCodeData->sc_type !== $user->ut_name) {
+                            $errorCount++;
+                            $errors[] = "Baris " . ($index + 2) . " ({$date}): Kode shift '{$shiftCode}' tidak kompatibel dengan jenis karyawan '{$user->ut_name}'";
+                            continue;
+                        }
+                        
+                        // Check if schedule already exists
+                        $existingSchedule = DB::table('daily_schedules')
+                            ->where('user_id', $user->id)
+                            ->where('ds_date', $date)
+                            ->first();
+                        
+                        if ($existingSchedule) {
+                            // Update existing schedule
+                            DB::table('daily_schedules')
+                                ->where('id', $existingSchedule->id)
+                                ->update([
+                                    'sc_id' => $shiftCodeData->id,
+                                    'ds_start_time' => $shiftCodeData->sc_start_time,
+                                    'ds_end_time' => $shiftCodeData->sc_end_time,
+                                    'updated_at' => now(),
+                                    'updated_by' => Auth::user()->id
+                                ]);
+                        } else {
+                            // Create new schedule
+                            DB::table('daily_schedules')->insert([
+                                'user_id' => $user->id,
+                                'sc_id' => $shiftCodeData->id,
+                                'ds_date' => $date,
+                                'ds_start_time' => $shiftCodeData->sc_start_time,
+                                'ds_end_time' => $shiftCodeData->sc_end_time,
+                                'ds_status' => 'active',
+                                'created_at' => now(),
+                                'created_by' => Auth::user()->id,
+                                'updated_at' => now(),
+                                'updated_by' => Auth::user()->id
+                            ]);
+                        }
+                    }
+                    
+                    $successCount++;
+                    $processedUsers[] = $user->u_name;
+                    
+                    \Log::info('Row processed successfully', [
+                        'row_index' => $index + 2,
+                        'user_id' => $user->id,
+                        'nip' => $nip,
+                        'name' => $user->u_name
+                    ]);
+                    
+                } catch (\Exception $e) {
+                    $errorCount++;
+                    $errors[] = "Baris " . ($index + 2) . ": Terjadi kesalahan - " . $e->getMessage();
+                    \Log::error('Row processing error', [
+                        'row_index' => $index + 2,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+            }
+            
+            // Clean up uploaded file
+            if (file_exists(storage_path('app/public/uploads/' . $fileName))) {
+                unlink(storage_path('app/public/uploads/' . $fileName));
+            }
+            
+            \Log::info('Weekly Schedule Excel Import completed', [
+                'success_count' => $successCount,
+                'error_count' => $errorCount,
+                'processed_users' => $processedUsers
+            ]);
+            
+            if ($errorCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Import selesai dengan {$errorCount} kesalahan. {$successCount} staff berhasil diproses.",
+                    'errors' => $errors,
+                    'success_count' => $successCount,
+                    'error_count' => $errorCount
+                ], 400);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil mengimport jadwal mingguan untuk {$successCount} staff dari tanggal {$startDate} sampai {$endDate}",
+                'success_count' => $successCount,
+                'processed_users' => $processedUsers
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Weekly Schedule Excel Import Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem saat import Excel: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

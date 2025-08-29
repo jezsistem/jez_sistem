@@ -58,7 +58,7 @@
                                     <td><strong>Tipe Shift</strong></td>
                                     <td>:</td>
                                     <td>
-                                        <span class="badge badge-{{ $shiftCode->sc_type == 'ALL' ? 'secondary' : ($shiftCode->sc_type == 'Full Time' ? 'primary' : ($shiftCode->sc_type == 'Part Full' ? 'warning' : 'info')) }}">
+                                        <span class="badge badge-{{ $shiftCode->sc_type == 'ALL' ? 'secondary' : ($shiftCode->sc_type == 'FULL TIME' ? 'primary' : ($shiftCode->sc_type == 'PART FULL' ? 'warning' : ($shiftCode->sc_type == 'PART TIME' ? 'info' : ($shiftCode->sc_type == 'CASUAL' ? 'success' : 'secondary')))) }}">
                                             {{ $shiftCode->sc_type }}
                                         </span>
                                     </td>

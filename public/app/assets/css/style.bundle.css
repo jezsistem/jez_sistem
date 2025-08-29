@@ -90987,6 +90987,15 @@ i.bg-icon-sm {
   align-items: center;
   margin-top: 20px;
 }
-  
+.card.card-custom > .card-body.pb-extra {
+    padding-bottom: 5rem; /* atau sesuai kebutuhan */
+}
+.card.card-custom > .card-body.pb-extra2 {
+    padding-bottom: 10rem; /* atau sesuai kebutuhan */
+}
+.menu.menu-sub-dropdown {
+    right: 80px !important;
+}
+
 
 /*# sourceMappingURL=style.bundle.css.map*/

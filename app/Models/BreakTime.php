@@ -146,18 +146,22 @@ class BreakTime extends Model
     public function getBreakAllowance($shiftType)
     {
         switch ($shiftType) {
-            case 'Full Time':
+            case 'FULL TIME':
                 return [
                     'break_1' => ['duration' => 60, 'count' => 1]
                 ];
-            case 'Part Time':
+            case 'PART TIME':
                 return [
                     'break_1' => ['duration' => 30, 'count' => 1]
                 ];
-            case 'Part Full':
+            case 'PART FULL':
                 return [
                     'break_1' => ['duration' => 30, 'count' => 1],
                     'break_2' => ['duration' => 30, 'count' => 1]
+                ];
+            case 'CASUAL':
+                return [
+                    'break_1' => ['duration' => 30, 'count' => 1]
                 ];
             default:
                 return [

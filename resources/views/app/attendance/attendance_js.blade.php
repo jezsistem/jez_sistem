@@ -193,22 +193,26 @@
         
         // Add click handler for dropdown toggle
         $(document).on('click', '[data-kt-menu-trigger="click"]', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            var $this = $(this);
-            var $menu = $this.siblings('.menu');
-            
-            console.log('Dropdown clicked, menu found:', $menu.length);
-            
-            // Close all other menus first
-            $('.menu').not($menu).removeClass('show');
-            
-            // Toggle current menu
-            $menu.toggleClass('show');
-            
-            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
-        });
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var $this = $(this);
+        var $menu = $this.siblings('.menu');
+        var $cardBody = $this.closest('.card.card-custom').find('> .card-body');
+        var $row = $this.closest('tr');
+        
+        // Tutup semua menu lain
+        $('.menu').not($menu).removeClass('show');
+        $cardBody.removeClass('pb-extra'); // reset padding
+        
+        // Toggle menu ini
+        $menu.toggleClass("show");
+        
+        // Jika menu terbuka & baris ini adalah row terakhir
+        if ($menu.hasClass('show') && $row.is(':last-child')) {
+            $cardBody.addClass('pb-extra');
+        }
+    });
         
         // Close menu when clicking outside
         $(document).on('click', function(e) {

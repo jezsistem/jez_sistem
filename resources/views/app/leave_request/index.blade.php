@@ -79,7 +79,7 @@
     z-index: 9999 !important;
     position: absolute !important;
     top: 100% !important;
-    left: 0 !important;
+    right: 0 !important;
     margin-top: 5px !important;
     min-width: 150px !important;
     background: white !important;
@@ -215,7 +215,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="total-requests">{{ $leaveRequests->count() }}</div>
                                     <div class="text-dark-50">Total Requests</div>
                                 </div>
                             </div>
@@ -232,7 +232,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->where('lr_status', 'pending')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="pending-requests">{{ $leaveRequests->where('lr_status', 'pending')->count() }}</div>
                                     <div class="text-dark-50">Pending</div>
                                 </div>
                             </div>
@@ -249,7 +249,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->where('lr_status', 'approved')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="approved-requests">{{ $leaveRequests->where('lr_status', 'approved')->count() }}</div>
                                     <div class="text-dark-50">Approved</div>
                                 </div>
                             </div>
@@ -266,7 +266,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5">{{ $leaveRequests->where('lr_status', 'rejected')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('lr_status', 'rejected')->count() }}</div>
                                     <div class="text-dark-50">Rejected</div>
                                 </div>
                             </div>
@@ -290,8 +290,10 @@
                                         <select class="form-control" id="date_filter" name="date_filter" onchange="handleDateFilterChange(this.value)">
                                             <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
                                             <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                            <option value="next_week" {{ $dateFilter == 'next_week' ? 'selected' : '' }}>Next Week</option>
                                             <option value="this_month" {{ $dateFilter == 'this_month' ? 'selected' : '' }}>This Month</option>
                                             <option value="last_month" {{ $dateFilter == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                                            <option value="next_month" {{ $dateFilter == 'next_month' ? 'selected' : '' }}>Next Month</option>
                                             <option value="custom" {{ $dateFilter == 'custom' ? 'selected' : '' }}>Custom Range</option>
                                         </select>
                                     </div>
@@ -389,7 +391,7 @@
                             </div>
                         </div>
                         <div class="card-body table-responsive">
-                            @if(session('success'))
+                            <!-- @if(session('success'))
                                 <div class="alert alert-success alert-dismissible">
                                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                                     {{ session('success') }}
@@ -401,7 +403,7 @@
                                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                                     {{ session('error') }}
                                 </div>
-                            @endif
+                            @endif -->
 
                             <!--begin: Datatable-->
                             <table class="table table-hover table-checkable" id="leaveRequestTable">

@@ -305,9 +305,42 @@
                             return data;
                         }
                     },
-                    { data: 'total_breaks', name: 'total_breaks', width: '8%', className: 'text-center' },
-                    { data: 'no_break_shifts', name: 'no_break_shifts', width: '15%', className: 'text-center' },
-                    { data: 'exceeded_break_time', name: 'exceeded_break_time', width: '8%', className: 'text-center' }
+                    { 
+                        data: 'total_breaks', 
+                        name: 'total_breaks', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'no_break_shifts', 
+                        name: 'no_break_shifts', 
+                        width: '15%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'exceeded_break_time', 
+                        name: 'exceeded_break_time', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    }
                 ],
                 columnDefs: [
                     {

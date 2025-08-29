@@ -72,7 +72,7 @@
         z-index: 9999 !important;
         position: absolute !important;
         top: 100% !important;
-        left: 0 !important;
+        right: 0px !important;
         margin-top: 5px !important;
         min-width: 150px !important;
         background: white !important;
@@ -84,10 +84,35 @@
     /* Fix for menu positioning in table cells */
     .table td {
         position: relative;
+        overflow: visible !important;
     }
 
-    /* Menu item styling */
-    .menu-item .menu-link {
+    /* Keep table layout normal - don't force overflow visible */
+    .table-responsive {
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    /* Card body normal overflow */
+    .card-body {
+        overflow: visible;
+        position: relative;
+    }
+
+    /* DataTables wrapper normal overflow */
+    .dataTables_wrapper {
+        overflow: visible;
+    }
+
+    
+    /* Dropdown menu positioning */
+    .dropdown .menu {
+        overflow: visible !important;
+        max-height: none !important;
+    }
+
+        /* Menu item styling */
+     .menu-item .menu-link {
         cursor: pointer;
         transition: all 0.3s ease;
         display: block;
@@ -118,6 +143,7 @@
         user-select: none;
     }
 
+
     /* SVG icon styling */
     .svg-icon {
         display: inline-block;
@@ -144,6 +170,9 @@
     }
     .bg-other {
         background-color: #F1F1F4;
+    }
+    .dataTables_scrollBody {
+        overflow: unset !important;
     }
 </style>
 <!--begin::Content-->
@@ -282,7 +311,7 @@
                                         <div class="form-group">
                                             <label for="user_id">Staff</label>
                                             <select class="form-control" id="user_id" name="user_id">
-                                                <option value="">Semua Staff</option>
+                                                <option value="">All Staff</option>
                                                 @foreach($users as $user)
                                                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
                                                         {{ $user->u_name }} ({{ $user->u_nip }})
@@ -293,9 +322,9 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label for="division_id">Divisi</label>
+                                            <label for="division_id">Division</label>
                                             <select class="form-control" id="division_id" name="division_id">
-                                                <option value="">Semua Divisi</option>
+                                                <option value="">All Division</option>
                                                 @foreach($divisions as $division)
                                                     <option value="{{ $division->id }}" {{ request('division_id') == $division->id ? 'selected' : '' }}>
                                                         {{ $division->ud_name }}
@@ -386,14 +415,14 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Tanggal</th>
-                                        <th>Nama Karyawan</th>
+                                        <th>Date</th>
+                                        <th>Staff</th>
                                         <th>NIP</th>
-                                        <th>Divisi</th>
-                                                <th>Tipe Break</th>
-                                        <th>Jam Mulai Istirahat</th>
-                                        <th>Jam Selesai Istirahat</th>
-                                                <th>Durasi</th>
+                                        <th>Division</th>
+                                                    <th>Tipe Break</th>
+                                        <th>Break Start</th>
+                                        <th>Break End</th>
+                                                <th>Duration</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>

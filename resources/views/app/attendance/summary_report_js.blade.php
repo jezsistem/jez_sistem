@@ -213,13 +213,90 @@
                             return data;
                         }
                     },
-                    { data: 'total_shifts', name: 'total_shifts', width: '8%', className: 'text-center' },
-                    { data: 'total_libur', name: 'total_libur', width: '8%', className: 'text-center' },
-                    { data: 'present_days', name: 'present_days', width: '8%', className: 'text-center' },
-                    { data: 'sick_days', name: 'sick_days', width: '8%', className: 'text-center' },
-                    { data: 'leave_days', name: 'leave_days', width: '8%', className: 'text-center' },
-                    { data: 'late_days', name: 'late_days', width: '8%', className: 'text-center' },
-                    { data: 'alpha_days', name: 'alpha_days', width: '8%', className: 'text-center' }
+                    { 
+                        data: 'total_shifts', 
+                        name: 'total_shifts', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'present_days', 
+                        name: 'present_days', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'total_libur', 
+                        name: 'total_libur', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'sick_days', 
+                        name: 'sick_days', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'leave_days', 
+                        name: 'leave_days', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'late_days', 
+                        name: 'late_days', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
+                        data: 'alpha_days', 
+                        name: 'alpha_days', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    }
                 ],
                 columnDefs: [
                     {

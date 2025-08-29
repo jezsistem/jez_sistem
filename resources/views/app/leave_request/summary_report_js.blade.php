@@ -44,6 +44,12 @@
                     endDate = new Date(today.getTime());
                     endDate.setDate(today.getDate() - today.getDay()); // Last Sunday
                     break;
+                case 'next_week':
+                    startDate = new Date(today.getTime());
+                    startDate.setDate(today.getDate() - today.getDay() + 8); // Next Monday
+                    endDate = new Date(today.getTime());
+                    endDate.setDate(today.getDate() - today.getDay() + 14); // Next Sunday
+                    break;
                 case 'this_month':
                     startDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of month
                     endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of month
@@ -51,6 +57,10 @@
                 case 'last_month':
                     startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); // First day of last month
                     endDate = new Date(today.getFullYear(), today.getMonth(), 0); // Last day of last month
+                    break;
+                case 'next_month':
+                    startDate = new Date(today.getFullYear(), today.getMonth() + 1, 1); // First day of next month
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0); // Last day of next month
                     break;
             }
             
@@ -75,6 +85,26 @@
                 
                 // Update breadcrumb display
                 updateBreadcrumbDates(formattedStartDate, formattedEndDate, value);
+                
+                // Reload DataTable with new filter dates
+                if (value !== 'custom' && window.summaryTable) {
+                    console.log('Reloading DataTable for filter:', value);
+                    console.log('Current start_date:', startDateInput.value);
+                    console.log('Current end_date:', endDateInput.value);
+                    console.log('Current date_filter:', value);
+                    
+                    // Force DataTable to reload with new parameters
+                    window.summaryTable.ajax.reload();
+                } else if (value !== 'custom') {
+                    console.log('DataTable not available yet, waiting for initialization...');
+                    // Wait for DataTable to be ready
+                    setTimeout(() => {
+                        if (window.summaryTable) {
+                            console.log('DataTable now available, reloading...');
+                            window.summaryTable.ajax.reload();
+                        }
+                    }, 500);
+                }
             }
         }
     }
@@ -266,7 +296,7 @@
                     className: 'text-center',
                     render: function(data, type, row) {
                         if (type === 'display') {
-                            return data || 0;
+                            return data && data > 0 ? data : '-';
                         }
                         return data || 0;
                     }
@@ -284,7 +314,8 @@
                         if (type === 'display') {
                             const totalDays = row.total_days || 0;
                             const totalHours = row.total_hours || 0;
-                            return totalDays + totalHours;
+                            const total = totalDays + totalHours;
+                            return total > 0 ? total : '-';
                         }
                         return (row.total_days || 0) + (row.total_hours || 0);
                     }
@@ -296,7 +327,7 @@
                     className: 'text-center',
                     render: function(data, type, row) {
                         if (type === 'display') {
-                            return data || 0;
+                            return data && data > 0 ? data : '-';
                         }
                         return data || 0;
                     }
