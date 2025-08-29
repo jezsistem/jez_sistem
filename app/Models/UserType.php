@@ -25,6 +25,25 @@ class UserType extends Model
         return $this->hasMany(User::class, 'ut_id');
     }
 
+    /**
+     * Get the shift codes that are compatible with this user type
+     */
+    public function shiftCodes()
+    {
+        return $this->belongsToMany(ShiftCode::class, 'shift_code_user_types', 'user_type_id', 'shift_code_id');
+    }
+
+    /**
+     * Get all compatible shift codes for this user type
+     */
+    public function getCompatibleShiftCodes()
+    {
+        return $this->shiftCodes()
+            ->where('sc_status', 'active')
+            ->orderBy('sc_code')
+            ->get();
+    }
+
     public function checkData($select, $where)
     {
         $affected = DB::table($this->table)

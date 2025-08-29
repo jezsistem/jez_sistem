@@ -176,7 +176,7 @@ class DailyScheduleController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        $schedule = DailySchedule::with(['user', 'userDivision', 'shiftCode'])->findOrFail($id);
+        $schedule = DailySchedule::with(['user', 'userDivision', 'shiftCode.userTypes'])->findOrFail($id);
 
         $data = [
             'title' => $title,
@@ -817,20 +817,16 @@ class DailyScheduleController extends Controller
             ->orderBy('ut_name')
             ->get();
         
-        // Add 'ALL' option first
+        // Add 'ALL' option first - show all active shift codes
         $shiftCodesByType['ALL'] = DB::table('shift_codes')
             ->where('sc_status', 'active')
-            ->where('sc_type', 'ALL')
             ->orderBy('sc_code')
             ->get();
         
-        // Add dynamic user types
+        // Add dynamic user types using new pivot table logic
         foreach ($userTypes as $userType) {
-            $shiftCodesByType[$userType->ut_name] = DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->whereIn('sc_type', ['ALL', $userType->ut_name])
-                ->orderBy('sc_code')
-                ->get();
+            // Use the new ShiftCode model method for compatibility
+            $shiftCodesByType[$userType->ut_name] = \App\Models\ShiftCode::getCompatibleShiftCodes($userType->ut_name);
         }
         
         // Get existing schedules for this week to ensure compatibility
@@ -892,9 +888,9 @@ class DailyScheduleController extends Controller
         // Process date filter and start_date with two-way synchronization
         $originalStartDate = $request->get('start_date');
         
-        if ($originalStartDate && $originalStartDate !== '') {
+        if ($originalStartDate && $originalStartDate !== '' && $dateFilter !== 'now') {
             // User manually selected a week range - PRIORITY HIGH
-            // Calculate Monday of the week containing the selected date
+            // Skip auto-detection for 'now' filter to preserve the selection
             $selectedDate = Carbon::parse($originalStartDate);
             $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
             $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
@@ -980,17 +976,98 @@ class DailyScheduleController extends Controller
             ->where('users.u_delete', '0')
             ->whereNotNull('users.u_nip');
             
-        // Apply filters
-        if ($divisionId) {
-            $scheduleQuery->where('users.ud_id', $divisionId);
-        }
-        
-        if ($shiftId) {
-            $scheduleQuery->where('daily_schedules.sc_id', $shiftId);
-        }
-        
-        if ($userName) {
-            $scheduleQuery->where('users.u_name', 'like', '%' . $userName . '%');
+        // Special handling for NOW filter - only show staff who are currently working
+        if ($dateFilter === 'now') {
+            $currentTime = Carbon::now()->format('H:i:s');
+            $currentDate = Carbon::now()->format('Y-m-d');
+            
+            // Get all schedules for today first, then filter in PHP for night shifts
+            $allTodaySchedules = DB::table('daily_schedules')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+                ->select([
+                    'daily_schedules.*',
+                    'users.u_nip',
+                    'users.u_name',
+                    'user_divisions.ud_name',
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_shift_name',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time'
+                ])
+                ->where('daily_schedules.ds_date', $currentDate)
+                ->where('users.u_delete', '0')
+                ->whereNotNull('users.u_nip');
+                
+            // Apply other filters
+            if ($divisionId) {
+                $allTodaySchedules->where('users.ud_id', $divisionId);
+            }
+            if ($shiftId) {
+                $allTodaySchedules->where('daily_schedules.sc_id', $shiftId);
+            }
+            if ($userName) {
+                $allTodaySchedules->where('users.u_name', 'like', '%' . $userName . '%');
+            }
+            
+            $todaySchedules = $allTodaySchedules->get();
+            
+            // Filter for currently working staff
+            $activeSchedules = $todaySchedules->filter(function($schedule) use ($currentTime) {
+                $startTime = $schedule->sc_start_time ?: $schedule->ds_start_time;
+                $endTime = $schedule->sc_end_time ?: $schedule->ds_end_time;
+                
+                if (!$startTime || !$endTime) {
+                    return false;
+                }
+                
+                // Convert times to Carbon for comparison
+                $start = Carbon::createFromFormat('H:i:s', $startTime);
+                $end = Carbon::createFromFormat('H:i:s', $endTime);
+                $current = Carbon::createFromFormat('H:i:s', $currentTime);
+                
+                // Check if it's a night shift (end time is next day)
+                if ($start->greaterThan($end)) {
+                    // Night shift: current >= start OR current <= end
+                    return $current->greaterThanOrEqualTo($start) || $current->lessThanOrEqualTo($end);
+                } else {
+                    // Regular shift: start <= current <= end
+                    return $current->greaterThanOrEqualTo($start) && $current->lessThanOrEqualTo($end);
+                }
+            });
+            
+            // Convert back to query builder compatible format
+            $activeScheduleIds = $activeSchedules->pluck('id')->toArray();
+            
+            if (empty($activeScheduleIds)) {
+                // No active schedules, return empty result
+                $scheduleQuery->whereRaw('1 = 0');
+            } else {
+                // Filter to only active schedules
+                $scheduleQuery->whereIn('daily_schedules.id', $activeScheduleIds);
+            }
+                
+            \Log::info('NOW Filter Applied', [
+                'current_time' => $currentTime,
+                'current_date' => $currentDate,
+                'total_today_schedules' => $todaySchedules->count(),
+                'active_schedules' => count($activeScheduleIds),
+                'filter_conditions' => 'showing only staff currently working'
+            ]);
+        } else {
+            // Apply filters for non-NOW cases
+            if ($divisionId) {
+                $scheduleQuery->where('users.ud_id', $divisionId);
+            }
+            
+            if ($shiftId) {
+                $scheduleQuery->where('daily_schedules.sc_id', $shiftId);
+            }
+            
+            if ($userName) {
+                $scheduleQuery->where('users.u_name', 'like', '%' . $userName . '%');
+            }
         }
         
         $schedules = $scheduleQuery->orderBy('user_divisions.ud_name')
@@ -3362,9 +3439,18 @@ class DailyScheduleController extends Controller
                 $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
                 $endDate = $today->copy()->endOfWeek()->format('Y-m-d');
                 break;
+            case 'next_week':
+                $startDate = $today->copy()->addWeek()->startOfWeek()->format('Y-m-d');
+                $endDate = $today->copy()->addWeek()->endOfWeek()->format('Y-m-d');
+                break;
             case 'past_week':
                 $startDate = $today->copy()->subWeek()->startOfWeek()->format('Y-m-d');
                 $endDate = $today->copy()->subWeek()->endOfWeek()->format('Y-m-d');
+                break;
+            case 'now':
+                // For NOW filter, we use current week but will apply time filter later
+                $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
+                $endDate = $today->copy()->endOfWeek()->format('Y-m-d');
                 break;
             default:
                 $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
@@ -3904,6 +3990,9 @@ class DailyScheduleController extends Controller
         // Get Monday of current week
         $mondayThisWeek = $today->copy()->startOfWeek();
         
+        // Get Monday of next week
+        $mondayNextWeek = $today->copy()->addWeek()->startOfWeek();
+        
         // Get Monday of previous week
         $mondayLastWeek = $today->copy()->subWeek()->startOfWeek();
         
@@ -3911,6 +4000,9 @@ class DailyScheduleController extends Controller
         if ($start->format('Y-m-d') === $mondayThisWeek->format('Y-m-d') && 
             $end->format('Y-m-d') === $mondayThisWeek->copy()->endOfWeek()->format('Y-m-d')) {
             return 'this_week';
+        } elseif ($start->format('Y-m-d') === $mondayNextWeek->format('Y-m-d') && 
+                   $end->format('Y-m-d') === $mondayNextWeek->copy()->endOfWeek()->format('Y-m-d')) {
+            return 'next_week';
         } elseif ($start->format('Y-m-d') === $mondayLastWeek->format('Y-m-d') && 
                    $end->format('Y-m-d') === $mondayLastWeek->copy()->endOfWeek()->format('Y-m-d')) {
             return 'past_week';
@@ -4088,8 +4180,9 @@ class DailyScheduleController extends Controller
                         
                         $shiftCodeData = $shiftCodes->get($shiftCode);
                         
-                        // Check if shift code is compatible with user type
-                        if ($shiftCodeData->sc_type !== 'ALL' && $shiftCodeData->sc_type !== $user->ut_name) {
+                        // Check if shift code is compatible with user type using new compatibility method
+                        $shiftCodeModel = \App\Models\ShiftCode::find($shiftCodeData->id);
+                        if ($shiftCodeModel && !$shiftCodeModel->isCompatibleWithUserTypeLegacy($user->ut_name)) {
                             $errorCount++;
                             $errors[] = "Baris " . ($index + 2) . " ({$date}): Kode shift '{$shiftCode}' tidak kompatibel dengan jenis karyawan '{$user->ut_name}'";
                             continue;

@@ -1162,7 +1162,8 @@ class BreakTimeController extends Controller
             
             $breakDuration = 30; // default
             if ($dailySchedule && $dailySchedule->shiftCode) {
-                $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
+                $shiftType = $dailySchedule->shiftCode->getBreakAllowancePrimaryType();
+                $allowance = $breakTime->getBreakAllowance($shiftType);
                 $breakDuration = $allowance[$breakType]['duration'] ?? 30;
             }
             
@@ -1324,7 +1325,9 @@ class BreakTimeController extends Controller
             ]);
         }
 
-        $shiftType = $dailySchedule->sc_type;
+        // Get shift type from shift code using compatibility method
+        $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
+        $shiftType = $shiftCodeModel ? $shiftCodeModel->getBreakAllowancePrimaryType() : 'PART TIME';
 
         // Define break allowance based on shift type
         $breakAllowance = 0;
@@ -1450,7 +1453,13 @@ class BreakTimeController extends Controller
                 ->where('daily_schedules.ds_date', $date)
                 ->first();
 
-            $shiftType = $dailySchedule ? $dailySchedule->sc_type : 'Unknown';
+            // Get shift type using compatibility method
+            if ($dailySchedule && $dailySchedule->sc_id) {
+                $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
+                $shiftType = $shiftCodeModel ? $shiftCodeModel->getBreakAllowancePrimaryType() : 'PART TIME';
+            } else {
+                $shiftType = 'PART TIME'; // Default fallback
+            }
             
             // Get break allowance for this shift type
             $breakTime = new BreakTime();
@@ -1595,7 +1604,7 @@ class BreakTimeController extends Controller
             }
             
             // Check break quota
-            $shiftType = $dailySchedule->shiftCode->sc_type;
+            $shiftType = $dailySchedule->shiftCode->getBreakAllowancePrimaryType();
             $breakAllowance = $breakTime->getBreakAllowance($shiftType);
             
             if (!isset($breakAllowance[$request->bt_type])) {

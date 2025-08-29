@@ -33,7 +33,7 @@
                             { data: 'sc_shift_name', name: 'sc_shift_name', width: '15%' },
                             { data: 'sc_start_time', name: 'sc_start_time', width: '10%' },
                             { data: 'sc_end_time', name: 'sc_end_time', width: '10%' },
-                            { data: 'sc_type', name: 'sc_type', width: '10%' },
+                            { data: 'compatible_user_types', name: 'compatible_user_types', width: '15%' },
                             { data: 'sc_status', name: 'sc_status', width: '10%' },
                             { data: 'action', name: 'action', orderable: false, searchable: false, width: '10%' },
                         ],

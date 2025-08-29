@@ -15,7 +15,13 @@
                     <!--begin::Breadcrumb-->
                     <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
                         <li class="breadcrumb-item text-muted">
-                            <span class="text-muted">{{ date('d M Y', strtotime($startDate)) }} - {{ date('d M Y', strtotime($endDate)) }}</span>
+                            @if($dateFilter === 'now')
+                                <span class="text-primary font-weight-bold">
+                                    <i class="ki-outline ki-watch"></i> Staff have a Work Schedule - {{ date('d M Y, H:i') }}
+                                </span>
+                            @else
+                                <span class="text-muted">{{ date('d M Y', strtotime($startDate)) }} - {{ date('d M Y', strtotime($endDate)) }}</span>
+                            @endif
                         </li>
                     </ul>
                     <!--end::Breadcrumb-->
@@ -46,6 +52,8 @@
                                 <select class="form-control" name="date_filter">
                                     <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
                                     <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                    <option value="next_week" {{ $dateFilter == 'next_week' ? 'selected' : '' }}>Next Week</option>
+                                    <option value="now" {{ $dateFilter == 'now' ? 'selected' : '' }}>NOW (Staff Sedang Bekerja)</option>
                                     <option value="custom" {{ $dateFilter == 'custom' ? 'selected' : '' }}>Custom Range</option>
                                 </select>
                             </div>
@@ -251,9 +259,16 @@
                     @else
                         <div class="text-center py-5">
                             <div class="text-muted">
-                                <i class="ki ki-information icon-2x"></i>
-                                <h4 class="mt-3">No Schedule Data Found</h4>
-                                <p>No schedule data available for the selected week and filters.</p>
+                                @if($dateFilter === 'now')
+                                    <i class="ki-outline ki-watch icon-2x text-primary"></i>
+                                    <h4 class="mt-3 text-info">No Staff Currently Working</h4>
+                                    <p>There are no staff working at this hour ({{ date('H:i') }}).</p>
+                                    <small class="text-muted">Filter displays staff with schedules: Start Work ≤ NOW ≤ End Work</small>
+                                @else
+                                    <i class="ki ki-information icon-2x"></i>
+                                    <h4 class="mt-3">No Schedule Data Found</h4>
+                                    <p>No schedule data available for the selected week and filters.</p>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -412,6 +427,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedDate = this.value;
             console.log('Start date changed to:', selectedDate);
             
+            // Don't auto-detect if 'now' filter is currently selected
+            if (dateFilterSelect.value === 'now') {
+                console.log('Skipping auto-detection because NOW filter is selected');
+                return;
+            }
+            
             if (selectedDate) {
                 // Calculate end date (Sunday)
                 const endDate = calculateEndDate(selectedDate);
@@ -467,8 +488,15 @@ function calculateDatesFromFilter(filter) {
         case 'this_week':
             startDate = getMondayOfWeek(today);
             break;
+        case 'next_week':
+            startDate = getMondayOfWeek(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000));
+            break;
         case 'past_week':
             startDate = getMondayOfWeek(new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000));
+            break;
+        case 'now':
+            // For NOW filter, we still use current week but with special logic in backend
+            startDate = getMondayOfWeek(today);
             break;
         default:
             return null;
@@ -517,10 +545,19 @@ function detectFilterFromDateRange(startDate, endDate) {
     const sundayLastWeek = new Date(mondayLastWeek);
     sundayLastWeek.setDate(mondayLastWeek.getDate() + 6);
     
+    // Get Monday of next week
+    const mondayNextWeek = new Date(mondayThisWeek);
+    mondayNextWeek.setDate(mondayThisWeek.getDate() + 7);
+    const sundayNextWeek = new Date(mondayNextWeek);
+    sundayNextWeek.setDate(mondayNextWeek.getDate() + 6);
+    
     // Compare date ranges
     if (start.toDateString() === mondayThisWeek.toDateString() && 
         end.toDateString() === sundayThisWeek.toDateString()) {
         return 'this_week';
+    } else if (start.toDateString() === mondayNextWeek.toDateString() && 
+               end.toDateString() === sundayNextWeek.toDateString()) {
+        return 'next_week';
     } else if (start.toDateString() === mondayLastWeek.toDateString() && 
                end.toDateString() === sundayLastWeek.toDateString()) {
         return 'past_week';

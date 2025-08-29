@@ -947,7 +947,7 @@ class AttendanceController extends Controller
             ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
             ->where('ds.user_id', $user_id)
             ->where('ds.ds_status', 'scheduled')
-            ->where('sc.sc_code', '!=', 'L'); // Exclude libur
+            ->whereNotIn('sc.sc_code', ['L', 'LPH']); // Exclude libur (L) and libur per hari (LPH)
         
         if (request('start_date')) {
             $totalShifts->where('ds.ds_date', '>=', request('start_date'));
@@ -963,7 +963,7 @@ class AttendanceController extends Controller
             ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
             ->where('ds.user_id', $user_id)
             ->where('ds.ds_status', 'scheduled')
-            ->where('sc.sc_code', '=', 'L'); // Only libur
+            ->whereIn('sc.sc_code', ['L', 'LPH']); // Only libur (L) and libur per hari (LPH)
         
         if (request('start_date')) {
             $totalLibur->where('ds.ds_date', '>=', request('start_date'));
@@ -1054,7 +1054,7 @@ class AttendanceController extends Controller
                 ->where('ds.ds_status', 'scheduled')
                 ->where('ds.ds_date', '>=', $startDate)
                 ->where('ds.ds_date', '<=', $endDate)
-                ->where('sc.sc_code', '!=', 'L') // Exclude libur
+                ->whereNotIn('sc.sc_code', ['L', 'LPH']) // Exclude libur (L) and libur per hari (LPH)
                 ->whereNull('a.id') // No attendance record
                 ->whereNull('lr.id') // No approved leave
                 ->orderBy('ds.ds_date', 'desc')
@@ -1608,12 +1608,12 @@ class AttendanceController extends Controller
                     'ud.ud_name as division_name',
                     'ut.ut_name as work_type',
                     DB::raw('COUNT(DISTINCT ts_daily_schedules.id) as total_shifts'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code = "L" THEN ts_daily_schedules.id END) as total_libur'),
+                    DB::raw('COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code IN ("L", "LPH") THEN ts_daily_schedules.id END) as total_libur'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) as present_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "late" THEN ts_attendance.id END) as late_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "leave_SICK" THEN ts_attendance.id END) as sick_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" AND ts_attendance.at_status != "leave_SICK" AND ts_attendance.at_status != "leave_HALF_DAY" THEN ts_attendance.id END) as leave_days'),
-                    DB::raw('(COUNT(DISTINCT ts_daily_schedules.id) - COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code = "L" THEN ts_daily_schedules.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" THEN ts_attendance.id END)) as alpha_days')
+                    DB::raw('(COUNT(DISTINCT ts_daily_schedules.id) - COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code IN ("L", "LPH") THEN ts_daily_schedules.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" THEN ts_attendance.id END)) as alpha_days')
                 ])
                 ->leftJoin('attendance', function($join) use ($startDate, $endDate) {
                     $join->on('u.id', '=', 'attendance.user_id')
