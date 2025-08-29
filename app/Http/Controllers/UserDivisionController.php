@@ -53,6 +53,8 @@ class UserDivisionController extends Controller
         
         $divisions = UserDivision::where('ud_status', 'active')->orderBy('ud_name')->get();
 
+        dd($this->sidebar());
+
         $data = [
             'title' => $title,
             'subtitle' => 'User Divisions',
