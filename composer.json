@@ -7,6 +7,7 @@
     "require": {
         "php": "^7.3|^8.0",
         "anhskohbo/no-captcha": "^3.3",
+        "barryvdh/laravel-dompdf": "^2.2",
         "doctrine/dbal": "^3.7",
         "duncan3dc/speaker": "^1.5",
         "fideloper/proxy": "^4.4",
@@ -14,6 +15,7 @@
         "guzzlehttp/guzzle": "^7.9",
         "intervention/image": "^2.6",
         "laravel/framework": "^8.40",
+        "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.5",
         "maatwebsite/excel": "^3.1",
         "nesbot/carbon": "^2.72",

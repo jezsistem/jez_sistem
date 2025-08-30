@@ -66,6 +66,38 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script>
+    // Global DataTables availability check and fix
+    function ensureDataTablesAvailable() {
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.warn('DataTables not available, attempting to reload...');
+            
+            // Try to reload DataTables bundle
+            var script = document.createElement('script');
+            script.src = "{{ asset('app') }}/assets/plugins/custom/datatables/datatables.bundle.js";
+            script.onload = function() {
+                console.log('DataTables reloaded successfully');
+                // Trigger event for other scripts to know DataTables is ready
+                $(document).trigger('datatables:loaded');
+            };
+            script.onerror = function() {
+                console.error('Failed to reload DataTables');
+            };
+            document.head.appendChild(script);
+            return false;
+        }
+        return true;
+    }
+    
+    // Check DataTables on page load
+    $(document).ready(function() {
+        if (!ensureDataTablesAvailable()) {
+            // If DataTables is not available, wait for it to be loaded
+            $(document).on('datatables:loaded', function() {
+                console.log('DataTables is now available globally');
+            });
+        }
+    });
+
     const current = window.location.href;
     document.querySelectorAll("#kt_aside_menu a").forEach(function(elem) {
         if (elem.href === current) {
@@ -290,6 +322,197 @@
                 } else {
                     swal('Gagal', r.message, 'warning');
                 }
+            }
+        });
+    });
+
+    // Header Break Time Functions
+    $(document).ready(function() {
+        // Check current break status on page load
+        checkHeaderBreakStatus();
+        
+        // Set up timer interval
+        setInterval(updateHeaderTimer, 1000);
+    });
+
+    // Check current break status
+    function checkHeaderBreakStatus() {
+        $.get('{{ url("break-times/current") }}')
+            .done(function(response) {
+                if (response.success) {
+                    $('#headerClockIn').hide();
+                    $('#headerClockOutContainer').show();
+                    $('#headerTimerContainer').show();
+                    updateHeaderTimerDisplay(response.duration_minutes);
+                } else {
+                    $('#headerClockIn').show();
+                    $('#headerClockOutContainer').hide();
+                    $('#headerTimerContainer').hide();
+                }
+            })
+            .fail(function() {
+                $('#headerClockIn').show();
+                $('#headerClockOutContainer').hide();
+                $('#headerTimerContainer').hide();
+            });
+    }
+
+    // Header Clock In
+    $('#headerClockIn').click(function() {
+        $.post('{{ url("break-times/clock-in") }}', {
+            _token: '{{ csrf_token() }}',
+            break_type: 'break_1'
+        })
+        .done(function(response) {
+            if (response.success) {
+                swal('Success', 'Break started successfully!', 'success');
+                checkHeaderBreakStatus();
+            } else {
+                swal('Error', response.message, 'error');
+            }
+        })
+        .fail(function(xhr) {
+            let response = xhr.responseJSON;
+            swal('Error', response ? response.message : 'Unknown error', 'error');
+        });
+    });
+
+    // Header Clock Out
+    $('#headerClockOut').click(function() {
+        $.post('{{ url("break-times/clock-out") }}', {
+            _token: '{{ csrf_token() }}',
+            break_type: 'break_1'
+        })
+        .done(function(response) {
+            if (response.success) {
+                swal('Success', 'Break ended successfully!', 'success');
+                checkHeaderBreakStatus();
+            } else {
+                swal('Error', response.message, 'error');
+            }
+        })
+        .fail(function(xhr) {
+            let response = xhr.responseJSON;
+            swal('Error', response ? response.message : 'Unknown error', 'error');
+        });
+    });
+
+    // Header Timer functions
+    let headerTimerStartTime = null;
+
+    function updateHeaderTimer() {
+        if (headerTimerStartTime) {
+            let now = new Date();
+            let diff = Math.floor((now - headerTimerStartTime) / 1000);
+            let minutes = Math.floor(diff / 60);
+            let seconds = diff % 60;
+            $('#headerTimerDisplay').text(sprintf('%02d:%02d', minutes, seconds));
+        }
+    }
+
+    function updateHeaderTimerDisplay(durationMinutes) {
+        let minutes = Math.floor(durationMinutes / 60);
+        let seconds = durationMinutes % 60;
+        $('#headerTimerDisplay').text(sprintf('%02d:%02d', minutes, seconds));
+        headerTimerStartTime = new Date(Date.now() - (durationMinutes * 60 * 1000));
+    }
+
+    function sprintf(format, ...args) {
+        return format.replace(/%(\d*)d/g, function(match, width) {
+            return args.shift().toString().padStart(width || 0, '0');
+        });
+    }
+
+    // Sub-menu functionality
+    $(document).ready(function() {
+        // Handle sub-menu toggle (only for main accordion items)
+        $('.menu-item.menu-accordion > .menu-link').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var $menuItem = $(this).closest('.menu-item');
+            var $subMenu = $menuItem.find('.menu-sub-accordion');
+            
+            // Close other open menus
+            $('.menu-item.menu-accordion').not($menuItem).removeClass('menu-item-open');
+            
+            // Toggle current menu
+            $menuItem.toggleClass('menu-item-open');
+            
+            // Smooth animation for sub-menu
+            if ($menuItem.hasClass('menu-item-open')) {
+                $subMenu.slideDown(300);
+            } else {
+                $subMenu.slideUp(300);
+            }
+        });
+        
+        // Handle sub-menu item clicks (prevent event bubbling)
+        $('.menu-subnav .menu-link').on('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            // Remove active class from all sub-menu items
+            $('.menu-subnav .menu-link').removeClass('active');
+            // Add active class to clicked item
+            $(this).addClass('active');
+            
+            // Navigate to the href
+            var href = $(this).attr('href');
+            if (href && href !== 'javascript:;') {
+                window.location.href = href;
+            }
+        });
+        
+        // Highlight active sub-menu item
+        var currentPath = window.location.pathname;
+        var activeFound = false;
+        
+        // First pass: find exact matches
+        $('.menu-subnav .menu-link').each(function() {
+            var href = $(this).attr('href');
+            if (href && href !== 'javascript:;') {
+                var urlPath = href.replace(window.location.origin, '');
+                if (currentPath === urlPath) {
+                    $(this).addClass('active');
+                    $(this).closest('.menu-item.menu-accordion').addClass('menu-item-open');
+                    $(this).closest('.menu-sub-accordion').show();
+                    activeFound = true;
+                    return false; // Break the loop
+                }
+            }
+        });
+        
+        // Second pass: if no exact match, find partial matches (for backward compatibility)
+        if (!activeFound) {
+            $('.menu-subnav .menu-link').each(function() {
+                var href = $(this).attr('href');
+                if (href && href !== 'javascript:;') {
+                    var urlPath = href.replace(window.location.origin, '');
+                    var pathSegments = urlPath.split('/').filter(segment => segment.length > 0);
+                    var currentSegments = currentPath.split('/').filter(segment => segment.length > 0);
+                    
+                    // Check if current path starts with the menu path
+                    var isMatch = pathSegments.every((segment, index) => 
+                        currentSegments[index] === segment
+                    );
+                    
+                    if (isMatch && pathSegments.length > 0) {
+                        $(this).addClass('active');
+                        $(this).closest('.menu-item.menu-accordion').addClass('menu-item-open');
+                        $(this).closest('.menu-sub-accordion').show();
+                        activeFound = true;
+                        return false; // Break the loop
+                    }
+                }
+            });
+        }
+        
+        // Highlight active main menu item
+        $('.menu-item.menu-accordion').each(function() {
+            var $subMenu = $(this).find('.menu-subnav .menu-link.active');
+            if ($subMenu.length > 0) {
+                $(this).addClass('menu-item-open');
+                $(this).find('.menu-sub-accordion').show();
             }
         });
     });

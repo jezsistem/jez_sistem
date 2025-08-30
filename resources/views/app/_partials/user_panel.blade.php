@@ -28,7 +28,7 @@
                 </button>
             </div>
             <div class="d-flex flex-column">
-                <div class="font-weight-semibold fs-5 text-black mt-1">{{ $data['user']->g_name }}</div>
+                <div class="font-weight-semibold fs-5 text-black mt-1">{{ $data['user']->u_name }}</div>
                 <div class="navi mt-1">
                     <a href="#" class="navi-item">
                         <span class="navi-link p-0 pb-2">
