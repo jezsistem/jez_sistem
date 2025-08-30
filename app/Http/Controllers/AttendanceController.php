@@ -2070,6 +2070,55 @@ class AttendanceController extends Controller
                 })
                 ->get();
                 
+            // If no records need update in date range, get ALL records without daily_schedule_id
+            if ($attendanceRecords->count() == 0) {
+                \Log::info('No records need daily_schedule_id update in date range, getting ALL records without daily_schedule_id');
+                $attendanceRecords = DB::table('attendance')
+                    ->where(function($query) {
+                        $query->where('daily_schedule_id', 'IS', null)
+                              ->orWhere('daily_schedule_id', '=', '')
+                              ->orWhere('daily_schedule_id', '=', 0);
+                    })
+                    ->get();
+                    
+                \Log::info('Found records without daily_schedule_id across all dates', [
+                    'count' => $attendanceRecords->count(),
+                    'sample_records' => $attendanceRecords->take(5)->map(function($record) {
+                        return [
+                            'id' => $record->id,
+                            'user_id' => $record->user_id,
+                            'date' => $record->at_date,
+                            'daily_schedule_id' => $record->daily_schedule_id,
+                            'at_source' => $record->at_source
+                        ];
+                    })->toArray()
+                ]);
+            }
+                
+            // Debug: Check attendance records with daily_schedule_id
+            $attendanceWithSchedule = DB::table('attendance')
+                ->whereBetween('at_date', [$startDate, $endDate])
+                ->whereNotNull('daily_schedule_id')
+                ->where('daily_schedule_id', '!=', '')
+                ->where('daily_schedule_id', '!=', 0)
+                ->get();
+                
+            \Log::info('Attendance records analysis', [
+                'date_range' => [$startDate, $endDate],
+                'total_attendance' => DB::table('attendance')->whereBetween('at_date', [$startDate, $endDate])->count(),
+                'without_schedule' => $attendanceRecords->count(),
+                'with_schedule' => $attendanceWithSchedule->count(),
+                'sample_with_schedule' => $attendanceWithSchedule->take(3)->map(function($record) {
+                    return [
+                        'id' => $record->id,
+                        'user_id' => $record->user_id,
+                        'date' => $record->at_date,
+                        'daily_schedule_id' => $record->daily_schedule_id,
+                        'at_source' => $record->at_source
+                    ];
+                })->toArray()
+            ]);
+                
             \Log::info('Found attendance records to process', [
                 'count' => $attendanceRecords->count(),
                 'date_range' => [$startDate, $endDate],
@@ -2090,14 +2139,27 @@ class AttendanceController extends Controller
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'total_attendance_count' => DB::table('attendance')->count(),
-                    'attendance_without_schedule' => DB::table('attendance')
+                    'attendance_without_schedule_total' => DB::table('attendance')
+                        ->where(function($query) {
+                            $query->where('daily_schedule_id', 'IS', null)
+                                  ->orWhere('daily_schedule_id', '=', '')
+                                  ->orWhere('daily_schedule_id', '=', 0);
+                        })->count(),
+                    'attendance_without_schedule_in_range' => DB::table('attendance')
                         ->whereBetween('at_date', [$startDate, $endDate])
                         ->where(function($query) {
                             $query->where('daily_schedule_id', 'IS', null)
                                   ->orWhere('daily_schedule_id', '=', '')
                                   ->orWhere('daily_schedule_id', '=', 0);
                         })->count(),
-                    'date_range_count' => DB::table('attendance')->whereBetween('at_date', [$startDate, $endDate])->count()
+                    'date_range_count' => DB::table('attendance')->whereBetween('at_date', [$startDate, $endDate])->count(),
+                    'sample_attendance_dates' => DB::table('attendance')
+                        ->select('at_date')
+                        ->distinct()
+                        ->orderBy('at_date', 'desc')
+                        ->limit(5)
+                        ->pluck('at_date')
+                        ->toArray()
                 ]);
             }
 
