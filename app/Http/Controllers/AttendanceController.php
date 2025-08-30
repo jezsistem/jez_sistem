@@ -2066,6 +2066,11 @@ class AttendanceController extends Controller
                 ->whereNull('daily_schedule_id')
                 ->get();
                 
+            \Log::info('Records needing daily_schedule_id update', [
+                'count' => $attendanceRecords->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
+                
             // If no records need update in date range, get ALL records without daily_schedule_id
             if ($attendanceRecords->count() == 0) {
                 \Log::info('No records need daily_schedule_id update in date range, getting ALL records without daily_schedule_id');
@@ -2097,19 +2102,18 @@ class AttendanceController extends Controller
                     })->toArray()
                 ]);
                 
-                // PERBAIKAN: Jika masih kosong, coba query alternatif
+                // PERBAIKAN: Jika tidak ada data yang perlu update daily_schedule_id, proses SEMUA data untuk update status
                 if ($attendanceRecords->count() == 0) {
-                    \Log::warning('Fallback query also returned 0 records, trying alternative approach');
+                    \Log::warning('No records need daily_schedule_id update, processing ALL records for status update');
                     
-                    // PERBAIKAN: Ambil SEMUA data tanpa daily_schedule_id (tidak terbatas tanggal)
+                    // PERBAIKAN: Ambil SEMUA data untuk update status (tidak terbatas tanggal)
                     $attendanceRecords = DB::table('attendance')
-                        ->whereNull('daily_schedule_id')
                         ->get();
                         
-                    \Log::info('Retrieved ALL records without daily_schedule_id (across all dates)', [
+                    \Log::info('Retrieved ALL records for status update (across all dates)', [
                         'count' => $attendanceRecords->count(),
                         'date_range_requested' => [$startDate, $endDate],
-                        'note' => 'Processing all dates because no records found in requested date range',
+                        'note' => 'Processing all records for status update because daily_schedule_id is already filled',
                         'sample_dates' => $attendanceRecords->take(5)->pluck('at_date')->toArray()
                     ]);
                 }
