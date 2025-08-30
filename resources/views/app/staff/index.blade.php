@@ -23,8 +23,8 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
+                    <div class="card card-custom gutter-b">
+                        <div class="card-header flex-wrap py-3">
                             <div class="card-toolbar d-flex justify-content-between w-100">
                                 <div class="row mb-3">
                                     <div class="col-md-3">
@@ -57,29 +57,24 @@
                                 </div>
                             </div>                          
                         </div>
-                        <div class="card-body">
-                            <!-- Filter Form -->
-                           
-                            
-                            <div class="table-responsive">
-                                <table class="table table-hover table-checkable" id="staffTable">
-                                    <thead class="bg-light text-dark">
-                                        <tr>
-                                            <th>No</th>
-                                            <th>NIP</th>
-                                            <th>Staff</th>
-                                            <th>Position</th>
-                                            <th>Division</th>
-                                            <th>User Type</th>
-                                            <th>Annual Leave Balance</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- DataTables will populate this -->
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="card-body table-responsive">
+                             <table class="table table-hover table-checkable" id="staffTable">
+                                <thead class="bg-light text-dark">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>NIP</th>
+                                        <th>Staff</th>
+                                        <th>Position</th>
+                                        <th>Division</th>
+                                        <th>User Type</th>
+                                        <th>Annual Leave Balance</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- DataTables will populate this -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

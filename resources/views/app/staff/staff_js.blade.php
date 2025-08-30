@@ -98,6 +98,10 @@
                             {
                                 "targets": 6,
                                 "className": "text-center"
+                            },
+                            {
+                                "targets": 7,
+                                "className": "text-center"
                             }
                         ],
                         order: [[0, 'desc']],
@@ -407,14 +411,14 @@
             
             // Tutup semua menu lain
             $('.menu').not($menu).removeClass('show');
-            $cardBody.removeClass('pb-extra'); // reset padding
+            $cardBody.removeClass('pb-extra2'); // reset padding
             
             // Toggle menu ini
             $menu.toggleClass("show");
             
             // Jika menu terbuka & baris ini adalah row terakhir
             if ($menu.hasClass('show') && $row.is(':last-child')) {
-                $cardBody.addClass('pb-extra');
+                $cardBody.addClass('pb-extra2');
             }
         });
         
