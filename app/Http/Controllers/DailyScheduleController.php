@@ -4202,6 +4202,8 @@ class DailyScheduleController extends Controller
                                     'sc_id' => $shiftCodeData->id,
                                     'ds_start_time' => $shiftCodeData->sc_start_time,
                                     'ds_end_time' => $shiftCodeData->sc_end_time,
+                                    'ds_status' => 'scheduled',  // ✅ Update status ke 'scheduled'
+                                    'ud_id' => $user->ud_id,     // ✅ Update division ID
                                     'updated_at' => now(),
                                     'updated_by' => Auth::user()->id
                                 ]);
@@ -4209,11 +4211,12 @@ class DailyScheduleController extends Controller
                             // Create new schedule
                             DB::table('daily_schedules')->insert([
                                 'user_id' => $user->id,
+                                'ud_id' => $user->ud_id,         // ✅ Tambah division ID dari user
                                 'sc_id' => $shiftCodeData->id,
                                 'ds_date' => $date,
                                 'ds_start_time' => $shiftCodeData->sc_start_time,
                                 'ds_end_time' => $shiftCodeData->sc_end_time,
-                                'ds_status' => 'active',
+                                'ds_status' => 'scheduled',      // ✅ Status yang benar
                                 'created_at' => now(),
                                 'created_by' => Auth::user()->id,
                                 'updated_at' => now(),
