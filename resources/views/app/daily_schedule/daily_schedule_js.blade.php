@@ -178,6 +178,29 @@
         console.log('Division groups created successfully');
     }
 
+    // Custom toast function
+    function showToast(title, message, type) {
+        const toastHtml = `
+            <div style="position: fixed; top: 20px; right: 20px; z-index: 9999; 
+                        background: ${type === 'success' ? '#1BC5BD' : '#dc3545'}; 
+                        color: white; padding: 15px 20px; border-radius: 2px; 
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-width: 300px;" 
+             id="customToast">
+                <strong>${title}</strong><br>
+                ${message}
+            </div>
+        `;
+        
+        $('body').append(toastHtml);
+        
+        // Auto remove after 3 seconds
+        setTimeout(function() {
+            $('#customToast').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 3000);
+    }
+
     // Delete schedule function
     function deleteSchedule(id) {
         if (confirm('Are you sure you want to delete this schedule?')) {
@@ -190,13 +213,13 @@
                 success: function(response) {
                     if (response.success) {
                         $('#dailyScheduleTable').DataTable().ajax.reload();
-                        alert('Schedule deleted successfully');
+                        showToast('Success', 'Schedule deleted successfully', 'success');
                     } else {
-                        alert('Failed to delete schedule');
+                        showToast('Error', 'Failed to delete schedule', 'error');
                     }
                 },
                 error: function() {
-                    alert('Error occurred while deleting schedule');
+                    showToast('Error', 'Error occurred while deleting schedule', 'error');
                 }
             });
         }

@@ -12,7 +12,7 @@
     z-index: 9999 !important;
     position: absolute !important;
     top: 100% !important;
-    left: 0 !important;
+    right: 0 !important;
     margin-top: 5px !important;
     min-width: 150px !important;
     background: white !important;
@@ -143,12 +143,12 @@
                                 <thead class="bg-light text-dark">
                                     <tr>
                                         <th class="text-dark">No</th>
-                                        <th class="text-dark">Code</th>
+                                        <th class="text-dark">Shift Code</th>
                                         <th class="text-dark">Description</th>
                                         <th class="text-dark">Shift Name</th>
                                         <th class="text-dark">Start Time</th>
                                         <th class="text-dark">End Time</th>
-                                        <th class="text-dark">Type</th>
+                                        <th class="text-dark">User Type</th>
                                         <th class="text-dark">Status</th>
                                         <th class="text-dark">Actions</th>
                                         </tr>

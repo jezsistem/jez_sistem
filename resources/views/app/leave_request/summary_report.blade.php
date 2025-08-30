@@ -297,8 +297,10 @@
                                         <select class="form-control" id="date_filter" name="date_filter" onchange="handleDateFilterChange(this.value)">
                                             <option value="this_week" {{ $data['dateFilter'] == 'this_week' ? 'selected' : '' }}>This Week</option>
                                             <option value="past_week" {{ $data['dateFilter'] == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                            <option value="next_week" {{ $data['dateFilter'] == 'next_week' ? 'selected' : '' }}>Next Week</option>
                                             <option value="this_month" {{ $data['dateFilter'] == 'this_month' ? 'selected' : '' }}>This Month</option>
                                             <option value="last_month" {{ $data['dateFilter'] == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                                            <option value="next_month" {{ $data['dateFilter'] == 'next_month' ? 'selected' : '' }}>Next Month</option>
                                             <option value="custom" {{ $data['dateFilter'] == 'custom' ? 'selected' : '' }}>Custom Range</option>
                                         </select>
                                     </div>

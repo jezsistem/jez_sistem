@@ -87,7 +87,12 @@ class ShiftCodeController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        $shiftTypes = ['ALL', 'Full Time', 'Part Full', 'Part Time'];
+        
+        // Get user types from database for multiple selection
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->orderBy('ut_name')
+            ->get();
 
         $data = [
             'title' => $title,
@@ -96,19 +101,42 @@ class ShiftCodeController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1)
         ];
-        return view('app.shift_code.create', compact('shiftTypes', 'data'));
+        return view('app.shift_code.create', compact('userTypes', 'data'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code',
-            'sc_description' => 'required|string|max:255',
-            'sc_shift_name' => 'required|string|max:100',
-            'sc_start_time' => 'nullable|date_format:H:i',
-            'sc_end_time' => 'nullable|date_format:H:i',
-            'sc_type' => 'required|in:ALL,Full Time,Part Full,Part Time',
+        // Debug logging
+        \Log::info('ShiftCode store method called', [
+            'request_data' => $request->all(),
+            'user_id' => auth()->user()->id ?? 'not authenticated'
         ]);
+        
+        // Get valid user types for validation
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->pluck('id')
+            ->toArray();
+        
+        \Log::info('Valid user types for validation', ['user_types' => $userTypes]);
+        
+        try {
+            $request->validate([
+                'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code',
+                'sc_description' => 'required|string|max:255',
+                'sc_shift_name' => 'required|string|max:100',
+                'sc_start_time' => 'nullable|date_format:H:i',
+                'sc_end_time' => 'nullable|date_format:H:i',
+                'user_type_ids' => 'required|array|min:1',
+                'user_type_ids.*' => 'exists:user_types,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            throw $e;
+        }
 
         $data = [
             'sc_code' => strtoupper($request->sc_code),
@@ -116,17 +144,31 @@ class ShiftCodeController extends Controller
             'sc_shift_name' => $request->sc_shift_name,
             'sc_start_time' => $request->sc_start_time,
             'sc_end_time' => $request->sc_end_time,
-            'sc_type' => $request->sc_type,
+            'sc_type' => 'MULTIPLE', // Set as MULTIPLE since we're using pivot table
             'sc_status' => 'active',
             'created_by' => auth()->user()->u_name ?? 'system',
         ];
 
+        \Log::info('Attempting to store shift code', ['data' => $data]);
+        
         $shiftCode = new ShiftCode();
         $result = $shiftCode->storeData('add', null, $data);
 
         if ($result) {
+            // Attach user types to the shift code
+            $shiftCodeModel = ShiftCode::find($result);
+            if ($shiftCodeModel) {
+                $shiftCodeModel->userTypes()->attach($request->user_type_ids);
+                \Log::info('User types attached successfully', [
+                    'shift_code_id' => $result,
+                    'user_type_ids' => $request->user_type_ids
+                ]);
+            }
+            
+            \Log::info('Shift code stored successfully', ['id' => $result]);
             return redirect()->route('shift-codes.index')->with('success', 'Shift code berhasil ditambahkan');
         } else {
+            \Log::error('Failed to store shift code');
             return back()->with('error', 'Gagal menambahkan shift code');
         }
     }
@@ -143,7 +185,7 @@ class ShiftCodeController extends Controller
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $shiftCode = ShiftCode::with(['dailySchedules' => function($query) {
             $query->whereNotNull('ds_status')->orderBy('ds_date', 'desc');
-        }, 'dailySchedules.user'])->findOrFail($id);
+        }, 'dailySchedules.user', 'userTypes'])->findOrFail($id);
 
         $data = [
             'title' => $title,
@@ -165,8 +207,13 @@ class ShiftCodeController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        $shiftCode = ShiftCode::findOrFail($id);
-        $shiftTypes = ['ALL', 'Full Time', 'Part Full', 'Part Time'];
+        $shiftCode = ShiftCode::with('userTypes')->findOrFail($id);
+        
+        // Get user types from database for multiple selection
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->orderBy('ut_name')
+            ->get();
 
         $data = [
             'title' => $title,
@@ -175,19 +222,44 @@ class ShiftCodeController extends Controller
             'user' => $user_data,
             'segment' => request()->segment(1)
         ];
-        return view('app.shift_code.edit', compact('shiftCode', 'shiftTypes', 'data'));
+        return view('app.shift_code.edit', compact('shiftCode', 'userTypes', 'data'));
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code,' . $id,
-            'sc_description' => 'required|string|max:255',
-            'sc_shift_name' => 'required|string|max:100',
-            'sc_start_time' => 'nullable|date_format:H:i',
-            'sc_end_time' => 'nullable|date_format:H:i',
-            'sc_type' => 'required|in:ALL,Full Time,Part Full,Part Time',
+        // Debug logging
+        \Log::info('ShiftCode update method called', [
+            'shift_code_id' => $id,
+            'request_data' => $request->all(),
+            'user_id' => auth()->user()->id ?? 'not authenticated'
         ]);
+        
+        // Get valid user types for validation
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->pluck('id')
+            ->toArray();
+        
+        \Log::info('Valid user types for update validation', ['user_types' => $userTypes]);
+        
+        try {
+            $request->validate([
+                'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code,' . $id,
+                'sc_description' => 'required|string|max:255',
+                'sc_shift_name' => 'required|string|max:100',
+                'sc_start_time' => 'nullable|date_format:H:i',
+                'sc_end_time' => 'nullable|date_format:H:i',
+                'user_type_ids' => 'required|array|min:1',
+                'user_type_ids.*' => 'exists:user_types,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Update validation failed', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all(),
+                'shift_code_id' => $id
+            ]);
+            throw $e;
+        }
 
         $data = [
             'sc_code' => strtoupper($request->sc_code),
@@ -195,16 +267,42 @@ class ShiftCodeController extends Controller
             'sc_shift_name' => $request->sc_shift_name,
             'sc_start_time' => $request->sc_start_time,
             'sc_end_time' => $request->sc_end_time,
-            'sc_type' => $request->sc_type,
+            'sc_type' => 'MULTIPLE', // Set as MULTIPLE since we're using pivot table
             'updated_by' => auth()->user()->u_name ?? 'system',
         ];
 
+        \Log::info('Attempting to update shift code', ['data' => $data]);
+        
         $shiftCode = new ShiftCode();
         $result = $shiftCode->storeData('edit', $id, $data);
 
         if ($result) {
+            // Sync user types for the shift code
+            $shiftCodeModel = ShiftCode::find($id);
+            if ($shiftCodeModel) {
+                // Filter out empty values and ensure we have valid IDs
+                $userTypeIds = array_filter($request->user_type_ids, function($id) {
+                    return !empty($id) && is_numeric($id);
+                });
+                
+                if (!empty($userTypeIds)) {
+                    $shiftCodeModel->userTypes()->sync($userTypeIds);
+                    \Log::info('User types synced successfully', [
+                        'shift_code_id' => $id,
+                        'user_type_ids' => $userTypeIds
+                    ]);
+                } else {
+                    \Log::warning('No valid user type IDs provided for sync', [
+                        'shift_code_id' => $id,
+                        'raw_user_type_ids' => $request->user_type_ids
+                    ]);
+                }
+            }
+            
+            \Log::info('Shift code updated successfully', ['id' => $id]);
             return redirect()->route('shift-codes.index')->with('success', 'Shift code berhasil diperbarui');
         } else {
+            \Log::error('Failed to update shift code', ['id' => $id]);
             return back()->with('error', 'Gagal memperbarui shift code');
         }
     }
@@ -286,31 +384,56 @@ class ShiftCodeController extends Controller
         ]);
         
         if(request()->ajax()) {
-        $query = DB::table('shift_codes')
-            ->select([
-                'id',
-                'sc_code',
-                'sc_description',
-                'sc_shift_name',
-                'sc_start_time',
-                'sc_end_time',
-                'sc_type',
-                'sc_status'
-            ])
-            ->where('sc_status', '!=', 'deleted');
+        $query = DB::select('
+            SELECT 
+                sc.id,
+                sc.sc_code,
+                sc.sc_description,
+                sc.sc_shift_name,
+                sc.sc_start_time,
+                sc.sc_end_time,
+                sc.sc_type,
+                sc.sc_status,
+                GROUP_CONCAT(ut.ut_name ORDER BY ut.ut_name SEPARATOR ", ") as compatible_user_types
+            FROM ts_shift_codes sc
+            LEFT JOIN ts_shift_code_user_types scut ON sc.id = scut.shift_code_id
+            LEFT JOIN ts_user_types ut ON scut.user_type_id = ut.id
+            WHERE sc.sc_status != "deleted"
+            GROUP BY sc.id, sc.sc_code, sc.sc_description, sc.sc_shift_name, sc.sc_start_time, sc.sc_end_time, sc.sc_type, sc.sc_status
+            ORDER BY sc.sc_code
+        ');
             
             // Add search filter
-            if ($request->filled('search')) {
+            if ($request->search) {
                 $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('sc_code', 'like', '%' . $search . '%')
-                      ->orWhere('sc_description', 'like', '%' . $search . '%')
-                      ->orWhere('sc_shift_name', 'like', '%' . $search . '%')
-                      ->orWhere('sc_type', 'like', '%' . $search . '%');
-                });
+                $query = DB::select('
+                    SELECT 
+                        sc.id,
+                        sc.sc_code,
+                        sc.sc_description,
+                        sc.sc_shift_name,
+                        sc.sc_start_time,
+                        sc.sc_end_time,
+                        sc.sc_type,
+                        sc.sc_status,
+                        GROUP_CONCAT(ut.ut_name ORDER BY ut.ut_name SEPARATOR ", ") as compatible_user_types
+                    FROM ts_shift_codes sc
+                    LEFT JOIN ts_shift_code_user_types scut ON sc.id = scut.shift_code_id
+                    LEFT JOIN ts_user_types ut ON scut.user_type_id = ut.id
+                    WHERE sc.sc_status != "deleted"
+                    AND (
+                        sc.sc_code LIKE ? OR 
+                        sc.sc_description LIKE ? OR 
+                        sc.sc_shift_name LIKE ? OR 
+                        sc.sc_type LIKE ? OR 
+                        ut.ut_name LIKE ?
+                    )
+                    GROUP BY sc.id, sc.sc_code, sc.sc_description, sc.sc_shift_name, sc.sc_start_time, sc.sc_end_time, sc.sc_type, sc.sc_status
+                    ORDER BY sc.sc_code
+                ', ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%', '%' . $search . '%', '%' . $search . '%']);
             }
 
-            $result = DataTables::of($query)
+            $result = DataTables::of(collect($query))
             ->addIndexColumn()
             ->addColumn('action', function($row) {
                     $btn = '<div class="dropdown">';

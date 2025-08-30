@@ -146,18 +146,28 @@ class BreakTime extends Model
     public function getBreakAllowance($shiftType)
     {
         switch ($shiftType) {
-            case 'Full Time':
+            case 'FULL TIME':
                 return [
                     'break_1' => ['duration' => 60, 'count' => 1]
                 ];
-            case 'Part Time':
+            case 'PART TIME':
                 return [
                     'break_1' => ['duration' => 30, 'count' => 1]
                 ];
-            case 'Part Full':
+            case 'PART FULL':
                 return [
                     'break_1' => ['duration' => 30, 'count' => 1],
                     'break_2' => ['duration' => 30, 'count' => 1]
+                ];
+            case 'CASUAL':
+                return [
+                    'break_1' => ['duration' => 30, 'count' => 1]
+                ];
+            case 'ALL':
+            case 'MULTIPLE':
+                // For ALL/MULTIPLE types, use default PART TIME allowance
+                return [
+                    'break_1' => ['duration' => 30, 'count' => 1]
                 ];
             default:
                 return [
@@ -181,7 +191,8 @@ class BreakTime extends Model
             return false;
         }
 
-        $shiftType = $dailySchedule->shiftCode->sc_type;
+        // Get shift type using new compatibility method
+        $shiftType = $dailySchedule->shiftCode->getBreakAllowancePrimaryType();
         $breakAllowance = $this->getBreakAllowance($shiftType);
 
         // Check if this break type is allowed

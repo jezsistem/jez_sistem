@@ -1,5 +1,5 @@
 <div class="card card-custom mb-3 announcement-{{ $announcement->id }} announcement-card compact-card" data-category-id="{{ $announcement->category_id ?? '' }}" data-announcement-id="{{ $announcement->id }}">
-    <div class="card-body p-4">
+    <div class="card-body p-6">
         <!--begin::Compact Header-->
         <div class="d-flex align-items-center justify-content-between mb-3">
             <div class="d-flex align-items-center flex-grow-1">
@@ -107,7 +107,7 @@
                     <h6 class="text-dark font-weight-semibold mb-3 fs-6"><i class="ki-outline ki-paper-clip"></i> Attachments</h6>
                     <div class="row">
                         @foreach($announcement->attachments as $attachment)
-                        <div class="col-md-6 mb-2">
+                        <div class="col-md-7 mb-2">
                             <div class="d-flex align-items-center p-3 bg-light rounded">
                                 <div class="mr-3">
                                     @if($attachment->is_image)
@@ -154,10 +154,10 @@
                 
                 <div class="d-flex align-items-center">
                     <button class="btn btn-sm btn-light mr-2" onclick="showReactionDetails({{ $announcement->id }})">
-                        <i class="ki-outline ki-eye"></i> View Reactions ({{ $announcement->userReactions->count() }})
+                        <i class="ki-solid ki-emoji-happy text-gray-600"></i> View Reactions ({{ $announcement->userReactions->count() }})
                     </button>
                     <button class="btn btn-sm btn-light mr-2" onclick="showViewDetails({{ $announcement->id }})">
-                        <i class="fas fa-users"></i> Viewers ({{ $announcement->views_count ?? 0 }})
+                        <i class="ki-solid ki-eye text-gray-600"></i> Viewers ({{ $announcement->views_count ?? 0 }})
                     </button>
                     <button class="btn btn-sm btn-light-primary" 
                             onclick="toggleAnnouncementContent({{ $announcement->id }})" 
@@ -184,10 +184,10 @@
                 
             <div class="d-flex align-items-center reactions-container-mobile">
                 <button class="btn btn-sm btn-light mr-2" onclick="showReactionDetails({{ $announcement->id }})">
-                    <i class="ki-outline ki-eye"></i> View Reactions ({{ $announcement->userReactions->count() }})
+                    <i class="ki-solid ki-emoji-happy"></i> View Reactions ({{ $announcement->userReactions->count() }})
                 </button>
                 <button class="btn btn-sm btn-light mr-2" onclick="showViewDetails({{ $announcement->id }})">
-                    <i class="fas fa-users"></i> Viewers ({{ $announcement->views_count ?? 0 }})
+                    <i class="ki-solid ki-eye"></i> Viewers ({{ $announcement->views_count ?? 0 }})
                 </button>
                 <button class="btn btn-sm btn-light-primary" 
                         onclick="toggleAnnouncementContent({{ $announcement->id }})" 

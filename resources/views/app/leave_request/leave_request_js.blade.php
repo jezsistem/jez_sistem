@@ -44,6 +44,12 @@
                     endDate = new Date(today.getTime());
                     endDate.setDate(today.getDate() - today.getDay()); // Last Sunday
                     break;
+                case 'next_week':
+                    startDate = new Date(today.getTime());
+                    startDate.setDate(today.getDate() - today.getDay() + 8); // Next Monday
+                    endDate = new Date(today.getTime());
+                    endDate.setDate(today.getDate() - today.getDay() + 14); // Next Sunday
+                    break;
                 case 'this_month':
                     startDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of month
                     endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of month
@@ -51,6 +57,10 @@
                 case 'last_month':
                     startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); // First day of last month
                     endDate = new Date(today.getFullYear(), today.getMonth(), 0); // Last day of last month
+                    break;
+                case 'next_month':
+                    startDate = new Date(today.getFullYear(), today.getMonth() + 1, 1); // First day of next month
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0); // Last day of next month
                     break;
             }
             
@@ -75,8 +85,70 @@
                 
                 // Update breadcrumb display
                 updateBreadcrumbDates(formattedStartDate, formattedEndDate, value);
+                
+                // Reload DataTable with new filter dates
+                if (value !== 'custom' && window.leaveRequestTable) {
+                    console.log('Reloading DataTable for filter:', value);
+                    console.log('Current start_date:', startDateInput.value);
+                    console.log('Current end_date:', endDateInput.value);
+                    console.log('Current date_filter:', value);
+                    
+                    // Force DataTable to reload with new parameters
+                    window.leaveRequestTable.ajax.reload();
+                    
+                    // Update stats with new filter
+                    updateStats();
+                } else if (value !== 'custom') {
+                    console.log('DataTable not available yet, waiting for initialization...');
+                    // Wait for DataTable to be ready
+                    setTimeout(() => {
+                        if (window.leaveRequestTable) {
+                            console.log('DataTable now available, reloading...');
+                            window.leaveRequestTable.ajax.reload();
+                            updateStats();
+                        }
+                    }, 500);
+                }
             }
         }
+    }
+
+    // Function to update stats
+    function updateStats() {
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        const dateFilter = document.getElementById('date_filter').value;
+        const userId = document.getElementById('user_id').value;
+        const leaveTypeId = document.getElementById('leave_type_id').value;
+        const status = document.getElementById('status').value;
+        
+        console.log('Updating stats with filters:', { startDate, endDate, dateFilter, userId, leaveTypeId, status });
+        
+        // Make AJAX request to get updated stats
+        $.ajax({
+            url: "{{ route('leave-requests.stats') }}",
+            method: 'GET',
+            data: {
+                start_date: startDate,
+                end_date: endDate,
+                date_filter: dateFilter,
+                user_id: userId,
+                leave_type_id: leaveTypeId,
+                status: status
+            },
+            success: function(response) {
+                console.log('Stats updated:', response);
+                
+                // Update stats display
+                document.getElementById('total-requests').textContent = response.total;
+                document.getElementById('pending-requests').textContent = response.pending;
+                document.getElementById('approved-requests').textContent = response.approved;
+                document.getElementById('rejected-requests').textContent = response.rejected;
+            },
+            error: function(xhr, status, error) {
+                console.error('Failed to update stats:', error);
+            }
+        });
     }
 
     // Function to update breadcrumb dates
@@ -237,16 +309,20 @@
             
             var $this = $(this);
             var $menu = $this.siblings('.menu');
+            var $cardBody = $this.closest('.card.card-custom').find('> .card-body');
+            var $row = $this.closest('tr');
             
-            console.log('Dropdown clicked, menu found:', $menu.length);
-            
-            // Close all other menus first
+            // Tutup semua menu lain
             $('.menu').not($menu).removeClass('show');
+            $cardBody.removeClass('pb-extra2'); // reset padding
             
-            // Toggle current menu
-            $menu.toggleClass('show');
+            // Toggle menu ini
+            $menu.toggleClass("show");
             
-            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+            // Jika menu terbuka & baris ini adalah row terakhir
+            if ($menu.hasClass('show') && $row.is(':last-child')) {
+                $cardBody.addClass('pb-extra2');
+            }
         });
         
         // Close menu when clicking outside
@@ -525,8 +601,36 @@
                 }
                 
                 // Reload DataTable
-                if (window.leaveRequestTable) {
-                    window.leaveRequestTable.ajax.reload();
+                console.log('Reloading DataTable...');
+                console.log('window.leaveRequestTable:', window.leaveRequestTable);
+                console.log('DataTable type:', typeof window.leaveRequestTable);
+                
+                if (window.leaveRequestTable && typeof window.leaveRequestTable.draw === 'function') {
+                    console.log('DataTable found, calling draw()...');
+                    try {
+                        window.leaveRequestTable.draw();
+                        console.log('DataTable draw() called successfully');
+                    } catch (drawError) {
+                        console.error('Error calling DataTable draw():', drawError);
+                        // Fallback to page reload
+                        location.reload();
+                    }
+                } else {
+                    console.log('DataTable not found or draw method not available, trying alternative...');
+                    // Try alternative method
+                    try {
+                        const table = $('.dataTable').DataTable();
+                        if (table && typeof table.draw === 'function') {
+                            table.draw();
+                            console.log('Alternative DataTable reload successful');
+                        } else {
+                            console.log('No valid DataTable found, reloading page...');
+                            location.reload();
+                        }
+                    } catch (altError) {
+                        console.error('Error with alternative DataTable reload:', altError);
+                        location.reload();
+                    }
                 }
             });
         }
@@ -648,6 +752,81 @@
                     </div>
                 </div>
             `;
+        }
+    }
+    
+    // Function to delete leave request
+    function deleteLeaveRequest(id, staffName) {
+        console.log('deleteLeaveRequest called with:', { id, staffName });
+        
+        if (confirm('Are you sure you want to delete the leave request for "' + staffName + '"? This action cannot be undone.')) {
+            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            console.log('CSRF Token:', token);
+            
+            // Show loading state
+            if (typeof toastr !== 'undefined') {
+                toastr.info('Deleting leave request...');
+            }
+            
+            const url = "{{ route('leave-requests.destroy', ':id') }}".replace(':id', id);
+            console.log('DELETE URL:', url);
+            
+            // Use jQuery AJAX like working implementations
+            $.ajax({
+                url: url,
+                type: 'DELETE',
+                data: {
+                    _token: token
+                },
+                success: function(response) {
+                    console.log('Delete response:', response);
+                    
+                    if (response.success) {
+                        // Show success message
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success(response.message || 'Leave request deleted successfully!');
+                        }
+                        
+                        // Reload DataTable using the same method as break time
+                        if (window.leaveRequestTable && typeof window.leaveRequestTable.draw === 'function') {
+                            console.log('Reloading DataTable with draw() method');
+                            window.leaveRequestTable.draw();
+                        } else if (window.leaveRequestTable && typeof window.leaveRequestTable.ajax !== 'undefined') {
+                            console.log('Reloading DataTable with ajax.reload() method');
+                            window.leaveRequestTable.ajax.reload();
+                        } else {
+                            console.log('DataTable not found, trying alternative method');
+                            try {
+                                const table = $('#leaveRequestTable').DataTable();
+                                if (table && typeof table.draw === 'function') {
+                                    table.draw();
+                                    console.log('Alternative DataTable reload successful');
+                                } else {
+                                    console.log('Alternative method failed, reloading page');
+                                    setTimeout(() => location.reload(), 1000);
+                                }
+                            } catch (error) {
+                                console.error('Alternative method error:', error);
+                                console.log('Falling back to page reload');
+                                setTimeout(() => location.reload(), 1000);
+                            }
+                        }
+                    } else {
+                        // Show error message
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message || 'Failed to delete leave request');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', { xhr, status, error });
+                    
+                    // Show error message
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Error deleting leave request. Please try again.');
+                    }
+                }
+            });
         }
     }
     

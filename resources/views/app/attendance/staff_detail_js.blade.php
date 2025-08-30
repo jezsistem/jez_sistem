@@ -251,16 +251,22 @@
             e.preventDefault();
             e.stopPropagation();
             
-            var $dropdown = $(this).closest('.dropdown');
-            var $menu = $dropdown.find('.menu');
+            var $this = $(this);
+            var $menu = $this.siblings('.menu');
+            var $cardBody = $this.closest('.card.card-custom').find('> .card-body');
+            var $row = $this.closest('tr');
             
-            // Close other open dropdowns
+            // Tutup semua menu lain
             $('.menu').not($menu).removeClass('show');
+            $cardBody.removeClass('pb-extra'); // reset padding
             
-            // Toggle current dropdown
-            $menu.toggleClass('show');
+            // Toggle menu ini
+            $menu.toggleClass("show");
             
-            console.log('Dropdown toggled:', $menu.hasClass('show'));
+            // Jika menu terbuka & baris ini adalah row terakhir
+            if ($menu.hasClass('show') && $row.is(':last-child')) {
+                $cardBody.addClass('pb-extra');
+            }
         });
         
         // Close dropdown when clicking on menu items
@@ -540,10 +546,10 @@
         
         if (accordionBody.hasClass('show')) {
             accordionBody.removeClass('show');
-            accordionIcon.removeClass('ki-arrow-up').addClass('ki-arrow-down');
+            accordionIcon.removeClass('ki-up').addClass('ki-down');
         } else {
             accordionBody.addClass('show');
-            accordionIcon.removeClass('ki-arrow-down').addClass('ki-arrow-up');
+            accordionIcon.removeClass('ki-down').addClass('ki-up');
         }
     }
 

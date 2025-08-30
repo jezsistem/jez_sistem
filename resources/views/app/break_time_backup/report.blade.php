@@ -72,7 +72,7 @@
         z-index: 9999 !important;
         position: absolute !important;
         top: 100% !important;
-        left: 0 !important;
+        right: 0 !important;
         margin-top: 5px !important;
         min-width: 150px !important;
         background: white !important;
@@ -145,6 +145,10 @@
     .bg-other {
         background-color: #F1F1F4;
     }
+    .dataTables_scrollBody {
+        overflow: unset !important;
+    }
+
 </style>
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">

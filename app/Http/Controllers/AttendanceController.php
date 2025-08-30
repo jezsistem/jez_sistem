@@ -400,6 +400,68 @@ class AttendanceController extends Controller
                         ->where('at_date', $attendanceData['at_date'])
                         ->first();
                     
+                    // Find daily schedule for this user and date
+                    $dailySchedule = DB::table('daily_schedules')
+                        ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                        ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                        ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                        ->where('daily_schedules.user_id', $attendanceData['user_id'])
+                        ->where('daily_schedules.ds_date', $attendanceData['at_date'])
+                        ->where('daily_schedules.ds_status', 'scheduled')
+                        ->select([
+                            'daily_schedules.id',
+                            'daily_schedules.sc_id',
+                            'shift_codes.sc_code',
+                            'shift_codes.sc_shift_name',
+                            'user_types.ut_name as user_type_name'
+                        ])
+                        ->first();
+                    
+                    \Log::info('Daily schedule lookup during import', [
+                        'user_id' => $attendanceData['user_id'],
+                        'date' => $attendanceData['at_date'],
+                        'schedule_found' => !is_null($dailySchedule),
+                        'schedule_data' => $dailySchedule ? [
+                            'id' => $dailySchedule->id,
+                            'sc_id' => $dailySchedule->sc_id,
+                            'sc_code' => $dailySchedule->sc_code,
+                            'sc_shift_name' => $dailySchedule->sc_shift_name,
+                            'user_type' => $dailySchedule->user_type_name
+                        ] : null
+                    ]);
+                    
+                    // Check shift code compatibility with user type if schedule found
+                    if ($dailySchedule && $dailySchedule->user_type_name) {
+                        $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
+                        if ($shiftCodeModel) {
+                            // Check compatibility using new pivot table relationship
+                            $isCompatible = $shiftCodeModel->userTypes()
+                                ->where('ut_name', $dailySchedule->user_type_name)
+                                ->exists();
+                            
+                            // Also check legacy compatibility for backward compatibility
+                            if (!$isCompatible) {
+                                $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
+                            }
+                            
+                            if (!$isCompatible) {
+                                \Log::warning('Shift code not compatible with user type during import', [
+                                    'user_id' => $attendanceData['user_id'],
+                                    'date' => $attendanceData['at_date'],
+                                    'shift_code_id' => $dailySchedule->sc_id,
+                                    'shift_code' => $dailySchedule->sc_code,
+                                    'user_type' => $dailySchedule->user_type_name
+                                ]);
+                            } else {
+                                \Log::info('Shift code compatible with user type during import', [
+                                    'user_id' => $attendanceData['user_id'],
+                                    'shift_code' => $dailySchedule->sc_code,
+                                    'user_type' => $dailySchedule->user_type_name
+                                ]);
+                            }
+                        }
+                    }
+                    
                     if ($existingAttendance) {
                         // Data sudah ada, UPDATE
                         \Log::info('Updating existing attendance data', [
@@ -416,13 +478,27 @@ class AttendanceController extends Controller
                             'updated_at' => now()
                         ];
                         
+                        // Add daily_schedule_id if schedule found
+                        if ($dailySchedule) {
+                            $updateData['daily_schedule_id'] = $dailySchedule->id;
+                            \Log::info('Adding daily_schedule_id to existing attendance update', [
+                                'attendance_id' => $existingAttendance->id,
+                                'daily_schedule_id' => $dailySchedule->id,
+                                'shift_code' => $dailySchedule->sc_code
+                            ]);
+                        }
+                        
                         $result = DB::table('attendance')
                             ->where('id', $existingAttendance->id)
                             ->update($updateData);
                             
                         if ($result) {
                             $successCount++;
-                            \Log::info('Existing data updated successfully', ['key' => $key, 'attendance_id' => $existingAttendance->id]);
+                            \Log::info('Existing data updated successfully', [
+                                'key' => $key, 
+                                'attendance_id' => $existingAttendance->id,
+                                'daily_schedule_id_updated' => isset($updateData['daily_schedule_id'])
+                            ]);
                         } else {
                             $errorCount++;
                             $errors[] = "Failed to update data for user {$attendanceData['user_id']} on {$attendanceData['at_date']}";
@@ -431,11 +507,25 @@ class AttendanceController extends Controller
                     } else {
                         // Data baru, INSERT
                         $attendance = new Attendance();
+                        
+                        // Add daily_schedule_id if schedule found
+                        if ($dailySchedule) {
+                            $attendanceData['daily_schedule_id'] = $dailySchedule->id;
+                            \Log::info('Adding daily_schedule_id to new attendance data', [
+                                'daily_schedule_id' => $dailySchedule->id,
+                                'shift_code' => $dailySchedule->sc_code
+                            ]);
+                        }
+                        
                         $result = $attendance->storeData('add', null, $attendanceData);
                         
                         if ($result) {
                             $successCount++;
-                            \Log::info('New data inserted successfully', ['key' => $key, 'result_id' => $result]);
+                            \Log::info('New data inserted successfully', [
+                                'key' => $key, 
+                                'result_id' => $result,
+                                'daily_schedule_id_added' => isset($attendanceData['daily_schedule_id'])
+                            ]);
                         } else {
                             $errorCount++;
                             $errors[] = "Failed to save data for user {$attendanceData['user_id']} on {$attendanceData['at_date']}";
@@ -464,6 +554,12 @@ class AttendanceController extends Controller
             if ($errorCount > 0) {
                 $message .= ". Check logs for details.";
             }
+            
+            \Log::info('Upload summary before status processing', [
+                'success_count' => $successCount,
+                'error_count' => $errorCount,
+                'total_records' => count($groupedData)
+            ]);
             
             // Determine date range from uploaded data
             $uploadedDates = array_unique(array_column($groupedData, 'at_date'));
@@ -752,6 +848,11 @@ class AttendanceController extends Controller
             ]);
             
             // Use the new comprehensive status processing logic
+            \Log::info('Starting processAttendanceStatusAfterUpload', [
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+            
             $result = $this->processAttendanceStatusAfterUpload($startDate, $endDate);
             
             if ($result['success']) {
@@ -947,7 +1048,7 @@ class AttendanceController extends Controller
             ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
             ->where('ds.user_id', $user_id)
             ->where('ds.ds_status', 'scheduled')
-            ->where('sc.sc_code', '!=', 'L'); // Exclude libur
+            ->whereNotIn('sc.sc_code', ['L', 'LPH']); // Exclude libur (L) and libur per hari (LPH)
         
         if (request('start_date')) {
             $totalShifts->where('ds.ds_date', '>=', request('start_date'));
@@ -963,7 +1064,7 @@ class AttendanceController extends Controller
             ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
             ->where('ds.user_id', $user_id)
             ->where('ds.ds_status', 'scheduled')
-            ->where('sc.sc_code', '=', 'L'); // Only libur
+            ->whereIn('sc.sc_code', ['L', 'LPH']); // Only libur (L) and libur per hari (LPH)
         
         if (request('start_date')) {
             $totalLibur->where('ds.ds_date', '>=', request('start_date'));
@@ -1054,7 +1155,7 @@ class AttendanceController extends Controller
                 ->where('ds.ds_status', 'scheduled')
                 ->where('ds.ds_date', '>=', $startDate)
                 ->where('ds.ds_date', '<=', $endDate)
-                ->where('sc.sc_code', '!=', 'L') // Exclude libur
+                ->whereNotIn('sc.sc_code', ['L', 'LPH']) // Exclude libur (L) and libur per hari (LPH)
                 ->whereNull('a.id') // No attendance record
                 ->whereNull('lr.id') // No approved leave
                 ->orderBy('ds.ds_date', 'desc')
@@ -1608,12 +1709,12 @@ class AttendanceController extends Controller
                     'ud.ud_name as division_name',
                     'ut.ut_name as work_type',
                     DB::raw('COUNT(DISTINCT ts_daily_schedules.id) as total_shifts'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code = "L" THEN ts_daily_schedules.id END) as total_libur'),
+                    DB::raw('COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code IN ("L", "LPH") THEN ts_daily_schedules.id END) as total_libur'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) as present_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "late" THEN ts_attendance.id END) as late_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "leave_SICK" THEN ts_attendance.id END) as sick_days'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" AND ts_attendance.at_status != "leave_SICK" AND ts_attendance.at_status != "leave_HALF_DAY" THEN ts_attendance.id END) as leave_days'),
-                    DB::raw('(COUNT(DISTINCT ts_daily_schedules.id) - COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code = "L" THEN ts_daily_schedules.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" THEN ts_attendance.id END)) as alpha_days')
+                    DB::raw('(COUNT(DISTINCT ts_daily_schedules.id) - COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code IN ("L", "LPH") THEN ts_daily_schedules.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" THEN ts_attendance.id END)) as alpha_days')
                 ])
                 ->leftJoin('attendance', function($join) use ($startDate, $endDate) {
                     $join->on('u.id', '=', 'attendance.user_id')
@@ -1959,11 +2060,69 @@ class AttendanceController extends Controller
         $errorCount = 0;
 
         try {
-            // Get all attendance records from upload source within date range
+            // Get all attendance records that need daily_schedule_id update within date range
             $attendanceRecords = DB::table('attendance')
-                ->where('at_source', 'upload')
                 ->whereBetween('at_date', [$startDate, $endDate])
+                ->whereNull('daily_schedule_id')
                 ->get();
+                
+            \Log::info('Records needing daily_schedule_id update', [
+                'count' => $attendanceRecords->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
+                
+            // If no records need update in date range, get ALL records without daily_schedule_id
+            if ($attendanceRecords->count() == 0) {
+                \Log::info('No records need daily_schedule_id update in date range, getting ALL records without daily_schedule_id');
+                
+                // Debug: Cek semua kemungkinan nilai daily_schedule_id
+                $allAttendance = DB::table('attendance')->select('id', 'user_id', 'at_date', 'daily_schedule_id', 'at_source')->get();
+                $uniqueValues = $allAttendance->pluck('daily_schedule_id')->unique()->values();
+                
+                \Log::info('Debug: All unique daily_schedule_id values found', [
+                    'unique_values' => $uniqueValues->toArray(),
+                    'total_records' => $allAttendance->count()
+                ]);
+                
+                // PERBAIKAN: Gunakan query yang lebih sederhana dan pastikan berfungsi
+                $attendanceRecords = DB::table('attendance')
+                    ->whereNull('daily_schedule_id')
+                    ->get();
+                    
+                \Log::info('Found records without daily_schedule_id across all dates', [
+                    'count' => $attendanceRecords->count(),
+                    'sample_records' => $attendanceRecords->take(5)->map(function($record) {
+                        return [
+                            'id' => $record->id,
+                            'user_id' => $record->user_id,
+                            'date' => $record->at_date,
+                            'daily_schedule_id' => $record->daily_schedule_id,
+                            'at_source' => $record->at_source
+                        ];
+                    })->toArray()
+                ]);
+                
+                // PERBAIKAN: Jika tidak ada data yang perlu update daily_schedule_id, proses SEMUA data untuk update status
+                if ($attendanceRecords->count() == 0) {
+                    \Log::warning('No records need daily_schedule_id update, processing ALL records for status update');
+                    
+                    // PERBAIKAN: Ambil SEMUA data untuk update status (tidak terbatas tanggal)
+                    $attendanceRecords = DB::table('attendance')
+                        ->get();
+                        
+                    \Log::info('Retrieved ALL records for status update (across all dates)', [
+                        'count' => $attendanceRecords->count(),
+                        'date_range_requested' => [$startDate, $endDate],
+                        'note' => 'Processing all records for status update because daily_schedule_id is already filled',
+                        'sample_dates' => $attendanceRecords->take(5)->pluck('at_date')->toArray()
+                    ]);
+                }
+            }
+                
+            \Log::info('Found attendance records to process', [
+                'count' => $attendanceRecords->count(),
+                'date_range' => [$startDate, $endDate]
+            ]);
 
             \Log::info('Found attendance records to process', [
                 'count' => $attendanceRecords->count(),
@@ -2028,37 +2187,60 @@ class AttendanceController extends Controller
             ]);
 
             // Get daily schedule for this user and date with shift codes
+            \Log::info('Looking up daily schedule', [
+                'attendance_id' => $attendance->id,
+                'user_id' => $attendance->user_id,
+                'date' => $attendance->at_date
+            ]);
+            
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
-                ->where('daily_schedules.ds_status', 'scheduled')
+                ->whereIn('daily_schedules.ds_status', ['scheduled', 'active'])  // ✅ Terima 'scheduled' dan 'active'
                 ->select([
                     'daily_schedules.*',
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time',
                     'shift_codes.sc_code',
-                    'shift_codes.sc_shift_name'
+                    'shift_codes.sc_shift_name',
+                    'users.ut_id',
+                    'user_types.ut_name as user_type_name'
                 ])
+                ->orderBy('daily_schedules.ds_status', 'desc')  // ✅ Prioritaskan 'scheduled' dulu
                 ->first();
-
+                
             \Log::info('Daily schedule lookup result', [
+                'attendance_id' => $attendance->id,
                 'user_id' => $attendance->user_id,
                 'date' => $attendance->at_date,
                 'schedule_found' => !is_null($dailySchedule),
                 'schedule_data' => $dailySchedule ? [
-                    'ds_id' => $dailySchedule->id,
+                    'id' => $dailySchedule->id,
                     'sc_id' => $dailySchedule->sc_id,
-                    'sc_start_time' => $dailySchedule->sc_start_time,
-                    'sc_end_time' => $dailySchedule->sc_end_time,
                     'sc_code' => $dailySchedule->sc_code,
-                    'sc_shift_name' => $dailySchedule->sc_shift_name
+                    'sc_shift_name' => $dailySchedule->sc_shift_name,
+                    'user_type' => $dailySchedule->user_type_name,
+                    'ds_status' => $dailySchedule->ds_status,
+                    'sc_start_time' => $dailySchedule->sc_start_time,
+                    'sc_end_time' => $dailySchedule->sc_end_time
                 ] : null
             ]);
 
             // Check if user has both time_in and time_out
             $hasTimeIn = !empty($attendance->at_time_in);
             $hasTimeOut = !empty($attendance->at_time_out);
+            
+            \Log::info('Time record analysis', [
+                'attendance_id' => $attendance->id,
+                'has_time_in' => $hasTimeIn,
+                'has_time_out' => $hasTimeOut,
+                'time_in' => $attendance->at_time_in,
+                'time_out' => $attendance->at_time_out,
+                'is_scan_once' => (!$hasTimeIn || !$hasTimeOut)
+            ]);
 
             // Case 1: No schedule found
             if (!$dailySchedule) {
@@ -2073,19 +2255,98 @@ class AttendanceController extends Controller
             }
             // Case 2: Only one time record (in or out)
             elseif (!$hasTimeIn || !$hasTimeOut) {
-                $status = 'present';
-                $notes = 'scan once - incomplete attendance record';
-                
-                \Log::info('Only one time record found, setting status to present with notes: scan once', [
+                \Log::info('Processing scan once case', [
                     'attendance_id' => $attendance->id,
-                    'user_id' => $attendance->user_id,
-                    'date' => $attendance->at_date,
                     'has_time_in' => $hasTimeIn,
-                    'has_time_out' => $hasTimeOut
+                    'has_time_out' => $hasTimeOut,
+                    'has_schedule' => !empty($dailySchedule),
+                    'has_start_time' => $dailySchedule ? !empty($dailySchedule->sc_start_time) : false
                 ]);
+                
+                // PERBAIKAN: Cek apakah scan masuk terlambat meskipun scan once
+                if ($hasTimeIn && $dailySchedule && $dailySchedule->sc_start_time) {
+                    $timeInMinutes = $this->timeToMinutes($attendance->at_time_in);
+                    $shiftStartMinutes = $this->timeToMinutes($dailySchedule->sc_start_time);
+                    
+                    \Log::info('Time comparison for scan once', [
+                        'attendance_id' => $attendance->id,
+                        'time_in' => $attendance->at_time_in,
+                        'time_in_minutes' => $timeInMinutes,
+                        'schedule_start' => $dailySchedule->sc_start_time,
+                        'schedule_start_minutes' => $shiftStartMinutes,
+                        'is_late' => $timeInMinutes > $shiftStartMinutes,
+                        'difference_minutes' => $timeInMinutes - $shiftStartMinutes
+                    ]);
+                    
+                    if ($timeInMinutes > $shiftStartMinutes) {
+                        // Scan once tapi terlambat
+                        $status = 'late';
+                        $lateMinutes = $timeInMinutes - $shiftStartMinutes;
+                        $notes = "scan once - terlambat {$lateMinutes} menit (In: {$attendance->at_time_in}, Schedule: {$dailySchedule->sc_start_time})";
+                        
+                        \Log::info('Scan once but LATE, setting status to late', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'time_in' => $attendance->at_time_in,
+                            'schedule_start' => $dailySchedule->sc_start_time,
+                            'late_minutes' => $lateMinutes
+                        ]);
+                    } else {
+                        // Scan once dan tepat waktu
+                        $status = 'present';
+                        $notes = 'scan once - hadir tepat waktu';
+                        
+                        \Log::info('Scan once and on time, setting status to present', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'time_in' => $attendance->at_time_in,
+                            'schedule_start' => $dailySchedule->sc_start_time
+                        ]);
+                    }
+                } else {
+                    // Tidak ada schedule atau tidak ada time in, default ke present
+                    $status = 'present';
+                    $notes = 'scan once - incomplete attendance record';
+                    
+                    \Log::info('Only one time record found (no schedule or no time in), setting status to present with notes: scan once', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'has_time_in' => $hasTimeIn,
+                        'has_time_out' => $hasTimeOut,
+                        'has_schedule' => !empty($dailySchedule)
+                    ]);
+                }
             }
             // Case 3: Has schedule and both time records
             else {
+                // Check shift code compatibility with user type using new pivot table structure
+                if ($dailySchedule->sc_id && $dailySchedule->user_type_name) {
+                    $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
+                    if ($shiftCodeModel) {
+                        // Check compatibility using new pivot table relationship
+                        $isCompatible = $shiftCodeModel->userTypes()
+                            ->where('ut_name', $dailySchedule->user_type_name)
+                            ->exists();
+                        
+                        // Also check legacy compatibility for backward compatibility
+                        if (!$isCompatible) {
+                            $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
+                        }
+                        
+                        if (!$isCompatible) {
+                            \Log::warning('Shift code not compatible with user type', [
+                                'attendance_id' => $attendance->id,
+                                'shift_code_id' => $dailySchedule->sc_id,
+                                'shift_code' => $dailySchedule->sc_code,
+                                'user_type' => $dailySchedule->user_type_name
+                            ]);
+                        }
+                    }
+                }
+                
                 $status = $this->calculateAttendanceStatus($attendance, $dailySchedule);
                 $notes = $this->generateAttendanceNotes($attendance, $dailySchedule, $status);
                 
@@ -2112,7 +2373,36 @@ class AttendanceController extends Controller
             // Update daily_schedule_id if schedule found
             if ($dailySchedule) {
                 $updateData['daily_schedule_id'] = $dailySchedule->id;
+                \Log::info('Adding daily_schedule_id to update data', [
+                    'attendance_id' => $attendance->id,
+                    'daily_schedule_id' => $dailySchedule->id,
+                    'shift_code' => $dailySchedule->sc_code,
+                    'shift_name' => $dailySchedule->sc_shift_name,
+                    'ds_status' => $dailySchedule->ds_status
+                ]);
+            } else {
+                \Log::warning('No daily schedule found for attendance', [
+                    'attendance_id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                    'date' => $attendance->at_date,
+                    'possible_reasons' => [
+                        'no_daily_schedule_for_user' => DB::table('daily_schedules')
+                            ->where('user_id', $attendance->user_id)
+                            ->where('ds_date', $attendance->at_date)
+                            ->count(),
+                        'daily_schedule_exists_but_wrong_status' => DB::table('daily_schedules')
+                            ->where('user_id', $attendance->user_id)
+                            ->where('ds_date', $attendance->at_date)
+                            ->whereNotIn('ds_status', ['scheduled', 'active'])
+                            ->count()
+                    ]
+                ]);
             }
+            
+            \Log::info('Updating attendance record', [
+                'attendance_id' => $attendance->id,
+                'update_data' => $updateData
+            ]);
             
             $updateResult = DB::table('attendance')
                 ->where('id', $attendance->id)
@@ -2122,12 +2412,15 @@ class AttendanceController extends Controller
                 \Log::info('Attendance status updated successfully', [
                     'attendance_id' => $attendance->id,
                     'new_status' => $status,
-                    'new_notes' => $notes
+                    'new_notes' => $notes,
+                    'daily_schedule_id_updated' => isset($updateData['daily_schedule_id']),
+                    'new_daily_schedule_id' => $updateData['daily_schedule_id'] ?? null
                 ]);
                 return true;
             } else {
                 \Log::warning('Failed to update attendance status', [
-                    'attendance_id' => $attendance->id
+                    'attendance_id' => $attendance->id,
+                    'update_data' => $updateData
                 ]);
                 return false;
             }
@@ -2292,6 +2585,8 @@ class AttendanceController extends Controller
             // Get daily schedule
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
                 ->where('daily_schedules.ds_status', 'scheduled')
@@ -2300,9 +2595,36 @@ class AttendanceController extends Controller
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time',
                     'shift_codes.sc_code',
-                    'shift_codes.sc_shift_name'
+                    'shift_codes.sc_shift_name',
+                    'users.ut_id',
+                    'user_types.ut_name as user_type_name'
                 ])
                 ->first();
+            
+            // Check shift code compatibility with user type using new pivot table structure
+            if ($dailySchedule && $dailySchedule->sc_id && $dailySchedule->user_type_name) {
+                $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
+                if ($shiftCodeModel) {
+                    // Check compatibility using new pivot table relationship
+                    $isCompatible = $shiftCodeModel->userTypes()
+                        ->where('ut_name', $dailySchedule->user_type_name)
+                        ->exists();
+                    
+                    // Also check legacy compatibility for backward compatibility
+                    if (!$isCompatible) {
+                        $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
+                    }
+                    
+                    if (!$isCompatible) {
+                        \Log::warning('Shift code not compatible with user type in reprocessSingleAttendance', [
+                            'attendance_id' => $attendance->id,
+                            'shift_code_id' => $dailySchedule->sc_id,
+                            'shift_code' => $dailySchedule->sc_code,
+                            'user_type' => $dailySchedule->user_type_name
+                        ]);
+                    }
+                }
+            }
             
             // Calculate status manually
             $calculatedStatus = $this->calculateAttendanceStatus((object)$attendance, $dailySchedule);
@@ -2399,6 +2721,8 @@ class AttendanceController extends Controller
             // Get daily schedule
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
                 ->where('daily_schedules.ds_status', 'scheduled')
@@ -2407,7 +2731,9 @@ class AttendanceController extends Controller
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time',
                     'shift_codes.sc_code',
-                    'shift_codes.sc_shift_name'
+                    'shift_codes.sc_shift_name',
+                    'users.ut_id',
+                    'user_types.ut_name as user_type_name'
                 ])
                 ->first();
             
@@ -2619,10 +2945,10 @@ class AttendanceController extends Controller
                         <th>Divisi</th>
                         <th>Jenis Kerja</th>
                         <th class="text-center">Total Shift</th>
-                        <th class="text-center">Total Libur</th>
                         <th class="text-center">Hadir</th>
-                        <th class="text-center">Sakit</th>
+                        <th class="text-center">Libur</th>
                         <th class="text-center">Cuti</th>
+                        <th class="text-center">Sakit</th>
                         <th class="text-center">Terlambat</th>
                         <th class="text-center">Alpha</th>
                     </tr>
@@ -2640,10 +2966,10 @@ class AttendanceController extends Controller
                         <td>' . ($item->division_name ?? '-') . '</td>
                         <td>' . ($item->work_type ?? '-') . '</td>
                         <td class="text-center">' . ($item->total_shifts ?? 0) . '</td>
-                        <td class="text-center">' . ($item->total_libur ?? 0) . '</td>
                         <td class="text-center">' . ($item->present_days ?? 0) . '</td>
-                        <td class="text-center">' . ($item->sick_days ?? 0) . '</td>
+                        <td class="text-center">' . ($item->total_libur ?? 0) . '</td>
                         <td class="text-center">' . ($item->leave_days ?? 0) . '</td>
+                        <td class="text-center">' . ($item->sick_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->late_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->alpha_days ?? 0) . '</td>
                     </tr>';
@@ -2746,11 +3072,11 @@ class AttendanceController extends Controller
                 ->editColumn('present_days', function($row) {
                     return $row->present_days ?? 0;
                 })
-                ->editColumn('sick_days', function($row) {
-                    return $row->sick_days ?? 0;
-                })
                 ->editColumn('leave_days', function($row) {
                     return $row->leave_days ?? 0;
+                })
+                ->editColumn('sick_days', function($row) {
+                    return $row->sick_days ?? 0;
                 })
                 ->editColumn('late_days', function($row) {
                     return $row->late_days ?? 0;

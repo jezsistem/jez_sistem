@@ -12,7 +12,7 @@
     z-index: 9999 !important;
     position: absolute !important;
     top: 100% !important;
-    left: 0 !important;
+    right: 0 !important;
     margin-top: 5px !important;
     min-width: 150px !important;
     background: white !important;
@@ -20,7 +20,6 @@
     border-radius: 0.475rem !important;
     box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important;
 }
-
 /* Ensure proper positioning for DataTables */
 .dataTables_wrapper .dataTables_processing {
     z-index: 9998;

@@ -63,7 +63,21 @@ class BreakTimeBackup extends Model
         ];
 
         if ($mode == 'add') {
+            // Debug logging for insert
+            \Log::info('BreakTimeBackup storeData - INSERT', [
+                'mode' => $mode,
+                'data' => $data,
+                'created' => $created,
+                'merged_data' => array_merge($data, $created)
+            ]);
+            
             $store = DB::table($this->table)->insertGetId(array_merge($data, $created));
+            
+            \Log::info('BreakTimeBackup storeData - INSERT result', [
+                'result' => $store,
+                'table' => $this->table
+            ]);
+            
             return $store;
         } else if ($mode == 'edit') {
             try {
@@ -147,7 +161,7 @@ class BreakTimeBackup extends Model
     {
         // Return unlimited breaks with default duration
         switch ($shiftType) {
-            case 'Full Time':
+            case 'FULL TIME':
                 return [
                     'break_1' => ['duration' => 60, 'count' => 999], // unlimited
                     'break_2' => ['duration' => 60, 'count' => 999], // unlimited
@@ -155,21 +169,20 @@ class BreakTimeBackup extends Model
                     'break_4' => ['duration' => 60, 'count' => 999], // unlimited
                     'break_5' => ['duration' => 60, 'count' => 999], // unlimited
                 ];
-            case 'Part Time':
+            case 'PART TIME':
                 return [
-                    'break_1' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_2' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_3' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_4' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_5' => ['duration' => 30, 'count' => 999], // unlimited
+                    'break_1' => ['duration' => 30, 'count' => 1],
+                    'break_2' => ['duration' => 30, 'count' => 1]
                 ];
-            case 'Part Full':
+            case 'PART FULL':
                 return [
-                    'break_1' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_2' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_3' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_4' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_5' => ['duration' => 30, 'count' => 999], // unlimited
+                    'break_1' => ['duration' => 30, 'count' => 1],
+                    'break_2' => ['duration' => 30, 'count' => 1]
+                ];
+            case 'CASUAL':
+                return [
+                    'break_1' => ['duration' => 30, 'count' => 1],
+                    'break_2' => ['duration' => 30, 'count' => 1]
                 ];
             default:
                 return [
@@ -177,7 +190,7 @@ class BreakTimeBackup extends Model
                     'break_2' => ['duration' => 30, 'count' => 999], // unlimited
                     'break_3' => ['duration' => 30, 'count' => 999], // unlimited
                     'break_4' => ['duration' => 30, 'count' => 999], // unlimited
-                    'break_5' => ['duration' => 30, 'count' => 999], // unlimited
+                    'break_5' => ['duration' => 60, 'count' => 999], // unlimited
                 ];
         }
     }
@@ -287,6 +300,13 @@ class BreakTimeBackup extends Model
             'bt_notes' => null,
             'created_by' => auth()->user()->u_name ?? 'system',
         ];
+        
+        // Debug logging
+        \Log::info('BreakTimeBackup startBreak data', [
+            'user_id' => $userId,
+            'break_type' => $breakType,
+            'data' => $data
+        ]);
 
         // Get daily schedule
         $dailySchedule = DailySchedule::where('user_id', $userId)

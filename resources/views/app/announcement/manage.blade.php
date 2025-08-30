@@ -49,7 +49,7 @@
         z-index: 9999 !important;
         position: absolute !important;
         top: 100% !important;
-        left: 0 !important;
+        right: 0 !important;
         margin-top: 5px !important;
         min-width: 150px !important;
         background: white !important;
@@ -233,30 +233,55 @@
                             <div class="col-lg-9 col-xl-8">
                                 <div class="row align-items-center">
                                     <div class="col-md-4 my-2 my-md-0">
-                                        <div class="input-icon">
-                                            <input type="text" class="form-control" placeholder="Search announcements..." id="kt_datatable_search_query" />
-                                            <span>
+                                        <div class="input-icon position-relative">
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="searchInput"
+                                                   placeholder="Search by title, content, or sender..." 
+                                                   value="{{ request('search') }}" />
+                                            <span class="input-icon-addon">
                                                 <i class="flaticon2-search-1 text-muted"></i>
                                             </span>
+                                            <button type="button" class="btn btn-sm btn-icon btn-clean position-absolute" id="clearSearchBtn" style="right: 5px; top: 50%; transform: translateY(-50%); display: none;">
+                                                <i class="ki-outline ki-cross text-muted"></i>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="col-md-4 my-2 my-md-0">
                                         <select class="form-control" id="categoryFilter">
                                             <option value="">All Categories</option>
                                             @foreach($categories as $category)
-                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                                <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                                    {{ $category->name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-4 my-2 my-md-0">
                                         <select class="form-control" id="statusFilter">
                                             <option value="">All Status</option>
-                                            <option value="active">Active</option>
-                                            <option value="inactive">Inactive</option>
+                                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-lg-3 col-xl-4 text-right">
+                                <button type="button" class="btn btn-primary mr-2" id="searchBtn">
+                                    <i class="ki-outline ki-magnifier"></i>
+                                    Search
+                                </button>
+                                <button type="button" class="btn btn-light" id="resetBtn">
+                                    <i class="ki-outline ki-refresh"></i>
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="ki-outline ki-information-5"></i>
+                                Type to search automatically, or use filters and click search
+                            </small>
                         </div>
                     </div>
                     <!--end::Search Form-->
@@ -404,84 +429,41 @@
 <!--end::Content-->
 
 <script>
-// Vanilla JavaScript version
-(function() {
-    function initializeManageAnnouncementPage() {
-        console.log('Initializing manage announcement page...');
+// Global function for deleting announcements
+window.deleteAnnouncement = function(id, title) {
+    if (confirm('Are you sure you want to delete the announcement "' + title + '"? This action cannot be undone.')) {
+        var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        // Filter functionality
-        var categoryFilter = document.getElementById('categoryFilter');
-        var statusFilter = document.getElementById('statusFilter');
-        
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', function() {
-                console.log('Category filter changed:', this.value);
-                // TODO: Implement filtering logic
-            });
-        }
-        
-        if (statusFilter) {
-            statusFilter.addEventListener('change', function() {
-                console.log('Status filter changed:', this.value);
-                // TODO: Implement filtering logic
-            });
-        }
-        
-        // Search functionality
-        var searchInput = document.getElementById('kt_datatable_search_query');
-        if (searchInput) {
-            searchInput.addEventListener('keyup', function() {
-                console.log('Search:', this.value);
-                // TODO: Implement search logic
-            });
-        }
+        fetch('/announcements/' + id, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                var successMsg = document.createElement('div');
+                successMsg.innerHTML = '✓ Announcement deleted successfully!';
+                successMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#28a745;color:white;padding:10px;border-radius:5px;z-index:9999;';
+                document.body.appendChild(successMsg);
+                setTimeout(() => document.body.removeChild(successMsg), 3000);
+                
+                // Reload page after short delay
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting announcement. Please try again.');
+        });
     }
-    
-    // Global function for deleting announcements
-    window.deleteAnnouncement = function(id, title) {
-        if (confirm('Are you sure you want to delete the announcement "' + title + '"? This action cannot be undone.')) {
-            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-            fetch('/announcements/' + id, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': token,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    var successMsg = document.createElement('div');
-                    successMsg.innerHTML = '✓ Announcement deleted successfully!';
-                    successMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#28a745;color:white;padding:10px;border-radius:5px;z-index:9999;';
-                    document.body.appendChild(successMsg);
-                    setTimeout(() => document.body.removeChild(successMsg), 3000);
-                    
-                    // Reload page after short delay
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error deleting announcement. Please try again.');
-            });
-        }
-    };
-    
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeManageAnnouncementPage);
-    } else {
-        initializeManageAnnouncementPage();
-    }
-    
-    window.addEventListener('load', initializeManageAnnouncementPage);
-})();
+};
 
 // Simple working dropdown solution
 function initializeSimpleDropdown() {
@@ -497,16 +479,20 @@ function initializeSimpleDropdown() {
         
         var $this = $(this);
         var $menu = $this.siblings('.menu');
+        var $cardBody = $this.closest('.card.card-custom').find('> .card-body');
+        var $row = $this.closest('tr');
         
-        console.log('Dropdown clicked, menu found:', $menu.length);
-        
-        // Close all other menus first
+        // Tutup semua menu lain
         $('.menu').not($menu).removeClass('show');
+        $cardBody.removeClass('pb-extra'); // reset padding
         
-        // Toggle current menu
-        $menu.toggleClass('show');
+        // Toggle menu ini
+        $menu.toggleClass("show");
         
-        console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+        // Jika menu terbuka & baris ini adalah row terakhir
+        if ($menu.hasClass('show') && $row.is(':last-child')) {
+            $cardBody.addClass('pb-extra');
+        }
     });
     
     // Close menu when clicking outside
@@ -645,6 +631,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+@include('app.announcement.ajax-search')
 
 <!-- Attachment Preview Modal -->
 <div id="attachmentModal" class="modal">

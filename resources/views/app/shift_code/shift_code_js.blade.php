@@ -33,7 +33,7 @@
                             { data: 'sc_shift_name', name: 'sc_shift_name', width: '15%' },
                             { data: 'sc_start_time', name: 'sc_start_time', width: '10%' },
                             { data: 'sc_end_time', name: 'sc_end_time', width: '10%' },
-                            { data: 'sc_type', name: 'sc_type', width: '10%' },
+                            { data: 'compatible_user_types', name: 'compatible_user_types', width: '15%' },
                             { data: 'sc_status', name: 'sc_status', width: '10%' },
                             { data: 'action', name: 'action', orderable: false, searchable: false, width: '10%' },
                         ],
@@ -115,16 +115,20 @@
             
             var $this = $(this);
             var $menu = $this.siblings('.menu');
+            var $cardBody = $this.closest('.card.card-custom').find('> .card-body');
+            var $row = $this.closest('tr');
             
-            console.log('Dropdown clicked, menu found:', $menu.length);
-            
-            // Close all other menus first
+            // Tutup semua menu lain
             $('.menu').not($menu).removeClass('show');
+            $cardBody.removeClass('pb-extra'); // reset padding
             
-            // Toggle current menu
-            $menu.toggleClass('show');
+            // Toggle menu ini
+            $menu.toggleClass("show");
             
-            console.log('Menu toggled, has show class:', $menu.hasClass('show'));
+            // Jika menu terbuka & baris ini adalah row terakhir
+            if ($menu.hasClass('show') && $row.is(':last-child')) {
+                $cardBody.addClass('pb-extra');
+            }
         });
         
         // Close menu when clicking outside

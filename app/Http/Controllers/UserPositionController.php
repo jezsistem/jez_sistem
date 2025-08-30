@@ -305,7 +305,7 @@ class UserPositionController extends Controller
                         $btn .= '    <!--end::Toggle-->';
                         
                         $btn .= '    <!--begin::Menu-->';
-                        $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
+                        $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu-placement="top-start" data-kt-menu="true" style="z-index: 99999 !important;">';
                         $btn .= '        <!--begin::Menu item-->';
                         $btn .= '        <div class="menu-item px-3">';
                         $btn .= '            <a href="'.route('user-positions.show', $row->id).'" class="menu-link px-3">View</a>';

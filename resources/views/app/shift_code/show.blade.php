@@ -55,12 +55,18 @@
                                     <td>{{ $shiftCode->sc_shift_name }}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Tipe Shift</strong></td>
+                                    <td><strong>Jenis Karyawan</strong></td>
                                     <td>:</td>
                                     <td>
-                                        <span class="badge badge-{{ $shiftCode->sc_type == 'ALL' ? 'secondary' : ($shiftCode->sc_type == 'Full Time' ? 'primary' : ($shiftCode->sc_type == 'Part Full' ? 'warning' : 'info')) }}">
-                                            {{ $shiftCode->sc_type }}
-                                        </span>
+                                        @if($shiftCode->userTypes && $shiftCode->userTypes->count() > 0)
+                                            @foreach($shiftCode->userTypes as $userType)
+                                                <span class="badge badge-{{ $userType->ut_name == 'FULL TIME' ? 'primary' : ($userType->ut_name == 'PART FULL' ? 'warning' : ($userType->ut_name == 'PART TIME' ? 'info' : ($userType->ut_name == 'CASUAL' ? 'success' : 'secondary'))) }} mr-1">
+                                                    {{ $userType->ut_name }}
+                                                </span>
+                                            @endforeach
+                                        @else
+                                            <span class="badge badge-secondary">{{ $shiftCode->sc_type ?? 'MULTIPLE' }}</span>
+                                        @endif
                                     </td>
                                 </tr>
                             </table>

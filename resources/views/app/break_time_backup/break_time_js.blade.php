@@ -99,7 +99,7 @@
                     var remainingMinutes = response.remaining_minutes;
                     if (remainingMinutes <= 0) {
                         // Break time is over, show notification
-                        $('#timerDisplay').text('00:00').addClass('text-danger');
+                        $('#timerDisplay').text('00:00').addClass('text-white');
                         swal({
                             title: 'Break Time Over!',
                             text: 'Your break time has ended ' + Math.abs(remainingMinutes) + ' minutes ago. Please end your break.',
@@ -452,7 +452,7 @@
         
         if (distance <= 0) {
             // Time's up
-            $('#timerDisplay').text('00:00').addClass('text-danger');
+            $('#timerDisplay').text('00:00').addClass('text-white');
             $('#durationDisplay').text('Time\'s up!');
             
             // Clear interval

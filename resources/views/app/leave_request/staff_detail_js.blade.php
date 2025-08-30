@@ -35,6 +35,12 @@
                     endDate = new Date(today.getTime());
                     endDate.setDate(today.getDate() - today.getDay()); // Last Sunday
                     break;
+                case 'next_week':
+                    startDate = new Date(today.getTime());
+                    startDate.setDate(today.getDate() - today.getDay() + 8); // Next Monday
+                    endDate = new Date(today.getTime());
+                    endDate.setDate(today.getDate() - today.getDay() + 14); // Next Sunday
+                    break;
                 case 'this_month':
                     startDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of month
                     endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of month
@@ -42,6 +48,10 @@
                 case 'last_month':
                     startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); // First day of last month
                     endDate = new Date(today.getFullYear(), today.getMonth(), 0); // Last day of last month
+                    break;
+                case 'next_month':
+                    startDate = new Date(today.getFullYear(), today.getMonth() + 1, 1); // First day of next month
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0); // Last day of next month
                     break;
             }
             
@@ -56,6 +66,26 @@
                 
                 startDateInput.value = formatDate(startDate);
                 endDateInput.value = formatDate(endDate);
+                
+                // Reload DataTable with new filter dates
+                if (value !== 'custom' && window.staffTable) {
+                    console.log('Reloading DataTable for filter:', value);
+                    console.log('Current start_date:', startDateInput.value);
+                    console.log('Current end_date:', endDateInput.value);
+                    console.log('Current date_filter:', value);
+                    
+                    // Force DataTable to reload with new parameters
+                    window.staffTable.ajax.reload();
+                } else if (value !== 'custom') {
+                    console.log('DataTable not available yet, waiting for initialization...');
+                    // Wait for DataTable to be ready
+                    setTimeout(() => {
+                        if (window.staffTable) {
+                            console.log('DataTable now available, reloading...');
+                            window.staffTable.ajax.reload();
+                        }
+                    }, 500);
+                }
             }
         }
     }

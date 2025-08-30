@@ -176,7 +176,7 @@ class DailyScheduleController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        $schedule = DailySchedule::with(['user', 'userDivision', 'shiftCode'])->findOrFail($id);
+        $schedule = DailySchedule::with(['user', 'userDivision', 'shiftCode.userTypes'])->findOrFail($id);
 
         $data = [
             'title' => $title,
@@ -809,28 +809,25 @@ class DailyScheduleController extends Controller
             ->get();
             
         // Group shift codes by user type for easier frontend access
-        $shiftCodesByType = [
-            'ALL' => DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->where('sc_type', 'ALL')
-                ->orderBy('sc_code')
-                ->get(),
-            'FULL TIME' => DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->whereIn('sc_type', ['ALL', 'Full Time'])
-                ->orderBy('sc_code')
-                ->get(),
-            'PART TIME' => DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->whereIn('sc_type', ['ALL', 'Part Time'])
-                ->orderBy('sc_code')
-                ->get(),
-            'PART FULL' => DB::table('shift_codes')
-                ->where('sc_status', 'active')
-                ->whereIn('sc_type', ['ALL', 'Part Full'])
-                ->orderBy('sc_code')
-                ->get(),
-        ];
+        $shiftCodesByType = [];
+        
+        // Get all active user types from database
+        $userTypes = DB::table('user_types')
+            ->where('ut_status', 'active')
+            ->orderBy('ut_name')
+            ->get();
+        
+        // Add 'ALL' option first - show all active shift codes
+        $shiftCodesByType['ALL'] = DB::table('shift_codes')
+            ->where('sc_status', 'active')
+            ->orderBy('sc_code')
+            ->get();
+        
+        // Add dynamic user types using new pivot table logic
+        foreach ($userTypes as $userType) {
+            // Use the new ShiftCode model method for compatibility
+            $shiftCodesByType[$userType->ut_name] = \App\Models\ShiftCode::getCompatibleShiftCodes($userType->ut_name);
+        }
         
         // Get existing schedules for this week to ensure compatibility
         $existingSchedules = DB::table('daily_schedules')
@@ -891,9 +888,9 @@ class DailyScheduleController extends Controller
         // Process date filter and start_date with two-way synchronization
         $originalStartDate = $request->get('start_date');
         
-        if ($originalStartDate && $originalStartDate !== '') {
+        if ($originalStartDate && $originalStartDate !== '' && $dateFilter !== 'now') {
             // User manually selected a week range - PRIORITY HIGH
-            // Calculate Monday of the week containing the selected date
+            // Skip auto-detection for 'now' filter to preserve the selection
             $selectedDate = Carbon::parse($originalStartDate);
             $dayOfWeek = $selectedDate->dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
             $daysToSubtract = $dayOfWeek == 0 ? 6 : $dayOfWeek - 1; // Convert to Monday-based (0 = Monday)
@@ -979,17 +976,98 @@ class DailyScheduleController extends Controller
             ->where('users.u_delete', '0')
             ->whereNotNull('users.u_nip');
             
-        // Apply filters
-        if ($divisionId) {
-            $scheduleQuery->where('users.ud_id', $divisionId);
-        }
-        
-        if ($shiftId) {
-            $scheduleQuery->where('daily_schedules.sc_id', $shiftId);
-        }
-        
-        if ($userName) {
-            $scheduleQuery->where('users.u_name', 'like', '%' . $userName . '%');
+        // Special handling for NOW filter - only show staff who are currently working
+        if ($dateFilter === 'now') {
+            $currentTime = Carbon::now()->format('H:i:s');
+            $currentDate = Carbon::now()->format('Y-m-d');
+            
+            // Get all schedules for today first, then filter in PHP for night shifts
+            $allTodaySchedules = DB::table('daily_schedules')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
+                ->select([
+                    'daily_schedules.*',
+                    'users.u_nip',
+                    'users.u_name',
+                    'user_divisions.ud_name',
+                    'shift_codes.sc_code',
+                    'shift_codes.sc_shift_name',
+                    'shift_codes.sc_start_time',
+                    'shift_codes.sc_end_time'
+                ])
+                ->where('daily_schedules.ds_date', $currentDate)
+                ->where('users.u_delete', '0')
+                ->whereNotNull('users.u_nip');
+                
+            // Apply other filters
+            if ($divisionId) {
+                $allTodaySchedules->where('users.ud_id', $divisionId);
+            }
+            if ($shiftId) {
+                $allTodaySchedules->where('daily_schedules.sc_id', $shiftId);
+            }
+            if ($userName) {
+                $allTodaySchedules->where('users.u_name', 'like', '%' . $userName . '%');
+            }
+            
+            $todaySchedules = $allTodaySchedules->get();
+            
+            // Filter for currently working staff
+            $activeSchedules = $todaySchedules->filter(function($schedule) use ($currentTime) {
+                $startTime = $schedule->sc_start_time ?: $schedule->ds_start_time;
+                $endTime = $schedule->sc_end_time ?: $schedule->ds_end_time;
+                
+                if (!$startTime || !$endTime) {
+                    return false;
+                }
+                
+                // Convert times to Carbon for comparison
+                $start = Carbon::createFromFormat('H:i:s', $startTime);
+                $end = Carbon::createFromFormat('H:i:s', $endTime);
+                $current = Carbon::createFromFormat('H:i:s', $currentTime);
+                
+                // Check if it's a night shift (end time is next day)
+                if ($start->greaterThan($end)) {
+                    // Night shift: current >= start OR current <= end
+                    return $current->greaterThanOrEqualTo($start) || $current->lessThanOrEqualTo($end);
+                } else {
+                    // Regular shift: start <= current <= end
+                    return $current->greaterThanOrEqualTo($start) && $current->lessThanOrEqualTo($end);
+                }
+            });
+            
+            // Convert back to query builder compatible format
+            $activeScheduleIds = $activeSchedules->pluck('id')->toArray();
+            
+            if (empty($activeScheduleIds)) {
+                // No active schedules, return empty result
+                $scheduleQuery->whereRaw('1 = 0');
+            } else {
+                // Filter to only active schedules
+                $scheduleQuery->whereIn('daily_schedules.id', $activeScheduleIds);
+            }
+                
+            \Log::info('NOW Filter Applied', [
+                'current_time' => $currentTime,
+                'current_date' => $currentDate,
+                'total_today_schedules' => $todaySchedules->count(),
+                'active_schedules' => count($activeScheduleIds),
+                'filter_conditions' => 'showing only staff currently working'
+            ]);
+        } else {
+            // Apply filters for non-NOW cases
+            if ($divisionId) {
+                $scheduleQuery->where('users.ud_id', $divisionId);
+            }
+            
+            if ($shiftId) {
+                $scheduleQuery->where('daily_schedules.sc_id', $shiftId);
+            }
+            
+            if ($userName) {
+                $scheduleQuery->where('users.u_name', 'like', '%' . $userName . '%');
+            }
         }
         
         $schedules = $scheduleQuery->orderBy('user_divisions.ud_name')
@@ -3361,9 +3439,18 @@ class DailyScheduleController extends Controller
                 $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
                 $endDate = $today->copy()->endOfWeek()->format('Y-m-d');
                 break;
+            case 'next_week':
+                $startDate = $today->copy()->addWeek()->startOfWeek()->format('Y-m-d');
+                $endDate = $today->copy()->addWeek()->endOfWeek()->format('Y-m-d');
+                break;
             case 'past_week':
                 $startDate = $today->copy()->subWeek()->startOfWeek()->format('Y-m-d');
                 $endDate = $today->copy()->subWeek()->endOfWeek()->format('Y-m-d');
+                break;
+            case 'now':
+                // For NOW filter, we use current week but will apply time filter later
+                $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
+                $endDate = $today->copy()->endOfWeek()->format('Y-m-d');
                 break;
             default:
                 $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
@@ -3903,6 +3990,9 @@ class DailyScheduleController extends Controller
         // Get Monday of current week
         $mondayThisWeek = $today->copy()->startOfWeek();
         
+        // Get Monday of next week
+        $mondayNextWeek = $today->copy()->addWeek()->startOfWeek();
+        
         // Get Monday of previous week
         $mondayLastWeek = $today->copy()->subWeek()->startOfWeek();
         
@@ -3910,11 +4000,292 @@ class DailyScheduleController extends Controller
         if ($start->format('Y-m-d') === $mondayThisWeek->format('Y-m-d') && 
             $end->format('Y-m-d') === $mondayThisWeek->copy()->endOfWeek()->format('Y-m-d')) {
             return 'this_week';
+        } elseif ($start->format('Y-m-d') === $mondayNextWeek->format('Y-m-d') && 
+                   $end->format('Y-m-d') === $mondayNextWeek->copy()->endOfWeek()->format('Y-m-d')) {
+            return 'next_week';
         } elseif ($start->format('Y-m-d') === $mondayLastWeek->format('Y-m-d') && 
                    $end->format('Y-m-d') === $mondayLastWeek->copy()->endOfWeek()->format('Y-m-d')) {
             return 'past_week';
         } else {
             return 'custom';
+        }
+    }
+
+    /**
+     * Import weekly schedules from Excel file
+     */
+    public function importWeeklyExcel(Request $request)
+    {
+        $this->validateAccess();
+        
+        \Log::info('Weekly Schedule Excel Import started', [
+            'request_data' => $request->all(),
+            'files' => $request->allFiles()
+        ]);
+        
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+            'start_date' => 'required|date'
+        ]);
+
+        try {
+            $file = $request->file('excel_file');
+            $startDate = $request->get('start_date');
+            
+            // Calculate end date (7 days from start date)
+            $endDate = Carbon::parse($startDate)->addDays(6)->format('Y-m-d');
+            
+            \Log::info('Import parameters', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'file_name' => $file->getClientOriginalName()
+            ]);
+            
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(storage_path('app/public/uploads'), $fileName);
+            
+            // Process Excel file
+            $extension = $file->getClientOriginalExtension();
+            $data = [];
+            
+            if (in_array($extension, ['xlsx', 'xls'])) {
+                $data = Excel::toArray([], storage_path('app/public/uploads/' . $fileName))[0];
+            } else {
+                // Handle CSV
+                $handle = fopen(storage_path('app/public/uploads/' . $fileName), 'r');
+                while (($row = fgetcsv($handle)) !== false) {
+                    $data[] = $row;
+                }
+                fclose($handle);
+            }
+            
+            \Log::info('Excel file processed', ['rows_count' => count($data)]);
+            
+            // Remove header row
+            array_shift($data);
+            
+            $successCount = 0;
+            $errorCount = 0;
+            $errors = [];
+            $processedUsers = [];
+            
+            // Get all active shift codes
+            $shiftCodes = DB::table('shift_codes')
+                ->where('sc_status', 'active')
+                ->get()
+                ->keyBy('sc_code');
+            
+            // Get all active user types
+            $userTypes = DB::table('user_types')
+                ->where('ut_status', 'active')
+                ->get()
+                ->keyBy('ut_name');
+            
+            // Process each row
+            foreach ($data as $index => $row) {
+                try {
+                    if (count($row) < 10) {
+                        $errorCount++;
+                        $errors[] = "Baris " . ($index + 2) . ": Jumlah kolom tidak cukup (harus 10 kolom, hanya ada " . count($row) . " kolom)";
+                        continue;
+                    }
+                    
+                    $nip = trim($row[0]);
+                    $nama = trim($row[1]);
+                    $userType = trim($row[2]);
+                    $senin = trim($row[3]);
+                    $selasa = trim($row[4]);
+                    $rabu = trim($row[5]);
+                    $kamis = trim($row[6]);
+                    $jumat = trim($row[7]);
+                    $sabtu = trim($row[8]);
+                    $minggu = trim($row[9]);
+                    
+                    \Log::info('Processing row', [
+                        'row_index' => $index + 2,
+                        'nip' => $nip,
+                        'nama' => $nama,
+                        'user_type' => $userType
+                    ]);
+                    
+                    // Validate NIP
+                    if (empty($nip)) {
+                        $errorCount++;
+                        $errors[] = "Baris " . ($index + 2) . ": NIP wajib diisi";
+                        continue;
+                    }
+                    
+                    // Find user by NIP
+                    $userQuery = DB::table('users')
+                        ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                        ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                        ->select('users.*', 'user_divisions.ud_name', 'user_types.ut_name')
+                        ->where('users.u_nip', $nip)
+                        ->where('users.u_delete', '0')
+                        ->whereNotNull('users.u_nip');
+                    
+                    $user = $userQuery->first();
+                    
+                    if (!$user) {
+                        $errorCount++;
+                        $errors[] = "Baris " . ($index + 2) . ": Staff dengan NIP {$nip} tidak ditemukan dalam sistem";
+                        continue;
+                    }
+                    
+                    // Validate user type - make it more flexible
+                    if (!empty($userType)) {
+                        // Check if the user type from Excel matches the database
+                        if ($user->ut_name !== $userType) {
+                            // Try to find a similar user type or suggest alternatives
+                            $suggestedUserTypes = $userTypes->pluck('ut_name')->toArray();
+                            $errorCount++;
+                            $errors[] = "Baris " . ($index + 2) . ": Jenis karyawan tidak sesuai - Excel: '{$userType}', Database: '{$user->ut_name}'. Jenis yang tersedia: " . implode(', ', $suggestedUserTypes);
+                            continue;
+                        }
+                    } else {
+                        // If user type is empty in Excel, use the one from database
+                        $userType = $user->ut_name;
+                        \Log::info('Auto-detected user type from database', [
+                            'row_index' => $index + 2,
+                            'nip' => $nip,
+                            'auto_detected_type' => $userType
+                        ]);
+                    }
+                    
+                    // Process daily schedules
+                    $dailySchedules = [
+                        ['date' => $startDate, 'shift_code' => $senin],
+                        ['date' => Carbon::parse($startDate)->addDay()->format('Y-m-d'), 'shift_code' => $selasa],
+                        ['date' => Carbon::parse($startDate)->addDays(2)->format('Y-m-d'), 'shift_code' => $rabu],
+                        ['date' => Carbon::parse($startDate)->addDays(3)->format('Y-m-d'), 'shift_code' => $kamis],
+                        ['date' => Carbon::parse($startDate)->addDays(4)->format('Y-m-d'), 'shift_code' => $jumat],
+                        ['date' => Carbon::parse($startDate)->addDays(5)->format('Y-m-d'), 'shift_code' => $sabtu],
+                        ['date' => Carbon::parse($startDate)->addDays(6)->format('Y-m-d'), 'shift_code' => $minggu]
+                    ];
+                    
+                    foreach ($dailySchedules as $schedule) {
+                        $date = $schedule['date'];
+                        $shiftCode = $schedule['shift_code'];
+                        
+                        if (empty($shiftCode) || $shiftCode === '-') {
+                            continue; // Skip empty schedules
+                        }
+                        
+                        // Validate shift code
+                        if (!$shiftCodes->has($shiftCode)) {
+                            $errorCount++;
+                            $errors[] = "Baris " . ($index + 2) . " ({$date}): Kode shift '{$shiftCode}' tidak dikenali dalam sistem";
+                            continue;
+                        }
+                        
+                        $shiftCodeData = $shiftCodes->get($shiftCode);
+                        
+                        // Check if shift code is compatible with user type using new compatibility method
+                        $shiftCodeModel = \App\Models\ShiftCode::find($shiftCodeData->id);
+                        if ($shiftCodeModel && !$shiftCodeModel->isCompatibleWithUserTypeLegacy($user->ut_name)) {
+                            $errorCount++;
+                            $errors[] = "Baris " . ($index + 2) . " ({$date}): Kode shift '{$shiftCode}' tidak kompatibel dengan jenis karyawan '{$user->ut_name}'";
+                            continue;
+                        }
+                        
+                        // Check if schedule already exists
+                        $existingSchedule = DB::table('daily_schedules')
+                            ->where('user_id', $user->id)
+                            ->where('ds_date', $date)
+                            ->first();
+                        
+                        if ($existingSchedule) {
+                            // Update existing schedule
+                            DB::table('daily_schedules')
+                                ->where('id', $existingSchedule->id)
+                                ->update([
+                                    'sc_id' => $shiftCodeData->id,
+                                    'ds_start_time' => $shiftCodeData->sc_start_time,
+                                    'ds_end_time' => $shiftCodeData->sc_end_time,
+                                    'ds_status' => 'scheduled',  // ✅ Update status ke 'scheduled'
+                                    'ud_id' => $user->ud_id,     // ✅ Update division ID
+                                    'updated_at' => now(),
+                                    'updated_by' => Auth::user()->id
+                                ]);
+                        } else {
+                            // Create new schedule
+                            DB::table('daily_schedules')->insert([
+                                'user_id' => $user->id,
+                                'ud_id' => $user->ud_id,         // ✅ Tambah division ID dari user
+                                'sc_id' => $shiftCodeData->id,
+                                'ds_date' => $date,
+                                'ds_start_time' => $shiftCodeData->sc_start_time,
+                                'ds_end_time' => $shiftCodeData->sc_end_time,
+                                'ds_status' => 'scheduled',      // ✅ Status yang benar
+                                'created_at' => now(),
+                                'created_by' => Auth::user()->id,
+                                'updated_at' => now(),
+                                'updated_by' => Auth::user()->id
+                            ]);
+                        }
+                    }
+                    
+                    $successCount++;
+                    $processedUsers[] = $user->u_name;
+                    
+                    \Log::info('Row processed successfully', [
+                        'row_index' => $index + 2,
+                        'user_id' => $user->id,
+                        'nip' => $nip,
+                        'name' => $user->u_name
+                    ]);
+                    
+                } catch (\Exception $e) {
+                    $errorCount++;
+                    $errors[] = "Baris " . ($index + 2) . ": Terjadi kesalahan - " . $e->getMessage();
+                    \Log::error('Row processing error', [
+                        'row_index' => $index + 2,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+            }
+            
+            // Clean up uploaded file
+            if (file_exists(storage_path('app/public/uploads/' . $fileName))) {
+                unlink(storage_path('app/public/uploads/' . $fileName));
+            }
+            
+            \Log::info('Weekly Schedule Excel Import completed', [
+                'success_count' => $successCount,
+                'error_count' => $errorCount,
+                'processed_users' => $processedUsers
+            ]);
+            
+            if ($errorCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Import selesai dengan {$errorCount} kesalahan. {$successCount} staff berhasil diproses.",
+                    'errors' => $errors,
+                    'success_count' => $successCount,
+                    'error_count' => $errorCount
+                ], 400);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil mengimport jadwal mingguan untuk {$successCount} staff dari tanggal {$startDate} sampai {$endDate}",
+                'success_count' => $successCount,
+                'processed_users' => $processedUsers
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Weekly Schedule Excel Import Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem saat import Excel: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

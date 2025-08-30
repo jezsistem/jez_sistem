@@ -5,22 +5,65 @@
 <!--begin::Content-->
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <!--begin::Subheader-->
-    <div class="subheader py-6 subheader-solid" id="kt_subheader">
+    <div class="subheader py-12 subheader-solid" id="kt_subheader">
         <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
             <!--begin::Info-->
             <div class="d-flex align-items-center flex-wrap mr-1">
                 <!--begin::Page Heading-->
-                <div class="d-flex align-items-baseline flex-wrap mr-5">
+                <div class="d-flex align-items-baseline justify-content-between">
                     <!--begin::Page Title-->
                     <h5 class="text-dark font-weight-bold my-1 mr-5">{{ $data['subtitle'] }}</h5>
                     <!--end::Page Title-->
+                    
                 </div>
                 <!--end::Page Heading-->
             </div>
             <!--end::Info-->
-            
+            <div style="width: 45%;">
+                <div style="position: relative;">
+                    <!-- Ikon search (kiri) -->
+                    <span
+                    style="
+                        position:absolute;
+                        left:.6rem;
+                        top:50%;
+                        transform:translateY(-50%);
+                        pointer-events:none;
+                        line-height:1;
+                        opacity:.75;
+                    ">
+                    <i class="ki-outline ki-magnifier"></i>
+                    </span>
+
+                    <input
+                    type="text"
+                    class="form-control"
+                    id="searchInput"
+                    placeholder="Search announcements by title, content, or sender name..."
+                    value="{{ request('search') }}"
+                    style="border-radius: .475rem; padding-left: 2rem; padding-right: 2rem; height: 40px;"
+                    >
+
+                    <!-- Tombol clear (kanan) -->
+                    <button
+                    type="button"
+                    id="clearSearchBtn"
+                    aria-label="Clear search"
+                    style="
+                        position:absolute;
+                        right:.5rem;
+                        top:50%;
+                        transform:translateY(-50%);
+                        border:none;
+                        background:transparent;
+                        cursor:pointer;
+                    ">
+                    <i class="ki-outline ki-cross"></i>
+                    </button>
+                </div>
+                </div>
             <!--begin::Toolbar-->
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center mr-3">
                 <a href="{{ route('announcements.create') }}" class="btn btn-primary font-weight-bolder btn-mobile-sm">
                     <i class="ki-outline ki-plus"></i>
                     New Announcement
@@ -36,7 +79,7 @@
     <!--end::Subheader-->
     
     <!--begin::Container-->
-    <div class="container">
+    <div class="container pt-6">
         <div class="row">
             <!-- Mobile Dropdown Categories -->
             <div class="d-lg-none col-12 mb-3">
@@ -124,21 +167,25 @@
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewDetailsModal" tabindex="-1" role="dialog" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewDetailsModalLabel">Announcement Viewers</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content" style="max-height: 80vh;">
+            <div class="modal-header bg-light border-0 py-4">
+                <h5 class="modal-title text-dark font-weight-bold" id="viewDetailsModalLabel">
+                    Announcement Viewers
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div id="viewDetailsContent">
+            <div class="modal-body p-0" style="max-height: 60vh; overflow-y: auto;">
+                <div id="viewDetailsContent" class="p-4">
                     <!-- Content will be loaded here -->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-white font-weight-bold px-4 text-dark" data-dismiss="modal">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -146,21 +193,25 @@
 
 <!-- Reaction Details Modal -->
 <div class="modal fade" id="reactionDetailsModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="reactionDetailsModalTitle">Reaction Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content" style="max-height: 80vh;">
+            <div class="modal-header bg-light border-0 py-4">
+                <h5 class="modal-title text-dark font-weight-bold" id="reactionDetailsModalTitle">
+                    Reaction Details
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <div id="reactionDetailsContent">
+            <div class="modal-body p-0" style="max-height: 60vh; overflow-y: auto;">
+                <div id="reactionDetailsContent" class="p-4">
                     <!-- Content will be loaded here -->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light font-weight-bold" data-dismiss="modal">Close</button>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-white font-weight-bold px-4 text-dark" data-dismiss="modal">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -169,21 +220,25 @@
 <!-- Image Viewer Modal -->
 <div class="modal fade" id="imageViewerModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="imageViewerTitle">Image Viewer</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <i aria-hidden="true" class="ki ki-close"></i>
+        <div class="modal-content" style="max-height: 90vh;">
+            <div class="modal-header bg-light border-0 py-3">
+                <h5 class="modal-title text-dark font-weight-bold" id="imageViewerTitle">
+                    <i class="fas fa-image text-success mr-2"></i>Image Viewer
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" onclick="hideModal('imageViewerModal')" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
                 </button>
             </div>
-            <div class="modal-body text-center">
-                <img id="imageViewerImage" src="" alt="" class="img-fluid" style="max-height: 70vh;">
+            <div class="modal-body text-center p-2" style="max-height: 75vh; overflow-y: auto;">
+                <img id="imageViewerImage" src="" alt="" class="img-fluid" style="max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             </div>
-            <div class="modal-footer">
-                <a id="imageDownloadLink" href="" class="btn btn-light" download>
-                    <i class="fas fa-download"></i> Download
+            <div class="modal-footer bg-light border-0 py-2">
+                <a id="imageDownloadLink" href="" class="btn btn-light-success font-weight-bold px-4 mr-2" download>
+                    <i class="fas fa-download mr-1"></i>Download
                 </a>
-                <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-light-secondary font-weight-bold px-4" onclick="hideModal('imageViewerModal')">
+                    <i class="ki ki-close mr-1"></i>Close
+                </button>
             </div>
         </div>
     </div>
@@ -423,21 +478,133 @@
     border-radius: 8px !important;
 }
 
-/* Modal styling */
+/* Enhanced Modal styling */
 .modal-content {
     border: none !important;
     border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+    backdrop-filter: blur(10px);
 }
 
 .modal-header {
-    border-bottom: 1px solid #e9ecef !important;
-    background-color: #f8f9fa !important;
+    border-bottom: none !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-radius: 8px 8px 0 0 !important;
 }
 
 .modal-footer {
-    border-top: 1px solid #e9ecef !important;
+    border-top: none !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-radius: 0 0 8px 8px !important;
+}
+
+/* Custom scrollbar for modal body */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Modal backdrop enhancement */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(3px);
+}
+
+/* Table styling in modals */
+.modal-body .table {
+    margin-bottom: 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.modal-body .table thead th {
+    background: #f8f9fa !important;
+    border: none !important;
+    font-weight: 600 !important;
+    color: #495057 !important;
+    font-size: 0.875rem;
+    padding: 12px 16px;
+}
+
+.modal-body .table tbody td {
+    border: none !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+.modal-body .table tbody tr:hover {
     background-color: #f8f9fa !important;
+}
+
+.modal-body .table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* Enhanced close button */
+.modal-header .close {
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+/* Button styling in modals */
+.modal-footer .btn {
+    border-radius: 6px !important;
+    font-size: 0.875rem !important;
+    transition: all 0.3s ease;
+}
+
+.modal-footer .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Loading state styling */
+.modal-body .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Alert styling in modals */
+.modal-body .alert {
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 0.875rem;
+}
+
+.modal-body .alert-info {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%) !important;
+    color: #1976d2 !important;
+}
+
+.modal-body .alert-danger {
+    background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%) !important;
+    color: #d32f2f !important;
 }
 
 /* Pin icon styling */
@@ -636,10 +803,12 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
         modals.forEach(function(modal) {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
-                    closeModal(this.id);
+                    closeModal(modal.id);
                 }
             });
         });
+        
+
         
         // Add view modal close functionality
         const viewModal = document.getElementById('viewDetailsModal');
@@ -653,7 +822,7 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
             }
             
             // Close button in footer
-            const footerCloseBtn = viewModal.querySelector('.btn-secondary');
+            const footerCloseBtn = viewModal.querySelector('.btn-white');
             if (footerCloseBtn) {
                 footerCloseBtn.addEventListener('click', function() {
                     closeViewModal();
@@ -666,13 +835,21 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                     closeViewModal();
                 }
             });
+            
+            // Add ESC key handler
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && viewModal.classList.contains('show')) {
+                    closeViewModal();
+                }
+            });
         }
+        
+
     }
     
     // Function to close view modal
     function closeViewModal() {
         const modal = document.getElementById('viewDetailsModal');
-        const backdrop = document.getElementById('manual-backdrop-viewers');
         
         // Hide modal
         modal.style.display = 'none';
@@ -680,11 +857,14 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
         modal.removeAttribute('aria-modal');
         modal.removeAttribute('role');
         
-        // Remove backdrop
-        if (backdrop) {
+        // Remove all backdrops to prevent backdrop persistence
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
             backdrop.remove();
-            document.body.classList.remove('modal-open');
-        }
+        });
+        
+        // Remove modal-open class from body
+        document.body.classList.remove('modal-open');
     }
     
     // Global function definitions
@@ -838,10 +1018,16 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
             modal.style.display = 'none';
             modal.classList.remove('show');
             document.body.classList.remove('modal-open');
-            var backdrop = document.getElementById('manual-backdrop');
-            if (backdrop) backdrop.remove();
+            
+            // Remove all backdrops
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.remove();
+            });
         }
     };
+    
+
     
     // Global function to filter announcements by category
     window.filterAnnouncementsByCategory = function(categoryId) {
@@ -907,27 +1093,8 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
         document.getElementById('imageViewerImage').alt = imageName;
         document.getElementById('imageDownloadLink').href = imageUrl;
         
-        var modal = document.getElementById('imageViewerModal');
-        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
-            $(modal).modal('show');
-        } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            var modalInstance = new bootstrap.Modal(modal);
-            modalInstance.show();
-        } else {
-            console.warn('No modal framework available, using basic display');
-            modal.style.display = 'block';
-            modal.classList.add('show');
-            modal.setAttribute('aria-modal', 'true');
-            modal.setAttribute('role', 'dialog');
-            
-            if (!document.getElementById('manual-backdrop')) {
-                var backdrop = document.createElement('div');
-                backdrop.className = 'modal-backdrop fade show';
-                backdrop.id = 'manual-backdrop';
-                document.body.appendChild(backdrop);
-                document.body.classList.add('modal-open');
-            }
-        }
+        // Use the same modal system as attachmentModal
+        showModal('imageViewerModal');
     };
     
     // Initialize when DOM is ready
@@ -938,6 +1105,8 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     }
     
     window.addEventListener('load', initializeAnnouncementPage);
+    
+
     
     // Initialize mobile category select functionality
     function initializeMobileCategorySelect() {
@@ -1246,10 +1415,7 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     // Display view details in modal
     function displayViewDetails(viewers, announcement) {
         let html = `
-            <div class="mb-3">
-                <h6 class="text-dark font-weight-bold">${announcement.title}</h6>
-                <small class="text-muted">Published: ${announcement.published_at}</small>
-            </div>
+           
         `;
         
         if (viewers.length === 0) {
@@ -1265,7 +1431,6 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                                 <th>Position</th>
                                 <th>Division</th>
                                 <th>Viewed At</th>
-                                <th>IP Address</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1293,9 +1458,6 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                         <td>
                             <div class="font-weight-bold">${viewer.viewed_date}</div>
                             <small class="text-muted">${viewer.viewed_time}</small>
-                        </td>
-                        <td>
-                            <small class="text-muted">${viewer.ip_address}</small>
                         </td>
                     </tr>
                 `;
@@ -1465,7 +1627,10 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     function showModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            modal.style.display = 'block';
             modal.classList.add('show');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('role', 'dialog');
             document.body.classList.add('modal-open');
         }
     }
@@ -1473,8 +1638,17 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     function hideModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            modal.style.display = 'none';
             modal.classList.remove('show');
+            modal.removeAttribute('aria-modal');
+            modal.removeAttribute('role');
             document.body.classList.remove('modal-open');
+            
+            // Remove all backdrops to prevent issues
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.remove();
+            });
         }
     }
 
@@ -1569,6 +1743,16 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                 });
             }
         });
+        
+        // Add specific event handler for imageViewerModal
+        const imageViewerModal = document.getElementById('imageViewerModal');
+        if (imageViewerModal) {
+            imageViewerModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideModal('imageViewerModal');
+                }
+            });
+        }
     });
 </script>
 
@@ -1692,25 +1876,36 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
 </style>
 
 <!-- Attachment Preview Modal -->
-<div id="attachmentModal" class="modal">
-    <div class="modal-content" style="max-width: 1200px; max-height: 800px;">
-        <div class="modal-header">
-            <h5 class="modal-title" id="attachmentModalLabel">View Attachment</h5>
-            <button type="button" class="close" onclick="hideModal('attachmentModal')" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div id="attachmentContent">
-                <!-- Content will be loaded here -->
+<div id="attachmentModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content" style="max-height: 85vh;">
+            <div class="modal-header bg-light border-0 py-3">
+                <h5 class="modal-title text-dark font-weight-bold" id="attachmentModalLabel">
+                    <i class="fas fa-paperclip text-warning mr-2"></i>View Attachment
+                </h5>
+                <button type="button" class="close border-0 bg-transparent" onclick="hideModal('attachmentModal')" aria-label="Close" style="font-size: 1.5rem;">
+                    <i class="ki ki-close text-muted"></i>
+                </button>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="hideModal('attachmentModal')">Close</button>
-            <a href="#" id="downloadAttachment" class="btn btn-primary" download>Download</a>
+            <div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto;">
+                <div id="attachmentContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-white font-weight-bold px-4 mr-2" onclick="hideModal('attachmentModal')">
+                    <i class="ki-solid ki-cross-square mr-1"></i>Close
+                </button>
+                <a href="#" id="downloadAttachment" class="btn btn-dark font-weight-bold px-4" download>
+                    <i class="ki-solid ki-cloud-download mr-1"></i>Download
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 @endsection
+
+@include('app.announcement.ajax-search')
+
 @include('app._partials.js')

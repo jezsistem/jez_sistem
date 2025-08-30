@@ -46,6 +46,11 @@
     <div class="d-flex flex-column-fluid">
         <!--begin::Container-->
         <div class="container">
+            <!-- Alert Area for Import Results -->
+            <div id="importAlertArea" class="mb-3" style="display: none;">
+                <!-- Alerts will be dynamically inserted here -->
+            </div>
+            
             <div class="row">
                 <div class="col-12">
                     <div class="card card-custom mb-5">
@@ -65,36 +70,36 @@
                                                 id="division_filter" name="division_id" 
                                                 {{ in_array($currentUser->up_code ?? '', ['SUPERVISOR']) ? 'disabled' : '' }}
                                                 {{ in_array($currentUser->up_code ?? '', ['SUPERVISOR']) ? 'title="You can only view your own division"' : '' }}>
-                                            @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
-                                                <option value="">All Divisions</option>
-                                            @endif
+                                                                                    @if(in_array($currentUser->up_code ?? '', ['DIRECTOR', 'MANAGER']))
+                                            <option value="">Semua Divisi</option>
+                                        @endif
                                             @foreach($divisions as $division)
                                                     <option value="{{ $division->id }}" {{ $divisionId == $division->id ? 'selected' : '' }}>{{ $division->ud_code }} - {{ $division->ud_name }}</option>
                                             @endforeach
                                         </select>
                                         @if(in_array($currentUser->up_code ?? '', ['SUPERVISOR']))
                                             <small class="form-text text-muted">
-                                                You can only view your division
+                                                You can only view your own division
                                             </small>
                                         @endif
                                         </div>
                                         @endif
                                         <div class="col-md-2">
-                                            <label>Date Filter:</label>
+                                            <label>Filter Tanggal:</label>
                                             <select class="form-control" id="date_filter" name="date_filter">
                                                 <option value="this_week" {{ $dateFilter == 'this_week' ? 'selected' : '' }}>This Week</option>
-                                                <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Past Week</option>
+                                                <option value="past_week" {{ $dateFilter == 'past_week' ? 'selected' : '' }}>Last Week</option>
                                                 <option value="custom" {{ $dateFilter == 'custom' ? 'selected' : '' }}>Custom Range</option>
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <label>Week Range:</label>
+                                            <label>Rentang Minggu:</label>
                                             <input type="date" class="form-control" name="start_date" value="{{ $startDate }}">
-                                            <small class="form-text text-muted">Select Monday to show full week</small>
+                                            <small class="form-text text-muted">Select Monday to display full week</small>
                                         </div>
                                         <div class="col-md-3">
-                                        <label>Search Staff:</label>
-                                            <input type="text" class="form-control w-100" id="search_filter" name="search" placeholder="Search by name or NIP..." value="{{ $search ?? '' }}">
+                                        <label>Cari Staff:</label>
+                                            <input type="text" class="form-control w-100" id="search_filter" name="search" placeholder="Cari berdasarkan nama atau NIP..." value="{{ $search ?? '' }}">
                                         </div>
                                         <div class="col-md-1">
                                             <label>&nbsp;</label>
@@ -106,7 +111,7 @@
                                         <div class="col-md-1">
                                             <label>&nbsp;</label>
                                                 <button type="button" class="btn btn-dark btn-block" id="load_schedule" onclick="loadScheduleDirectly()">
-                                                    <i class="ki-outline ki-loading"></i> Load
+                                                            <i class="ki-outline ki-loading"></i> Loading
                                                 </button>
                                             </div>
                                         @endif
@@ -124,7 +129,11 @@
                         <div class="card-header">
                             <div class="d-flex align-items-center justify-content-end">
                                 <button type="button" class="btn btn-light btn-sm mr-2" onclick="loadExistingSchedules()">
-                                    <i class="ki-outline ki-arrows-circle"></i> Load Schedules
+                                    <i class="ki-outline ki-arrows-circle"></i> Load Schedule
+                                </button>
+                                <!-- Import Button -->
+                                <button type="button" class="btn btn-green btn-sm mr-2" onclick="showImportModal()">
+                                    <i class="ki-outline ki-file-up"></i> Import Schedule
                                 </button>
                                 <!-- Export Buttons -->
                                 <button type="button" class="btn btn-light-green btn-sm mr-2" onclick="exportToExcel()">
@@ -141,8 +150,8 @@
                                     <thead class="bg-light text-dark">
                                         <tr>
                                             <th style="min-width: 80px;">NIP</th>
-                                            <th style="min-width: 200px;">Nama Staff</th>
-                                            <th style="min-width: 150px;">Divisi</th>
+                                            <th style="min-width: 200px;">Staff</th>
+                                            <th style="min-width: 150px;">Division</th>
                                             <th style="min-width: 100px;">User Type</th>
                                             <th style="min-width: 100px;" class="date-header" data-date="{{ $startDate }}" id="date-header-0">{{ date('D d-M', strtotime($startDate)) }}</th>
                                             <th style="min-width: 100px;" class="date-header" data-date="{{ date('Y-m-d', strtotime($startDate . ' +1 day')) }}" id="date-header-1">{{ date('D d-M', strtotime($startDate . ' +1 day')) }}</th>
@@ -257,6 +266,88 @@
     <!--end::Entry-->
 </div>
 <!--end::Content-->
+
+<!-- Import Excel Modal -->
+<div class="modal" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Import Weekly Schedule</h5>
+                <button type="button" class="close" onclick="hideImportModal()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="import_start_date">Week Start Date (Monday)</label>
+                            <input type="date" class="form-control" id="import_start_date" name="import_start_date" value="{{ $startDate }}">
+                            <small class="form-text text-muted">Select Monday to show full week schedule</small>
+                        </div>
+                    </div>
+                    <!-- <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Division Information</label>
+                            <div class="form-control-plaintext">
+                                <span class="badge badge-info">Import will process all divisions</span>
+                            </div>
+                            <small class="form-text text-muted">No division filter applied</small>
+                        </div>
+                    </div> -->
+                </div>
+                
+                <div class="form-group">
+                    <label for="excel_file">Excel File</label>
+                    <input type="file" class="form-control-file" id="excel_file" name="excel_file" accept=".xlsx,.xls,.csv">
+                    <small class="form-text text-muted">
+                        Format: NIP, Nama, User Type, Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu<br>
+                        File size: max 2MB
+                    </small>
+                    <div class="mt-3">
+                        <a href="/Template_Import_Schedule.xlsx" class="btn btn-sm btn-light-green" download>
+                            <i class="ki-outline ki-file-down"></i> Download Template Excel
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="alert alert-light rounded-lg p-8">
+                    <h6><i class="ki-outline ki-information-5" class="text-white"></i> Excel Format Requirements:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Column A:</strong> NIP (required)</li>
+                        <li><strong>Column B:</strong> Nama Staff</li>
+                        <li><strong>Column C:</strong> User Type (can be empty, will auto-detect from database)</li>
+                        <li><strong>Column D:</strong> Senin (shift code: PS1, PS2, L, SM1, SM2, etc.)</li>
+                        <li><strong>Column E:</strong> Selasa</li>
+                        <li><strong>Column F:</strong> Rabu</li>
+                        <li><strong>Column G:</strong> Kamis</li>
+                        <li><strong>Column H:</strong> Jumat</li>
+                        <li><strong>Column I:</strong> Sabtu</li>
+                        <li><strong>Column J:</strong> Minggu</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-primary">
+                    <h6><i class="ki-outline ki-warning"></i> Validation Rules:</h6>
+                    <ul class="mb-0">
+                        <li>Shift codes must exist in the system</li>
+                        <li>Shift codes must be compatible with user type</li>
+                        <li>User Type column can be empty - system will auto-detect from database</li>
+                        <li>Import will process all divisions without filter</li>
+                        <li>Existing schedules will be updated</li>
+                        <li>Empty cells will be ignored</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideImportModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="importExcel()">
+                    <i class="ki-outline ki-file-up"></i> Import
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Shift Codes for dropdown -->
 <div id="shift_codes_data" style="display: none;">
@@ -899,6 +990,77 @@ window.handleSearch = handleSearch;
     }
 </style>
 
+<style>
+/* Custom CSS for Import Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-dialog {
+    margin: 1.75rem auto;
+    max-width: 800px;
+    width: 90%;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    border: 1px solid #888;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 15px;
+}
+
+.modal-footer {
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+</style>
+
 <script>
 // Simple DataTable initialization only
 document.addEventListener('DOMContentLoaded', function() {
@@ -1158,12 +1320,260 @@ function showAlert(message, type = 'info') {
 window.exportToExcel = exportToExcel;
 window.exportToPDF = exportToPDF;
 
+// Import Excel functions
+function showImportModal() {
+    // Modal will automatically use current division filter
+    document.getElementById('importModal').style.display = 'block';
+    document.getElementById('importModal').classList.add('show');
+    document.body.classList.add('modal-open');
+}
+
+function hideImportModal() {
+    console.log('hideImportModal called');
+    const modal = document.getElementById('importModal');
+    console.log('Modal element:', modal);
+    
+    if (modal) {
+        // Force close modal with multiple approaches
+        modal.style.display = 'none';
+        modal.style.visibility = 'hidden';
+        modal.style.opacity = '0';
+        modal.classList.remove('show');
+        modal.classList.remove('modal-open');
+        document.body.classList.remove('modal-open');
+        
+        // Force remove any inline styles that might interfere
+        modal.removeAttribute('style');
+        modal.style.display = 'none';
+        
+        console.log('Modal display set to none, show class removed, styles reset');
+    } else {
+        console.error('Modal element not found!');
+    }
+    
+    // Also reset any form inputs
+    const fileInput = document.getElementById('excel_file');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    // Don't clear alerts here - let them stay visible
+    // clearAllImportAlerts(); // Commented out to preserve success/error messages
+}
+
+// Function to show alerts in the alert area above the table
+function showImportAlert(message, type = 'info', errors = null) {
+    console.log('showImportAlert called:', { message, type, errors });
+    
+    const alertArea = document.getElementById('importAlertArea');
+    console.log('Alert area element:', alertArea);
+    
+    if (!alertArea) {
+        console.error('Alert area not found!');
+        return;
+    }
+    
+    const alertId = 'alert-' + Date.now();
+    
+    let alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" id="${alertId}" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="ki-outline ki-${type === 'success' ? 'check-circle' : type === 'danger' ? 'cross-circle' : type === 'warning' ? 'warning' : 'information-5'} mr-2 text-white"></i>
+                <div class="flex-grow-1">
+                    <strong>${type === 'success' ? 'Success' : type === 'danger' ? 'Error' : type === 'warning' ? 'Warning' : 'Info'}:</strong> ${message}
+                </div>
+            </div>
+    `;
+    
+    // Add errors list if provided
+    if (errors && errors.length > 0) {
+        alertHtml += `
+            <div class="mt-2">
+                <strong>Details:</strong>
+                <ul class="mb-0 mt-1 pl-4">
+                    ${errors.slice(0, 10).map(error => `<li>${error}</li>`).join('')}
+                    ${errors.length > 10 ? `<li>... and ${errors.length - 10} more errors</li>` : ''}
+                </ul>
+            </div>
+        `;
+    }
+    
+    alertHtml += `
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="closeImportAlert('${alertId}')">
+                <span aria-hidden="true" class="text-white" style="margin-top: -5px;">&times;</span>
+            </button>
+        </div>
+    `;
+    
+    // Show alert area and add alert
+    alertArea.style.display = 'block';
+    alertArea.innerHTML = alertHtml;
+    
+    console.log('Alert displayed:', { alertId, type, message });
+    
+    // Auto-hide success alerts after 10 seconds, but keep error alerts visible until manually closed
+    if (type === 'success') {
+        setTimeout(() => {
+            closeImportAlert(alertId);
+        }, 10000);
+    }
+    // Error alerts will stay visible until user manually closes them
+}
+
+// Function to close specific alert
+function closeImportAlert(alertId) {
+    const alert = document.getElementById(alertId);
+    if (alert) {
+        alert.remove();
+        
+        // Hide alert area if no more alerts
+        const alertArea = document.getElementById('importAlertArea');
+        if (alertArea.children.length === 0) {
+            alertArea.style.display = 'none';
+        }
+    }
+}
+
+// Function to clear all alerts
+function clearAllImportAlerts() {
+    const alertArea = document.getElementById('importAlertArea');
+    alertArea.innerHTML = '';
+    alertArea.style.display = 'none';
+}
+
+function importExcel() {
+    console.log('importExcel function called');
+    
+    const fileInput = document.getElementById('excel_file');
+    const startDate = document.getElementById('import_start_date').value;
+    
+    // Check modal status before starting
+    const modal = document.getElementById('importModal');
+    console.log('Modal status before import:', {
+        display: modal.style.display,
+        hasShowClass: modal.classList.contains('show'),
+        isVisible: modal.offsetParent !== null
+    });
+    
+    if (!fileInput.files[0]) {
+        showImportAlert('Please select an Excel file', 'warning');
+        return;
+    }
+    
+    if (!startDate) {
+        showImportAlert('Please select a start date', 'warning');
+        return;
+    }
+    
+    // Clear any existing alerts
+    clearAllImportAlerts();
+    
+    // Create FormData
+    const formData = new FormData();
+    formData.append('excel_file', fileInput.files[0]);
+    formData.append('start_date', startDate);
+    
+    // Show loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.innerHTML = 'Importing Excel file...';
+    loadingIndicator.style.cssText = 'position:fixed;top:20px;right:20px;background:#17a2b8;color:white;padding:10px;border-radius:5px;z-index:9999;';
+    document.body.appendChild(loadingIndicator);
+    
+    // Make AJAX request
+    fetch('{{ route("daily-schedules.import-weekly-excel") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.body.removeChild(loadingIndicator);
+        
+        if (data.success) {
+            // Show success message first
+            showImportAlert(data.message, 'success');
+            
+            // Close modal on success
+            console.log('Import successful, closing modal...');
+            hideImportModal();
+            console.log('Modal should be closed now');
+            
+            // Reset file input
+            fileInput.value = '';
+            
+            // Reload schedules to show updated data
+            setTimeout(() => {
+                loadExistingSchedules();
+            }, 1000);
+            
+        } else {
+            // Show error message with details
+            let errorMessage = data.message;
+            console.log('Import failed, showing error alert and closing modal');
+            showImportAlert(errorMessage, 'danger', data.errors || []);
+            
+            // Close modal on error too - let user see the errors clearly
+            hideImportModal();
+            console.log('Modal closed after error, user can see alert clearly');
+        }
+    })
+    .catch(error => {
+        document.body.removeChild(loadingIndicator);
+        console.error('Import error:', error);
+        showImportAlert('Import failed: ' + error.message, 'danger');
+        
+        // Close modal on network/technical error too
+        hideImportModal();
+        console.log('Modal closed after network error, user can see alert clearly');
+    });
+}
+
+// Make import functions globally available
+window.showImportModal = showImportModal;
+window.hideImportModal = hideImportModal;
+window.importExcel = importExcel;
+window.showImportAlert = showImportAlert;
+window.closeImportAlert = closeImportAlert;
+window.clearAllImportAlerts = clearAllImportAlerts;
+
+// Add event listeners for modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('importModal');
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            console.log('Modal clicked outside, closing...');
+            hideImportModal();
+        }
+    });
+    
+    // Close modal with ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modal.classList.contains('show')) {
+            console.log('ESC key pressed, closing modal...');
+            hideImportModal();
+        }
+    });
+    
+    console.log('Modal event listeners attached');
+});
+
 // Debug logging to confirm functions are loaded
 console.log('Export functions loaded:', {
     'exportToExcel': typeof exportToExcel,
     'exportToPDF': typeof exportToPDF,
     'window.exportToExcel': typeof window.exportToExcel,
     'window.exportToPDF': typeof window.exportToPDF
+});
+
+console.log('Import functions loaded:', {
+    'showImportModal': typeof showImportModal,
+    'importExcel': typeof importExcel,
+    'window.showImportModal': typeof window.showImportModal,
+    'window.importExcel': typeof window.importExcel
 });
 </script>
 

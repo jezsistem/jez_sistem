@@ -33,6 +33,17 @@ class AnnouncementController extends Controller
             ->withCount(['views as views_count'])
             ->where('status', 'active')
             ->whereNotNull('published_at')
+            
+            // Add search functionality
+            ->when($request->get('search'), function($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                      ->orWhere('content', 'like', '%' . $search . '%')
+                      ->orWhereHas('creator', function($creatorQuery) use ($search) {
+                          $creatorQuery->where('u_name', 'like', '%' . $search . '%');
+                      });
+                });
+            })
             ->where(function($query) use ($user) {
                 // Always show announcements targeted to "all"
                 $query->where('target_type', 'all');
@@ -129,6 +140,15 @@ class AnnouncementController extends Controller
         $user = Auth::user();
         
         $announcements = Announcement::with(['category', 'creator'])
+            ->when($request->get('search'), function($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', '%' . $search . '%')
+                      ->orWhere('content', 'like', '%' . $search . '%')
+                      ->orWhereHas('creator', function($creatorQuery) use ($search) {
+                          $creatorQuery->where('u_name', 'like', '%' . $search . '%');
+                      });
+                });
+            })
             ->when($request->get('category_id'), function($query, $categoryId) {
                 return $query->where('category_id', $categoryId);
             })

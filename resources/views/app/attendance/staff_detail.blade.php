@@ -46,7 +46,7 @@
 
     /* Dropdown menu styling */
     .dropdown { position: relative; display: inline-block; }
-    .menu.menu-sub-dropdown { z-index: 9999 !important; position: absolute !important; top: 100% !important; left: 0 !important; margin-top: 5px !important; min-width: 150px !important; background: white !important; border: 1px solid #e4e6ef !important; border-radius: 0.475rem !important; box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important; }
+    .menu.menu-sub-dropdown { z-index: 9999 !important; position: absolute !important; top: 100% !important;  right: 0px !important; margin-top: 5px !important; min-width: 150px !important; background: white !important; border: 1px solid #e4e6ef !important; border-radius: 0.475rem !important; box-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.075) !important; }
     #staffAttendanceTable td { position: relative; }
     .menu-item .menu-link { cursor: pointer; transition: all 0.3s ease; display: block; padding: 0.5rem 1rem; text-decoration: none; color: #3f4254 !important; font-weight: 500; font-size: 1rem; }
     .menu-item .menu-link:hover { background-color: #f3f6f9 !important; color: #3699FF !important; }
