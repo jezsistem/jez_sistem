@@ -2073,6 +2073,16 @@ class AttendanceController extends Controller
             // If no records need update in date range, get ALL records without daily_schedule_id
             if ($attendanceRecords->count() == 0) {
                 \Log::info('No records need daily_schedule_id update in date range, getting ALL records without daily_schedule_id');
+                
+                // Debug: Cek semua kemungkinan nilai daily_schedule_id
+                $allAttendance = DB::table('attendance')->select('id', 'user_id', 'at_date', 'daily_schedule_id', 'at_source')->get();
+                $uniqueValues = $allAttendance->pluck('daily_schedule_id')->unique()->values();
+                
+                \Log::info('Debug: All unique daily_schedule_id values found', [
+                    'unique_values' => $uniqueValues->toArray(),
+                    'total_records' => $allAttendance->count()
+                ]);
+                
                 $attendanceRecords = DB::table('attendance')
                     ->where(function($query) {
                         $query->where('daily_schedule_id', 'IS', null)
@@ -2135,6 +2145,17 @@ class AttendanceController extends Controller
             
             // Debug: Check if there are any records at all
             if ($attendanceRecords->count() == 0) {
+                // Debug lebih detail untuk memahami kondisi data
+                $nullCount = DB::table('attendance')->whereNull('daily_schedule_id')->count();
+                $emptyCount = DB::table('attendance')->where('daily_schedule_id', '')->count();
+                $zeroCount = DB::table('attendance')->where('daily_schedule_id', 0)->count();
+                $negativeCount = DB::table('attendance')->where('daily_schedule_id', '<', 0)->count();
+                
+                // Sample data untuk analisis
+                $sampleNull = DB::table('attendance')->whereNull('daily_schedule_id')->limit(3)->get();
+                $sampleEmpty = DB::table('attendance')->where('daily_schedule_id', '')->limit(3)->get();
+                $sampleZero = DB::table('attendance')->where('daily_schedule_id', 0)->limit(3)->get();
+                
                 \Log::warning('No attendance records found that need daily_schedule_id update', [
                     'start_date' => $startDate,
                     'end_date' => $endDate,
@@ -2159,7 +2180,42 @@ class AttendanceController extends Controller
                         ->orderBy('at_date', 'desc')
                         ->limit(5)
                         ->pluck('at_date')
-                        ->toArray()
+                        ->toArray(),
+                    'debug_counts' => [
+                        'null_count' => $nullCount,
+                        'empty_string_count' => $emptyCount,
+                        'zero_count' => $zeroCount,
+                        'negative_count' => $negativeCount
+                    ],
+                    'sample_data' => [
+                        'null_samples' => $sampleNull->map(function($record) {
+                            return [
+                                'id' => $record->id,
+                                'user_id' => $record->user_id,
+                                'date' => $record->at_date,
+                                'daily_schedule_id' => $record->daily_schedule_id,
+                                'at_source' => $record->at_source
+                            ];
+                        })->toArray(),
+                        'empty_samples' => $sampleEmpty->map(function($record) {
+                            return [
+                                'id' => $record->id,
+                                'user_id' => $record->user_id,
+                                'date' => $record->at_date,
+                                'daily_schedule_id' => $record->daily_schedule_id,
+                                'at_source' => $record->at_source
+                            ];
+                        })->toArray(),
+                        'zero_samples' => $sampleZero->map(function($record) {
+                            return [
+                                'id' => $record->id,
+                                'user_id' => $record->user_id,
+                                'date' => $record->at_date,
+                                'daily_schedule_id' => $record->daily_schedule_id,
+                                'at_source' => $record->at_source
+                            ];
+                        })->toArray()
+                    ]
                 ]);
             }
 
