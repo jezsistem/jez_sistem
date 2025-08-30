@@ -2363,16 +2363,52 @@ class AttendanceController extends Controller
             }
             // Case 2: Only one time record (in or out)
             elseif (!$hasTimeIn || !$hasTimeOut) {
-                $status = 'present';
-                $notes = 'scan once - incomplete attendance record';
-                
-                \Log::info('Only one time record found, setting status to present with notes: scan once', [
-                    'attendance_id' => $attendance->id,
-                    'user_id' => $attendance->user_id,
-                    'date' => $attendance->at_date,
-                    'has_time_in' => $hasTimeIn,
-                    'has_time_out' => $hasTimeOut
-                ]);
+                // PERBAIKAN: Cek apakah scan masuk terlambat meskipun scan once
+                if ($hasTimeIn && $dailySchedule && $dailySchedule->sc_start_time) {
+                    $timeInMinutes = $this->timeToMinutes($attendance->at_time_in);
+                    $shiftStartMinutes = $this->timeToMinutes($dailySchedule->sc_start_time);
+                    
+                    if ($timeInMinutes > $shiftStartMinutes) {
+                        // Scan once tapi terlambat
+                        $status = 'late';
+                        $lateMinutes = $timeInMinutes - $shiftStartMinutes;
+                        $notes = "scan once - terlambat {$lateMinutes} menit (In: {$attendance->at_time_in}, Schedule: {$dailySchedule->sc_start_time})";
+                        
+                        \Log::info('Scan once but LATE, setting status to late', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'time_in' => $attendance->at_time_in,
+                            'schedule_start' => $dailySchedule->sc_start_time,
+                            'late_minutes' => $lateMinutes
+                        ]);
+                    } else {
+                        // Scan once dan tepat waktu
+                        $status = 'present';
+                        $notes = 'scan once - hadir tepat waktu';
+                        
+                        \Log::info('Scan once and on time, setting status to present', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'time_in' => $attendance->at_time_in,
+                            'schedule_start' => $dailySchedule->sc_start_time
+                        ]);
+                    }
+                } else {
+                    // Tidak ada schedule atau tidak ada time in, default ke present
+                    $status = 'present';
+                    $notes = 'scan once - incomplete attendance record';
+                    
+                    \Log::info('Only one time record found (no schedule or no time in), setting status to present with notes: scan once', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'has_time_in' => $hasTimeIn,
+                        'has_time_out' => $hasTimeOut,
+                        'has_schedule' => !empty($dailySchedule)
+                    ]);
+                }
             }
             // Case 3: Has schedule and both time records
             else {
