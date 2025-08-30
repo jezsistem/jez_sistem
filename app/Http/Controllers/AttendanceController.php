@@ -2101,135 +2101,19 @@ class AttendanceController extends Controller
                 if ($attendanceRecords->count() == 0) {
                     \Log::warning('Fallback query also returned 0 records, trying alternative approach');
                     
-                    // Coba query dengan raw SQL untuk memastikan
-                    $rawCount = DB::select("SELECT COUNT(*) as count FROM attendance WHERE daily_schedule_id IS NULL");
-                    $rawCount = $rawCount[0]->count ?? 0;
-                    
-                    \Log::info('Raw SQL count for NULL daily_schedule_id', ['count' => $rawCount]);
-                    
-                    if ($rawCount > 0) {
-                        // Jika raw SQL menemukan data, gunakan query sederhana
-                        $attendanceRecords = DB::table('attendance')
-                            ->whereNull('daily_schedule_id')
-                            ->get();
-                        \Log::info('Retrieved records using simple whereNull query', ['count' => $attendanceRecords->count()]);
-                    }
+                    // Jika tidak ada data dalam range tanggal, ambil SEMUA data tanpa daily_schedule_id
+                    $attendanceRecords = DB::table('attendance')
+                        ->whereNull('daily_schedule_id')
+                        ->get();
+                        
+                    \Log::info('Retrieved all records without daily_schedule_id', ['count' => $attendanceRecords->count()]);
                 }
             }
                 
-            // Debug: Check attendance records with daily_schedule_id
-            $attendanceWithSchedule = DB::table('attendance')
-                ->whereBetween('at_date', [$startDate, $endDate])
-                ->whereNotNull('daily_schedule_id')
-                ->where('daily_schedule_id', '!=', '')
-                ->where('daily_schedule_id', '!=', 0)
-                ->get();
-                
-            \Log::info('Attendance records analysis', [
-                'date_range' => [$startDate, $endDate],
-                'total_attendance' => DB::table('attendance')->whereBetween('at_date', [$startDate, $endDate])->count(),
-                'without_schedule' => $attendanceRecords->count(),
-                'with_schedule' => $attendanceWithSchedule->count(),
-                'sample_with_schedule' => $attendanceWithSchedule->take(3)->map(function($record) {
-                    return [
-                        'id' => $record->id,
-                        'user_id' => $record->user_id,
-                        'date' => $record->at_date,
-                        'daily_schedule_id' => $record->daily_schedule_id,
-                        'at_source' => $record->at_source
-                    ];
-                })->toArray()
-            ]);
-                
             \Log::info('Found attendance records to process', [
                 'count' => $attendanceRecords->count(),
-                'date_range' => [$startDate, $endDate],
-                'sample_records' => $attendanceRecords->take(3)->map(function($record) {
-                    return [
-                        'id' => $record->id,
-                        'user_id' => $record->user_id,
-                        'date' => $record->at_date,
-                        'daily_schedule_id' => $record->daily_schedule_id,
-                        'at_source' => $record->at_source
-                    ];
-                })->toArray()
+                'date_range' => [$startDate, $endDate]
             ]);
-            
-            // Debug: Check if there are any records at all
-            if ($attendanceRecords->count() == 0) {
-                // Debug lebih detail untuk memahami kondisi data
-                $nullCount = DB::table('attendance')->whereNull('daily_schedule_id')->count();
-                $emptyCount = DB::table('attendance')->where('daily_schedule_id', '')->count();
-                $zeroCount = DB::table('attendance')->where('daily_schedule_id', 0)->count();
-                $negativeCount = DB::table('attendance')->where('daily_schedule_id', '<', 0)->count();
-                
-                // Sample data untuk analisis
-                $sampleNull = DB::table('attendance')->whereNull('daily_schedule_id')->limit(3)->get();
-                $sampleEmpty = DB::table('attendance')->where('daily_schedule_id', '')->limit(3)->get();
-                $sampleZero = DB::table('attendance')->where('daily_schedule_id', 0)->limit(3)->get();
-                
-                \Log::warning('No attendance records found that need daily_schedule_id update', [
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'total_attendance_count' => DB::table('attendance')->count(),
-                    'attendance_without_schedule_total' => DB::table('attendance')
-                        ->where(function($query) {
-                            $query->where('daily_schedule_id', 'IS', null)
-                                  ->orWhere('daily_schedule_id', '=', '')
-                                  ->orWhere('daily_schedule_id', '=', 0);
-                        })->count(),
-                    'attendance_without_schedule_in_range' => DB::table('attendance')
-                        ->whereBetween('at_date', [$startDate, $endDate])
-                        ->where(function($query) {
-                            $query->where('daily_schedule_id', 'IS', null)
-                                  ->orWhere('daily_schedule_id', '=', '')
-                                  ->orWhere('daily_schedule_id', '=', 0);
-                        })->count(),
-                    'date_range_count' => DB::table('attendance')->whereBetween('at_date', [$startDate, $endDate])->count(),
-                    'sample_attendance_dates' => DB::table('attendance')
-                        ->select('at_date')
-                        ->distinct()
-                        ->orderBy('at_date', 'desc')
-                        ->limit(5)
-                        ->pluck('at_date')
-                        ->toArray(),
-                    'debug_counts' => [
-                        'null_count' => $nullCount,
-                        'empty_string_count' => $emptyCount,
-                        'zero_count' => $zeroCount,
-                        'negative_count' => $negativeCount
-                    ],
-                    'sample_data' => [
-                        'null_samples' => $sampleNull->map(function($record) {
-                            return [
-                                'id' => $record->id,
-                                'user_id' => $record->user_id,
-                                'date' => $record->at_date,
-                                'daily_schedule_id' => $record->daily_schedule_id,
-                                'at_source' => $record->at_source
-                            ];
-                        })->toArray(),
-                        'empty_samples' => $sampleEmpty->map(function($record) {
-                            return [
-                                'id' => $record->id,
-                                'user_id' => $record->user_id,
-                                'date' => $record->at_date,
-                                'daily_schedule_id' => $record->daily_schedule_id,
-                                'at_source' => $record->at_source
-                            ];
-                        })->toArray(),
-                        'zero_samples' => $sampleZero->map(function($record) {
-                            return [
-                                'id' => $record->id,
-                                'user_id' => $record->user_id,
-                                'date' => $record->at_date,
-                                'daily_schedule_id' => $record->daily_schedule_id,
-                                'at_source' => $record->at_source
-                            ];
-                        })->toArray()
-                    ]
-                ]);
-            }
 
             \Log::info('Found attendance records to process', [
                 'count' => $attendanceRecords->count(),
