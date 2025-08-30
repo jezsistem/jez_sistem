@@ -107,7 +107,7 @@
                     <h6 class="text-dark font-weight-semibold mb-3 fs-6"><i class="ki-outline ki-paper-clip"></i> Attachments</h6>
                     <div class="row">
                         @foreach($announcement->attachments as $attachment)
-                        <div class="col-md-6 mb-2">
+                        <div class="col-md-7 mb-2">
                             <div class="d-flex align-items-center p-3 bg-light rounded">
                                 <div class="mr-3">
                                     @if($attachment->is_image)

@@ -225,7 +225,7 @@
                 <h5 class="modal-title text-dark font-weight-bold" id="imageViewerTitle">
                     <i class="fas fa-image text-success mr-2"></i>Image Viewer
                 </h5>
-                <button type="button" class="close border-0 bg-transparent" data-dismiss="modal" aria-label="Close" style="font-size: 1.5rem;">
+                <button type="button" class="close border-0 bg-transparent" onclick="hideModal('imageViewerModal')" aria-label="Close" style="font-size: 1.5rem;">
                     <i class="ki ki-close text-muted"></i>
                 </button>
             </div>
@@ -236,7 +236,7 @@
                 <a id="imageDownloadLink" href="" class="btn btn-light-success font-weight-bold px-4 mr-2" download>
                     <i class="fas fa-download mr-1"></i>Download
                 </a>
-                <button type="button" class="btn btn-light-secondary font-weight-bold px-4" data-dismiss="modal">
+                <button type="button" class="btn btn-light-secondary font-weight-bold px-4" onclick="hideModal('imageViewerModal')">
                     <i class="ki ki-close mr-1"></i>Close
                 </button>
             </div>
@@ -803,10 +803,12 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
         modals.forEach(function(modal) {
             modal.addEventListener('click', function(e) {
                 if (e.target === this) {
-                    closeModal(this.id);
+                    closeModal(modal.id);
                 }
             });
         });
+        
+
         
         // Add view modal close functionality
         const viewModal = document.getElementById('viewDetailsModal');
@@ -820,7 +822,7 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
             }
             
             // Close button in footer
-            const footerCloseBtn = viewModal.querySelector('.btn-secondary');
+            const footerCloseBtn = viewModal.querySelector('.btn-white');
             if (footerCloseBtn) {
                 footerCloseBtn.addEventListener('click', function() {
                     closeViewModal();
@@ -833,13 +835,21 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                     closeViewModal();
                 }
             });
+            
+            // Add ESC key handler
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && viewModal.classList.contains('show')) {
+                    closeViewModal();
+                }
+            });
         }
+        
+
     }
     
     // Function to close view modal
     function closeViewModal() {
         const modal = document.getElementById('viewDetailsModal');
-        const backdrop = document.getElementById('manual-backdrop-viewers');
         
         // Hide modal
         modal.style.display = 'none';
@@ -847,11 +857,14 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
         modal.removeAttribute('aria-modal');
         modal.removeAttribute('role');
         
-        // Remove backdrop
-        if (backdrop) {
+        // Remove all backdrops to prevent backdrop persistence
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
             backdrop.remove();
-            document.body.classList.remove('modal-open');
-        }
+        });
+        
+        // Remove modal-open class from body
+        document.body.classList.remove('modal-open');
     }
     
     // Global function definitions
@@ -1005,10 +1018,16 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
             modal.style.display = 'none';
             modal.classList.remove('show');
             document.body.classList.remove('modal-open');
-            var backdrop = document.getElementById('manual-backdrop');
-            if (backdrop) backdrop.remove();
+            
+            // Remove all backdrops
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.remove();
+            });
         }
     };
+    
+
     
     // Global function to filter announcements by category
     window.filterAnnouncementsByCategory = function(categoryId) {
@@ -1074,27 +1093,8 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
         document.getElementById('imageViewerImage').alt = imageName;
         document.getElementById('imageDownloadLink').href = imageUrl;
         
-        var modal = document.getElementById('imageViewerModal');
-        if (typeof $ !== 'undefined' && typeof $.fn.modal !== 'undefined') {
-            $(modal).modal('show');
-        } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            var modalInstance = new bootstrap.Modal(modal);
-            modalInstance.show();
-        } else {
-            console.warn('No modal framework available, using basic display');
-            modal.style.display = 'block';
-            modal.classList.add('show');
-            modal.setAttribute('aria-modal', 'true');
-            modal.setAttribute('role', 'dialog');
-            
-            if (!document.getElementById('manual-backdrop')) {
-                var backdrop = document.createElement('div');
-                backdrop.className = 'modal-backdrop fade show';
-                backdrop.id = 'manual-backdrop';
-                document.body.appendChild(backdrop);
-                document.body.classList.add('modal-open');
-            }
-        }
+        // Use the same modal system as attachmentModal
+        showModal('imageViewerModal');
     };
     
     // Initialize when DOM is ready
@@ -1105,6 +1105,8 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     }
     
     window.addEventListener('load', initializeAnnouncementPage);
+    
+
     
     // Initialize mobile category select functionality
     function initializeMobileCategorySelect() {
@@ -1625,7 +1627,10 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     function showModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            modal.style.display = 'block';
             modal.classList.add('show');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('role', 'dialog');
             document.body.classList.add('modal-open');
         }
     }
@@ -1633,8 +1638,17 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
     function hideModal(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
+            modal.style.display = 'none';
             modal.classList.remove('show');
+            modal.removeAttribute('aria-modal');
+            modal.removeAttribute('role');
             document.body.classList.remove('modal-open');
+            
+            // Remove all backdrops to prevent issues
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.remove();
+            });
         }
     }
 
@@ -1729,6 +1743,16 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                 });
             }
         });
+        
+        // Add specific event handler for imageViewerModal
+        const imageViewerModal = document.getElementById('imageViewerModal');
+        if (imageViewerModal) {
+            imageViewerModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideModal('imageViewerModal');
+                }
+            });
+        }
     });
 </script>
 
@@ -1869,11 +1893,11 @@ button.btn.btn-sm.btn-icon.btn-light-secondary .fas.fa-thumbtack {
                 </div>
             </div>
             <div class="modal-footer bg-light border-0 py-2">
-                <button type="button" class="btn btn-light-secondary font-weight-bold px-4 mr-2" onclick="hideModal('attachmentModal')">
-                    <i class="ki ki-close mr-1"></i>Close
+                <button type="button" class="btn btn-white font-weight-bold px-4 mr-2" onclick="hideModal('attachmentModal')">
+                    <i class="ki-solid ki-cross-square mr-1"></i>Close
                 </button>
-                <a href="#" id="downloadAttachment" class="btn btn-light-warning font-weight-bold px-4" download>
-                    <i class="fas fa-download mr-1"></i>Download
+                <a href="#" id="downloadAttachment" class="btn btn-dark font-weight-bold px-4" download>
+                    <i class="ki-solid ki-cloud-download mr-1"></i>Download
                 </a>
             </div>
         </div>
