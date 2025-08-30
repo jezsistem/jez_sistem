@@ -22,7 +22,7 @@
                                     <!--end::Svg Icon-->
                                 </span>Export</a>
                     </div>
-                    <div class="dropdown dropdown-inline mr-2">
+                    <div class="dropdown dropdown-inline mr-10">
                         <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
                                 <span class="svg-icon svg-icon-md">
                                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -36,6 +36,9 @@
                                     <!--end::Svg Icon-->
                                 </span>Import</a>
                     </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
                     <!--begin::Dropdown Menu-->
                     <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
                         <!--begin::Navigation-->
@@ -243,7 +246,7 @@
                         <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
                     </div>
                     {{-- <div class="col-4 mt-5"></div> --}}
-                    <div class="col-4 mt-5">
+                    <div class="col-4 mt-3 d-flex flex-column">
                         <label class="badge badge-primary">Bukti Gambar Invoice dan Paket                               </label>
                         <div class="row justify-content-start">
                             <a class="input-group col-5" type="button" id="InvoiceImagesBtn" aria-haspopup="true" aria-expanded="false">
@@ -318,7 +321,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-danger font-weight-bold" style="margin-right: 20px" id="cancel_purchase_order_btn">Hapus PO</button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn">Tutup</button>
+                <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn" disabled>Tutup</button>
             </div>
             </form>
         </div>

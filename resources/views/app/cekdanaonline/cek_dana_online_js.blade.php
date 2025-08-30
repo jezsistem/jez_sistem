@@ -198,11 +198,12 @@
                     modalBody.find('tr').eq(10).find('td').eq(1).text(response.affiliate_commission ? 'Rp ' + formatRupiah(response.affiliate_commission) : 'Rp 0');
                     modalBody.find('tr').eq(11).find('td').eq(1).text(response.marketplace_commission_fee ? 'Rp ' + formatRupiah(response.marketplace_commission_fee) : 'Rp 0');
                     modalBody.find('tr').eq(12).find('td').eq(1).text(response.service_fee ? 'Rp ' + formatRupiah(response.service_fee) : 'Rp 0');
-                    modalBody.find('tr').eq(13).find('td').eq(1).text(response.voucher_xtra_service_fee ? 'Rp ' + formatRupiah(response.voucher_xtra_service_fee) : 'Rp 0');
-                    modalBody.find('tr').eq(14).find('td').eq(1).text(response.cashback_service_fee ? 'Rp ' + formatRupiah(response.cashback_service_fee) : 'Rp 0');
-                    modalBody.find('tr').eq(15).find('td').eq(1).text(response.total_fee ? 'Rp ' + formatRupiah(response.total_fee) : 'Rp 0');
-                    modalBody.find('tr').eq(16).find('td').eq(1).text(response.fee_persentage || '-');
-                    modalBody.find('tr').eq(17).find('td').eq(1).text(response.total_settle ? 'Rp ' + formatRupiah(response.total_settle) : 'Rp 0');
+                    modalBody.find('tr').eq(13).find('td').eq(1).text(response.dynamic_commission ? 'Rp ' + formatRupiah(response.dynamic_commission) : 'Rp 0');
+                    modalBody.find('tr').eq(14).find('td').eq(1).text(response.voucher_xtra_service_fee ? 'Rp ' + formatRupiah(response.voucher_xtra_service_fee) : 'Rp 0');
+                    modalBody.find('tr').eq(15).find('td').eq(1).text(response.cashback_service_fee ? 'Rp ' + formatRupiah(response.cashback_service_fee) : 'Rp 0');
+                    modalBody.find('tr').eq(16).find('td').eq(1).text(response.total_fee ? 'Rp ' + formatRupiah(response.total_fee) : 'Rp 0');
+                    modalBody.find('tr').eq(17).find('td').eq(1).text(response.fee_persentage || '-');
+                    modalBody.find('tr').eq(18).find('td').eq(1).text(response.total_settle ? 'Rp ' + formatRupiah(response.total_settle) : 'Rp 0');
                 }
                 },
                 error: function() {

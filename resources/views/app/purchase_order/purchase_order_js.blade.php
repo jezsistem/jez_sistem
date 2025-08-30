@@ -2,7 +2,7 @@
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 <script>
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
@@ -642,8 +642,8 @@
         var no_order = $('#po_invoice_label').text();
 
         if (status_disputeValue === "") {
-        return;
-    }
+            return;
+        }
 
         $.ajax({
             url: "{{ url('status_dispute_save') }}",
@@ -1197,7 +1197,7 @@
             var po_id = purchase_order_table.row(this).data().po_id;
 
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id,'pembelian');
+            const lockResult = await openEditModal('purchase_order', po_id, 'pembelian');
             if (lockResult === false) {
                 return;
             }
@@ -1205,7 +1205,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id,'pembelian');
+                extendLock('purchase_order', po_id, 'pembelian');
             }, 60000);
 
             $.ajaxSetup({
@@ -1278,7 +1278,7 @@
         $('.add_po_btn').on('click', function() {
             type = $(this).data('type');
             if (type == 'with_item') {
-                
+
             } else if (type == 'without_item') {
                 $('#detail_po').addClass('d-none');
                 $('.without_item_input').removeClass('d-none');
@@ -1340,6 +1340,25 @@
             var id = $('#_po_id').val();
             reloadArticleDetail(id);
         });
+
+        function checkRequiredSelects() {
+            let tax_id = $('#tax_id').val();
+            let dp_id = $('#dp_id').val();
+            let acc_id = $('#acc_id').val();
+
+            if (tax_id && dp_id && acc_id) {
+                $('#save_purchase_order_btn').prop('disabled', false);
+            } else {
+                $('#save_purchase_order_btn').prop('disabled', true);
+            }
+        }
+
+        // panggil saat ganti select
+        $('#tax_id, #dp_id, #acc_id').on('change', checkRequiredSelects);
+
+        // panggil awal
+        checkRequiredSelects();
+
 
         $('#save_purchase_order_btn').on('click', function(e) {
             e.preventDefault();
@@ -1579,8 +1598,7 @@
                 success: function(r) {
                     if (r.status == '200') {
 
-                    } else {
-                    }
+                    } else {}
                 }
             });
         });

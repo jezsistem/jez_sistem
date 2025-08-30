@@ -50,6 +50,10 @@
                     name: 'pd_value'
                 },
                 {
+                    data: 'pd_date_start_show',
+                    name: 'pd_date_start'
+                },
+                {
                     data: 'pd_date_show',
                     name: 'pd_date'
                 },
@@ -67,6 +71,18 @@
             order: [
                 [0, 'desc']
             ],
+        });
+
+
+        $('#st_id_filter').select2({
+            width: "300px",
+            dropdownParent: $('#st_id_filter_parent')
+        });
+        
+        $('#st_id_filter').on('select2:open', function(e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
         });
 
         $('#st_id_filter').on('change', function() {
@@ -228,6 +244,7 @@
             var std_id = product_discount_table.row(this).data().std_id;
             var pd_type = product_discount_table.row(this).data().pd_type;
             var pd_value = product_discount_table.row(this).data().pd_value;
+            var pd_date_start = product_discount_table.row(this).data().pd_date_start;
             var pd_date = product_discount_table.row(this).data().pd_date;
             jQuery.noConflict();
             $('#ProductDiscountModal').modal('show');
@@ -236,6 +253,7 @@
             $('#st_id').val(st_id);
             $('#std_id').val(std_id);
             $('#pd_value').val(pd_value);
+            $('#pd_date_start').val(pd_date_start);
             $('#pd_date').val(pd_date);
             $('#_id').val(id);
             $('#_mode').val('edit');

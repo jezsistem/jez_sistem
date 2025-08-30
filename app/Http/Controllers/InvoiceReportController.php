@@ -102,10 +102,10 @@ class InvoiceReportController extends Controller
                     if (!empty($data->pm_id)) {
                         $payment_one = PaymentMethod::select('pm_name')->where('id', '=', $data->pm_id)->get()->first()->pm_name;
                     }
-                    if (!empty($data->cp_id)) {
-                        $card_provider_one = CardProvider::select('cp_name')->where('id', '=', $data->cp_id)->get()->first()->cp_name;
-                    }
-                    return $payment_one . ' ' . $card_provider_one;
+                    // if (!empty($data->cp_id)) {
+                    //     $card_provider_one = CardProvider::select('cp_name')->where('id', '=', $data->cp_id)->get()->first()->cp_name;
+                    // }
+                    return $payment_one;
                 })
                 ->editColumn('payment_two', function ($data) {
                     $payment_two = '';
@@ -113,10 +113,10 @@ class InvoiceReportController extends Controller
                     if (!empty($data->pm_id_partial)) {
                         $payment_two = PaymentMethod::select('pm_name')->where('id', '=', $data->pm_id_partial)->get()->first()->pm_name;
                     }
-                    if (!empty($data->cp_id_partial)) {
-                        $card_provider_two = CardProvider::select('cp_name')->where('id', '=', $data->cp_id_partial)->get()->first()->cp_name;
-                    }
-                    return $payment_two . ' ' . $card_provider_two;
+                    // if (!empty($data->cp_id_partial)) {
+                    //     $card_provider_two = CardProvider::select('cp_name')->where('id', '=', $data->cp_id_partial)->get()->first()->cp_name;
+                    // }
+                    return $payment_two;
                 })
                 ->editColumn('value_admin', function ($data) {
                     $total = 0;
