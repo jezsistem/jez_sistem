@@ -2030,6 +2030,8 @@ class AttendanceController extends Controller
             // Get daily schedule for this user and date with shift codes
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
                 ->where('daily_schedules.ds_status', 'scheduled')
@@ -2038,7 +2040,9 @@ class AttendanceController extends Controller
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time',
                     'shift_codes.sc_code',
-                    'shift_codes.sc_shift_name'
+                    'shift_codes.sc_shift_name',
+                    'users.ut_id',
+                    'user_types.ut_name as user_type_name'
                 ])
                 ->first();
 
@@ -2086,6 +2090,31 @@ class AttendanceController extends Controller
             }
             // Case 3: Has schedule and both time records
             else {
+                // Check shift code compatibility with user type using new pivot table structure
+                if ($dailySchedule->sc_id && $dailySchedule->user_type_name) {
+                    $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
+                    if ($shiftCodeModel) {
+                        // Check compatibility using new pivot table relationship
+                        $isCompatible = $shiftCodeModel->userTypes()
+                            ->where('ut_name', $dailySchedule->user_type_name)
+                            ->exists();
+                        
+                        // Also check legacy compatibility for backward compatibility
+                        if (!$isCompatible) {
+                            $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
+                        }
+                        
+                        if (!$isCompatible) {
+                            \Log::warning('Shift code not compatible with user type', [
+                                'attendance_id' => $attendance->id,
+                                'shift_code_id' => $dailySchedule->sc_id,
+                                'shift_code' => $dailySchedule->sc_code,
+                                'user_type' => $dailySchedule->user_type_name
+                            ]);
+                        }
+                    }
+                }
+                
                 $status = $this->calculateAttendanceStatus($attendance, $dailySchedule);
                 $notes = $this->generateAttendanceNotes($attendance, $dailySchedule, $status);
                 
@@ -2292,6 +2321,8 @@ class AttendanceController extends Controller
             // Get daily schedule
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
                 ->where('daily_schedules.ds_status', 'scheduled')
@@ -2300,9 +2331,36 @@ class AttendanceController extends Controller
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time',
                     'shift_codes.sc_code',
-                    'shift_codes.sc_shift_name'
+                    'shift_codes.sc_shift_name',
+                    'users.ut_id',
+                    'user_types.ut_name as user_type_name'
                 ])
                 ->first();
+            
+            // Check shift code compatibility with user type using new pivot table structure
+            if ($dailySchedule && $dailySchedule->sc_id && $dailySchedule->user_type_name) {
+                $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
+                if ($shiftCodeModel) {
+                    // Check compatibility using new pivot table relationship
+                    $isCompatible = $shiftCodeModel->userTypes()
+                        ->where('ut_name', $dailySchedule->user_type_name)
+                        ->exists();
+                    
+                    // Also check legacy compatibility for backward compatibility
+                    if (!$isCompatible) {
+                        $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
+                    }
+                    
+                    if (!$isCompatible) {
+                        \Log::warning('Shift code not compatible with user type in reprocessSingleAttendance', [
+                            'attendance_id' => $attendance->id,
+                            'shift_code_id' => $dailySchedule->sc_id,
+                            'shift_code' => $dailySchedule->sc_code,
+                            'user_type' => $dailySchedule->user_type_name
+                        ]);
+                    }
+                }
+            }
             
             // Calculate status manually
             $calculatedStatus = $this->calculateAttendanceStatus((object)$attendance, $dailySchedule);
@@ -2399,6 +2457,8 @@ class AttendanceController extends Controller
             // Get daily schedule
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
                 ->where('daily_schedules.ds_status', 'scheduled')
@@ -2407,7 +2467,9 @@ class AttendanceController extends Controller
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time',
                     'shift_codes.sc_code',
-                    'shift_codes.sc_shift_name'
+                    'shift_codes.sc_shift_name',
+                    'users.ut_id',
+                    'user_types.ut_name as user_type_name'
                 ])
                 ->first();
             
