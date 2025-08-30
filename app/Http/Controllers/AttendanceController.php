@@ -2205,6 +2205,8 @@ class AttendanceController extends Controller
                 
             \Log::info('Daily schedule lookup result', [
                 'attendance_id' => $attendance->id,
+                'user_id' => $attendance->user_id,
+                'date' => $attendance->at_date,
                 'schedule_found' => !is_null($dailySchedule),
                 'schedule_data' => $dailySchedule ? [
                     'id' => $dailySchedule->id,
@@ -2212,27 +2214,24 @@ class AttendanceController extends Controller
                     'sc_code' => $dailySchedule->sc_code,
                     'sc_shift_name' => $dailySchedule->sc_shift_name,
                     'user_type' => $dailySchedule->user_type_name,
-                    'ds_status' => $dailySchedule->ds_status
-                ] : null
-            ]);
-
-            \Log::info('Daily schedule lookup result', [
-                'user_id' => $attendance->user_id,
-                'date' => $attendance->at_date,
-                'schedule_found' => !is_null($dailySchedule),
-                'schedule_data' => $dailySchedule ? [
-                    'ds_id' => $dailySchedule->id,
-                    'sc_id' => $dailySchedule->sc_id,
+                    'ds_status' => $dailySchedule->ds_status,
                     'sc_start_time' => $dailySchedule->sc_start_time,
-                    'sc_end_time' => $dailySchedule->sc_end_time,
-                    'sc_code' => $dailySchedule->sc_code,
-                    'sc_shift_name' => $dailySchedule->sc_shift_name
+                    'sc_end_time' => $dailySchedule->sc_end_time
                 ] : null
             ]);
 
             // Check if user has both time_in and time_out
             $hasTimeIn = !empty($attendance->at_time_in);
             $hasTimeOut = !empty($attendance->at_time_out);
+            
+            \Log::info('Time record analysis', [
+                'attendance_id' => $attendance->id,
+                'has_time_in' => $hasTimeIn,
+                'has_time_out' => $hasTimeOut,
+                'time_in' => $attendance->at_time_in,
+                'time_out' => $attendance->at_time_out,
+                'is_scan_once' => (!$hasTimeIn || !$hasTimeOut)
+            ]);
 
             // Case 1: No schedule found
             if (!$dailySchedule) {
@@ -2247,10 +2246,28 @@ class AttendanceController extends Controller
             }
             // Case 2: Only one time record (in or out)
             elseif (!$hasTimeIn || !$hasTimeOut) {
+                \Log::info('Processing scan once case', [
+                    'attendance_id' => $attendance->id,
+                    'has_time_in' => $hasTimeIn,
+                    'has_time_out' => $hasTimeOut,
+                    'has_schedule' => !empty($dailySchedule),
+                    'has_start_time' => $dailySchedule ? !empty($dailySchedule->sc_start_time) : false
+                ]);
+                
                 // PERBAIKAN: Cek apakah scan masuk terlambat meskipun scan once
                 if ($hasTimeIn && $dailySchedule && $dailySchedule->sc_start_time) {
                     $timeInMinutes = $this->timeToMinutes($attendance->at_time_in);
                     $shiftStartMinutes = $this->timeToMinutes($dailySchedule->sc_start_time);
+                    
+                    \Log::info('Time comparison for scan once', [
+                        'attendance_id' => $attendance->id,
+                        'time_in' => $attendance->at_time_in,
+                        'time_in_minutes' => $timeInMinutes,
+                        'schedule_start' => $dailySchedule->sc_start_time,
+                        'schedule_start_minutes' => $shiftStartMinutes,
+                        'is_late' => $timeInMinutes > $shiftStartMinutes,
+                        'difference_minutes' => $timeInMinutes - $shiftStartMinutes
+                    ]);
                     
                     if ($timeInMinutes > $shiftStartMinutes) {
                         // Scan once tapi terlambat
