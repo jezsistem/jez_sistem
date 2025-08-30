@@ -2060,10 +2060,14 @@ class AttendanceController extends Controller
         $errorCount = 0;
 
         try {
-            // Get all attendance records from upload source within date range
+            // Get all attendance records that need daily_schedule_id update within date range
             $attendanceRecords = DB::table('attendance')
-                ->where('at_source', 'upload')
                 ->whereBetween('at_date', [$startDate, $endDate])
+                ->where(function($query) {
+                    $query->where('daily_schedule_id', 'IS', null)
+                          ->orWhere('daily_schedule_id', '=', '')
+                          ->orWhere('daily_schedule_id', '=', 0);
+                })
                 ->get();
                 
             \Log::info('Found attendance records to process', [
@@ -2074,10 +2078,28 @@ class AttendanceController extends Controller
                         'id' => $record->id,
                         'user_id' => $record->user_id,
                         'date' => $record->at_date,
-                        'daily_schedule_id' => $record->daily_schedule_id
+                        'daily_schedule_id' => $record->daily_schedule_id,
+                        'at_source' => $record->at_source
                     ];
                 })->toArray()
             ]);
+            
+            // Debug: Check if there are any records at all
+            if ($attendanceRecords->count() == 0) {
+                \Log::warning('No attendance records found that need daily_schedule_id update', [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'total_attendance_count' => DB::table('attendance')->count(),
+                    'attendance_without_schedule' => DB::table('attendance')
+                        ->whereBetween('at_date', [$startDate, $endDate])
+                        ->where(function($query) {
+                            $query->where('daily_schedule_id', 'IS', null)
+                                  ->orWhere('daily_schedule_id', '=', '')
+                                  ->orWhere('daily_schedule_id', '=', 0);
+                        })->count(),
+                    'date_range_count' => DB::table('attendance')->whereBetween('at_date', [$startDate, $endDate])->count()
+                ]);
+            }
 
             \Log::info('Found attendance records to process', [
                 'count' => $attendanceRecords->count(),
@@ -2154,7 +2176,7 @@ class AttendanceController extends Controller
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
-                ->where('daily_schedules.ds_status', 'scheduled')
+                ->whereIn('daily_schedules.ds_status', ['scheduled', 'active'])  // ✅ Terima 'scheduled' dan 'active'
                 ->select([
                     'daily_schedules.*',
                     'shift_codes.sc_start_time',
@@ -2164,6 +2186,7 @@ class AttendanceController extends Controller
                     'users.ut_id',
                     'user_types.ut_name as user_type_name'
                 ])
+                ->orderBy('daily_schedules.ds_status', 'desc')  // ✅ Prioritaskan 'scheduled' dulu
                 ->first();
                 
             \Log::info('Daily schedule lookup result', [
@@ -2174,7 +2197,8 @@ class AttendanceController extends Controller
                     'sc_id' => $dailySchedule->sc_id,
                     'sc_code' => $dailySchedule->sc_code,
                     'sc_shift_name' => $dailySchedule->sc_shift_name,
-                    'user_type' => $dailySchedule->user_type_name
+                    'user_type' => $dailySchedule->user_type_name,
+                    'ds_status' => $dailySchedule->ds_status
                 ] : null
             ]);
 
@@ -2277,13 +2301,25 @@ class AttendanceController extends Controller
                     'attendance_id' => $attendance->id,
                     'daily_schedule_id' => $dailySchedule->id,
                     'shift_code' => $dailySchedule->sc_code,
-                    'shift_name' => $dailySchedule->sc_shift_name
+                    'shift_name' => $dailySchedule->sc_shift_name,
+                    'ds_status' => $dailySchedule->ds_status
                 ]);
             } else {
                 \Log::warning('No daily schedule found for attendance', [
                     'attendance_id' => $attendance->id,
                     'user_id' => $attendance->user_id,
-                    'date' => $attendance->at_date
+                    'date' => $attendance->at_date,
+                    'possible_reasons' => [
+                        'no_daily_schedule_for_user' => DB::table('daily_schedules')
+                            ->where('user_id', $attendance->user_id)
+                            ->where('ds_date', $attendance->at_date)
+                            ->count(),
+                        'daily_schedule_exists_but_wrong_status' => DB::table('daily_schedules')
+                            ->where('user_id', $attendance->user_id)
+                            ->where('ds_date', $attendance->at_date)
+                            ->whereNotIn('ds_status', ['scheduled', 'active'])
+                            ->count()
+                    ]
                 ]);
             }
             
