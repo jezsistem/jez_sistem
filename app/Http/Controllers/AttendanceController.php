@@ -2101,12 +2101,17 @@ class AttendanceController extends Controller
                 if ($attendanceRecords->count() == 0) {
                     \Log::warning('Fallback query also returned 0 records, trying alternative approach');
                     
-                    // Jika tidak ada data dalam range tanggal, ambil SEMUA data tanpa daily_schedule_id
+                    // PERBAIKAN: Ambil SEMUA data tanpa daily_schedule_id (tidak terbatas tanggal)
                     $attendanceRecords = DB::table('attendance')
                         ->whereNull('daily_schedule_id')
                         ->get();
                         
-                    \Log::info('Retrieved all records without daily_schedule_id', ['count' => $attendanceRecords->count()]);
+                    \Log::info('Retrieved ALL records without daily_schedule_id (across all dates)', [
+                        'count' => $attendanceRecords->count(),
+                        'date_range_requested' => [$startDate, $endDate],
+                        'note' => 'Processing all dates because no records found in requested date range',
+                        'sample_dates' => $attendanceRecords->take(5)->pluck('at_date')->toArray()
+                    ]);
                 }
             }
                 
