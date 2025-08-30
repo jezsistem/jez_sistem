@@ -2063,11 +2063,7 @@ class AttendanceController extends Controller
             // Get all attendance records that need daily_schedule_id update within date range
             $attendanceRecords = DB::table('attendance')
                 ->whereBetween('at_date', [$startDate, $endDate])
-                ->where(function($query) {
-                    $query->where('daily_schedule_id', 'IS', null)
-                          ->orWhere('daily_schedule_id', '=', '')
-                          ->orWhere('daily_schedule_id', '=', 0);
-                })
+                ->whereNull('daily_schedule_id')
                 ->get();
                 
             // If no records need update in date range, get ALL records without daily_schedule_id
@@ -2083,12 +2079,9 @@ class AttendanceController extends Controller
                     'total_records' => $allAttendance->count()
                 ]);
                 
+                // PERBAIKAN: Gunakan query yang lebih sederhana dan pastikan berfungsi
                 $attendanceRecords = DB::table('attendance')
-                    ->where(function($query) {
-                        $query->where('daily_schedule_id', 'IS', null)
-                              ->orWhere('daily_schedule_id', '=', '')
-                              ->orWhere('daily_schedule_id', '=', 0);
-                    })
+                    ->whereNull('daily_schedule_id')
                     ->get();
                     
                 \Log::info('Found records without daily_schedule_id across all dates', [
@@ -2103,6 +2096,25 @@ class AttendanceController extends Controller
                         ];
                     })->toArray()
                 ]);
+                
+                // PERBAIKAN: Jika masih kosong, coba query alternatif
+                if ($attendanceRecords->count() == 0) {
+                    \Log::warning('Fallback query also returned 0 records, trying alternative approach');
+                    
+                    // Coba query dengan raw SQL untuk memastikan
+                    $rawCount = DB::select("SELECT COUNT(*) as count FROM attendance WHERE daily_schedule_id IS NULL");
+                    $rawCount = $rawCount[0]->count ?? 0;
+                    
+                    \Log::info('Raw SQL count for NULL daily_schedule_id', ['count' => $rawCount]);
+                    
+                    if ($rawCount > 0) {
+                        // Jika raw SQL menemukan data, gunakan query sederhana
+                        $attendanceRecords = DB::table('attendance')
+                            ->whereNull('daily_schedule_id')
+                            ->get();
+                        \Log::info('Retrieved records using simple whereNull query', ['count' => $attendanceRecords->count()]);
+                    }
+                }
             }
                 
             // Debug: Check attendance records with daily_schedule_id
