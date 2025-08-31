@@ -71,7 +71,7 @@
     let route = window.location.pathname;
     console.log(route); // contoh: "/helper_backup"
 
-    if (route !== "/helper_backup" || route !== "/helper_backup_v1") {
+    if (route !== "/helper_backup" && route !== "/helper_backup_v1") {
         function ensureDataTablesAvailable() {
             if (typeof $.fn.DataTable === 'undefined') {
                 console.warn('DataTables not available, attempting to reload...');
