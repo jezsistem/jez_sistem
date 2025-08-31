@@ -285,7 +285,7 @@ class AnnouncementController extends Controller
             // Send notifications to recipients
             $this->sendAnnouncementNotifications($announcement);
             
-            return redirect()->route('announcements.manage')->with('success', 'Announcement created successfully!');
+            return redirect()->route('announcements.index')->with('success', 'Announcement created successfully!');
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Error creating announcement: ' . $e->getMessage())->withInput();
@@ -298,8 +298,8 @@ class AnnouncementController extends Controller
     public function edit($id)
     {
         $this->validateAccess();
-        $announcement = Announcement::with(['category', 'creator', 'recipients'])->findOrFail($id);
-        $categories = AnnouncementCategstorery::active()->orderBy('name')->get();
+        $announcement = Announcement::with(['category', 'creator', 'recipients', 'attachments'])->findOrFail($id);
+        $categories = AnnouncementCategory::active()->orderBy('name')->get();
         $divisions = DB::table('user_divisions')->where('ud_status', 'active')->orderBy('ud_name')->get();
         $users = DB::table('users')->where('u_delete', '0')->whereNotNull('u_nip')->orderBy('u_name')->get();
 
@@ -376,8 +376,33 @@ class AnnouncementController extends Controller
                 }
             }
 
+            // Handle file attachments - ADD new ones without deleting existing
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $originalName = $file->getClientOriginalName();
+                    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    $filePath = $file->storeAs('announcements', $fileName, 'public');
+                    
+                    $fileType = strtolower($file->getClientOriginalExtension());
+                    $mimeType = $file->getMimeType();
+                    $fileSize = $file->getSize();
+                    $isImage = str_starts_with($mimeType, 'image/');
+
+                    AnnouncementAttachment::create([
+                        'announcement_id' => $announcement->id,
+                        'file_name' => $fileName,
+                        'original_name' => $originalName,
+                        'file_path' => $filePath,
+                        'file_type' => $fileType,
+                        'mime_type' => $mimeType,
+                        'file_size' => $fileSize,
+                        'is_image' => $isImage
+                    ]);
+                }
+            }
+
             DB::commit();
-            return redirect()->route('announcements.manage')->with('success', 'Announcement updated successfully!');
+            return redirect()->route('announcements.index')->with('success', 'Announcement updated successfully!');
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Error updating announcement: ' . $e->getMessage())->withInput();
@@ -776,6 +801,45 @@ class AnnouncementController extends Controller
                 'announcement_id' => $announcement->id,
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * Remove attachment from announcement
+     */
+    public function removeAttachment($id)
+    {
+        try {
+            $attachment = AnnouncementAttachment::findOrFail($id);
+            
+            // Check if user has permission to remove this attachment
+            $announcement = $attachment->announcement;
+            if ($announcement->created_by !== Auth::id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have permission to remove this attachment'
+                ], 403);
+            }
+            
+            // Delete file from storage
+            if (Storage::disk('public')->exists($attachment->file_path)) {
+                Storage::disk('public')->delete($attachment->file_path);
+            }
+            
+            // Delete attachment record
+            $attachment->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Attachment removed successfully'
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error removing attachment: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error removing attachment: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

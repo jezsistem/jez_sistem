@@ -203,9 +203,11 @@
                     if (response.stats) {
                         $('#total_shifts').text(response.stats.total_shifts || 0);
                         $('#present_days').text(response.stats.present_days || 0);
+                        $('#total_libur').text(response.stats.total_libur || 0);
                         $('#sick_days').text(response.stats.sick_days || 0);
                         $('#leave_days').text(response.stats.leave_days || 0);
                         $('#late_days').text(response.stats.late_days || 0);
+                        $('#scan_once_days').text(response.stats.scan_once_days || 0);
                         $('#alpha_days').text(response.stats.alpha_days || 0);
                     }
                 },

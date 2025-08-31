@@ -967,6 +967,7 @@ Route::get('test-csrf', function() {
     Route::get('announcements/{id}/reactions', [AnnouncementController::class, 'getReactionDetails'])->name('announcements.reaction-details');
     Route::post('announcements/{id}/view', [AnnouncementController::class, 'trackView'])->name('announcements.track-view');
     Route::get('announcements/{id}/viewers', [AnnouncementController::class, 'getViewers'])->name('announcements.viewers');
+Route::delete('announcements/attachment/{id}/remove', [AnnouncementController::class, 'removeAttachment'])->name('announcements.remove-attachment');
 
 
     // Announcement Categories
