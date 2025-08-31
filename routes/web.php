@@ -98,6 +98,7 @@ use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
 use App\Http\Controllers\LockController;
+use App\Models\PositionAccessController;
 use Illuminate\Support\Facades\DB;
 /*
 |--------------------------------------------------------------------------
@@ -997,6 +998,13 @@ Route::get('test-csrf', function() {
         Route::put('/extend', 'extendLock')->name('lock.extend'); // Untuk heartbeat
         Route::delete('/release', 'releaseLock')->name('lock.release');
     });
+
+    Route::get('position-access', [PositionAccessController::class, 'index']);
+    Route::get('position-access-datatables', [PositionAccessController::class, 'getDatatables']);
+    Route::post('position-access-save', [PositionAccessController::class, 'storeData']);
+    Route::post('position-access-delete/{route}/{position_id}', [PositionAccessController::class, 'deleteData']);
+    Route::get('reload_position', [PositionAccessController::class, 'reloadPosition']);
+    Route::post('change_access', [PositionAccessController::class, 'changeAccess']);
 });
 
 require __DIR__ . '/purchase_order.php';
