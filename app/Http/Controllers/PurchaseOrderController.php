@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PurchaseOrderArticleExport;
+use App\Exports\PurchaseOrderRecevieExport;
 use App\Models\Account;
 use App\Models\PreOrder;
 use App\Models\ProductLocationSetup;
@@ -114,7 +115,8 @@ class PurchaseOrderController extends Controller
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
             'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
             'pro_id' => PreOrder::getAllDataPO(),
-            'segment' => request()->segment(1),];
+            'segment' => request()->segment(1),
+        ];
         return view('app.purchase_order.purchase_order', compact('data'));
     }
 
@@ -171,7 +173,7 @@ class PurchaseOrderController extends Controller
                 ->editColumn('po_total', function ($data) {
                     $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
 
-                    $custom_sku_po = ProductStock::where('ps_barcode','CUSTOMPO')->get();
+                    $custom_sku_po = ProductStock::where('ps_barcode', 'CUSTOMPO')->get();
 
                     if (empty($custom_sku_po)) {
                         return false;
@@ -204,7 +206,7 @@ class PurchaseOrderController extends Controller
                 })
                 ->editColumn('po_status', function ($data) {
                     $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
-                    $custom_sku_po = ProductStock::where('ps_barcode','CUSTOMPO')->get();
+                    $custom_sku_po = ProductStock::where('ps_barcode', 'CUSTOMPO')->get();
 
                     if (empty($custom_sku_po)) {
                         return false;
@@ -266,7 +268,7 @@ class PurchaseOrderController extends Controller
 
                     $poa = PurchaseOrderArticle::where(['po_id' => $data->po_id])->get();
 
-                    $custom_sku_po = ProductStock::where('ps_barcode','CUSTOMPO')->get();
+                    $custom_sku_po = ProductStock::where('ps_barcode', 'CUSTOMPO')->get();
 
                     if (empty($custom_sku_po)) {
                         return false;
@@ -283,7 +285,6 @@ class PurchaseOrderController extends Controller
                     if ($has_custom_po_item) {
                         return true;
                     }
-                    
                 })
                 ->rawColumns(['po_status', 'u_receive'])
                 ->filter(function ($instance) use ($request) {
@@ -296,6 +297,48 @@ class PurchaseOrderController extends Controller
                                 ->orWhere('po_description', 'LIKE', "%$search%")
                                 ->orWhere('article_id', 'LIKE', "%$search%")
                                 ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
+                        });
+                    }
+                    if ($request->has('filter_dispute')) {
+                        $filter = $request->get('filter_dispute');
+
+                        if ($filter === '1') {
+                            $instance->where('dispute', 1);
+                        } elseif ($filter === '0') {
+                            $instance->where('dispute', 0);
+                        }
+                    }
+                    if ($request->has('po_status_filter')) {
+                        $filter = $request->get('po_status_filter');
+
+                        if ($filter === 'unfull') {
+                            $instance->whereNull('u_id_approve');
+                        } elseif ($filter === 'full') {
+                            $instance->whereNotNull('u_id_approve');
+                        }
+                    }
+                    if (!empty($request->get('date'))) {
+                        $instance->where(function ($w) use ($request) {
+                            $date = $request->get('date');
+                            $start = null;
+                            $end = null;
+                            $exp = explode('|', $date);
+                            if (count($exp) > 1) {
+                                if ($exp[0] != $exp[1]) {
+                                    $start = $exp[0];
+                                    $end = $exp[1];
+                                } else {
+                                    $start = $exp[0];
+                                }
+                            } else {
+                                $start = $date;
+                            }
+                            if (!empty($end)) {
+                                $w->whereDate('purchase_orders.created_at', '>=', $start)
+                                    ->whereDate('purchase_orders.created_at', '<=', $end);
+                            } else {
+                                $w->whereDate('purchase_orders.created_at', $start);
+                            }
                         });
                     }
                 })
@@ -655,7 +698,7 @@ class PurchaseOrderController extends Controller
                 foreach ($poa_data as $poa) {
                     $poad_data = PurchaseOrderArticleDetail::select('purchase_order_article_details.id as poad_id', 'sz_name', 'ps_qty', 'ps_running_code', 'ps_sell_price', 'ps_price_tag', 'ps_purchase_price', 'poad_qty', 'poad_purchase_price', 'poad_total_price', 'pst_id', 'ps_barcode', 'p_id')
                         ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
-//                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                        //                        ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                         ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where(['poa_id' => $poa->poa_id])->get();
 
@@ -680,10 +723,10 @@ class PurchaseOrderController extends Controller
                     if (!empty($poad_data)) {
                         // Define custom size order for T-shirt sizes
                         $tshirtSizesOrder = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
-                    
+
                         $poa->subitem = $poad_data->sortBy(function ($item) use ($tshirtSizesOrder) {
                             $szName = $item->sz_name;
-                    
+
                             // Check if it's a T-shirt size by looking for it in the custom size order
                             if (in_array($szName, $tshirtSizesOrder)) {
                                 // Return the index of the T-shirt size in the predefined order
@@ -696,11 +739,11 @@ class PurchaseOrderController extends Controller
                                 return PHP_INT_MAX;
                             }
                         });
-                    
+
                         array_push($get_product, $poa);
                     } else {
                         $get_product = null;
-                    }                    
+                    }
                 }
             } else {
                 $get_product = null;
@@ -898,7 +941,7 @@ class PurchaseOrderController extends Controller
         $fileName = 'purchase_order_article_' . $timestamp . '.xlsx';
         return Excel::download($export, $fileName);
     }
-    
+
     public function deleteImageTransfer(Request $request)
     {
         $delete = PurchaseOrderTransferImage::where(['id' => $request->id])->first();
@@ -963,4 +1006,10 @@ class PurchaseOrderController extends Controller
 
         return response()->json(['message' => 'Status Dispute berhasil disimpan']);
     }
+
+    public function exportpurchaseorderexport(Request $request)
+    {
+        return Excel::download(new PurchaseOrderRecevieExport($request), 'purchase_order_receive.xlsx');
+    }
+
 }

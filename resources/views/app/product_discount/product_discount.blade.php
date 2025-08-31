@@ -30,6 +30,16 @@
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
                         <div class="card-header flex-wrap py-3">
+                            <div class="form-group" style="padding-top:22px;">
+                                <select class="form-control bg-primary text-white" id="st_id_filter" name="st_id_filter"
+                                    required>
+                                    <option value="">- Store -</option>
+                                    @foreach ($data['st_id'] as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
+                                </select>
+                                <div id="st_id_filter_parent"></div>
+                            </div>
                             <div class="card-toolbar">
                                 <!--begin::Dropdown-->
                                 <div class="dropdown dropdown-inline mr-2">
@@ -78,13 +88,6 @@
                                     <!--end::Svg Icon-->
                                 </span>Data Baru</a>
                                 <!--end::Button-->
-                                <select class="form-control" id="st_id_filter" name="st_id_filter">
-                                    <option value="">- Store -</option>
-                                    <option value="all">** SEMUA **</option>
-                                    @foreach ($data['st_id'] as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                    @endforeach
-                                </select>
                             </div>
                         </div>
                         <div class="card-body table-responsive">
@@ -99,7 +102,8 @@
                                         <th class="text-dark">Divisi</th>
                                         <th class="text-dark">Tipe</th>
                                         <th class="text-dark">Jumlah</th>
-                                        <th class="text-dark">Selesai</th>
+                                        <th class="text-dark">Start</th>
+                                        <th class="text-dark">End</th>
                                         <th class="text-dark">Item</th>
                                     </tr>
                                 </thead>
