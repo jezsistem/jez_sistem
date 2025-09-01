@@ -1270,7 +1270,7 @@ class BreakTimeController extends Controller
             
             $breakDuration = 30; // default
             if ($dailySchedule && $dailySchedule->shiftCode) {
-                $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
+                $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->getBreakAllowancePrimaryType());
                 $breakDuration = $allowance[$activeBreak->bt_type]['duration'] ?? 30;
             }
 
