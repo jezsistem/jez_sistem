@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -189,7 +190,8 @@ class ShiftCode extends Model
     {
         // If this shift code has associated user types through pivot table
         $userTypes = $this->userTypes;
-        if ($userTypes->isNotEmpty()) {
+        
+        if ($userTypes->isNotEmpty() && $userTypes->count() === 1) {
             return $userTypes->first()->ut_name;
         }
         
@@ -244,7 +246,15 @@ class ShiftCode extends Model
         if (!$primaryType || $primaryType === 'MULTIPLE') {
             // Get first user type from relationship
             $userTypes = $this->userTypes;
+            $userTypesLoged = Auth::user()->userType->ut_name;
+            
             if ($userTypes->isNotEmpty()) {
+                // Find user type that matches the logged user's type
+                $matchingType = $userTypes->where('ut_name', $userTypesLoged)->first();
+                if ($matchingType) {
+                    return $matchingType->ut_name;
+                }
+                // If no match found, return first available type
                 return $userTypes->first()->ut_name;
             }
             
