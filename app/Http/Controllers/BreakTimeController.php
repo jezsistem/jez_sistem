@@ -19,13 +19,32 @@ class BreakTimeController extends Controller
 {
     protected function validateAccess()
     {
-        $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
-        if (!$validate) {
-            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user_position = auth()->user()->up_id;
+
+        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
+            ->where('user_groups.user_id', auth()->user()->id)
+            ->where('g_name', 'administrator')
+            ->exists();
+        
+        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->where('users.id', auth()->user()->id)
+            ->where('user_divisions.ud_code', 'HUMANRESOU')
+            ->exists();
+
+        if (!$user_group_is_admin && !$is_human_resource) {
+            $validate = DB::table('position_access')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
+                    'position_access.position_id' => $user_position,
+                    'position_access.route' => request()->path()
+                ])->exists();
+
+            if (!$validate) {
+                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
+            }
         }
     }
 

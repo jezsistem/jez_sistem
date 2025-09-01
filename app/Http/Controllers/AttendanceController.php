@@ -20,6 +20,34 @@ class AttendanceController extends Controller
 {
     protected function validateAccess()
     {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user_position = auth()->user()->up_id;
+
+        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
+            ->where('user_groups.user_id', auth()->user()->id)
+            ->where('g_name', 'administrator')
+            ->exists();
+
+        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->where('users.id', auth()->user()->id)
+            ->where('user_divisions.ud_code', 'HUMANRESOU')
+            ->exists();
+
+        if (!$user_group_is_admin  && !$is_human_resource) {
+            $check = DB::table('position_access')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
+                    'position_access.position_id' => $user_position,
+                    'position_access.route' => request()->path()
+                ])->exists();
+
+            if (!$check) {
+                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
+            }
+        }
+
         try {
             \Log::info('validateAccess - Starting', [
                 'user_id' => Auth::user()->id,
