@@ -8,20 +8,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateColumnVisibility() {
         if (dateFilter.value === 'now') {
-            // Hide other date columns in all tables
+            // Hide other date columns in all tables and set table width to 60%
             scheduleTables.forEach(table => {
                 const otherDateColumns = table.querySelectorAll('.other-date-column');
                 otherDateColumns.forEach(col => {
                     col.style.display = 'none';
                 });
+                // Set table width to 60% for NOW filter only
+                table.style.width = '50%';
             });
         } else {
-            // Show all columns in all tables
+            // Show all columns in all tables and reset table width
             scheduleTables.forEach(table => {
                 const otherDateColumns = table.querySelectorAll('.other-date-column');
                 otherDateColumns.forEach(col => {
                     col.style.display = '';
                 });
+                // Reset table width for other filters
+                table.style.width = '';
             });
         }
     }
@@ -98,8 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h3 class="card-label">Filters</h3>
                     </div>
                 </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ route('daily-schedules.weekly-report') }}">
+                <form method="GET" action="{{ route('daily-schedules.weekly-report') }}">
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-2">
                                 <label>Date Filter:</label>
@@ -117,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <small class="form-text text-muted">Select Monday to show full week</small>
                             </div>
                             <div class="col-md-2">
-                                <label>Team (Division):</label>
+                                <label>Division:</label>
                                 <select class="form-control" name="division_id" onchange="this.form.submit()">
                                     <option value="">All Divisions</option>
                                     @foreach($divisions as $division)
@@ -153,20 +157,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <label>Staff Name:</label>
                                 <input type="text" class="form-control" name="user_name" value="{{ $userName }}" placeholder="Enter staff name">
                             </div>
-                            <div class="col-md-2">
-                                <label>&nbsp;</label>
-                                <div>
-                                    <button type="submit" class="btn btn-primary btn-sm mr-2">
-                                        <i class="ki-outline ki-filter-search"></i> Filter
-                                    </button>
-                                    <a href="{{ route('daily-schedules.weekly-report') }}" class="btn btn-secondary btn-sm">
-                                        <i class="ki-outline ki-cross"></i> Clear
-                                    </a>
-                                </div>
-                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end py-6">
+                        <button type="submit" class="btn btn-primary btn-sm mr-3">
+                            <i class="ki-outline ki-filter-search"></i> Filter
+                        </button>
+                        <a href="{{ route('daily-schedules.weekly-report') }}" class="btn btn-secondary btn-sm">
+                            <i class="ki-outline ki-cross"></i> Clear
+                        </a>                
+                    </div>
+                </form>
             </div>
 
             <!-- Report Content -->
@@ -229,13 +230,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <table class="table table-bordered table-hover schedule-report-table">
                                     <thead class="bg-light-primary">
                                         <tr>
-                                            <th rowspan="2" class="text-center align-middle" style="min-width: 200px;">NAMA</th>
+                                            <th rowspan="2" class="text-center align-middle" style="min-width: 240px !important;max-width: 240px !important">NAMA</th>
                                             @foreach($weekDates as $date)
                                                 @php
                                                     $isToday = date('Y-m-d') === $date;
                                                     $dateClass = $isToday ? 'today-column' : 'other-date-column';
                                                 @endphp
-                                                <th colspan="2" class="{{ $dateClass }}" style="min-width: 120px;">
+                                                <th colspan="2" class="{{ $dateClass }} text-center" style="min-width: 120px;">
                                                     <div class="font-weight-bold">{{ date('l', strtotime($date)) }}</div>
                                                     <div class="font-size-sm">{{ date('d M', strtotime($date)) }}</div>
                                                 </th>
@@ -436,6 +437,13 @@ document.addEventListener('DOMContentLoaded', function() {
 .schedule-report-table {
     font-size: 12px;
     border-collapse: collapse;
+    transition: width 0.3s ease;
+}
+
+/* Table width for NOW filter */
+.schedule-report-table.filter-now {
+    width: 50% !important;
+    margin: 0 auto !important;
 }
 
 .schedule-report-table th,
@@ -508,7 +516,9 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-right: 8px;
     border: 1px solid #dee2e6;
 }
-
+.table thead th {
+    min-width: 120px !important;
+}
 
 </style>
 

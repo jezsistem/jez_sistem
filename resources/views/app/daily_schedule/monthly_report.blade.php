@@ -38,8 +38,8 @@
                         <h3 class="card-label">Filters</h3>
                     </div>
                 </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ route('daily-schedules.monthly-report') }}">
+                <form method="GET" action="{{ route('daily-schedules.monthly-report') }}" class="mb-0">
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-2 pr-2">
                                 <label>Month Filter:</label>
@@ -91,20 +91,18 @@
                                 <label>Staff Name:</label>
                                 <input type="text" class="form-control" name="user_name" value="{{ $userName }}" placeholder="Enter staff name">
                             </div>
-                            <div class="col-md-2 pr-0">
-                                <label>&nbsp;</label>
-                                <div>
-                                    <button type="submit" class="btn btn-primary btn-sm mr-2">
-                                        <i class="ki-outline ki-filter-search"></i> Filter
-                                    </button>
-                                    <a href="{{ route('daily-schedules.monthly-report') }}" class="btn btn-secondary btn-sm">
-                                        <i class="ki-outline ki-cross"></i> Clear
-                                    </a>
-                                </div>
-                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end py-6">
+                        <button type="submit" class="btn btn-primary btn-sm mr-3">
+                            <i class="ki-outline ki-filter-search"></i> Filter
+                        </button>
+                        <a href="{{ route('daily-schedules.monthly-report') }}" class="btn btn-secondary btn-sm">
+                            <i class="ki-outline ki-cross"></i> Clear
+                        </a>
+                    </div>
+                </form>
+
             </div>
 
             <!-- Report Content -->
@@ -649,11 +647,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // ✅ Add event listeners for division and shift filters
         const divisionFilter = document.getElementById('division_filter');
+        const positionFilter = document.getElementById('position_filter');
         const shiftFilter = document.getElementById('shift_filter');
         
         if (divisionFilter) {
             divisionFilter.addEventListener('change', function() {
                 console.log('Division filter changed to:', this.value);
+                // Auto-submit form to update the page
+                const form = document.querySelector('form[method="GET"]');
+                if (form) {
+                    form.submit();
+                }
+            });
+        }
+        
+        if (positionFilter) {
+            positionFilter.addEventListener('change', function() {
+                console.log('Position filter changed to:', this.value);
                 // Auto-submit form to update the page
                 const form = document.querySelector('form[method="GET"]');
                 if (form) {

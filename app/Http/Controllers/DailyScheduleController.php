@@ -1738,11 +1738,14 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
@@ -1813,9 +1816,13 @@ class DailyScheduleController extends Controller
     public function exportWeeklyReport(Request $request)
     {
         try {
+            // Get parameters from request - EXPORT WEEKLY EXCEL METHOD
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
             $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');  // Position filter ditambahkan
+            $shiftId = $request->get('shift_id');        // Shift filter ditambahkan
+            $userName = $request->get('user_name');      // User name filter ditambahkan
             $dateFilter = $request->get('date_filter', 'this_week');
 
             // If date filter is provided, calculate dates
@@ -1834,18 +1841,39 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
+                    'user_positions.up_name as position_name',  // Position name ditambahkan
                     'shift_codes.sc_code',
                     'shift_codes.sc_shift_name',
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time'
                 ])
-                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->join('users', 'users.id', '=', 'daily_schedules.user_id')  // JOIN (bukan leftJoin) untuk hanya user dengan schedule
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate]);
-
+                ->where('users.u_delete', '!=', '1')  // Filter user yang tidak dihapus
+                ->whereNotNull('users.u_nip')  // Hanya user dengan NIP
+                ->whereExists(function($query) use ($startDate, $endDate) {
+                    $query->select(DB::raw(1))
+                          ->from('daily_schedules')
+                          ->whereRaw('daily_schedules.user_id = users.id')
+                          ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate]);
+                }); // Hanya user yang memiliki schedule
+                
             if ($divisionId) {
                 $query->where('users.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  // Position filter ditambahkan
+                $query->where('users.up_id', $positionId);
+            }
+            
+            if ($shiftId) {  // Shift filter ditambahkan
+                $query->where('daily_schedules.sc_id', $shiftId);
+            }
+            
+            if ($userName) {  // User name filter ditambahkan
+                $query->where('users.u_name', 'like', '%' . $userName . '%');
             }
 
             $schedules = $query->get();
@@ -1855,13 +1883,23 @@ class DailyScheduleController extends Controller
                 'first_schedule' => $schedules->first(),
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
-                'end_date' => $endDate
+                'end_date' => $endDate,
+                'division_id' => $divisionId,
+                'position_id' => $positionId,
+                'shift_id' => $shiftId,
+                'user_name' => $userName,
+                'filters_applied' => [
+                    'division' => $divisionId ? 'yes' : 'no',
+                    'position' => $positionId ? 'yes' : 'no',
+                    'shift' => $shiftId ? 'yes' : 'no',
+                    'user_name' => $userName ? 'yes' : 'no'
+                ]
             ]);
 
             // Generate filename
             $filename = 'weekly-schedule-report-' . $startDate . '-' . $endDate . '.xlsx';
             
-            \Log::info('Export Weekly Report - Using Excel Facade', [
+            \Log::info('Export Weekly Report - Using Excel Facade', context: [
                 'filename' => $filename,
                 'schedules_count' => $schedules->count()
             ]);
@@ -1891,9 +1929,13 @@ class DailyScheduleController extends Controller
     public function exportWeeklyReportPDF(Request $request)
     {
         try {
+            // Get parameters from request - EXPORT WEEKLY PDF METHOD
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
             $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');  // Position filter ditambahkan
+            $shiftId = $request->get('shift_id');        // Shift filter ditambahkan
+            $userName = $request->get('user_name');      // User name filter ditambahkan
             $dateFilter = $request->get('date_filter', 'this_week');
 
             // If date filter is provided, calculate dates
@@ -1910,16 +1952,42 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
+                ->whereNotNull('users.u_nip') // Hanya user dengan NIP
+                ->whereExists(function($query) use ($startDate, $endDate) {
+                    $query->select(DB::raw(1))
+                          ->from('daily_schedules')
+                          ->whereRaw('daily_schedules.user_id = users.id')
+                          ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate]);
+                }); // Hanya user yang memiliki schedule
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  // Position filter ditambahkan
+                $users->where('users.up_id', $positionId);
+            }
+            
+            if ($shiftId) {  // Shift filter ditambahkan
+                $users->whereExists(function($query) use ($shiftId, $startDate, $endDate) {
+                    $query->select(DB::raw(1))
+                          ->from('daily_schedules')
+                          ->whereRaw('daily_schedules.user_id = users.id')
+                          ->where('daily_schedules.sc_id', $shiftId)
+                          ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate]);
+                });
+            }
+            
+            if ($userName) {  // User name filter ditambahkan
+                $users->where('users.u_name', 'like', '%' . $userName . '%');
             }
 
             $users = $users->get();
@@ -2048,10 +2116,12 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
                 ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
 
@@ -2400,10 +2470,11 @@ class DailyScheduleController extends Controller
             ->orderBy('ds.ds_date')
             ->get();
         
-        // Get all users that match the filters (even if they don't have schedules)
-        $allUsersQuery = DB::table('users as u')
+        // Get only users that have schedules in the month (filtered by existing filters)
+        $usersWithSchedulesQuery = DB::table('users as u')
             ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
             ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->join('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
             ->select([
                 'u.id as user_id',
                 'u.u_nip',
@@ -2412,18 +2483,27 @@ class DailyScheduleController extends Controller
                 'up.up_name as position_name'
             ])
             ->where('u.u_delete', '!=', '1')
-            ->whereNotNull('u.u_nip'); // Only users with NIP
+            ->whereNotNull('u.u_nip') // Only users with NIP
+            ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Only users with schedules in the month
         
         // Apply the same filters to users query
         if ($divisionId) {
-            $allUsersQuery->where('u.ud_id', $divisionId);
+            $usersWithSchedulesQuery->where('u.ud_id', $divisionId);
+        }
+        
+        if ($positionId) {
+            $usersWithSchedulesQuery->where('u.up_id', $positionId);
         }
         
         if ($userName) {
-            $allUsersQuery->where('u.u_name', 'like', '%' . $userName . '%');
+            $usersWithSchedulesQuery->where('u.u_name', 'like', '%' . $userName . '%');
         }
         
-        $allUsers = $allUsersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+        if ($shiftId) {
+            $usersWithSchedulesQuery->where('ds.sc_id', $shiftId);
+        }
+        
+        $allUsers = $usersWithSchedulesQuery->distinct()->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
         
         // Group schedules by division and user (same logic as weekly report)
         $groupedSchedules = [];
@@ -2564,9 +2644,10 @@ class DailyScheduleController extends Controller
         try {
             $this->validateAccess();
             
-            // Get parameters from request
+            // Get parameters from request - EXPORT EXCEL METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');  // Position filter ditambahkan
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $monthFilter = $request->get('month_filter', 'this_month');
@@ -2580,10 +2661,11 @@ class DailyScheduleController extends Controller
             $startDate = date('Y-m-01', strtotime($month . '-01'));
             $endDate = date('Y-m-t', strtotime($month . '-01'));
             
-            // Get users based on filters
+            // Get only users that have schedules in the month (filtered by existing filters) - EXPORT EXCEL
             $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->join('daily_schedules as ds', 'u.id', '=', 'ds.user_id')  // JOIN dengan daily_schedules
                 ->select([
                     'u.id as user_id',
                     'u.u_nip',
@@ -2592,17 +2674,22 @@ class DailyScheduleController extends Controller
                     'up.up_name as position_name'
                 ])
                 ->where('u.u_delete', '!=', '1')
-                ->whereNotNull('u.u_nip'); // Only users with NIP
+                ->whereNotNull('u.u_nip') // Only users with NIP
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Hanya user dengan schedule di bulan tersebut
             
             if ($divisionId) {
                 $usersQuery->where('u.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  // Position filter ditambahkan
+                $usersQuery->where('u.up_id', $positionId);
             }
             
             if ($userName) {
                 $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
             }
             
-            $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+            $users = $usersQuery->distinct()->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
             
             // Get schedules for the month
             $schedulesQuery = DB::table('daily_schedules as ds')
@@ -2748,9 +2835,10 @@ class DailyScheduleController extends Controller
         try {
             $this->validateAccess();
             
-            // Get parameters from request
+            // Get parameters from request - EXPORT PDF METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $monthFilter = $request->get('month_filter', 'this_month');
@@ -2764,10 +2852,11 @@ class DailyScheduleController extends Controller
             $startDate = date('Y-m-01', strtotime($month . '-01'));
             $endDate = date('Y-m-t', strtotime($month . '-01'));
             
-            // Get users based on filters
+            // Get only users that have schedules in the month (filtered by existing filters) - EXPORT PDF
             $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->join('daily_schedules as ds', 'u.id', '=', 'ds.user_id')  // JOIN dengan daily_schedules
                 ->select([
                     'u.id as user_id',
                     'u.u_nip',
@@ -2776,17 +2865,22 @@ class DailyScheduleController extends Controller
                     'up.up_name as position_name'
                 ])
                 ->where('u.u_delete', '!=', '1')
-                ->whereNotNull('u.u_nip'); // Only users with NIP
+                ->whereNotNull('u.u_nip') // Only users with NIP
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Hanya user dengan schedule di bulan tersebut
             
             if ($divisionId) {
                 $usersQuery->where('u.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  // Position filter ditambahkan
+                $usersQuery->where('u.up_id', $positionId);
             }
             
             if ($userName) {
                 $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
             }
             
-            $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+            $users = $usersQuery->distinct()->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
             
             // Get schedules for the month
             $schedulesQuery = DB::table('daily_schedules as ds')
@@ -3097,6 +3191,7 @@ class DailyScheduleController extends Controller
                 'request_data' => $request->all(),
                 'filters_applied' => [
                     'division_id' => $request->get('division_id'),
+                    'position_id' => $request->get('position_id'),
                     'shift_id' => $request->get('shift_id'),
                     'user_name' => $request->get('user_name'),
                     'date_filter' => $request->get('date_filter', 'this_week'),
@@ -3106,6 +3201,7 @@ class DailyScheduleController extends Controller
             ]);
 
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -3182,16 +3278,25 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
                 \Log::info('Division filter applied', ['division_id' => $divisionId]);
+            }
+
+
+            if ($positionId) {
+                $users->where('users.up_id', $positionId);
+                \Log::info('Position filter applied', ['position_id' => $positionId]);
             }
 
             if ($userName) {
@@ -3206,6 +3311,7 @@ class DailyScheduleController extends Controller
                 'query_success' => true
             ]);
 
+            
             // Get schedules for the date range
             $schedules = DB::table('daily_schedules')
                 ->select([
@@ -3433,6 +3539,7 @@ class DailyScheduleController extends Controller
                 'request_data' => $request->all(),
                 'filters_applied' => [
                     'division_id' => $request->get('division_id'),
+                    'position_id' => $request->get('position_id'),
                     'shift_id' => $request->get('shift_id'),
                     'user_name' => $request->get('user_name'),
                     'date_filter' => $request->get('date_filter', 'this_week'),
@@ -3441,6 +3548,7 @@ class DailyScheduleController extends Controller
             ]);
 
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -3510,24 +3618,30 @@ class DailyScheduleController extends Controller
                 'end_date' => $endDate
             ]);
 
-            // Build query to get users with their schedules (only users with NIP)
             $users = DB::table('users')
                 ->select([
                     'users.id as user_id',
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
+                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
                 \Log::info('Division filter applied for PDF', ['division_id' => $divisionId]);
+            }
+
+            if ($positionId) {
+                $users->where('users.up_id', $positionId);
+                \Log::info('Position filter applied for PDF', ['position_id' => $positionId]);
             }
 
             if ($userName) {
@@ -4243,11 +4357,14 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
