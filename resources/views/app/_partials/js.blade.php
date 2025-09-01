@@ -67,36 +67,45 @@
 <script src="{{ asset('cdn/jquery.toast.min.js') }}"></script>
 <script>
     // Global DataTables availability check and fix
-    function ensureDataTablesAvailable() {
-        if (typeof $.fn.DataTable === 'undefined') {
-            console.warn('DataTables not available, attempting to reload...');
-            
-            // Try to reload DataTables bundle
-            var script = document.createElement('script');
-            script.src = "{{ asset('app') }}/assets/plugins/custom/datatables/datatables.bundle.js";
-            script.onload = function() {
-                console.log('DataTables reloaded successfully');
-                // Trigger event for other scripts to know DataTables is ready
-                $(document).trigger('datatables:loaded');
-            };
-            script.onerror = function() {
-                console.error('Failed to reload DataTables');
-            };
-            document.head.appendChild(script);
-            return false;
+
+    let route = window.location.pathname;
+    console.log(route); // contoh: "/helper_backup"
+
+    if (route !== "/helper_backup") {
+        function ensureDataTablesAvailable() {
+            if (typeof $.fn.DataTable === 'undefined') {
+                console.warn('DataTables not available, attempting to reload...');
+
+                // Try to reload DataTables bundle
+                var script = document.createElement('script');
+                script.src = "{{ asset('app/assets/plugins/custom/datatables/datatables.bundle.js') }}";
+                script.defer = true;
+
+                script.onload = function() {
+                    console.log('DataTables reloaded successfully');
+                    $(document).trigger('datatables:loaded');
+                };
+
+                script.onerror = function() {
+                    console.error('Failed to reload DataTables');
+                };
+
+                document.head.appendChild(script);
+                return false;
+            }
+            return true;
         }
-        return true;
+
+        $(document).ready(function() {
+            if (!ensureDataTablesAvailable()) {
+                $(document).on('datatables:loaded', function() {
+                    console.log('DataTables is now available globally');
+                });
+            }
+        });
     }
-    
-    // Check DataTables on page load
-    $(document).ready(function() {
-        if (!ensureDataTablesAvailable()) {
-            // If DataTables is not available, wait for it to be loaded
-            $(document).on('datatables:loaded', function() {
-                console.log('DataTables is now available globally');
-            });
-        }
-    });
+
+
 
     const current = window.location.href;
     document.querySelectorAll("#kt_aside_menu a").forEach(function(elem) {

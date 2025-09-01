@@ -1,4 +1,6 @@
 <script>
+
+
     function loadStorageAreas() {
         $.ajax({
             type: "GET",
