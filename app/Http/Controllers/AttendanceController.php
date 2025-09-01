@@ -2091,9 +2091,9 @@ class AttendanceController extends Controller
                     'user_id' => $user->user_id,
                     'u_nip' => $user->u_nip,
                     'u_name' => $user->u_name,
-                    'position_name' => $user->position_name,
-                    'division_name' => $user->division_name,
-                    'work_type' => $user->work_type,
+                    'position_name' => $user->position_name ?? '-',
+                    'division_name' => $user->division_name ?? '-',
+                    'work_type' => $user->work_type ?? '-',
                     'total_shifts' => $totalShifts,
                     'total_libur' => $totalLibur,
                     'present_days' => $presentDays,
@@ -2105,12 +2105,18 @@ class AttendanceController extends Controller
                 ];
             });
             
+            // Filter to show users with schedules OR users who attended without schedules
+            $filteredResult = $result->filter(function($item) {
+                return $item->total_shifts > 0 || $item->present_days > 0;
+            });
+            
             \Log::info('getAttendanceSummary - Query completed', [
                 'result_count' => $result->count(),
-                'first_item' => $result->first()
+                'filtered_count' => $filteredResult->count(),
+                'first_item' => $filteredResult->first()
             ]);
             
-            return $result;
+            return $filteredResult;
         } catch (\Exception $e) {
             \Log::error('getAttendanceSummary - Error', [
                 'error' => $e->getMessage(),

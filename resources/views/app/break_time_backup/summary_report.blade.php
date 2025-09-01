@@ -110,30 +110,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-6">
-                    <div class="card card-custom rounded-lg bg-break-shifts">
-                        <div class="card-body px-7">
-                            <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-calendar text-dark"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="stat-total-shifts">{{ $summaryData->sum('total_shifts') ?? 0 }}</div>
-                                    <div class="text-dark-50">Total Shifts</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
                 <div class="col-lg-2 col-md-6">
                     <div class="card card-custom rounded-lg bg-break-breaks">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
                                     <span class="symbol-label">
-                                        <i class="ki-outline ki-coffee text-dark"></i>
+                                        <i class="ki-outline ki-like text-dark"></i>
                                     </span>
                                 </div>
                                 <div>

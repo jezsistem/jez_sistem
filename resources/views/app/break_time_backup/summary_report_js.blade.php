@@ -111,6 +111,7 @@
         const startDate = document.getElementById('start_date').value;
         const endDate = document.getElementById('end_date').value;
         const divisionId = document.getElementById('division_id').value;
+        const search = document.getElementById('search').value;
         
         // Show loading state
         const statsContainer = document.getElementById('statsContainer');
@@ -123,7 +124,8 @@
             date_filter: dateFilter,
             start_date: startDate,
             end_date: endDate,
-            division_id: divisionId
+            division_id: divisionId,
+            search: search
         }))
         .then(response => response.json())
         .then(data => {
@@ -267,9 +269,13 @@
                         d.search = $('#search').val();
                         
                         console.log('Break Time Summary Report AJAX Data sent:', d);
+                        console.log('Search term being sent:', d.search);
                     },
                     dataSrc: function(json) {
                         console.log('Break Time Summary Report DataTables response:', json);
+                        console.log('Records Total:', json.recordsTotal);
+                        console.log('Records Filtered:', json.recordsFiltered);
+                        console.log('Data count:', json.data ? json.data.length : 0);
                         return json.data || [];
                     }
                 },
@@ -424,7 +430,10 @@
                 // Debounce search to avoid too many API calls
                 clearTimeout(this.searchTimeout);
                 this.searchTimeout = setTimeout(() => {
-                    updateStatistics();
+                    // Reload DataTable with search term instead of just updating statistics
+                    if (window.summaryTable) {
+                        window.summaryTable.ajax.reload();
+                    }
                 }, 500);
             });
         }
@@ -433,12 +442,5 @@
         initDataTable();
     });
 
-    // Search functionality
-    $('#search').on('keyup', function() {
-        if (window.summaryTable) {
-            window.summaryTable.search(this.value).draw();
-        } else {
-            $('#summaryTable').DataTable().search(this.value).draw();
-        }
-    });
+    // Search functionality - now handled by AJAX reload in input event listener
 </script>

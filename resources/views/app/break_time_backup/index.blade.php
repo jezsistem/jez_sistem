@@ -128,7 +128,7 @@
                             <div class="card card-custom bg-warning rounded-xl">
                                 <div class="card-body text-center p-8">
                                     <div class="mb-4">
-                                        <i class="ki-outline ki-coffee text-white" style="font-size: 3rem;"></i>
+                                        <i class="ki-outline ki-like text-white" style="font-size: 3rem;"></i>
                                     </div>
                                     <button type="button" class="btn btn-white btn-lg btn-block mb-3 rounded-lg" id="mainBreakButton" style="min-height: 60px; font-size: 1.2rem;">
                                          <span id="breakButtonText">Start Backup</span>

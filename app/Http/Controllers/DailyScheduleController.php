@@ -63,6 +63,81 @@ class DailyScheduleController extends Controller
         return $sidebar;
     }
 
+    /**
+     * Get user positions based on current user's level and position
+     */
+    protected function getUserPositionsForFilter()
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return collect();
+        }
+
+        // Get current user's position info
+        $userPosition = DB::table('user_positions')
+            ->where('id', $currentUser->up_id)
+            ->first();
+
+        if (!$userPosition) {
+            return collect();
+        }
+
+        $query = DB::table('user_positions')
+            ->where('up_is_active', 1)
+            ->orderBy('up_name');
+
+        // Condition 1: If user has up_level = 1 (bukan KOORDINATOR), show ALL level 1 positions
+        if ($userPosition->up_level == 1 && $userPosition->up_code != 'KOORDINATOR') {
+            $query->where('up_level', 1);
+        }
+        // Condition 2: If user has up_level = 2, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 2) {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Condition 3: If user has up_level = 1 with up_code = KOORDINATOR, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 1 && $userPosition->up_code == 'KOORDINATOR') {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Condition 4: If user has up_level = 3, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 3) {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Condition 5: If user has up_level = 4, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 4) {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Default: show all positions
+        else {
+            // No additional filtering
+        }
+
+        return $query->get();
+    }
+
     public function index(Request $request)
     {
         // Temporarily comment out for testing
@@ -881,6 +956,7 @@ class DailyScheduleController extends Controller
         $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
         $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
         $divisionId = $request->get('division_id');
+        $positionId = $request->get('position_id');
         $shiftId = $request->get('shift_id');
         $userName = $request->get('user_name');
         $dateFilter = $request->get('date_filter', 'this_week');
@@ -951,6 +1027,9 @@ class DailyScheduleController extends Controller
             ->orderBy('ud_name')
             ->get();
             
+        // Get user positions for filter based on current user's level
+        $userPositions = $this->getUserPositionsForFilter();
+            
         // Get shift codes for filter
         $shiftCodes = DB::table('shift_codes')
             ->where('sc_status', 'active')
@@ -1006,6 +1085,9 @@ class DailyScheduleController extends Controller
             }
             if ($shiftId) {
                 $allTodaySchedules->where('daily_schedules.sc_id', $shiftId);
+            }
+            if ($positionId) {
+                $allTodaySchedules->where('users.up_id', $positionId);
             }
             if ($userName) {
                 $allTodaySchedules->where('users.u_name', 'like', '%' . $userName . '%');
@@ -1065,6 +1147,9 @@ class DailyScheduleController extends Controller
                 $scheduleQuery->where('daily_schedules.sc_id', $shiftId);
             }
             
+            if ($positionId) {
+                $scheduleQuery->where('users.up_id', $positionId);
+            }
             if ($userName) {
                 $scheduleQuery->where('users.u_name', 'like', '%' . $userName . '%');
             }
@@ -1126,9 +1211,11 @@ class DailyScheduleController extends Controller
             'startDate', 
             'endDate',
             'divisions', 
+            'userPositions',
             'shiftCodes',
             'data',
             'divisionId',
+            'positionId',
             'shiftId',
             'userName',
             'dateFilter'
@@ -2203,12 +2290,13 @@ class DailyScheduleController extends Controller
         // Get parameters from request
         $month = $request->get('month', date('Y-m'));
         $divisionId = $request->get('division_id');
+        $positionId = $request->get('position_id');
         $shiftId = $request->get('shift_id');
         $userName = $request->get('user_name');
         $monthFilter = $request->get('month_filter', 'this_month');
         
-        // Process month filter if provided
-        if ($monthFilter && $monthFilter !== 'custom') {
+        // Process month filter if provided AND month is not explicitly set
+        if ($monthFilter && $monthFilter !== 'custom' && !$request->has('month')) {
             $month = $this->getMonthFromFilter($monthFilter);
         }
         
@@ -2221,6 +2309,9 @@ class DailyScheduleController extends Controller
             ->where('ud_status', 'active')
             ->orderBy('ud_name')
             ->get();
+            
+        // Get user positions for filter based on current user's level
+        $userPositions = $this->getUserPositionsForFilter();
             
         // Get shift codes for filter
         $shiftCodes = DB::table('shift_codes')
@@ -2246,6 +2337,9 @@ class DailyScheduleController extends Controller
             $usersQuery->where('u.ud_id', $divisionId);
         }
         
+        if ($positionId) {
+            $usersQuery->where('u.up_id', $positionId);
+        }
         if ($userName) {
             $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
         }
@@ -2284,6 +2378,11 @@ class DailyScheduleController extends Controller
         // Apply division filter to schedules query
         if ($divisionId) {
             $schedulesQuery->where('u.ud_id', $divisionId);
+        }
+        
+        // Apply position filter to schedules query
+        if ($positionId) {
+            $schedulesQuery->where('u.up_id', $positionId);
         }
         
         // Apply shift filter to schedules query
@@ -2382,9 +2481,11 @@ class DailyScheduleController extends Controller
             'endDate',
             'month',
             'divisions', 
+            'userPositions',
             'shiftCodes',
             'data',
             'divisionId',
+            'positionId',
             'shiftId',
             'userName',
             'users'
@@ -2470,8 +2571,8 @@ class DailyScheduleController extends Controller
             $userName = $request->get('user_name');
             $monthFilter = $request->get('month_filter', 'this_month');
             
-            // Process month filter if provided
-            if ($monthFilter && $monthFilter !== 'custom') {
+            // Process month filter if provided AND month is not explicitly set
+            if ($monthFilter && $monthFilter !== 'custom' && !$request->has('month')) {
                 $month = $this->getMonthFromFilter($monthFilter);
             }
             
@@ -2654,8 +2755,8 @@ class DailyScheduleController extends Controller
             $userName = $request->get('user_name');
             $monthFilter = $request->get('month_filter', 'this_month');
             
-            // Process month filter if provided
-            if ($monthFilter && $monthFilter !== 'custom') {
+            // Process month filter if provided AND month is not explicitly set
+            if ($monthFilter && $monthFilter !== 'custom' && !$request->has('month')) {
                 $month = $this->getMonthFromFilter($monthFilter);
             }
             
@@ -2771,6 +2872,77 @@ class DailyScheduleController extends Controller
                 .no-schedule { color: #999; font-style: italic; }
                 .other-month { background-color: #f8f9fa; opacity: 0.7; }
                 .other-month .no-schedule { color: #ccc; }
+                
+                /* Shift Code Colors - Following View Colors */
+                .shift-S { background-color: #f8e8e6; color: #333; } /* Sakit - Light Red */
+                .shift-NA { background-color: #f8e8e6; color: #333; } /* N/A - Light Red */
+                .shift-LPH { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+                .shift-LL { background-color: #f8e8e6; color: #333; } /* Libur Cuti - Light Red */
+                .shift-L { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+                .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
+                
+                /* Shift 1 & Shift 0 */
+                .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
+                .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+                .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+                .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+                
+                /* Shift 2 */
+                .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+                
+                /* Full & Full Shift 0 */
+                .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
+                .shift-FM2 { background-color: #FFF9ED; color: #333; } /* Full Morning 2 - Light Yellow */
+                .shift-FM1 { background-color: #FFF9ED; color: #333; } /* Full Morning 1 - Light Yellow */
+                .shift-PFM { background-color: #FFF9ED; color: #333; } /* Part Full Morning - Light Yellow */
+                .shift-PF0 { background-color: #FFF9ED; color: #333; } /* Part Full 0 - Light Yellow */
+                .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
+                
+                /* Part Shifts */
+                .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
+                .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
+                .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
+                .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
+                .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+                
+                /* Color Legend Styles */
+                .color-legend { 
+                    background-color: #f8f9fa; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    border: 1px solid #e1e5e9; 
+                    margin-bottom: 20px;
+                }
+                .color-legend h6 { 
+                    margin: 0 0 15px 0; 
+                    color: #6c757d; 
+                    font-size: 14px; 
+                }
+                .legend-items { 
+                    display: flex; 
+                    flex-wrap: wrap; 
+                    gap: 15px; 
+                }
+                .legend-item { 
+                    display: flex; 
+                    align-items: center; 
+                    background-color: white; 
+                    padding: 8px 12px; 
+                    border-radius: 6px; 
+                    border: 1px solid #e1e5e9; 
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+                }
+                .legend-color { 
+                    width: 20px; 
+                    height: 20px; 
+                    border-radius: 4px; 
+                    margin-right: 8px; 
+                    border: 1px solid #dee2e6; 
+                }
+                .legend-text { 
+                    font-size: 12px; 
+                    color: #333; 
+                }
             </style>
         </head>
         <body>
@@ -2778,15 +2950,30 @@ class DailyScheduleController extends Controller
                 <h1>Monthly Schedule Report</h1>
                 <p>Period: ' . date('d F Y', strtotime($startDate)) . ' - ' . date('d F Y', strtotime($endDate)) . '</p>
                 <p>Generated on: ' . date('d F Y H:i:s') . '</p>
-            </div>';
+            </div>
+            
+            ';
         
         // Group users by division
         $usersByDivision = $users->groupBy('ud_name');
         
         foreach ($usersByDivision as $divisionName => $divisionUsers) {
-            $html .= '<div class="division-header">Division: ' . $divisionName . ' (' . count($divisionUsers) . ' staff)</div>';
-            
+            // Filter users who have schedules in the month
+            $usersWithSchedules = [];
             foreach ($divisionUsers as $user) {
+                $userSchedules = $groupedSchedules[$user->user_id] ?? [];
+                if (count($userSchedules) > 0) {
+                    $usersWithSchedules[] = $user;
+                }
+            }
+            
+            if (count($usersWithSchedules) == 0) {
+                continue; // Skip division if no users have schedules
+            }
+            
+            $html .= '<div class="division-header">Division: ' . $divisionName . ' (' . count($usersWithSchedules) . ' staff)</div>';
+            
+            foreach ($usersWithSchedules as $user) {
                 $html .= '<table>
                     <tr class="user-header">
                         <td colspan="7">' . $user->u_name . ' (' . $user->u_nip . ') - ' . $user->position_name . '</td>
@@ -2809,8 +2996,14 @@ class DailyScheduleController extends Controller
                     $html .= '<tr>';
                     foreach ($week as $dateInfo) {
                         $cellClass = '';
-                        if ($dateInfo['is_weekend']) $cellClass = 'weekend';
                         if (!$dateInfo['is_current_month']) $cellClass .= ' other-month';
+                        
+                        // Add shift color class to the entire cell
+                        if ($dateInfo['schedule']) {
+                            $shiftCode = $dateInfo['schedule']['sc_code'];
+                            $shiftClass = 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode);
+                            $cellClass .= ' ' . $shiftClass;
+                        }
                         
                         $html .= '<td class="' . $cellClass . '">';
                         $html .= '<div style="font-weight: bold;' . (!$dateInfo['is_current_month'] ? ' color: #999;' : '') . '">' . $dateInfo['day'] . '</div>';
@@ -3488,6 +3681,80 @@ class DailyScheduleController extends Controller
             th { background-color: #f5f5f5; font-weight: bold; }
             .user-info { background-color: #f9f9f9; }
             .shift-cell { min-width: 60px; max-width: 80px; }
+            
+            /* Shift Code Colors - Following View Colors */
+            .shift-S { background-color: #f8e8e6; color: #333; } /* Sakit - Light Red */
+            .shift-NA { background-color: #f8e8e6; color: #333; } /* N/A - Light Red */
+            .shift-LPH { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-LL { background-color: #f8e8e6; color: #333; } /* Libur Cuti - Light Red */
+            .shift-L { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
+            
+            /* Shift 1 & Shift 0 */
+            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            
+            /* Shift 2 */
+            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            
+            /* Full & Full Shift 0 */
+            .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
+            .shift-FM2 { background-color: #FFF9ED; color: #333; } /* Full Morning 2 - Light Yellow */
+            .shift-FM1 { background-color: #FFF9ED; color: #333; } /* Full Morning 1 - Light Yellow */
+            .shift-PFM { background-color: #FFF9ED; color: #333; } /* Part Full Morning - Light Yellow */
+            .shift-PF0 { background-color: #FFF9ED; color: #333; } /* Part Full 0 - Light Yellow */
+            .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
+            
+            /* Part Shifts */
+            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            
+            /* Default shift cell styling */
+            .shift-cell { font-weight: bold; border-radius: 3px; }
+            
+            /* Color Legend Styles */
+            .color-legend { 
+                background-color: #f8f9fa; 
+                padding: 15px; 
+                border-radius: 8px; 
+                border: 1px solid #e1e5e9; 
+                margin-bottom: 20px;
+            }
+            .color-legend h6 { 
+                margin: 0 0 15px 0; 
+                color: #6c757d; 
+                font-size: 14px; 
+            }
+            .legend-items { 
+                display: flex; 
+                flex-wrap: wrap; 
+                gap: 15px; 
+            }
+            .legend-item { 
+                display: flex; 
+                align-items: center; 
+                background-color: white; 
+                padding: 8px 12px; 
+                border-radius: 6px; 
+                border: 1px solid #e1e5e9; 
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            }
+            .legend-color { 
+                width: 20px; 
+                height: 20px; 
+                border-radius: 4px; 
+                margin-right: 8px; 
+                border: 1px solid #dee2e6; 
+            }
+            .legend-text { 
+                font-size: 12px; 
+                color: #333; 
+            }
         </style></head><body>";
         
         $html .= "<h1>Weekly Schedule Report</h1>";
@@ -3511,8 +3778,14 @@ class DailyScheduleController extends Controller
         }
         $html .= "</tr>";
         
-        // Data rows
+        // Data rows - Filter users who have schedules
         foreach ($users as $user) {
+            // Check if user has any schedules in the date range
+            $userSchedules = $schedules->where('user_id', $user->user_id);
+            if ($userSchedules->count() == 0) {
+                continue; // Skip users without schedules
+            }
+            
             $html .= "<tr>";
             $html .= "<td class='user-info'>" . ($user->u_nip ?? '-') . "</td>";
             $html .= "<td class='user-info'>" . ($user->u_name ?? '-') . "</td>";
@@ -3537,7 +3810,9 @@ class DailyScheduleController extends Controller
                 })->first();
                 
                 if ($dailySchedule && $dailySchedule->sc_code) {
-                    $html .= "<td class='shift-cell'>" . $dailySchedule->sc_code . "</td>";
+                    $shiftCode = $dailySchedule->sc_code;
+                    $shiftClass = 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode);
+                    $html .= "<td class='shift-cell {$shiftClass}'>" . $shiftCode . "</td>";
                 } else {
                     $html .= "<td class='shift-cell'>-</td>";
                 }
@@ -3567,9 +3842,81 @@ class DailyScheduleController extends Controller
             th { background-color: #f5f5f5; font-weight: bold; }
             .user-info { background-color: #f9f9f9; }
             .shift-cell { min-width: 60px; max-width: 80px; }
-            .shift-name { background-color: #e3f2fd; }
-            .start-shift { background-color: #fff3e0; }
             .nama-column { width: 120px; }
+            
+            /* Shift Code Colors - Following View Colors */
+            .shift-S { background-color: #f8e8e6; color: #333; } /* Sakit - Light Red */
+            .shift-NA { background-color: #f8e8e6; color: #333; } /* N/A - Light Red */
+            .shift-LPH { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-LL { background-color: #f8e8e6; color: #333; } /* Libur Cuti - Light Red */
+            .shift-L { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
+            
+            /* Shift 1 & Shift 0 */
+            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            
+            /* Shift 2 */
+            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            
+            /* Full & Full Shift 0 */
+            .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
+            .shift-FM2 { background-color: #FFF9ED; color: #333; } /* Full Morning 2 - Light Yellow */
+            .shift-FM1 { background-color: #FFF9ED; color: #333; } /* Full Morning 1 - Light Yellow */
+            .shift-PFM { background-color: #FFF9ED; color: #333; } /* Part Full Morning - Light Yellow */
+            .shift-PF0 { background-color: #FFF9ED; color: #333; } /* Part Full 0 - Light Yellow */
+            .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
+            
+            /* Part Shifts */
+            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            
+            /* Default shift cell styling */
+            .shift-cell { font-weight: bold; border-radius: 3px; }
+            
+            /* Color Legend Styles */
+            .color-legend { 
+                background-color: #f8f9fa; 
+                padding: 15px; 
+                border-radius: 8px; 
+                border: 1px solid #e1e5e9; 
+                margin-bottom: 20px;
+            }
+            .color-legend h6 { 
+                margin: 0 0 15px 0; 
+                color: #6c757d; 
+                font-size: 14px; 
+            }
+            .legend-items { 
+                display: flex; 
+                flex-wrap: wrap; 
+                gap: 15px; 
+            }
+            .legend-item { 
+                display: flex; 
+                align-items: center; 
+                background-color: white; 
+                padding: 8px 12px; 
+                border-radius: 6px; 
+                border: 1px solid #e1e5e9; 
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            }
+            .legend-color { 
+                width: 20px; 
+                height: 20px; 
+                border-radius: 4px; 
+                margin-right: 8px; 
+                border: 1px solid #dee2e6; 
+            }
+            .legend-text { 
+                font-size: 12px; 
+                color: #333; 
+            }
         </style></head><body>";
         
         $html .= "<h1>Weekly Schedule Report</h1>";
@@ -3596,14 +3943,20 @@ class DailyScheduleController extends Controller
         $html .= "<tr>";
         $currentDate = \Carbon\Carbon::parse($startDate);
         while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
-            $html .= "<th class='shift-name'><small style='font-size: 8px;'>Shift Name</small></th>";
-            $html .= "<th class='start-shift'><small style='font-size: 8px;'>Start Shift</small></th>";
+            $html .= "<th><small style='font-size: 8px;'>Shift Name</small></th>";
+            $html .= "<th><small style='font-size: 8px;'>Start Shift</small></th>";
             $currentDate->addDay();
         }
         $html .= "</tr>";
         
-        // Data rows
+        // Data rows - Filter users who have schedules
         foreach ($users as $user) {
+            // Check if user has any schedules in the date range
+            $userSchedules = $schedules->where('user_id', $user->user_id);
+            if ($userSchedules->count() == 0) {
+                continue; // Skip users without schedules
+            }
+            
             $html .= "<tr>";
             
             // NAMA column with NIP below (more compact)
@@ -3628,25 +3981,41 @@ class DailyScheduleController extends Controller
                     $shiftCode = $dailySchedule->sc_code ?? '';
                     
                     if ($shiftName) {
-                        $html .= "<td class='shift-cell shift-name'>" . $shiftName . " (" . $shiftCode . ")" . "</td>";
-                } else {
-                        $html .= "<td class='shift-cell shift-name'>" . ($shiftCode ?: '-') . "</td>";
+                        $shiftClass = 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode);
+                        $html .= "<td class='shift-cell shift-name {$shiftClass}'>" . $shiftName . " (" . $shiftCode . ")" . "</td>";
+                    } else {
+                        $shiftClass = $shiftCode ? 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode) : '';
+                        $html .= "<td class='shift-cell shift-name {$shiftClass}'>" . ($shiftCode ?: '-') . "</td>";
                     }
                     
-                    // Start Shift Column
+                    // Start Shift Column - Same color as Shift Name, and handle Libur case
                     $startTime = $dailySchedule->sc_start_time ?? '';
                     $endTime = $dailySchedule->sc_end_time ?? '';
                     
-                    if ($startTime && $endTime) {
-                        $html .= "<td class='shift-cell start-shift'>" . date('H:i', strtotime($startTime)) . " - " . date('H:i', strtotime($endTime)) . "</td>";
+                    // Check if it's a holiday/leave shift
+                    $isHoliday = false;
+                    if ($shiftName && (strpos(strtolower($shiftName), 'libur') !== false || 
+                                     strpos(strtolower($shiftName), 'sakit') !== false || 
+                                     strpos(strtolower($shiftName), 'izin') !== false)) {
+                        $isHoliday = true;
+                    }
+                    
+                    if ($isHoliday) {
+                        // For holiday shifts, show "-" with same color as shift name
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>-</td>";
+                    } elseif ($startTime && $endTime) {
+                        // For regular shifts, show time with same color as shift name
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>" . date('H:i', strtotime($startTime)) . " - " . date('H:i', strtotime($endTime)) . "</td>";
                     } elseif ($startTime) {
-                        $html .= "<td class='shift-cell start-shift'>" . date('H:i', strtotime($startTime)) . "</td>";
+                        // For shifts with only start time
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>" . date('H:i', strtotime($startTime)) . "</td>";
                     } else {
-                        $html .= "<td class='shift-cell start-shift'>-</td>";
+                        // For shifts without time
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>-</td>";
                     }
                 } else {
-                    $html .= "<td class='shift-cell shift-name'>-</td>";
-                    $html .= "<td class='shift-cell start-shift'>-</td>";
+                    $html .= "<td class='shift-cell'>-</td>";
+                    $html .= "<td class='shift-cell'>-</td>";
                 }
                 
                 $currentDate->addDay();

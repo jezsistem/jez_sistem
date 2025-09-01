@@ -272,6 +272,18 @@ class BreakTimeController extends Controller
                 'total_records' => $result->count(),
                 'first_record' => $result->first()
             ]);
+            
+            // Debug: Check if any user has data
+            if ($result->count() > 0) {
+                $sampleUser = $result->first();
+                \Log::info('Sample user data', [
+                    'user_id' => $sampleUser->user_id,
+                    'user_name' => $sampleUser->u_name,
+                    'total_shifts' => $sampleUser->total_shifts,
+                    'total_breaks' => $sampleUser->total_breaks,
+                    'no_break_shifts' => $sampleUser->no_break_shifts
+                ]);
+            }
 
             // Calculate exceeded break time manually for each user based on their user type
             foreach ($result as $user) {
@@ -358,7 +370,35 @@ class BreakTimeController extends Controller
                 $user->max_break_duration = $maxDuration; // Add for debugging
             }
 
-            return $result;
+            // Temporarily disable filter to debug data
+            // Temporarily disable filter to restore data
+            // Filter to only show users with total_breaks > 0 OR no_break_shifts > 0
+            $filteredResult = $result->filter(function($item) {
+                $hasData = $item->total_breaks > 0 || $item->no_break_shifts > 0;
+                
+                // Debug logging for first few items
+                if ($item->user_id <= 5) {
+                    \Log::info('Filter debug for user', [
+                        'user_id' => $item->user_id,
+                        'user_name' => $item->u_name,
+                        'total_breaks' => $item->total_breaks,
+                        'no_break_shifts' => $item->no_break_shifts,
+                        'total_shifts' => $item->total_shifts,
+                        'has_data' => $hasData
+                    ]);
+                }
+                
+                // Return users with data
+                return $hasData;
+            });
+            
+            \Log::info('Break time summary data filtered', [
+                'total_records' => $result->count(),
+                'filtered_records' => $filteredResult->count(),
+                'first_record' => $filteredResult->first()
+            ]);
+            
+            return $filteredResult;
 
         } catch (\Exception $e) {
             \Log::error('Error getting break time summary data', [
@@ -381,6 +421,7 @@ class BreakTimeController extends Controller
             $startDate = $request->get('start_date');
             $endDate = $request->get('end_date');
             $divisionId = $request->get('division_id');
+            $search = $request->get('search');
             
             // Apply date filter if not custom
             if ($dateFilter !== 'custom') {
@@ -391,6 +432,14 @@ class BreakTimeController extends Controller
             
             // Get summary data for statistics
             $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
+            
+            // Apply search filter if provided
+            if ($search) {
+                $summaryData = $summaryData->filter(function($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false || 
+                           stripos($item->u_nip, $search) !== false;
+                });
+            }
             
             // Calculate statistics
             $totalStaff = $summaryData->count();
@@ -418,6 +467,7 @@ class BreakTimeController extends Controller
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'division_id' => $divisionId,
+                'search' => $search,
                 'stats' => $stats
             ]);
             
@@ -488,6 +538,18 @@ class BreakTimeController extends Controller
             // Use the same method as summaryReport to get data
             $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
             
+            // Store total records BEFORE search (for recordsTotal)
+            $totalRecordsBeforeSearch = $summaryData->count();
+            
+            // Debug: Log date range and data count
+            \Log::info('Break Time Summary Report - Date Range Debug', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'division_id' => $divisionId,
+                'raw_data_count' => $totalRecordsBeforeSearch
+            ]);
+            
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
@@ -495,6 +557,12 @@ class BreakTimeController extends Controller
                     return stripos($item->u_name, $search) !== false || 
                            stripos($item->u_nip, $search) !== false;
                 });
+                
+                \Log::info('Search filter applied', [
+                    'search_term' => $search,
+                    'records_before_search' => $totalRecordsBeforeSearch,
+                    'records_after_search' => $summaryData->count()
+                ]);
             }
             
             // Debug: Log data before DataTables processing
@@ -503,11 +571,42 @@ class BreakTimeController extends Controller
                 'first_item' => $summaryData->first()
             ]);
             
-            // Convert to array for DataTables
+            // Debug: Check data structure
+            if ($summaryData->count() > 0) {
+                $sampleData = $summaryData->first();
+                \Log::info('Sample data structure', [
+                    'user_id' => $sampleData->user_id ?? 'missing',
+                    'u_nip' => $sampleData->u_nip ?? 'missing',
+                    'u_name' => $sampleData->u_name ?? 'missing',
+                    'position_name' => $sampleData->position_name ?? 'missing',
+                    'division_name' => $sampleData->division_name ?? 'missing',
+                    'work_type' => $sampleData->work_type ?? 'missing',
+                    'total_shifts' => $sampleData->total_shifts ?? 'missing',
+                    'total_breaks' => $sampleData->total_breaks ?? 'missing',
+                    'no_break_shifts' => $sampleData->no_break_shifts ?? 'missing'
+                ]);
+            }
+            
+            // Convert to array for DataTables (exact same as BreakTimeBackupController)
             $data = [];
             foreach ($summaryData as $index => $item) {
-                $data[] = (array) $item;
-                $data[$index]['DT_RowIndex'] = $index + 1;
+                $itemArray = (array) $item;
+                $data[] = $itemArray;
+                
+                // Debug: Log first few items
+                if ($index < 3) {
+                    \Log::info('Data item ' . $index, [
+                        'user_id' => $itemArray['user_id'] ?? 'missing',
+                        'u_nip' => $itemArray['u_nip'] ?? 'missing',
+                        'u_name' => $itemArray['u_name'] ?? 'missing',
+                        'position_name' => $itemArray['position_name'] ?? 'missing',
+                        'division_name' => $itemArray['division_name'] ?? 'missing',
+                        'work_type' => $itemArray['work_type'] ?? 'missing',
+                        'total_shifts' => $itemArray['total_shifts'] ?? 'missing',
+                        'total_breaks' => $itemArray['total_breaks'] ?? 'missing',
+                        'no_break_shifts' => $itemArray['no_break_shifts'] ?? 'missing'
+                    ]);
+                }
             }
             
             // Apply pagination manually for server-side processing
@@ -515,6 +614,11 @@ class BreakTimeController extends Controller
             $start = $request->get('start', 0);
             $length = $request->get('length', 25);
             $paginatedData = array_slice($data, $start, $length);
+            
+            // Set DT_RowIndex AFTER pagination to ensure sequential numbering
+            foreach ($paginatedData as $index => $item) {
+                $paginatedData[$index]['DT_RowIndex'] = $start + $index + 1;
+            }
             
             \Log::info('Break Time Summary Report Datatables Response', [
                 'total_records' => $totalRecords,
@@ -524,7 +628,7 @@ class BreakTimeController extends Controller
             
             return response()->json([
                 'draw' => $request->get('draw', 1),
-                'recordsTotal' => $totalRecords,
+                'recordsTotal' => $totalRecordsBeforeSearch,
                 'recordsFiltered' => $totalRecords,
                 'data' => $paginatedData
             ]);
@@ -717,20 +821,13 @@ class BreakTimeController extends Controller
                     }
                     
                     $data[] = $itemArray;
-                    $data[$index]['DT_RowIndex'] = $index + 1;
                 }
-                
-                // Apply pagination manually for server-side processing
-                $totalRecords = count($data);
-                $start = $request->get('start', 0);
-                $length = $request->get('length', 25);
-                $paginatedData = array_slice($data, $start, $length);
                 
                 return response()->json([
                     'draw' => $request->get('draw', 1),
-                    'recordsTotal' => $totalRecords,
-                    'recordsFiltered' => $totalRecords,
-                    'data' => $paginatedData
+                    'recordsTotal' => count($data),
+                    'recordsFiltered' => count($data),
+                    'data' => $data
                 ]);
                 
             } catch (\Exception $e) {

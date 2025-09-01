@@ -215,7 +215,7 @@
                         html += '<div class="d-flex align-items-center px-4 py-3 border-bottom">' +
                                 '<div class="symbol symbol-40 symbol-light-warning mr-3">' +
                                     '<span class="symbol-label">' +
-                                        '<i class="ki-outline ki-coffee text-warning"></i>' +
+                                        '<i class="ki-outline ki-like text-warning"></i>' +
                                     '</span>' +
                                 '</div>' +
                                 '<div class="d-flex flex-column flex-grow-1">' +
@@ -381,8 +381,8 @@
                     
                     // Show success message
                     swal({
-                        title: 'Break Started!',
-                        text: 'Your break has started. Enjoy your break time!',
+                        title: 'Backup Started!',
+                        text: 'Your backup has started. Thanks for your backup!',
                         icon: 'success',
                         timer: 2000,
                         buttons: false

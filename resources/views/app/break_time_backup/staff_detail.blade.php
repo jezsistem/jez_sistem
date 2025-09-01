@@ -138,7 +138,7 @@
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40 mr-4">
                                     <span class="symbol-label">
-                                        <i class="ki-outline ki-coffee text-dark"></i>
+                                        <i class="ki-outline ki-like text-dark"></i>
                                     </span>
                                 </div>
                                 <div>
