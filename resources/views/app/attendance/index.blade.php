@@ -179,7 +179,7 @@
             <div class="row mb-4">
                 @foreach($stats ?? [] as $stat)
                     <div class="col-lg-2 col-md-4">
-                        <div class="card card-custom rounded-lg 
+                        <div class="card card-custom mb-4 rounded-lg 
                             @switch($stat->at_status)
                                 @case('present')
                                     bg-all
@@ -618,7 +618,7 @@ function exportToPDF() {
     const divisionId = document.getElementById('division_id').value;
     const status = document.getElementById('status').value;
     
-    if (dateFilter && dateFilter !== 'custom') {
+    if (dateFilter) {
         url.searchParams.append('date_filter', dateFilter);
     }
     if (startDate) {

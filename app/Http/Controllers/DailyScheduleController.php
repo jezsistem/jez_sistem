@@ -1972,11 +1972,12 @@ class DailyScheduleController extends Controller
                 $users->where('users.ud_id', $divisionId);
             }
             
-            if ($positionId) {  // Position filter ditambahkan
+            if ($positionId) {  
                 $users->where('users.up_id', $positionId);
             }
-            
-            if ($shiftId) {  // Shift filter ditambahkan
+            \Log::info('Export Weekly Report PDF : ' . $positionId);
+
+            if ($shiftId) {  
                 $users->whereExists(function($query) use ($shiftId, $startDate, $endDate) {
                     $query->select(DB::raw(1))
                           ->from('daily_schedules')
@@ -2119,11 +2120,13 @@ class DailyScheduleController extends Controller
                     'user_types.ut_name',
                     'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
+                ->join('daily_schedules as ds', 'user_id', '=', 'ds.user_id')
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
+                ->whereNotNull('users.u_nip') // ✅ Hanya user dengan NIP
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Only users with schedules in the month
 
             // Apply filters
             if ($divisionId) {
@@ -2736,36 +2739,28 @@ class DailyScheduleController extends Controller
             
             // Group users by division
             $usersByDivision = $users->groupBy('ud_name');
-            
+
             foreach ($usersByDivision as $divisionName => $divisionUsers) {
                 // Add division header row (same format as weekly input - only division name and staff count)
                 $exportData[] = [
-                    'Division' => $divisionName,
-                    'Staff' => count($divisionUsers),
-                    'NIP' => '',
-                    'Nama' => '',
-                    'Divisi' => '',
-                    'User Type' => ''
+                    "Division: {$divisionName}    " . count($divisionUsers) . " Staff"
                 ];
                 
                 // Add date header row (same format as weekly input)
-                $dateHeader = ['Division', 'Staff', 'NIP', 'Nama', 'Divisi', 'User Type'];
+                $dateHeaders = ['NIP', 'Nama', 'Divisi'];
                 foreach ($calendarDates as $dateInfo) {
-                    $dateHeader[] = date('d/m', strtotime($dateInfo['date'])) . ' (' . date('D', strtotime($dateInfo['date'])) . ')';
+                    $dateHeaders[] = date('d/m', strtotime($dateInfo['date'])) . ' (' . date('D', strtotime($dateInfo['date'])) . ')';
                 }
-                $exportData[] = $dateHeader;
+                $exportData[] = $dateHeaders;
                 
                 // Add user data rows (keep original monthly report format)
                 foreach ($divisionUsers as $user) {
                     $row = [
-                        'Division' => '',
-                        'Staff' => '',
-                        'NIP' => $user->u_nip,
-                        'Nama' => $user->u_name,
-                        'Divisi' => $user->ud_name,
-                        'User Type' => 'FULL TIME' // Default value
+                        $user->u_nip,
+                        $user->u_name,
+                        $user->ud_name
                     ];
-                    
+
                     // Add schedule data for each day of the month (keep original format)
                     foreach ($calendarDates as $dateInfo) {
                         $date = $dateInfo['date'];
@@ -2866,7 +2861,7 @@ class DailyScheduleController extends Controller
                 ])
                 ->where('u.u_delete', '!=', '1')
                 ->whereNotNull('u.u_nip') // Only users with NIP
-                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Hanya user dengan schedule di bulan tersebut
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); 
             
             if ($divisionId) {
                 $usersQuery->where('u.ud_id', $divisionId);
@@ -3281,11 +3276,13 @@ class DailyScheduleController extends Controller
                     'user_types.ut_name',
                     'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
+                ->join('daily_schedules as ds', 'users.id', '=', 'ds.user_id')
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
+                ->whereNotNull('users.u_nip')
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Hanya user dengan schedule di bulan tersebut
 
             // Apply filters
             if ($divisionId) {
@@ -3382,7 +3379,6 @@ class DailyScheduleController extends Controller
                 }
             }
             
-            // Add users without schedules
             foreach ($users as $user) {
                 $divisionName = $user->ud_name ?: 'No Division';
                 $userId = $user->user_id;
@@ -3402,88 +3398,59 @@ class DailyScheduleController extends Controller
                 }
             }
 
-            // Generate week dates (Monday to Sunday)
-            $weekDates = [];
-            for ($i = 0; $i < 7; $i++) {
-                $weekDates[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
-            }
-            
-            // Debug: Log week dates and date range
-            \Log::info('Weekly Export - Date Range Debug', [
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'week_dates' => $weekDates,
-                'date_filter' => $dateFilter
-            ]);
-            
-            // Prepare export data in table format (same as view)
-            $exportData = [];
-            
+                        $weekDates = [];
+                        for ($i = 0; $i < 7; $i++) {
+                            $weekDates[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
+                        }
+
+                        $exportData = [];
+
             foreach ($groupedSchedules as $divisionName => $divisionUsers) {
-                // Add division header
+                // === Baris judul division (hanya 1 kolom, nanti bisa di-merge di AfterSheet) ===
                 $exportData[] = [
-                    'Division' => $divisionName,
-                    'Staff' => count($divisionUsers),
-                    'NIP' => '',
-                    'Nama' => '',
-                    'Divisi' => ''
+                    "Division: {$divisionName}    " . count($divisionUsers) . " Staff"
                 ];
-                
-                // Add date headers for each day of the week
-                $dateHeaders = ['Division', 'Staff', 'NIP', 'Nama', 'Divisi'];
+
+                // Header tabel
+                $dateHeaders = ['NIP', 'Nama', 'Divisi'];
                 foreach ($weekDates as $date) {
                     $dateHeaders[] = date('d/m', strtotime($date)) . ' (' . date('l', strtotime($date)) . ')';
                 }
                 $exportData[] = $dateHeaders;
-                
+
+                // Data user
                 foreach ($divisionUsers as $userId => $userData) {
                     $row = [
-                        'Division' => '',
-                        'Staff' => '',
-                        'NIP' => $userData['u_nip'],
-                        'Nama' => $userData['u_name'],
-                        'Divisi' => $userData['ud_name']
+                        $userData['u_nip'],
+                        $userData['u_name'],
+                        $userData['ud_name']
                     ];
-                    
-                    // Add schedule data for each day
+
                     foreach ($weekDates as $date) {
                         $schedule = $userData['schedules'][$date] ?? null;
-                        
                         if ($schedule) {
-                            $row[] = $schedule['sc_code'] . ' - ' . $schedule['sc_shift_name'] . 
-                                   ' (' . date('H:i', strtotime($schedule['sc_start_time'])) . '-' . date('H:i', strtotime($schedule['sc_end_time'])) . ')';
+                            $row[] = $schedule['sc_code'] . ' - ' . $schedule['sc_shift_name'] .
+                                    ' (' . date('H:i', strtotime($schedule['sc_start_time'])) .
+                                    '-' . date('H:i', strtotime($schedule['sc_end_time'])) . ')';
                         } else {
                             $row[] = 'No Schedule';
                         }
                     }
-                    
+
                     $exportData[] = $row;
                 }
-                
-                // Add empty row between divisions
-                $emptyRow = array_fill(0, count($dateHeaders), '');
-                $exportData[] = $emptyRow;
+
+                // Baris kosong antar division
+                $exportData[] = [];
             }
 
-            \Log::info('Public Export Weekly Report - Data Prepared', [
-                'users_count' => $users->count(),
-                'schedules_count' => $schedules->count(),
-                'export_data_count' => count($exportData),
-                'date_filter' => $dateFilter,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'filters_summary' => [
-                    'division_filtered' => $divisionId ? 'Yes' : 'No',
-                    'shift_filtered' => $shiftId ? 'Yes' : 'No',
-                    'user_name_filtered' => $userName ? 'Yes' : 'No',
-                    'date_filtered' => $dateFilter
-                ]
-            ]);
+
+
 
             // Generate filename
             $filename = 'weekly-schedule-report-' . $startDate . '-' . $endDate . '.xlsx';
             
-            \Log::info('Public Export Weekly Report - Using Excel Facade', [
+            \Log::info('Public Export Weekly Reportsssss - Using Excel Facade', [
                 'filename' => $filename,
                 'export_data_count' => count($exportData)
             ]);
@@ -4279,6 +4246,7 @@ class DailyScheduleController extends Controller
             ]);
 
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -4364,12 +4332,18 @@ class DailyScheduleController extends Controller
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
+                ->whereNotNull('users.u_nip');
+                
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
                 \Log::info('Division filter applied for PDF report', ['division_id' => $divisionId]);
+            }
+
+            if ($positionId) {
+                $users->where('users.up_id', $positionId);
+                \Log::info('Position filter applied for PDF report', ['position_id' => $positionId]);
             }
 
             if ($userName) {

@@ -15,7 +15,7 @@
                     <div class="d-flex align-items-center">
                         <span class="text-dark fw-bold fs-6 mr-3">{{ $announcement->creator->u_name ?? 'Unknown' }}</span>
                         <span class="text-dark fw-bold fs-6 mr-3" style="color: #6c757d !important;">•</span>
-                        <span class="text-dark fw-bold fs-5 mr-3 compact-title" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $announcement->title }}</span>
+                        <a href="{{ route('announcements.show', $announcement->id) }}" class="text-dark fw-bold fs-5 mr-3 compact-title" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none;">{{ $announcement->title }}</a>
                         @if($announcement->category)
                             <span class="badge badge-pill font-weight-bold mr-2" 
                                   style="background-color: {{ $announcement->category->color }}20; color: {{ $announcement->category->color }}; border: 1px solid {{ $announcement->color }}40; font-size: 0.9rem; padding: 0.3rem 0.6rem;">
@@ -64,7 +64,7 @@
         
         <!--begin::Content Preview (saat minimize)-->
         <div class="mb-3 compact-content" id="compact-content-{{ $announcement->id }}">
-            <span class="text-dark fw-bold fs-5 mb-3 compact-title-mobile" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $announcement->title }}</span>
+            <a href="{{ route('announcements.show', $announcement->id) }}" class="text-dark fw-bold fs-5 mb-3 compact-title-mobile" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none;">{{ $announcement->title }}</a>
             <div class="text-gray-600 fs-5 content-preview" id="preview-{{ $announcement->id }}">
                 {{ Str::limit(strip_tags($announcement->content), 100) }}
                 @if(strlen(strip_tags($announcement->content)) > 100)
@@ -76,9 +76,9 @@
         
         <!--begin::Expanded Title (hidden saat minimize)-->
         <div class="mt-4 expanded-title" id="expanded-title-{{ $announcement->id }}" style="display: none;">
-            <h5 class="text-dark fw-bold cursor-pointer fs-4" onclick="toggleAnnouncementContent({{ $announcement->id }})">
+            <a href="{{ route('announcements.show', $announcement->id) }}" class="text-dark fw-bold cursor-pointer fs-4" style="text-decoration: none;">
                 {{ $announcement->title }}
-            </h5>
+            </a>
         </div>
         <!--end::Expanded Title-->
         

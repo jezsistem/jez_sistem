@@ -1,5 +1,6 @@
 @extends('app.structure')
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
     /* Remove table-responsive scroll */
     .table-responsive {

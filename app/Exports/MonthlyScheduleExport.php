@@ -42,9 +42,9 @@ class MonthlyScheduleExport implements FromCollection, WithHeadings, WithMapping
         
         // Return array with column letters (A, B, C, etc.)
         $headings = [];
-        for ($i = 0; $i < $columnCount; $i++) {
-            $headings[] = chr(65 + $i); // A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, AA, AB, etc.
-        }
+        // for ($i = 0; $i < $columnCount; $i++) {
+        //     $headings[] = chr(65 + $i); // A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, AA, AB, etc.
+        // }
         
         return $headings;
     }
@@ -64,11 +64,10 @@ class MonthlyScheduleExport implements FromCollection, WithHeadings, WithMapping
         $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
             'font' => [
                 'bold' => true,
-                'color' => ['rgb' => 'FFFFFF']
             ],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '007BFF']
+                'startColor' => ['rgb' => 'E3F2FD']
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -105,11 +104,46 @@ class MonthlyScheduleExport implements FromCollection, WithHeadings, WithMapping
                 'vertical' => Alignment::VERTICAL_CENTER
             ]
         ]);
-
+        
         // Auto-size columns
-        foreach (range('A', $highestColumn) as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
+        $sheet->getColumnDimension('A')->setWidth(100);
+        $sheet->getColumnDimension('B')->setWidth(40);
+        $sheet->getColumnDimension('C')->setWidth(25);
+        $sheet->getColumnDimension('D')->setWidth(25);
+        $sheet->getColumnDimension('E')->setWidth(25);
+        $sheet->getColumnDimension('F')->setWidth(25);
+        $sheet->getColumnDimension('G')->setWidth(25);
+        $sheet->getColumnDimension('H')->setWidth(25);
+        $sheet->getColumnDimension('I')->setWidth(25);
+        $sheet->getColumnDimension('J')->setWidth(25);
+        $sheet->getColumnDimension('K')->setWidth(25);
+        $sheet->getColumnDimension('L')->setWidth(25);
+        $sheet->getColumnDimension('M')->setWidth(25);
+        $sheet->getColumnDimension('N')->setWidth(25);
+        $sheet->getColumnDimension('O')->setWidth(25);
+        $sheet->getColumnDimension('P')->setWidth(25);
+        $sheet->getColumnDimension('Q')->setWidth(25);
+        $sheet->getColumnDimension('R')->setWidth(25);
+        $sheet->getColumnDimension('S')->setWidth(25);
+        $sheet->getColumnDimension('T')->setWidth(25);
+        $sheet->getColumnDimension('U')->setWidth(25);
+        $sheet->getColumnDimension('V')->setWidth(25);
+        $sheet->getColumnDimension('W')->setWidth(25);
+        $sheet->getColumnDimension('X')->setWidth(25);
+        $sheet->getColumnDimension('Y')->setWidth(25);
+        $sheet->getColumnDimension('Z')->setWidth(25);
+        $sheet->getColumnDimension('AA')->setWidth(25);
+        $sheet->getColumnDimension('AB')->setWidth(25);
+        $sheet->getColumnDimension('AC')->setWidth(25);
+        $sheet->getColumnDimension('AD')->setWidth(25);
+        $sheet->getColumnDimension('AE')->setWidth(25);
+        $sheet->getColumnDimension('AF')->setWidth(25);
+        $sheet->getColumnDimension('AG')->setWidth(25);
+        $sheet->getColumnDimension('AH')->setWidth(25);
+        $sheet->getColumnDimension('AI')->setWidth(25);
+        $sheet->getColumnDimension('AJ')->setWidth(25);
+        $sheet->getColumnDimension('AK')->setWidth(25);
+        $sheet->getColumnDimension('AL')->setWidth(25);
 
         // Add title row
         $sheet->insertNewRowBefore(1, 2);

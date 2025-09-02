@@ -134,7 +134,7 @@ class LeaveRequestController extends Controller
             'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
             'lr_unit' => 'required|in:days,hours',
             'lr_reason' => 'required|string',
-            'lr_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240' // Max 10MB
+            'lr_attachments.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240' // Max 10MB per file
         ]);
 
         $userId = auth()->user()->id;
@@ -163,19 +163,23 @@ class LeaveRequestController extends Controller
             $totalHours = 0;
         }
 
-        // Handle file upload
+        // Handle multiple file uploads
         $attachmentData = null;
-        if ($request->hasFile('lr_attachment')) {
-            $file = $request->file('lr_attachment');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
+        if ($request->hasFile('lr_attachments')) {
+            $files = $request->file('lr_attachments');
+            $attachmentData = [];
             
-            $attachmentData = [
-                'lr_attachment_path' => $filePath,
-                'lr_attachment_name' => $file->getClientOriginalName(),
-                'lr_attachment_type' => $file->getClientMimeType(),
-                'lr_attachment_size' => $file->getSize()
-            ];
+            foreach ($files as $file) {
+                $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
+                
+                $attachmentData[] = [
+                    'file_path' => $filePath,
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $file->getSize()
+                ];
+            }
         }
 
         $data = [
@@ -192,12 +196,25 @@ class LeaveRequestController extends Controller
             'lr_status' => 'pending'
         ];
 
-        // Merge attachment data if exists
-        if ($attachmentData) {
-            $data = array_merge($data, $attachmentData);
+        // Use Eloquent to create leave request and get the ID
+        $newLeaveRequest = LeaveRequest::create($data);
+        
+        // Handle attachments if leave request was created successfully
+        if ($newLeaveRequest && $attachmentData) {
+            foreach ($attachmentData as $attachment) {
+                DB::table('leave_request_attachments')->insert([
+                    'leave_request_id' => $newLeaveRequest->id,
+                    'file_path' => $attachment['file_path'],
+                    'original_name' => $attachment['original_name'],
+                    'file_type' => $attachment['file_type'],
+                    'file_size' => $attachment['file_size'],
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
         }
-
-        $result = $leaveRequest->storeData('add', null, $data);
+        
+        $result = $newLeaveRequest ? true : false;
 
         if ($result) {
             // Send notification to supervisors and managers in the same division
@@ -217,28 +234,8 @@ class LeaveRequestController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
-        $leaveRequest = DB::table('leave_requests')
-            ->select([
-                'leave_requests.*',
-                'users.u_name',
-                'users.u_nip',
-                'users.ud_id',
-                'user_divisions.ud_name',
-                'leave_types.lt_name',
-                'leave_types.lt_code',
-                'leave_types.lt_color',
-                'approvers.u_name as approver_name'
-            ])
-            ->leftJoin('users', 'users.id', '=', 'leave_requests.user_id')
-            ->leftJoin('daily_schedules', function($join) {
-                $join->on('daily_schedules.user_id', '=', 'leave_requests.user_id')
-                     ->on('daily_schedules.ds_date', '=', 'leave_requests.lr_start_date');
-            })
-            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'daily_schedules.ud_id')
-            ->leftJoin('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
-            ->leftJoin('users as approvers', 'approvers.id', '=', 'leave_requests.lr_approved_by')
-            ->where('leave_requests.id', $id)
-            ->first();
+        $leaveRequest = LeaveRequest::with(['attachments', 'user', 'leaveType', 'approver'])
+            ->findOrFail($id);
 
         if (!$leaveRequest) {
             return redirect()->route('leave-requests.index')->with('error', 'Leave request not found');
@@ -277,7 +274,7 @@ class LeaveRequestController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
-        $leaveRequest = LeaveRequest::findOrFail($id);
+        $leaveRequest = LeaveRequest::with('attachments')->findOrFail($id);
         
         // Debug: Log the leave request data
         \Log::info('Leave Request Edit Debug', [
@@ -286,6 +283,7 @@ class LeaveRequestController extends Controller
             'lr_end_date' => $leaveRequest->lr_end_date,
             'lr_start_date_formatted' => $leaveRequest->lr_start_date ? $leaveRequest->lr_start_date->format('Y-m-d') : null,
             'lr_end_date_formatted' => $leaveRequest->lr_end_date ? $leaveRequest->lr_end_date->format('Y-m-d') : null,
+            'attachments_count' => $leaveRequest->attachments->count()
         ]);
         
         // Check if user can edit this request
@@ -337,7 +335,8 @@ class LeaveRequestController extends Controller
             'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
             'lr_unit' => 'required|in:days,hours',
             'lr_reason' => 'required|string',
-            'lr_attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240' // Max 10MB
+            'lr_attachments.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240', // Max 10MB per file
+            'remove_attachments.*' => 'nullable|integer|exists:leave_request_attachments,id'
         ]);
 
         // Calculate total days/hours
@@ -359,27 +358,39 @@ class LeaveRequestController extends Controller
             $totalHours = 0;
         }
 
-        // Handle file upload
-        $attachmentData = null;
-        if ($request->hasFile('lr_attachment')) {
-            // Delete old attachment if exists
-            if ($leaveRequest->lr_attachment_path) {
-                $oldFilePath = storage_path('app/public/' . $leaveRequest->lr_attachment_path);
-                if (file_exists($oldFilePath)) {
-                    unlink($oldFilePath);
+        // Handle removal of existing attachments
+        if ($request->has('remove_attachments')) {
+            foreach ($request->remove_attachments as $attachmentId) {
+                $attachment = DB::table('leave_request_attachments')->where('id', $attachmentId)->first();
+                if ($attachment) {
+                    // Delete file from storage
+                    $filePath = storage_path('app/public/' . $attachment->file_path);
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                    // Delete from database
+                    DB::table('leave_request_attachments')->where('id', $attachmentId)->delete();
                 }
             }
+        }
+
+        // Handle new file uploads
+        $attachmentData = null;
+        if ($request->hasFile('lr_attachments')) {
+            $files = $request->file('lr_attachments');
+            $attachmentData = [];
             
-            $file = $request->file('lr_attachment');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
-            
-            $attachmentData = [
-                'lr_attachment_path' => $filePath,
-                'lr_attachment_name' => $file->getClientOriginalName(),
-                'lr_attachment_type' => $file->getClientMimeType(),
-                'lr_attachment_size' => $file->getSize()
-            ];
+            foreach ($files as $file) {
+                $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
+                
+                $attachmentData[] = [
+                    'file_path' => $filePath,
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $file->getSize()
+                ];
+            }
         }
 
         $data = [
@@ -394,14 +405,24 @@ class LeaveRequestController extends Controller
             'lr_reason' => $request->lr_reason
         ];
 
-        // Merge attachment data if exists
-        if ($attachmentData) {
-            $data = array_merge($data, $attachmentData);
-        }
-
         // Use direct Eloquent update instead of custom storeData method
         try {
             $leaveRequest->update($data);
+            
+            // Handle new attachments if any
+            if ($attachmentData) {
+                foreach ($attachmentData as $attachment) {
+                    DB::table('leave_request_attachments')->insert([
+                        'leave_request_id' => $id,
+                        'file_path' => $attachment['file_path'],
+                        'original_name' => $attachment['original_name'],
+                        'file_type' => $attachment['file_type'],
+                        'file_size' => $attachment['file_size'],
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
             
             \Log::info('Leave request updated successfully', [
                 'id' => $id,
@@ -946,7 +967,7 @@ class LeaveRequestController extends Controller
                 $endDate = $dateRange['endDate'];
             }
 
-            $query = DB::table('leave_requests')
+            $query = LeaveRequest::with(['attachments', 'user', 'leaveType', 'approver'])
                 ->select([
                     'leave_requests.*',
                     'users.u_name',
@@ -990,7 +1011,7 @@ class LeaveRequestController extends Controller
                 });
             }
 
-            return datatables()->of($query)
+            return datatables()->eloquent($query)
                 ->addIndexColumn()
                 ->addColumn('lr_date', function($row) {
                     $requestDate = date('d/m/Y', strtotime($row->created_at));
@@ -1048,29 +1069,35 @@ class LeaveRequestController extends Controller
                     return $btn;
                 })
                 ->addColumn('lr_attachment', function($row) {
-                    if ($row->lr_attachment_path) {
-                        $fileIcon = '';
-                        $fileType = strtolower($row->lr_attachment_type ?? '');
+                    // Use Eloquent relationship to get attachments
+                    if ($row->attachments && $row->attachments->count() > 0) {
+                        $attachmentHtml = '<div class="text-center">';
                         
-                        if (strpos($fileType, 'pdf') !== false) {
-                            $fileIcon = '<i class="fas fa-file-pdf text-danger"></i>';
-                        } elseif (strpos($fileType, 'image') !== false) {
-                            $fileIcon = '<i class="fas fa-file-image text-primary"></i>';
-                        } elseif (strpos($fileType, 'word') !== false) {
-                            $fileIcon = '<i class="fas fa-file-word text-info"></i>';
-                        } else {
-                            $fileIcon = '<i class="fas fa-file text-secondary"></i>';
+                        foreach ($row->attachments as $index => $attachment) {
+                            $fileIcon = '';
+                            $fileType = strtolower($attachment->file_type ?? '');
+                            
+                            if (strpos($fileType, 'pdf') !== false) {
+                                $fileIcon = '<i class="fas fa-file-pdf text-danger"></i>';
+                            } elseif (strpos($fileType, 'image') !== false) {
+                                $fileIcon = '<i class="fas fa-file-image text-primary"></i>';
+                            } elseif (strpos($fileType, 'word') !== false) {
+                                $fileIcon = '<i class="fas fa-file-word text-info"></i>';
+                            } else {
+                                $fileIcon = '<i class="fas fa-file text-secondary"></i>';
+                            }
+                            
+                            $fileName = $attachment->original_name ?: 'Attachment';
+                            $fileSize = $attachment->file_size ? $this->formatFileSize($attachment->file_size) : '';
+                            
+                            $attachmentHtml .= '<div class="mb-1">' .
+                                               '<button type="button" class="btn btn-sm btn-light-primary" onclick="viewAttachment(' . $row->id . ', \'' . $attachment->file_path . '\', \'' . $attachment->original_name . '\', \'' . $attachment->file_type . '\')">' .
+                                               $fileIcon . ' '.substr($fileName, 0, 5) . (strlen($fileName) > 5 ? '...' : '').'</button>' .
+                                               '</div>';
                         }
                         
-                        $fileName = $row->lr_attachment_name ?: 'Attachment';
-                        $fileSize = $row->lr_attachment_size ? $this->formatFileSize($row->lr_attachment_size) : '';
-                        
-                        return '<div class="text-center">' .
-                               '<button type="button" class="btn btn-sm btn-light-primary" onclick="viewAttachment(' . $row->id . ', \'' . $row->lr_attachment_path . '\', \'' . $row->lr_attachment_name . '\', \'' . $row->lr_attachment_type . '\')">' .
-                               $fileIcon . ' View</button>' .
-                               '<br><small class="text-muted">' . $fileName . '</small>' .
-                               ($fileSize ? '<br><small class="text-muted">' . $fileSize . '</small>' : '') .
-                               '</div>';
+                        $attachmentHtml .= '</div>';
+                        return $attachmentHtml;
                     }
                     return '<span class="text-muted">-</span>';
                 })

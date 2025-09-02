@@ -293,6 +293,32 @@ class AnnouncementController extends Controller
     }
 
     /**
+     * Show individual announcement
+     */
+    public function show($id)
+    {
+        $announcement = Announcement::with(['category', 'creator', 'recipients', 'attachments', 'userReactions.reaction', 'userReactions.user'])
+            ->withCount(['views as views_count'])
+            ->findOrFail($id);
+        
+        // Track view
+        $this->trackView($id);
+        
+        // Get reactions for the announcement
+        $reactions = DB::table('announcement_reactions')->orderBy('name')->get();
+        
+        $data = [
+            'title' => 'JEZ SYSTEM',
+            'subtitle' => 'Announcement Details',
+            'sidebar' => $this->sidebar(),
+            'user' => auth()->user(),
+            'segment' => request()->segment(1)
+        ];
+
+        return view('app.announcement.show', compact('announcement', 'reactions', 'data'));
+    }
+
+    /**
      * Show edit form for announcement
      */
     public function edit($id)
@@ -556,7 +582,7 @@ class AnnouncementController extends Controller
     /**
      * Get sidebar data for navigation
      */
-    protected function sidebar()
+    public function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
         ->where('u_id', Auth::user()->id)->get();
@@ -696,13 +722,11 @@ class AnnouncementController extends Controller
                     ];
                 });
             
+            $html = view('app.announcement._view_details', compact('announcement', 'viewers'))->render();
+            
             return response()->json([
                 'success' => true,
-                'viewers' => $viewers,
-                'announcement' => [
-                    'title' => $announcement->title,
-                    'published_at' => $announcement->published_at->format('M d, Y H:i')
-                ]
+                'html' => $html
             ]);
             
         } catch (\Exception $e) {

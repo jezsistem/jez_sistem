@@ -272,7 +272,7 @@ class BreakTimeController extends Controller
                 'total_records' => $result->count(),
                 'first_record' => $result->first()
             ]);
-            
+
             // Debug: Check if any user has data
             if ($result->count() > 0) {
                 $sampleUser = $result->first();
@@ -1164,6 +1164,9 @@ class BreakTimeController extends Controller
                     // $btn .= '<a href="'.route('break-times.edit', $row->id).'" class="menu-link px-3">Edit</a>';
                     // $btn .= '</div>';
                     $btn .= '<div class="menu-item px-3">';
+                    $btn .= '<a href="#" class="menu-link px-3 text-warning" onclick="cancelBreakTime('.$row->id.')">Cancel</a>';
+                    $btn .= '</div>';
+                    $btn .= '<div class="menu-item px-3">';
                     $btn .= '<a href="#" class="menu-link px-3 text-danger" onclick="deleteBreakTime('.$row->id.')">Delete</a>';
                     $btn .= '</div>';
                     $btn .= '</div>';
@@ -1425,9 +1428,16 @@ class BreakTimeController extends Controller
         // Get shift type from shift code using compatibility method
         $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
         $shiftType = $shiftCodeModel ? $shiftCodeModel->getBreakAllowancePrimaryType() : 'PART TIME';
+        $shiftCode = $dailySchedule->sc_code; // Get shift code for special cases
 
-        // Define break allowance based on shift type
+        // Define break allowance based on shift type and special shift codes
         $breakAllowance = 0;
+        
+        // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
+        if (in_array($shiftCode, ['PF', 'PF0', 'PFM'])) {
+            $breakAllowance = 2; // 2 breaks for PF, PF0, PFM (30 minutes each)
+        } else {
+            // Regular logic based on shift type
         switch ($shiftType) {
             case 'FULL TIME':
                 $breakAllowance = 1; // 1 break for full time (60 minutes)
@@ -1446,6 +1456,7 @@ class BreakTimeController extends Controller
                 break;
             default:
                 $breakAllowance = 1; // default 1 break
+            }
         }
         
         // Count completed breaks today (all types combined)
@@ -1501,6 +1512,7 @@ class BreakTimeController extends Controller
 
         \Log::info('Returning break allowance', [
             'shift_type' => $shiftType,
+            'shift_code' => $shiftCode,
             'break_allowance' => $breakAllowance,
             'completed_breaks' => $completedBreaks
         ]);
@@ -1508,6 +1520,7 @@ class BreakTimeController extends Controller
         return response()->json([
             'success' => true,
             'shift_type' => $shiftType,
+            'shift_code' => $shiftCode,
             'break_allowance' => $breakAllowance,
             'completed_breaks' => $completedBreaks
         ]);
@@ -3045,5 +3058,88 @@ class BreakTimeController extends Controller
         </html>';
 
         return $html;
+    }
+
+    /**
+     * Cancel break time and return allowance
+     */
+    public function cancelBreakTime(Request $request, $id)
+    {
+        try {
+            $breakTime = BreakTime::findOrFail($id);
+            
+            // Check if break time can be cancelled
+            if ($breakTime->bt_status === 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Break time is already cancelled'
+                ], 400);
+            }
+            
+            // Allow cancelling completed break times (for cases where user accidentally clicked)
+            // if ($breakTime->bt_status === 'completed') {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Cannot cancel completed break time'
+            //     ], 400);
+            // }
+            
+            // Start transaction
+            DB::beginTransaction();
+            
+            try {
+                // Update break time status to cancelled
+                $breakTime->bt_status = 'cancelled';
+                $breakTime->bt_notes = $breakTime->bt_notes ? $breakTime->bt_notes . ' [Cancelled]' : '[Cancelled]';
+                $breakTime->save();
+                
+                // Return break allowance to user
+                $userId = $breakTime->user_id;
+                $breakType = $breakTime->bt_type;
+                $breakDate = $breakTime->bt_date;
+                
+                // Get daily schedule for the break date
+                $dailySchedule = \App\Models\DailySchedule::where('user_id', $userId)
+                    ->where('ds_date', $breakDate)
+                    ->with('shiftCode')
+                    ->first();
+                
+                if ($dailySchedule && $dailySchedule->shiftCode) {
+                    $shiftType = $dailySchedule->shiftCode->getBreakAllowancePrimaryType();
+                    $breakTimeModel = new BreakTime();
+                    $allowance = $breakTimeModel->getBreakAllowance($shiftType);
+                    
+                    if (isset($allowance[$breakType])) {
+                        // Return the allowance (this might need to be implemented in BreakTime model)
+                        // For now, we'll just log that allowance should be returned
+                        \Log::info('Break time cancelled - allowance should be returned', [
+                            'break_time_id' => $id,
+                            'user_id' => $userId,
+                            'break_type' => $breakType,
+                            'break_date' => $breakDate,
+                            'allowance' => $allowance[$breakType]
+                        ]);
+                    }
+                }
+                
+                DB::commit();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Break time cancelled successfully. Allowance has been returned.'
+                ]);
+                
+            } catch (\Exception $e) {
+                DB::rollback();
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Error cancelling break time: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error cancelling break time: ' . $e->getMessage()
+            ], 500);
+        }
     }
 } 

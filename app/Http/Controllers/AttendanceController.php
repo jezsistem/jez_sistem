@@ -1760,7 +1760,17 @@ class AttendanceController extends Controller
         $this->validateAccess();
         
         try {
-            // Get the same data as the index page with filters
+            // Debug: Log raw request data first
+            \Log::info('Export Excel - Raw request data', [
+                'all_request_data' => $request->all(),
+                'query_string' => $request->getQueryString(),
+                'date_filter_raw' => $request->get('date_filter'),
+                'start_date_raw' => $request->get('start_date'),
+                'end_date_raw' => $request->get('end_date'),
+                'url' => $request->fullUrl()
+            ]);
+            
+            // Get the same data as the index page with filters - EXPORT EXCEL METHOD
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -1770,7 +1780,33 @@ class AttendanceController extends Controller
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
+            } else {
+                // For custom date range, use the provided start_date and end_date
+                $startDate = $request->get('start_date', date('Y-m-d'));
+                $endDate = $request->get('end_date', date('Y-m-d'));
+                
+                // Validate dates
+                if (!$startDate || !$endDate) {
+                    throw new \Exception('Start date and end date are required for custom date range');
+                }
+                
+                // Ensure start_date is before or equal to end_date
+                if ($startDate > $endDate) {
+                    throw new \Exception('Start date must be before or equal to end date');
+                }
+                
+                // Validate date format
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
+                    throw new \Exception('Invalid date format. Use YYYY-MM-DD format');
+                }
             }
+            
+            \Log::info('Export Excel - Date parameters', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'is_custom' => $dateFilter === 'custom'
+            ]);
             
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
@@ -1780,6 +1816,33 @@ class AttendanceController extends Controller
                 $request->get('division_id'),
                 $request->get('status')
             );
+            
+            \Log::info('Export Excel - Attendance data', [
+                'attendances_count' => $attendances->count(),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'user_id' => $request->get('user_id'),
+                'division_id' => $request->get('division_id'),
+                'status' => $request->get('status')
+            ]);
+            
+            // Debug: Check if data is empty and log sample data
+            if ($attendances->count() === 0) {
+                \Log::warning('Export Excel - No attendance data found', [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'filters' => [
+                        'user_id' => $request->get('user_id'),
+                        'division_id' => $request->get('division_id'),
+                        'status' => $request->get('status')
+                    ]
+                ]);
+            } else {
+                \Log::info('Export Excel - Sample attendance data', [
+                    'first_record' => $attendances->first(),
+                    'total_records' => $attendances->count()
+                ]);
+            }
 
             // Generate filename with filters
             $filename = 'attendance_' . date('Y-m-d_H-i-s');
@@ -1808,7 +1871,17 @@ class AttendanceController extends Controller
         $this->validateAccess();
         
         try {
-            // Get the same data as the index page with filters
+            // Debug: Log raw request data first
+            \Log::info('Export PDF - Raw request data', [
+                'all_request_data' => $request->all(),
+                'query_string' => $request->getQueryString(),
+                'date_filter_raw' => $request->get('date_filter'),
+                'start_date_raw' => $request->get('start_date'),
+                'end_date_raw' => $request->get('end_date'),
+                'url' => $request->fullUrl()
+            ]);
+            
+            // Get the same data as the index page with filters - EXPORT PDF METHOD
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -1818,7 +1891,23 @@ class AttendanceController extends Controller
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
+            } else {
+                // For custom date range, use the provided start_date and end_date
+                $startDate = $request->get('start_date', date('Y-m-d'));
+                $endDate = $request->get('end_date', date('Y-m-d'));
+                
+                // Validate dates
+                if (!$startDate || !$endDate) {
+                    throw new \Exception('Start date and end date are required for custom date range');
+                }
             }
+            
+            \Log::info('Export PDF - Date parameters', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'is_custom' => $dateFilter === 'custom'
+            ]);
             
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
@@ -1828,6 +1917,33 @@ class AttendanceController extends Controller
                 $request->get('division_id'),
                 $request->get('status')
             );
+            
+            \Log::info('Export PDF - Attendance data', [
+                'attendances_count' => $attendances->count(),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'user_id' => $request->get('user_id'),
+                'division_id' => $request->get('division_id'),
+                'status' => $request->get('status')
+            ]);
+            
+            // Debug: Check if data is empty and log sample data
+            if ($attendances->count() === 0) {
+                \Log::warning('Export PDF - No attendance data found', [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'filters' => [
+                        'user_id' => $request->get('user_id'),
+                        'division_id' => $request->get('division_id'),
+                        'status' => $request->get('status')
+                    ]
+                ]);
+            } else {
+                \Log::info('Export PDF - Sample attendance data', [
+                    'first_record' => $attendances->first(),
+                    'total_records' => $attendances->count()
+                ]);
+            }
 
             // Generate HTML for PDF
             $html = $this->generateAttendanceHTML($attendances, $request);

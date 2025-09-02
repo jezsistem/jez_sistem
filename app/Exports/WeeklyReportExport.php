@@ -42,9 +42,9 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
         
         // Return array with column letters (A, B, C, etc.)
         $headings = [];
-        for ($i = 0; $i < $columnCount; $i++) {
-            $headings[] = chr(65 + $i); // A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, AA, AB, etc.
-        }
+        // for ($i = 0; $i < $columnCount; $i++) {
+        //     $headings[] = chr(65 + $i); // A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, AA, AB, etc.
+        // }
         
         return $headings;
     }
@@ -64,14 +64,13 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
         $sheet->getStyle('A1:' . $highestColumn . '1')->applyFromArray([
             'font' => [
                 'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
             ],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '4472C4'],
+                'startColor' => ['rgb' => 'E3F2FD'],
             ],
             'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_LEFT,
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ]);
@@ -88,6 +87,11 @@ class WeeklyReportExport implements FromCollection, WithHeadings, WithMapping, W
                     'font' => [
                         'bold' => true,
                     ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_LEFT,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+        
                 ]);
             }
         }
