@@ -63,75 +63,8 @@ class BreakTime extends Model
         ];
 
         if ($mode == 'add') {
-            try {
-                // Cek apakah ada record yang sama (SEMUA STATUS)
-                $existingRecord = DB::table($this->table)
-                    ->where('user_id', $data['user_id'])
-                    ->where('bt_date', $data['bt_date'])
-                    ->where('bt_type', $data['bt_type'])
-                    ->first();
-
-                if ($existingRecord) {
-                    // Jika ada record cancelled/completed, update menjadi active
-                    if (in_array($existingRecord->bt_status, ['cancelled', 'completed'])) {
-                        $updateData = [
-                            'bt_start_time' => $data['bt_start_time'],
-                            'bt_end_time' => null,
-                            'bt_duration_minutes' => 0,
-                            'bt_status' => 'active',
-                            'bt_notes' => null,
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ];
-
-                        $result = DB::table($this->table)
-                            ->where('id', $existingRecord->id)
-                            ->update($updateData);
-
-                        if ($result) {
-                            \Log::info('BreakTime storeData - Updated existing record to active', [
-                                'record_id' => $existingRecord->id,
-                                'old_status' => $existingRecord->bt_status,
-                                'new_status' => 'active',
-                                'user_id' => $data['user_id'],
-                                'bt_date' => $data['bt_date'],
-                                'bt_type' => $data['bt_type']
-                            ]);
-                            return $existingRecord->id;
-                        }
-                    } else if ($existingRecord->bt_status === 'active') {
-                        // Jika ada record active, return false
-                        \Log::warning('BreakTime storeData - Active break already exists', [
-                            'existing_record_id' => $existingRecord->id,
-                            'user_id' => $data['user_id'],
-                            'bt_date' => $data['bt_date'],
-                            'bt_type' => $data['bt_type']
-                        ]);
-                        return false;
-                    }
-                }
-
-                // Normal insert jika tidak ada record yang sama
-                $store = DB::table($this->table)->insertGetId(array_merge($data, $created));
-                
-                \Log::info('BreakTime storeData - New record inserted', [
-                    'inserted_id' => $store,
-                    'user_id' => $data['user_id'],
-                    'bt_date' => $data['bt_date'],
-                    'bt_type' => $data['bt_type']
-                ]);
-                
-                return $store;
-
-            } catch (\Illuminate\Database\QueryException $ex) {
-                if($ex->getCode() === '23000') {
-                    \Log::error('BreakTime storeData - Duplicate entry error', [
-                        'error' => $ex->getMessage(),
-                        'data' => $data
-                    ]);
-                    return false;
-                }
-                throw $ex;
-            }
+            $store = DB::table($this->table)->insertGetId(array_merge($data, $created));
+            return $store;
         } else if ($mode == 'edit') {
             try {
                 $store = DB::table($this->table)->where('id', $id)->update(array_merge($data, $updated));
@@ -262,6 +195,16 @@ class BreakTime extends Model
         $shiftType = $dailySchedule->shiftCode->getBreakAllowancePrimaryType();
         $breakAllowance = $this->getBreakAllowance($shiftType);
 
+        // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
+        if (in_array($dailySchedule->shiftCode->sc_code, ['PF', 'PF0', 'PFM'])) {
+            \Log::info('PF, PF0, PFM shift codes get 2 breaks even if PART TIME');
+            // Override break allowance for PF, PF0, PFM
+            $breakAllowance = [
+                'break_1' => ['duration' => 30, 'count' => 1],
+                'break_2' => ['duration' => 30, 'count' => 1]
+            ];
+        }
+
         // Check if this break type is allowed
         if (!isset($breakAllowance[$breakType])) {
             return false;
@@ -288,6 +231,7 @@ class BreakTime extends Model
             ->count();
 
         if ($completedBreaksCount >= $breakAllowance[$breakType]['count']) {
+            \Log::info('allowance count: '.$breakAllowance[$breakType]['count']);
             return false;
         }
 

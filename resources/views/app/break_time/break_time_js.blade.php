@@ -54,6 +54,7 @@
             },
             success: function(response) {
                 if (response.success) {
+                    console.log('Break allowance response:', response);
                     var text = response.completed_breaks + '/' + response.break_allowance + ' breaks (' + response.shift_type + ')';
                     $('#allowanceText').text(text);
                 } else {
@@ -339,18 +340,32 @@
         console.log('Break state set to INACTIVE');
     }
     
+    // Determine the appropriate break type
+    function determineBreakType() {
+        // Check existing breaks to determine which break type to use
+        var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        var userNip = "{{ Auth::check() ? Auth::user()->u_nip : '25040202' }}";
+        
+        // Try break_1 first, then break_2
+        // The server will handle the logic to determine which break is available
+        return 'break_1'; // Let server determine the correct break type
+    }
+    
     // Start break function
     function startBreak() {
         console.log('Starting break...');
         
         var userNip = "{{ Auth::check() ? Auth::user()->u_nip : '25040202' }}";
         
+        // Determine the appropriate break type
+        var breakType = determineBreakType();
+        
         $.ajax({
             url: "{{ route('break-times.start') }}",
             type: 'POST',
             data: {
                 user_nip: userNip,
-                break_type: 'break_1' // Default break type
+                break_type: breakType
             },
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),

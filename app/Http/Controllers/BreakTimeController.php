@@ -298,7 +298,6 @@ class BreakTimeController extends Controller
                 
                 $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time'; // Default fallback
                 
-                // Get break allowance based on shift type
                 $breakTime = new \App\Models\BreakTime();
                 $breakAllowance = $breakTime->getBreakAllowance($shiftType);
                 
@@ -1425,9 +1424,10 @@ class BreakTimeController extends Controller
             ]);
         }
 
-        // Get shift type from shift code using compatibility method
-        $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
-        $shiftType = $shiftCodeModel ? $shiftCodeModel->getBreakAllowancePrimaryType() : 'PART TIME';
+        // Get user type directly from user table instead of shift code
+        $user = DB::table('users')->where('id', $userId)->first();
+        $userType = $user && $user->ut_id ? DB::table('user_types')->where('id', $user->ut_id)->first() : null;
+        $shiftType = $userType ? $userType->ut_name : 'PART TIME';
         $shiftCode = $dailySchedule->sc_code; // Get shift code for special cases
 
         // Define break allowance based on shift type and special shift codes
@@ -2029,13 +2029,6 @@ class BreakTimeController extends Controller
             $userNip = $request->get('user_nip');
             $breakType = $request->get('break_type', 'break_1');
             
-            // Log the operation attempt
-            \App\Helpers\BreakTimeLogger::logBreakAttempt([
-                'user_nip' => $userNip,
-                'break_type' => $breakType,
-                'request_data' => $request->all()
-            ]);
-            
             // Find user by NIP
             $user = DB::table('users')->where('u_nip', $userNip)->first();
             if (!$user) {
@@ -2045,6 +2038,27 @@ class BreakTimeController extends Controller
                 ]);
                 return response()->json(['success' => false, 'message' => 'User not found']);
             }
+            
+            // If break_type is break_1 but user can't start break_1, try break_2
+            if ($breakType === 'break_1') {
+                $breakTime = new BreakTime();
+                if (!$breakTime->canStartBreak($user->id, 'break_1')) {
+                    if ($breakTime->canStartBreak($user->id, 'break_2')) {
+                        $breakType = 'break_2';
+                        \Log::info('Auto-switched to break_2 because break_1 not available', [
+                            'user_id' => $user->id,
+                            'user_nip' => $userNip
+                        ]);
+                    }
+                }
+            }
+            
+            // Log the operation attempt
+            \App\Helpers\BreakTimeLogger::logBreakAttempt([
+                'user_nip' => $userNip,
+                'break_type' => $breakType,
+                'request_data' => $request->all()
+            ]);
             
             // Use BreakTime model validation
             $breakTime = new BreakTime();
@@ -2068,39 +2082,6 @@ class BreakTimeController extends Controller
                 ], 400);
             }
             
-            // Debug break time status before attempting to start
-            \App\Helpers\BreakTimeDebugger::logAllBreakTimes($user->id);
-            
-            // Check if we can insert break time with constraint handling
-            $canInsert = \App\Helpers\BreakTimeConstraintHandler::canInsertBreakTime([
-                'user_id' => $user->id,
-                'bt_date' => date('Y-m-d'),
-                'bt_type' => $breakType
-            ]);
-            
-            if (!$canInsert['can_insert']) {
-                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Cannot insert break time: ' . $canInsert['reason'], [
-                    'user_id' => $user->id,
-                    'user_nip' => $userNip,
-                    'break_type' => $breakType,
-                    'can_insert_info' => $canInsert
-                ]);
-                
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'Cannot start break. ' . ucfirst(str_replace('_', ' ', $canInsert['reason'])),
-                    'debug_info' => $canInsert
-                ], 400);
-            }
-            
-            // Log constraint handling info
-            \App\Helpers\BreakTimeLogger::logDebug('Constraint handling info', [
-                'user_id' => $user->id,
-                'can_insert' => $canInsert,
-                'action' => $canInsert['action'] ?? 'normal_insert'
-            ]);
-            
-            // Start break using model method
             $result = $breakTime->startBreak($user->id, $breakType);
             
             if ($result) {
@@ -2113,8 +2094,21 @@ class BreakTimeController extends Controller
                 
                 $breakDuration = 30; // default
                 if ($dailySchedule && $dailySchedule->shiftCode) {
-                    $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
-                    $breakDuration = $allowance[$breakType]['duration'] ?? 30;
+                    // Get user type directly from user table instead of shift code
+                    $userType = $user && $user->ut_id ? DB::table('user_types')->where('id', $user->ut_id)->first() : null;
+                    $shiftType = $userType ? $userType->ut_name : 'PART TIME';
+                    $shiftCode = $dailySchedule->sc_code; // Get shift code for special cases
+                    
+                    // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
+                    if (in_array($shiftCode, haystack: ['PF', 'PF0', 'PFM'])) {
+                        // For PF, PF0, PFM: 2 breaks of 30 minutes each
+                        $breakDuration = 30; // 30 minutes per break
+                        // Note: User can do break_1 and break_2 (2 breaks total)
+                    } else {
+                        // Regular logic based on shift type (still use the cases in getBreakAllowance)
+                        $allowance = $breakTime->getBreakAllowance($shiftType);
+                        $breakDuration = $allowance[$breakType]['duration'] ?? 30;
+                    }
                 }
                 
                 // Log successful operation
