@@ -63,18 +63,125 @@ class BreakTime extends Model
         ];
 
         if ($mode == 'add') {
-            $store = DB::table($this->table)->insertGetId(array_merge($data, $created));
-            return $store;
+            try {
+                // Log the attempt to insert break time data
+                \Log::info('BreakTime storeData - INSERT attempt', [
+                    'table' => $this->table,
+                    'data' => $data,
+                    'created' => $created,
+                    'merged_data' => array_merge($data, $created),
+                    'user_id' => $data['user_id'] ?? null,
+                    'bt_date' => $data['bt_date'] ?? null,
+                    'bt_type' => $data['bt_type'] ?? null,
+                    'timestamp' => now()
+                ]);
+
+                // Check for potential duplicate before insert (only ACTIVE breaks)
+                $duplicateCheck = $this->checkForDuplicate($data);
+                if ($duplicateCheck) {
+                    \Log::warning('BreakTime storeData - Active break already exists, cannot start new break', [
+                        'table' => $this->table,
+                        'data' => $data,
+                        'existing_active_record' => $duplicateCheck,
+                        'user_id' => $data['user_id'] ?? null,
+                        'bt_date' => $data['bt_date'] ?? null,
+                        'bt_type' => $data['bt_type'] ?? null,
+                        'timestamp' => now()
+                    ]);
+                    
+                    return false;
+                }
+
+                // Log that no active duplicate was found
+                \Log::info('BreakTime storeData - No active duplicate found, proceeding with insert', [
+                    'user_id' => $data['user_id'] ?? null,
+                    'bt_date' => $data['bt_date'] ?? null,
+                    'bt_type' => $data['bt_type'] ?? null,
+                    'timestamp' => now()
+                ]);
+
+                $store = DB::table($this->table)->insertGetId(array_merge($data, $created));
+                
+                \Log::info('BreakTime storeData - INSERT successful', [
+                    'table' => $this->table,
+                    'inserted_id' => $store,
+                    'data' => $data,
+                    'timestamp' => now()
+                ]);
+                
+                return $store;
+                
+            } catch (\Illuminate\Database\QueryException $ex) {
+                // Enhanced error logging for duplicate entry violations
+                if ($ex->getCode() === '23000') {
+                    $errorMessage = $ex->getMessage();
+                    $isDuplicateEntry = strpos($errorMessage, 'Duplicate entry') !== false;
+                    
+                    if ($isDuplicateEntry) {
+                        // Gunakan helper logging untuk duplicate entry
+                        \App\Helpers\BreakTimeLogger::logDuplicateError($ex, $data, 'storeData_insert');
+                    } else {
+                        \Log::error('BreakTime storeData - Database constraint violation', [
+                            'table' => $this->table,
+                            'error_code' => $ex->getCode(),
+                            'error_message' => $errorMessage,
+                            'data' => $data,
+                            'timestamp' => now()
+                        ]);
+                    }
+                    
+                    return false;
+                } else {
+                    \App\Helpers\BreakTimeLogger::logSystemError('storeData_insert', $ex, $data);
+                    throw $ex;
+                }
+            } catch (\Exception $ex) {
+                \App\Helpers\BreakTimeLogger::logSystemError('storeData_insert', $ex, $data);
+                throw $ex;
+            }
         } else if ($mode == 'edit') {
             try {
+                \Log::info('BreakTime storeData - UPDATE attempt', [
+                    'table' => $this->table,
+                    'id' => $id,
+                    'data' => $data,
+                    'updated' => $updated,
+                    'timestamp' => now()
+                ]);
+
                 $store = DB::table($this->table)->where('id', $id)->update(array_merge($data, $updated));
+                
+                \Log::info('BreakTime storeData - UPDATE result', [
+                    'table' => $this->table,
+                    'id' => $id,
+                    'affected_rows' => $store,
+                    'timestamp' => now()
+                ]);
+                
                 return $store;
             } catch (\Illuminate\Database\QueryException $ex) {
+                \Log::error('BreakTime storeData - UPDATE error', [
+                    'table' => $this->table,
+                    'id' => $id,
+                    'error_code' => $ex->getCode(),
+                    'error_message' => $ex->getMessage(),
+                    'data' => $data,
+                    'timestamp' => now(),
+                    'trace' => $ex->getTraceAsString()
+                ]);
+                
                 if($ex->getCode() === '23000') {
                     return false;
                 }
+                throw $ex;
             }
         } else {
+            \Log::warning('BreakTime storeData - Invalid mode', [
+                'table' => $this->table,
+                'mode' => $mode,
+                'data' => $data,
+                'timestamp' => now()
+            ]);
             return false;
         }
     }
@@ -343,5 +450,129 @@ class BreakTime extends Model
         }
 
         return $query->get();
+    }
+
+    /**
+     * Check for potential duplicate break time record
+     * Only check for ACTIVE breaks, not cancelled or completed ones
+     * 
+     * @param array $data
+     * @return mixed|null
+     */
+    private function checkForDuplicate($data)
+    {
+        if (!isset($data['user_id']) || !isset($data['bt_date']) || !isset($data['bt_type'])) {
+            return null;
+        }
+
+        // Only check for active breaks, not cancelled or completed ones
+        return DB::table($this->table)
+            ->where('user_id', $data['user_id'])
+            ->where('bt_date', $data['bt_date'])
+            ->where('bt_type', $data['bt_type'])
+            ->where('bt_status', 'active')
+            ->first();
+    }
+
+    /**
+     * Get existing break record that matches the duplicate entry criteria
+     * 
+     * @param array $data
+     * @return mixed|null
+     */
+    private function getExistingBreakRecord($data)
+    {
+        if (!isset($data['user_id']) || !isset($data['bt_date']) || !isset($data['bt_type'])) {
+            return null;
+        }
+
+        return DB::table($this->table)
+            ->where('user_id', $data['user_id'])
+            ->where('bt_date', $data['bt_date'])
+            ->where('bt_type', $data['bt_type'])
+            ->first();
+    }
+
+    /**
+     * Enhanced start break method with comprehensive logging
+     * 
+     * @param int $userId
+     * @param string $breakType
+     * @return mixed
+     */
+    public function startBreakWithLogging($userId, $breakType = 'break_1')
+    {
+        \Log::info('BreakTime startBreakWithLogging - Starting break attempt', [
+            'user_id' => $userId,
+            'break_type' => $breakType,
+            'timestamp' => now()
+        ]);
+
+        // Check if user can start break
+        if (!$this->canStartBreak($userId, $breakType)) {
+            \Log::warning('BreakTime startBreakWithLogging - Cannot start break', [
+                'user_id' => $userId,
+                'break_type' => $breakType,
+                'reason' => 'Validation failed - check canStartBreak method',
+                'timestamp' => now()
+            ]);
+            return false;
+        }
+
+        $today = date('Y-m-d');
+        $now = date('H:i:s');
+
+        $data = [
+            'user_id' => $userId,
+            'daily_schedule_id' => null, // Will be updated later
+            'bt_date' => $today,
+            'bt_start_time' => $now,
+            'bt_end_time' => null,
+            'bt_duration_minutes' => 0,
+            'bt_type' => $breakType,
+            'bt_status' => 'active',
+            'bt_notes' => null,
+            'created_by' => auth()->user()->u_name ?? 'system',
+        ];
+
+        // Get daily schedule
+        $dailySchedule = DailySchedule::where('user_id', $userId)
+            ->where('ds_date', $today)
+            ->first();
+
+        if ($dailySchedule) {
+            $data['daily_schedule_id'] = $dailySchedule->id;
+            \Log::info('BreakTime startBreakWithLogging - Daily schedule found', [
+                'user_id' => $userId,
+                'daily_schedule_id' => $dailySchedule->id,
+                'timestamp' => now()
+            ]);
+        } else {
+            \Log::warning('BreakTime startBreakWithLogging - No daily schedule found', [
+                'user_id' => $userId,
+                'bt_date' => $today,
+                'timestamp' => now()
+            ]);
+        }
+
+        $result = $this->storeData('add', null, $data);
+        
+        if ($result) {
+            \Log::info('BreakTime startBreakWithLogging - Break started successfully', [
+                'user_id' => $userId,
+                'break_type' => $breakType,
+                'break_id' => $result,
+                'timestamp' => now()
+            ]);
+        } else {
+            \Log::error('BreakTime startBreakWithLogging - Failed to start break', [
+                'user_id' => $userId,
+                'break_type' => $breakType,
+                'data' => $data,
+                'timestamp' => now()
+            ]);
+        }
+
+        return $result;
     }
 } 

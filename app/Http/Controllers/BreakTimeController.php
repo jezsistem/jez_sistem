@@ -2029,9 +2029,20 @@ class BreakTimeController extends Controller
             $userNip = $request->get('user_nip');
             $breakType = $request->get('break_type', 'break_1');
             
+            // Log the operation attempt
+            \App\Helpers\BreakTimeLogger::logBreakAttempt([
+                'user_nip' => $userNip,
+                'break_type' => $breakType,
+                'request_data' => $request->all()
+            ]);
+            
             // Find user by NIP
             $user = DB::table('users')->where('u_nip', $userNip)->first();
             if (!$user) {
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'User not found', [
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType
+                ]);
                 return response()->json(['success' => false, 'message' => 'User not found']);
             }
             
@@ -2040,10 +2051,40 @@ class BreakTimeController extends Controller
             
             // Check if user can start break using model validation
             if (!$breakTime->canStartBreak($user->id, $breakType)) {
+                // Debug detailed info
+                $debugInfo = \App\Helpers\BreakTimeDebugger::canStartBreakDetailed($user->id, $breakType);
+                
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Cannot start break - validation failed', [
+                    'user_id' => $user->id,
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType,
+                    'debug_info' => $debugInfo
+                ]);
+                
                 return response()->json([
                     'success' => false, 
-                    'message' => 'Cannot start break. Please check your schedule, existing breaks, or break quota.'
+                    'message' => 'Cannot start break. Please check your schedule, existing breaks, or break quota.',
+                    'debug_info' => $debugInfo
                 ], 400);
+            }
+            
+            // Debug break time status before attempting to start
+            \App\Helpers\BreakTimeDebugger::logAllBreakTimes($user->id);
+            
+            // Check for potential constraint violations
+            $constraintViolations = \App\Helpers\BreakTimeDebugger::checkConstraintViolations([
+                'user_id' => $user->id,
+                'bt_date' => date('Y-m-d'),
+                'bt_type' => $breakType
+            ]);
+            
+            if (!empty($constraintViolations)) {
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Constraint violations detected', [
+                    'user_id' => $user->id,
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType,
+                    'violations' => $constraintViolations
+                ]);
             }
             
             // Start break using model method
@@ -2063,6 +2104,14 @@ class BreakTimeController extends Controller
                     $breakDuration = $allowance[$breakType]['duration'] ?? 30;
                 }
                 
+                // Log successful operation
+                \App\Helpers\BreakTimeLogger::logSuccess('start_break', $result, [
+                    'user_id' => $user->id,
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType,
+                    'break_duration' => $breakDuration
+                ]);
+                
                 return response()->json([
                     'success' => true,
                     'message' => 'Break started successfully',
@@ -2070,15 +2119,49 @@ class BreakTimeController extends Controller
                     'break_duration' => $breakDuration
                 ]);
             } else {
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Failed to start break - model returned false', [
+                    'user_id' => $user->id,
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType
+                ]);
                 return response()->json([
                     'success' => false, 
                     'message' => 'Failed to start break. Please try again.'
                 ], 400);
             }
             
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database constraint violations specifically
+            if ($e->getCode() === '23000') {
+                \App\Helpers\BreakTimeLogger::logDuplicateError($e, [
+                    'user_nip' => $request->get('user_nip'),
+                    'break_type' => $request->get('break_type', 'break_1'),
+                    'user_id' => $user->id ?? null
+                ], 'start_break');
+            } else {
+                \App\Helpers\BreakTimeLogger::logSystemError('start_break', $e, [
+                    'user_nip' => $request->get('user_nip'),
+                    'break_type' => $request->get('break_type', 'break_1'),
+                    'user_id' => $user->id ?? null
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Database error occurred. Please try again or contact support.'
+            ], 500);
+            
         } catch (\Exception $e) {
-            \Log::error('Error starting break: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Error starting break: ' . $e->getMessage()]);
+            \App\Helpers\BreakTimeLogger::logSystemError('start_break', $e, [
+                'user_nip' => $request->get('user_nip'),
+                'break_type' => $request->get('break_type', 'break_1'),
+                'user_id' => $user->id ?? null
+            ]);
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error starting break: ' . $e->getMessage()
+            ], 500);
         }
     }
     
