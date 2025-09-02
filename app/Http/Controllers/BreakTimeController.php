@@ -2071,21 +2071,34 @@ class BreakTimeController extends Controller
             // Debug break time status before attempting to start
             \App\Helpers\BreakTimeDebugger::logAllBreakTimes($user->id);
             
-            // Check for potential constraint violations
-            $constraintViolations = \App\Helpers\BreakTimeDebugger::checkConstraintViolations([
+            // Check if we can insert break time with constraint handling
+            $canInsert = \App\Helpers\BreakTimeConstraintHandler::canInsertBreakTime([
                 'user_id' => $user->id,
                 'bt_date' => date('Y-m-d'),
                 'bt_type' => $breakType
             ]);
             
-            if (!empty($constraintViolations)) {
-                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Constraint violations detected', [
+            if (!$canInsert['can_insert']) {
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Cannot insert break time: ' . $canInsert['reason'], [
                     'user_id' => $user->id,
                     'user_nip' => $userNip,
                     'break_type' => $breakType,
-                    'violations' => $constraintViolations
+                    'can_insert_info' => $canInsert
                 ]);
+                
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cannot start break. ' . ucfirst(str_replace('_', ' ', $canInsert['reason'])),
+                    'debug_info' => $canInsert
+                ], 400);
             }
+            
+            // Log constraint handling info
+            \App\Helpers\BreakTimeLogger::logDebug('Constraint handling info', [
+                'user_id' => $user->id,
+                'can_insert' => $canInsert,
+                'action' => $canInsert['action'] ?? 'normal_insert'
+            ]);
             
             // Start break using model method
             $result = $breakTime->startBreak($user->id, $breakType);
