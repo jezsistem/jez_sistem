@@ -959,8 +959,8 @@ Route::get('test-csrf', function() {
     // Announcement System
     Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::get('announcements/manage', [AnnouncementController::class, 'manage'])->name('announcements.manage');
-    Route::get('announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
     Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+    Route::get('announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
     Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
     Route::get('announcements/{id}/edit', [AnnouncementController::class, 'edit'])->name('announcements.edit');
     Route::put('announcements/{id}', [AnnouncementController::class, 'update'])->name('announcements.update');
