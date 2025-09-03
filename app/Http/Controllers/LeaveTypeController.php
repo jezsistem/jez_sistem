@@ -349,34 +349,40 @@ class LeaveTypeController extends Controller
                     $btn .= '        </span>';
                     $btn .= '    </button>';
                     $btn .= '    <!--end::Toggle-->';
-                    
+
                     $btn .= '    <!--begin::Menu-->';
                     $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('leave-types.show', $row->id).'" class="menu-link px-3">View</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
-                    
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('leave-types.edit', $row->id).'" class="menu-link px-3">Edit</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
-                    
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveType('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
+
+                    // View → cek akses read
+                    if (hasAccess(auth()->user()->up_id, 'read')) {
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="'.route('leave-types.show', $row->id).'" class="menu-link px-3">View</a>';
+                        $btn .= '        </div>';
+                    }
+
+                    // Edit → cek akses update
+                    if (hasAccess(auth()->user()->up_id, 'update')) {
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="'.route('leave-types.edit', $row->id).'" class="menu-link px-3">Edit</a>';
+                        $btn .= '        </div>';
+                    }
+
+                    // Delete → cek akses delete
+                    if (hasAccess(auth()->user()->up_id, 'delete')) {
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveType('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
+                        $btn .= '        </div>';
+                    }
+
                     $btn .= '    </div>';
                     $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
-                    
+
                     return $btn;
                 })
                 ->rawColumns(['action', 'lt_status'])
                 ->make(true);
+
         }
     }
 }

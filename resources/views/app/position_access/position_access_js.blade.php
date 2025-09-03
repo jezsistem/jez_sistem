@@ -6,13 +6,13 @@
             type: "GET",
             dataType: 'html',
             url: "{{ url('reload_position') }}",
-            success: function(r) {
+            success: function (r) {
                 $('#position_access_div').html(r);
             }
         });
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -32,23 +32,19 @@
             }],
             ajax: {
                 url: "{{ url('position-access-datatables') }}",
-                data: function(d) {
+                data: function (d) {
                     d.search = $('#main_color_search').val();
                 }
             },
             columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'DT_RowIndex',
-                    searchable: false,
-                    orderable: false
-                },
+                data: 'DT_RowIndex',
+                name: 'DT_RowIndex',
+                searchable: false,
+                orderable: false
+            },
                 {
                     data: 'up_name',
                     name: 'up_name'
-                },
-                {
-                    data: 'route',
-                    name: 'route'
                 },
                 {
                     data: 'akses',
@@ -74,7 +70,7 @@
         });
 
 
-        $('#add_position_access_btn').on('click', function() {
+        $('#add_position_access_btn').on('click', function () {
             jQuery.noConflict();
             $('#MainColorModal').modal('show');
             reloadPosition();
@@ -85,7 +81,7 @@
         });
 
 
-        $('#f_position_access').on('submit', function(e) {
+        $('#f_position_access').on('submit', function (e) {
             e.preventDefault();
             $("#save_position_access_btn").html('Proses ..');
             $("#save_position_access_btn").attr("disabled", true);
@@ -98,10 +94,11 @@
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function(data) {
+                success: function (data) {
                     $("#save_position_access_btn").html('Simpan');
-                    if (data.status == '200') {
+                    if (data.status == 200) {
                         toastr.success('Data berhasil disimpan', 'Berhasil');
+                        $('#MainColorModal').modal('hide');
                         if (position_access_table) {
                             position_access_table.ajax.reload(null, false);
                         }
@@ -111,7 +108,7 @@
                         toastr.warning('Data tidak tersimpan', 'Gagal');
                     }
                 },
-                error: function(data) {
+                error: function (data) {
                     toastr.error('Terjadi kesalahan saat menyimpan data', 'Error');
                     $("#save_position_access_btn").html('Simpan');
                     $("#save_position_access_btn").attr("disabled", false);
@@ -120,10 +117,9 @@
         });
 
 
-        $(document).on('click', '#deleteBtn', function() {
-            var route = $(this).data('route');
+        $(document).on('click', '#deleteBtn', function () {
             var positionId = $(this).data('position-id');
-            
+
             Swal.fire({
                 title: 'Apakah Anda yakin?',
                 text: "Data yang dihapus tidak dapat dikembalikan!",
@@ -137,12 +133,12 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: 'POST',
-                        url: "{{ url('position-access-delete') }}/" + route + "/" + positionId,
+                        url: "{{ url('position-access-delete') }}/" + positionId,
                         data: {
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
                         dataType: 'json',
-                        success: function(data) {
+                        success: function (data) {
                             if (data.status == '200') {
                                 Swal.fire(
                                     'Terhapus!',
@@ -160,7 +156,7 @@
                                 );
                             }
                         },
-                        error: function() {
+                        error: function () {
                             Swal.fire(
                                 'Error!',
                                 'Terjadi kesalahan saat menghapus data.',
@@ -172,12 +168,12 @@
             });
         });
 
-        $(document).on('change', '#switch_access', function() {
+        @if(hasAccess(auth()->user()->up_id, 'update'))
+        $(document).on('change', '#switch_access', function () {
             var isChecked = $(this).is(':checked');
             var action = $(this).data('action');
             var positionId = $(this).data('position-id');
-            var route = $(this).data('route');
-            
+
             $.ajax({
                 type: 'POST',
                 url: "{{ url('change_access') }}",
@@ -186,10 +182,9 @@
                     checked: isChecked,
                     action: action,
                     position_id: positionId,
-                    route: route
                 },
                 dataType: 'json',
-                success: function(data) {
+                success: function (data) {
                     if (data.status == '200') {
                         toastr.success('Status akses berhasil diubah', 'Berhasil');
                         if (position_access_table) {
@@ -199,11 +194,12 @@
                         toastr.error('Gagal mengubah status akses', 'Error');
                     }
                 },
-                error: function() {
+                error: function () {
                     toastr.error('Terjadi kesalahan saat mengubah status akses', 'Error');
                 }
             });
         });
+        @endif
 
 
     });

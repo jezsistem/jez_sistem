@@ -79,17 +79,15 @@ class PositionAccessController extends Model
             ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')
             ->select(
                 'user_positions.up_name',
-                'position_access.route',
                 'position_access.id',
                 'position_access.position_id',
                 DB::raw('GROUP_CONCAT(DISTINCT ts_position_access.action ORDER BY ts_position_access.action SEPARATOR ";") as akses')
             )
             ->where(function ($q) use ($search) {
                 $q->where('user_positions.up_name', 'like', '%' . $search . '%')
-                    ->orWhere('position_access.route', 'like', '%' . $search . '%')
                     ->orWhere('position_access.action', 'like', '%' . $search . '%');
             })
-            ->groupBy('position_access.route', 'user_positions.up_name')
+            ->groupBy('user_positions.up_name')
             ->orderBy('user_positions.up_name', 'asc')
             ->orderBy('position_access.id', 'desc');
 
@@ -100,27 +98,37 @@ class PositionAccessController extends Model
                 $toggles = '';
 
                 $actionTypes = ['create', 'read', 'update', 'delete'];
+
+                // cek apakah user punya akses update
+                $canUpdate = hasAccess(auth()->user()->up_id, 'update');
+
                 foreach ($actionTypes as $actionType) {
                     $checked = in_array($actionType, $actions) ? 'checked' : '';
-                    $toggles .= '<div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: 10px; display: inline-flex;">
-            <label style="margin-bottom: 5px;">' . ucfirst($actionType) . '</label>
-            <label class="switch">
-            <input id="switch_access" type="checkbox" ' . $checked . ' data-action="' . $actionType . '" data-position-id="' . $row->position_id . '" data-route="' . $row->route . '">
-            <span class="slider round"></span>
-            </label>
-            </div>';
+                    $disabled = !$canUpdate ? 'disabled' : ''; // kalau tidak punya akses update → disabled
+
+                    $toggles .= '
+                <div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: 10px; display: inline-flex;">
+                    <label style="margin-bottom: 5px;">' . ucfirst($actionType) . '</label>
+                    <label class="switch">
+                        <input id="switch_access" type="checkbox" ' . $checked . ' ' . $disabled . ' 
+                               data-action="' . $actionType . '" 
+                               data-position-id="' . $row->position_id . '">
+                        <span class="slider round"></span>
+                    </label>
+                </div>';
                 }
 
                 return $toggles;
             })
             ->addColumn('actions', function ($row) {
-                $updateBtn = '<button class="btn btn-warning btn-sm" onclick="editData(' . $row->route . ')" title="Edit">
-                <i class="fas fa-edit"></i>
-            </button>';
-                $deleteBtn = '<button class="btn btn-danger btn-sm" data-route="' . $row->route . '" data-position-id="' . $row->position_id . '" title="Delete" id="deleteBtn">
+                $buttons = '';
+                if (hasAccess(auth()->user()->up_id, 'delete')) {
+                    $buttons .= '<button class="btn btn-danger btn-sm" data-position-id="' . $row->position_id . '" title="Delete" id="deleteBtn">
                 <i class="fas fa-trash"></i>
             </button>';
-                return  $deleteBtn;
+                }
+
+                return $buttons;
             })
             ->rawColumns(['akses', 'actions'])
             ->toJson();
@@ -129,18 +137,19 @@ class PositionAccessController extends Model
     public function storeData(Request $request)
     {
         $position_id = $request->position_id;
-        $route = $request->route;
         $action = 'read';
 
         $data = [
             'position_id' => $position_id,
-            'route' => $route,
             'action' => $action,
         ];
 
         PositionAccess::create($data);
 
-        return response()->json(['success' => 'Data berhasil disimpan.']);
+        return response()->json([
+            'success' => 'Data berhasil disimpan.',
+            'status' => 200
+        ]);
     }
 
     public function reloadPosition()
@@ -149,9 +158,9 @@ class PositionAccessController extends Model
         return view('app.position_access._positions', compact('position'));
     }
 
-    public function deleteData($route, $position_id)
+    public function deleteData($position_id)
     {
-        PositionAccess::where('route', $route)->where('position_id', $position_id)->delete();
+        PositionAccess::where('route')->where('position_id', $position_id)->delete();
         $r['status'] = 200;
         $r['message'] = 'Data berhasil dihapus.';
         return response()->json($r);
@@ -160,28 +169,24 @@ class PositionAccessController extends Model
     public function changeAccess(Request $request)
     {
         $position_id = $request->position_id;
-        $route = $request->route;
         $action = $request->action;
         $is_checked = $request->checked;
 
         if ($is_checked == 'true') {
             // Tambahkan akses jika belum ada
             $exists = PositionAccess::where('position_id', $position_id)
-                ->where('route', $route)
                 ->where('action', $action)
                 ->exists();
 
             if (!$exists) {
                 PositionAccess::create([
                     'position_id' => $position_id,
-                    'route' => $route,
                     'action' => $action,
                 ]);
             }
         } else {
             // Hapus akses jika ada
             PositionAccess::where('position_id', $position_id)
-                ->where('route', $route)
                 ->where('action', $action)
                 ->delete();
         }
@@ -190,6 +195,6 @@ class PositionAccessController extends Model
         $r['message'] = 'Akses berhasil diperbarui.';
 
         return response()->json($r);
-        
+
     }
 }

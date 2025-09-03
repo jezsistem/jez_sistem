@@ -26,7 +26,7 @@ class ShiftCodeController extends Controller
             ->where('user_groups.user_id', auth()->user()->id)
             ->where('g_name', 'administrator')
             ->exists();
-        
+
         $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
             ->where('users.id', auth()->user()->id)
             ->where('user_divisions.ud_code', 'HUMANRESOU')
@@ -49,7 +49,7 @@ class ShiftCodeController extends Controller
     {
         $user_id = auth()->user() ? auth()->user()->id : 1;
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', $user_id)->get();
+            ->where('u_id', $user_id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -62,9 +62,9 @@ class ShiftCodeController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -77,11 +77,11 @@ class ShiftCodeController extends Controller
     public function index(Request $request)
     {
         $this->validateAccess();
-        
+
         $title = 'Shift Codes';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-        
+
         $shiftCode = new ShiftCode();
         $shiftCodes = $shiftCode->getActiveShiftCodes();
 
@@ -106,7 +106,7 @@ class ShiftCodeController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        
+
         // Get user types from database for multiple selection
         $userTypes = DB::table('user_types')
             ->where('ut_status', 'active')
@@ -130,15 +130,15 @@ class ShiftCodeController extends Controller
             'request_data' => $request->all(),
             'user_id' => auth()->user()->id ?? 'not authenticated'
         ]);
-        
+
         // Get valid user types for validation
         $userTypes = DB::table('user_types')
             ->where('ut_status', 'active')
             ->pluck('id')
             ->toArray();
-        
+
         \Log::info('Valid user types for validation', ['user_types' => $userTypes]);
-        
+
         try {
             $request->validate([
                 'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code',
@@ -169,7 +169,7 @@ class ShiftCodeController extends Controller
         ];
 
         \Log::info('Attempting to store shift code', ['data' => $data]);
-        
+
         $shiftCode = new ShiftCode();
         $result = $shiftCode->storeData('add', null, $data);
 
@@ -183,7 +183,7 @@ class ShiftCodeController extends Controller
                     'user_type_ids' => $request->user_type_ids
                 ]);
             }
-            
+
             \Log::info('Shift code stored successfully', ['id' => $result]);
             return redirect()->route('shift-codes.index')->with('success', 'Shift code berhasil ditambahkan');
         } else {
@@ -202,7 +202,7 @@ class ShiftCodeController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        $shiftCode = ShiftCode::with(['dailySchedules' => function($query) {
+        $shiftCode = ShiftCode::with(['dailySchedules' => function ($query) {
             $query->whereNotNull('ds_status')->orderBy('ds_date', 'desc');
         }, 'dailySchedules.user', 'userTypes'])->findOrFail($id);
 
@@ -227,7 +227,7 @@ class ShiftCodeController extends Controller
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
         $shiftCode = ShiftCode::with('userTypes')->findOrFail($id);
-        
+
         // Get user types from database for multiple selection
         $userTypes = DB::table('user_types')
             ->where('ut_status', 'active')
@@ -252,15 +252,15 @@ class ShiftCodeController extends Controller
             'request_data' => $request->all(),
             'user_id' => auth()->user()->id ?? 'not authenticated'
         ]);
-        
+
         // Get valid user types for validation
         $userTypes = DB::table('user_types')
             ->where('ut_status', 'active')
             ->pluck('id')
             ->toArray();
-        
+
         \Log::info('Valid user types for update validation', ['user_types' => $userTypes]);
-        
+
         try {
             $request->validate([
                 'sc_code' => 'required|string|max:10|unique:shift_codes,sc_code,' . $id,
@@ -291,7 +291,7 @@ class ShiftCodeController extends Controller
         ];
 
         \Log::info('Attempting to update shift code', ['data' => $data]);
-        
+
         $shiftCode = new ShiftCode();
         $result = $shiftCode->storeData('edit', $id, $data);
 
@@ -300,10 +300,10 @@ class ShiftCodeController extends Controller
             $shiftCodeModel = ShiftCode::find($id);
             if ($shiftCodeModel) {
                 // Filter out empty values and ensure we have valid IDs
-                $userTypeIds = array_filter($request->user_type_ids, function($id) {
+                $userTypeIds = array_filter($request->user_type_ids, function ($id) {
                     return !empty($id) && is_numeric($id);
                 });
-                
+
                 if (!empty($userTypeIds)) {
                     $shiftCodeModel->userTypes()->sync($userTypeIds);
                     \Log::info('User types synced successfully', [
@@ -317,7 +317,7 @@ class ShiftCodeController extends Controller
                     ]);
                 }
             }
-            
+
             \Log::info('Shift code updated successfully', ['id' => $id]);
             return redirect()->route('shift-codes.index')->with('success', 'Shift code berhasil diperbarui');
         } else {
@@ -369,12 +369,12 @@ class ShiftCodeController extends Controller
     public function getShiftCodesByType($type)
     {
         $this->validateAccess();
-        
+
         $shiftCodes = DB::table('shift_codes')
             ->where('sc_type', $type)
             ->where('sc_status', '!=', 'deleted')
             ->get();
-        
+
         return response()->json($shiftCodes);
     }
 
@@ -392,7 +392,7 @@ class ShiftCodeController extends Controller
     {
         // Temporarily comment out for testing
         // $this->validateAccess();
-        
+
         \Log::info('ShiftCodeController getDatatables called', [
             'ajax' => request()->ajax(),
             'user' => auth()->user() ? auth()->user()->id : 'not authenticated',
@@ -401,9 +401,9 @@ class ShiftCodeController extends Controller
             'url' => $request->url(),
             'method' => $request->method()
         ]);
-        
-        if(request()->ajax()) {
-        $query = DB::select('
+
+        if (request()->ajax()) {
+            $query = DB::select('
             SELECT 
                 sc.id,
                 sc.sc_code,
@@ -421,7 +421,7 @@ class ShiftCodeController extends Controller
             GROUP BY sc.id, sc.sc_code, sc.sc_description, sc.sc_shift_name, sc.sc_start_time, sc.sc_end_time, sc.sc_type, sc.sc_status
             ORDER BY sc.sc_code
         ');
-            
+
             // Add search filter
             if ($request->search) {
                 $search = $request->search;
@@ -453,8 +453,8 @@ class ShiftCodeController extends Controller
             }
 
             $result = DataTables::of(collect($query))
-            ->addIndexColumn()
-            ->addColumn('action', function($row) {
+                ->addIndexColumn()
+                ->addColumn('action', function ($row) {
                     $btn = '<div class="dropdown">';
                     $btn .= '    <!--begin::Toggle-->';
                     $btn .= '    <button type="button" class="btn btn-sm btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
@@ -467,53 +467,58 @@ class ShiftCodeController extends Controller
                     $btn .= '        </span>';
                     $btn .= '    </button>';
                     $btn .= '    <!--end::Toggle-->';
-                    
+
                     $btn .= '    <!--begin::Menu-->';
                     $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('shift-codes.show', $row->id).'" class="menu-link px-3">View</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
-                    
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('shift-codes.edit', $row->id).'" class="menu-link px-3">Edit</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
-                    
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="deleteShiftCode('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
+
+                    // View → cek akses read
+                    if (hasAccess(auth()->user()->up_id, 'read')) {
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="' . route('shift-codes.show', $row->id) . '" class="menu-link px-3">View</a>';
+                        $btn .= '        </div>';
+                    }
+
+                    // Edit → cek akses update
+                    if (hasAccess(auth()->user()->up_id, 'update')) {
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="' . route('shift-codes.edit', $row->id) . '" class="menu-link px-3">Edit</a>';
+                        $btn .= '        </div>';
+                    }
+
+                    // Delete → cek akses delete
+                    if (hasAccess(auth()->user()->up_id, 'delete')) {
+                        $btn .= '        <div class="menu-item px-3">';
+                        $btn .= '            <a href="javascript:void(0)" onclick="deleteShiftCode(' . $row->id . ')" class="menu-link px-3 text-danger">Delete</a>';
+                        $btn .= '        </div>';
+                    }
+
                     $btn .= '    </div>';
                     $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
-                    
+
                     return $btn;
                 })
-                ->editColumn('sc_start_time', function($row) {
+                ->editColumn('sc_start_time', function ($row) {
                     return $row->sc_start_time ? date('H:i', strtotime($row->sc_start_time)) : '-';
                 })
-                ->editColumn('sc_end_time', function($row) {
+                ->editColumn('sc_end_time', function ($row) {
                     return $row->sc_end_time ? date('H:i', strtotime($row->sc_end_time)) : '-';
                 })
-                ->editColumn('sc_status', function($row) {
+                ->editColumn('sc_status', function ($row) {
                     $statusClass = $row->sc_status === 'active' ? 'badge badge-success' : 'badge badge-danger';
                     $statusText = $row->sc_status === 'active' ? 'Active' : 'Inactive';
                     return '<span class="' . $statusClass . '">' . $statusText . '</span>';
-            })
+                })
                 ->rawColumns(['action', 'sc_status'])
-            ->make(true);
-                
+                ->make(true);
+
             \Log::info('ShiftCodeController getDatatables response', [
                 'data_count' => count($result->getData()->data ?? [])
             ]);
-            
+
             return $result;
         }
-        
+
         \Log::info('ShiftCodeController getDatatables - not AJAX request');
         return response()->json(['error' => 'Not an AJAX request']);
     }

@@ -978,23 +978,39 @@ class BreakTimeBackupController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
                     $btn = '<div class="dropdown">';
-                    $btn .= '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">';
+                    $btn .= '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" 
+                    data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
                     $btn .= 'Actions';
                     $btn .= '<i class="ki-duotone ki-down fs-5 ms-1"></i>';
                     $btn .= '</a>';
-                    $btn .= '<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
-                    $btn .= '<div class="menu-item px-3">';
-                    $btn .= '<a href="'.route('break-times-backup.show', $row->id).'" class="menu-link px-3">View</a>';
-                    $btn .= '</div>';
-                    // Edit button removed as requested
-                    // $btn .= '<div class="menu-item px-3">';
-                    // $btn .= '<a href="'.route('break-times-backup.edit', $row->id).'" class="menu-link px-3">Edit</a>';
-                    // $btn .= '</div>';
-                    $btn .= '<div class="menu-item px-3">';
-                    $btn .= '<a href="#" class="menu-link px-3 text-danger" onclick="deleteBreakTime('.$row->id.')">Delete</a>';
-                    $btn .= '</div>';
-                    $btn .= '</div>';
-                    $btn .= '</div>';
+
+                    $btn .= '<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded 
+                         menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" 
+                         data-kt-menu="true">';
+
+                    // View → cek akses read
+                    if (hasAccess(auth()->user()->up_id, 'read')) {
+                        $btn .= '<div class="menu-item px-3">';
+                        $btn .= '<a href="'.route('break-times.show', $row->id).'" class="menu-link px-3">View</a>';
+                        $btn .= '</div>';
+                    }
+
+                    // Cancel → misalnya butuh akses update
+                    if (hasAccess(auth()->user()->up_id, 'update')) {
+                        $btn .= '<div class="menu-item px-3">';
+                        $btn .= '<a href="#" class="menu-link px-3 text-warning" onclick="cancelBreakTime('.$row->id.')">Cancel</a>';
+                        $btn .= '</div>';
+                    }
+
+                    // Delete → butuh akses delete
+                    if (hasAccess(auth()->user()->up_id, 'delete')) {
+                        $btn .= '<div class="menu-item px-3">';
+                        $btn .= '<a href="#" class="menu-link px-3 text-danger" onclick="deleteBreakTime('.$row->id.')">Delete</a>';
+                        $btn .= '</div>';
+                    }
+
+                    $btn .= '</div>'; // end menu
+                    $btn .= '</div>'; // end dropdown
                     return $btn;
                 })
                 ->editColumn('bt_date', function($row) {

@@ -13,7 +13,6 @@ class PositionAccess extends Model
 
     protected $fillable = [
         'position_id',
-        'route',
         'action',
     ];
 

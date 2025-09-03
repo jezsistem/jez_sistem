@@ -113,12 +113,13 @@
                 <div class="col-lg-12 col-xxl-12">
                     <!--begin::Card-->
                     <div class="card card-custom gutter-b">
-                        
+
                         <div class="card-header flex-wrap py-3">
                             <div class="card-toolbar d-flex justify-content-between w-100">
                                 <div class="d-flex align-items-center">
                                     <input type="search" class="form-control" style="width: 300px;" id="shift_code_search" placeholder="Search"/>
                                 </div>
+                                @if(hasAccess(auth()->user()->up_id, 'create'))
                                 <div class="d-flex align-items-center">
                                     <!--begin::Button-->
                                     <a href="{{ route('shift-codes.create') }}" class="btn btn-dark font-weight-bolder" id="add_shift_code_btn">
@@ -135,6 +136,7 @@
                                     </span>Data Baru</a>
                                     <!--end::Button-->
                                 </div>
+                                @endif
                             </div>
                         </div>
                         <div class="card-body table-responsive">

@@ -57,10 +57,6 @@
                     <div class="card-body">
                         <div class="form-group mb-1 pb-1" id="position_access_div">
                         </div>
-                        <div class="form-group mb-1 pb-1">
-                            <label for="exampleTextarea">Route</label>
-                            <input type="text" class="form-control" id="route" name="route" />
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
