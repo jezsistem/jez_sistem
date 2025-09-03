@@ -175,23 +175,6 @@
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-4">
-                    <div class="card card-custom rounded-lg bg-attendance-shifts">
-                        <div class="card-body px-7">
-                            <div class="d-flex align-items-center">
-                                <div class="symbol symbol-40 mr-4">
-                                    <span class="symbol-label">
-                                        <i class="ki-outline ki-calendar-tick text-dark"></i>
-                                    </span>
-                                </div>
-                                <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="total_libur">0</div>
-                                    <div class="text-dark-50">Total Day off</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-4">
                     <div class="card card-custom rounded-lg bg-attendance-total">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -203,6 +186,23 @@
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="present_days">0</div>
                                     <div class="text-dark-50">Present Days</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <div class="card card-custom rounded-lg bg-attendance-shifts">
+                        <div class="card-body px-7">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label">
+                                        <i class="ki-outline ki-calendar-tick text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="total_libur">0</div>
+                                    <div class="text-dark-50">Total Day off</div>
                                 </div>
                             </div>
                         </div>
@@ -254,6 +254,23 @@
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5" id="late_days">0</div>
                                     <div class="text-dark-50">Late Days</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 mt-4">
+                    <div class="card card-custom rounded-lg bg-other">
+                        <div class="card-body px-7">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label">
+                                        <i class="ki-outline ki-calendar text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="scan_once_days">0</div>
+                                    <div class="text-dark-50">Scan Once</div>
                                 </div>
                             </div>
                         </div>

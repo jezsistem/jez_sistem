@@ -275,7 +275,6 @@ class BreakTimeBackupController extends Controller
                     'up.up_name as position_name',
                     'ud.ud_name as division_name',
                     'ut.ut_name as work_type',
-                    DB::raw('COUNT(DISTINCT ts_ds.id) as total_shifts'),
                     DB::raw('COUNT(DISTINCT ts_bt.id) as total_breaks'),
                     DB::raw('COUNT(DISTINCT CASE WHEN ts_ds.id IS NOT NULL AND ts_bt.id IS NULL THEN ts_ds.id END) as no_break_shifts')
                 ])
@@ -292,9 +291,17 @@ class BreakTimeBackupController extends Controller
                 'first_record' => $result->first()
             ]);
 
+            // Filter users who have total_breaks > 0 only (for backup, we only need users with backup data)
+            $filteredResult = $result->filter(function($item) {
+                return $item->total_breaks > 0;
+            });
 
+            \Log::info('Backup time summary data after filtering', [
+                'total_records_before_filter' => $result->count(),
+                'total_records_after_filter' => $filteredResult->count()
+            ]);
 
-            return $result;
+            return $filteredResult;
 
         } catch (\Exception $e) {
             \Log::error('Error getting backup time summary data', [
@@ -317,6 +324,7 @@ class BreakTimeBackupController extends Controller
             $startDate = $request->get('start_date');
             $endDate = $request->get('end_date');
             $divisionId = $request->get('division_id');
+            $search = $request->get('search');
             
             // Apply date filter if not custom
             if ($dateFilter !== 'custom') {
@@ -328,25 +336,28 @@ class BreakTimeBackupController extends Controller
             // Get summary data for statistics
             $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
             
+            // Apply search filter if provided
+            if ($search) {
+                $summaryData = $summaryData->filter(function($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false || 
+                           stripos($item->u_nip, $search) !== false;
+                });
+            }
+            
             // Calculate statistics
             $totalStaff = $summaryData->count();
-            $totalShifts = $summaryData->sum('total_shifts');
             $totalBreaks = $summaryData->sum('total_breaks');
             $noBreakShifts = $summaryData->sum('no_break_shifts');
 
             
             // Calculate averages
             $avgBreaksPerStaff = $totalStaff > 0 ? round($totalBreaks / $totalStaff, 1) : 0;
-            $avgShiftsPerStaff = $totalStaff > 0 ? round($totalShifts / $totalStaff, 1) : 0;
             
             $stats = [
                 'total_staff' => $totalStaff,
-                'total_shifts' => $totalShifts,
                 'total_breaks' => $totalBreaks,
                 'no_break_shifts' => $noBreakShifts,    
-
-                'avg_breaks_per_staff' => $avgBreaksPerStaff,
-                'avg_shifts_per_staff' => $avgShiftsPerStaff
+                'avg_breaks_per_staff' => $avgBreaksPerStaff
             ];
             
             \Log::info('Backup Time Summary Report Stats calculated', [
@@ -354,6 +365,7 @@ class BreakTimeBackupController extends Controller
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'division_id' => $divisionId,
+                'search' => $search,
                 'stats' => $stats
             ]);
             
@@ -424,6 +436,9 @@ class BreakTimeBackupController extends Controller
             // Use the same method as summaryReport to get data
             $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
             
+            // Store total records BEFORE search (for recordsTotal)
+            $totalRecordsBeforeSearch = $summaryData->count();
+            
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
@@ -431,6 +446,12 @@ class BreakTimeBackupController extends Controller
                     return stripos($item->u_name, $search) !== false || 
                            stripos($item->u_nip, $search) !== false;
                 });
+                
+                \Log::info('Search filter applied', [
+                    'search_term' => $search,
+                    'records_before_search' => $totalRecordsBeforeSearch,
+                    'records_after_search' => $summaryData->count()
+                ]);
             }
             
             // Debug: Log data before DataTables processing
@@ -439,11 +460,40 @@ class BreakTimeBackupController extends Controller
                 'first_item' => $summaryData->first()
             ]);
             
+            // Debug: Check data structure
+            if ($summaryData->count() > 0) {
+                $sampleData = $summaryData->first();
+                \Log::info('Sample data structure', [
+                    'user_id' => $sampleData->user_id ?? 'missing',
+                    'u_nip' => $sampleData->u_nip ?? 'missing',
+                    'u_name' => $sampleData->u_name ?? 'missing',
+                    'position_name' => $sampleData->position_name ?? 'missing',
+                    'division_name' => $sampleData->division_name ?? 'missing',
+                    'work_type' => $sampleData->work_type ?? 'missing',
+                    'total_breaks' => $sampleData->total_breaks ?? 'missing',
+                    'no_break_shifts' => $sampleData->no_break_shifts ?? 'missing'
+                ]);
+            }
+            
             // Convert to array for DataTables
             $data = [];
             foreach ($summaryData as $index => $item) {
-                $data[] = (array) $item;
-                $data[$index]['DT_RowIndex'] = $index + 1;
+                $itemArray = (array) $item;
+                $data[] = $itemArray;
+                
+                // Debug: Log first few items
+                if ($index < 3) {
+                    \Log::info('Data item ' . $index, [
+                        'user_id' => $itemArray['user_id'] ?? 'missing',
+                        'u_nip' => $itemArray['u_nip'] ?? 'missing',
+                        'u_name' => $itemArray['u_name'] ?? 'missing',
+                        'position_name' => $itemArray['position_name'] ?? 'missing',
+                        'division_name' => $itemArray['division_name'] ?? 'missing',
+                        'work_type' => $itemArray['work_type'] ?? 'missing',
+                        'total_breaks' => $itemArray['total_breaks'] ?? 'missing',
+                        'no_break_shifts' => $itemArray['no_break_shifts'] ?? 'missing'
+                    ]);
+                }
             }
             
             // Apply pagination manually for server-side processing
@@ -451,6 +501,11 @@ class BreakTimeBackupController extends Controller
             $start = $request->get('start', 0);
             $length = $request->get('length', 25);
             $paginatedData = array_slice($data, $start, $length);
+            
+            // Set DT_RowIndex AFTER pagination to ensure sequential numbering
+            foreach ($paginatedData as $index => $item) {
+                $paginatedData[$index]['DT_RowIndex'] = $start + $index + 1;
+            }
             
             \Log::info('Backup Time Summary Report Datatables Response', [
                 'total_records' => $totalRecords,
@@ -460,7 +515,7 @@ class BreakTimeBackupController extends Controller
             
             return response()->json([
                 'draw' => $request->get('draw', 1),
-                'recordsTotal' => $totalRecords,
+                'recordsTotal' => $totalRecordsBeforeSearch,
                 'recordsFiltered' => $totalRecords,
                 'data' => $paginatedData
             ]);
@@ -1046,7 +1101,7 @@ class BreakTimeBackupController extends Controller
             
             return response()->json([
                 'success' => true,
-                'message' => 'Break started successfully',
+                'message' => 'Backup started successfully',
                 'break_id' => $result,
                 'break_type' => $assignedBreakType,
                 'start_time' => date('H:i:s'),
@@ -1773,7 +1828,7 @@ class BreakTimeBackupController extends Controller
             $result = $breakTime->startBreak($user->id);
             
             // Debug logging
-            \Log::info('Break started', [
+            \Log::info('Backup started', [
                 'user_id' => $user->id,
                 'result' => $result,
                 'next_break_type' => $breakTime->getNextBreakType($user->id)
@@ -1789,7 +1844,7 @@ class BreakTimeBackupController extends Controller
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Break started successfully',
+                    'message' => 'Backup started successfully',
                     'break_id' => $result,
                     'break_type' => $assignedBreakType,
                     'break_duration' => $breakDuration
@@ -2338,17 +2393,10 @@ class BreakTimeBackupController extends Controller
                     <div class="stat-number">' . $summaryData->count() . '</div>
                     <div class="stat-label">Total Staff</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number">' . $summaryData->sum('total_shifts') . '</div>
-                    <div class="stat-label">Total Shift</div>
-                </div>
+
                 <div class="stat-item">
                     <div class="stat-number">' . $summaryData->sum('total_breaks') . '</div>
                     <div class="stat-label">Total Break</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">' . $summaryData->sum('no_break_shifts') . '</div>
-                    <div class="stat-label">No Break Shifts</div>
                 </div>
             </div>
             

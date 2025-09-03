@@ -130,20 +130,19 @@
                                     <div class="col-md-6">
                                         
                                         <div class="form-group">
-                                            <label for="lr_attachment">Attachment (Optional)</label>
-                                            <div class="input-group">
-                                                <div class="custom-file">
-                                                    <input type="file" class="custom-file-input @error('lr_attachment') is-invalid @enderror" 
-                                                        id="lr_attachment" name="lr_attachment" 
-                                                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-                                                    <label class="custom-file-label" for="lr_attachment">Choose file</label>
-                                                </div>
+                                            <label for="lr_attachments">Attachments (Optional)</label>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input @error('lr_attachments') is-invalid @enderror" 
+                                                    id="lr_attachments" name="lr_attachments[]" multiple
+                                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                                <label class="custom-file-label" for="lr_attachments">Choose files...</label>
                                             </div>
                                             <small class="form-text text-muted">
-                                                Supported formats: PDF, JPG, JPEG, PNG, DOC, DOCX (Max: 10MB)<br>
+                                                Supported formats: PDF, JPG, JPEG, PNG, DOC, DOCX (Max: 10MB per file)<br>
                                                 <strong>Recommended:</strong> Surat dokter, surat keterangan, atau dokumen pendukung lainnya
                                             </small>
-                                            @error('lr_attachment')
+                                            <div id="attachment-preview" class="mt-3"></div>
+                                            @error('lr_attachments')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -174,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const timeFields = document.getElementById('time_fields');
     const leaveTypeSelect = document.getElementById('leave_type_id');
     const leaveBalanceInfo = document.getElementById('leaveBalanceInfo');
-    const fileInput = document.getElementById('lr_attachment');
+    const fileInput = document.getElementById('lr_attachments');
     const fileLabel = document.querySelector('.custom-file-label');
     
     function toggleTimeFields() {
@@ -223,32 +222,60 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    // File input handling
+    // Multiple file input handling
     fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Update label with filename
-            fileLabel.textContent = file.name;
-            
-            // Validate file size (10MB = 10 * 1024 * 1024 bytes)
-            const maxSize = 10 * 1024 * 1024;
-            if (file.size > maxSize) {
-                alert('File size exceeds 10MB limit. Please choose a smaller file.');
-                this.value = '';
-                fileLabel.textContent = 'Choose file';
-                return;
-            }
-            
-            // Validate file type
-            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('File type not supported. Please choose PDF, JPG, PNG, DOC, or DOCX file.');
-                this.value = '';
-                fileLabel.textContent = 'Choose file';
-                return;
-            }
+        const files = Array.from(e.target.files);
+        const previewContainer = document.getElementById('attachment-preview');
+        
+        // Update label
+        if (files.length > 0) {
+            fileLabel.textContent = files.length + ' file(s) selected';
         } else {
-            fileLabel.textContent = 'Choose file';
+            fileLabel.textContent = 'Choose files...';
+        }
+        
+        // Clear preview
+        if (previewContainer) {
+            previewContainer.innerHTML = '';
+            
+            // Show preview for each file
+            files.forEach(function(file, index) {
+                // Validate file size (10MB = 10 * 1024 * 1024 bytes)
+                const maxSize = 10 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" exceeds 10MB limit. Please choose a smaller file.`);
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`File "${file.name}" type not supported. Please choose PDF, JPG, PNG, DOC, or DOCX file.`);
+                    return;
+                }
+                
+                const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+                const isImage = file.type.startsWith('image/');
+                
+                const filePreview = document.createElement('div');
+                filePreview.className = 'd-flex align-items-center mb-2 p-2 border rounded';
+                
+                filePreview.innerHTML = 
+                    '<div class="mr-3">' +
+                        (isImage ? 
+                            '<i class="fas fa-image text-primary"></i>' : 
+                            '<i class="fas fa-file text-secondary"></i>') +
+                    '</div>' +
+                    '<div class="flex-grow-1">' +
+                        '<div class="font-weight-bold">' + file.name + '</div>' +
+                        '<small class="text-muted">' + fileSize + ' MB</small>' +
+                    '</div>' +
+                    '<button type="button" class="btn btn-sm btn-danger" onclick="removeFile(' + index + ')">' +
+                        '<i class="fas fa-times"></i>' +
+                    '</button>';
+                
+                previewContainer.appendChild(filePreview);
+            });
         }
     });
     
@@ -258,6 +285,27 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleTimeFields(); // Initial call
     loadLeaveBalance(); // Initial call if leave type is pre-selected
 });
+
+// Global function for removing files
+window.removeFile = function(index) {
+    const fileInput = document.getElementById('lr_attachments');
+    if (!fileInput) return;
+    
+    const dt = new DataTransfer();
+    const files = Array.from(fileInput.files);
+    
+    files.forEach(function(file, i) {
+        if (i !== index) {
+            dt.items.add(file);
+        }
+    });
+    
+    fileInput.files = dt.files;
+    
+    // Trigger change event to update preview
+    const event = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(event);
+};
 </script>
 @include('app._partials.js')
 

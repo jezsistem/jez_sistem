@@ -381,7 +381,7 @@ class AttendanceController extends Controller
                                 'at_date' => $date,
                                 'at_time_in' => null,
                                 'at_time_out' => null,
-                                'at_status' => 'present',
+                                'at_status' => 'absent', // Default to absent for no time records
                                 'at_notes' => "Uploaded from fingerprint: {$employeeName}",
                                 'at_source' => 'upload',
                                 'created_by' => Auth::user()->id
@@ -394,6 +394,210 @@ class AttendanceController extends Controller
                         } elseif (strpos(strtolower($type), 'pulang') !== false) {
                             $groupedData[$key]['at_time_out'] = $time;
                         }
+                        
+                        // LOGIKA LENGKAP: Cek daily schedule dulu, kemudian set status
+                        $hasTimeIn = !empty($groupedData[$key]['at_time_in']);
+                        $hasTimeOut = !empty($groupedData[$key]['at_time_out']);
+                        
+                        // Cek apakah ada daily schedule untuk user ini pada tanggal ini
+                        $tempDailySchedule = DB::table('daily_schedules')
+                            ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
+                            ->where('daily_schedules.user_id', $user->id)
+                            ->where('daily_schedules.ds_date', $date)
+                            ->whereIn('daily_schedules.ds_status', ['scheduled', 'active'])
+                            ->select([
+                                'daily_schedules.id',
+                                'daily_schedules.ds_start_time',
+                                'daily_schedules.ds_end_time',
+                                'shift_codes.sc_start_time',
+                                'shift_codes.sc_end_time'
+                            ])
+                            ->first();
+                        
+                        \Log::info('Daily schedule check during import', [
+                            'key' => $key,
+                            'user_id' => $user->id,
+                            'date' => $date,
+                            'schedule_found' => !is_null($tempDailySchedule),
+                            'schedule_data' => $tempDailySchedule ? [
+                                'id' => $tempDailySchedule->id,
+                                'ds_start_time' => $tempDailySchedule->ds_start_time,
+                                'ds_end_time' => $tempDailySchedule->ds_end_time,
+                                'sc_start_time' => $tempDailySchedule->sc_start_time,
+                                'sc_end_time' => $tempDailySchedule->sc_end_time
+                            ] : null
+                        ]);
+                        
+                        if ($tempDailySchedule) {
+                            // ADA SCHEDULE: Buat status akurat (late, early_leave, present)
+                            \Log::info('Schedule found - creating accurate status', [
+                                'key' => $key,
+                                'excel_time_in' => $row['jam_masuk'] ?? 'N/A',
+                                'excel_time_out' => $row['jam_keluar'] ?? 'N/A',
+                                'processed_time_in' => $groupedData[$key]['at_time_in'],
+                                'processed_time_out' => $groupedData[$key]['at_time_out'],
+                                'has_time_in' => $hasTimeIn,
+                                'has_time_out' => $hasTimeOut
+                            ]);
+                            
+                            if ($hasTimeIn && $hasTimeOut) {
+                                // Kedua time records ada - cek apakah tepat waktu
+                                $timeInMinutes = $this->timeToMinutes($groupedData[$key]['at_time_in']);
+                                $timeOutMinutes = $this->timeToMinutes($groupedData[$key]['at_time_out']);
+                                $shiftStartMinutes = $this->timeToMinutes($tempDailySchedule->sc_start_time);
+                                $shiftEndMinutes = $this->timeToMinutes($tempDailySchedule->sc_end_time);
+                                
+                                // SAMAKAN LOGIKA DENGAN REPROCESS ALL
+                                // Check for late arrival FIRST (priority)
+                                if ($timeInMinutes > $shiftStartMinutes) {
+                                    $lateMinutes = $timeInMinutes - $shiftStartMinutes;
+                                    $groupedData[$key]['at_status'] = 'late';
+                                    $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Terlambat {$lateMinutes} menit";
+                                }
+                                // Check for early leave SECOND (only if not late)
+                                elseif ($timeOutMinutes < $shiftEndMinutes) {
+                                    $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
+                                    $groupedData[$key]['at_status'] = 'early_leave';
+                                    $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Pulang awal {$earlyMinutes} menit";
+                                }
+                                // Check for both late and early leave THIRD
+                                elseif ($timeInMinutes > $shiftStartMinutes && $timeOutMinutes < $shiftEndMinutes) {
+                                    $lateMinutes = $timeInMinutes - $shiftStartMinutes;
+                                    $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
+                                    $groupedData[$key]['at_status'] = 'late';
+                                    $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Terlambat {$lateMinutes} menit, pulang awal {$earlyMinutes} menit";
+                                }
+                                // On time (default)
+                                else {
+                                    $groupedData[$key]['at_status'] = 'present';
+                                    $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Hadir tepat waktu";
+                                }
+                                
+                                \Log::info('Both time records with schedule - status determined', [
+                                    'key' => $key,
+                                    'time_in' => $groupedData[$key]['at_time_in'],
+                                    'time_out' => $groupedData[$key]['at_time_out'],
+                                    'schedule_start' => $tempDailySchedule->sc_start_time,
+                                    'schedule_end' => $tempDailySchedule->sc_end_time,
+                                    'time_in_minutes' => $timeInMinutes,
+                                    'time_out_minutes' => $timeOutMinutes,
+                                    'shift_start_minutes' => $shiftStartMinutes,
+                                    'shift_end_minutes' => $shiftEndMinutes,
+                                    'is_late' => ($timeInMinutes > $shiftStartMinutes),
+                                    'is_early_leave' => ($timeOutMinutes < $shiftEndMinutes),
+                                    'late_minutes' => ($timeInMinutes > $shiftStartMinutes) ? ($timeInMinutes - $shiftStartMinutes) : 0,
+                                    'early_minutes' => ($timeOutMinutes < $shiftEndMinutes) ? ($shiftEndMinutes - $timeOutMinutes) : 0,
+                                    'final_status' => $groupedData[$key]['at_status'],
+                                    'final_notes' => $groupedData[$key]['at_notes']
+                                ]);
+                                
+                                // Log untuk membandingkan Excel vs Database
+                                \Log::info('Excel vs Database comparison', [
+                                    'key' => $key,
+                                    'excel_raw' => [
+                                        'jam_masuk' => $row['jam_masuk'] ?? 'N/A',
+                                        'jam_keluar' => $row['jam_keluar'] ?? 'N/A'
+                                    ],
+                                    'database_final' => [
+                                        'at_time_in' => $groupedData[$key]['at_time_in'],
+                                        'at_time_out' => $groupedData[$key]['at_time_out'],
+                                        'at_status' => $groupedData[$key]['at_status']
+                                    ],
+                                    'calculation_debug' => [
+                                        'time_in_minutes' => $timeInMinutes,
+                                        'time_out_minutes' => $timeOutMinutes,
+                                        'shift_start_minutes' => $shiftStartMinutes,
+                                        'shift_end_minutes' => $shiftEndMinutes,
+                                        'is_late' => ($timeInMinutes > $shiftStartMinutes),
+                                        'is_early_leave' => ($timeOutMinutes < $shiftEndMinutes)
+                                    ]
+                                ]);
+                                
+                            } elseif ($hasTimeIn || $hasTimeOut) {
+                                // Hanya satu time record - cek apakah terlambat atau pulang awal
+                                if ($hasTimeIn && $tempDailySchedule->sc_start_time) {
+                                    // Ada time in - cek terlambat
+                                    $timeInMinutes = $this->timeToMinutes($groupedData[$key]['at_time_in']);
+                                    $shiftStartMinutes = $this->timeToMinutes($tempDailySchedule->sc_start_time);
+                                    
+                                    if ($timeInMinutes > $shiftStartMinutes) {
+                                        // Terlambat - Status: LATE dengan keterangan scan once
+                                        $lateMinutes = $timeInMinutes - $shiftStartMinutes;
+                                        $groupedData[$key]['at_status'] = 'late';
+                                        $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Terlambat {$lateMinutes} menit (scan once)";
+                                    } else {
+                                        // Tepat waktu - Status: SCAN ONCE
+                                        $groupedData[$key]['at_status'] = 'scan_once';
+                                        $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Hadir tepat waktu (scan once)";
+                                    }
+                                } elseif ($hasTimeOut && $tempDailySchedule->sc_end_time) {
+                                    // Ada time out - cek pulang awal
+                                    $timeOutMinutes = $this->timeToMinutes($groupedData[$key]['at_time_out']);
+                                    $shiftEndMinutes = $this->timeToMinutes($tempDailySchedule->sc_end_time);
+                                    
+                                    if ($timeOutMinutes < $shiftEndMinutes) {
+                                        // Pulang awal - Status: EARLY_LEAVE dengan keterangan scan once
+                                        $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
+                                        $groupedData[$key]['at_status'] = 'early_leave';
+                                        $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Pulang awal {$earlyMinutes} menit (scan once)";
+                                    } else {
+                                        // Tepat waktu - Status: SCAN ONCE
+                                        $groupedData[$key]['at_status'] = 'scan_once';
+                                        $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Pulang tepat waktu (scan once)";
+                                    }
+                                } else {
+                                    // Fallback: tidak ada schedule time yang valid
+                                    $groupedData[$key]['at_status'] = 'scan_once';
+                                    $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Partial attendance (scan once)";
+                                }
+                                
+                                \Log::info('Single time record with schedule - status determined', [
+                                    'key' => $key,
+                                    'has_time_in' => $hasTimeIn,
+                                    'has_time_out' => $hasTimeOut,
+                                    'final_status' => $groupedData[$key]['at_status'],
+                                    'final_notes' => $groupedData[$key]['at_notes']
+                                ]);
+                                
+                            } else {
+                                // Tidak ada time records - kemungkinan leave
+                                $groupedData[$key]['at_status'] = 'absent';
+                                $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Tidak ada time records (kemungkinan leave)";
+                            }
+                            
+                        } else {
+                            // TIDAK ADA SCHEDULE: Gunakan logika baru (scan_once, present, absent)
+                            \Log::info('No schedule found - using basic status logic', [
+                                'key' => $key,
+                                'has_time_in' => $hasTimeIn,
+                                'has_time_out' => $hasTimeOut
+                            ]);
+                            
+                            if ($hasTimeIn && $hasTimeOut) {
+                                // Kedua time records ada - STATUS: PRESENT
+                                $groupedData[$key]['at_status'] = 'present';
+                                $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Complete attendance (no schedule)";
+                            } elseif ($hasTimeIn || $hasTimeOut) {
+                                // Hanya satu time record - STATUS: SCAN ONCE
+                                $groupedData[$key]['at_status'] = 'scan_once';
+                                $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Partial attendance (no schedule)";
+                            } else {
+                                // Tidak ada time records - STATUS: ABSENT
+                                $groupedData[$key]['at_status'] = 'absent';
+                                $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - No time records (no schedule)";
+                            }
+                        }
+                        
+                        \Log::info('Final status determination', [
+                            'key' => $key,
+                            'has_time_in' => $hasTimeIn,
+                            'has_time_out' => $hasTimeOut,
+                            'schedule_found' => !is_null($tempDailySchedule),
+                            'time_in' => $groupedData[$key]['at_time_in'],
+                            'time_out' => $groupedData[$key]['at_time_out'],
+                            'final_status' => $groupedData[$key]['at_status'],
+                            'final_notes' => $groupedData[$key]['at_notes']
+                        ]);
                         
                         \Log::info('Row processed successfully', [
                             'row_index' => $index + 2,
@@ -1071,21 +1275,40 @@ class AttendanceController extends Controller
             'bindings' => $query->getBindings()
         ]);
         
-        // Get daily schedules count for total shifts (excluding libur)
-        $totalShifts = DB::table('daily_schedules as ds')
+        // Get all schedules in the date range for weight calculation (INCLUDE libur for total shifts)
+        // Use single query for both total shifts and present days calculation
+        $allSchedulesQuery = DB::table('daily_schedules as ds')
             ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
             ->where('ds.user_id', $user_id)
-            ->where('ds.ds_status', 'scheduled')
-            ->whereNotIn('sc.sc_code', ['L', 'LPH']); // Exclude libur (L) and libur per hari (LPH)
+            ->where('ds.ds_status', 'scheduled');
         
         if (request('start_date')) {
-            $totalShifts->where('ds.ds_date', '>=', request('start_date'));
+            $allSchedulesQuery->where('ds.ds_date', '>=', request('start_date'));
         }
         if (request('end_date')) {
-            $totalShifts->where('ds.ds_date', '<=', request('end_date'));
+            $allSchedulesQuery->where('ds.ds_date', '<=', request('end_date'));
         }
         
-        $totalShiftsCount = $totalShifts->count();
+        $allSchedules = $allSchedulesQuery->select('ds.ds_date', 'sc.sc_code')->get();
+        
+        // Calculate weighted total shifts using the same logic as getAttendanceSummary
+        $pfSchedules = $allSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM'])->count();
+        $nonPfSchedules = $allSchedules->count() - $pfSchedules;
+        $totalShiftsCount = ($pfSchedules * 2) + $nonPfSchedules;
+        
+        // Debug logging for total shifts calculation
+        \Log::info('Staff Stats - Total Shifts Debug', [
+            'user_id' => $user_id,
+            'start_date' => request('start_date'),
+            'end_date' => request('end_date'),
+            'total_schedules' => $allSchedules->count(),
+            'pf_schedules' => $pfSchedules,
+            'non_pf_schedules' => $nonPfSchedules,
+            'calculated_total_shifts' => $totalShiftsCount,
+            'schedule_details' => $allSchedules->map(function($s) {
+                return ['date' => $s->ds_date, 'shift' => $s->sc_code];
+            })->toArray()
+        ]);
         
         // Get total libur count
         $totalLibur = DB::table('daily_schedules as ds')
@@ -1106,24 +1329,64 @@ class AttendanceController extends Controller
         $stats = $query->selectRaw('
             SUM(CASE WHEN at_status = "present" THEN 1 ELSE 0 END) as present_days,
             SUM(CASE WHEN at_status = "late" THEN 1 ELSE 0 END) as late_days,
+            SUM(CASE WHEN at_status = "scan_once" THEN 1 ELSE 0 END) as scan_once_days,
+            SUM(CASE WHEN at_status = "early_leave" THEN 1 ELSE 0 END) as early_leave_days,
             SUM(CASE WHEN at_status = "leave_SICK" THEN 1 ELSE 0 END) as sick_days,
             SUM(CASE WHEN at_status LIKE "leave_%" AND at_status != "leave_SICK" AND at_status != "leave_HALF_DAY" THEN 1 ELSE 0 END) as leave_days
         ')->first();
         
-        // Calculate alpha days (excluding libur)
+        // Calculate weighted present days
+        $presentStatuses = ['present', 'scan_once', 'late', 'early_leave'];
+        
+        // Get attendance dates with present statuses
+        $presentAttendanceQuery = DB::table('attendance')->where('user_id', $user_id);
+        
+        if (request('start_date')) {
+            $presentAttendanceQuery->where('at_date', '>=', request('start_date'));
+        }
+        if (request('end_date')) {
+            $presentAttendanceQuery->where('at_date', '<=', request('end_date'));
+        }
+        
+        $presentAttendanceRecords = $presentAttendanceQuery->whereIn('at_status', $presentStatuses)->get();
+        
+        // Calculate weighted present days using the same logic as getAttendanceSummary
+        $weightedPresentDays = 0;
+        foreach ($presentAttendanceRecords as $attendance) {
+            $scheduleOnDate = $allSchedules->where('ds_date', $attendance->at_date)->first();
+            
+            if ($scheduleOnDate) {
+                // Use schedule weight
+                if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM'])) {
+                    $weightedPresentDays += 2;
+                } else {
+                    $weightedPresentDays += 1;
+                }
+            } else {
+                // No schedule, use default weight 1
+                $weightedPresentDays += 1;
+            }
+        }
+        
+        // Calculate alpha days (same logic as summary report)
         $presentDays = $stats->present_days ?? 0;
+        $scanOnceDays = $stats->scan_once_days ?? 0;
+        $lateDays = $stats->late_days ?? 0;
+        $earlyLeaveDays = $stats->early_leave_days ?? 0;
         $leaveDays = $stats->leave_days ?? 0;
         $sickDays = $stats->sick_days ?? 0;
-        $alphaDays = $totalShiftsCount - $presentDays - ($leaveDays + $sickDays);
+        $alphaDays = max(0, $totalShiftsCount - $totalLiburCount - $weightedPresentDays - $sickDays - $leaveDays);
         
         // Create final stats object
         $finalStats = (object) [
             'total_shifts' => $totalShiftsCount,
             'total_libur' => $totalLiburCount,
-            'present_days' => $presentDays,
+            'present_days' => $weightedPresentDays,
+            'scan_once_days' => $scanOnceDays,
+            'early_leave_days' => $earlyLeaveDays,
             'sick_days' => $sickDays,
             'leave_days' => $leaveDays,
-            'late_days' => $stats->late_days ?? 0,
+            'late_days' => $lateDays,
             'alpha_days' => $alphaDays
         ];
         
@@ -1350,12 +1613,6 @@ class AttendanceController extends Controller
                     
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('attendance.edit', $row->id).'" class="menu-link px-3">Edit</a>';
-                    $btn .= '        </div>';
-                    $btn .= '        <!--end::Menu item-->';
-                    
-                    $btn .= '        <!--begin::Menu item-->';
-                    $btn .= '        <div class="menu-item px-3">';
                     $btn .= '            <a href="javascript:void(0)" onclick="deleteAttendance('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
@@ -1531,7 +1788,17 @@ class AttendanceController extends Controller
         $this->validateAccess();
         
         try {
-            // Get the same data as the index page with filters
+            // Debug: Log raw request data first
+            \Log::info('Export Excel - Raw request data', [
+                'all_request_data' => $request->all(),
+                'query_string' => $request->getQueryString(),
+                'date_filter_raw' => $request->get('date_filter'),
+                'start_date_raw' => $request->get('start_date'),
+                'end_date_raw' => $request->get('end_date'),
+                'url' => $request->fullUrl()
+            ]);
+            
+            // Get the same data as the index page with filters - EXPORT EXCEL METHOD
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -1541,7 +1808,33 @@ class AttendanceController extends Controller
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
+            } else {
+                // For custom date range, use the provided start_date and end_date
+                $startDate = $request->get('start_date', date('Y-m-d'));
+                $endDate = $request->get('end_date', date('Y-m-d'));
+                
+                // Validate dates
+                if (!$startDate || !$endDate) {
+                    throw new \Exception('Start date and end date are required for custom date range');
+                }
+                
+                // Ensure start_date is before or equal to end_date
+                if ($startDate > $endDate) {
+                    throw new \Exception('Start date must be before or equal to end date');
+                }
+                
+                // Validate date format
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
+                    throw new \Exception('Invalid date format. Use YYYY-MM-DD format');
+                }
             }
+            
+            \Log::info('Export Excel - Date parameters', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'is_custom' => $dateFilter === 'custom'
+            ]);
             
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
@@ -1551,6 +1844,33 @@ class AttendanceController extends Controller
                 $request->get('division_id'),
                 $request->get('status')
             );
+            
+            \Log::info('Export Excel - Attendance data', [
+                'attendances_count' => $attendances->count(),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'user_id' => $request->get('user_id'),
+                'division_id' => $request->get('division_id'),
+                'status' => $request->get('status')
+            ]);
+            
+            // Debug: Check if data is empty and log sample data
+            if ($attendances->count() === 0) {
+                \Log::warning('Export Excel - No attendance data found', [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'filters' => [
+                        'user_id' => $request->get('user_id'),
+                        'division_id' => $request->get('division_id'),
+                        'status' => $request->get('status')
+                    ]
+                ]);
+            } else {
+                \Log::info('Export Excel - Sample attendance data', [
+                    'first_record' => $attendances->first(),
+                    'total_records' => $attendances->count()
+                ]);
+            }
 
             // Generate filename with filters
             $filename = 'attendance_' . date('Y-m-d_H-i-s');
@@ -1579,7 +1899,17 @@ class AttendanceController extends Controller
         $this->validateAccess();
         
         try {
-            // Get the same data as the index page with filters
+            // Debug: Log raw request data first
+            \Log::info('Export PDF - Raw request data', [
+                'all_request_data' => $request->all(),
+                'query_string' => $request->getQueryString(),
+                'date_filter_raw' => $request->get('date_filter'),
+                'start_date_raw' => $request->get('start_date'),
+                'end_date_raw' => $request->get('end_date'),
+                'url' => $request->fullUrl()
+            ]);
+            
+            // Get the same data as the index page with filters - EXPORT PDF METHOD
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -1589,7 +1919,23 @@ class AttendanceController extends Controller
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
+            } else {
+                // For custom date range, use the provided start_date and end_date
+                $startDate = $request->get('start_date', date('Y-m-d'));
+                $endDate = $request->get('end_date', date('Y-m-d'));
+                
+                // Validate dates
+                if (!$startDate || !$endDate) {
+                    throw new \Exception('Start date and end date are required for custom date range');
+                }
             }
+            
+            \Log::info('Export PDF - Date parameters', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'is_custom' => $dateFilter === 'custom'
+            ]);
             
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
@@ -1599,6 +1945,33 @@ class AttendanceController extends Controller
                 $request->get('division_id'),
                 $request->get('status')
             );
+            
+            \Log::info('Export PDF - Attendance data', [
+                'attendances_count' => $attendances->count(),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'user_id' => $request->get('user_id'),
+                'division_id' => $request->get('division_id'),
+                'status' => $request->get('status')
+            ]);
+            
+            // Debug: Check if data is empty and log sample data
+            if ($attendances->count() === 0) {
+                \Log::warning('Export PDF - No attendance data found', [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'filters' => [
+                        'user_id' => $request->get('user_id'),
+                        'division_id' => $request->get('division_id'),
+                        'status' => $request->get('status')
+                    ]
+                ]);
+            } else {
+                \Log::info('Export PDF - Sample attendance data', [
+                    'first_record' => $attendances->first(),
+                    'total_records' => $attendances->count()
+                ]);
+            }
 
             // Generate HTML for PDF
             $html = $this->generateAttendanceHTML($attendances, $request);
@@ -1615,6 +1988,7 @@ class AttendanceController extends Controller
             $filename .= '.pdf';
 
             $pdf = \PDF::loadHTML($html);
+            $pdf->setPaper('A4', 'landscape');
             return $pdf->download($filename);
             
         } catch (\Exception $e) {
@@ -1725,7 +2099,8 @@ class AttendanceController extends Controller
                 'divisionId' => $divisionId
             ]);
             
-            $query = DB::table('users as u')
+            // First, get all users with their basic info
+            $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
                 ->leftJoin('user_types as ut', 'u.ut_id', '=', 'ut.id')
@@ -1735,42 +2110,157 @@ class AttendanceController extends Controller
                     'u.u_name',
                     'up.up_name as position_name',
                     'ud.ud_name as division_name',
-                    'ut.ut_name as work_type',
-                    DB::raw('COUNT(DISTINCT ts_daily_schedules.id) as total_shifts'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code IN ("L", "LPH") THEN ts_daily_schedules.id END) as total_libur'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) as present_days'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "late" THEN ts_attendance.id END) as late_days'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "leave_SICK" THEN ts_attendance.id END) as sick_days'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" AND ts_attendance.at_status != "leave_SICK" AND ts_attendance.at_status != "leave_HALF_DAY" THEN ts_attendance.id END) as leave_days'),
-                    DB::raw('(COUNT(DISTINCT ts_daily_schedules.id) - COUNT(DISTINCT CASE WHEN ts_shift_codes.sc_code IN ("L", "LPH") THEN ts_daily_schedules.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status = "present" THEN ts_attendance.id END) - COUNT(DISTINCT CASE WHEN ts_attendance.at_status LIKE "leave_%" THEN ts_attendance.id END)) as alpha_days')
+                    'ut.ut_name as work_type'
                 ])
-                ->leftJoin('attendance', function($join) use ($startDate, $endDate) {
-                    $join->on('u.id', '=', 'attendance.user_id')
-                         ->whereBetween('attendance.at_date', [$startDate, $endDate]);
-                })
-                ->leftJoin('daily_schedules', function($join) use ($startDate, $endDate) {
-                    $join->on('u.id', '=', 'daily_schedules.user_id')
-                         ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate])
-                         ->where('daily_schedules.ds_status', 'scheduled');
-                })
-                ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
                 ->where('u.u_delete', '!=', '1')
                 ->whereNotNull('u.u_nip')
-                ->where('u.u_nip', '!=', '')
-                ->groupBy('u.id', 'u.u_nip', 'u.u_name', 'up.up_name', 'ud.ud_name', 'ut.ut_name');
+                ->where('u.u_nip', '!=', '');
 
             if ($divisionId) {
-                $query->where('u.ud_id', $divisionId);
+                $usersQuery->where('u.ud_id', $divisionId);
             }
 
-            $result = $query->orderBy('u.u_name')->get();
+            $users = $usersQuery->orderBy('u.u_name')->get();
+
+            // Then, get daily schedules data separately
+            $dailySchedulesData = DB::table('daily_schedules as ds')
+                ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
+                ->whereBetween('ds.ds_date', [$startDate, $endDate])
+                ->where('ds.ds_status', 'scheduled')
+                ->select([
+                    'ds.user_id',
+                    'ds.ds_date',
+                    'ds.id as schedule_id',
+                    'sc.sc_code'
+                ])
+                ->get()
+                ->groupBy('user_id');
+
+            // Get attendance data separately
+            $attendanceData = DB::table('attendance')
+                ->whereBetween('at_date', [$startDate, $endDate])
+                ->select([
+                    'user_id',
+                    'at_date',
+                    'id as attendance_id',
+                    'at_status'
+                ])
+                ->get()
+                ->groupBy('user_id');
+
+            // Combine the data
+            $result = $users->map(function($user) use ($dailySchedulesData, $attendanceData, $startDate, $endDate) {
+                $userSchedules = $dailySchedulesData->get($user->user_id, collect());
+                $userAttendance = $attendanceData->get($user->user_id, collect());
+
+                // Calculate total shifts with weighting
+                $pfSchedules = $userSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM'])->count();
+                $nonPfSchedules = $userSchedules->count() - $pfSchedules;
+                $totalShifts = ($pfSchedules * 2) + $nonPfSchedules;
+                
+                // Debug logging for total shifts calculation (summary report)
+                if ($user->u_nip === '19070202') {
+                    \Log::info('Summary Report - Total Shifts Debug for NIP 19070202', [
+                        'user_id' => $user->user_id,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'total_schedules' => $userSchedules->count(),
+                        'pf_schedules' => $pfSchedules,
+                        'non_pf_schedules' => $nonPfSchedules,
+                        'calculated_total_shifts' => $totalShifts,
+                        'schedule_details' => $userSchedules->map(function($s) {
+                            return ['date' => $s->ds_date, 'shift' => $s->sc_code];
+                        })->toArray()
+                    ]);
+                }
+
+                // Calculate present days with weighting
+                $presentStatuses = ['present', 'scan_once', 'late', 'early_leave'];
+                
+                // Get all present attendance records (regardless of whether they have schedules)
+                $presentAttendanceRecords = $userAttendance->whereIn('at_status', $presentStatuses);
+                
+                // For each present attendance, determine the weight based on:
+                // 1. If there's a schedule on that date, use the schedule's weight
+                // 2. If no schedule, use weight 1 (default)
+                $presentDays = 0;
+                foreach ($presentAttendanceRecords as $attendance) {
+                    $scheduleOnDate = $userSchedules->where('ds_date', $attendance->at_date)->first();
+                    
+                    if ($scheduleOnDate) {
+                        // Use schedule weight
+                        if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM'])) {
+                            $presentDays += 2;
+                        } else {
+                            $presentDays += 1;
+                        }
+                    } else {
+                        // No schedule, use default weight 1
+                        $presentDays += 1;
+                    }
+                }
+                
+                // Debug logging for weight calculation
+                if ($user->u_nip === '19070202') {
+                    \Log::info('Weight calculation debug for NIP 19070202', [
+                        'present_attendance_count' => $presentAttendanceRecords->count(),
+                        'calculated_present_days' => $presentDays,
+                        'present_attendance_details' => $presentAttendanceRecords->map(function($a) use ($userSchedules) {
+                            $scheduleOnDate = $userSchedules->where('ds_date', $a->at_date)->first();
+                            return [
+                                'date' => $a->at_date,
+                                'status' => $a->at_status,
+                                'has_schedule' => $scheduleOnDate ? 'yes' : 'no',
+                                'schedule_shift' => $scheduleOnDate ? $scheduleOnDate->sc_code : 'none',
+                                'weight_applied' => $scheduleOnDate ? (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM']) ? 2 : 1) : 1
+                            ];
+                        })->toArray()
+                    ]);
+                }
+
+                // Calculate other metrics
+                $totalLibur = $userSchedules->whereIn('sc_code', ['L', 'LPH'])->count();
+                $lateDays = $userAttendance->where('at_status', 'late')->count();
+                $scanOnceDays = $userAttendance->where('at_status', 'scan_once')->count();
+                $sickDays = $userAttendance->where('at_status', 'leave_SICK')->count();
+                $leaveDays = $userAttendance->where('at_status', 'like', 'leave_%')
+                    ->where('at_status', '!=', 'leave_SICK')
+                    ->where('at_status', '!=', 'leave_HALF_DAY')
+                    ->count();
+
+                // Calculate alpha days
+                $alphaDays = max(0, $totalShifts - $totalLibur - $presentDays - $sickDays - $leaveDays);
+
+                return (object) [
+                    'user_id' => $user->user_id,
+                    'u_nip' => $user->u_nip,
+                    'u_name' => $user->u_name,
+                    'position_name' => $user->position_name ?? '-',
+                    'division_name' => $user->division_name ?? '-',
+                    'work_type' => $user->work_type ?? '-',
+                    'total_shifts' => $totalShifts,
+                    'total_libur' => $totalLibur,
+                    'present_days' => $presentDays,
+                    'late_days' => $lateDays,
+                    'scan_once_days' => $scanOnceDays,
+                    'sick_days' => $sickDays,
+                    'leave_days' => $leaveDays,
+                    'alpha_days' => $alphaDays
+                ];
+            });
+            
+            // Filter to show users with schedules OR users who attended without schedules
+            $filteredResult = $result->filter(function($item) {
+                return $item->total_shifts > 0 || $item->present_days > 0;
+            });
             
             \Log::info('getAttendanceSummary - Query completed', [
                 'result_count' => $result->count(),
-                'first_item' => $result->first()
+                'filtered_count' => $filteredResult->count(),
+                'first_item' => $filteredResult->first()
             ]);
             
-            return $result;
+            return $filteredResult;
         } catch (\Exception $e) {
             \Log::error('getAttendanceSummary - Error', [
                 'error' => $e->getMessage(),
@@ -1898,6 +2388,7 @@ class AttendanceController extends Controller
             $filename = 'staff_attendance_' . $staff->u_nip . '_' . date('Y-m-d_H-i-s') . '.pdf';
 
             $pdf = \PDF::loadHTML($html);
+            $pdf->setPaper('A4', 'landscape');
             return $pdf->download($filename);
             
         } catch (\Exception $e) {
@@ -2088,78 +2579,91 @@ class AttendanceController extends Controller
         $errorCount = 0;
 
         try {
-            // Get all attendance records that need daily_schedule_id update within date range
+            // PERBAIKAN: Ambil records yang perlu update status, bukan hanya daily_schedule_id
+            // Records yang perlu update status:
+            // 1. Records dengan daily_schedule_id NULL (perlu update daily_schedule_id)
+            // 2. Records dengan status yang salah (perlu update status)
             $attendanceRecords = DB::table('attendance')
                 ->whereBetween('at_date', [$startDate, $endDate])
-                ->whereNull('daily_schedule_id')
+                ->where(function($query) {
+                    $query->whereNull('daily_schedule_id')
+                          ->orWhere('at_status', 'present')  // Status yang kemungkinan salah
+                          ->orWhere('at_status', 'absent')   // Status yang kemungkinan salah
+                          ->orWhere('at_status', 'scan_once'); // Status yang mungkin perlu dikoreksi
+                })
                 ->get();
-                
-            \Log::info('Records needing daily_schedule_id update', [
+
+            \Log::info('Records needing status update or daily_schedule_id update', [
                 'count' => $attendanceRecords->count(),
-                'date_range' => [$startDate, $endDate]
+                'date_range' => [$startDate, $endDate],
+                'criteria' => 'daily_schedule_id NULL OR status present/absent/scan_once'
             ]);
                 
-            // If no records need update in date range, get ALL records without daily_schedule_id
+            // Jika tidak ada records yang perlu update dalam date range, ambil SEMUA records untuk update status
             if ($attendanceRecords->count() == 0) {
-                \Log::info('No records need daily_schedule_id update in date range, getting ALL records without daily_schedule_id');
+                \Log::warning('No records need update in date range, processing ALL records for status update');
                 
-                // Debug: Cek semua kemungkinan nilai daily_schedule_id
-                $allAttendance = DB::table('attendance')->select('id', 'user_id', 'at_date', 'daily_schedule_id', 'at_source')->get();
+                // Debug: Cek semua kemungkinan nilai daily_schedule_id dan status
+                $allAttendance = DB::table('attendance')
+                    ->select('id', 'user_id', 'at_date', 'daily_schedule_id', 'at_source', 'at_status')
+                    ->get();
+                    
                 $uniqueValues = $allAttendance->pluck('daily_schedule_id')->unique()->values();
+                $uniqueStatuses = $allAttendance->pluck('at_status')->unique()->values();
                 
-                \Log::info('Debug: All unique daily_schedule_id values found', [
-                    'unique_values' => $uniqueValues->toArray(),
+                \Log::info('Debug: All unique values found', [
+                    'daily_schedule_id_values' => $uniqueValues->toArray(),
+                    'status_values' => $uniqueStatuses->toArray(),
                     'total_records' => $allAttendance->count()
                 ]);
                 
-                // PERBAIKAN: Gunakan query yang lebih sederhana dan pastikan berfungsi
-                $attendanceRecords = DB::table('attendance')
-                    ->whereNull('daily_schedule_id')
-                    ->get();
-                    
-                \Log::info('Found records without daily_schedule_id across all dates', [
-                    'count' => $attendanceRecords->count(),
-                    'sample_records' => $attendanceRecords->take(5)->map(function($record) {
-                        return [
-                            'id' => $record->id,
-                            'user_id' => $record->user_id,
-                            'date' => $record->at_date,
-                            'daily_schedule_id' => $record->daily_schedule_id,
-                            'at_source' => $record->at_source
-                        ];
-                    })->toArray()
-                ]);
-                
-                // PERBAIKAN: Jika tidak ada data yang perlu update daily_schedule_id, proses SEMUA data untuk update status
-                if ($attendanceRecords->count() == 0) {
-                    \Log::warning('No records need daily_schedule_id update, processing ALL records for status update');
-                    
-                    // PERBAIKAN: Ambil SEMUA data untuk update status (tidak terbatas tanggal)
-                    $attendanceRecords = DB::table('attendance')
-                        ->get();
+                // Ambil SEMUA data untuk update status (tidak terbatas tanggal)
+                $attendanceRecords = DB::table('attendance')->get();
                         
-                    \Log::info('Retrieved ALL records for status update (across all dates)', [
-                        'count' => $attendanceRecords->count(),
-                        'date_range_requested' => [$startDate, $endDate],
-                        'note' => 'Processing all records for status update because daily_schedule_id is already filled',
-                        'sample_dates' => $attendanceRecords->take(5)->pluck('at_date')->toArray()
-                    ]);
-                }
+                \Log::info('Retrieved ALL records for status update (across all dates)', [
+                    'count' => $attendanceRecords->count(),
+                    'date_range_requested' => [$startDate, $endDate],
+                    'note' => 'Processing all records for status update because no specific updates needed in date range',
+                    'sample_dates' => $attendanceRecords->take(5)->pluck('at_date')->toArray()
+                ]);
             }
-                
-            \Log::info('Found attendance records to process', [
-                'count' => $attendanceRecords->count(),
-                'date_range' => [$startDate, $endDate]
-            ]);
 
             \Log::info('Found attendance records to process', [
                 'count' => $attendanceRecords->count(),
-                'date_range' => [$startDate, $endDate]
+                'date_range' => [$startDate, $endDate],
+                'sample_records' => $attendanceRecords->take(3)->map(function($record) {
+                    return [
+                        'id' => $record->id,
+                        'user_id' => $record->user_id,
+                        'date' => $record->at_date,
+                        'status' => $record->at_status,
+                        'time_in' => $record->at_time_in,
+                        'time_out' => $record->at_time_out,
+                        'daily_schedule_id' => $record->daily_schedule_id
+                    ];
+                })->toArray()
             ]);
 
             foreach ($attendanceRecords as $attendance) {
                 try {
+                    \Log::info('Starting to process attendance record', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'current_status' => $attendance->at_status,
+                        'current_notes' => $attendance->at_notes,
+                        'time_in' => $attendance->at_time_in,
+                        'time_out' => $attendance->at_time_out
+                    ]);
+                    
                     $result = $this->processSingleAttendanceStatus($attendance);
+                    
+                    \Log::info('Finished processing attendance record', [
+                        'attendance_id' => $attendance->id,
+                        'result' => $result,
+                        'new_status' => $attendance->at_status ?? 'unknown'
+                    ]);
+                    
                     if ($result) {
                         $processedCount++;
                     } else {
@@ -2169,7 +2673,8 @@ class AttendanceController extends Controller
                     $errorCount++;
                     \Log::error('Error processing attendance status', [
                         'attendance_id' => $attendance->id,
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
                 }
             }
@@ -2204,6 +2709,10 @@ class AttendanceController extends Controller
     private function processSingleAttendanceStatus($attendance)
     {
         try {
+            // Initialize status and notes variables
+            $status = null;
+            $notes = null;
+            
             \Log::info('Processing single attendance status', [
                 'attendance_id' => $attendance->id,
                 'user_id' => $attendance->user_id,
@@ -2214,11 +2723,158 @@ class AttendanceController extends Controller
                 'current_notes' => $attendance->at_notes
             ]);
 
+            // PRIORITAS 0: Jangan ubah status LEAVE yang sudah ada
+            if (strpos($attendance->at_status, 'leave_') === 0) {
+                \Log::info('Skipping LEAVE status - no changes needed', [
+                    'attendance_id' => $attendance->id,
+                    'current_status' => $attendance->at_status,
+                    'reason' => 'Leave status should not be changed'
+                ]);
+                return true; // Skip processing, return success
+            }
+
+            // PRIORITAS 0.5: Jangan ubah record yang tidak ada time records (kemungkinan leave approved)
+            $hasTimeIn = !empty($attendance->at_time_in);
+            $hasTimeOut = !empty($attendance->at_time_out);
+            
+            // PRIORITAS 0.5a: Jangan ubah record dengan at_source="system" yang tidak ada time records
+            if (!$hasTimeIn && !$hasTimeOut && $attendance->at_source === 'system') {
+                \Log::info('Skipping record with at_source="system" and no time records - likely system-generated leave', [
+                    'attendance_id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                    'date' => $attendance->at_date,
+                    'at_source' => $attendance->at_source,
+                    'reason' => 'System-generated record with no time records - likely leave, no changes needed'
+                ]);
+                return true; // Skip processing, return success
+            }
+            
+            if (!$hasTimeIn && !$hasTimeOut) {
+                // Cek apakah ada daily schedule untuk tanggal ini
+                $tempSchedule = DB::table('daily_schedules')
+                    ->where('user_id', $attendance->user_id)
+                    ->where('ds_date', $attendance->at_date)
+                    ->whereIn('ds_status', ['scheduled', 'active'])
+                    ->first();
+                
+                if ($tempSchedule) {
+                    \Log::info('Skipping record with schedule but no time records - likely approved leave', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'schedule_id' => $tempSchedule->id,
+                        'schedule_status' => $tempSchedule->ds_status,
+                        'reason' => 'Has schedule but no time records - likely approved leave, no changes needed'
+                    ]);
+                    return true; // Skip processing, return success
+                }
+                
+                // Cek apakah ada leave request yang approved untuk tanggal ini
+                $leaveRequest = DB::table('leave_requests')
+                    ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+                    ->where('leave_requests.user_id', $attendance->user_id)
+                    ->where('leave_requests.lr_status', 'approved')
+                    ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
+                    ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
+                    ->select('leave_types.lt_code', 'leave_types.lt_name')
+                    ->first();
+                
+                if ($leaveRequest) {
+                    \Log::info('Skipping record with no schedule and no time records - approved leave found', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'leave_type' => $leaveRequest->lt_code,
+                        'leave_name' => $leaveRequest->lt_name,
+                        'reason' => 'No schedule and no time records but approved leave exists, no changes needed'
+                    ]);
+                    return true; // Skip processing, return success
+                }
+                
+                // Jika tidak ada schedule dan tidak ada leave request, kemungkinan besar ini juga leave yang approved
+                // tapi tidak ter-record di leave_requests table (mungkin manual approval atau sistem lama)
+                \Log::info('Record with no schedule and no time records - likely approved leave but not in leave_requests table', [
+                    'attendance_id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                    'date' => $attendance->at_date,
+                    'reason' => 'No schedule, no time records, and no leave request - likely approved leave (manual/system), skip processing'
+                ]);
+                
+                // Skip processing untuk record ini karena kemungkinan besar leave yang approved
+                return true; // Skip processing, return success
+            }
+            
+            // PRIORITAS 0.6: Perbaiki status yang salah (yang seharusnya leave tapi sudah berubah)
+            // Cek apakah status saat ini salah (bukan leave) tapi seharusnya leave
+            if ($attendance->at_status !== 'absent' && strpos($attendance->at_status, 'leave_') !== 0) {
+                // Cek apakah ada leave request yang approved untuk tanggal ini
+                $leaveRequest = DB::table('leave_requests')
+                    ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+                    ->where('leave_requests.user_id', $attendance->user_id)
+                    ->where('leave_requests.lr_status', 'approved')
+                    ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
+                    ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
+                    ->select('leave_types.lt_code', 'leave_types.lt_name')
+                    ->first();
+                
+                if ($leaveRequest) {
+                    \Log::info('Correcting wrong status - should be leave but current status is wrong', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'current_status' => $attendance->at_status,
+                        'should_be_status' => 'leave_' . $leaveRequest->lt_code,
+                        'leave_type' => $leaveRequest->lt_code,
+                        'leave_name' => $leaveRequest->lt_name,
+                        'reason' => 'Status correction needed - approved leave exists but status is wrong'
+                    ]);
+                    
+                    // Set status yang benar
+                    $status = 'leave_' . $leaveRequest->lt_code;
+                    $notes = 'Cuti: ' . $leaveRequest->lt_name . ' (status corrected)';
+                    
+                    // Update langsung tanpa masuk ke case logic
+                    $updateData = [
+                        'at_status' => $status,
+                        'at_notes' => $notes,
+                        'updated_at' => now()
+                    ];
+                    
+                    $updateResult = DB::table('attendance')
+                        ->where('id', $attendance->id)
+                        ->update($updateData);
+                    
+                    if ($updateResult) {
+                        \Log::info('Status corrected successfully', [
+                            'attendance_id' => $attendance->id,
+                            'old_status' => $attendance->at_status,
+                            'new_status' => $status,
+                            'notes' => $notes
+                        ]);
+                        return true; // Return success after correction
+                    } else {
+                        \Log::warning('Failed to correct status', [
+                            'attendance_id' => $attendance->id,
+                            'update_data' => $updateData
+                        ]);
+                    }
+                }
+            }
+
             // Get daily schedule for this user and date with shift codes
             \Log::info('Looking up daily schedule', [
                 'attendance_id' => $attendance->id,
                 'user_id' => $attendance->user_id,
                 'date' => $attendance->at_date
+            ]);
+            
+            // Debug: Log the query parameters
+            \Log::info('Daily schedule query parameters', [
+                'attendance_id' => $attendance->id,
+                'user_id' => $attendance->user_id,
+                'date' => $attendance->at_date,
+                'date_type' => gettype($attendance->at_date),
+                'date_value' => $attendance->at_date
             ]);
             
             $dailySchedule = DB::table('daily_schedules')
@@ -2227,7 +2883,7 @@ class AttendanceController extends Controller
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
                 ->where('daily_schedules.user_id', $attendance->user_id)
                 ->where('daily_schedules.ds_date', $attendance->at_date)
-                ->whereIn('daily_schedules.ds_status', ['scheduled', 'active'])  // ✅ Terima 'scheduled' dan 'active'
+                ->whereIn('daily_schedules.ds_status', ['scheduled', 'active'])
                 ->select([
                     'daily_schedules.*',
                     'shift_codes.sc_start_time',
@@ -2237,9 +2893,9 @@ class AttendanceController extends Controller
                     'users.ut_id',
                     'user_types.ut_name as user_type_name'
                 ])
-                ->orderBy('daily_schedules.ds_status', 'desc')  // ✅ Prioritaskan 'scheduled' dulu
+                ->orderBy('daily_schedules.ds_status', 'desc')
                 ->first();
-                
+
             \Log::info('Daily schedule lookup result', [
                 'attendance_id' => $attendance->id,
                 'user_id' => $attendance->user_id,
@@ -2260,7 +2916,7 @@ class AttendanceController extends Controller
             // Check if user has both time_in and time_out
             $hasTimeIn = !empty($attendance->at_time_in);
             $hasTimeOut = !empty($attendance->at_time_out);
-            
+
             \Log::info('Time record analysis', [
                 'attendance_id' => $attendance->id,
                 'has_time_in' => $hasTimeIn,
@@ -2270,33 +2926,172 @@ class AttendanceController extends Controller
                 'is_scan_once' => (!$hasTimeIn || !$hasTimeOut)
             ]);
 
-            // Case 1: No schedule found
-            if (!$dailySchedule) {
+            // Case 1: No schedule AND no time records (kemungkinan LEAVE)
+            \Log::info('Checking Case 1 condition', [
+                'attendance_id' => $attendance->id,
+                'daily_schedule_found' => !is_null($dailySchedule),
+                'daily_schedule_data' => $dailySchedule ? 'exists' : 'null',
+                'has_time_in' => $hasTimeIn,
+                'has_time_out' => $hasTimeOut,
+                'time_in_value' => $attendance->at_time_in,
+                'time_out_value' => $attendance->at_time_out,
+                'case1_condition' => !$dailySchedule && !$hasTimeIn && !$hasTimeOut
+            ]);
+            
+            if (!$dailySchedule && !$hasTimeIn && !$hasTimeOut) {
+                \Log::info('Entering Case 1: No schedule AND no time records (LEAVE case)', [
+                    'attendance_id' => $attendance->id,
+                    'reason' => 'No schedule and no time records - likely LEAVE'
+                ]);
+                
+                // Jika tidak ada schedule dan tidak ada time in/out, kemungkinan besar LEAVE
+                if (!$hasTimeIn && !$hasTimeOut) {
+                                            // Cek apakah ada leave request yang approved
+                        \Log::info('Leave request query parameters', [
+                    'attendance_id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'date_type' => gettype($attendance->at_date)
+                        ]);
+                        
+                        $leaveRequest = DB::table('leave_requests')
+                            ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+                            ->where('leave_requests.user_id', $attendance->user_id)
+                            ->where('leave_requests.lr_status', 'approved')
+                            ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
+                            ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
+                            ->select('leave_types.lt_code', 'leave_types.lt_name')
+                            ->first();
+                    
+                    \Log::info('Leave request check for no-schedule case', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'leave_request_found' => !is_null($leaveRequest),
+                        'leave_request_data' => $leaveRequest ? [
+                            'lt_code' => $leaveRequest->lt_code,
+                            'lt_name' => $leaveRequest->lt_name
+                        ] : null,
+                        'query_debug' => [
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'lr_status_condition' => 'approved'
+                        ]
+                    ]);
+                    
+                    if ($leaveRequest) {
+                        // Ada leave request yang approved
+                        $status = 'leave_' . $leaveRequest->lt_code;
+                        $notes = 'Cuti: ' . $leaveRequest->lt_name;
+                        
+                        \Log::info('Leave request found for no-schedule case', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'leave_type' => $leaveRequest->lt_code,
+                            'leave_name' => $leaveRequest->lt_name,
+                            'final_status' => $status
+                        ]);
+                    } else {
+                        // Tidak ada leave request, kemungkinan besar ini juga leave yang approved
+                        // tapi tidak ter-record di leave_requests table (mungkin manual approval atau sistem lama)
+                        $status = 'unknown_leave';
+                        $notes = 'Tidak ada jadwal dan tidak ada cuti - kemungkinan leave approved (manual/system)';
+                        
+                        \Log::info('No schedule and no leave request - likely approved leave but not in leave_requests table', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'final_status' => 'unknown_leave',
+                            'reason' => 'No schedule and no leave request - likely approved leave (manual/system), no changes needed'
+                        ]);
+                    }
+                } else {
+                    // Ada time in atau time out, set ke present
                 $status = 'present';
                 $notes = 'schedule unset - no daily schedule found for this date';
                 
-                \Log::info('No schedule found, setting status to present with notes: schedule unset', [
+                    \Log::info('No schedule found but has time records, setting status to present', [
                     'attendance_id' => $attendance->id,
                     'user_id' => $attendance->user_id,
-                    'date' => $attendance->at_date
-                ]);
+                    'date' => $attendance->at_date,
+                        'has_time_in' => $hasTimeIn,
+                        'has_time_out' => $hasTimeOut,
+                        'final_status' => 'present'
+                    ]);
+                }
             }
-            // Case 2: Only one time record (in or out)
-            elseif (!$hasTimeIn || !$hasTimeOut) {
-                \Log::info('Processing scan once case', [
+            // Case 2a: No schedule but has BOTH time records (PRESENT)
+            elseif (!$dailySchedule && $hasTimeIn && $hasTimeOut) {
+                \Log::info('Entering Case 2a: No schedule but has BOTH time records (PRESENT)', [
                     'attendance_id' => $attendance->id,
+                    'reason' => 'No schedule but has BOTH time records - PRESENT case',
+                    'daily_schedule_found' => !is_null($dailySchedule),
                     'has_time_in' => $hasTimeIn,
-                    'has_time_out' => $hasTimeOut,
-                    'has_schedule' => !empty($dailySchedule),
-                    'has_start_time' => $dailySchedule ? !empty($dailySchedule->sc_start_time) : false
+                    'has_time_out' => $hasTimeOut
                 ]);
                 
-                // PERBAIKAN: Cek apakah scan masuk terlambat meskipun scan once
+                // Set status ke present untuk record tanpa schedule tapi ada KEDUA time records
+                $status = 'present';
+                $notes = 'present - no schedule but has both time records';
+                
+                \Log::info('No schedule but has BOTH time records - setting to present', [
+                    'attendance_id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                    'date' => $attendance->at_date,
+                    'has_time_in' => $hasTimeIn,
+                    'has_time_out' => $hasTimeOut,
+                    'final_status' => 'present',
+                    'status_set' => $status,
+                    'notes_set' => $notes
+                ]);
+            }
+            // Case 2b: No schedule but has only ONE time record (SCAN ONCE)
+            elseif (!$dailySchedule && ($hasTimeIn || $hasTimeOut) && !($hasTimeIn && $hasTimeOut)) {
+                \Log::info('Entering Case 2b: No schedule but has only ONE time record (SCAN ONCE)', [
+                    'attendance_id' => $attendance->id,
+                    'reason' => 'No schedule but has only ONE time record - SCAN ONCE case',
+                    'daily_schedule_found' => !is_null($dailySchedule),
+                    'has_time_in' => $hasTimeIn,
+                    'has_time_out' => $hasTimeOut
+                ]);
+                
+                // Set status ke scan_once untuk record tanpa schedule tapi hanya satu time record
+                $status = 'scan_once';
+                $notes = 'scan once - no schedule but has only one time record';
+                
+                \Log::info('No schedule but has only ONE time record - setting to scan_once', [
+                    'attendance_id' => $attendance->id,
+                    'user_id' => $attendance->user_id,
+                    'date' => $attendance->at_date,
+                    'has_time_in' => $hasTimeIn,
+                    'has_time_out' => $hasTimeOut,
+                    'final_status' => 'scan_once',
+                    'status_set' => $status,
+                    'notes_set' => $notes
+                ]);
+            }
+            // Case 3: Only one time record (in or out) - SCAN ONCE with schedule
+            elseif (!$hasTimeIn || !$hasTimeOut) {
+                \Log::info('Entering Case 3: Only one time record with schedule (SCAN ONCE/LATE/EARLY_LEAVE)', [
+                    'attendance_id' => $attendance->id,
+                    'reason' => 'Has schedule but only one time record - SCAN ONCE case',
+                    'daily_schedule_found' => !is_null($dailySchedule),
+                    'has_time_in' => $hasTimeIn,
+                    'has_time_out' => $hasTimeOut,
+                    'schedule_data' => $dailySchedule ? [
+                        'id' => $dailySchedule->id,
+                        'sc_start_time' => $dailySchedule->sc_start_time,
+                        'sc_end_time' => $dailySchedule->sc_end_time
+                    ] : null
+                ]);
+                
+                // PRIORITAS 1: Jika ada schedule dan time in, cek apakah terlambat
                 if ($hasTimeIn && $dailySchedule && $dailySchedule->sc_start_time) {
                     $timeInMinutes = $this->timeToMinutes($attendance->at_time_in);
                     $shiftStartMinutes = $this->timeToMinutes($dailySchedule->sc_start_time);
                     
-                    \Log::info('Time comparison for scan once', [
+                    \Log::info('Time comparison for scan once with time in', [
                         'attendance_id' => $attendance->id,
                         'time_in' => $attendance->at_time_in,
                         'time_in_minutes' => $timeInMinutes,
@@ -2307,49 +3102,221 @@ class AttendanceController extends Controller
                     ]);
                     
                     if ($timeInMinutes > $shiftStartMinutes) {
-                        // Scan once tapi terlambat
+                        // Scan once tapi terlambat - PRIORITAS: LATE
                         $status = 'late';
                         $lateMinutes = $timeInMinutes - $shiftStartMinutes;
                         $notes = "scan once - terlambat {$lateMinutes} menit (In: {$attendance->at_time_in}, Schedule: {$dailySchedule->sc_start_time})";
                         
-                        \Log::info('Scan once but LATE, setting status to late', [
+                        \Log::info('Scan once but LATE - Priority: LATE status', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
                             'date' => $attendance->at_date,
                             'time_in' => $attendance->at_time_in,
                             'schedule_start' => $dailySchedule->sc_start_time,
-                            'late_minutes' => $lateMinutes
+                            'late_minutes' => $lateMinutes,
+                            'final_status' => 'late'
                         ]);
                     } else {
-                        // Scan once dan tepat waktu
-                        $status = 'present';
+                        // Scan once dan tepat waktu - STATUS: SCAN_ONCE
+                        $status = 'scan_once';
                         $notes = 'scan once - hadir tepat waktu';
                         
-                        \Log::info('Scan once and on time, setting status to present', [
+                        \Log::info('Scan once and on time - Status: SCAN_ONCE', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
                             'date' => $attendance->at_date,
                             'time_in' => $attendance->at_time_in,
-                            'schedule_start' => $dailySchedule->sc_start_time
+                            'schedule_start' => $dailySchedule->sc_start_time,
+                            'final_status' => 'scan_once'
+                        ]);
+                    }
+                }
+                // PRIORITAS 2: Jika ada schedule dan time out, cek apakah pulang awal
+                elseif ($hasTimeOut && $dailySchedule && $dailySchedule->sc_end_time) {
+                    $timeOutMinutes = $this->timeToMinutes($attendance->at_time_out);
+                    $shiftEndMinutes = $this->timeToMinutes($dailySchedule->sc_end_time);
+                    
+                    \Log::info('Time comparison for scan once with time out', [
+                        'attendance_id' => $attendance->id,
+                        'time_out' => $attendance->at_time_out,
+                        'time_out_minutes' => $timeOutMinutes,
+                        'schedule_end' => $dailySchedule->sc_end_time,
+                        'schedule_end_minutes' => $shiftEndMinutes,
+                        'is_early' => $timeOutMinutes < $shiftEndMinutes,
+                        'difference_minutes' => $shiftEndMinutes - $timeOutMinutes
+                    ]);
+                    
+                    if ($timeOutMinutes < $shiftEndMinutes) {
+                        // Scan once tapi pulang awal - PRIORITAS: EARLY_LEAVE
+                        $status = 'early_leave';
+                        $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
+                        $notes = "scan once - pulang awal {$earlyMinutes} menit (Out: {$attendance->at_time_out}, Schedule: {$dailySchedule->sc_end_time})";
+                        
+                        \Log::info('Scan once but EARLY LEAVE - Priority: EARLY_LEAVE status', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'time_out' => $attendance->at_time_out,
+                            'schedule_end' => $dailySchedule->sc_end_time,
+                            'early_minutes' => $earlyMinutes,
+                            'final_status' => 'early_leave'
+                        ]);
+                    } else {
+                        // Scan once dan pulang tepat waktu - STATUS: SCAN_ONCE
+                        $status = 'scan_once';
+                        $notes = 'scan once - pulang tepat waktu';
+                        
+                        \Log::info('Scan once and leave on time - Status: SCAN_ONCE', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'time_out' => $attendance->at_time_out,
+                            'schedule_end' => $dailySchedule->sc_end_time,
+                            'final_status' => 'scan_once'
                         ]);
                     }
                 } else {
-                    // Tidak ada schedule atau tidak ada time in, default ke present
-                    $status = 'present';
-                    $notes = 'scan once - incomplete attendance record';
-                    
-                    \Log::info('Only one time record found (no schedule or no time in), setting status to present with notes: scan once', [
-                        'attendance_id' => $attendance->id,
-                        'user_id' => $attendance->user_id,
-                        'date' => $attendance->at_date,
-                        'has_time_in' => $hasTimeIn,
-                        'has_time_out' => $hasTimeOut,
-                        'has_schedule' => !empty($dailySchedule)
-                    ]);
+                                            // Tidak ada schedule atau tidak ada time in/out - CEK LEAVE REQUEST DULU
+                        if (!$hasTimeIn && !$hasTimeOut) {
+                            // Tidak ada time in dan time out, kemungkinan besar LEAVE
+                            \Log::info('Leave request query parameters for scan once case', [
+                                'attendance_id' => $attendance->id,
+                                'user_id' => $attendance->user_id,
+                                'date' => $attendance->at_date,
+                                'date_type' => gettype($attendance->at_date)
+                            ]);
+                            
+                            $leaveRequest = DB::table('leave_requests')
+                                ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+                                ->where('leave_requests.user_id', $attendance->user_id)
+                                ->where('leave_requests.lr_status', 'approved')
+                                ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
+                                ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
+                                ->select('leave_types.lt_code', 'leave_types.lt_name')
+                                ->first();
+                        
+                        \Log::info('Leave request check for scan once case', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'leave_request_found' => !is_null($leaveRequest),
+                            'leave_request_data' => $leaveRequest ? [
+                                'lt_code' => $leaveRequest->lt_code,
+                                'lt_name' => $leaveRequest->lt_name
+                            ] : null,
+                            'query_debug' => [
+                                'user_id' => $attendance->user_id,
+                                'date' => $attendance->at_date,
+                                'lr_status_condition' => 'approved'
+                            ]
+                        ]);
+                        
+                        if ($leaveRequest) {
+                            // Ada leave request yang approved
+                            $status = 'leave_' . $leaveRequest->lt_code;
+                            $notes = 'Cuti: ' . $leaveRequest->lt_name;
+                            
+                            \Log::info('Leave request found for scan once case', [
+                                'attendance_id' => $attendance->id,
+                                'user_id' => $attendance->user_id,
+                                'date' => $attendance->at_date,
+                                'leave_type' => $leaveRequest->lt_code,
+                                'leave_name' => $leaveRequest->lt_name,
+                                'final_status' => $status
+                            ]);
+                        } else {
+                            // Tidak ada leave request, set ke absent
+                            $status = 'absent';
+                            $notes = 'Tidak hadir - tidak ada jadwal dan tidak ada cuti';
+                            
+                            \Log::info('No leave request for scan once case - setting to absent', [
+                                'attendance_id' => $attendance->id,
+                                'user_id' => $attendance->user_id,
+                                'date' => $attendance->at_date,
+                                'final_status' => 'absent'
+                            ]);
+                        }
+                    } else {
+                        // Ada time in atau time out, tapi tidak lengkap - HARUS SCAN ONCE
+                        // Jika ada time in, cek apakah terlambat
+                        if ($hasTimeIn && $dailySchedule && $dailySchedule->sc_start_time) {
+                            $timeInMinutes = $this->timeToMinutes($attendance->at_time_in);
+                            $shiftStartMinutes = $this->timeToMinutes($dailySchedule->sc_start_time);
+                            
+                            if ($timeInMinutes > $shiftStartMinutes) {
+                                // Scan once tapi terlambat - PRIORITAS: LATE
+                                $status = 'late';
+                                $lateMinutes = $timeInMinutes - $shiftStartMinutes;
+                                $notes = "scan once - terlambat {$lateMinutes} menit (In: {$attendance->at_time_in}, Schedule: {$dailySchedule->sc_start_time})";
+                                
+                                \Log::info('Partial record with time in - LATE status', [
+                                    'attendance_id' => $attendance->id,
+                                    'old_status' => $attendance->at_status,
+                                    'new_status' => 'late',
+                                    'reason' => 'Scan once but late'
+                                ]);
+                            } else {
+                                // Scan once dan tepat waktu - STATUS: SCAN_ONCE
+                                $status = 'scan_once';
+                                $notes = 'scan once - hadir tepat waktu';
+                                
+                                \Log::info('Partial record with time in - SCAN_ONCE status', [
+                                    'attendance_id' => $attendance->id,
+                                    'old_status' => $attendance->at_status,
+                                    'new_status' => 'scan_once',
+                                    'reason' => 'Scan once and on time'
+                                ]);
+                            }
+                        } elseif ($hasTimeOut && $dailySchedule && $dailySchedule->sc_end_time) {
+                            $timeOutMinutes = $this->timeToMinutes($attendance->at_time_out);
+                            $shiftEndMinutes = $this->timeToMinutes($dailySchedule->sc_end_time);
+                            
+                            if ($timeOutMinutes < $shiftEndMinutes) {
+                                // Scan once tapi pulang awal - PRIORITAS: EARLY_LEAVE
+                                $status = 'early_leave';
+                                $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
+                                $notes = "scan once - pulang awal {$earlyMinutes} menit (Out: {$attendance->at_time_out}, Schedule: {$dailySchedule->sc_end_time})";
+                                
+                                \Log::info('Partial record with time out - EARLY_LEAVE status', [
+                                    'attendance_id' => $attendance->id,
+                                    'old_status' => $attendance->at_status,
+                                    'new_status' => 'early_leave',
+                                    'reason' => 'Scan once but early leave'
+                                ]);
+                            } else {
+                                // Scan once dan pulang tepat waktu - STATUS: SCAN_ONCE
+                                $status = 'scan_once';
+                                $notes = 'scan once - pulang tepat waktu';
+                                
+                                \Log::info('Partial record with time out - SCAN_ONCE status', [
+                                    'attendance_id' => $attendance->id,
+                                    'old_status' => $attendance->at_status,
+                                    'new_status' => 'scan_once',
+                                    'reason' => 'Scan once and leave on time'
+                                ]);
+                            }
+                        } else {
+                            // Tidak ada schedule yang jelas, set ke scan_once
+                            $status = 'scan_once';
+                            $notes = 'scan once - incomplete attendance record';
+                            
+                            \Log::info('Partial record without clear schedule - SCAN_ONCE status', [
+                                'attendance_id' => $attendance->id,
+                                'old_status' => $attendance->at_status,
+                                'new_status' => 'scan_once',
+                                'reason' => 'Partial record without clear schedule'
+                            ]);
+                        }
+                    }
                 }
             }
-            // Case 3: Has schedule and both time records
-            else {
+            // Case 4: Has schedule and both time records
+            elseif ($dailySchedule && $hasTimeIn && $hasTimeOut) {
+                \Log::info('Entering Case 4: Has schedule and both time records', [
+                    'attendance_id' => $attendance->id,
+                    'reason' => 'Daily schedule exists and both time records present'
+                ]);
+                
                 // Check shift code compatibility with user type using new pivot table structure
                 if ($dailySchedule->sc_id && $dailySchedule->user_type_name) {
                     $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
@@ -2389,6 +3356,42 @@ class AttendanceController extends Controller
                     'user_time_in' => $attendance->at_time_in,
                     'user_time_out' => $attendance->at_time_out
                 ]);
+            } else {
+                // Fallback case: Should not happen with proper logic
+                \Log::warning('No case matched - using fallback', [
+                    'attendance_id' => $attendance->id,
+                    'daily_schedule_found' => !is_null($dailySchedule),
+                    'has_time_in' => $hasTimeIn,
+                    'has_time_out' => $hasTimeOut,
+                    'fallback_reason' => 'No case conditions matched'
+                ]);
+                
+                // Set default status for fallback
+                $status = 'unknown';
+                $notes = 'Status not determined - fallback case';
+            }
+
+            // Debug: Log final status and notes before update
+            \Log::info('Final status and notes determined', [
+                'attendance_id' => $attendance->id,
+                'final_status' => $status ?? 'NOT_SET',
+                'final_notes' => $notes ?? 'NOT_SET',
+                'status_type' => gettype($status),
+                'notes_type' => gettype($notes),
+                'current_status' => $attendance->at_status,
+                'current_notes' => $attendance->at_notes,
+                'will_update' => ($status !== $attendance->at_status) || ($notes !== $attendance->at_notes)
+            ]);
+            
+            // Fallback: Ensure status and notes are set
+            if (is_null($status)) {
+                $status = 'unknown';
+                $notes = 'Status not determined - fallback';
+                \Log::warning('Status was null, using fallback', [
+                    'attendance_id' => $attendance->id,
+                    'fallback_status' => $status,
+                    'fallback_notes' => $notes
+                ]);
             }
 
             // Update attendance record
@@ -2397,6 +3400,15 @@ class AttendanceController extends Controller
                 'at_notes' => $notes,
                 'updated_at' => now()
             ];
+            
+            \Log::info('Preparing update data', [
+                'attendance_id' => $attendance->id,
+                'old_status' => $attendance->at_status,
+                'new_status' => $status,
+                'old_notes' => $attendance->at_notes,
+                'new_notes' => $notes,
+                'update_data' => $updateData
+            ]);
             
             // Update daily_schedule_id if schedule found
             if ($dailySchedule) {
@@ -2427,9 +3439,11 @@ class AttendanceController extends Controller
                 ]);
             }
             
-            \Log::info('Updating attendance record', [
+            \Log::info('Executing database update', [
                 'attendance_id' => $attendance->id,
-                'update_data' => $updateData
+                'update_data' => $updateData,
+                'sql_table' => 'attendance',
+                'where_condition' => ['id' => $attendance->id]
             ]);
             
             $updateResult = DB::table('attendance')
@@ -2439,16 +3453,28 @@ class AttendanceController extends Controller
             if ($updateResult) {
                 \Log::info('Attendance status updated successfully', [
                     'attendance_id' => $attendance->id,
+                    'old_status' => $attendance->at_status,
                     'new_status' => $status,
+                    'old_notes' => $attendance->at_notes,
                     'new_notes' => $notes,
                     'daily_schedule_id_updated' => isset($updateData['daily_schedule_id']),
-                    'new_daily_schedule_id' => $updateData['daily_schedule_id'] ?? null
+                    'new_daily_schedule_id' => $updateData['daily_schedule_id'] ?? null,
+                    'rows_affected' => $updateResult
                 ]);
                 return true;
             } else {
                 \Log::warning('Failed to update attendance status', [
                     'attendance_id' => $attendance->id,
-                    'update_data' => $updateData
+                    'update_data' => $updateData,
+                    'where_condition' => ['id' => $attendance->id],
+                    'possible_reasons' => [
+                        'record_not_found' => DB::table('attendance')->where('id', $attendance->id)->exists(),
+                        'no_changes_needed' => DB::table('attendance')
+                            ->where('id', $attendance->id)
+                            ->where('at_status', $status)
+                            ->where('at_notes', $notes)
+                            ->exists()
+                    ]
                 ]);
                 return false;
             }
@@ -2882,6 +3908,7 @@ class AttendanceController extends Controller
             $filename .= '.pdf';
 
             $pdf = \PDF::loadHTML($html);
+            $pdf->setPaper('A4', 'landscape');
             return $pdf->download($filename);
             
         } catch (\Exception $e) {
@@ -2902,34 +3929,34 @@ class AttendanceController extends Controller
             <meta charset="utf-8">
             <title>Attendance Summary Report</title>
             <style>
-                body { font-family: Arial, sans-serif; font-size: 12px; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .header h1 { margin: 0; color: #2E75B6; }
-                .header p { margin: 5px 0; color: #666; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                body { font-family: Arial, sans-serif; font-size: 10px; }
+                .header { text-align: center; margin-bottom: 15px; }
+                .header h1 { margin: 0; color: #2E75B6; font-size: 16px; }
+                .header p { margin: 3px 0; color: #666; font-size: 9px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: left; font-size: 9px; }
                 th { background-color: #4472C4; color: white; font-weight: bold; }
                 .text-center { text-align: center; }
-                .summary-stats { margin-bottom: 20px; }
+                .summary-stats { margin-bottom: 15px; }
                 .summary-stats .stat-item { 
                     display: inline-block; 
-                    margin: 10px; 
-                    padding: 10px; 
+                    margin: 5px; 
+                    padding: 6px; 
                     background-color: #f8f9fa; 
                     border: 1px solid #dee2e6; 
-                    border-radius: 5px; 
+                    border-radius: 3px; 
                     text-align: center; 
-                    min-width: 120px; 
+                    min-width: 80px; 
                 }
                 .summary-stats .stat-number { 
-                    font-size: 18px; 
+                    font-size: 14px; 
                     font-weight: bold; 
                     color: #2E75B6; 
                 }
                 .summary-stats .stat-label { 
-                    font-size: 11px; 
+                    font-size: 8px; 
                     color: #666; 
-                    margin-top: 5px; 
+                    margin-top: 3px; 
                 }
             </style>
         </head>
@@ -2958,6 +3985,10 @@ class AttendanceController extends Controller
                     <div class="stat-label">Total Terlambat</div>
                 </div>
                 <div class="stat-item">
+                    <div class="stat-number">' . $summaryData->sum('scan_once_days') . '</div>
+                    <div class="stat-label">Total Scan Once</div>
+                </div>
+                <div class="stat-item">
                     <div class="stat-number">' . $summaryData->sum('alpha_days') . '</div>
                     <div class="stat-label">Total Alpha</div>
                 </div>
@@ -2978,6 +4009,7 @@ class AttendanceController extends Controller
                         <th class="text-center">Cuti</th>
                         <th class="text-center">Sakit</th>
                         <th class="text-center">Terlambat</th>
+                        <th class="text-center">Scan Once</th>
                         <th class="text-center">Alpha</th>
                     </tr>
                 </thead>
@@ -2999,6 +4031,7 @@ class AttendanceController extends Controller
                         <td class="text-center">' . ($item->leave_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->sick_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->late_days ?? 0) . '</td>
+                        <td class="text-center">' . ($item->scan_once_days ?? 0) . '</td>
                         <td class="text-center">' . ($item->alpha_days ?? 0) . '</td>
                     </tr>';
         }
@@ -3108,6 +4141,9 @@ class AttendanceController extends Controller
                 })
                 ->editColumn('late_days', function($row) {
                     return $row->late_days ?? 0;
+                })
+                ->editColumn('scan_once_days', function($row) {
+                    return $row->scan_once_days ?? 0;
                 })
                 ->editColumn('alpha_days', function($row) {
                     return $row->alpha_days ?? 0;

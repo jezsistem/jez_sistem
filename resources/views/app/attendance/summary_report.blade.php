@@ -100,7 +100,7 @@
             
             <!-- Statistics Cards -->
             <div class="row mb-4">
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-2 col-md-6">
                     <div class="card card-custom rounded-lg bg-all">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -117,7 +117,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-2 col-md-6">
                     <div class="card card-custom rounded-lg bg-attendance-shifts">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -134,7 +134,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-2 col-md-6">
                     <div class="card card-custom rounded-lg bg-attendance-total">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -146,6 +146,23 @@
                                 <div>
                                     <div class="text-dark font-weight-bold font-size-h5">{{ $summaryData->sum('late_days') ?? 0 }}</div>
                                     <div class="text-dark-50">Late Days</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <div class="card card-custom rounded-lg bg-attendance-shifts">
+                        <div class="card-body px-7">
+                            <div class="d-flex align-items-center">
+                                <div class="symbol symbol-40 mr-4">
+                                    <span class="symbol-label">
+                                        <i class="ki-outline ki-time text-dark"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-dark font-weight-bold font-size-h5">{{ $summaryData->sum('scan_once_days') ?? 0 }}</div>
+                                    <div class="text-dark-50">Total Scan Once</div>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +185,7 @@
                         </div>
                     </div>
                 </div> -->
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-2 col-md-6">
                     <div class="card card-custom rounded-lg bg-attendance-alpha">
                         <div class="card-body px-7">
                             <div class="d-flex align-items-center">
@@ -282,10 +299,11 @@
                                     <th width="10%">User Type</th>
                                     <th width="8%" class="text-center">Total Shifts</th>
                                     <th width="8%" class="text-center">Present Days</th>
-                                    <th width="8%" class="text-center">Total Day off</th>
+                                    <th width="8%" class="text-center">Day off</th>
                                     <th width="8%" class="text-center">Leave Days</th>
                                     <th width="8%" class="text-center">Sick Days</th>
                                     <th width="8%" class="text-center">Late Days</th>
+                                    <th width="8%" class="text-center">Scan Once</th>
                                     <th width="8%" class="text-center">Alpha Days</th>
                                 </tr>
                             </thead>

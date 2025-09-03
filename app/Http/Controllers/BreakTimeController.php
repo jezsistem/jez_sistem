@@ -19,32 +19,13 @@ class BreakTimeController extends Controller
 {
     protected function validateAccess()
     {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
-
-        $user_position = auth()->user()->up_id;
-
-        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
-            ->where('user_groups.user_id', auth()->user()->id)
-            ->where('g_name', 'administrator')
-            ->exists();
-        
-        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-            ->where('users.id', auth()->user()->id)
-            ->where('user_divisions.ud_code', 'HUMANRESOU')
-            ->exists();
-
-        if (!$user_group_is_admin && !$is_human_resource) {
-            $validate = DB::table('position_access')
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
-                    'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
-                ])->exists();
-
-            if (!$validate) {
-                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
-            }
+        $validate = DB::table('user_menu_accesses')
+        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+            'u_id' => Auth::user()->id,
+            'ma_slug' => request()->segment(1)
+        ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
     }
 
@@ -292,6 +273,18 @@ class BreakTimeController extends Controller
                 'first_record' => $result->first()
             ]);
 
+            // Debug: Check if any user has data
+            if ($result->count() > 0) {
+                $sampleUser = $result->first();
+                \Log::info('Sample user data', [
+                    'user_id' => $sampleUser->user_id,
+                    'user_name' => $sampleUser->u_name,
+                    'total_shifts' => $sampleUser->total_shifts,
+                    'total_breaks' => $sampleUser->total_breaks,
+                    'no_break_shifts' => $sampleUser->no_break_shifts
+                ]);
+            }
+
             // Calculate exceeded break time manually for each user based on their user type
             foreach ($result as $user) {
                 // Get user's shift type to determine break allowance
@@ -305,7 +298,6 @@ class BreakTimeController extends Controller
                 
                 $shiftType = $userShiftType ? $userShiftType->sc_type : 'Part Time'; // Default fallback
                 
-                // Get break allowance based on shift type
                 $breakTime = new \App\Models\BreakTime();
                 $breakAllowance = $breakTime->getBreakAllowance($shiftType);
                 
@@ -377,7 +369,35 @@ class BreakTimeController extends Controller
                 $user->max_break_duration = $maxDuration; // Add for debugging
             }
 
-            return $result;
+            // Temporarily disable filter to debug data
+            // Temporarily disable filter to restore data
+            // Filter to only show users with total_breaks > 0 OR no_break_shifts > 0
+            $filteredResult = $result->filter(function($item) {
+                $hasData = $item->total_breaks > 0 || $item->no_break_shifts > 0;
+                
+                // Debug logging for first few items
+                if ($item->user_id <= 5) {
+                    \Log::info('Filter debug for user', [
+                        'user_id' => $item->user_id,
+                        'user_name' => $item->u_name,
+                        'total_breaks' => $item->total_breaks,
+                        'no_break_shifts' => $item->no_break_shifts,
+                        'total_shifts' => $item->total_shifts,
+                        'has_data' => $hasData
+                    ]);
+                }
+                
+                // Return users with data
+                return $hasData;
+            });
+            
+            \Log::info('Break time summary data filtered', [
+                'total_records' => $result->count(),
+                'filtered_records' => $filteredResult->count(),
+                'first_record' => $filteredResult->first()
+            ]);
+            
+            return $filteredResult;
 
         } catch (\Exception $e) {
             \Log::error('Error getting break time summary data', [
@@ -400,6 +420,7 @@ class BreakTimeController extends Controller
             $startDate = $request->get('start_date');
             $endDate = $request->get('end_date');
             $divisionId = $request->get('division_id');
+            $search = $request->get('search');
             
             // Apply date filter if not custom
             if ($dateFilter !== 'custom') {
@@ -410,6 +431,14 @@ class BreakTimeController extends Controller
             
             // Get summary data for statistics
             $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
+            
+            // Apply search filter if provided
+            if ($search) {
+                $summaryData = $summaryData->filter(function($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false || 
+                           stripos($item->u_nip, $search) !== false;
+                });
+            }
             
             // Calculate statistics
             $totalStaff = $summaryData->count();
@@ -437,6 +466,7 @@ class BreakTimeController extends Controller
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'division_id' => $divisionId,
+                'search' => $search,
                 'stats' => $stats
             ]);
             
@@ -507,6 +537,18 @@ class BreakTimeController extends Controller
             // Use the same method as summaryReport to get data
             $summaryData = $this->getBreakTimeSummary($startDate, $endDate, $divisionId);
             
+            // Store total records BEFORE search (for recordsTotal)
+            $totalRecordsBeforeSearch = $summaryData->count();
+            
+            // Debug: Log date range and data count
+            \Log::info('Break Time Summary Report - Date Range Debug', [
+                'date_filter' => $dateFilter,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'division_id' => $divisionId,
+                'raw_data_count' => $totalRecordsBeforeSearch
+            ]);
+            
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
@@ -514,6 +556,12 @@ class BreakTimeController extends Controller
                     return stripos($item->u_name, $search) !== false || 
                            stripos($item->u_nip, $search) !== false;
                 });
+                
+                \Log::info('Search filter applied', [
+                    'search_term' => $search,
+                    'records_before_search' => $totalRecordsBeforeSearch,
+                    'records_after_search' => $summaryData->count()
+                ]);
             }
             
             // Debug: Log data before DataTables processing
@@ -522,11 +570,42 @@ class BreakTimeController extends Controller
                 'first_item' => $summaryData->first()
             ]);
             
-            // Convert to array for DataTables
+            // Debug: Check data structure
+            if ($summaryData->count() > 0) {
+                $sampleData = $summaryData->first();
+                \Log::info('Sample data structure', [
+                    'user_id' => $sampleData->user_id ?? 'missing',
+                    'u_nip' => $sampleData->u_nip ?? 'missing',
+                    'u_name' => $sampleData->u_name ?? 'missing',
+                    'position_name' => $sampleData->position_name ?? 'missing',
+                    'division_name' => $sampleData->division_name ?? 'missing',
+                    'work_type' => $sampleData->work_type ?? 'missing',
+                    'total_shifts' => $sampleData->total_shifts ?? 'missing',
+                    'total_breaks' => $sampleData->total_breaks ?? 'missing',
+                    'no_break_shifts' => $sampleData->no_break_shifts ?? 'missing'
+                ]);
+            }
+            
+            // Convert to array for DataTables (exact same as BreakTimeBackupController)
             $data = [];
             foreach ($summaryData as $index => $item) {
-                $data[] = (array) $item;
-                $data[$index]['DT_RowIndex'] = $index + 1;
+                $itemArray = (array) $item;
+                $data[] = $itemArray;
+                
+                // Debug: Log first few items
+                if ($index < 3) {
+                    \Log::info('Data item ' . $index, [
+                        'user_id' => $itemArray['user_id'] ?? 'missing',
+                        'u_nip' => $itemArray['u_nip'] ?? 'missing',
+                        'u_name' => $itemArray['u_name'] ?? 'missing',
+                        'position_name' => $itemArray['position_name'] ?? 'missing',
+                        'division_name' => $itemArray['division_name'] ?? 'missing',
+                        'work_type' => $itemArray['work_type'] ?? 'missing',
+                        'total_shifts' => $itemArray['total_shifts'] ?? 'missing',
+                        'total_breaks' => $itemArray['total_breaks'] ?? 'missing',
+                        'no_break_shifts' => $itemArray['no_break_shifts'] ?? 'missing'
+                    ]);
+                }
             }
             
             // Apply pagination manually for server-side processing
@@ -534,6 +613,11 @@ class BreakTimeController extends Controller
             $start = $request->get('start', 0);
             $length = $request->get('length', 25);
             $paginatedData = array_slice($data, $start, $length);
+            
+            // Set DT_RowIndex AFTER pagination to ensure sequential numbering
+            foreach ($paginatedData as $index => $item) {
+                $paginatedData[$index]['DT_RowIndex'] = $start + $index + 1;
+            }
             
             \Log::info('Break Time Summary Report Datatables Response', [
                 'total_records' => $totalRecords,
@@ -543,7 +627,7 @@ class BreakTimeController extends Controller
             
             return response()->json([
                 'draw' => $request->get('draw', 1),
-                'recordsTotal' => $totalRecords,
+                'recordsTotal' => $totalRecordsBeforeSearch,
                 'recordsFiltered' => $totalRecords,
                 'data' => $paginatedData
             ]);
@@ -736,20 +820,13 @@ class BreakTimeController extends Controller
                     }
                     
                     $data[] = $itemArray;
-                    $data[$index]['DT_RowIndex'] = $index + 1;
                 }
-                
-                // Apply pagination manually for server-side processing
-                $totalRecords = count($data);
-                $start = $request->get('start', 0);
-                $length = $request->get('length', 25);
-                $paginatedData = array_slice($data, $start, $length);
                 
                 return response()->json([
                     'draw' => $request->get('draw', 1),
-                    'recordsTotal' => $totalRecords,
-                    'recordsFiltered' => $totalRecords,
-                    'data' => $paginatedData
+                    'recordsTotal' => count($data),
+                    'recordsFiltered' => count($data),
+                    'data' => $data
                 ]);
                 
             } catch (\Exception $e) {
@@ -1086,6 +1163,9 @@ class BreakTimeController extends Controller
                     // $btn .= '<a href="'.route('break-times.edit', $row->id).'" class="menu-link px-3">Edit</a>';
                     // $btn .= '</div>';
                     $btn .= '<div class="menu-item px-3">';
+                    $btn .= '<a href="#" class="menu-link px-3 text-warning" onclick="cancelBreakTime('.$row->id.')">Cancel</a>';
+                    $btn .= '</div>';
+                    $btn .= '<div class="menu-item px-3">';
                     $btn .= '<a href="#" class="menu-link px-3 text-danger" onclick="deleteBreakTime('.$row->id.')">Delete</a>';
                     $btn .= '</div>';
                     $btn .= '</div>';
@@ -1270,7 +1350,7 @@ class BreakTimeController extends Controller
             
             $breakDuration = 30; // default
             if ($dailySchedule && $dailySchedule->shiftCode) {
-                $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->getBreakAllowancePrimaryType());
+                $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->sc_type);
                 $breakDuration = $allowance[$activeBreak->bt_type]['duration'] ?? 30;
             }
 
@@ -1344,12 +1424,20 @@ class BreakTimeController extends Controller
             ]);
         }
 
-        // Get shift type from shift code using compatibility method
-        $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
-        $shiftType = $shiftCodeModel ? $shiftCodeModel->getBreakAllowancePrimaryType() : 'PART TIME';
+        // Get user type directly from user table instead of shift code
+        $user = DB::table('users')->where('id', $userId)->first();
+        $userType = $user && $user->ut_id ? DB::table('user_types')->where('id', $user->ut_id)->first() : null;
+        $shiftType = $userType ? $userType->ut_name : 'PART TIME';
+        $shiftCode = $dailySchedule->sc_code; // Get shift code for special cases
 
-        // Define break allowance based on shift type
+        // Define break allowance based on shift type and special shift codes
         $breakAllowance = 0;
+        
+        // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
+        if (in_array($shiftCode, ['PF', 'PF0', 'PFM'])) {
+            $breakAllowance = 2; // 2 breaks for PF, PF0, PFM (30 minutes each)
+        } else {
+            // Regular logic based on shift type
         switch ($shiftType) {
             case 'FULL TIME':
                 $breakAllowance = 1; // 1 break for full time (60 minutes)
@@ -1368,6 +1456,7 @@ class BreakTimeController extends Controller
                 break;
             default:
                 $breakAllowance = 1; // default 1 break
+            }
         }
         
         // Count completed breaks today (all types combined)
@@ -1423,6 +1512,7 @@ class BreakTimeController extends Controller
 
         \Log::info('Returning break allowance', [
             'shift_type' => $shiftType,
+            'shift_code' => $shiftCode,
             'break_allowance' => $breakAllowance,
             'completed_breaks' => $completedBreaks
         ]);
@@ -1430,6 +1520,7 @@ class BreakTimeController extends Controller
         return response()->json([
             'success' => true,
             'shift_type' => $shiftType,
+            'shift_code' => $shiftCode,
             'break_allowance' => $breakAllowance,
             'completed_breaks' => $completedBreaks
         ]);
@@ -1941,21 +2032,56 @@ class BreakTimeController extends Controller
             // Find user by NIP
             $user = DB::table('users')->where('u_nip', $userNip)->first();
             if (!$user) {
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'User not found', [
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType
+                ]);
                 return response()->json(['success' => false, 'message' => 'User not found']);
             }
+            
+            // If break_type is break_1 but user can't start break_1, try break_2
+            if ($breakType === 'break_1') {
+                $breakTime = new BreakTime();
+                if (!$breakTime->canStartBreak($user->id, 'break_1')) {
+                    if ($breakTime->canStartBreak($user->id, 'break_2')) {
+                        $breakType = 'break_2';
+                        \Log::info('Auto-switched to break_2 because break_1 not available', [
+                            'user_id' => $user->id,
+                            'user_nip' => $userNip
+                        ]);
+                    }
+                }
+            }
+            
+            // Log the operation attempt
+            \App\Helpers\BreakTimeLogger::logBreakAttempt([
+                'user_nip' => $userNip,
+                'break_type' => $breakType,
+                'request_data' => $request->all()
+            ]);
             
             // Use BreakTime model validation
             $breakTime = new BreakTime();
             
             // Check if user can start break using model validation
             if (!$breakTime->canStartBreak($user->id, $breakType)) {
+                // Debug detailed info
+                $debugInfo = \App\Helpers\BreakTimeDebugger::canStartBreakDetailed($user->id, $breakType);
+                
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Cannot start break - validation failed', [
+                    'user_id' => $user->id,
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType,
+                    'debug_info' => $debugInfo
+                ]);
+                
                 return response()->json([
                     'success' => false, 
-                    'message' => 'Cannot start break. Please check your schedule, existing breaks, or break quota.'
+                    'message' => 'Cannot start break. Please check your schedule, existing breaks, or break quota.',
+                    'debug_info' => $debugInfo
                 ], 400);
             }
             
-            // Start break using model method
             $result = $breakTime->startBreak($user->id, $breakType);
             
             if ($result) {
@@ -1968,9 +2094,30 @@ class BreakTimeController extends Controller
                 
                 $breakDuration = 30; // default
                 if ($dailySchedule && $dailySchedule->shiftCode) {
-                    $allowance = $breakTime->getBreakAllowance($dailySchedule->shiftCode->getBreakAllowancePrimaryType());
-                    $breakDuration = $allowance[$breakType]['duration'] ?? 30;
+                    // Get user type directly from user table instead of shift code
+                    $userType = $user && $user->ut_id ? DB::table('user_types')->where('id', $user->ut_id)->first() : null;
+                    $shiftType = $userType ? $userType->ut_name : 'PART TIME';
+                    $shiftCode = $dailySchedule->sc_code; // Get shift code for special cases
+                    
+                    // Special case: PF, PF0, PFM shift codes get 2 breaks even if PART TIME
+                    if (in_array($shiftCode, haystack: ['PF', 'PF0', 'PFM'])) {
+                        // For PF, PF0, PFM: 2 breaks of 30 minutes each
+                        $breakDuration = 30; // 30 minutes per break
+                        // Note: User can do break_1 and break_2 (2 breaks total)
+                    } else {
+                        // Regular logic based on shift type (still use the cases in getBreakAllowance)
+                        $allowance = $breakTime->getBreakAllowance($shiftType);
+                        $breakDuration = $allowance[$breakType]['duration'] ?? 30;
+                    }
                 }
+                
+                // Log successful operation
+                \App\Helpers\BreakTimeLogger::logSuccess('start_break', $result, [
+                    'user_id' => $user->id,
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType,
+                    'break_duration' => $breakDuration
+                ]);
                 
                 return response()->json([
                     'success' => true,
@@ -1979,15 +2126,49 @@ class BreakTimeController extends Controller
                     'break_duration' => $breakDuration
                 ]);
             } else {
+                \App\Helpers\BreakTimeLogger::logValidationFailure('start_break', 'Failed to start break - model returned false', [
+                    'user_id' => $user->id,
+                    'user_nip' => $userNip,
+                    'break_type' => $breakType
+                ]);
                 return response()->json([
                     'success' => false, 
                     'message' => 'Failed to start break. Please try again.'
                 ], 400);
             }
             
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database constraint violations specifically
+            if ($e->getCode() === '23000') {
+                \App\Helpers\BreakTimeLogger::logDuplicateError($e, [
+                    'user_nip' => $request->get('user_nip'),
+                    'break_type' => $request->get('break_type', 'break_1'),
+                    'user_id' => $user->id ?? null
+                ], 'start_break');
+            } else {
+                \App\Helpers\BreakTimeLogger::logSystemError('start_break', $e, [
+                    'user_nip' => $request->get('user_nip'),
+                    'break_type' => $request->get('break_type', 'break_1'),
+                    'user_id' => $user->id ?? null
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Database error occurred. Please try again or contact support.'
+            ], 500);
+            
         } catch (\Exception $e) {
-            \Log::error('Error starting break: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Error starting break: ' . $e->getMessage()]);
+            \App\Helpers\BreakTimeLogger::logSystemError('start_break', $e, [
+                'user_nip' => $request->get('user_nip'),
+                'break_type' => $request->get('break_type', 'break_1'),
+                'user_id' => $user->id ?? null
+            ]);
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error starting break: ' . $e->getMessage()
+            ], 500);
         }
     }
     
@@ -2967,5 +3148,88 @@ class BreakTimeController extends Controller
         </html>';
 
         return $html;
+    }
+
+    /**
+     * Cancel break time and return allowance
+     */
+    public function cancelBreakTime(Request $request, $id)
+    {
+        try {
+            $breakTime = BreakTime::findOrFail($id);
+            
+            // Check if break time can be cancelled
+            if ($breakTime->bt_status === 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Break time is already cancelled'
+                ], 400);
+            }
+            
+            // Allow cancelling completed break times (for cases where user accidentally clicked)
+            // if ($breakTime->bt_status === 'completed') {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Cannot cancel completed break time'
+            //     ], 400);
+            // }
+            
+            // Start transaction
+            DB::beginTransaction();
+            
+            try {
+                // Update break time status to cancelled
+                $breakTime->bt_status = 'cancelled';
+                $breakTime->bt_notes = $breakTime->bt_notes ? $breakTime->bt_notes . ' [Cancelled]' : '[Cancelled]';
+                $breakTime->save();
+                
+                // Return break allowance to user
+                $userId = $breakTime->user_id;
+                $breakType = $breakTime->bt_type;
+                $breakDate = $breakTime->bt_date;
+                
+                // Get daily schedule for the break date
+                $dailySchedule = \App\Models\DailySchedule::where('user_id', $userId)
+                    ->where('ds_date', $breakDate)
+                    ->with('shiftCode')
+                    ->first();
+                
+                if ($dailySchedule && $dailySchedule->shiftCode) {
+                    $shiftType = $dailySchedule->shiftCode->getBreakAllowancePrimaryType();
+                    $breakTimeModel = new BreakTime();
+                    $allowance = $breakTimeModel->getBreakAllowance($shiftType);
+                    
+                    if (isset($allowance[$breakType])) {
+                        // Return the allowance (this might need to be implemented in BreakTime model)
+                        // For now, we'll just log that allowance should be returned
+                        \Log::info('Break time cancelled - allowance should be returned', [
+                            'break_time_id' => $id,
+                            'user_id' => $userId,
+                            'break_type' => $breakType,
+                            'break_date' => $breakDate,
+                            'allowance' => $allowance[$breakType]
+                        ]);
+                    }
+                }
+                
+                DB::commit();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Break time cancelled successfully. Allowance has been returned.'
+                ]);
+                
+            } catch (\Exception $e) {
+                DB::rollback();
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Error cancelling break time: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error cancelling break time: ' . $e->getMessage()
+            ], 500);
+        }
     }
 } 

@@ -286,6 +286,18 @@
                         }
                     },
                     { 
+                        data: 'scan_once_days', 
+                        name: 'scan_once_days', 
+                        width: '8%', 
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return data && data > 0 ? data : '-';
+                            }
+                            return data || 0;
+                        }
+                    },
+                    { 
                         data: 'alpha_days', 
                         name: 'alpha_days', 
                         width: '8%', 
@@ -305,7 +317,7 @@
                         "width": "5%"
                     },
                     {
-                        "targets": [6, 7, 8, 9, 10, 11, 12],
+                        "targets": [6, 7, 8, 9, 10, 11, 12, 13],
                         "className": "text-center"
                     }
                 ],

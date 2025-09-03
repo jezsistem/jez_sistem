@@ -702,10 +702,14 @@
     
     // Function to view attachment
     function viewAttachment(leaveRequestId, filePath, fileName, fileType) {
+        console.log('viewAttachment called with:', { leaveRequestId, filePath, fileName, fileType });
+        
         const modal = document.getElementById('attachmentModal');
         const content = document.getElementById('attachmentContent');
         const downloadLink = document.getElementById('downloadAttachment');
         const modalTitle = document.getElementById('attachmentModalLabel');
+        
+        console.log('Modal elements found:', { modal: !!modal, content: !!content, downloadLink: !!downloadLink, modalTitle: !!modalTitle });
         
         // Set modal title
         modalTitle.textContent = `View Attachment: ${fileName}`;

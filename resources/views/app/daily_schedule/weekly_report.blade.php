@@ -1,6 +1,64 @@
 @extends('app.structure')
 @section('content')
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFilter = document.querySelector('select[name="date_filter"]');
+    const scheduleTables = document.querySelectorAll('.schedule-report-table');
+    
+    function updateColumnVisibility() {
+        if (dateFilter.value === 'now') {
+            // Hide other date columns in all tables and set table width to 60%
+            scheduleTables.forEach(table => {
+                const otherDateColumns = table.querySelectorAll('.other-date-column');
+                otherDateColumns.forEach(col => {
+                    col.style.display = 'none';
+                });
+                // Set table width to 60% for NOW filter only
+                table.style.width = '50%';
+            });
+        } else {
+            // Show all columns in all tables and reset table width
+            scheduleTables.forEach(table => {
+                const otherDateColumns = table.querySelectorAll('.other-date-column');
+                otherDateColumns.forEach(col => {
+                    col.style.display = '';
+                });
+                // Reset table width for other filters
+                table.style.width = '';
+            });
+        }
+    }
+    
+    // Initial call
+    updateColumnVisibility();
+    
+    // Listen for changes
+    dateFilter.addEventListener('change', updateColumnVisibility);
+});
+</script>
+
+<style>
+    /* Hide other date columns when filter is NOW */
+    .other-date-column {
+        transition: all 0.3s ease;
+    }
+    
+    .hide-other-dates .other-date-column {
+        display: none !important;
+    }
+    
+    /* Highlight today column when filter is NOW */
+    .today-column {
+        transition: all 0.3s ease;
+    }
+    
+    .filter-now .today-column {
+        background-color: #fff3cd !important;
+        border: 2px solid #ffc107 !important;
+    }
+</style>
+
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <!--begin::Subheader-->
     <div class="subheader py-2 py-lg-6 subheader-solid" id="kt_subheader">
@@ -44,8 +102,8 @@
                         <h3 class="card-label">Filters</h3>
                     </div>
                 </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ route('daily-schedules.weekly-report') }}">
+                <form method="GET" action="{{ route('daily-schedules.weekly-report') }}">
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-2">
                                 <label>Date Filter:</label>
@@ -63,12 +121,23 @@
                                 <small class="form-text text-muted">Select Monday to show full week</small>
                             </div>
                             <div class="col-md-2">
-                                <label>Team (Division):</label>
+                                <label>Division:</label>
                                 <select class="form-control" name="division_id" onchange="this.form.submit()">
                                     <option value="">All Divisions</option>
                                     @foreach($divisions as $division)
                                         <option value="{{ $division->id }}" {{ $divisionId == $division->id ? 'selected' : '' }}>
                                             {{ $division->ud_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>User Position:</label>
+                                <select class="form-control" name="position_id" onchange="this.form.submit()">
+                                    <option value="">All Positions</option>
+                                    @foreach($userPositions as $position)
+                                        <option value="{{ $position->id }}" {{ $positionId == $position->id ? 'selected' : '' }}>
+                                            {{ $position->up_name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -88,20 +157,17 @@
                                 <label>Staff Name:</label>
                                 <input type="text" class="form-control" name="user_name" value="{{ $userName }}" placeholder="Enter staff name">
                             </div>
-                            <div class="col-md-2">
-                                <label>&nbsp;</label>
-                                <div>
-                                    <button type="submit" class="btn btn-primary btn-sm mr-2">
-                                        <i class="ki-outline ki-filter-search"></i> Filter
-                                    </button>
-                                    <a href="{{ route('daily-schedules.weekly-report') }}" class="btn btn-secondary btn-sm">
-                                        <i class="ki-outline ki-cross"></i> Clear
-                                    </a>
-                                </div>
-                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end py-6">
+                        <button type="submit" class="btn btn-primary btn-sm mr-3">
+                            <i class="ki-outline ki-filter-search"></i> Filter
+                        </button>
+                        <a href="{{ route('daily-schedules.weekly-report') }}" class="btn btn-secondary btn-sm">
+                            <i class="ki-outline ki-cross"></i> Clear
+                        </a>                
+                    </div>
+                </form>
             </div>
 
             <!-- Report Content -->
@@ -164,9 +230,13 @@
                                 <table class="table table-bordered table-hover schedule-report-table">
                                     <thead class="bg-light-primary">
                                         <tr>
-                                            <th rowspan="2" class="text-center align-middle" style="min-width: 250px;">NAMA</th>
+                                            <th rowspan="2" class="text-center align-middle" style="min-width: 240px !important;max-width: 240px !important">NAMA</th>
                                             @foreach($weekDates as $date)
-                                                <th colspan="2" style="min-width: 240px;">
+                                                @php
+                                                    $isToday = date('Y-m-d') === $date;
+                                                    $dateClass = $isToday ? 'today-column' : 'other-date-column';
+                                                @endphp
+                                                <th colspan="2" class="{{ $dateClass }} text-center" style="min-width: 120px;">
                                                     <div class="font-weight-bold">{{ date('l', strtotime($date)) }}</div>
                                                     <div class="font-size-sm">{{ date('d M', strtotime($date)) }}</div>
                                                 </th>
@@ -174,10 +244,14 @@
                                         </tr>
                                         <tr>
                                             @foreach($weekDates as $date)
-                                                <th class="text-center bg-light-info" style="width: 120px;">
+                                                @php
+                                                    $isToday = date('Y-m-d') === $date;
+                                                    $dateClass = $isToday ? 'today-column' : 'other-date-column';
+                                                @endphp
+                                                <th class="text-center bg-light-info {{ $dateClass }}" style="width: 60px;">
                                                     <small>Shift Name</small>
                                                 </th>
-                                                <th class="text-center bg-light-warning" style="width: 120px;">
+                                                <th class="text-center bg-light-warning {{ $dateClass }}" style="width: 60px;">
                                                     <small>Start-End Shift</small>
                                                 </th>
                                             @endforeach
@@ -186,7 +260,7 @@
                                     <tbody>
                                         @foreach($users as $user)
                                             <tr>
-                                                <td class="align-middle font-weight-bold" style="font-size: 14px; width: 250px;">
+                                                <td class="align-middle font-weight-bold" style="font-size: 14px; width: 200px;">
                                                     {{ $user['u_name'] }}
                                                     <br>
                                                     <small class="text-muted">{{ $user['u_nip'] }}</small>
@@ -198,6 +272,8 @@
                                                         $shiftName = $schedule['sc_shift_name'] ?? '';
                                                         $startTime = $schedule['sc_start_time'] ?? '';
                                                         $endTime = $schedule['sc_end_time'] ?? '';
+                                                        $isToday = date('Y-m-d') === $date;
+                                                        $dateClass = $isToday ? 'today-column' : 'other-date-column';
                                                         
                                                         // Color coding based on shift name (same as monthly report)
                                                         $cellClass = '';
@@ -217,8 +293,6 @@
                                                             // Fallback to old logic for shift codes
                                                             if (in_array($shiftCode, ['L', 'LL', 'LPH'])) {
                                                                 $cellClass = 'bg-light-success'; // Green for leave
-                                                            } elseif (in_array($shiftCode, ['S', 'I'])) {
-                                                                $cellClass = 'bg-light-danger'; // Red for sick/permission
                                                             } elseif ($shiftCode == 'N/A') {
                                                                 $cellClass = 'bg-light-secondary'; // Gray for not set
                                                             } else {
@@ -228,7 +302,7 @@
                                                     @endphp
                                                     
                                                     <!-- Shift Name Column -->
-                                                    <td class="text-center align-middle {{ $cellClass }}" style="font-size: 13px;">
+                                                    <td class="text-center align-middle {{ $cellClass }} {{ $dateClass }}" style="font-size: 13px;">
                                                         @if($schedule)
                                                             <div class="font-weight-bold">{{ $shiftName ?: $shiftCode }}</div>
                                                             @if($shiftName)
@@ -240,11 +314,37 @@
                                                     </td>
                                                     
                                                     <!-- Start Shift Column (Time Range) -->
-                                                    <td class="text-center align-middle {{ $cellClass }}" style="font-size: 13px;">
-                                                        @if($schedule && $startTime && $endTime)
-                                                            <span class="font-weight-bold">{{ date('H:i', strtotime($startTime)) }} - {{ date('H:i', strtotime($endTime)) }}</span>
-                                                        @elseif($schedule && $startTime)
-                                                            <span class="font-weight-bold">{{ date('H:i', strtotime($startTime)) }}</span>
+                                                    <td class="text-center align-middle {{ $cellClass }} {{ $dateClass }}" style="font-size: 13px;">
+                                                        @if($schedule && $shiftName)
+                                                            @php
+                                                                // Check if it's a holiday/leave shift
+                                                                $isHoliday = false;
+                                                                if (strpos(strtolower($shiftName), 'libur') !== false || 
+                                                                     strpos(strtolower($shiftName), 'sakit') !== false || 
+                                                                     strpos(strtolower($shiftName), 'izin') !== false) {
+                                                                    $isHoliday = true;
+                                                                }
+                                                            @endphp
+                                                            
+                                                            @if($isHoliday)
+                                                                <span class="text-muted">-</span>
+                                                            @elseif($startTime && $endTime)
+                                                                <span class="font-weight-bold">{{ date('H:i', strtotime($startTime)) }} - {{ date('H:i', strtotime($endTime)) }}</span>
+                                                            @elseif($startTime)
+                                                                <span class="font-weight-bold">{{ date('H:i', strtotime($startTime)) }}</span>
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        @elseif($schedule && $shiftCode)
+                                                            @if(in_array($shiftCode, ['L', 'LL', 'LPH']))
+                                                                <span class="text-muted">-</span>
+                                                            @elseif($startTime && $endTime)
+                                                                <span class="font-weight-bold">{{ date('H:i', strtotime($startTime)) }} - {{ date('H:i', strtotime($endTime)) }}</span>
+                                                            @elseif($startTime)
+                                                                <span class="font-weight-bold">{{ date('H:i', strtotime($startTime)) }}</span>
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
                                                         @else
                                                             <span class="text-muted">-</span>
                                                         @endif
@@ -337,6 +437,13 @@
 .schedule-report-table {
     font-size: 12px;
     border-collapse: collapse;
+    transition: width 0.3s ease;
+}
+
+/* Table width for NOW filter */
+.schedule-report-table.filter-now {
+    width: 50% !important;
+    margin: 0 auto !important;
 }
 
 .schedule-report-table th,
@@ -409,7 +516,9 @@
     margin-right: 8px;
     border: 1px solid #dee2e6;
 }
-
+.table thead th {
+    min-width: 120px !important;
+}
 
 </style>
 

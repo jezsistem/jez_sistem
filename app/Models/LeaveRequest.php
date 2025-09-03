@@ -41,6 +41,11 @@ class LeaveRequest extends Model
         return $this->belongsTo(User::class, 'lr_approved_by');
     }
 
+    public function attachments()
+    {
+        return $this->hasMany(LeaveRequestAttachment::class);
+    }
+
     // Get leave requests with filters
     public function getLeaveRequestsByFilters($startDate = null, $endDate = null, $userId = null, $status = null, $leaveTypeId = null)
     {

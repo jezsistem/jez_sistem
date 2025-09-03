@@ -230,6 +230,16 @@ class Attendance extends Model
                 return false;
             }
 
+            // PRIORITAS 0: Jangan ubah status LEAVE yang sudah ada
+            if (strpos($attendance->at_status, 'leave_') === 0) {
+                \Log::info('Skipping LEAVE status in model - no changes needed', [
+                    'attendance_id' => $attendance->id,
+                    'current_status' => $attendance->at_status,
+                    'reason' => 'Leave status should not be changed'
+                ]);
+                return true; // Skip processing, return success
+            }
+
             // Check if user has approved leave for this date
             $leaveRequest = DB::table('leave_requests')
                 ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
@@ -260,20 +270,75 @@ class Attendance extends Model
                 
                 // If no time recorded, set status based on schedule
                 if (!$attendance->at_time_in && !$attendance->at_time_out) {
-                    $attendance->at_status = 'absent';
-                    $attendance->at_notes = 'Tidak hadir sesuai jadwal';
+                    // Tidak ada time in dan time out, kemungkinan besar LEAVE
+                    $leaveRequest = DB::table('leave_requests')
+                        ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+                        ->where('leave_requests.user_id', $attendance->user_id)
+                        ->where('leave_requests.lr_status', 'approved')
+                        ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
+                        ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
+                        ->select('leave_types.lt_code', 'leave_types.lt_name')
+                        ->first();
+                    
+                    if ($leaveRequest) {
+                        // Ada leave request yang approved
+                        $attendance->at_status = 'leave_' . $leaveRequest->lt_code;
+                        $attendance->at_notes = 'Cuti: ' . $leaveRequest->lt_name;
+                    } else {
+                        // Tidak ada leave request, set ke absent
+                        $attendance->at_status = 'absent';
+                        $attendance->at_notes = 'Tidak hadir sesuai jadwal';
+                    }
                 } else {
-                    // Check if late based on schedule start time
-                    if ($dailySchedule->ds_start_time && $attendance->at_time_in) {
-                        $scheduleStart = \Carbon\Carbon::parse($dailySchedule->ds_start_time);
-                        $actualStart = \Carbon\Carbon::parse($attendance->at_time_in);
-                        
-                        if ($actualStart->gt($scheduleStart->addMinutes(15))) {
-                            $attendance->at_status = 'late';
-                            $attendance->at_notes = 'Terlambat';
+                    // Check if only one time record (scan once)
+                    if (!$attendance->at_time_in || !$attendance->at_time_out) {
+                        // Scan once case
+                        if ($attendance->at_time_in && $dailySchedule->ds_start_time) {
+                            $scheduleStart = \Carbon\Carbon::parse($dailySchedule->ds_start_time);
+                            $actualStart = \Carbon\Carbon::parse($attendance->at_time_in);
+                            
+                            if ($actualStart->gt($scheduleStart)) {
+                                // Scan once tapi terlambat - PRIORITAS: LATE
+                                $attendance->at_status = 'late';
+                                $lateMinutes = $actualStart->diffInMinutes($scheduleStart);
+                                $attendance->at_notes = "scan once - terlambat {$lateMinutes} menit";
+                            } else {
+                                // Scan once dan tepat waktu - STATUS: SCAN_ONCE
+                                $attendance->at_status = 'scan_once';
+                                $attendance->at_notes = 'scan once - hadir tepat waktu';
+                            }
+                        } elseif ($attendance->at_time_out && $dailySchedule->ds_end_time) {
+                            $scheduleEnd = \Carbon\Carbon::parse($dailySchedule->ds_end_time);
+                            $actualEnd = \Carbon\Carbon::parse($attendance->at_time_out);
+                            
+                            if ($actualEnd->lt($scheduleEnd)) {
+                                // Scan once tapi pulang awal - PRIORITAS: EARLY_LEAVE
+                                $attendance->at_status = 'early_leave';
+                                $earlyMinutes = $scheduleEnd->diffInMinutes($actualEnd);
+                                $attendance->at_notes = "scan once - pulang awal {$earlyMinutes} menit";
+                            } else {
+                                // Scan once dan pulang tepat waktu - STATUS: SCAN_ONCE
+                                $attendance->at_status = 'scan_once';
+                                $attendance->at_notes = 'scan once - pulang tepat waktu';
+                            }
                         } else {
-                            $attendance->at_status = 'present';
-                            $attendance->at_notes = 'Hadir tepat waktu';
+                            // Scan once tanpa schedule yang jelas
+                            $attendance->at_status = 'scan_once';
+                            $attendance->at_notes = 'scan once - incomplete attendance record';
+                        }
+                    } else {
+                        // Both time records exist, check if late based on schedule start time
+                        if ($dailySchedule->ds_start_time && $attendance->at_time_in) {
+                            $scheduleStart = \Carbon\Carbon::parse($dailySchedule->ds_start_time);
+                            $actualStart = \Carbon\Carbon::parse($attendance->at_time_in);
+                            
+                            if ($actualStart->gt($scheduleStart->addMinutes(15))) {
+                                $attendance->at_status = 'late';
+                                $attendance->at_notes = 'Terlambat';
+                            } else {
+                                $attendance->at_status = 'present';
+                                $attendance->at_notes = 'Hadir tepat waktu';
+                            }
                         }
                     }
                 }

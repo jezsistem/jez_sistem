@@ -831,6 +831,7 @@ Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'get
     Route::delete('break-times/{id}', [BreakTimeController::class, 'destroy'])->name('break-times.destroy');
     Route::post('break-times/clock-in', [BreakTimeController::class, 'clockIn'])->name('break-times.clock-in');
     Route::post('break-times/clock-out', [BreakTimeController::class, 'clockOut'])->name('break-times.clock-out');
+    Route::post('break-times/{id}/cancel', [BreakTimeController::class, 'cancelBreakTime'])->name('break-times.cancel');
 Route::post('break-times/cleanup', [BreakTimeController::class, 'cleanupInvalidBreaks'])->name('break-times.cleanup');
 
     // BreakTimeBackupController
@@ -958,6 +959,7 @@ Route::get('test-csrf', function() {
     // Announcement System
     Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::get('announcements/manage', [AnnouncementController::class, 'manage'])->name('announcements.manage');
+    Route::get('announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
     Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
     Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
     Route::get('announcements/{id}/edit', [AnnouncementController::class, 'edit'])->name('announcements.edit');
@@ -968,6 +970,7 @@ Route::get('test-csrf', function() {
     Route::get('announcements/{id}/reactions', [AnnouncementController::class, 'getReactionDetails'])->name('announcements.reaction-details');
     Route::post('announcements/{id}/view', [AnnouncementController::class, 'trackView'])->name('announcements.track-view');
     Route::get('announcements/{id}/viewers', [AnnouncementController::class, 'getViewers'])->name('announcements.viewers');
+Route::delete('announcements/attachment/{id}/remove', [AnnouncementController::class, 'removeAttachment'])->name('announcements.remove-attachment');
 
 
     // Announcement Categories

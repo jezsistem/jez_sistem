@@ -38,8 +38,8 @@
                         <h3 class="card-label">Filters</h3>
                     </div>
                 </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ route('daily-schedules.monthly-report') }}">
+                <form method="GET" action="{{ route('daily-schedules.monthly-report') }}" class="mb-0">
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-2 pr-2">
                                 <label>Month Filter:</label>
@@ -66,6 +66,17 @@
                                 </select>
                             </div>
                             <div class="col-md-2 pr-2">
+                                <label>User Position:</label>
+                                <select class="form-control" name="position_id" id="position_filter">
+                                    <option value="">All Positions</option>
+                                    @foreach($userPositions as $position)
+                                        <option value="{{ $position->id }}" {{ $positionId == $position->id ? 'selected' : '' }}>
+                                            {{ $position->up_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2 pr-2">
                                 <label>Shift:</label>
                                 <select class="form-control" name="shift_id" id="shift_filter">
                                     <option value="">All Shifts</option>
@@ -80,20 +91,18 @@
                                 <label>Staff Name:</label>
                                 <input type="text" class="form-control" name="user_name" value="{{ $userName }}" placeholder="Enter staff name">
                             </div>
-                            <div class="col-md-2 pr-0">
-                                <label>&nbsp;</label>
-                                <div>
-                                    <button type="submit" class="btn btn-primary btn-sm mr-2">
-                                        <i class="ki-outline ki-filter-search"></i> Filter
-                                    </button>
-                                    <a href="{{ route('daily-schedules.monthly-report') }}" class="btn btn-secondary btn-sm">
-                                        <i class="ki-outline ki-cross"></i> Clear
-                                    </a>
-                                </div>
-                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-end py-6">
+                        <button type="submit" class="btn btn-primary btn-sm mr-3">
+                            <i class="ki-outline ki-filter-search"></i> Filter
+                        </button>
+                        <a href="{{ route('daily-schedules.monthly-report') }}" class="btn btn-secondary btn-sm">
+                            <i class="ki-outline ki-cross"></i> Clear
+                        </a>
+                    </div>
+                </form>
+
             </div>
 
             <!-- Report Content -->
@@ -638,11 +647,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // ✅ Add event listeners for division and shift filters
         const divisionFilter = document.getElementById('division_filter');
+        const positionFilter = document.getElementById('position_filter');
         const shiftFilter = document.getElementById('shift_filter');
         
         if (divisionFilter) {
             divisionFilter.addEventListener('change', function() {
                 console.log('Division filter changed to:', this.value);
+                // Auto-submit form to update the page
+                const form = document.querySelector('form[method="GET"]');
+                if (form) {
+                    form.submit();
+                }
+            });
+        }
+        
+        if (positionFilter) {
+            positionFilter.addEventListener('change', function() {
+                console.log('Position filter changed to:', this.value);
                 // Auto-submit form to update the page
                 const form = document.querySelector('form[method="GET"]');
                 if (form) {
@@ -695,26 +716,28 @@ function calculateMonthFromFilter(filter) {
             targetMonth = new Date(today.getFullYear(), today.getMonth(), 1);
             break;
         case 'last_month':
-            // Fix: getMonth() is 0-based, so August (month 7) - 1 = July (month 6)
             targetMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
             break;
         case 'next_month':
-            // Fix: getMonth() is 0-based, so August (month 7) + 1 = September (month 8)
             targetMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
             break;
         default:
             targetMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     }
     
-    console.log('Calculate month from filter:', {
-        filter: filter,
-        today: today.toISOString().slice(0, 7),
-        targetMonth: targetMonth.toISOString().slice(0, 7),
-        todayMonth: today.getMonth(),
-        targetMonthIndex: targetMonth.getMonth()
-    });
+    console.log('Target month:', targetMonth.toLocaleDateString());
+    console.log('Target month name:', targetMonth.toLocaleString('en-US', { month: 'long' }));
+    console.log('Result:', targetMonth.toISOString().slice(0, 7));
+    console.log('========================');
     
-    return targetMonth.toISOString().slice(0, 7); // Format: YYYY-MM
+    // Fix timezone issue: use local date formatting instead of toISOString()
+    const year = targetMonth.getFullYear();
+    const month = String(targetMonth.getMonth() + 1).padStart(2, '0');
+    const result = `${year}-${month}`;
+    
+    console.log('Fixed result (timezone-safe):', result);
+    
+    return result; // Format: YYYY-MM
 }
 
 function detectFilterFromMonth(monthStr) {
@@ -726,14 +749,6 @@ function detectFilterFromMonth(monthStr) {
     const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    
-    console.log('Detect filter from month:', {
-        selectedMonth: monthStr,
-        today: today.toISOString().slice(0, 7),
-        thisMonth: thisMonth.toISOString().slice(0, 7),
-        lastMonth: lastMonth.toISOString().slice(0, 7),
-        nextMonth: nextMonth.toISOString().slice(0, 7)
-    });
     
     // Compare months (ignore day)
     if (selectedDate.getFullYear() === thisMonth.getFullYear() && 

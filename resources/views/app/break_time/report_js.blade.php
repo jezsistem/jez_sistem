@@ -504,6 +504,41 @@
         }
     }
     
+    // Cancel break time function
+    function cancelBreakTime(id) {
+        if (confirm('Apakah Anda yakin ingin membatalkan break time ini? Allowance akan dikembalikan. (Break time yang sudah completed juga bisa dibatalkan)')) {
+            $.ajax({
+                url: "{{ route('break-times.cancel', ':id') }}".replace(':id', id),
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (window.breakTimeTable) {
+                            window.breakTimeTable.draw();
+                        } else {
+                            $('#breakTimeTable').DataTable().draw();
+                        }
+                        // Show success message
+                        $('<div class="alert alert-success alert-dismissible">' +
+                          '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                          response.message + '</div>').insertBefore('#breakTimeTable').delay(3000).fadeOut();
+                    } else {
+                        alert('Gagal membatalkan break time: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Terjadi kesalahan saat membatalkan break time';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    alert(errorMessage);
+                }
+            });
+        }
+    }
+
     // Delete break time function
     function deleteBreakTime(id) {
         if (confirm('Apakah Anda yakin ingin menghapus data break time ini?')) {

@@ -305,7 +305,7 @@
                         <tbody>
                             @foreach($announcements as $announcement)
                             <tr>
-                                <td>
+                                <td style="cursor: pointer;" onclick="window.location.href='{{ route('announcements.show', $announcement->id) }}'" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor=''">
                                     <div class="d-flex align-items-center">
                                         <div class="symbol symbol-40 symbol-light-primary mr-4">
                                             <span class="symbol-label">
@@ -313,7 +313,7 @@
                                             </span>
                                         </div>
                                         <div class="d-flex flex-column">
-                                            <span class="text-dark fw-bold text-hover-primary fs-6">{{ $announcement->title }}</span>
+                                            <span class="text-dark fw-bold fs-6">{{ $announcement->title }}</span>
                                             <span class="text-muted fw-semibold fs-7">{{ Str::limit($announcement->content, 50) }}</span>
                                         </div>
                                     </div>

@@ -15,7 +15,7 @@
                     <div class="d-flex align-items-center">
                         <span class="text-dark fw-bold fs-6 mr-3">{{ $announcement->creator->u_name ?? 'Unknown' }}</span>
                         <span class="text-dark fw-bold fs-6 mr-3" style="color: #6c757d !important;">•</span>
-                        <span class="text-dark fw-bold fs-5 mr-3 compact-title" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $announcement->title }}</span>
+                        <a href="{{ route('announcements.show', $announcement->id) }}" class="text-dark fw-bold fs-5 mr-3 compact-title" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none;">{{ $announcement->title }}</a>
                         @if($announcement->category)
                             <span class="badge badge-pill font-weight-bold mr-2" 
                                   style="background-color: {{ $announcement->category->color }}20; color: {{ $announcement->category->color }}; border: 1px solid {{ $announcement->color }}40; font-size: 0.9rem; padding: 0.3rem 0.6rem;">
@@ -34,13 +34,37 @@
                         title="{{ $announcement->is_pinned ? 'Unpin' : 'Pin' }} announcement">
                     <i class="fas fa-thumbtack" style="color: {{ $announcement->is_pinned ? '#007bff' : '#6c757d' }} !important;"></i>
                 </button>
+                
+                <!-- Edit Menu for Creator -->
+                @if(auth()->id() == $announcement->created_by)
+
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-icon btn-light-secondary" 
+                            type="button" 
+                            data-toggle="dropdown" 
+                            aria-haspopup="true" 
+                            aria-expanded="false"
+                            title="More options">
+                        <i class="fas fa-ellipsis-v" style="color: #6c757d !important;"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" style="min-width: 150px; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);">
+                        <a class="dropdown-item" href="{{ route('announcements.edit', $announcement->id) }}" style="padding: 0.5rem 1rem;">
+                            Edit
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="#" onclick="deleteAnnouncement({{ $announcement->id }})" style="padding: 0.5rem 1rem;">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
         <!--end::Compact Header-->
         
         <!--begin::Content Preview (saat minimize)-->
         <div class="mb-3 compact-content" id="compact-content-{{ $announcement->id }}">
-            <span class="text-dark fw-bold fs-5 mb-3 compact-title-mobile" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $announcement->title }}</span>
+            <a href="{{ route('announcements.show', $announcement->id) }}" class="text-dark fw-bold fs-5 mb-3 compact-title-mobile" id="compact-title-{{ $announcement->id }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-decoration: none;">{{ $announcement->title }}</a>
             <div class="text-gray-600 fs-5 content-preview" id="preview-{{ $announcement->id }}">
                 {{ Str::limit(strip_tags($announcement->content), 100) }}
                 @if(strlen(strip_tags($announcement->content)) > 100)
@@ -52,9 +76,9 @@
         
         <!--begin::Expanded Title (hidden saat minimize)-->
         <div class="mt-4 expanded-title" id="expanded-title-{{ $announcement->id }}" style="display: none;">
-            <h5 class="text-dark fw-bold cursor-pointer fs-4" onclick="toggleAnnouncementContent({{ $announcement->id }})">
+            <a href="{{ route('announcements.show', $announcement->id) }}" class="text-dark fw-bold cursor-pointer fs-4" style="text-decoration: none;">
                 {{ $announcement->title }}
-            </h5>
+            </a>
         </div>
         <!--end::Expanded Title-->
         
@@ -121,7 +145,7 @@
                                     <small class="text-muted">{{ $attachment->file_size_human }}</small>
                                 </div>
                                 <div class="ml-2">
-                                    <button class="btn btn-sm btn-light-primary" onclick="viewAnnouncementAttachment('{{ $attachment->file_path }}', '{{ $attachment->original_name }}', '{{ $attachment->mime_type }}', '{{ $attachment->file_size }}')">
+                                    <button class="btn btn-sm btn-dark" onclick="viewAnnouncementAttachment('{{ $attachment->file_path }}', '{{ $attachment->original_name }}', '{{ $attachment->mime_type }}', '{{ $attachment->file_size }}')">
                                         <i class="ki-outline ki-eye"></i> View/Download
                                     </button>
                                     <!-- <a href="{{ $attachment->file_url }}" class="btn btn-sm btn-light ml-1" target="_blank" download>

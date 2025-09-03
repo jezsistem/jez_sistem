@@ -82,6 +82,81 @@ class DailyScheduleController extends Controller
         return $sidebar;
     }
 
+    /**
+     * Get user positions based on current user's level and position
+     */
+    protected function getUserPositionsForFilter()
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return collect();
+        }
+
+        // Get current user's position info
+        $userPosition = DB::table('user_positions')
+            ->where('id', $currentUser->up_id)
+            ->first();
+
+        if (!$userPosition) {
+            return collect();
+        }
+
+        $query = DB::table('user_positions')
+            ->where('up_is_active', 1)
+            ->orderBy('up_name');
+
+        // Condition 1: If user has up_level = 1 (bukan KOORDINATOR), show ALL level 1 positions
+        if ($userPosition->up_level == 1 && $userPosition->up_code != 'KOORDINATOR') {
+            $query->where('up_level', 1);
+        }
+        // Condition 2: If user has up_level = 2, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 2) {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Condition 3: If user has up_level = 1 with up_code = KOORDINATOR, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 1 && $userPosition->up_code == 'KOORDINATOR') {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Condition 4: If user has up_level = 3, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 3) {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Condition 5: If user has up_level = 4, show level 2, 3, 4 and level 1 with up_code = KOORDINATOR
+        elseif ($userPosition->up_level == 4) {
+            $query->where(function($q) {
+                $q->whereIn('up_level', [2, 3, 4])
+                  ->orWhere(function($subQ) {
+                      $subQ->where('up_level', 1)
+                           ->where('up_code', 'KOORDINATOR');
+                  });
+            });
+        }
+        // Default: show all positions
+        else {
+            // No additional filtering
+        }
+
+        return $query->get();
+    }
+
     public function index(Request $request)
     {
         // Temporarily comment out for testing
@@ -900,6 +975,7 @@ class DailyScheduleController extends Controller
         $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
         $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
         $divisionId = $request->get('division_id');
+        $positionId = $request->get('position_id');
         $shiftId = $request->get('shift_id');
         $userName = $request->get('user_name');
         $dateFilter = $request->get('date_filter', 'this_week');
@@ -970,6 +1046,9 @@ class DailyScheduleController extends Controller
             ->orderBy('ud_name')
             ->get();
             
+        // Get user positions for filter based on current user's level
+        $userPositions = $this->getUserPositionsForFilter();
+            
         // Get shift codes for filter
         $shiftCodes = DB::table('shift_codes')
             ->where('sc_status', 'active')
@@ -1025,6 +1104,9 @@ class DailyScheduleController extends Controller
             }
             if ($shiftId) {
                 $allTodaySchedules->where('daily_schedules.sc_id', $shiftId);
+            }
+            if ($positionId) {
+                $allTodaySchedules->where('users.up_id', $positionId);
             }
             if ($userName) {
                 $allTodaySchedules->where('users.u_name', 'like', '%' . $userName . '%');
@@ -1084,6 +1166,9 @@ class DailyScheduleController extends Controller
                 $scheduleQuery->where('daily_schedules.sc_id', $shiftId);
             }
             
+            if ($positionId) {
+                $scheduleQuery->where('users.up_id', $positionId);
+            }
             if ($userName) {
                 $scheduleQuery->where('users.u_name', 'like', '%' . $userName . '%');
             }
@@ -1145,9 +1230,11 @@ class DailyScheduleController extends Controller
             'startDate', 
             'endDate',
             'divisions', 
+            'userPositions',
             'shiftCodes',
             'data',
             'divisionId',
+            'positionId',
             'shiftId',
             'userName',
             'dateFilter'
@@ -1670,11 +1757,14 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
@@ -1745,9 +1835,13 @@ class DailyScheduleController extends Controller
     public function exportWeeklyReport(Request $request)
     {
         try {
+            // Get parameters from request - EXPORT WEEKLY EXCEL METHOD
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
             $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');  // Position filter ditambahkan
+            $shiftId = $request->get('shift_id');        // Shift filter ditambahkan
+            $userName = $request->get('user_name');      // User name filter ditambahkan
             $dateFilter = $request->get('date_filter', 'this_week');
 
             // If date filter is provided, calculate dates
@@ -1766,18 +1860,39 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
+                    'user_positions.up_name as position_name',  // Position name ditambahkan
                     'shift_codes.sc_code',
                     'shift_codes.sc_shift_name',
                     'shift_codes.sc_start_time',
                     'shift_codes.sc_end_time'
                 ])
-                ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
+                ->join('users', 'users.id', '=', 'daily_schedules.user_id')  // JOIN (bukan leftJoin) untuk hanya user dengan schedule
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-                ->whereBetween('ds_date', [$startDate, $endDate]);
-
+                ->where('users.u_delete', '!=', '1')  // Filter user yang tidak dihapus
+                ->whereNotNull('users.u_nip')  // Hanya user dengan NIP
+                ->whereExists(function($query) use ($startDate, $endDate) {
+                    $query->select(DB::raw(1))
+                          ->from('daily_schedules')
+                          ->whereRaw('daily_schedules.user_id = users.id')
+                          ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate]);
+                }); // Hanya user yang memiliki schedule
+                
             if ($divisionId) {
                 $query->where('users.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  // Position filter ditambahkan
+                $query->where('users.up_id', $positionId);
+            }
+            
+            if ($shiftId) {  // Shift filter ditambahkan
+                $query->where('daily_schedules.sc_id', $shiftId);
+            }
+            
+            if ($userName) {  // User name filter ditambahkan
+                $query->where('users.u_name', 'like', '%' . $userName . '%');
             }
 
             $schedules = $query->get();
@@ -1787,13 +1902,23 @@ class DailyScheduleController extends Controller
                 'first_schedule' => $schedules->first(),
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
-                'end_date' => $endDate
+                'end_date' => $endDate,
+                'division_id' => $divisionId,
+                'position_id' => $positionId,
+                'shift_id' => $shiftId,
+                'user_name' => $userName,
+                'filters_applied' => [
+                    'division' => $divisionId ? 'yes' : 'no',
+                    'position' => $positionId ? 'yes' : 'no',
+                    'shift' => $shiftId ? 'yes' : 'no',
+                    'user_name' => $userName ? 'yes' : 'no'
+                ]
             ]);
 
             // Generate filename
             $filename = 'weekly-schedule-report-' . $startDate . '-' . $endDate . '.xlsx';
             
-            \Log::info('Export Weekly Report - Using Excel Facade', [
+            \Log::info('Export Weekly Report - Using Excel Facade', context: [
                 'filename' => $filename,
                 'schedules_count' => $schedules->count()
             ]);
@@ -1823,9 +1948,13 @@ class DailyScheduleController extends Controller
     public function exportWeeklyReportPDF(Request $request)
     {
         try {
+            // Get parameters from request - EXPORT WEEKLY PDF METHOD
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('monday this week')));
             $endDate = $request->get('end_date', date('Y-m-d', strtotime('sunday this week')));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');  // Position filter ditambahkan
+            $shiftId = $request->get('shift_id');        // Shift filter ditambahkan
+            $userName = $request->get('user_name');      // User name filter ditambahkan
             $dateFilter = $request->get('date_filter', 'this_week');
 
             // If date filter is provided, calculate dates
@@ -1842,16 +1971,43 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
+                ->whereNotNull('users.u_nip') // Hanya user dengan NIP
+                ->whereExists(function($query) use ($startDate, $endDate) {
+                    $query->select(DB::raw(1))
+                          ->from('daily_schedules')
+                          ->whereRaw('daily_schedules.user_id = users.id')
+                          ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate]);
+                }); // Hanya user yang memiliki schedule
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  
+                $users->where('users.up_id', $positionId);
+            }
+            \Log::info('Export Weekly Report PDF : ' . $positionId);
+
+            if ($shiftId) {  
+                $users->whereExists(function($query) use ($shiftId, $startDate, $endDate) {
+                    $query->select(DB::raw(1))
+                          ->from('daily_schedules')
+                          ->whereRaw('daily_schedules.user_id = users.id')
+                          ->where('daily_schedules.sc_id', $shiftId)
+                          ->whereBetween('daily_schedules.ds_date', [$startDate, $endDate]);
+                });
+            }
+            
+            if ($userName) {  // User name filter ditambahkan
+                $users->where('users.u_name', 'like', '%' . $userName . '%');
             }
 
             $users = $users->get();
@@ -1980,12 +2136,16 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
+                ->join('daily_schedules as ds', 'user_id', '=', 'ds.user_id')
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
+                ->whereNotNull('users.u_nip') // ✅ Hanya user dengan NIP
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Only users with schedules in the month
 
             // Apply filters
             if ($divisionId) {
@@ -2222,12 +2382,13 @@ class DailyScheduleController extends Controller
         // Get parameters from request
         $month = $request->get('month', date('Y-m'));
         $divisionId = $request->get('division_id');
+        $positionId = $request->get('position_id');
         $shiftId = $request->get('shift_id');
         $userName = $request->get('user_name');
         $monthFilter = $request->get('month_filter', 'this_month');
         
-        // Process month filter if provided
-        if ($monthFilter && $monthFilter !== 'custom') {
+        // Process month filter if provided AND month is not explicitly set
+        if ($monthFilter && $monthFilter !== 'custom' && !$request->has('month')) {
             $month = $this->getMonthFromFilter($monthFilter);
         }
         
@@ -2240,6 +2401,9 @@ class DailyScheduleController extends Controller
             ->where('ud_status', 'active')
             ->orderBy('ud_name')
             ->get();
+            
+        // Get user positions for filter based on current user's level
+        $userPositions = $this->getUserPositionsForFilter();
             
         // Get shift codes for filter
         $shiftCodes = DB::table('shift_codes')
@@ -2265,6 +2429,9 @@ class DailyScheduleController extends Controller
             $usersQuery->where('u.ud_id', $divisionId);
         }
         
+        if ($positionId) {
+            $usersQuery->where('u.up_id', $positionId);
+        }
         if ($userName) {
             $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
         }
@@ -2305,6 +2472,11 @@ class DailyScheduleController extends Controller
             $schedulesQuery->where('u.ud_id', $divisionId);
         }
         
+        // Apply position filter to schedules query
+        if ($positionId) {
+            $schedulesQuery->where('u.up_id', $positionId);
+        }
+        
         // Apply shift filter to schedules query
         if ($shiftId) {
             $schedulesQuery->where('ds.sc_id', $shiftId);
@@ -2320,10 +2492,11 @@ class DailyScheduleController extends Controller
             ->orderBy('ds.ds_date')
             ->get();
         
-        // Get all users that match the filters (even if they don't have schedules)
-        $allUsersQuery = DB::table('users as u')
+        // Get only users that have schedules in the month (filtered by existing filters)
+        $usersWithSchedulesQuery = DB::table('users as u')
             ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
             ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+            ->join('daily_schedules as ds', 'u.id', '=', 'ds.user_id')
             ->select([
                 'u.id as user_id',
                 'u.u_nip',
@@ -2332,18 +2505,27 @@ class DailyScheduleController extends Controller
                 'up.up_name as position_name'
             ])
             ->where('u.u_delete', '!=', '1')
-            ->whereNotNull('u.u_nip'); // Only users with NIP
+            ->whereNotNull('u.u_nip') // Only users with NIP
+            ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Only users with schedules in the month
         
         // Apply the same filters to users query
         if ($divisionId) {
-            $allUsersQuery->where('u.ud_id', $divisionId);
+            $usersWithSchedulesQuery->where('u.ud_id', $divisionId);
+        }
+        
+        if ($positionId) {
+            $usersWithSchedulesQuery->where('u.up_id', $positionId);
         }
         
         if ($userName) {
-            $allUsersQuery->where('u.u_name', 'like', '%' . $userName . '%');
+            $usersWithSchedulesQuery->where('u.u_name', 'like', '%' . $userName . '%');
         }
         
-        $allUsers = $allUsersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+        if ($shiftId) {
+            $usersWithSchedulesQuery->where('ds.sc_id', $shiftId);
+        }
+        
+        $allUsers = $usersWithSchedulesQuery->distinct()->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
         
         // Group schedules by division and user (same logic as weekly report)
         $groupedSchedules = [];
@@ -2401,9 +2583,11 @@ class DailyScheduleController extends Controller
             'endDate',
             'month',
             'divisions', 
+            'userPositions',
             'shiftCodes',
             'data',
             'divisionId',
+            'positionId',
             'shiftId',
             'userName',
             'users'
@@ -2482,15 +2666,16 @@ class DailyScheduleController extends Controller
         try {
             $this->validateAccess();
             
-            // Get parameters from request
+            // Get parameters from request - EXPORT EXCEL METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');  // Position filter ditambahkan
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $monthFilter = $request->get('month_filter', 'this_month');
             
-            // Process month filter if provided
-            if ($monthFilter && $monthFilter !== 'custom') {
+            // Process month filter if provided AND month is not explicitly set
+            if ($monthFilter && $monthFilter !== 'custom' && !$request->has('month')) {
                 $month = $this->getMonthFromFilter($monthFilter);
             }
             
@@ -2498,10 +2683,11 @@ class DailyScheduleController extends Controller
             $startDate = date('Y-m-01', strtotime($month . '-01'));
             $endDate = date('Y-m-t', strtotime($month . '-01'));
             
-            // Get users based on filters
+            // Get only users that have schedules in the month (filtered by existing filters) - EXPORT EXCEL
             $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->join('daily_schedules as ds', 'u.id', '=', 'ds.user_id')  // JOIN dengan daily_schedules
                 ->select([
                     'u.id as user_id',
                     'u.u_nip',
@@ -2510,17 +2696,22 @@ class DailyScheduleController extends Controller
                     'up.up_name as position_name'
                 ])
                 ->where('u.u_delete', '!=', '1')
-                ->whereNotNull('u.u_nip'); // Only users with NIP
+                ->whereNotNull('u.u_nip') // Only users with NIP
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Hanya user dengan schedule di bulan tersebut
             
             if ($divisionId) {
                 $usersQuery->where('u.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  // Position filter ditambahkan
+                $usersQuery->where('u.up_id', $positionId);
             }
             
             if ($userName) {
                 $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
             }
             
-            $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+            $users = $usersQuery->distinct()->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
             
             // Get schedules for the month
             $schedulesQuery = DB::table('daily_schedules as ds')
@@ -2567,36 +2758,28 @@ class DailyScheduleController extends Controller
             
             // Group users by division
             $usersByDivision = $users->groupBy('ud_name');
-            
+
             foreach ($usersByDivision as $divisionName => $divisionUsers) {
                 // Add division header row (same format as weekly input - only division name and staff count)
                 $exportData[] = [
-                    'Division' => $divisionName,
-                    'Staff' => count($divisionUsers),
-                    'NIP' => '',
-                    'Nama' => '',
-                    'Divisi' => '',
-                    'User Type' => ''
+                    "Division: {$divisionName}    " . count($divisionUsers) . " Staff"
                 ];
                 
                 // Add date header row (same format as weekly input)
-                $dateHeader = ['Division', 'Staff', 'NIP', 'Nama', 'Divisi', 'User Type'];
+                $dateHeaders = ['NIP', 'Nama', 'Divisi'];
                 foreach ($calendarDates as $dateInfo) {
-                    $dateHeader[] = date('d/m', strtotime($dateInfo['date'])) . ' (' . date('D', strtotime($dateInfo['date'])) . ')';
+                    $dateHeaders[] = date('d/m', strtotime($dateInfo['date'])) . ' (' . date('D', strtotime($dateInfo['date'])) . ')';
                 }
-                $exportData[] = $dateHeader;
+                $exportData[] = $dateHeaders;
                 
                 // Add user data rows (keep original monthly report format)
                 foreach ($divisionUsers as $user) {
                     $row = [
-                        'Division' => '',
-                        'Staff' => '',
-                        'NIP' => $user->u_nip,
-                        'Nama' => $user->u_name,
-                        'Divisi' => $user->ud_name,
-                        'User Type' => 'FULL TIME' // Default value
+                        $user->u_nip,
+                        $user->u_name,
+                        $user->ud_name
                     ];
-                    
+
                     // Add schedule data for each day of the month (keep original format)
                     foreach ($calendarDates as $dateInfo) {
                         $date = $dateInfo['date'];
@@ -2666,15 +2849,16 @@ class DailyScheduleController extends Controller
         try {
             $this->validateAccess();
             
-            // Get parameters from request
+            // Get parameters from request - EXPORT PDF METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $monthFilter = $request->get('month_filter', 'this_month');
             
-            // Process month filter if provided
-            if ($monthFilter && $monthFilter !== 'custom') {
+            // Process month filter if provided AND month is not explicitly set
+            if ($monthFilter && $monthFilter !== 'custom' && !$request->has('month')) {
                 $month = $this->getMonthFromFilter($monthFilter);
             }
             
@@ -2682,10 +2866,11 @@ class DailyScheduleController extends Controller
             $startDate = date('Y-m-01', strtotime($month . '-01'));
             $endDate = date('Y-m-t', strtotime($month . '-01'));
             
-            // Get users based on filters
+            // Get only users that have schedules in the month (filtered by existing filters) - EXPORT PDF
             $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
+                ->join('daily_schedules as ds', 'u.id', '=', 'ds.user_id')  // JOIN dengan daily_schedules
                 ->select([
                     'u.id as user_id',
                     'u.u_nip',
@@ -2694,17 +2879,22 @@ class DailyScheduleController extends Controller
                     'up.up_name as position_name'
                 ])
                 ->where('u.u_delete', '!=', '1')
-                ->whereNotNull('u.u_nip'); // Only users with NIP
+                ->whereNotNull('u.u_nip') // Only users with NIP
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); 
             
             if ($divisionId) {
                 $usersQuery->where('u.ud_id', $divisionId);
+            }
+            
+            if ($positionId) {  // Position filter ditambahkan
+                $usersQuery->where('u.up_id', $positionId);
             }
             
             if ($userName) {
                 $usersQuery->where('u.u_name', 'like', '%' . $userName . '%');
             }
             
-            $users = $usersQuery->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
+            $users = $usersQuery->distinct()->orderBy('ud.ud_name')->orderBy('u.u_name')->get();
             
             // Get schedules for the month
             $schedulesQuery = DB::table('daily_schedules as ds')
@@ -2790,6 +2980,77 @@ class DailyScheduleController extends Controller
                 .no-schedule { color: #999; font-style: italic; }
                 .other-month { background-color: #f8f9fa; opacity: 0.7; }
                 .other-month .no-schedule { color: #ccc; }
+                
+                /* Shift Code Colors - Following View Colors */
+                .shift-S { background-color: #f8e8e6; color: #333; } /* Sakit - Light Red */
+                .shift-NA { background-color: #f8e8e6; color: #333; } /* N/A - Light Red */
+                .shift-LPH { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+                .shift-LL { background-color: #f8e8e6; color: #333; } /* Libur Cuti - Light Red */
+                .shift-L { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+                .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
+                
+                /* Shift 1 & Shift 0 */
+                .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
+                .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+                .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+                .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+                
+                /* Shift 2 */
+                .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+                
+                /* Full & Full Shift 0 */
+                .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
+                .shift-FM2 { background-color: #FFF9ED; color: #333; } /* Full Morning 2 - Light Yellow */
+                .shift-FM1 { background-color: #FFF9ED; color: #333; } /* Full Morning 1 - Light Yellow */
+                .shift-PFM { background-color: #FFF9ED; color: #333; } /* Part Full Morning - Light Yellow */
+                .shift-PF0 { background-color: #FFF9ED; color: #333; } /* Part Full 0 - Light Yellow */
+                .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
+                
+                /* Part Shifts */
+                .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
+                .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
+                .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
+                .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
+                .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+                
+                /* Color Legend Styles */
+                .color-legend { 
+                    background-color: #f8f9fa; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    border: 1px solid #e1e5e9; 
+                    margin-bottom: 20px;
+                }
+                .color-legend h6 { 
+                    margin: 0 0 15px 0; 
+                    color: #6c757d; 
+                    font-size: 14px; 
+                }
+                .legend-items { 
+                    display: flex; 
+                    flex-wrap: wrap; 
+                    gap: 15px; 
+                }
+                .legend-item { 
+                    display: flex; 
+                    align-items: center; 
+                    background-color: white; 
+                    padding: 8px 12px; 
+                    border-radius: 6px; 
+                    border: 1px solid #e1e5e9; 
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+                }
+                .legend-color { 
+                    width: 20px; 
+                    height: 20px; 
+                    border-radius: 4px; 
+                    margin-right: 8px; 
+                    border: 1px solid #dee2e6; 
+                }
+                .legend-text { 
+                    font-size: 12px; 
+                    color: #333; 
+                }
             </style>
         </head>
         <body>
@@ -2797,15 +3058,30 @@ class DailyScheduleController extends Controller
                 <h1>Monthly Schedule Report</h1>
                 <p>Period: ' . date('d F Y', strtotime($startDate)) . ' - ' . date('d F Y', strtotime($endDate)) . '</p>
                 <p>Generated on: ' . date('d F Y H:i:s') . '</p>
-            </div>';
+            </div>
+            
+            ';
         
         // Group users by division
         $usersByDivision = $users->groupBy('ud_name');
         
         foreach ($usersByDivision as $divisionName => $divisionUsers) {
-            $html .= '<div class="division-header">Division: ' . $divisionName . ' (' . count($divisionUsers) . ' staff)</div>';
-            
+            // Filter users who have schedules in the month
+            $usersWithSchedules = [];
             foreach ($divisionUsers as $user) {
+                $userSchedules = $groupedSchedules[$user->user_id] ?? [];
+                if (count($userSchedules) > 0) {
+                    $usersWithSchedules[] = $user;
+                }
+            }
+            
+            if (count($usersWithSchedules) == 0) {
+                continue; // Skip division if no users have schedules
+            }
+            
+            $html .= '<div class="division-header">Division: ' . $divisionName . ' (' . count($usersWithSchedules) . ' staff)</div>';
+            
+            foreach ($usersWithSchedules as $user) {
                 $html .= '<table>
                     <tr class="user-header">
                         <td colspan="7">' . $user->u_name . ' (' . $user->u_nip . ') - ' . $user->position_name . '</td>
@@ -2828,8 +3104,14 @@ class DailyScheduleController extends Controller
                     $html .= '<tr>';
                     foreach ($week as $dateInfo) {
                         $cellClass = '';
-                        if ($dateInfo['is_weekend']) $cellClass = 'weekend';
                         if (!$dateInfo['is_current_month']) $cellClass .= ' other-month';
+                        
+                        // Add shift color class to the entire cell
+                        if ($dateInfo['schedule']) {
+                            $shiftCode = $dateInfo['schedule']['sc_code'];
+                            $shiftClass = 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode);
+                            $cellClass .= ' ' . $shiftClass;
+                        }
                         
                         $html .= '<td class="' . $cellClass . '">';
                         $html .= '<div style="font-weight: bold;' . (!$dateInfo['is_current_month'] ? ' color: #999;' : '') . '">' . $dateInfo['day'] . '</div>';
@@ -2923,6 +3205,7 @@ class DailyScheduleController extends Controller
                 'request_data' => $request->all(),
                 'filters_applied' => [
                     'division_id' => $request->get('division_id'),
+                    'position_id' => $request->get('position_id'),
                     'shift_id' => $request->get('shift_id'),
                     'user_name' => $request->get('user_name'),
                     'date_filter' => $request->get('date_filter', 'this_week'),
@@ -2932,6 +3215,7 @@ class DailyScheduleController extends Controller
             ]);
 
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -3008,16 +3292,27 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
+                ->join('daily_schedules as ds', 'users.id', '=', 'ds.user_id')
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip')
+                ->whereBetween('ds.ds_date', [$startDate, $endDate]); // Hanya user dengan schedule di bulan tersebut
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
                 \Log::info('Division filter applied', ['division_id' => $divisionId]);
+            }
+
+
+            if ($positionId) {
+                $users->where('users.up_id', $positionId);
+                \Log::info('Position filter applied', ['position_id' => $positionId]);
             }
 
             if ($userName) {
@@ -3032,6 +3327,7 @@ class DailyScheduleController extends Controller
                 'query_success' => true
             ]);
 
+            
             // Get schedules for the date range
             $schedules = DB::table('daily_schedules')
                 ->select([
@@ -3102,7 +3398,6 @@ class DailyScheduleController extends Controller
                 }
             }
             
-            // Add users without schedules
             foreach ($users as $user) {
                 $divisionName = $user->ud_name ?: 'No Division';
                 $userId = $user->user_id;
@@ -3122,88 +3417,59 @@ class DailyScheduleController extends Controller
                 }
             }
 
-            // Generate week dates (Monday to Sunday)
-            $weekDates = [];
-            for ($i = 0; $i < 7; $i++) {
-                $weekDates[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
-            }
-            
-            // Debug: Log week dates and date range
-            \Log::info('Weekly Export - Date Range Debug', [
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'week_dates' => $weekDates,
-                'date_filter' => $dateFilter
-            ]);
-            
-            // Prepare export data in table format (same as view)
-            $exportData = [];
-            
+                        $weekDates = [];
+                        for ($i = 0; $i < 7; $i++) {
+                            $weekDates[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
+                        }
+
+                        $exportData = [];
+
             foreach ($groupedSchedules as $divisionName => $divisionUsers) {
-                // Add division header
+                // === Baris judul division (hanya 1 kolom, nanti bisa di-merge di AfterSheet) ===
                 $exportData[] = [
-                    'Division' => $divisionName,
-                    'Staff' => count($divisionUsers),
-                    'NIP' => '',
-                    'Nama' => '',
-                    'Divisi' => ''
+                    "Division: {$divisionName}    " . count($divisionUsers) . " Staff"
                 ];
-                
-                // Add date headers for each day of the week
-                $dateHeaders = ['Division', 'Staff', 'NIP', 'Nama', 'Divisi'];
+
+                // Header tabel
+                $dateHeaders = ['NIP', 'Nama', 'Divisi'];
                 foreach ($weekDates as $date) {
                     $dateHeaders[] = date('d/m', strtotime($date)) . ' (' . date('l', strtotime($date)) . ')';
                 }
                 $exportData[] = $dateHeaders;
-                
+
+                // Data user
                 foreach ($divisionUsers as $userId => $userData) {
                     $row = [
-                        'Division' => '',
-                        'Staff' => '',
-                        'NIP' => $userData['u_nip'],
-                        'Nama' => $userData['u_name'],
-                        'Divisi' => $userData['ud_name']
+                        $userData['u_nip'],
+                        $userData['u_name'],
+                        $userData['ud_name']
                     ];
-                    
-                    // Add schedule data for each day
+
                     foreach ($weekDates as $date) {
                         $schedule = $userData['schedules'][$date] ?? null;
-                        
                         if ($schedule) {
-                            $row[] = $schedule['sc_code'] . ' - ' . $schedule['sc_shift_name'] . 
-                                   ' (' . date('H:i', strtotime($schedule['sc_start_time'])) . '-' . date('H:i', strtotime($schedule['sc_end_time'])) . ')';
+                            $row[] = $schedule['sc_code'] . ' - ' . $schedule['sc_shift_name'] .
+                                    ' (' . date('H:i', strtotime($schedule['sc_start_time'])) .
+                                    '-' . date('H:i', strtotime($schedule['sc_end_time'])) . ')';
                         } else {
                             $row[] = 'No Schedule';
                         }
                     }
-                    
+
                     $exportData[] = $row;
                 }
-                
-                // Add empty row between divisions
-                $emptyRow = array_fill(0, count($dateHeaders), '');
-                $exportData[] = $emptyRow;
+
+                // Baris kosong antar division
+                $exportData[] = [];
             }
 
-            \Log::info('Public Export Weekly Report - Data Prepared', [
-                'users_count' => $users->count(),
-                'schedules_count' => $schedules->count(),
-                'export_data_count' => count($exportData),
-                'date_filter' => $dateFilter,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'filters_summary' => [
-                    'division_filtered' => $divisionId ? 'Yes' : 'No',
-                    'shift_filtered' => $shiftId ? 'Yes' : 'No',
-                    'user_name_filtered' => $userName ? 'Yes' : 'No',
-                    'date_filtered' => $dateFilter
-                ]
-            ]);
+
+
 
             // Generate filename
             $filename = 'weekly-schedule-report-' . $startDate . '-' . $endDate . '.xlsx';
             
-            \Log::info('Public Export Weekly Report - Using Excel Facade', [
+            \Log::info('Public Export Weekly Reportsssss - Using Excel Facade', [
                 'filename' => $filename,
                 'export_data_count' => count($exportData)
             ]);
@@ -3259,6 +3525,7 @@ class DailyScheduleController extends Controller
                 'request_data' => $request->all(),
                 'filters_applied' => [
                     'division_id' => $request->get('division_id'),
+                    'position_id' => $request->get('position_id'),
                     'shift_id' => $request->get('shift_id'),
                     'user_name' => $request->get('user_name'),
                     'date_filter' => $request->get('date_filter', 'this_week'),
@@ -3267,6 +3534,7 @@ class DailyScheduleController extends Controller
             ]);
 
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -3336,24 +3604,30 @@ class DailyScheduleController extends Controller
                 'end_date' => $endDate
             ]);
 
-            // Build query to get users with their schedules (only users with NIP)
             $users = DB::table('users')
                 ->select([
                     'users.id as user_id',
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
                 ->where('users.u_delete', '!=', '1')
-                ->whereNotNull('users.u_nip'); // ✅ Hanya user dengan NIP
+                ->whereNotNull('users.u_nip'); // Hanya user dengan NIP
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
                 \Log::info('Division filter applied for PDF', ['division_id' => $divisionId]);
+            }
+
+            if ($positionId) {
+                $users->where('users.up_id', $positionId);
+                \Log::info('Position filter applied for PDF', ['position_id' => $positionId]);
             }
 
             if ($userName) {
@@ -3507,6 +3781,80 @@ class DailyScheduleController extends Controller
             th { background-color: #f5f5f5; font-weight: bold; }
             .user-info { background-color: #f9f9f9; }
             .shift-cell { min-width: 60px; max-width: 80px; }
+            
+            /* Shift Code Colors - Following View Colors */
+            .shift-S { background-color: #f8e8e6; color: #333; } /* Sakit - Light Red */
+            .shift-NA { background-color: #f8e8e6; color: #333; } /* N/A - Light Red */
+            .shift-LPH { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-LL { background-color: #f8e8e6; color: #333; } /* Libur Cuti - Light Red */
+            .shift-L { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
+            
+            /* Shift 1 & Shift 0 */
+            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            
+            /* Shift 2 */
+            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            
+            /* Full & Full Shift 0 */
+            .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
+            .shift-FM2 { background-color: #FFF9ED; color: #333; } /* Full Morning 2 - Light Yellow */
+            .shift-FM1 { background-color: #FFF9ED; color: #333; } /* Full Morning 1 - Light Yellow */
+            .shift-PFM { background-color: #FFF9ED; color: #333; } /* Part Full Morning - Light Yellow */
+            .shift-PF0 { background-color: #FFF9ED; color: #333; } /* Part Full 0 - Light Yellow */
+            .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
+            
+            /* Part Shifts */
+            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            
+            /* Default shift cell styling */
+            .shift-cell { font-weight: bold; border-radius: 3px; }
+            
+            /* Color Legend Styles */
+            .color-legend { 
+                background-color: #f8f9fa; 
+                padding: 15px; 
+                border-radius: 8px; 
+                border: 1px solid #e1e5e9; 
+                margin-bottom: 20px;
+            }
+            .color-legend h6 { 
+                margin: 0 0 15px 0; 
+                color: #6c757d; 
+                font-size: 14px; 
+            }
+            .legend-items { 
+                display: flex; 
+                flex-wrap: wrap; 
+                gap: 15px; 
+            }
+            .legend-item { 
+                display: flex; 
+                align-items: center; 
+                background-color: white; 
+                padding: 8px 12px; 
+                border-radius: 6px; 
+                border: 1px solid #e1e5e9; 
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            }
+            .legend-color { 
+                width: 20px; 
+                height: 20px; 
+                border-radius: 4px; 
+                margin-right: 8px; 
+                border: 1px solid #dee2e6; 
+            }
+            .legend-text { 
+                font-size: 12px; 
+                color: #333; 
+            }
         </style></head><body>";
         
         $html .= "<h1>Weekly Schedule Report</h1>";
@@ -3530,8 +3878,14 @@ class DailyScheduleController extends Controller
         }
         $html .= "</tr>";
         
-        // Data rows
+        // Data rows - Filter users who have schedules
         foreach ($users as $user) {
+            // Check if user has any schedules in the date range
+            $userSchedules = $schedules->where('user_id', $user->user_id);
+            if ($userSchedules->count() == 0) {
+                continue; // Skip users without schedules
+            }
+            
             $html .= "<tr>";
             $html .= "<td class='user-info'>" . ($user->u_nip ?? '-') . "</td>";
             $html .= "<td class='user-info'>" . ($user->u_name ?? '-') . "</td>";
@@ -3556,7 +3910,9 @@ class DailyScheduleController extends Controller
                 })->first();
                 
                 if ($dailySchedule && $dailySchedule->sc_code) {
-                    $html .= "<td class='shift-cell'>" . $dailySchedule->sc_code . "</td>";
+                    $shiftCode = $dailySchedule->sc_code;
+                    $shiftClass = 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode);
+                    $html .= "<td class='shift-cell {$shiftClass}'>" . $shiftCode . "</td>";
                 } else {
                     $html .= "<td class='shift-cell'>-</td>";
                 }
@@ -3586,9 +3942,81 @@ class DailyScheduleController extends Controller
             th { background-color: #f5f5f5; font-weight: bold; }
             .user-info { background-color: #f9f9f9; }
             .shift-cell { min-width: 60px; max-width: 80px; }
-            .shift-name { background-color: #e3f2fd; }
-            .start-shift { background-color: #fff3e0; }
             .nama-column { width: 120px; }
+            
+            /* Shift Code Colors - Following View Colors */
+            .shift-S { background-color: #f8e8e6; color: #333; } /* Sakit - Light Red */
+            .shift-NA { background-color: #f8e8e6; color: #333; } /* N/A - Light Red */
+            .shift-LPH { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-LL { background-color: #f8e8e6; color: #333; } /* Libur Cuti - Light Red */
+            .shift-L { background-color: #f8e8e6; color: #333; } /* Libur - Light Red */
+            .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
+            
+            /* Shift 1 & Shift 0 */
+            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            
+            /* Shift 2 */
+            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            
+            /* Full & Full Shift 0 */
+            .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
+            .shift-FM2 { background-color: #FFF9ED; color: #333; } /* Full Morning 2 - Light Yellow */
+            .shift-FM1 { background-color: #FFF9ED; color: #333; } /* Full Morning 1 - Light Yellow */
+            .shift-PFM { background-color: #FFF9ED; color: #333; } /* Part Full Morning - Light Yellow */
+            .shift-PF0 { background-color: #FFF9ED; color: #333; } /* Part Full 0 - Light Yellow */
+            .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
+            
+            /* Part Shifts */
+            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            
+            /* Default shift cell styling */
+            .shift-cell { font-weight: bold; border-radius: 3px; }
+            
+            /* Color Legend Styles */
+            .color-legend { 
+                background-color: #f8f9fa; 
+                padding: 15px; 
+                border-radius: 8px; 
+                border: 1px solid #e1e5e9; 
+                margin-bottom: 20px;
+            }
+            .color-legend h6 { 
+                margin: 0 0 15px 0; 
+                color: #6c757d; 
+                font-size: 14px; 
+            }
+            .legend-items { 
+                display: flex; 
+                flex-wrap: wrap; 
+                gap: 15px; 
+            }
+            .legend-item { 
+                display: flex; 
+                align-items: center; 
+                background-color: white; 
+                padding: 8px 12px; 
+                border-radius: 6px; 
+                border: 1px solid #e1e5e9; 
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            }
+            .legend-color { 
+                width: 20px; 
+                height: 20px; 
+                border-radius: 4px; 
+                margin-right: 8px; 
+                border: 1px solid #dee2e6; 
+            }
+            .legend-text { 
+                font-size: 12px; 
+                color: #333; 
+            }
         </style></head><body>";
         
         $html .= "<h1>Weekly Schedule Report</h1>";
@@ -3615,14 +4043,20 @@ class DailyScheduleController extends Controller
         $html .= "<tr>";
         $currentDate = \Carbon\Carbon::parse($startDate);
         while ($currentDate->lte(\Carbon\Carbon::parse($endDate))) {
-            $html .= "<th class='shift-name'><small style='font-size: 8px;'>Shift Name</small></th>";
-            $html .= "<th class='start-shift'><small style='font-size: 8px;'>Start Shift</small></th>";
+            $html .= "<th><small style='font-size: 8px;'>Shift Name</small></th>";
+            $html .= "<th><small style='font-size: 8px;'>Start Shift</small></th>";
             $currentDate->addDay();
         }
         $html .= "</tr>";
         
-        // Data rows
+        // Data rows - Filter users who have schedules
         foreach ($users as $user) {
+            // Check if user has any schedules in the date range
+            $userSchedules = $schedules->where('user_id', $user->user_id);
+            if ($userSchedules->count() == 0) {
+                continue; // Skip users without schedules
+            }
+            
             $html .= "<tr>";
             
             // NAMA column with NIP below (more compact)
@@ -3647,25 +4081,41 @@ class DailyScheduleController extends Controller
                     $shiftCode = $dailySchedule->sc_code ?? '';
                     
                     if ($shiftName) {
-                        $html .= "<td class='shift-cell shift-name'>" . $shiftName . " (" . $shiftCode . ")" . "</td>";
-                } else {
-                        $html .= "<td class='shift-cell shift-name'>" . ($shiftCode ?: '-') . "</td>";
+                        $shiftClass = 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode);
+                        $html .= "<td class='shift-cell shift-name {$shiftClass}'>" . $shiftName . " (" . $shiftCode . ")" . "</td>";
+                    } else {
+                        $shiftClass = $shiftCode ? 'shift-' . str_replace(['/', ' '], ['', ''], $shiftCode) : '';
+                        $html .= "<td class='shift-cell shift-name {$shiftClass}'>" . ($shiftCode ?: '-') . "</td>";
                     }
                     
-                    // Start Shift Column
+                    // Start Shift Column - Same color as Shift Name, and handle Libur case
                     $startTime = $dailySchedule->sc_start_time ?? '';
                     $endTime = $dailySchedule->sc_end_time ?? '';
                     
-                    if ($startTime && $endTime) {
-                        $html .= "<td class='shift-cell start-shift'>" . date('H:i', strtotime($startTime)) . " - " . date('H:i', strtotime($endTime)) . "</td>";
+                    // Check if it's a holiday/leave shift
+                    $isHoliday = false;
+                    if ($shiftName && (strpos(strtolower($shiftName), 'libur') !== false || 
+                                     strpos(strtolower($shiftName), 'sakit') !== false || 
+                                     strpos(strtolower($shiftName), 'izin') !== false)) {
+                        $isHoliday = true;
+                    }
+                    
+                    if ($isHoliday) {
+                        // For holiday shifts, show "-" with same color as shift name
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>-</td>";
+                    } elseif ($startTime && $endTime) {
+                        // For regular shifts, show time with same color as shift name
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>" . date('H:i', strtotime($startTime)) . " - " . date('H:i', strtotime($endTime)) . "</td>";
                     } elseif ($startTime) {
-                        $html .= "<td class='shift-cell start-shift'>" . date('H:i', strtotime($startTime)) . "</td>";
+                        // For shifts with only start time
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>" . date('H:i', strtotime($startTime)) . "</td>";
                     } else {
-                        $html .= "<td class='shift-cell start-shift'>-</td>";
+                        // For shifts without time
+                        $html .= "<td class='shift-cell start-shift {$shiftClass}'>-</td>";
                     }
                 } else {
-                    $html .= "<td class='shift-cell shift-name'>-</td>";
-                    $html .= "<td class='shift-cell start-shift'>-</td>";
+                    $html .= "<td class='shift-cell'>-</td>";
+                    $html .= "<td class='shift-cell'>-</td>";
                 }
                 
                 $currentDate->addDay();
@@ -3815,6 +4265,7 @@ class DailyScheduleController extends Controller
             ]);
 
             $divisionId = $request->get('division_id');
+            $positionId = $request->get('position_id');
             $shiftId = $request->get('shift_id');
             $userName = $request->get('user_name');
             $dateFilter = $request->get('date_filter', 'this_week');
@@ -3893,16 +4344,25 @@ class DailyScheduleController extends Controller
                     'users.u_nip',
                     'users.u_name',
                     'user_divisions.ud_name',
-                    'user_types.ut_name'
+                    'user_types.ut_name',
+                    'user_positions.up_name as position_name'  // Position name ditambahkan
                 ])
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('user_types', 'user_types.id', '=', 'users.ut_id')
-                ->where('users.u_delete', '!=', '1');
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')  // JOIN dengan user_positions
+                ->where('users.u_delete', '!=', '1')
+                ->whereNotNull('users.u_nip');
+                
 
             // Apply filters
             if ($divisionId) {
                 $users->where('users.ud_id', $divisionId);
                 \Log::info('Division filter applied for PDF report', ['division_id' => $divisionId]);
+            }
+
+            if ($positionId) {
+                $users->where('users.up_id', $positionId);
+                \Log::info('Position filter applied for PDF report', ['position_id' => $positionId]);
             }
 
             if ($userName) {
