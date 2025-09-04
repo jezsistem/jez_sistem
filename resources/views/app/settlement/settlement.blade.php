@@ -59,17 +59,20 @@
                                         <label class="form-label">Status</label>
                                         <select class="form-control border border-secondary" id="status_trx">
                                             <option value="">-- Pilih Status --</option>
-                                            <option value="DONE">DONE</option>
-                                            <option value="REFUND">REFUND</option>
+                                            @forelse ($data['statusses'] as $status)
+                                                <option value="{{ $status }}">{{ $status }}</option>
+                                            @empty
+                                                
+                                            @endforelse
                                         </select>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12 mb-4">
-                                        <button type="button" class="btn btn-primary mr-2">
+                                        <button type="button" class="btn btn-primary mr-2" id="filter_btn">
                                             <i class="fas fa-filter mr-2"></i>Filter
                                         </button>
-                                        <button type="button" class="btn btn-secondary mr-2">
+                                        <button type="button" class="btn btn-secondary mr-2" id="reset_btn">
                                             <i class="fas fa-undo mr-2"></i>Reset
                                         </button>
                                         <div class="btn-group">
@@ -91,11 +94,11 @@
                                 <div class="d-flex justify-content-between">
                                     <div class="">
                                         <h3>Total Net Sales</h3>
-                                        <h1 class="text-success">Rp. <span>0</span></h1>
+                                        <h1 class="text-success">Rp. <span id="total_netsales">0</span></h1>
                                     </div>
                                     <div class="">
-                                        <p>Selected for settlement: <span>0</span> transaction</p>
-                                        <p class="mb-2"><strong>Selected Net Sales:</strong> <span class="text-success font-weight-bold">Rp</span> <span class="text-success font-weight-bold">0</span</p>
+                                        <p>Selected for settlement: <span id="selected">0</span> transaction</p>
+                                        <p class="mb-2"><strong>Selected Net Sales:</strong> <span class="text-success font-weight-bold">Rp</span> <span class="text-success font-weight-bold" id="selected_netsales">0</span</p>
                                     </div>
                                     <div class="h-100 d-flex align-items-center">
                                         <button class="btn btn-primary px-6" id="settlement_btn"><i class="fas fa-check mr-2"></i>Settlement</button>

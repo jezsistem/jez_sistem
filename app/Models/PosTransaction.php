@@ -78,4 +78,8 @@ class PosTransaction extends Model
             }
         }
     }
+
+    public static function statusList(){
+        return PosTransaction::query()->select('pos_status')->groupBy('pos_status')->orderBy('pos_status','asc')->pluck('pos_status')->toArray();
+    }
 }
