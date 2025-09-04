@@ -99,11 +99,6 @@ class InvoiceEditorController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        if ($user_data->g_name != 'administrator') {
-            if ($this->checkAccess() != 1) {
-                dd("Anda tidak memiliki akses ke fitur ini");
-            }
-        }
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
@@ -630,12 +625,7 @@ class InvoiceEditorController extends Controller
             return datatables()->of(DB::table('invoice_editors')
                 ->select("invoice_editors.id", "pos_invoice", "u_name", "activity", "note", "invoice_editors.created_at", "invoice_editors.updated_at")
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'invoice_editors.pt_id')
-                ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id')
-                ->where(function ($w) use ($user_data) {
-                    if ($user_data->g_name != 'administrator') {
-                        $w->where('invoice_editors.u_id', '=', Auth::user()->id);
-                    }
-                }))
+                ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id'))
                 ->editColumn('created_at', function ($d) {
                     return date('d/m/Y H:i:s', strtotime($d->created_at));
                 })
@@ -980,18 +970,7 @@ class InvoiceEditorController extends Controller
         $check = DB::table('pos_transactions')
             ->select('id')
             ->where('pos_invoice', '=', $pos_invoice)
-            ->where('pos_status', '!=', 'CANCEL')
-            ->where(function ($w) {
-                $user = new User;
-                $select = ['g_name'];
-                $where = [
-                    'users.id' => Auth::user()->id
-                ];
-                $user_data = $user->checkJoinData($select, $where)->first();
-                if ($user_data->g_name != 'administrator') {
-                    $w->whereRaw('ts_pos_transactions.created_at  >= now() - INTERVAL 30 DAY');
-                }
-            })->orderBy('id', 'desc')->first();
+            ->where('pos_status', '!=', 'CANCEL')->orderBy('id', 'desc')->first();
         if (!empty($check)) {
             $is_edited = DB::table('invoice_editors')->where([
                 'u_id' => Auth::user()->id,

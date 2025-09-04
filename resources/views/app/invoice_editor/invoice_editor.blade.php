@@ -22,36 +22,37 @@
             <!--begin::Container-->
             <div class="container">
                 <div class="row">
-                    @if ($data['user']->g_name == 'administrator')
-                        <div class="col-lg-12 col-xxl-12">
-                            <!--begin::Card-->
-                            <div class="card card-custom gutter-b">
-                                <div class="card-header flex-wrap py-3">
-                                    <div class="card-toolbar">
-                                        <!--begin::Button-->
-                                        <a href="#" class="btn btn-dark font-weight-bolder" id="add_btn">
-                                <span class="svg-icon svg-icon-md">
-                                    <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
-                                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-                                         width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                            <rect x="0" y="0" width="24" height="24"/>
-                                            <circle fill="#000000" cx="9" cy="15" r="6"/>
-                                            <path d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z"
-                                                  fill="#000000" opacity="0.3"/>
-                                        </g>
-                                    </svg>
-                                    <!--end::Svg Icon-->
-                                </span>Data Baru</a>
-                                        <!--end::Button-->
-                                    </div>
+                    <div class="col-lg-12 col-xxl-12">
+                        <!--begin::Card-->
+                        <div class="card card-custom gutter-b">
+                            <div class="card-header flex-wrap py-3">
+                                <div class="card-toolbar">
+                                    <!--begin::Button-->
+                                    <a href="#" class="btn btn-dark font-weight-bolder" id="add_btn">
+                                        <span class="svg-icon svg-icon-md">
+                                            <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px"
+                                                viewBox="0 0 24 24" version="1.1">
+                                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                    <rect x="0" y="0" width="24" height="24" />
+                                                    <circle fill="#000000" cx="9" cy="15" r="6" />
+                                                    <path
+                                                        d="M8.8012943,7.00241953 C9.83837775,5.20768121 11.7781543,4 14,4 C17.3137085,4 20,6.6862915 20,10 C20,12.2218457 18.7923188,14.1616223 16.9975805,15.1987057 C16.9991904,15.1326658 17,15.0664274 17,15 C17,10.581722 13.418278,7 9,7 C8.93357256,7 8.86733422,7.00080962 8.8012943,7.00241953 Z"
+                                                        fill="#000000" opacity="0.3" />
+                                                </g>
+                                            </svg>
+                                            <!--end::Svg Icon-->
+                                        </span>Data Baru</a>
+                                    <!--end::Button-->
                                 </div>
-                                <div class="card-body table-responsive">
-                                    <!--begin: Datatable-->
-                                    <input type="search" class="form-control  col-6" id="data_search"
-                                           placeholder="Cari store / penanggung jawab"/><br/>
-                                    <table class="table table-hover table-checkable" id="PermissionDatatb">
-                                        <thead class="bg-light text-dark">
+                            </div>
+                            <div class="card-body table-responsive">
+                                <!--begin: Datatable-->
+                                <input type="search" class="form-control  col-6" id="data_search"
+                                    placeholder="Cari store / penanggung jawab" /><br />
+                                <table class="table table-hover table-checkable" id="PermissionDatatb">
+                                    <thead class="bg-light text-dark">
                                         <tr>
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">Store</th>
@@ -59,24 +60,23 @@
                                             <th class="text-dark">Penanggung Jawab</th>
                                             <th class="text-dark"></th>
                                         </tr>
-                                        </thead>
-                                        <tbody>
+                                    </thead>
+                                    <tbody>
 
-                                        </tbody>
-                                    </table>
-                                    <!--end: Datatable-->
-                                </div>
+                                    </tbody>
+                                </table>
+                                <!--end: Datatable-->
                             </div>
-                            <!--end::Card-->
                         </div>
-                    @endif
+                        <!--end::Card-->
+                    </div>
                     <div class="col-lg-12 col-xxl-12">
                         <div class="card card-custom gutter-b">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-xxl-8 col-xl-8">
                                         <input type="text" placeholder="Input nomor invoice INVxxx" id="pos_invoice"
-                                               class="bg-light-success form-control"/>
+                                            class="bg-light-success form-control" />
                                     </div>
                                     <div class="col-xxl-4 col-xl-4">
                                         <a class="btn btn-primary col-12" id="exec_btn">Tampilkan</a>
@@ -84,7 +84,8 @@
                                     <div class="col-xxl-8 col-xl-8 mt-4">
                                         <div class="row">
                                             <div class="col-6">
-                                                <select name="reason" id="reason" class="bg-light-success form-control d-none editor_panel">
+                                                <select name="reason" id="reason"
+                                                    class="bg-light-success form-control d-none editor_panel">
                                                     <option value="" disabled selected>Select an option</option>
                                                     <option value="RETUR">RETUR</option>
                                                     <option value="CANCEL">CANCEL</option>
@@ -95,8 +96,9 @@
                                             </div>
 
                                             <div class="col-6">
-                                                <input type="text" placeholder="Catatan Tambahan (Optional)" id="note"
-                                                       class="bg-light-success form-control d-none editor_panel"/>
+                                                <input type="text" placeholder="Catatan Tambahan (Optional)"
+                                                    id="note"
+                                                    class="bg-light-success form-control d-none editor_panel" />
                                             </div>
                                         </div>
 
@@ -115,24 +117,24 @@
                                 <h6>Data Invoice</h6>
                                 <table class="table table-hover table-checkable" id="Invoicetb">
                                     <thead class="bg-light text-dark">
-                                    <tr>
-                                        <th class="text-dark">No</th>
-                                        <th class="text-dark">Invoice</th>
-                                        <th class="text-dark">Kasir</th>
-                                        <th class="text-dark">Divisi</th>
-                                        <th class="text-dark">SubDivisi</th>
-                                        <th class="text-dark">Metode 1</th>
-                                        <th class="text-dark">Bayar 1</th>
-                                        <th class="text-dark">Metode 2</th>
-                                        <th class="text-dark">Bayar 2</th>
-                                        <th class="text-dark">Admin</th>
-                                        <th class="text-dark">Total<br/>
-                                            <span style='white-space:nowrap;'>(-admin)</span>
-                                        </th>
-                                        <th class="text-dark">Status</th>
-                                        <th class="text-dark">Tgl<br/>(Thn-Bln-Tgl Jam-Mnt-Dtk)</th>
-                                        <th class="text-dark">Tindakan</th>
-                                    </tr>
+                                        <tr>
+                                            <th class="text-dark">No</th>
+                                            <th class="text-dark">Invoice</th>
+                                            <th class="text-dark">Kasir</th>
+                                            <th class="text-dark">Divisi</th>
+                                            <th class="text-dark">SubDivisi</th>
+                                            <th class="text-dark">Metode 1</th>
+                                            <th class="text-dark">Bayar 1</th>
+                                            <th class="text-dark">Metode 2</th>
+                                            <th class="text-dark">Bayar 2</th>
+                                            <th class="text-dark">Admin</th>
+                                            <th class="text-dark">Total<br />
+                                                <span style='white-space:nowrap;'>(-admin)</span>
+                                            </th>
+                                            <th class="text-dark">Status</th>
+                                            <th class="text-dark">Tgl<br />(Thn-Bln-Tgl Jam-Mnt-Dtk)</th>
+                                            <th class="text-dark">Tindakan</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
 
@@ -150,15 +152,15 @@
                                 <h6>Detail Invoice</h6>
                                 <table class="table table-hover table-checkable" id="InvoiceDetailtb">
                                     <thead class="bg-light text-dark">
-                                    <tr>
-                                        <th class="text-dark">No</th>
-                                        <th class="text-dark">Artikel</th>
-                                        <th class="text-dark">Qty</th>
-                                        <th class="text-dark">Harga</th>
-                                        <th class="text-dark">Nameset</th>
-                                        <th class="text-dark">Total</th>
-                                        <th class="text-dark">Tindakan</th>
-                                    </tr>
+                                        <tr>
+                                            <th class="text-dark">No</th>
+                                            <th class="text-dark">Artikel</th>
+                                            <th class="text-dark">Qty</th>
+                                            <th class="text-dark">Harga</th>
+                                            <th class="text-dark">Nameset</th>
+                                            <th class="text-dark">Total</th>
+                                            <th class="text-dark">Tindakan</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
 
@@ -176,13 +178,13 @@
                                 <h6>Detail Tracking</h6>
                                 <table class="table table-hover table-checkable" id="Trackingtb">
                                     <thead class="bg-light text-dark">
-                                    <tr>
-                                        <th class="text-dark">No</th>
-                                        <th class="text-dark">Lokasi</th>
-                                        <th class="text-dark">Artikel</th>
-                                        <th class="text-dark">Qty</th>
-                                        <th class="text-dark">Status</th>
-                                    </tr>
+                                        <tr>
+                                            <th class="text-dark">No</th>
+                                            <th class="text-dark">Lokasi</th>
+                                            <th class="text-dark">Artikel</th>
+                                            <th class="text-dark">Qty</th>
+                                            <th class="text-dark">Status</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
 
@@ -193,16 +195,15 @@
                         </div>
                         <!--end::Card-->
                     </div>
-                    @if ($data['user']->g_name == 'administrator')
-                        <div class="col-lg-12 col-xxl-12">
-                            <!--begin::Card-->
-                            <div class="card card-custom gutter-b">
-                                <div class="card-body table-responsive">
-                                    <h6>History Edit</h6>
-                                    <input type="search" class="form-control  col-6" id="history_search"
-                                           placeholder="Cari invoice / user"/><br/>
-                                    <table class="table table-hover table-checkable" id="Historytb">
-                                        <thead class="bg-light text-dark">
+                    <div class="col-lg-12 col-xxl-12">
+                        <!--begin::Card-->
+                        <div class="card card-custom gutter-b">
+                            <div class="card-body table-responsive">
+                                <h6>History Edit</h6>
+                                <input type="search" class="form-control  col-6" id="history_search"
+                                    placeholder="Cari invoice / user" /><br />
+                                <table class="table table-hover table-checkable" id="Historytb">
+                                    <thead class="bg-light text-dark">
                                         <tr>
                                             <th class="text-dark">No</th>
                                             <th class="text-dark">Invoice</th>
@@ -212,17 +213,16 @@
                                             <th class="text-dark">Tgl Edit</th>
                                             <th class="text-dark">Tgl Update</th>
                                         </tr>
-                                        </thead>
-                                        <tbody>
+                                    </thead>
+                                    <tbody>
 
-                                        </tbody>
-                                    </table>
-                                    <!--end: Datatable-->
-                                </div>
+                                    </tbody>
+                                </table>
+                                <!--end: Datatable-->
                             </div>
-                            <!--end::Card-->
                         </div>
-                    @endif
+                        <!--end::Card-->
+                    </div>
                 </div>
             </div>
             <!--end::Container-->

@@ -2,7 +2,7 @@
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
@@ -10,21 +10,17 @@
             var u_secret_code = $(this).val();
             $.ajaxSetup({
                 headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             $.ajax({
                 type: "POST",
-                data: {
-                    _u_secret_code: u_secret_code
-                },
+                data: {_u_secret_code:u_secret_code},
                 dataType: 'json',
-                url: "{{ url('check_exists_secret_code') }}",
+                url: "{{ url('check_exists_secret_code')}}",
                 success: function(r) {
                     if (r.status == '200') {
-                        swal('Kode',
-                            'Kode sudah ada disistem, silahkan ganti dengan yang lain',
-                            'warning');
+                        swal('Kode', 'Kode sudah ada disistem, silahkan ganti dengan yang lain', 'warning');
                         $('#u_secret_code').val('');
                         return false;
                     }
@@ -38,7 +34,7 @@
             width: "100%",
             dropdownParent: $('#st_id_parent')
         });
-        $('#st_id').on('select2:open', function(e) {
+        $('#st_id').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
@@ -50,78 +46,42 @@
             serverSide: true,
             responsive: false,
             dom: 'Brt<"text-right"ip>',
-            buttons: [{
-                "extend": 'excelHtml5',
-                "text": 'Excel',
-                "className": 'btn btn-primary btn-xs'
-            }],
+            buttons: [
+                { "extend": 'excelHtml5', "text":'Excel',"className": 'btn btn-primary btn-xs' }
+            ],
             ajax: {
-                url: "{{ url('um_datatables') }}",
-                data: function(d) {
+                url : "{{ url('um_datatables') }}",
+                data : function (d) {
                     d.search = $('#user_search').val();
                 }
             },
-            columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'uid',
-                    searchable: false
-                },
-                {
-                    data: 'u_name',
-                    name: 'u_name'
-                },
-                {
-                    data: 'g_name',
-                    name: 'g_name'
-                },
-                {
-                    data: 'stt_name',
-                    name: 'stt_name'
-                },
-                {
-                    data: 'st_name',
-                    name: 'st_name'
-                },
-                {
-                    data: 'u_nip',
-                    name: 'u_nip'
-                },
-                {
-                    data: 'u_ktp',
-                    name: 'u_ktp'
-                },
-                {
-                    data: 'u_secret_code',
-                    name: 'u_secret_code'
-                },
-                {
-                    data: 'u_phone',
-                    name: 'u_phone'
-                },
-                {
-                    data: 'u_email',
-                    name: 'u_email'
-                },
-                {
-                    data: 'u_address',
-                    name: 'u_address'
-                },
-            ],
-            columnDefs: [{
+            columns: [
+            { data: 'DT_RowIndex', name: 'uid', searchable: false},
+            { data: 'u_name', name: 'u_name' },
+            { data: 'g_name', name: 'g_name' },
+            { data: 'stt_name', name: 'stt_name' },
+            { data: 'st_name', name: 'st_name' },
+            { data: 'u_nip', name: 'u_nip' },
+            { data: 'u_ktp', name: 'u_ktp' },
+            { data: 'u_secret_code', name: 'u_secret_code' },
+            { data: 'u_phone', name: 'u_phone' },
+            { data: 'u_email', name: 'u_email' },
+            { data: 'u_address', name: 'u_address' },
+            ], 
+            columnDefs: [
+            {
                 "targets": 0,
                 "className": "text-center",
                 "width": "0%"
             }],
-            order: [
-                [0, 'desc']
-            ],
+            order: [[0, 'desc']],
         });
 
         $('#user_search').on('keyup', function() {
             user_table.draw();
         });
 
-        $('#Usertb tbody').on('click', 'tr', function() {
+        $('#Usertb tbody').on('click', 'tr', function () {
             var uid = user_table.row(this).data().uid;
             var st_id = user_table.row(this).data().st_id;
             var u_name = user_table.row(this).data().u_name;
@@ -164,11 +124,11 @@
             $("#save_user_btn").attr("disabled", true);
             var formData = new FormData(this);
             $.ajax({
-                type: 'POST',
-                url: "{{ url('um_save') }}",
+                type:'POST',
+                url: "{{ url('um_save')}}",
                 data: formData,
-                dataType: 'json',
-                cache: false,
+				dataType: 'json',
+                cache:false,
                 contentType: false,
                 processData: false,
                 success: function(data) {
@@ -177,22 +137,20 @@
                     if (data.status == '200') {
                         $("#UserModal").modal('hide');
                         jQuery('#st_id').val('').trigger('change');
-                        toastr.success("Data berhasil disimpan", "Success");
+                        swal('Berhasil', 'Data berhasil disimpan', 'success');
                         user_table.ajax.reload();
                     } else if (data.status == '400') {
                         $("#UserModal").modal('hide');
-                        toastr.warning("Data tidak tersimpan", "Failed");
+                        swal('Gagal', 'Data tidak tersimpan', 'warning');
                     }
                 },
-                error: function(data) {
-                    const errorMessage = data.responseText ||
-                        "Terjadi kesalahan saat memproses permintaan";
-                    toastr.error(errorMessage, "Error");
+                error: function(data){
+                    swal('Error', data, 'error');
                 }
             });
         });
 
-        $('#delete_user_btn').on('click', function() {
+        $('#delete_user_btn').on('click', function(){
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini ?",
@@ -206,23 +164,21 @@
                 if (isConfirm) {
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
                     $.ajax({
                         type: "POST",
-                        data: {
-                            _id: $('#_id').val()
-                        },
+                        data: {_id:$('#_id').val()},
                         dataType: 'json',
-                        url: "{{ url('um_delete') }}",
+                        url: "{{ url('um_delete')}}",
                         success: function(r) {
-                            if (r.status == '200') {
-                                toastr.success("Data berhasil dihapus", "Success");
+                            if (r.status == '200'){
+                                swal("Berhasil", "Data berhasil dihapus", "success");
                                 $('#UserModal').modal('hide');
                                 user_table.ajax.reload();
                             } else {
-                                toastr.warning("Data gagal dihapus", "Failed");
+                                swal('Gagal', 'Gagal hapus data', 'error');
                             }
                         }
                     });
