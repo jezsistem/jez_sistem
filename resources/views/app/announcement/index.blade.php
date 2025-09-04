@@ -1413,7 +1413,6 @@
 
             // Show view details modal
             window.showViewDetails = function(announcementId) {
-                console.log("announcementId clicked:", announcementId);
                 // Show loading state
                 document.getElementById('viewDetailsContent').innerHTML =
                     '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
