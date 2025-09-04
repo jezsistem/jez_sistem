@@ -144,7 +144,7 @@
                             
                             <!-- Content -->
                             <div class="text-gray-600 fs-5 mb-6 mt-6">
-                                {!! $announcement->content !!}
+                                {!! nl2br(e($announcement->content)) !!}
                             </div>
                             
                             <!-- Attachments -->
