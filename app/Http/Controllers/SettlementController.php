@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
+use App\Models\PosTransactionDetail;
+use App\Models\ProductStock;
 use App\Models\Store;
 use App\Models\User;
 use App\Models\UserActivity;
@@ -11,6 +13,7 @@ use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Expr\PostDec;
 
 class SettlementController extends Controller
 {
@@ -66,7 +69,7 @@ class SettlementController extends Controller
     public function index()
     {
 
-        
+
         $user = new User();
         $select = ['*'];
         $where = [
@@ -166,45 +169,148 @@ class SettlementController extends Controller
             ->make(true);
     }
 
-    public function getDetailSettlement(){
-        $trasaction_date = null;
-        $receipt_number = null;
-        $order_number = null;
-        $store_name = null;
-        $trx_status = null;
-        $payment_status = null;
-        $outstanding_balance = null;
-        $payment_method_1 = null;
-        $sub_payment_method_1 = null;
-        $payment_amount_1 = null;
-        $payment_method_2 = null;
-        $sub_payment_method_2 = null;
-        $payment_amount_2 = null;
+    public function getDetailSettlement($id)
+    {
+        DB::beginTransaction();
 
+        try {
+            $transaction_items = PosTransactionDetail::where('pt_id', $id)->where('pos_td_item_cogs', 0)->get();
+            foreach ($transaction_items as $transaction_item) {
+                if ($transaction_item->pos_td_item_cogs == 0) {
+                    $item_cogs = ProductStock::query()->where('id', $transaction_item->pst_id)->pluck('ps_purchase_price')->first();
 
-        // Financial Summary
-        $down_payment = null;
-        $gross_sales = null;
-        $total_discount = null;
-        $net_sales = null;
-        $total_payment = null;
-        $cogs = null;
-        $seller_voucher = null;
-        $total_admin_fee = null;
-        $outstanding_balance = null;
-        $total_dana_cair = null;
-        $gross_margin = null;
-        $margin_percentage = null;
+                    $update_data = [
+                        'pos_td_item_cogs' => $item_cogs ?? 0,
+                    ];
 
-        $result = [
+                    $item_update = PosTransactionDetail::where('id', $transaction_item->id)->update($update_data);
+                    if (!$item_update) {
+                        throw new \Exception('Failed to update item COGS for transaction item ID: ' . $transaction_item->id);
+                    }
+                }
+            }
 
-        ];
+            $transaction = PosTransaction::query()
+                ->select('pos_transactions.created_at as transaction_date', 'pos_invoice as receipt_number', 'pos_order_number as order_number', 'stores.st_name as store_name', 'pos_status as trx_status', 'pos_real_price', 'pos_payment', 'pm_main.pm_name as payment_method_main', 'pm_partial.pm_name as payment_method_partial', 'pos_payment_partial', 'pos_transactions.sub_payment', DB::raw('SUM(pos_td_qty * ps_price_tag) as gross_sales'), 'pos_transactions.pos_total_discount as total_discount',DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),DB::raw('(Select SUM(discount_seller) from ts_online_transactions join ts_online_transaction_details on ts_online_transactions.id = to_id where ts_online_transactions.order_number=ts_pos_transactions.pos_order_number) AS total_seller_discount'))
+                ->leftJoin('stores', 'stores.id', '=', 'st_id')
+                ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
+                ->leftJoin('payment_methods as pm_partial', 'pm_partial.id', '=', 'pm_id_partial')
+                ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_invoice')
+                ->where('pos_transactions.id', $id)
+                ->groupBy('pos_transactions.id','online_transactions.id')
+                ->first();
+            
+            $items = PosTransactionDetail::query()
+                ->select('products.article_id','products.p_name', 'ps_barcode', 'pos_td_qty','ps_price_tag',DB::raw('CASE WHEN ts_pos_transaction_details.pos_td_nameset_price>0 THEN \'YES\' ELSE \'NO\' END as is_nameset'), 'pos_td_discount_number as discount', 'pos_td_discount_price as price_after_discount')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
+                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                ->where('pt_id', $id)
+                ->get()
+                ->toArray();
+
+            $transaction_date = $transaction->transaction_date ? \Carbon\Carbon::parse($transaction->transaction_date)->format('d F Y, H:i') : '-';
+            $receipt_number = $transaction->receipt_number ?? '-';
+            $order_number = $transaction->order_number ?? '-';
+            $store_name = $transaction->store_name ?? '-';
+            $trx_status = $transaction->trx_status ?? '-';
+            $outstanding_balance = 0;
+            if ($transaction->trx_status == 'DP') {
+                $payment_status = 'Partial Payment';
+                $outstanding_balance = $transaction->pos_real_price - $transaction->pos_payment;
+            } elseif ($transaction->trx_status == 'REFUND') {
+                $payment_status = 'Refunded';
+            } elseif ($transaction->trx_status == 'DONE') {
+                $payment_status = 'Full Payment';
+            } else {
+                $payment_status = 'Unknown';
+            }
+
+            $payment_method_1 = $transaction->payment_method_main ?? 'UNKNOWN';
+
+            if ($transaction->sub_payment == 1) {
+                $sub_payment_method_1 = 'CASH';
+            } elseif ($transaction->sub_payment == 2) {
+                $sub_payment_method_1 = 'COD';
+            } elseif ($transaction->sub_payment == 3) {
+                $sub_payment_method_1 = 'ON US';
+            } elseif ($transaction->sub_payment == 4) {
+                $sub_payment_method_1 = 'OFF US';
+            } else {
+                $sub_payment_method_1 = '-';
+            }
+
+            $payment_amount_1 = $transaction->pos_payment ?? 0;
+            $payment_method_2 = $transaction->payment_method_partial ?? '-';
+            $sub_payment_method_2 = '-';
+            $payment_amount_2 = $transaction->pos_payment_partial ?? 0;
+
+            // Financial Summary
+            if ($transaction->trx_status == 'DP') {
+                $down_payment = $transaction->pos_payment ?? 0;
+            } else {
+                $down_payment = 0;
+            }
+            $gross_sales = $transaction->gross_sales ?? 0;
+            $total_discount = $transaction->total_discount ?? 0;
+
+            $net_sales = $transaction->pos_real_price;
+            $total_payment = null;
+            $cogs = $transaction->total_cogs ?? 0;
+            $seller_voucher = $transaction->total_seller_discount ?? 0;
+            $total_admin_fee = null;
+            $total_dana_cair = null;
+            $gross_margin = $gross_sales - $cogs;
+            $margin_percentage = $gross_sales != 0 ? round(($gross_margin / $gross_sales) * 100, 2) : 0;
+
+            if ($store_name && str_contains(strtoupper($store_name), 'ONLINE') && substr(trim((string) $receipt_number), 0, 3) !== 'INV') {
+                $print_receipt_url = url('/') . '/print_online_nota/' . $receipt_number;
+            } else {
+                $print_receipt_url = url('/') . '/print_offline_invoice/' . $receipt_number;
+            }
+
+            $result = [
+                'transaction_date' => $transaction_date,
+                'receipt_number' => $receipt_number,
+                'order_number' => $order_number,
+                'store_name' => $store_name,
+                'trx_status' => $trx_status,
+                'payment_status' => $payment_status,
+                'outstanding_balance' => $outstanding_balance,
+                'payment_method_1' => $payment_method_1,
+                'sub_payment_method_1' => $sub_payment_method_1,
+                'payment_amount_1' => $payment_amount_1,
+                'payment_method_2' => $payment_method_2,
+                'sub_payment_method_2' => $sub_payment_method_2,
+                'payment_amount_2' => $payment_amount_2,
+                'down_payment' => $down_payment,
+                'gross_sales' => $gross_sales,
+                'total_discount' => $total_discount,
+                'net_sales' => $net_sales,
+                'total_payment' => $total_payment,
+                'cogs' => $cogs,
+                'seller_voucher' => $seller_voucher,
+                'total_admin_fee' => $total_admin_fee,
+                'total_dana_cair' => $total_dana_cair,
+                'gross_margin' => $gross_margin,
+                'margin_percentage' => $margin_percentage . '%',
+                'print_receipt_url' => $print_receipt_url,
+                'items'=>$items
+            ];
+
+            DB::commit();
+            return response()->json($result);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function getNetsalesPerPaymentMethod(Request $request)
     {
-        $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date');
+        $start_date = $request->input('start_date') . ' 00:00:00';
+        $end_date = $request->input('end_date') . ' 23:59:59';
         $st_id = $request->input('st_id') ?? 0;
         $pm_id = $request->input('pm_id') ?? 0;
         $status_trx = $request->input('status_trx') ?? '';
@@ -230,7 +336,13 @@ class SettlementController extends Controller
                     });
             })
             ->where('payment_methods.st_id', '=', $st_id)
-            ->where('payment_methods.pm_name', '!=', 'CASH')
+            ->where(function ($query) {
+                $query->where('payment_methods.pm_name', '!=', 'CASH')
+                    ->orWhere(function ($q) {
+                        $q->where('payment_methods.pm_name', 'CASH')
+                            ->whereNotNull('pos_payment_partial');
+                    });
+            })
             ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
             })
@@ -258,7 +370,13 @@ class SettlementController extends Controller
                     });
             })
             ->where('payment_methods.st_id', '=', $st_id)
-            ->where('payment_methods.pm_name', '!=', 'CASH')
+            ->where(function ($query) {
+                $query->where('payment_methods.pm_name', '!=', 'CASH')
+                    ->orWhere(function ($q) {
+                        $q->where('payment_methods.pm_name', 'CASH')
+                            ->whereNotNull('pos_payment_partial');
+                    });
+            })
             ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
             })
@@ -306,6 +424,7 @@ class SettlementController extends Controller
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = FALSE THEN COALESCE(pos_real_price, 0) ELSE 0 END) AS unsettled_payment')
             ])
             ->join('online_transactions', 'pos_invoice', '=', 'order_number')
+            ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id')
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
@@ -315,6 +434,9 @@ class SettlementController extends Controller
             })
             ->when($pm_id == 'DEPOSIT TIKTOK', function ($query) {
                 return $query->where('online_transactions.platform_name', 'tiktok');
+            })
+            ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
+                return $query->where('pm_name',$pm_id); // Return no results when pm_id is not DEPOSIT SHOPEE or DEPOSIT TIKTOK
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
@@ -361,16 +483,20 @@ class SettlementController extends Controller
         return response()->json(['total_netsales' => $totalNetsales]);
     }
 
-    public function bulkUpdateStatus(Request $request) {
+    public function bulkUpdateStatus(Request $request)
+    {
         $settled_transaction_id = $request->checked_ids;
 
         foreach ($settled_transaction_id as $key => $value) {
-            PosTransaction::query()->where('id',$value)->update(['is_settle' => 1]);
+            PosTransaction::query()->where('id', $value)->update(['is_settle' => 1]);
         }
     }
 
     private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx)
     {
+        $start_date = $start_date . ' 00:00:00';
+        $end_date = $end_date . ' 23:59:59';
+        
         $main = DB::table('pos_transactions')
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
@@ -397,8 +523,13 @@ class SettlementController extends Controller
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
             })
-            ->where('payment_methods.pm_name', '!=', 'CASH')
-            ->whereNull('pos_payment_partial')
+            ->where(function ($query) {
+                $query->where('payment_methods.pm_name', '!=', 'CASH')
+                    ->orWhere(function ($q) {
+                        $q->where('payment_methods.pm_name', 'CASH')
+                            ->whereNotNull('pos_payment_partial');
+                    });
+            })
             ->whereNotExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('online_transactions')
@@ -408,9 +539,11 @@ class SettlementController extends Controller
                 'pos_transactions.id',
             ])
             ->get();
+        
 
         $online = DB::table('pos_transactions')
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
+            ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
             ->join('online_transactions', 'online_transactions.order_number', '=', 'pos_invoice')
             ->select([
@@ -434,6 +567,9 @@ class SettlementController extends Controller
             })
             ->when($pm_id == 'DEPOSIT TIKTOK', function ($query) {
                 return $query->where('online_transactions.platform_name', 'tiktok');
+            })
+            ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
+                return $query->where('pm_name',$pm_id); // Return no results when pm_id is not DEPOSIT SHOPEE or DEPOSIT TIKTOK
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
@@ -469,7 +605,13 @@ class SettlementController extends Controller
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
             })
-            ->where('payment_methods.pm_name', '!=', 'CASH')
+            ->where(function ($query) {
+                $query->where('payment_methods.pm_name', '!=', 'CASH')
+                    ->orWhere(function ($q) {
+                        $q->where('payment_methods.pm_name', 'CASH')
+                            ->whereNotNull('pos_payment_partial');
+                    });
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])

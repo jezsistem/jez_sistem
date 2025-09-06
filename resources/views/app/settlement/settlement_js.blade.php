@@ -200,8 +200,99 @@
         });
 
         $('#SettlementTable tbody').on('click', 'tr', function() {
-            jQuery.noConflict();
-            $('#SettlementDetailModal').modal('show');
+            var data = settlement_table.row(this).data();
+            var id = data.id;
+            
+            $.ajax({
+            type: "GET",
+            url: "{{ url('settlement_detail') }}/" + id,
+            success: function(response) {
+                // Handle the response here
+                // You can display the data in a modal, update a section of the page, etc.
+                console.log(response);
+                jQuery.noConflict();
+                $('#SettlementDetailModal').modal('show');
+                $('#transaction_date').text(response.transaction_date);
+                $('#store_name').text(response.store_name);
+                $('#receipt_number').text(response.receipt_number);
+                // Set transaction status with conditional styling
+                var trxStatus = response.trx_status;
+                var trxStatusElement = $('#trx_status');
+                trxStatusElement.text(trxStatus);
+
+                // Remove existing classes
+                trxStatusElement.removeClass('btn-success btn-warning btn-info');
+
+                // Add appropriate class based on status
+                if (trxStatus === 'DONE') {
+                    trxStatusElement.addClass('btn btn-success');
+                } else if (trxStatus === 'REFUND') {
+                    trxStatusElement.addClass('btn btn-warning');
+                } else if (trxStatus === 'DP') {
+                    trxStatusElement.addClass('btn btn-info');
+                }
+
+                $('#order_number').text(response.order_number);
+                // Set payment status with conditional styling
+                var paymentStatus = response.payment_status;
+                var statusElement = $('#payment_status');
+                statusElement.text(paymentStatus);
+                
+                // Remove existing classes
+                statusElement.removeClass('btn-success btn-warning btn-info');
+
+                if (trxStatus === 'DONE') {
+                    statusElement.addClass('btn btn-success');
+                } else if (trxStatus === 'REFUND') {
+                    statusElement.addClass('btn btn-warning');
+                } else if (trxStatus === 'DP') {
+                    statusElement.addClass('btn btn-info');
+                }
+                $('#outstanding_balance').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.outstanding_balance));
+                $('#payment_method_1').text(response.payment_method_1);
+                $('#sub_payment_method_1').text(response.sub_payment_method_1);
+                $('#payment_amount_1').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.payment_amount_1));
+                $('#payment_method_2').text(response.payment_method_2);
+                $('#sub_payment_method_2').text(response.sub_payment_method_2);
+                $('#payment_amount_2').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.payment_amount_2));
+                $('#down_payment').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.down_payment));
+                $('#gross_sales').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.gross_sales));
+                $('#total_discount').text('- Rp ' + new Intl.NumberFormat('id-ID').format(response.total_discount));
+                $('#net_sales').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.net_sales));
+                $('#total_payment').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.total_payment || 0));
+                $('#cogs').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.cogs));
+                $('#seller_voucher').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.seller_voucher));
+                $('#total_admin_fee').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.total_admin_fee || 0));
+                $('#outstanding_balance_summary').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.outstanding_balance));
+                $('#total_dana_cair').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.total_dana_cair || 0));
+                $('#gross_margin').text('Rp ' + new Intl.NumberFormat('id-ID').format(response.gross_margin));
+                $('#margin_percentage').text(response.margin_percentage);
+                $('#btn_print_receipt').attr('href', response.print_receipt_url);
+
+                // Clear existing table data
+                $('#SettlementItemsTable tbody').empty();
+
+                // Populate the items table
+                if (response.items && response.items.length > 0) {
+                    response.items.forEach(function(item) {
+                        var row = '<tr>' +
+                            '<td>' + item.article_id + '</td>' +
+                            '<td>' + item.p_name + '</td>' +
+                            '<td>' + item.ps_barcode + '</td>' +
+                            '<td>' + item.pos_td_qty + '</td>' +
+                            '<td>Rp ' + new Intl.NumberFormat('id-ID').format(item.ps_price_tag) + '</td>' +
+                            '<td>' + item.is_nameset + '</td>' +
+                            '<td>' + (item.discount ? 'Rp ' + new Intl.NumberFormat('id-ID').format(item.discount) : '-') + '</td>' +
+                            '<td>Rp ' + new Intl.NumberFormat('id-ID').format(item.price_after_discount) + '</td>' +
+                            '</tr>';
+                        $('#SettlementItemsTable tbody').append(row);
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error: ' + error);
+            }
+            });
         });
 
         $('#settlement_btn').on('click', function() {

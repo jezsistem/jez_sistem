@@ -106,4 +106,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settlement_netsales_per_payment_method', [SettlementController::class, 'getNetsalesPerPaymentMethod'])->name('settlement.netsales_per_payment_method');
     Route::get('settlement_total_netsales', [SettlementController::class, 'getTotalNetsales'])->name('settlement.total_netsales');
     Route::post('settlement_bulk_status', [SettlementController::class, 'bulkUpdateStatus'])->name('settlement.bulk_status');
+    Route::get('settlement_detail/{id}', [SettlementController::class, 'getDetailSettlement'])->name('settlement_detail');
 });
