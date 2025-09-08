@@ -332,8 +332,8 @@
                                     <div class="col-md-2">
                                         <label for="status">Status</label>
                                         <select class="form-control" id="status" name="status">
-                                            <option value="">All Status</option>
-                                            <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="" {{ $status === '' && $status !== null ? 'selected' : '' }}>All Status</option>
+                                            <option value="pending" {{ ($status === null || $status == 'pending') ? 'selected' : '' }}>Pending</option>
                                             <option value="approved" {{ $status == 'approved' ? 'selected' : '' }}>Approved</option>
                                             <option value="rejected" {{ $status == 'rejected' ? 'selected' : '' }}>Rejected</option>
                                             <option value="cancelled" {{ $status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>

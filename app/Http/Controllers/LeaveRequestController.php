@@ -29,7 +29,7 @@ class LeaveRequestController extends Controller
             ->where('user_groups.user_id', auth()->user()->id)
             ->where('g_name', 'administrator')
             ->exists();
-        
+
         $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
             ->where('users.id', auth()->user()->id)
             ->where('user_divisions.ud_code', 'HUMANRESOU')
@@ -51,7 +51,7 @@ class LeaveRequestController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', auth()->user()->id)->get();
+            ->where('u_id', auth()->user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -64,9 +64,9 @@ class LeaveRequestController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -79,11 +79,11 @@ class LeaveRequestController extends Controller
     public function index(Request $request)
     {
         $this->validateAccess();
-        
+
         $title = 'Leave Requests';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
-        
+
         // Get filters
         $startDate = $request->get('start_date', date('Y-m-01'));
         $endDate = $request->get('end_date', date('Y-m-t'));
@@ -91,20 +91,20 @@ class LeaveRequestController extends Controller
         $userId = $request->get('user_id');
         $status = $request->get('status');
         $leaveTypeId = $request->get('leave_type_id');
-        
+
         // Apply date filter if not custom
         if ($dateFilter && $dateFilter !== 'custom') {
             $dateRange = $this->getDateRangeFromFilter($dateFilter);
             $startDate = $dateRange['startDate'];
             $endDate = $dateRange['endDate'];
         }
-        
+
         $leaveRequest = new LeaveRequest();
         $leaveRequests = $leaveRequest->getLeaveRequestsByFilters($startDate, $endDate, $userId, $status, $leaveTypeId);
-        
+
         // Get users for filter
         $users = DB::table('users')->where('u_delete', '0')->orderBy('u_name')->get();
-        
+
         // Get leave types for filter
         $leaveType = new LeaveType();
         $leaveTypes = $leaveType->getActiveLeaveTypes();
@@ -126,7 +126,7 @@ class LeaveRequestController extends Controller
     public function create()
     {
         $this->validateAccess();
-        
+
         $title = 'Create Leave Request';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
@@ -174,11 +174,11 @@ class LeaveRequestController extends Controller
         // Calculate total days/hours
         $startDateObj = Carbon::parse($startDate);
         $endDateObj = Carbon::parse($endDate);
-        
+
         if ($request->lr_unit == 'hours') {
             $startTime = $request->lr_start_time ? Carbon::parse($request->lr_start_time) : Carbon::parse('00:00:00');
             $endTime = $request->lr_end_time ? Carbon::parse($request->lr_end_time) : Carbon::parse('23:59:59');
-            
+
             $totalHours = $startDateObj->diffInDays($endDateObj) * 24;
             $totalHours += $startTime->diffInHours($endTime);
             $totalDays = 0;
@@ -192,11 +192,11 @@ class LeaveRequestController extends Controller
         if ($request->hasFile('lr_attachments')) {
             $files = $request->file('lr_attachments');
             $attachmentData = [];
-            
+
             foreach ($files as $file) {
                 $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
                 $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
-                
+
                 $attachmentData[] = [
                     'file_path' => $filePath,
                     'original_name' => $file->getClientOriginalName(),
@@ -222,7 +222,7 @@ class LeaveRequestController extends Controller
 
         // Use Eloquent to create leave request and get the ID
         $newLeaveRequest = LeaveRequest::create($data);
-        
+
         // Handle attachments if leave request was created successfully
         if ($newLeaveRequest && $attachmentData) {
             foreach ($attachmentData as $attachment) {
@@ -237,13 +237,13 @@ class LeaveRequestController extends Controller
                 ]);
             }
         }
-        
+
         $result = $newLeaveRequest ? true : false;
 
         if ($result) {
             // Send notification to supervisors and managers in the same division
             $this->sendLeaveRequestNotification($userId, $data);
-            
+
             return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully');
         } else {
             return back()->with('error', 'Failed to submit leave request')->withInput();
@@ -253,7 +253,7 @@ class LeaveRequestController extends Controller
     public function show($id)
     {
         $this->validateAccess();
-        
+
         $title = 'Leave Request Detail';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
@@ -293,13 +293,13 @@ class LeaveRequestController extends Controller
     public function edit($id)
     {
         $this->validateAccess();
-        
+
         $title = 'Edit Leave Request';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
         $leaveRequest = LeaveRequest::with('attachments')->findOrFail($id);
-        
+
         // Debug: Log the leave request data
         \Log::info('Leave Request Edit Debug', [
             'id' => $leaveRequest->id,
@@ -309,7 +309,7 @@ class LeaveRequestController extends Controller
             'lr_end_date_formatted' => $leaveRequest->lr_end_date ? $leaveRequest->lr_end_date->format('Y-m-d') : null,
             'attachments_count' => $leaveRequest->attachments->count()
         ]);
-        
+
         // Check if user can edit this request
         if ($leaveRequest->user_id != auth()->user()->id) {
             return redirect()->route('leave-requests.index')->with('error', 'You can only edit your own leave requests');
@@ -340,7 +340,7 @@ class LeaveRequestController extends Controller
         $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
-        
+
         // Check if user can edit this request
         if ($leaveRequest->user_id != auth()->user()->id) {
             return redirect()->route('leave-requests.index')->with('error', 'You can only edit your own leave requests');
@@ -366,14 +366,14 @@ class LeaveRequestController extends Controller
         // Calculate total days/hours
         $startDate = $request->lr_start_date;
         $endDate = $request->lr_end_date ?: $startDate;
-        
+
         $startDateObj = Carbon::parse($startDate);
         $endDateObj = Carbon::parse($endDate);
-        
+
         if ($request->lr_unit == 'hours') {
             $startTime = $request->lr_start_time ? Carbon::parse($request->lr_start_time) : Carbon::parse('00:00:00');
             $endTime = $request->lr_end_time ? Carbon::parse($request->lr_end_time) : Carbon::parse('23:59:59');
-            
+
             $totalHours = $startDateObj->diffInDays($endDateObj) * 24;
             $totalHours += $startTime->diffInHours($endTime);
             $totalDays = 0;
@@ -403,11 +403,11 @@ class LeaveRequestController extends Controller
         if ($request->hasFile('lr_attachments')) {
             $files = $request->file('lr_attachments');
             $attachmentData = [];
-            
+
             foreach ($files as $file) {
                 $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
                 $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
-                
+
                 $attachmentData[] = [
                     'file_path' => $filePath,
                     'original_name' => $file->getClientOriginalName(),
@@ -432,7 +432,7 @@ class LeaveRequestController extends Controller
         // Use direct Eloquent update instead of custom storeData method
         try {
             $leaveRequest->update($data);
-            
+
             // Handle new attachments if any
             if ($attachmentData) {
                 foreach ($attachmentData as $attachment) {
@@ -447,13 +447,13 @@ class LeaveRequestController extends Controller
                     ]);
                 }
             }
-            
+
             \Log::info('Leave request updated successfully', [
                 'id' => $id,
                 'data' => $data,
                 'user_id' => auth()->user()->id
             ]);
-            
+
             return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully');
         } catch (\Exception $e) {
             \Log::error('Failed to update leave request', [
@@ -462,7 +462,7 @@ class LeaveRequestController extends Controller
                 'error' => $e->getMessage(),
                 'user_id' => auth()->user()->id
             ]);
-            
+
             return back()->with('error', 'Failed to update leave request: ' . $e->getMessage())->withInput();
         }
     }
@@ -476,11 +476,11 @@ class LeaveRequestController extends Controller
             'is_ajax' => request()->ajax(),
             'headers' => request()->headers->all()
         ]);
-        
+
         $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
-        
+
         // Check if user can delete this request
         if ($leaveRequest->user_id != auth()->user()->id) {
             if (request()->ajax()) {
@@ -533,11 +533,11 @@ class LeaveRequestController extends Controller
             'request_data' => $request->all(),
             'is_ajax' => $request->ajax()
         ]);
-        
+
         $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
-        
+
         // Check if user can approve (must be supervisor or higher in same division)
         $currentUser = auth()->user();
         \Log::info('Current user info', [
@@ -545,10 +545,10 @@ class LeaveRequestController extends Controller
             'position_id' => $currentUser->up_id,
             'division_id' => $currentUser->ud_id
         ]);
-        
+
         // Get leave requester info first to check if they're trying to approve their own request
         $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
-        
+
         // Check if user is trying to approve their own leave request
         if ($currentUser->id == $leaveRequest->user_id) {
             \Log::warning('User trying to approve their own leave request');
@@ -560,20 +560,20 @@ class LeaveRequestController extends Controller
             }
             return back()->with('error', 'You cannot approve your own leave request');
         }
-        
+
         $currentUserPosition = DB::table('user_positions')
             ->where('id', $currentUser->up_id ?? 0)
             ->where('up_is_active', true)
             ->where('up_can_approve_leave', true)
             ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
             ->first();
-        
+
         \Log::info('Position check result', [
             'position_found' => $currentUserPosition ? true : false,
             'position_data' => $currentUserPosition,
             'required_level' => 'Supervisor (level 2) or above'
         ]);
-        
+
         if (!$currentUserPosition) {
             \Log::warning('User does not have approval permission - must be Supervisor or above');
             if ($request->ajax()) {
@@ -586,13 +586,13 @@ class LeaveRequestController extends Controller
         }
 
         // Leave requester already retrieved above for self-approval check
-        
+
         \Log::info('Division check', [
             'current_user_division' => $currentUser->ud_id,
             'requester_division' => $leaveRequester->ud_id,
             'same_division' => $currentUser->ud_id == $leaveRequester->ud_id
         ]);
-        
+
         // Check if user is in same division as the leave requester
         if ($currentUser->ud_id != $leaveRequester->ud_id) {
             \Log::warning('User not in same division as requester');
@@ -614,14 +614,14 @@ class LeaveRequestController extends Controller
         if ($requesterPosition) {
             $currentUserLevel = $currentUserPosition->up_level;
             $requesterLevel = $requesterPosition->up_level;
-            
+
             \Log::info('Hierarchy check', [
                 'current_user_level' => $currentUserLevel,
                 'requester_level' => $requesterLevel,
                 'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
                 'requester_position' => $requesterPosition->up_name ?? 'Unknown'
             ]);
-            
+
             // User can only approve someone with lower level
             if ($currentUserLevel <= $requesterLevel) {
                 \Log::warning('User trying to approve someone with higher or equal level');
@@ -640,7 +640,7 @@ class LeaveRequestController extends Controller
             'current_status' => $leaveRequest->lr_status,
             'is_pending' => $leaveRequest->lr_status === 'pending'
         ]);
-        
+
         if ($leaveRequest->lr_status !== 'pending') {
             \Log::warning('Leave request is not pending');
             if ($request->ajax()) {
@@ -673,7 +673,7 @@ class LeaveRequestController extends Controller
             $leaveRequest->lr_approved_by = $currentUser->id;
             $leaveRequest->lr_approved_at = date('Y-m-d H:i:s');
             $leaveRequest->save();
-            
+
             \Log::info('Leave request updated successfully', [
                 'leave_request_id' => $leaveRequest->id,
                 'new_status' => $leaveRequest->lr_status
@@ -704,14 +704,14 @@ class LeaveRequestController extends Controller
 
             $startDate = Carbon::parse($leaveRequest->lr_start_date);
             $endDate = $leaveRequest->lr_end_date ? Carbon::parse($leaveRequest->lr_end_date) : $startDate;
-            
+
             for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
                 // Check if attendance record already exists for this date
                 $existingAttendance = DB::table('attendance')
                     ->where('user_id', $leaveRequest->user_id)
                     ->where('at_date', $date->format('Y-m-d'))
                     ->first();
-                
+
                 if (!$existingAttendance) {
                     // Create attendance record for leave
                     $attendanceId = DB::table('attendance')->insertGetId([
@@ -724,7 +724,7 @@ class LeaveRequestController extends Controller
                         'created_at' => now(),
                         'updated_at' => now()
                     ]);
-                    
+
                     \Log::info('Attendance record created for leave', [
                         'attendance_id' => $attendanceId,
                         'user_id' => $leaveRequest->user_id,
@@ -742,10 +742,10 @@ class LeaveRequestController extends Controller
 
             DB::commit();
             \Log::info('Database transaction committed successfully');
-            
+
             // Send notification to the requester
             $this->sendLeaveStatusChangeNotification($leaveRequest->id, 'approved', $currentUser->u_name);
-            
+
             if ($request->ajax()) {
                 \Log::info('Sending AJAX response', ['success' => true]);
                 return response()->json([
@@ -753,25 +753,24 @@ class LeaveRequestController extends Controller
                     'message' => 'Leave request approved successfully'
                 ]);
             }
-            
+
             \Log::info('Sending redirect response');
             return redirect()->route('leave-requests.index')->with('success', 'Leave request approved successfully');
-
         } catch (\Exception $e) {
             \Log::error('Error approving leave request', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             DB::rollback();
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to approve leave request: ' . $e->getMessage()
                 ]);
             }
-            
+
             return back()->with('error', 'Failed to approve leave request: ' . $e->getMessage());
         }
     }
@@ -784,17 +783,17 @@ class LeaveRequestController extends Controller
             'request_data' => $request->all(),
             'is_ajax' => $request->ajax()
         ]);
-        
+
         $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
-        
+
         // Check if user can reject (must be supervisor or higher in same division)
         $currentUser = auth()->user();
-        
+
         // Get leave requester info first to check if they're trying to reject their own request
         $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
-        
+
         // Check if user is trying to reject their own leave request
         if ($currentUser->id == $leaveRequest->user_id) {
             \Log::warning('User trying to reject their own leave request');
@@ -806,14 +805,14 @@ class LeaveRequestController extends Controller
             }
             return back()->with('error', 'You cannot reject your own leave request');
         }
-        
+
         $currentUserPosition = DB::table('user_positions')
             ->where('id', $currentUser->up_id ?? 0)
             ->where('up_is_active', true)
             ->where('up_can_approve_leave', true)
             ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
             ->first();
-        
+
         if (!$currentUserPosition) {
             \Log::warning('User does not have rejection permission - must be Supervisor or above');
             if ($request->ajax()) {
@@ -824,7 +823,7 @@ class LeaveRequestController extends Controller
             }
             return back()->with('error', 'Only Supervisor level and above can reject leave requests');
         }
-        
+
         // Check if user is in same division as the leave requester
         if ($currentUser->ud_id != $leaveRequester->ud_id) {
             if ($request->ajax()) {
@@ -845,14 +844,14 @@ class LeaveRequestController extends Controller
         if ($requesterPosition) {
             $currentUserLevel = $currentUserPosition->up_level;
             $requesterLevel = $requesterPosition->up_level;
-            
+
             \Log::info('Hierarchy check for rejection', [
                 'current_user_level' => $currentUserLevel,
                 'requester_level' => $requesterLevel,
                 'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
                 'requester_position' => $requesterPosition->up_name ?? 'Unknown'
             ]);
-            
+
             // User can only reject someone with lower level
             if ($currentUserLevel <= $requesterLevel) {
                 \Log::warning('User trying to reject someone with higher or equal level');
@@ -886,14 +885,14 @@ class LeaveRequestController extends Controller
                 'errors' => $e->errors(),
                 'request_data' => $request->all()
             ]);
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed: ' . implode(', ', \Illuminate\Support\Arr::flatten($e->errors()))
                 ]);
             }
-            
+
             return back()->withErrors($e->errors())->withInput();
         }
 
@@ -905,13 +904,13 @@ class LeaveRequestController extends Controller
                 'approved_by' => $currentUser->id,
                 'approved_at' => date('Y-m-d H:i:s')
             ]);
-            
+
             $leaveRequest->lr_status = 'rejected';
             $leaveRequest->lr_admin_notes = $request->lr_admin_notes;
             $leaveRequest->lr_approved_by = $currentUser->id;
             $leaveRequest->lr_approved_at = date('Y-m-d H:i:s');
             $leaveRequest->save();
-            
+
             \Log::info('Leave request rejected successfully', [
                 'leave_request_id' => $leaveRequest->id,
                 'new_status' => $leaveRequest->lr_status
@@ -927,23 +926,22 @@ class LeaveRequestController extends Controller
                     'message' => 'Leave request rejected successfully'
                 ]);
             }
-            
+
             \Log::info('Sending redirect response for rejection');
             return redirect()->route('leave-requests.index')->with('success', 'Leave request rejected successfully');
-
         } catch (\Exception $e) {
             \Log::error('Error rejecting leave request', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to reject leave request: ' . $e->getMessage()
                 ]);
             }
-            
+
             return back()->with('error', 'Failed to reject leave request: ' . $e->getMessage());
         }
     }
@@ -952,13 +950,13 @@ class LeaveRequestController extends Controller
     public function getLeaveBalance($leaveTypeId)
     {
         $this->validateAccess();
-        
+
         $userId = auth()->user()->id;
         $year = date('Y');
-        
+
         $leaveBalance = new LeaveBalance();
         $balance = $leaveBalance->getLeaveBalance($userId, $leaveTypeId, $year);
-        
+
         if ($balance) {
             return response()->json([
                 'success' => true,
@@ -976,7 +974,7 @@ class LeaveRequestController extends Controller
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_month');
@@ -1005,7 +1003,8 @@ class LeaveRequestController extends Controller
                 ->leftJoin('users', 'users.id', '=', 'leave_requests.user_id')
                 ->leftJoin('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
                 ->leftJoin('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
-                ->leftJoin('users as approvers', 'approvers.id', '=', 'leave_requests.lr_approved_by');
+                ->leftJoin('users as approvers', 'approvers.id', '=', 'leave_requests.lr_approved_by')
+                ->orderBy('leave_requests.created_at', 'desc');
 
             // Apply filters
             if ($request->filled('start_date')) {
@@ -1023,84 +1022,84 @@ class LeaveRequestController extends Controller
             if ($request->filled('leave_type_id')) {
                 $query->where('leave_requests.leave_type_id', $leaveTypeId);
             }
-            
+
             // Apply search filter
             if ($request->filled('search')) {
                 $search = $request->search;
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('users.u_name', 'like', '%' . $search . '%')
-                      ->orWhere('users.u_nip', 'like', '%' . $search . '%')
-                      ->orWhere('leave_types.lt_name', 'like', '%' . $search . '%')
-                      ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
+                        ->orWhere('users.u_nip', 'like', '%' . $search . '%')
+                        ->orWhere('leave_types.lt_name', 'like', '%' . $search . '%')
+                        ->orWhere('leave_types.lt_code', 'like', '%' . $search . '%');
                 });
             }
 
             return datatables()->eloquent($query)
                 ->addIndexColumn()
-                ->addColumn('lr_date', function($row) {
+                ->addColumn('lr_date', function ($row) {
                     $requestDate = date('d/m/Y', strtotime($row->created_at));
                     $requestTime = date('H:i', strtotime($row->created_at));
                     return '<span title="Request submitted on ' . $requestDate . ' at ' . $requestTime . '">' . $requestDate . '</span>';
                 })
-                ->addColumn('action', function($row){
+                ->addColumn('action', function ($row) {
                     $btn = '<div class="dropdown">';
                     $btn .= '    <!--begin::Toggle-->';
                     $btn .= '    <button type="button" class="btn btn-sm btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
                     $btn .= '        Actions';
                     $btn .= '    </button>';
                     $btn .= '    <!--end::Toggle-->';
-                    
+
                     $btn .= '    <!--begin::Menu-->';
                     $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('leave-requests.show', $row->id).'" class="menu-link px-3">View</a>';
+                    $btn .= '            <a href="' . route('leave-requests.show', $row->id) . '" class="menu-link px-3">View</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
-                    
+
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('leave-requests.edit', $row->id).'" class="menu-link px-3">Edit</a>';
+                    $btn .= '            <a href="' . route('leave-requests.edit', $row->id) . '" class="menu-link px-3">Edit</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
-                    
+
                     if ($row->lr_status == 'pending') {
                         $btn .= '        <!--begin::Menu item-->';
                         $btn .= '        <div class="menu-item px-3">';
-                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal('.$row->id.', \'approve\')" class="menu-link px-3 text-success">Approve</a>';
+                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal(' . $row->id . ', \'approve\')" class="menu-link px-3 text-success">Approve</a>';
                         $btn .= '        </div>';
                         $btn .= '        <!--end::Menu item-->';
-                        
+
                         $btn .= '        <!--begin::Menu item-->';
                         $btn .= '        <div class="menu-item px-3">';
-                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal('.$row->id.', \'reject\')" class="menu-link px-3 text-danger">Reject</a>';
+                        $btn .= '            <a href="javascript:void(0)" onclick="showApprovalModal(' . $row->id . ', \'reject\')" class="menu-link px-3 text-danger">Reject</a>';
                         $btn .= '        </div>';
                         $btn .= '        <!--end::Menu item-->';
                     }
-                    
+
                     // Add delete button only for the request owner
                     if (auth()->check() && auth()->id() == $row->user_id) {
                         $btn .= '        <!--begin::Menu item-->';
                         $btn .= '        <div class="menu-item px-3">';
-                        $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveRequest('.$row->id.', \''.$row->u_name.'\')" class="menu-link px-3 text-danger">Delete</a>';
+                        $btn .= '            <a href="javascript:void(0)" onclick="deleteLeaveRequest(' . $row->id . ', \'' . $row->u_name . '\')" class="menu-link px-3 text-danger">Delete</a>';
                         $btn .= '        </div>';
                         $btn .= '        <!--end::Menu item-->';
                     }
                     $btn .= '    </div>';
                     $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
-                    
+
                     return $btn;
                 })
-                ->addColumn('lr_attachment', function($row) {
+                ->addColumn('lr_attachment', function ($row) {
                     // Use Eloquent relationship to get attachments
                     if ($row->attachments && $row->attachments->count() > 0) {
                         $attachmentHtml = '<div class="text-center">';
-                        
+
                         foreach ($row->attachments as $index => $attachment) {
                             $fileIcon = '';
                             $fileType = strtolower($attachment->file_type ?? '');
-                            
+
                             if (strpos($fileType, 'pdf') !== false) {
                                 $fileIcon = '<i class="fas fa-file-pdf text-danger"></i>';
                             } elseif (strpos($fileType, 'image') !== false) {
@@ -1110,69 +1109,69 @@ class LeaveRequestController extends Controller
                             } else {
                                 $fileIcon = '<i class="fas fa-file text-secondary"></i>';
                             }
-                            
+
                             $fileName = $attachment->original_name ?: 'Attachment';
                             $fileSize = $attachment->file_size ? $this->formatFileSize($attachment->file_size) : '';
-                            
+
                             $attachmentHtml .= '<div class="mb-1">' .
-                                               '<button type="button" class="btn btn-sm btn-light-primary" onclick="viewAttachment(' . $row->id . ', \'' . $attachment->file_path . '\', \'' . $attachment->original_name . '\', \'' . $attachment->file_type . '\')">' .
-                                               $fileIcon . ' '.substr($fileName, 0, 5) . (strlen($fileName) > 5 ? '...' : '').'</button>' .
-                                               '</div>';
+                                '<button type="button" class="btn btn-sm btn-light-primary" onclick="viewAttachment(' . $row->id . ', \'' . $attachment->file_path . '\', \'' . $attachment->original_name . '\', \'' . $attachment->file_type . '\')">' .
+                                $fileIcon . ' ' . substr($fileName, 0, 5) . (strlen($fileName) > 5 ? '...' : '') . '</button>' .
+                                '</div>';
                         }
-                        
+
                         $attachmentHtml .= '</div>';
                         return $attachmentHtml;
                     }
                     return '<span class="text-muted">-</span>';
                 })
-                ->editColumn('lr_start_date', function($row) {
+                ->editColumn('lr_start_date', function ($row) {
                     return date('d/m/Y', strtotime($row->lr_start_date));
                 })
-                ->editColumn('lr_end_date', function($row) {
+                ->editColumn('lr_end_date', function ($row) {
                     return $row->lr_end_date ? date('d/m/Y', strtotime($row->lr_end_date)) : '-';
                 })
-                ->editColumn('lr_start_time', function($row) {
+                ->editColumn('lr_start_time', function ($row) {
                     return $row->lr_start_time ? date('H:i', strtotime($row->lr_start_time)) : '-';
                 })
-                ->editColumn('lr_end_time', function($row) {
+                ->editColumn('lr_end_time', function ($row) {
                     return $row->lr_end_time ? date('H:i', strtotime($row->lr_end_time)) : '-';
                 })
-                ->editColumn('lr_total_days', function($row) {
+                ->editColumn('lr_total_days', function ($row) {
                     if ($row->lr_unit == 'days') {
                         return $row->lr_total_days . ' hari';
                     } else {
                         return $row->lr_total_hours . ' jam';
                     }
                 })
-                ->editColumn('lr_status', function($row) {
+                ->editColumn('lr_status', function ($row) {
                     $statusClass = '';
                     $statusText = '';
-                    
-                    switch($row->lr_status) {
+
+                    switch ($row->lr_status) {
                         case 'pending':
-                            $statusClass = 'badge badge-danger';
-                            $statusText = 'Menunggu';
+                            $statusClass = 'badge badge-primary';
+                            $statusText = 'PENDING';
                             break;
                         case 'approved':
-                            $statusClass = 'badge badge-success';
-                            $statusText = 'Disetujui';
+                            $statusClass = 'badge bg-success';
+                            $statusText = 'APPROVED';
                             break;
                         case 'rejected':
                             $statusClass = 'badge badge-danger';
-                            $statusText = 'Ditolak';
+                            $statusText = 'REJECTED';
                             break;
                         case 'cancelled':
-                            $statusClass = 'badge badge-secondary';
-                            $statusText = 'Dibatalkan';
+                            $statusClass = 'badge badge-warning';
+                            $statusText = 'CANCELLED';
                             break;
                         default:
                             $statusClass = 'badge badge-secondary';
                             $statusText = ucfirst($row->lr_status);
                     }
-                    
+
                     return '<span class="' . $statusClass . '">' . $statusText . '</span>';
                 })
-                ->editColumn('lt_name', function($row) {
+                ->editColumn('lt_name', function ($row) {
                     $color = $row->lt_color ?: '#007bff';
                     return '<span style="color: ' . $color . ';">' . $row->lt_name . '</span>';
                 })
@@ -1187,37 +1186,37 @@ class LeaveRequestController extends Controller
     public function summaryReport(Request $request)
     {
         $this->validateAccess();
-        
+
         $title = 'Leave Summary Report';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
-        
+
         // Get date range from request or default to current month
         $startDate = $request->get('start_date', date('Y-m-01'));
         $endDate = $request->get('end_date', date('Y-m-t'));
         $dateFilter = $request->get('date_filter', 'this_month');
-        
+
         if ($dateFilter && $dateFilter !== 'custom') {
             $dateRange = $this->getDateRangeFromFilter($dateFilter);
             $startDate = $dateRange['startDate'];
             $endDate = $dateRange['endDate'];
         }
-        
+
         // Get divisions for filter
         $divisions = DB::table('user_divisions')
             ->where('ud_status', 'active')
             ->orderBy('ud_name')
             ->get();
-        
+
         // Get leave types for dynamic columns
         $leaveTypes = DB::table('leave_types')
             ->where('lt_is_active', true)
             ->orderBy('lt_name')
             ->get();
-        
+
         // Calculate statistics for the date range
         $stats = $this->getLeaveStatistics($startDate, $endDate);
-        
+
         $data = [
             'title' => $title,
             'subtitle' => 'Leave Summary Report',
@@ -1231,7 +1230,7 @@ class LeaveRequestController extends Controller
             'leaveTypes' => $leaveTypes,
             'stats' => $stats
         ];
-        
+
         return view('app.leave_request.summary_report', compact('data'));
     }
 
@@ -1245,19 +1244,19 @@ class LeaveRequestController extends Controller
                 'startDate' => $startDate,
                 'endDate' => $endDate
             ]);
-            
+
             // Get leave requests count by status
             $statusStats = DB::table('leave_requests')
                 ->select('lr_status', DB::raw('count(*) as total'))
                 ->whereBetween('lr_start_date', [$startDate, $endDate])
                 ->groupBy('lr_status')
                 ->get();
-            
+
             \Log::info('Status stats retrieved', [
                 'count' => $statusStats->count(),
                 'data' => $statusStats->toArray()
             ]);
-            
+
             // Get leave requests count by leave type
             $typeStats = DB::table('leave_requests as lr')
                 ->leftJoin('leave_types as lt', 'lr.leave_type_id', '=', 'lt.id')
@@ -1266,14 +1265,14 @@ class LeaveRequestController extends Controller
                 ->where('lr.lr_status', 'approved')
                 ->groupBy('lt.id', 'lt.lt_code', 'lt.lt_name')
                 ->get();
-            
+
             \Log::info('Type stats retrieved', [
                 'count' => $typeStats->count(),
                 'data' => $typeStats->toArray()
             ]);
-            
+
             $stats = [];
-            
+
             // Add status-based statistics
             foreach ($statusStats as $stat) {
                 $stats[] = (object) [
@@ -1281,7 +1280,7 @@ class LeaveRequestController extends Controller
                     'total' => $stat->total
                 ];
             }
-            
+
             // Add leave type statistics
             foreach ($typeStats as $stat) {
                 $stats[] = (object) [
@@ -1289,14 +1288,13 @@ class LeaveRequestController extends Controller
                     'total' => $stat->total
                 ];
             }
-            
+
             \Log::info('Final stats array', [
                 'count' => count($stats),
                 'data' => $stats
             ]);
-            
+
             return $stats;
-            
         } catch (\Exception $e) {
             \Log::error('Error getting leave statistics: ' . $e->getMessage(), [
                 'startDate' => $startDate,
@@ -1313,7 +1311,7 @@ class LeaveRequestController extends Controller
     private function getDateRangeFromFilter($filter)
     {
         $today = now();
-        
+
         switch ($filter) {
             case 'this_week':
                 $startDate = $today->copy()->startOfWeek();
@@ -1343,7 +1341,7 @@ class LeaveRequestController extends Controller
                 $startDate = $today->copy()->startOfMonth();
                 $endDate = $today->copy()->endOfMonth();
         }
-        
+
         return [
             'startDate' => $startDate->format('Y-m-d'),
             'endDate' => $endDate->format('Y-m-d')
@@ -1372,19 +1370,19 @@ class LeaveRequestController extends Controller
                     'ud.ud_name as division_name',
                     'ut.ut_name as work_type'
                 ]);
-            
+
             if ($divisionId) {
                 $usersQuery->where('u.ud_id', $divisionId);
             }
-            
+
             $users = $usersQuery->orderBy('u.u_name')->get();
-            
+
             // Get leave types for dynamic columns
             $leaveTypes = DB::table('leave_types')
                 ->where('lt_is_active', true)
                 ->orderBy('lt_name')
                 ->get();
-            
+
             // Process each user to add leave data and balance
             foreach ($users as $user) {
                 // Get leave requests for this user in date range
@@ -1401,21 +1399,21 @@ class LeaveRequestController extends Controller
                         'lr.lr_total_hours'
                     ])
                     ->get();
-                
+
                 // Calculate totals
                 $user->total_leave_requests = $leaveRequests->count();
                 $user->total_days = $leaveRequests->where('lr_unit', 'days')->sum('lr_total_days');
                 $user->total_hours = $leaveRequests->where('lr_unit', 'hours')->sum('lr_total_hours');
-                
+
                 // Add leave type specific data
                 foreach ($leaveTypes as $leaveType) {
                     $leaveData = $leaveRequests->where('lt_code', $leaveType->lt_code);
                     $totalDays = $leaveData->where('lr_unit', 'days')->sum('lr_total_days');
                     $totalHours = $leaveData->where('lr_unit', 'hours')->sum('lr_total_hours');
-                    
+
                     $user->{'leave_' . strtolower($leaveType->lt_code)} = $totalDays > 0 ? $totalDays : $totalHours;
                 }
-                
+
                 // Get leave balance for annual leave
                 $annualLeaveBalance = DB::table('leave_balances as lb')
                     ->leftJoin('leave_types as lt', 'lb.leave_type_id', '=', 'lt.id')
@@ -1424,12 +1422,11 @@ class LeaveRequestController extends Controller
                     ->where('lb.lb_year', date('Y'))
                     ->select(['lb.lb_remaining_balance'])
                     ->first();
-                
+
                 $user->annual_leave_balance = $annualLeaveBalance ? $annualLeaveBalance->lb_remaining_balance : 0;
             }
-            
+
             return $users;
-            
         } catch (\Exception $e) {
             \Log::error('Error in getLeaveSummary: ' . $e->getMessage(), [
                 'startDate' => $startDate,
@@ -1446,76 +1443,75 @@ class LeaveRequestController extends Controller
      */
     public function getSummaryReportDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             try {
                 $this->validateAccess();
-                
+
                 \Log::info('Leave Summary Report Datatables Request', [
                     'request_data' => $request->all()
                 ]);
-                
+
                 // Get date range
                 $startDate = $request->get('start_date', date('Y-m-01'));
                 $endDate = $request->get('end_date', date('Y-m-t'));
                 $dateFilter = $request->get('date_filter', 'this_month');
-                
+
                 \Log::info('Leave Summary Report - Initial date values', [
                     'startDate' => $startDate,
                     'endDate' => $endDate,
                     'dateFilter' => $dateFilter
                 ]);
-                
+
                 if ($dateFilter && $dateFilter !== 'custom') {
                     $dateRange = $this->getDateRangeFromFilter($dateFilter);
                     $startDate = $dateRange['startDate'];
                     $endDate = $dateRange['endDate'];
-                    
+
                     \Log::info('Leave Summary Report - Date range calculated', [
                         'startDate' => $startDate,
                         'endDate' => $endDate
                     ]);
                 }
-                
+
                 $divisionId = $request->get('division_id');
-                
+
                 \Log::info('Leave Summary Report - Getting data', [
                     'startDate' => $startDate,
                     'endDate' => $endDate,
                     'divisionId' => $divisionId
                 ]);
-                
+
                 // Use the same method as summaryReport to get data
                 $summaryData = $this->getLeaveSummary($startDate, $endDate, $divisionId);
-                
+
                 // Apply search filter if provided
                 if ($request->filled('search')) {
                     $search = $request->get('search');
-                    $summaryData = $summaryData->filter(function($item) use ($search) {
-                        return stripos($item->u_name, $search) !== false || 
-                               stripos($item->u_nip, $search) !== false;
+                    $summaryData = $summaryData->filter(function ($item) use ($search) {
+                        return stripos($item->u_name, $search) !== false ||
+                            stripos($item->u_nip, $search) !== false;
                     });
                 }
-                
+
                 // Convert to array for DataTables
                 $data = [];
                 foreach ($summaryData as $index => $item) {
                     $data[] = (array) $item;
                     $data[$index]['DT_RowIndex'] = $index + 1;
                 }
-                
+
                 // Apply pagination manually for server-side processing
                 $totalRecords = count($data);
                 $start = $request->get('start', 0);
                 $length = $request->get('length', 25);
                 $paginatedData = array_slice($data, $start, $length);
-                
+
                 return response()->json([
                     'draw' => $request->get('draw', 1),
                     'recordsTotal' => $totalRecords,
                     'recordsFiltered' => $totalRecords,
                     'data' => $paginatedData
                 ]);
-                
             } catch (\Exception $e) {
                 \Log::error('Leave Summary Report Datatables Error', [
                     'error' => $e->getMessage(),
@@ -1534,43 +1530,43 @@ class LeaveRequestController extends Controller
     public function exportSummaryToExcel(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             \Log::info('Export Excel started', [
                 'request_data' => $request->all()
             ]);
-            
+
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
             }
-            
+
             \Log::info('Export Excel - Date range', [
                 'startDate' => $startDate,
                 'endDate' => $endDate,
                 'divisionId' => $request->get('division_id')
             ]);
-            
+
             $summaryData = $this->getLeaveSummary($startDate, $endDate, $request->get('division_id'));
-            
+
             \Log::info('Export Excel - Data retrieved', [
                 'data_count' => $summaryData->count()
             ]);
-            
+
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
-                $summaryData = $summaryData->filter(function($item) use ($search) {
-                    return stripos($item->u_name, $search) !== false || 
-                           stripos($item->u_nip, $search) !== false;
+                $summaryData = $summaryData->filter(function ($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false ||
+                        stripos($item->u_nip, $search) !== false;
                 });
             }
-            
+
             $filename = 'leave_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
@@ -1580,20 +1576,19 @@ class LeaveRequestController extends Controller
                 $filename .= '_' . $request->get('start_date') . '_to_' . $request->get('end_date');
             }
             $filename .= '.xlsx';
-            
+
             \Log::info('Export Excel - Creating export', [
                 'filename' => $filename,
                 'export_class' => 'LeaveSummaryExport'
             ]);
-            
+
             // Create export instance
             $export = new LeaveSummaryExport($summaryData);
-            
+
             \Log::info('Export Excel - Export instance created successfully');
-            
+
             // Use simple Excel download like BreakTimeController
             return Excel::download($export, $filename);
-            
         } catch (\Exception $e) {
             \Log::error('Export Excel Error', [
                 'error' => $e->getMessage(),
@@ -1609,32 +1604,32 @@ class LeaveRequestController extends Controller
     public function exportSummaryToPDF(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
             }
-            
+
             $summaryData = $this->getLeaveSummary($startDate, $endDate, $request->get('division_id'));
-            
+
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
-                $summaryData = $summaryData->filter(function($item) use ($search) {
-                    return stripos($item->u_name, $search) !== false || 
-                           stripos($item->u_nip, $search) !== false;
+                $summaryData = $summaryData->filter(function ($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false ||
+                        stripos($item->u_nip, $search) !== false;
                 });
             }
-            
+
             // Generate HTML for PDF
             $html = $this->generateSummaryReportHTML($summaryData, $request);
-            
+
             // Generate filename
             $filename = 'leave_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
@@ -1649,7 +1644,6 @@ class LeaveRequestController extends Controller
             $pdf = \PDF::loadHTML($html);
             $pdf->setPaper('A4', 'landscape');
             return $pdf->download($filename);
-            
         } catch (\Exception $e) {
             \Log::error('Export leave summary PDF error: ' . $e->getMessage());
             return back()->with('error', 'Export PDF failed: ' . $e->getMessage());
@@ -1734,17 +1728,17 @@ class LeaveRequestController extends Controller
                         <th>Posisi</th>
                         <th>Divisi</th>
                         <th>Jam Kerja/User Type</th>';
-        
+
         // Add dynamic leave type columns
         $leaveTypes = DB::table('leave_types')
             ->where('lt_is_active', true)
             ->orderBy('lt_name')
             ->get();
-        
+
         foreach ($leaveTypes as $leaveType) {
             $html .= '<th class="text-center">' . $leaveType->lt_name . '</th>';
         }
-        
+
         $html .= '
                         <th class="text-center">Total Leave</th>
                         <th class="text-center">Sisa Cuti Tahunan</th>
@@ -1762,13 +1756,13 @@ class LeaveRequestController extends Controller
                         <td>' . ($item->position_name ?? '-') . '</td>
                         <td>' . ($item->division_name ?? '-') . '</td>
                         <td>' . ($item->work_type ?? '-') . '</td>';
-            
+
             // Add dynamic leave type data
             foreach ($leaveTypes as $leaveType) {
                 $leaveValue = $item->{'leave_' . strtolower($leaveType->lt_code)} ?? 0;
                 $html .= '<td class="text-center">' . $leaveValue . '</td>';
             }
-            
+
             $html .= '
                         <td class="text-center">' . ($item->total_days + $item->total_hours) . '</td>
                         <td class="text-center">' . ($item->annual_leave_balance ?? 0) . '</td>
@@ -1790,13 +1784,13 @@ class LeaveRequestController extends Controller
     public function staffDetail(Request $request, $userId)
     {
         $this->validateAccess();
-        
+
         try {
             \Log::info('Staff Detail Request', [
                 'userId' => $userId,
                 'request_data' => $request->all()
             ]);
-            
+
             // Get user information
             $user = DB::table('users as u')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
@@ -1827,7 +1821,7 @@ class LeaveRequestController extends Controller
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
@@ -1859,7 +1853,6 @@ class LeaveRequestController extends Controller
             ];
 
             return view('app.leave_request.staff_detail', compact('data'));
-
         } catch (\Exception $e) {
             \Log::error('Staff Detail Error', [
                 'userId' => $userId,
@@ -1875,10 +1868,10 @@ class LeaveRequestController extends Controller
      */
     public function staffDatatables(Request $request, $userId)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             try {
                 $this->validateAccess();
-                
+
                 \Log::info('Staff Datatables Request', [
                     'userId' => $userId,
                     'request_data' => $request->all()
@@ -1888,7 +1881,7 @@ class LeaveRequestController extends Controller
                 $startDate = $request->get('start_date', date('Y-m-01'));
                 $endDate = $request->get('end_date', date('Y-m-t'));
                 $dateFilter = $request->get('date_filter', 'this_month');
-                
+
                 if ($dateFilter && $dateFilter !== 'custom') {
                     $dateRange = $this->getDateRangeFromFilter($dateFilter);
                     $startDate = $dateRange['startDate'];
@@ -1954,7 +1947,6 @@ class LeaveRequestController extends Controller
                     'recordsFiltered' => $totalRecords,
                     'data' => $paginatedData
                 ]);
-
             } catch (\Exception $e) {
                 \Log::error('Staff Datatables Error', [
                     'userId' => $userId,
@@ -1975,12 +1967,12 @@ class LeaveRequestController extends Controller
     {
         try {
             $this->validateAccess();
-            
+
             // Get date range
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
@@ -2029,7 +2021,7 @@ class LeaveRequestController extends Controller
             $statsArray = [];
             foreach ($allRequests as $request) {
                 $leaveTypeName = $request->lt_name;
-                
+
                 if (!isset($statsArray[$leaveTypeName])) {
                     $statsArray[$leaveTypeName] = [
                         'leave_type_name' => $leaveTypeName,
@@ -2038,9 +2030,9 @@ class LeaveRequestController extends Controller
                         'total_hours' => 0
                     ];
                 }
-                
+
                 $statsArray[$leaveTypeName]['total_requests']++;
-                
+
                 // Try to get duration - check what columns exist
                 if (property_exists($request, 'lr_total_days') && $request->lr_total_days) {
                     $statsArray[$leaveTypeName]['total_days'] += $request->lr_total_days;
@@ -2083,7 +2075,6 @@ class LeaveRequestController extends Controller
             ]);
 
             return response()->json($stats);
-
         } catch (\Exception $e) {
             \Log::error('Staff Stats Error', [
                 'userId' => $userId,
@@ -2100,13 +2091,13 @@ class LeaveRequestController extends Controller
     public function exportStaffToExcel(Request $request, $userId)
     {
         $this->validateAccess();
-        
+
         try {
             // Get date range
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
@@ -2159,7 +2150,6 @@ class LeaveRequestController extends Controller
 
             // Use simple Excel download like summary report
             return Excel::download($export, $filename);
-
         } catch (\Exception $e) {
             \Log::error('Export Staff Excel Error', [
                 'userId' => $userId,
@@ -2176,13 +2166,13 @@ class LeaveRequestController extends Controller
     public function exportStaffToPDF(Request $request, $userId)
     {
         $this->validateAccess();
-        
+
         try {
             // Get date range
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
@@ -2226,7 +2216,6 @@ class LeaveRequestController extends Controller
             $pdf->setPaper('A4', 'portrait');
 
             return $pdf->download($filename);
-
         } catch (\Exception $e) {
             \Log::error('Export Staff PDF Error', [
                 'userId' => $userId,
@@ -2354,16 +2343,16 @@ class LeaveRequestController extends Controller
 
             // Find users who can approve leave requests in the same division
             $approvers = User::where('ud_id', $requestingUser->ud_id)
-                ->whereHas('userPosition', function($query) {
+                ->whereHas('userPosition', function ($query) {
                     $query->where('up_level', '>=', 2) // Supervisor level or higher
-                          ->where('up_can_approve_leave', true);
+                        ->where('up_can_approve_leave', true);
                 })
                 ->where('id', '!=', $userId) // Don't notify the requester
                 ->get();
 
             foreach ($approvers as $approver) {
                 $message = "New leave request from {$requestingUser->u_name} ({$requestingUser->u_nip}) for {$leaveTypeName} from {$leaveData['lr_start_date']} to {$leaveData['lr_end_date']}";
-                
+
                 $notificationData = [
                     'leave_request_id' => null, // Will be set when we have the actual ID
                     'requester_name' => $requestingUser->u_name,
@@ -2388,7 +2377,6 @@ class LeaveRequestController extends Controller
                 'approvers_count' => $approvers->count(),
                 'division_id' => $requestingUser->ud_id
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Failed to send leave request notifications', [
                 'user_id' => $userId,
@@ -2431,7 +2419,6 @@ class LeaveRequestController extends Controller
                 'leave_status_change',
                 $notificationData
             );
-
         } catch (\Exception $e) {
             \Log::error('Failed to send leave status change notification', [
                 'leave_request_id' => $leaveRequestId,
@@ -2463,7 +2450,7 @@ class LeaveRequestController extends Controller
     public function getStats(Request $request)
     {
         $this->validateAccess();
-        
+
         // Get filters
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
@@ -2471,24 +2458,24 @@ class LeaveRequestController extends Controller
         $userId = $request->get('user_id');
         $status = $request->get('status');
         $leaveTypeId = $request->get('leave_type_id');
-        
+
         // Apply date filter if not custom
         if ($dateFilter && $dateFilter !== 'custom') {
             $dateRange = $this->getDateRangeFromFilter($dateFilter);
             $startDate = $dateRange['startDate'];
             $endDate = $dateRange['endDate'];
         }
-        
+
         $leaveRequest = new LeaveRequest();
         $leaveRequests = $leaveRequest->getLeaveRequestsByFilters($startDate, $endDate, $userId, $status, $leaveTypeId);
-        
+
         $stats = [
             'total' => $leaveRequests->count(),
             'pending' => $leaveRequests->where('lr_status', 'pending')->count(),
             'approved' => $leaveRequests->where('lr_status', 'approved')->count(),
             'rejected' => $leaveRequests->where('lr_status', 'rejected')->count(),
         ];
-        
+
         return response()->json($stats);
     }
 }
