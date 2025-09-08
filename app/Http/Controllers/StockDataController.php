@@ -1896,7 +1896,7 @@ class StockDataController extends Controller
 
             ProductMutation::create([
                 'pls_id' => $pls_before->id,
-                'pl_id' => $pl_id_toko,
+                'pl_id' => $pl_id_toko->id,
                 'u_id' => $user->id,
                 'pmt_old_qty' => $pls_before->pls_qty,
                 'pmt_qty' => 1,
