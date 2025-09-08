@@ -180,6 +180,15 @@
         });
 
         $('#filter_btn').on('click', function() {
+            var stId = $('#st_id').val();
+            var startDate = $('#start_date').val();
+            var endDate = $('#end_date').val();
+            
+            if (!stId || !startDate || !endDate) {
+                toastr.warning('Please select Store, Start Date, and End Date before filtering.');
+                return;
+            }
+            
             loadTotalNetsales();
             loadNetSalesPerPaymentMethod();
             settlement_table.draw();
