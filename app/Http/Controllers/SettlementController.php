@@ -165,6 +165,9 @@ class SettlementController extends Controller
                     return '<button class="btn btn-sm btn-secondary">UNSETTLED</button>';
                 }
             })
+            ->editColumn('netsales', function ($collection) {
+                return 'Rp ' . number_format($collection->netsales, 0, ',', '.');
+            })
             ->rawColumns(['pos_status', 'is_settle'])
             ->make(true);
     }
