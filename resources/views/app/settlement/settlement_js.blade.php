@@ -177,7 +177,7 @@
                 $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
                     checkedCount++;
                     var row = $(this).closest('tr');
-                    var netsalesText = row.find('td:eq(5)').text().replace(/[^\d.-]/g, '');
+                    var netsalesText = row.find('td:eq(5)').text().replace(/Rp\s*/g, '').replace(/\./g, '');
                     var netsalesValue = parseFloat(netsalesText) || 0;
                     totalNetsales += netsalesValue;
                 });
@@ -304,6 +304,7 @@
                         response.gross_margin));
                     $('#margin_percentage').text(response.margin_percentage);
                     $('#btn_print_receipt').attr('href', response.print_receipt_url);
+                    $('#note').text(response.note || '-');
 
                     // Clear existing table data
                     $('#SettlementItemsTable tbody').empty();
@@ -381,7 +382,7 @@
             $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
                 checkedCount++;
                 var row = $(this).closest('tr');
-                var netsalesText = row.find('td:eq(5)').text().replace(/[^\d.-]/g, '');
+                var netsalesText = row.find('td:eq(5)').text().replace(/Rp\s*/g, '').replace(/\./g, '');
                 var netsalesValue = parseFloat(netsalesText) || 0;
                 totalNetsales += netsalesValue;
             });

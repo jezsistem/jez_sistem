@@ -79,6 +79,12 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="mb-3 mr-64">
+                        <p class="text-muted mb-1">Notes</p>
+                        <p class="font-weight-bold h8" id="note">Notes </p>
+                    </div>
+
                     <hr>
                     <h6>Item Sales</h6>
                     <table class="table table-hover table-checkable" id="SettlementItemsTable">
@@ -139,7 +145,8 @@
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Outstanding Balance</span>
-                                <span class="font-weight-bold text-danger" id="outstanding_balance_summary">Rp 200.000</span>
+                                <span class="font-weight-bold text-danger" id="outstanding_balance_summary">Rp
+                                    200.000</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-2">

@@ -194,7 +194,7 @@ class SettlementController extends Controller
             }
 
             $transaction = PosTransaction::query()
-                ->select('pos_transactions.created_at as transaction_date', 'pos_invoice as receipt_number', 'pos_order_number as order_number', 'stores.st_name as store_name', 'pos_status as trx_status', 'pos_real_price', 'pos_payment', 'pm_main.pm_name as payment_method_main', 'pm_partial.pm_name as payment_method_partial', 'pos_payment_partial', 'pos_transactions.sub_payment', DB::raw('SUM(pos_td_qty * ps_price_tag) as gross_sales'), 'pos_transactions.pos_total_discount as total_discount',DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),DB::raw('(Select SUM(discount_seller) from ts_online_transactions join ts_online_transaction_details on ts_online_transactions.id = to_id where ts_online_transactions.order_number=ts_pos_transactions.pos_order_number) AS total_seller_discount'))
+                ->select('pos_transactions.created_at as transaction_date', 'pos_invoice as receipt_number', 'pos_order_number as order_number', 'stores.st_name as store_name', 'pos_status as trx_status', 'pos_real_price', 'pos_payment', 'pm_main.pm_name as payment_method_main', 'pm_partial.pm_name as payment_method_partial', 'pos_payment_partial', 'pos_transactions.sub_payment', DB::raw('SUM(pos_td_qty * ps_price_tag) as gross_sales'), 'pos_transactions.pos_total_discount as total_discount',DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),DB::raw('(Select SUM(discount_seller) from ts_online_transactions join ts_online_transaction_details on ts_online_transactions.id = to_id where ts_online_transactions.order_number=ts_pos_transactions.pos_order_number) AS total_seller_discount'),'pos_transactions.pos_note as note')
                 ->leftJoin('stores', 'stores.id', '=', 'st_id')
                 ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
                 ->leftJoin('payment_methods as pm_partial', 'pm_partial.id', '=', 'pm_id_partial')
@@ -299,7 +299,8 @@ class SettlementController extends Controller
                 'gross_margin' => $gross_margin,
                 'margin_percentage' => $margin_percentage . '%',
                 'print_receipt_url' => $print_receipt_url,
-                'items'=>$items
+                'items'=>$items,
+                'note' => $transaction->note,
             ];
 
             DB::commit();
