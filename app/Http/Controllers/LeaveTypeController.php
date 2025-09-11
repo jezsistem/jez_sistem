@@ -10,32 +10,13 @@ class LeaveTypeController extends Controller
 {
     protected function validateAccess()
     {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
-
-        $user_position = auth()->user()->up_id;
-
-        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
-            ->where('user_groups.user_id', auth()->user()->id)
-            ->where('g_name', 'administrator')
-            ->exists();
-        
-        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-            ->where('users.id', auth()->user()->id)
-            ->where('user_divisions.ud_code', 'HUMANRESOU')
-            ->exists();
-
-        if (!$user_group_is_admin && !$is_human_resource) {
-            $validate = DB::table('position_access')
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
-                    'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
-                ])->exists();
-
-            if (!$validate) {
-                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
-            }
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
     }
 
@@ -91,7 +72,7 @@ class LeaveTypeController extends Controller
 
     public function create()
     {
-        $this->validateAccess();
+//        $this->validateAccess();
         
         $title = 'Create Leave Type';
         $user = auth()->user();
@@ -110,7 +91,7 @@ class LeaveTypeController extends Controller
 
     public function store(Request $request)
     {
-        $this->validateAccess();
+//        $this->validateAccess();
 
         $request->validate([
             'lt_code' => 'required|unique:leave_types,lt_code',
@@ -154,7 +135,7 @@ class LeaveTypeController extends Controller
 
     public function show($id)
     {
-        $this->validateAccess();
+//        $this->validateAccess();
         
         $title = 'Leave Type Detail';
         $user = auth()->user();
@@ -175,7 +156,7 @@ class LeaveTypeController extends Controller
 
     public function edit($id)
     {
-        $this->validateAccess();
+//        $this->validateAccess();
         
         $title = 'Edit Leave Type';
         $user = auth()->user();
@@ -196,7 +177,7 @@ class LeaveTypeController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validateAccess();
+//        $this->validateAccess();
 
         \Log::info('Leave type update request', [
             'id' => $id,
@@ -275,7 +256,7 @@ class LeaveTypeController extends Controller
 
     public function destroy($id)
     {
-        $this->validateAccess();
+//        $this->validateAccess();
 
         $leaveType = new LeaveType();
         $result = $leaveType->deleteData($id);
