@@ -76,8 +76,8 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
                 'pos_total_discount as total_discount',
                 DB::raw('MAX(final_price) as net_sales_before_admin'),
                 DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
-                DB::raw('SUM(pos_discount_seller) as seller_voucher'),
-                DB::raw('MAX(marketplace_commision_fee) as total_fee_admin'),
+                DB::raw('SUM(seller_voucher_discount) as seller_voucher'),
+                DB::raw('MAX(total_online_cut) as total_fee_admin'),
                 'pos_real_price as net_sales_after_admin',
                 DB::raw("CASE
                 WHEN ts_stores.st_name like 'ONLINE%' and pos_invoice not like 'INV%'
