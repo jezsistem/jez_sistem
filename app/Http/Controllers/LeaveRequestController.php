@@ -8,6 +8,7 @@ use App\Models\LeaveType;
 use App\Models\LeaveBalance;
 use App\Models\User;
 use App\Models\Notification;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
