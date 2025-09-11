@@ -81,7 +81,7 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-right">
                                                 <a class="dropdown-item" id="export_trx" href="#">Export Transaction</a>
-                                                <a class="dropdown-item" href="#">Export Detail Transaction</a>
+                                                <a class="dropdown-item" id="export_detail_trx" href="#">Export Detail Transaction</a>
                                             </div>
                                         </div>
                                     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SettlementDetailTransactionExport;
 use App\Exports\SettlementTransactionExport;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
@@ -688,4 +689,27 @@ class SettlementController extends Controller
         $fileName = 'settlement_transactions_' . date('Ymd_His') . '.xlsx';
         return Excel::download($export, $fileName);
     }
+    public function exportTransactionDetail(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $st_id = $request->input('st_id') ?? 0;
+        $pm_id = $request->input('pm_id') ?? 0;
+        $status_trx = $request->input('status_trx') ?? '';
+
+        $export = new SettlementDetailTransactionExport(
+            $start_date,
+            $end_date,
+            $st_id,
+            $pm_id,
+            $status_trx
+        );
+
+        // Get current date and time (format: YYYYMMDD_HHmm)
+
+        $fileName = 'settlement_detail_transactions_' . date('Ymd_His') . '.xlsx';
+        return Excel::download($export, $fileName);
+    }
+
+
 }
