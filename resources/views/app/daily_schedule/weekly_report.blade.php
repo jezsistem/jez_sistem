@@ -198,11 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h6 class="text-muted mb-2">Shift Color Legend:</h6>
                         <div class="d-flex flex-wrap">
                             <div class="legend-item mr-3 mb-2">
-                                <span class="legend-color" style="background-color: #eaf5fb;"></span>
+                                <span class="legend-color" style="background-color: #e5f7ff;"></span>
                                 <span class="legend-text">Shift 1 & Shift 0</span>
                             </div>
                             <div class="legend-item mr-3 mb-2">
-                                <span class="legend-color" style="background-color: #e5f6f3;"></span>
+                                <span class="legend-color" style="background-color: #e6ffe5;"></span>
                                 <span class="legend-text">Shift 2</span>
                             </div>
                             <div class="legend-item mr-3 mb-2">
@@ -278,12 +278,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         // Color coding based on shift name (same as monthly report)
                                                         $cellClass = '';
                                                         if ($schedule && $shiftName) {
-                                                            if (strpos(strtolower($shiftName), 'shift 1') !== false || strpos(strtolower($shiftName), 'shift 0') !== false) {
-                                                                $cellClass = 'bg-light-info'; // light blue for shift 1 & 0
+                                                            if (strpos(strtolower($shiftName), 'shift 1') !== false) {
+                                                                $cellClass = 'bg-light-info'; // light blue for shift 1
                                                             } elseif (strpos(strtolower($shiftName), 'shift 2') !== false) {
                                                                 $cellClass = 'bg-light-success'; // light green for shift 2
                                                             } elseif (strpos(strtolower($shiftName), 'full') !== false) {
                                                                 $cellClass = 'bg-light-warning'; // light yellow for full
+                                                            } elseif (strpos(strtolower($shiftName), 'shift 0') !== false) {
+                                                                $cellClass = 'bg-light-info'; // light blue for shift 1
                                                             } elseif (strpos(strtolower($shiftName), 'sakit') !== false || strpos(strtolower($shiftName), 'libur') !== false || strpos(strtolower($shiftName), 'izin') !== false) {
                                                                 $cellClass = 'bg-light-danger'; // light red for sakit/libur/izin
                                                             } else {
@@ -468,7 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .bg-light-success {
-    background-color: rgba(26, 188, 156, 0.1) !important;
+    background-color: rgba(13, 255, 0, 0.1) !important;
 }
 
 .bg-light-danger {
@@ -476,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .bg-light-primary {
-    background-color: rgba(52, 152, 219, 0.1) !important;
+    background-color: rgba(36, 207, 255, 0.1) !important;
 }
 
 .bg-light-secondary {
@@ -484,7 +486,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .bg-light-info {
-    background-color: rgba(23, 162, 184, 0.1) !important;
+    background-color: rgba(0, 179, 255, 0.1) !important;
 }
 
 .bg-light-warning {

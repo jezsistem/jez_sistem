@@ -20,32 +20,13 @@ class DailyScheduleController extends Controller
 {
     protected function validateAccess()
     {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
-
-        $user_position = auth()->user()->up_id;
-
-        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
-            ->where('user_groups.user_id', auth()->user()->id)
-            ->where('g_name', 'administrator')
-            ->exists();
-        
-        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-            ->where('users.id', auth()->user()->id)
-            ->where('user_divisions.ud_code', 'HUMANRESOU')
-            ->exists();
-
-        if (!$user_group_is_admin && !$is_human_resource) {
-            $validate = DB::table('position_access')
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
-                    'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
-                ])->exists();
-
-            if (!$validate) {
-                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
-            }
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
     }
 
@@ -160,7 +141,7 @@ class DailyScheduleController extends Controller
     public function index(Request $request)
     {
         // Temporarily comment out for testing
-        // $this->validateAccess();
+        // // $this->validateAccess();
         
         $title = 'Daily Schedules';
         $user = auth()->user();
@@ -192,7 +173,7 @@ class DailyScheduleController extends Controller
 
     public function create()
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -262,7 +243,7 @@ class DailyScheduleController extends Controller
 
     public function show($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -284,7 +265,7 @@ class DailyScheduleController extends Controller
 
     public function edit($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -354,7 +335,7 @@ class DailyScheduleController extends Controller
 
     public function destroy($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         try {
             $dailySchedule = DailySchedule::findOrFail($id);
@@ -381,7 +362,7 @@ class DailyScheduleController extends Controller
 
     public function bulkCreate()
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -468,7 +449,7 @@ class DailyScheduleController extends Controller
 
     public function createRange()
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -749,7 +730,7 @@ class DailyScheduleController extends Controller
      */
     public function weeklySchedule(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         Log::info('Weekly Schedule');
         $user = new User;
         $select = ['*'];
@@ -962,7 +943,7 @@ class DailyScheduleController extends Controller
      */
     public function weeklyReport(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $user = new User;
         $select = ['*'];
@@ -1246,7 +1227,7 @@ class DailyScheduleController extends Controller
      */
     public function getUsersByDivision(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         Log::info('getUsersByDivision called', [
             'user' => Auth::user() ? Auth::user()->id : 'not authenticated',
@@ -1283,7 +1264,7 @@ class DailyScheduleController extends Controller
      */
     public function saveWeeklySchedule(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $request->validate([
             'start_date' => 'required|date',
@@ -2370,7 +2351,7 @@ class DailyScheduleController extends Controller
      */
     public function monthlyReport(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $user = new User;
         $select = ['*'];
@@ -2664,7 +2645,7 @@ class DailyScheduleController extends Controller
     public function exportMonthlyExcel(Request $request)
     {
         try {
-            $this->validateAccess();
+            // $this->validateAccess();
             
             // Get parameters from request - EXPORT EXCEL METHOD
             $month = $request->get('month', date('Y-m'));
@@ -2847,7 +2828,7 @@ class DailyScheduleController extends Controller
     public function exportMonthlyPDF(Request $request)
     {
         try {
-            $this->validateAccess();
+            // $this->validateAccess();
             
             // Get parameters from request - EXPORT PDF METHOD
             $month = $request->get('month', date('Y-m'));
@@ -2990,13 +2971,13 @@ class DailyScheduleController extends Controller
                 .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
                 
                 /* Shift 1 & Shift 0 */
-                .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
-                .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
-                .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
-                .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+                .shift-FS1 { background-color: #e5f7ff; color: #333; } /* Full Shift 1 - Light Blue */
+                .shift-FS0 { background-color: #e5f7ff; color: #333; } /* Full Shift 0 - Light Blue */
+                .shift-PL1 { background-color: #e5f7ff; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+                .shift-PL2 { background-color: #e5f7ff; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
                 
                 /* Shift 2 */
-                .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+                .shift-FS2 { background-color: #e6ffe5; color: #333; } /* Full Shift 2 - Light Green */
                 
                 /* Full & Full Shift 0 */
                 .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
@@ -3007,11 +2988,11 @@ class DailyScheduleController extends Controller
                 .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
                 
                 /* Part Shifts */
-                .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
-                .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
-                .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
-                .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
-                .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+                .shift-SM2 { background-color: #e5f7ff; color: #333; } /* Shift Morning 2 - Light Blue */
+                .shift-SM1 { background-color: #e5f7ff; color: #333; } /* Shift Morning 1 - Light Blue */
+                .shift-PS2 { background-color: #e6ffe5; color: #333; } /* Part Shift 2 - Light Green */
+                .shift-PS1 { background-color: #e6ffe5; color: #333; } /* Part Shift 1 - Light Green */
+                .shift-PS0 { background-color: #e5f7ff; color: #333; } /* Part Shift 0 - Light Green */
                 
                 /* Color Legend Styles */
                 .color-legend { 
@@ -3791,11 +3772,11 @@ class DailyScheduleController extends Controller
             .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
             
             /* Shift 1 & Shift 0 */
-            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
-            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            .shift-FS1 { background-color: #e5f7ff; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #e5f7ff; color: #333; } /* Full Shift 0 - Light Blue */
             
             /* Shift 2 */
-            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            .shift-FS2 { background-color: #e6ffe5; color: #333; } /* Full Shift 2 - Light Green */
             
             /* Full & Full Shift 0 */
             .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
@@ -3806,13 +3787,13 @@ class DailyScheduleController extends Controller
             .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
             
             /* Part Shifts */
-            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
-            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
-            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
-            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
-            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
-            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
-            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            .shift-SM2 { background-color: #e5f7ff; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #e5f7ff; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e6ffe5; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e6ffe5; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f7ff; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #e5f7ff; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #e5f7ff; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
             
             /* Default shift cell styling */
             .shift-cell { font-weight: bold; border-radius: 3px; }
@@ -3953,11 +3934,11 @@ class DailyScheduleController extends Controller
             .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
             
             /* Shift 1 & Shift 0 */
-            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
-            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            .shift-FS1 { background-color: #e5f7ff; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #e5f7ff; color: #333; } /* Full Shift 0 - Light Blue */
             
             /* Shift 2 */
-            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            .shift-FS2 { background-color: #e6ffe5; color: #333; } /* Full Shift 2 - Light Green */
             
             /* Full & Full Shift 0 */
             .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
@@ -3968,13 +3949,13 @@ class DailyScheduleController extends Controller
             .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
             
             /* Part Shifts */
-            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
-            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
-            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
-            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
-            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
-            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
-            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            .shift-SM2 { background-color: #e5f7ff; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #e5f7ff; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e6ffe5; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e6ffe5; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f7ff; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #e5f7ff; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #e5f7ff; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
             
             /* Default shift cell styling */
             .shift-cell { font-weight: bold; border-radius: 3px; }
@@ -4495,7 +4476,7 @@ class DailyScheduleController extends Controller
      */
     public function importWeeklyExcel(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         \Log::info('Weekly Schedule Excel Import started', [
             'request_data' => $request->all(),

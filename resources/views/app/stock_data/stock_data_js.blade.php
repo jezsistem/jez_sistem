@@ -37,7 +37,7 @@
             dataType: 'html',
             url: "{{ url('stock_data_reload_sub_sub_category') }}",
             success: function(r) {
-                $('#pssc_id').html(r);
+                $('#pssc_id').html(r) ;
             }
         });
         return false;
@@ -163,7 +163,7 @@
     let scanner_main = initializeScanner('reader_main');
     let scanner_change_display = initializeScanner('reader_change_display');
 
-    $(document).ready(function() {
+      $(document).ready(function() {
         scanner_main.render(success, error);
         $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').val('');
         // $('body').addClass('kt-primary--minimize aside-minimize');

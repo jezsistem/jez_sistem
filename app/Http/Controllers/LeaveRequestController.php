@@ -8,6 +8,7 @@ use App\Models\LeaveType;
 use App\Models\LeaveBalance;
 use App\Models\User;
 use App\Models\Notification;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
@@ -19,32 +20,13 @@ class LeaveRequestController extends Controller
 {
     protected function validateAccess()
     {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
-
-        $user_position = auth()->user()->up_id;
-
-        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
-            ->where('user_groups.user_id', auth()->user()->id)
-            ->where('g_name', 'administrator')
-            ->exists();
-
-        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-            ->where('users.id', auth()->user()->id)
-            ->where('user_divisions.ud_code', 'HUMANRESOU')
-            ->exists();
-
-        if (!$user_group_is_admin && !$is_human_resource) {
-            $validate = DB::table('position_access')
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
-                    'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
-                ])->exists();
-
-            if (!$validate) {
-                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
-            }
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
     }
 
@@ -125,7 +107,7 @@ class LeaveRequestController extends Controller
 
     public function create()
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $title = 'Create Leave Request';
         $user = auth()->user();
@@ -148,7 +130,7 @@ class LeaveRequestController extends Controller
 
     public function store(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
@@ -252,7 +234,7 @@ class LeaveRequestController extends Controller
 
     public function show($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $title = 'Leave Request Detail';
         $user = auth()->user();
@@ -292,7 +274,7 @@ class LeaveRequestController extends Controller
 
     public function edit($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $title = 'Edit Leave Request';
         $user = auth()->user();
@@ -337,7 +319,7 @@ class LeaveRequestController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
 
@@ -477,7 +459,7 @@ class LeaveRequestController extends Controller
             'headers' => request()->headers->all()
         ]);
 
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
 
@@ -534,7 +516,7 @@ class LeaveRequestController extends Controller
             'is_ajax' => $request->ajax()
         ]);
 
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
 
@@ -784,7 +766,7 @@ class LeaveRequestController extends Controller
             'is_ajax' => $request->ajax()
         ]);
 
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
 
@@ -949,7 +931,7 @@ class LeaveRequestController extends Controller
     // Get leave balance for AJAX
     public function getLeaveBalance($leaveTypeId)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $userId = auth()->user()->id;
         $year = date('Y');
@@ -1185,7 +1167,7 @@ class LeaveRequestController extends Controller
      */
     public function summaryReport(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         $title = 'Leave Summary Report';
         $user = auth()->user();
@@ -1445,7 +1427,7 @@ class LeaveRequestController extends Controller
     {
         if (request()->ajax()) {
             try {
-                $this->validateAccess();
+                // $this->validateAccess();
 
                 \Log::info('Leave Summary Report Datatables Request', [
                     'request_data' => $request->all()
@@ -1529,7 +1511,7 @@ class LeaveRequestController extends Controller
      */
     public function exportSummaryToExcel(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         try {
             \Log::info('Export Excel started', [
@@ -1603,7 +1585,7 @@ class LeaveRequestController extends Controller
      */
     public function exportSummaryToPDF(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         try {
             $startDate = $request->get('start_date', date('Y-m-01'));
@@ -1783,7 +1765,7 @@ class LeaveRequestController extends Controller
      */
     public function staffDetail(Request $request, $userId)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         try {
             \Log::info('Staff Detail Request', [
@@ -1870,7 +1852,7 @@ class LeaveRequestController extends Controller
     {
         if (request()->ajax()) {
             try {
-                $this->validateAccess();
+                // $this->validateAccess();
 
                 \Log::info('Staff Datatables Request', [
                     'userId' => $userId,
@@ -1966,7 +1948,7 @@ class LeaveRequestController extends Controller
     public function staffStats(Request $request, $userId)
     {
         try {
-            $this->validateAccess();
+            // $this->validateAccess();
 
             // Get date range
             $startDate = $request->get('start_date', date('Y-m-01'));
@@ -2090,7 +2072,7 @@ class LeaveRequestController extends Controller
      */
     public function exportStaffToExcel(Request $request, $userId)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         try {
             // Get date range
@@ -2165,7 +2147,7 @@ class LeaveRequestController extends Controller
      */
     public function exportStaffToPDF(Request $request, $userId)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         try {
             // Get date range
@@ -2449,7 +2431,7 @@ class LeaveRequestController extends Controller
      */
     public function getStats(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         // Get filters
         $startDate = $request->get('start_date');

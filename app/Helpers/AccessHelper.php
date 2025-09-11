@@ -39,8 +39,8 @@ if (! function_exists('hasAccess')) {
         }
 
         return PositionAccess::where('position_id', $user->position_id)
-            ->where('feature', $feature)
-            ->where('akses', $action)
+//            ->where('feature', $feature)
+            ->where('action', $action)
             ->exists();
     }
 }
