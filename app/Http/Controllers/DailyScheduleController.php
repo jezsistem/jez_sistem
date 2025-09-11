@@ -2990,13 +2990,13 @@ class DailyScheduleController extends Controller
                 .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
                 
                 /* Shift 1 & Shift 0 */
-                .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
-                .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
-                .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
-                .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+                .shift-FS1 { background-color: #e5f7ff; color: #333; } /* Full Shift 1 - Light Blue */
+                .shift-FS0 { background-color: #e5f7ff; color: #333; } /* Full Shift 0 - Light Blue */
+                .shift-PL1 { background-color: #e5f7ff; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+                .shift-PL2 { background-color: #e5f7ff; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
                 
                 /* Shift 2 */
-                .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+                .shift-FS2 { background-color: #e6ffe5; color: #333; } /* Full Shift 2 - Light Green */
                 
                 /* Full & Full Shift 0 */
                 .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
@@ -3007,11 +3007,11 @@ class DailyScheduleController extends Controller
                 .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
                 
                 /* Part Shifts */
-                .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
-                .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
-                .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
-                .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
-                .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
+                .shift-SM2 { background-color: #e5f7ff; color: #333; } /* Shift Morning 2 - Light Blue */
+                .shift-SM1 { background-color: #e5f7ff; color: #333; } /* Shift Morning 1 - Light Blue */
+                .shift-PS2 { background-color: #e6ffe5; color: #333; } /* Part Shift 2 - Light Green */
+                .shift-PS1 { background-color: #e6ffe5; color: #333; } /* Part Shift 1 - Light Green */
+                .shift-PS0 { background-color: #e5f7ff; color: #333; } /* Part Shift 0 - Light Green */
                 
                 /* Color Legend Styles */
                 .color-legend { 
@@ -3791,11 +3791,11 @@ class DailyScheduleController extends Controller
             .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
             
             /* Shift 1 & Shift 0 */
-            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
-            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            .shift-FS1 { background-color: #e5f7ff; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #e5f7ff; color: #333; } /* Full Shift 0 - Light Blue */
             
             /* Shift 2 */
-            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            .shift-FS2 { background-color: #e6ffe5; color: #333; } /* Full Shift 2 - Light Green */
             
             /* Full & Full Shift 0 */
             .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
@@ -3806,13 +3806,13 @@ class DailyScheduleController extends Controller
             .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
             
             /* Part Shifts */
-            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
-            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
-            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
-            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
-            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
-            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
-            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            .shift-SM2 { background-color: #e5f7ff; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #e5f7ff; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e6ffe5; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e6ffe5; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f7ff; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #e5f7ff; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #e5f7ff; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
             
             /* Default shift cell styling */
             .shift-cell { font-weight: bold; border-radius: 3px; }
@@ -3953,11 +3953,11 @@ class DailyScheduleController extends Controller
             .shift-I { background-color: #f8e8e6; color: #333; } /* Izin - Light Red */
             
             /* Shift 1 & Shift 0 */
-            .shift-FS1 { background-color: #eaf5fb; color: #333; } /* Full Shift 1 - Light Blue */
-            .shift-FS0 { background-color: #eaf5fb; color: #333; } /* Full Shift 0 - Light Blue */
+            .shift-FS1 { background-color: #e5f7ff; color: #333; } /* Full Shift 1 - Light Blue */
+            .shift-FS0 { background-color: #e5f7ff; color: #333; } /* Full Shift 0 - Light Blue */
             
             /* Shift 2 */
-            .shift-FS2 { background-color: #e5f6f3; color: #333; } /* Full Shift 2 - Light Green */
+            .shift-FS2 { background-color: #e6ffe5; color: #333; } /* Full Shift 2 - Light Green */
             
             /* Full & Full Shift 0 */
             .shift-FSE { background-color: #FFF9ED; color: #333; } /* Full Shift - Light Yellow */
@@ -3968,13 +3968,13 @@ class DailyScheduleController extends Controller
             .shift-PF { background-color: #FFF9ED; color: #333; } /* Part Full - Light Yellow */
             
             /* Part Shifts */
-            .shift-SM2 { background-color: #eaf5fb; color: #333; } /* Shift Morning 2 - Light Blue */
-            .shift-SM1 { background-color: #eaf5fb; color: #333; } /* Shift Morning 1 - Light Blue */
-            .shift-PS2 { background-color: #e5f6f3; color: #333; } /* Part Shift 2 - Light Green */
-            .shift-PS1 { background-color: #e5f6f3; color: #333; } /* Part Shift 1 - Light Green */
-            .shift-PS0 { background-color: #e5f6f3; color: #333; } /* Part Shift 0 - Light Green */
-            .shift-PL2 { background-color: #eaf5fb; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
-            .shift-PL1 { background-color: #eaf5fb; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
+            .shift-SM2 { background-color: #e5f7ff; color: #333; } /* Shift Morning 2 - Light Blue */
+            .shift-SM1 { background-color: #e5f7ff; color: #333; } /* Shift Morning 1 - Light Blue */
+            .shift-PS2 { background-color: #e6ffe5; color: #333; } /* Part Shift 2 - Light Green */
+            .shift-PS1 { background-color: #e6ffe5; color: #333; } /* Part Shift 1 - Light Green */
+            .shift-PS0 { background-color: #e5f7ff; color: #333; } /* Part Shift 0 - Light Green */
+            .shift-PL2 { background-color: #e5f7ff; color: #333; } /* Part Libur 2 - Shift 1 (Light Blue) */
+            .shift-PL1 { background-color: #e5f7ff; color: #333; } /* Part Libur 1 - Shift 1 (Light Blue) */
             
             /* Default shift cell styling */
             .shift-cell { font-weight: bold; border-radius: 3px; }

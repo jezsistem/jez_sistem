@@ -131,11 +131,11 @@
                         <h6 class="text-muted mb-2">Shift Color Legend:</h6>
                         <div class="d-flex flex-wrap">
                             <div class="legend-item mr-3 mb-2">
-                                <span class="legend-color" style="background-color: #eaf5fb;"></span>
+                                <span class="legend-color" style="background-color: #e5f7ff;"></span>
                                 <span class="legend-text">Shift 1 & Shift 0</span>
                             </div>
                             <div class="legend-item mr-3 mb-2">
-                                <span class="legend-color" style="background-color: #e5f6f3;"></span>
+                                <span class="legend-color" style="background-color: #e6ffe5;"></span>
                                 <span class="legend-text">Shift 2</span>
                             </div>
                             <div class="legend-item mr-3 mb-2">
@@ -219,12 +219,14 @@
                                                         // Color coding based on shift name
                                                         $cellColor = '#ffffff'; // default white
                                                         if ($schedule) {
-                                                            if (strpos(strtolower($schedule['sc_shift_name']), 'shift 1') !== false || strpos(strtolower($schedule['sc_shift_name']), 'shift 0') !== false) {
-                                                                $cellColor = '#eaf5fb'; // light blue
+                                                            if (strpos(strtolower($schedule['sc_shift_name']), 'shift 1') !== false ) {
+                                                                $cellColor = '#e5f7ff'; // light blue
                                                             } elseif (strpos(strtolower($schedule['sc_shift_name']), 'shift 2') !== false) {
-                                                                $cellColor = '#e5f6f3'; // light green
+                                                                $cellColor = '#e6ffe5'; // light green
                                                             } elseif (strpos(strtolower($schedule['sc_shift_name']), 'full') !== false) {
                                                                 $cellColor = '#FFF9ED'; // light yellow
+                                                            } elseif (strpos(strtolower($schedule['sc_shift_name']), 'shift 0') !== false) {
+                                                                $cellColor = '#e5f7ff'; // light green
                                                             } elseif (strpos(strtolower($schedule['sc_shift_name']), 'sakit') !== false || strpos(strtolower($schedule['sc_shift_name']), 'libur') !== false || strpos(strtolower($schedule['sc_shift_name']), 'izin') !== false) {
                                                                 $cellColor = '#f8e8e6'; // light red
                                                             }
