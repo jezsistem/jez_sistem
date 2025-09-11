@@ -175,7 +175,7 @@
 
                                             @php
                                                 $hasLeaveRequest = $row->ma->contains(function ($item) {
-                                                  return $item->ma_slug === 'leave-types';
+                                                  return $item->ma_slug === 'leave-requests';
                                                 });
                                             @endphp
 
