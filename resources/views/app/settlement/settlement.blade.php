@@ -80,7 +80,7 @@
                                                 <i class="fas fa-download mr-2"></i>Export
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-right">
-                                                <a class="dropdown-item" href="#">Export Transaction</a>
+                                                <a class="dropdown-item" id="export_trx" href="#">Export Transaction</a>
                                                 <a class="dropdown-item" href="#">Export Detail Transaction</a>
                                             </div>
                                         </div>

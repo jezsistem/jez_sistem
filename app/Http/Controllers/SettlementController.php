@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SettlementTransactionExport;
 use App\Models\PaymentMethod;
 use App\Models\PosTransaction;
 use App\Models\PosTransactionDetail;
@@ -13,6 +14,7 @@ use App\Models\WebConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use PhpParser\Node\Expr\PostDec;
 
 class SettlementController extends Controller
@@ -663,5 +665,27 @@ class SettlementController extends Controller
         // dd($cash_only);
 
         return $main->merge($partial)->merge($cash_only)->merge($online);
+    }
+
+    public function exportTransaction(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $st_id = $request->input('st_id') ?? 0;
+        $pm_id = $request->input('pm_id') ?? 0;
+        $status_trx = $request->input('status_trx') ?? '';
+
+        $export = new SettlementTransactionExport(
+            $start_date,
+            $end_date,
+            $st_id,
+            $pm_id,
+            $status_trx
+        );
+
+        // Get current date and time (format: YYYYMMDD_HHmm)
+
+        $fileName = 'settlement_transactions_' . date('Ymd_His') . '.xlsx';
+        return Excel::download($export, $fileName);
     }
 }

@@ -395,5 +395,18 @@
 
             $('#selected_netsales').text(formattedNetsales);
         });
+
+        $('#export_trx').on('click', function() {
+            var url = "{{ url('settlement_export_transaction') }}";
+            var params = new URLSearchParams({
+                st_id: $('#st_id').val() || '',
+                pm_id: $('#payment_method_select').val() || '',
+                start_date: $('#start_date').val() || '',
+                end_date: $('#end_date').val() || '',
+                status_trx: $('#status_trx').val() || ''
+            });
+            
+            window.open(url + '?' + params.toString(), '_blank');
+        });
     });
 </script>
