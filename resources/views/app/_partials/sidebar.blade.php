@@ -111,13 +111,15 @@
                                             <span class="menu-text">Schedule</span>
                                         </a>
                                     </li> -->
-                                                <li class="menu-item">
-                                                    <a href="{{ url('/daily-schedules/weekly') }}" class="menu-link">
+                                                @if(hasAccess(auth()->user()->up_id, 'read'))
+                                                    <li class="menu-item">
+                                                        <a href="{{ url('/daily-schedules/weekly') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
-                                                        <span class="menu-text">Weekly Input</span>
-                                                    </a>
-                                                </li>
+                                                            <span class="menu-text">Weekly Input</span>
+                                                        </a>
+                                                    </li>
+                                                @endif
                                                 <li class="menu-item">
                                                     <a href="{{ url('/daily-schedules/weekly-report') }}"
                                                        class="menu-link">
@@ -173,7 +175,7 @@
 
                                             @php
                                                 $hasLeaveRequest = $row->ma->contains(function ($item) {
-                                                  return $item->ma_slug === 'leave-types';
+                                                  return $item->ma_slug === 'leave-requests';
                                                 });
                                             @endphp
 
