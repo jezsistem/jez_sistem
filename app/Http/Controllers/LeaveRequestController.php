@@ -816,15 +816,26 @@ class LeaveRequestController extends Controller
             return back()->with('error', 'Only Supervisor level and above can reject leave requests');
         }
 
-        // Check if user is in same division as the leave requester
-        if ($currentUser->ud_id != $leaveRequester->ud_id) {
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You can only reject leave requests from your division'
-                ]);
+        $countSpvOnDivision = DB::table('users')
+            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+            ->where('users.ud_id', $leaveRequester->ud_id)
+            ->where('user_positions.up_level', '>=', 2)
+            ->where('user_positions.up_can_approve_leave', true)
+            ->where('user_positions.up_is_active', true)
+            ->count();
+
+        if ($countSpvOnDivision > 0) {
+            // Check if user is in same division as the leave requester
+            if ($currentUser->ud_id != $leaveRequester->ud_id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You can only reject leave requests from your division'
+                    ]);
+                }
+                return back()->with('error', 'You can only reject leave requests from your division');
             }
-            return back()->with('error', 'You can only reject leave requests from your division');
         }
 
         // Check hierarchy - user cannot reject someone with higher or equal level
