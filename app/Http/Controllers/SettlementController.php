@@ -326,7 +326,7 @@ class SettlementController extends Controller
         $main = DB::table('payment_methods')
             ->select(
                 'payment_methods.pm_name',
-                DB::raw('SUM(COALESCE(ts_pos_transactions.pos_payment, 0)) as total_payment'),
+                DB::raw('SUM(CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END) as total_payment'),
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = TRUE THEN COALESCE(ts_pos_transactions.pos_payment, 0) ELSE 0 END)  AS settled_payment'),
                 DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = FALSE THEN COALESCE(ts_pos_transactions.pos_payment, 0) ELSE 0 END)  AS unsettled_payment')
             )
@@ -336,7 +336,7 @@ class SettlementController extends Controller
                     ->when($st_id != 0, function ($query) use ($st_id) {
                         return $query->where('pos_transactions.st_id', $st_id);
                     })
-                    ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
+                    ->when($pm_id != 0, function ($query) use ($pm_id) {
                         return $query->where('payment_methods.pm_name', $pm_id);
                     })
                     ->when($status_trx != '', function ($query) use ($status_trx) {
@@ -351,7 +351,7 @@ class SettlementController extends Controller
                             ->whereNotNull('pos_payment_partial');
                     });
             })
-            ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
+            ->when($pm_id != 0, function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
             })
             ->groupBy('payment_methods.pm_name')
@@ -385,7 +385,7 @@ class SettlementController extends Controller
                             ->whereNotNull('pos_payment_partial');
                     });
             })
-            ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
+            ->when($pm_id != 0 , function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
             })
             ->groupBy('payment_methods.pm_name')
@@ -514,7 +514,7 @@ class SettlementController extends Controller
                 'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
-                DB::raw('MAX(pos_payment) as netsales'),
+                DB::raw('MAX(CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END) as netsales'),
                 'pm_name',
                 'sub_payment',
                 'pos_status',
@@ -525,7 +525,7 @@ class SettlementController extends Controller
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
             })
-            ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
+            ->when($pm_id != 0, function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
@@ -547,7 +547,6 @@ class SettlementController extends Controller
                 'pos_transactions.id',
             ])
             ->get();
-        
 
         $online = DB::table('pos_transactions')
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
