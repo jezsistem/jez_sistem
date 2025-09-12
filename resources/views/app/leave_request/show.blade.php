@@ -42,15 +42,15 @@
                                     <table class="table table-borderless">
                                         <tr>
                                             <td width="150"><strong>Name:</strong></td>
-                                            <td>{{ $leaveRequest->u_name }}</td>
+                                            <td>{{ $leaveRequest->user->u_name }}</td>
                                         </tr>
                                         <tr>
                                             <td><strong>NIP:</strong></td>
-                                            <td>{{ $leaveRequest->u_nip }}</td>
+                                            <td>{{ $leaveRequest->user->u_nip }}</td>
                                         </tr>
                                         <tr>
                                             <td><strong>Division:</strong></td>
-                                            <td>{{ $leaveRequest->ud_name ?: '-' }}</td>
+                                            <td>{{ $leaveRequest->user->division->ud_name ?? '-' }}</td>
                                         </tr>
                                     </table>
                                 </div>
