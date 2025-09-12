@@ -197,13 +197,14 @@ class SettlementController extends Controller
             }
 
             $transaction = PosTransaction::query()
-                ->select('pos_transactions.created_at as transaction_date', 'pos_invoice as receipt_number', 'pos_order_number as order_number', 'stores.st_name as store_name', 'pos_status as trx_status', 'pos_real_price', 'pos_payment', 'pm_main.pm_name as payment_method_main', 'pm_partial.pm_name as payment_method_partial', 'pos_payment_partial', 'pos_transactions.sub_payment', DB::raw('SUM(pos_td_qty * ps_price_tag) as gross_sales'), 'pos_transactions.pos_total_discount as total_discount',DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),DB::raw('(Select SUM(discount_seller) from ts_online_transactions join ts_online_transaction_details on ts_online_transactions.id = to_id where ts_online_transactions.order_number=ts_pos_transactions.pos_order_number) AS total_seller_discount'),'pos_transactions.pos_note as note')
+                ->select('pos_transactions.created_at as transaction_date', 'pos_invoice as receipt_number', 'pos_order_number as order_number', 'stores.st_name as store_name', 'pos_status as trx_status', 'pos_real_price', 'pos_payment', 'pm_main.pm_name as payment_method_main', 'pm_partial.pm_name as payment_method_partial', 'pos_payment_partial', 'pos_transactions.sub_payment', DB::raw('SUM(pos_td_qty * ps_price_tag) as gross_sales'), 'pos_transactions.pos_total_discount as total_discount',DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),DB::raw('(Select SUM(discount_seller) from ts_online_transactions join ts_online_transaction_details on ts_online_transactions.id = to_id where ts_online_transactions.order_number=ts_pos_transactions.pos_order_number) AS total_seller_discount'),'pos_transactions.pos_note as note','total_disburshed_amount as total_dana_cair', 'total_online_cut as total_admin_fee')
                 ->leftJoin('stores', 'stores.id', '=', 'st_id')
                 ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
                 ->leftJoin('payment_methods as pm_partial', 'pm_partial.id', '=', 'pm_id_partial')
                 ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                 ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_invoice')
+                ->leftJoin('online_funds', 'online_funds.order_number', '=', 'pos_transactions.pos_order_number')
                 ->where('pos_transactions.id', $id)
                 ->groupBy('pos_transactions.id','online_transactions.id')
                 ->first();
@@ -262,11 +263,11 @@ class SettlementController extends Controller
             $total_discount = $transaction->total_discount ?? 0;
 
             $net_sales = $transaction->pos_real_price;
-            $total_payment = null;
+            $total_payment = $transaction->pos_real_price;
             $cogs = $transaction->total_cogs ?? 0;
             $seller_voucher = $transaction->total_seller_discount ?? 0;
-            $total_admin_fee = null;
-            $total_dana_cair = null;
+            $total_admin_fee = $transaction->total_admin_fee ?? 0;
+            $total_dana_cair = $transaction->total_dana_cair ?? 0;
             $gross_margin = $gross_sales - $cogs;
             $margin_percentage = $gross_sales != 0 ? round(($gross_margin / $gross_sales) * 100, 2) : 0;
 

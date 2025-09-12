@@ -77,7 +77,18 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                 'ps_price_tag as gross_sales',
                 'pos_td_nameset_price as nameset',
                 'pos_td_discount_number as diskon_peritem',
-                DB::raw('null as total_diskon'),
+                DB::raw('CASE
+                WHEN pos_total_discount = 0 THEN pos_td_discount_number
+                ELSE
+                    ROUND(
+                            COALESCE(pos_td_discount_number, 0)
+                                + (
+                                        COALESCE(ts_pos_transactions.pos_total_discount, 0)
+                                            -
+                                        SUM(COALESCE(pos_td_discount_number, 0)) OVER (PARTITION BY ts_pos_transactions.id)
+                                        ) / NULLIF(COUNT(*) OVER (PARTITION BY ts_pos_transaction_details.pt_id), 0) +
+                            pos_td_discount_number
+                        , 2) END                         AS total_diskon'),
                 'online_transaction_details.original_price as netsales_before_admin',
                 'pos_td_item_cogs as cogs',
                 'discount_seller as sales_voucher',
@@ -106,9 +117,9 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_transactions.pos_order_number')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
-            ->leftJoin('online_transaction_details', function($join) {
+            ->leftJoin('online_transaction_details', function ($join) {
                 $join->on('online_transactions.id', '=', 'to_id')
-                     ->on('product_stocks.ps_barcode', '=', 'online_transaction_details.sku');
+                    ->on('product_stocks.ps_barcode', '=', 'online_transaction_details.sku');
             })
             ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
             ->leftJoin('products', 'products.id', '=', 'p_id')
