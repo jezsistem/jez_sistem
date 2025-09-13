@@ -4,7 +4,7 @@ use App\Http\Controllers\TransaksiOnlineController;
 use App\Http\Controllers\ProductLocationSetupV2Controller;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeliveryRecapController;
-
+use App\Models\TransaksiOnline;
 
 Route::middleware(['auth'])->group(function () {
 
@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('transaksi_online_delete', [TransaksiOnlineController::class, 'delete']);
     Route::post('print_online_invoice', [TransaksiOnlineController::class, 'cetak_invoice']);
     Route::get('print_online_nota/{orderNum}', [TransaksiOnlineController::class, 'cetak_nota'])->name('print_online_nota');
+    Route::get('get_chat_history_online_transaction/{id}', [TransaksiOnlineController::class, 'getChatHistoryOnlineTransaction']);
+    Route::post('send_chat_history_online_transaction', [TransaksiOnlineController::class, 'sendChatHistoryOnlineTransaction']);
 
     // Rekap Resi
     /**

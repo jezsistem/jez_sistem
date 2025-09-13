@@ -7,6 +7,7 @@ use App\Exports\OnlineReportExport;
 use App\Imports\PurchaseOrderExcelImport;
 use App\Imports\StockLocationImport;
 use App\Imports\TransactionOnlineImport;
+use App\Models\OnlineTransactionChat;
 use App\Models\OnlineTransactionDetails;
 use App\Models\OnlineTransactions;
 use App\Models\PaymentMethod;
@@ -140,7 +141,21 @@ class TransaksiOnlineController extends Controller
                 ->editColumn('order_status', function ($data) {
                     return '<a class="text-white" href="#" data-pt_id="' . $data->order_status . '" id="detail_btn"><span class="btn btn-sm btn-primary" title="wsad">' . $data->order_status . '</span></a>';
                 })
-                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status'])
+                ->addColumn('action', function ($data) {
+                    $unreadCount = OnlineTransactionChat::where('ot_id', $data->to_id)
+                        ->where('is_readed', 0)
+                        ->where('is_amp', 0)
+                        ->count();
+                    
+                    $badge = $unreadCount > 0 ? '<span class="badge badge-danger position-absolute top-0 start-100 translate-middle">' . $unreadCount . '</span>' : '';
+                    
+                    return '<div class="position-relative d-inline-block">
+                                <button class="btn btn-sm btn-info ms-1" onclick="openChat(' . $data->to_id . ')" data-trx_number="' . $data->to_order_number . '" title="Chat">
+                                    <i class="fas fa-comment"></i>
+                                </button>' . $badge . '
+                            </div>';
+                })
+                ->rawColumns(['order_number', 'no_resi', 'total_item', 'order_status', 'action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -645,6 +660,52 @@ class TransaksiOnlineController extends Controller
             $r['status'] = '400';
             $r['message'] = $e->getMessage();
             return json_encode($r);
+        }
+    }
+
+    public function sendChatHistoryOnlineTransaction(Request $request)
+    {
+        $ot_id = $request->ot_id;
+        $message = $request->message;
+        $user = Auth::user();
+        $is_amp = $request->is_amp;
+
+        try {
+            $ot = OnlineTransactions::where('id', $ot_id)->first();
+
+            if (!$ot) {
+                return response()->json(['status' => '404', 'message' => 'Transaction not found']);
+            }
+
+            $send = OnlineTransactionChat::create([
+                'ot_id' => $ot_id,
+                'user_id' => $user->id,
+                'messages' => $message,
+                'is_amp' => $is_amp ? 1 : 0,
+                'created_at' => now(),
+            ]);
+
+            return response()->json(['status' => '200', 'message' => 'Message sent successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Error sending chat message: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while sending the message']);
+        }
+        
+    }
+
+    public function getChatHistoryOnlineTransaction($id)
+    {
+        try {
+            $chatHistory = OnlineTransactionChat::where('ot_id', $id)
+                ->leftJoin('users', 'users.id', '=', 'online_transaction_chat_history.user_id')
+                ->select('online_transaction_chat_history.*', 'users.u_name')
+                ->orderBy('online_transaction_chat_history.created_at', 'ASC')
+                ->get();
+
+            return response()->json(['status' => '200', 'data' => $chatHistory]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching chat history: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while fetching chat history']);
         }
     }
 

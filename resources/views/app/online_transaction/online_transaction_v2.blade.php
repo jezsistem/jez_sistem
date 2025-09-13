@@ -171,6 +171,7 @@
                                         <th class="text-dark">Ongkos Kirim</th>
                                         <th class="text-dark">Total Pembayaran</th>
                                         <th class="text-dark">Status Pengiriman</th>
+                                        <th class="text-dark">Aksi</th>
                                     </tr>
                                     </thead>
                                     <tbody>
