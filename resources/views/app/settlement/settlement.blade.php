@@ -118,6 +118,7 @@
                                             <th class="text-dark">Outlet</th>
                                             <th class="text-dark">Qty</th>
                                             <th class="text-dark">Net Sales</th>
+                                            <th class="text-dark">COGS</th>
                                             <th class="text-dark">Payment Method</th>
                                             <th class="text-dark">Sub Payment</th>
                                             <th class="text-dark">Status TRX</th>

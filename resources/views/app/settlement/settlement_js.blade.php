@@ -120,6 +120,10 @@
                     name: 'netsales'
                 },
                 {
+                    data: 'total_cogs',
+                    name: 'total_cogs'
+                },
+                {
                     data: 'pm_name',
                     name: 'pm_name'
                 },
@@ -394,6 +398,10 @@
             }).format(totalNetsales);
 
             $('#selected_netsales').text(formattedNetsales);
+        });
+
+        $('.close_modal').on('click', function() {
+            settlement_table.draw(false);
         });
 
         $('#export_trx').on('click', function() {

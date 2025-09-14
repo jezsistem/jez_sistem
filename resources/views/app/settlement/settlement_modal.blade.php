@@ -1,11 +1,11 @@
 <!-- Modal-->
 <div class="modal fade" id="SettlementDetailModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-dark" id="exampleModalLabel">Transaction Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close close_modal" data-dismiss="modal" aria-label="Close">
                     <i aria-hidden="true" class="ki ki-close"></i>
                 </button>
             </div>
@@ -168,7 +168,7 @@
             </div>
             <div class="modal-footer">
                 <div class="ml-auto">
-                    <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary mr-2 close_modal" data-dismiss="modal">Close</button>
                     <a type="a" class="btn btn-primary" id="btn_print_receipt" target="_blank">Print</a>
                 </div>
             </div>

@@ -171,6 +171,9 @@ class SettlementController extends Controller
             ->editColumn('netsales', function ($collection) {
                 return 'Rp ' . number_format($collection->netsales, 0, ',', '.');
             })
+            ->editColumn('total_cogs', function ($collection) {
+                return 'Rp ' . number_format($collection->total_cogs, 0, ',', '.');
+            })
             ->rawColumns(['pos_status', 'is_settle'])
             ->make(true);
     }
@@ -519,7 +522,8 @@ class SettlementController extends Controller
                 'sub_payment',
                 'pos_status',
                 'is_settle',
-                'pos_transactions.id'
+                'pos_transactions.id',
+                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -563,7 +567,8 @@ class SettlementController extends Controller
                 'sub_payment',
                 'pos_status',
                 'is_settle',
-                'pos_transactions.id'
+                'pos_transactions.id',
+                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -600,7 +605,8 @@ class SettlementController extends Controller
                 'sub_payment',
                 'pos_status',
                 'is_settle',
-                'pos_transactions.id'
+                'pos_transactions.id',
+                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -638,7 +644,8 @@ class SettlementController extends Controller
                 'sub_payment',
                 'pos_status',
                 'is_settle',
-                'pos_transactions.id'
+                'pos_transactions.id',
+                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->where(function ($query) {
