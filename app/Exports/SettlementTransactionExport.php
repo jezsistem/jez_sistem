@@ -120,8 +120,8 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
 
         if ($this->pm_id) {
             $query->where(function ($q) {
-                $q->where('ts_pm_main.pm_name', $this->pm_id)
-                    ->orWhere('ts_pm_partial.pm_name', $this->pm_id);
+                $q->where('pm_main.pm_name', $this->pm_id)
+                    ->orWhere('pm_partial.pm_name', $this->pm_id);
             });
         }
 
