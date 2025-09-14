@@ -1,6 +1,7 @@
 <script>
     let chat_status = 'closed';
     let ot_id = null;
+    var detail_table = '';
 
     function openChat($trx_id) {
         jQuery.noConflict();
@@ -41,7 +42,7 @@
             url: "{{ url('get_chat_history_online_transaction') }}/" + $ot_id,
             type: 'GET',
             data: {
-                ot_id: $ot_id,
+                is_amp: 1,
                 _token: $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
@@ -58,7 +59,7 @@
                             messageElement = $(`
                                 <div class="d-flex justify-content-end mb-3">
                                     <div class="bg-danger text-white rounded px-6 py-2" style="max-width: 70%;">
-                                        <small class="text-light font-weight-bold">${chat.user ? chat.u_name : 'You'}</small>
+                                        <small class="text-light font-weight-bold">${chat.u_name ? chat.u_name : 'You'}</small>
                                         <p class="mb-1">${chat.messages}</p>
                                         <small class="text-light">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
                                     </div>
@@ -69,7 +70,7 @@
                             messageElement = $(`
                                 <div class="d-flex justify-content-start mb-3">
                                     <div class="bg-secondary border rounded px-6 py-2" style="max-width: 70%;">
-                                        <small class="text-muted font-weight-bold">${chat.user ? chat.u_name : 'User'}</small>
+                                        <small class="text-muted font-weight-bold">${chat.u_name ? chat.u_name : 'User'}</small>
                                         <p class="mb-1">${chat.messages}</p>
                                         <small class="text-muted">${new Date(chat.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
                                     </div>
@@ -123,6 +124,34 @@
             error: function(xhr, status, error) {
                 toastr.error('Failed to send message. Please try again.');
                 console.error('Error sending message:', error);
+            }
+        });
+    }
+
+    function pickItems(to_id, sku, to_detail_id, qty) {
+        console.log(to_id, sku, to_detail_id, qty);
+        
+        $.ajax({
+            url: "{{ url('transaksi_online_pick_items') }}",
+            type: 'POST',
+            data: {
+                to_id: to_id,
+                sku: sku,
+                to_detail_id: to_detail_id,
+                qty: qty,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.status === '200') {
+                    toastr.success('Items picked successfully!');
+                    detail_table.draw(false);
+                } else {
+                    toastr.error('Failed to pick items. Please try again.');
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error('An error occurred while picking items. Please try again.');
+                console.error('Error picking items:', error);
             }
         });
     }
@@ -566,7 +595,7 @@
             return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        var detail_table = $('#Detailtb').DataTable({
+        detail_table = $('#Detailtb').DataTable({
 
             destroy: true,
             processing: true,
@@ -661,6 +690,10 @@
                 {
                     data: 'status_pick',
                     name: 'status_pick'
+                },
+                {
+                    data: 'action',
+                    name: 'action'
                 },
             ],
             columnDefs: [{

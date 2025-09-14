@@ -165,6 +165,7 @@
                             <th class="text-dark">N.S Before Admin</th>
                             <th class="text-dark">Final Price</th>
                             <th class="text-dark">Status Pick</th>
+                            <th class="text-dark">Aksi</th>
 
                         </tr>
                         </thead>

@@ -27,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('print_online_nota/{orderNum}', [TransaksiOnlineController::class, 'cetak_nota'])->name('print_online_nota');
     Route::get('get_chat_history_online_transaction/{id}', [TransaksiOnlineController::class, 'getChatHistoryOnlineTransaction']);
     Route::post('send_chat_history_online_transaction', [TransaksiOnlineController::class, 'sendChatHistoryOnlineTransaction']);
+    Route::post('transaksi_online_pick_items', [TransaksiOnlineController::class, 'pickItems']);
 
     // Rekap Resi
     /**

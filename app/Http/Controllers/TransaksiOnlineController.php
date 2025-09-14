@@ -232,13 +232,7 @@ class TransaksiOnlineController extends Controller
                     $st_id = Auth::user()->st_id;
                     $requiredQty = $data->to_qty;
 
-                    $cek_pick = ProductLocationSetupTransaction::join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                        ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                        ->where('product_stocks.ps_barcode', '=', $data->ps_barcode)
-                        ->where('product_location_setup_transactions.st_id', '=', $st_id)
-                        ->where('product_location_setup_transactions.plst_status', '=', 'WAITING ONLINE')
-                        ->limit($requiredQty) // Limit results to required quantity
-                        ->count();
+                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->sum('plst_qty');
 
                     // Determine status and class based on cek_pick
                     $status_pick = ($cek_pick > $requiredQty) ? 'Done Pick' : 'Not taken';
@@ -248,7 +242,46 @@ class TransaksiOnlineController extends Controller
 
                     return '<span class="btn ' . $btnClass . '">' . $show_status . '</span>';
                 })
-                ->rawColumns(['article', 'status_pick'])
+                ->addColumn('action', function ($data) {
+                    $st_id = Auth::user()->st_id;
+                    $st_code = Store::where('id', $st_id)->first()->st_code;
+
+                    $total_stock = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->where('stores.st_code', '=', $st_code)
+                        ->where('product_stocks.ps_barcode', '=', $data->ps_barcode)
+                        ->sum('product_location_setups.pls_qty');
+                    
+                    $total_waiting = ProductLocationSetupTransaction::leftjoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                        ->leftjoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                        ->leftjoin('product_stocks as ps2', 'ps2.id', '=', 'product_location_setup_transactions.pst_id')
+                        ->leftjoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->leftjoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                        ->leftjoin('stores as s2', 's2.id', '=', 'product_location_setup_transactions.st_id')
+                        ->where(function($query) use ($st_code) {
+                            $query->where('stores.st_code', '=', $st_code)
+                                ->orWhere('s2.st_code', '=', $st_code);
+                        })
+                        ->where(function($query) use ($data) {
+                            $query->where('product_stocks.ps_barcode', '=', $data->ps_barcode)
+                                ->orWhere('ps2.ps_barcode', '=', $data->ps_barcode);
+                        })
+                        ->whereIn('product_location_setup_transactions.plst_status', ['WAITING ONLINE', 'WAITING TO TAKE'])
+                        ->count();
+
+                    $cek_pick = ProductLocationSetupTransaction::query()->where('otd_id', $data->otd_id)->sum('plst_qty');
+                    
+                    return '<div class="d-flex flex-column align-items-center">
+                                <span class="badge badge-warning mb-1">Stock: ' . $total_stock-$total_waiting . '</span>
+                                <div>
+                                    <button class="btn btn-sm btn-secondary me-1" onclick="pickItems(\'' . $data->to_id . '\', \'' . $data->ps_barcode . '\', \'' . $data->otd_id . '\', \'' . $data->to_qty . '\')" ' . ($cek_pick >= $data->to_qty ? 'disabled' : '') . '>
+                                        <i class="fas fa-hand-paper"></i> Pick
+                                    </button>
+                                </div>
+                            </div>';
+                })
+                ->rawColumns(['article', 'status_pick', 'action'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -693,8 +726,9 @@ class TransaksiOnlineController extends Controller
         
     }
 
-    public function getChatHistoryOnlineTransaction($id)
+    public function getChatHistoryOnlineTransaction($id, Request $request)
     {
+        $is_amp = $request->is_amp;
         try {
             $chatHistory = OnlineTransactionChat::where('ot_id', $id)
                 ->leftJoin('users', 'users.id', '=', 'online_transaction_chat_history.user_id')
@@ -702,10 +736,115 @@ class TransaksiOnlineController extends Controller
                 ->orderBy('online_transaction_chat_history.created_at', 'ASC')
                 ->get();
 
+            if ($is_amp == 1) {
+                // Mark messages as read if is_amp is true
+                OnlineTransactionChat::where('ot_id', $id)
+                    ->where('is_readed', 0)
+                    ->where('is_amp', 0)
+                    ->update(['is_readed' => 1]);
+            } else {
+                // Mark AMP messages as read if is_amp is false
+                OnlineTransactionChat::where('ot_id', $id)
+                    ->where('is_amp', 1)
+                    ->where('is_readed', 0)
+                    ->update(['is_readed' => 1]);
+            }
+
             return response()->json(['status' => '200', 'data' => $chatHistory]);
         } catch (\Exception $e) {
             \Log::error('Error fetching chat history: ' . $e->getMessage());
             return response()->json(['status' => '500', 'message' => 'An error occurred while fetching chat history']);
+        }
+    }
+
+    public function pickItems(Request $request){
+        $to_id = $request->to_id;
+        $ps_barcode = $request->sku;
+        $otd_id = $request->to_detail_id;
+        $qty = $request->qty;
+        $st_id = Auth::user()->st_id;
+        $user_id = Auth::user()->id;
+
+        $st_code = Store::where('id', $st_id)->first()->st_code;
+
+        try {
+            DB::beginTransaction();
+
+            $to = OnlineTransactions::where('id', $to_id)->first();
+            if (!$to) {
+                DB::rollback();
+                return response()->json(['status' => '404', 'message' => 'Online transaction not found']);
+            }
+
+            $otd = OnlineTransactionDetails::where('id', $otd_id)->first();
+            if (!$otd) {
+                DB::rollback();
+                return response()->json(['status' => '404', 'message' => 'Online transaction detail not found']);
+            }
+
+            $ps = ProductStock::where('ps_barcode', $ps_barcode)->first();
+            if (!$ps) {
+                DB::rollback();
+                return response()->json(['status' => '404', 'message' => 'Product stock not found']);
+            }
+
+
+            $availableQty = ProductLocationSetup::join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                    ->join('stores', 'stores.id', '=', 'product_locations.st_id')
+                    ->where('stores.st_code', '=', $st_code)
+                    ->where('product_stocks.ps_barcode', '=', $ps_barcode)
+                    ->sum('product_location_setups.pls_qty');
+                
+            $waitingQty = ProductLocationSetupTransaction::leftjoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftjoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                ->leftjoin('product_stocks as ps2', 'ps2.id', '=', 'product_location_setup_transactions.pst_id')
+                ->leftjoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                ->leftjoin('stores', 'stores.id', '=', 'product_locations.st_id')
+                ->leftjoin('stores as s2', 's2.id', '=', 'product_location_setup_transactions.st_id')
+                ->where(function($query) use ($st_code) {
+                    $query->where('stores.st_code', '=', $st_code)
+                        ->orWhere('s2.st_code', '=', $st_code);
+                })
+                ->where(function($query) use ($ps_barcode) {
+                    $query->where('product_stocks.ps_barcode', '=', $ps_barcode)
+                        ->orWhere('ps2.ps_barcode', '=', $ps_barcode);
+                })
+                ->whereIn('product_location_setup_transactions.plst_status', ['WAITING ONLINE', 'WAITING TO TAKE'])
+                ->count();
+
+            $readyQty = $availableQty - $waitingQty;
+
+            if ($readyQty < $qty) {
+                DB::rollback();
+                return response()->json(['status' => '400', 'message' => 'Insufficient stock available']);
+            }
+
+            for ($i=1; $i <= $qty; $i++) { 
+                $create_plst = DB::table('product_location_setup_transactions')->insert([
+                    'pst_id' => $ps->id,
+                    'u_id' => $user_id,
+                    'otd_id' => $otd_id,
+                    'st_id' => $st_id,
+                    'plst_qty' => 1,
+                    'plst_type' => 'OUT',
+                    'plst_status' => 'WAITING ONLINE',
+                    'created_at' => now(),
+                ]);
+
+                if (!$create_plst) {
+                    DB::rollback();
+                    return response()->json(['status' => '500', 'message' => 'Failed to create pick item record']);
+                }
+            }
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Items picked successfully']);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Error in pickItems: ' . $e->getMessage());
+            return response()->json(['status' => '500', 'message' => 'An error occurred while processing the request']);
         }
     }
 
