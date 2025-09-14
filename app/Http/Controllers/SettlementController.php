@@ -200,7 +200,37 @@ class SettlementController extends Controller
             }
 
             $transaction = PosTransaction::query()
-                ->select('pos_transactions.created_at as transaction_date', 'pos_invoice as receipt_number', 'pos_order_number as order_number', 'stores.st_name as store_name', 'pos_status as trx_status', 'pos_real_price', 'pos_payment', 'pm_main.pm_name as payment_method_main', 'pm_partial.pm_name as payment_method_partial', 'pos_payment_partial', 'pos_transactions.sub_payment', DB::raw('SUM(pos_td_qty * ps_price_tag) as gross_sales'), 'pos_transactions.pos_total_discount as total_discount',DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),DB::raw('(Select SUM(discount_seller) from ts_online_transactions join ts_online_transaction_details on ts_online_transactions.id = to_id where ts_online_transactions.order_number=ts_pos_transactions.pos_order_number) AS total_seller_discount'),'pos_transactions.pos_note as note','total_disburshed_amount as total_dana_cair', 'total_online_cut as total_admin_fee')
+                ->select(
+                    'pos_transactions.created_at as transaction_date',
+                    'pos_invoice as receipt_number',
+                    'pos_order_number as order_number',
+                    'stores.st_name as store_name',
+                    'pos_status as trx_status',
+                    'pos_real_price',
+                    'pos_payment',
+                    'pm_main.pm_name as payment_method_main',
+                    'pm_partial.pm_name as payment_method_partial',
+                    'pos_payment_partial',
+                    'pos_transactions.sub_payment',
+                    DB::raw('SUM(pos_td_total_price) as gross_sales'),
+                    DB::raw('CASE 
+                                        WHEN pos_invoice NOT LIKE \'INV%\' 
+                                        THEN SUM(CASE 
+                                            WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                                            THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                                            WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
+                                            THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                                            ELSE 0 
+                                        END)
+                                        ELSE ts_pos_transactions.pos_total_discount 
+                                    END as total_discount'),
+                    DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                    'seller_voucher_discount AS total_seller_discount',
+                    'pos_transactions.pos_note as note',
+                    'total_disburshed_amount as total_dana_cair',
+                    'total_online_cut as total_admin_fee',
+                    DB::raw('SUM(pos_td_sell_price) as sell_price')
+                )
                 ->leftJoin('stores', 'stores.id', '=', 'st_id')
                 ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
                 ->leftJoin('payment_methods as pm_partial', 'pm_partial.id', '=', 'pm_id_partial')
@@ -209,11 +239,26 @@ class SettlementController extends Controller
                 ->leftJoin('online_transactions', 'online_transactions.order_number', '=', 'pos_invoice')
                 ->leftJoin('online_funds', 'online_funds.order_number', '=', 'pos_transactions.pos_order_number')
                 ->where('pos_transactions.id', $id)
-                ->groupBy('pos_transactions.id','online_transactions.id')
+                ->groupBy('pos_transactions.id', 'online_transactions.id')
                 ->first();
-            
+
             $items = PosTransactionDetail::query()
-                ->select('products.article_id','products.p_name', 'ps_barcode', 'pos_td_qty','ps_price_tag',DB::raw('CASE WHEN ts_pos_transaction_details.pos_td_nameset_price>0 THEN \'YES\' ELSE \'NO\' END as is_nameset'), 'pos_td_discount_number as discount', 'pos_td_discount_price as price_after_discount')
+                ->select(
+                    'products.article_id',
+                    'products.p_name',
+                    'ps_barcode',
+                    'pos_td_qty',
+                    'ps_price_tag',
+                    DB::raw('CASE WHEN ts_pos_transaction_details.pos_td_nameset_price>0 THEN \'YES\' ELSE \'NO\' END as is_nameset'),
+                    DB::raw('CASE 
+                        WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                        THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
+                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                        ELSE 0 
+                    END as discount'),
+                    'pos_td_sell_price as price_after_discount'
+                )
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->where('pt_id', $id)
@@ -265,7 +310,11 @@ class SettlementController extends Controller
             $gross_sales = $transaction->gross_sales ?? 0;
             $total_discount = $transaction->total_discount ?? 0;
 
-            $net_sales = $transaction->pos_real_price;
+            if (substr(trim((string) $receipt_number), 0, 3) !== 'INV' && str_contains(strtoupper($store_name), 'ONLINE')) {
+                $net_sales = $transaction->sell_price;
+            } else {
+                $net_sales = $transaction->pos_real_price;
+            }
             $total_payment = $transaction->pos_real_price;
             $cogs = $transaction->total_cogs ?? 0;
             $seller_voucher = $transaction->total_seller_discount ?? 0;
@@ -306,7 +355,7 @@ class SettlementController extends Controller
                 'gross_margin' => $gross_margin,
                 'margin_percentage' => $margin_percentage . '%',
                 'print_receipt_url' => $print_receipt_url,
-                'items'=>$items,
+                'items' => $items,
                 'note' => $transaction->note,
             ];
 
@@ -388,7 +437,7 @@ class SettlementController extends Controller
                             ->whereNotNull('pos_payment_partial');
                     });
             })
-            ->when($pm_id != 0 , function ($query) use ($pm_id) {
+            ->when($pm_id != 0, function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
             })
             ->groupBy('payment_methods.pm_name')
@@ -447,7 +496,7 @@ class SettlementController extends Controller
                 return $query->where('online_transactions.platform_name', 'tiktok');
             })
             ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
-                return $query->where('pm_name',$pm_id); // Return no results when pm_id is not DEPOSIT SHOPEE or DEPOSIT TIKTOK
+                return $query->where('pm_name', $pm_id); // Return no results when pm_id is not DEPOSIT SHOPEE or DEPOSIT TIKTOK
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
@@ -507,7 +556,7 @@ class SettlementController extends Controller
     {
         $start_date = $start_date . ' 00:00:00';
         $end_date = $end_date . ' 23:59:59';
-        
+
         $main = DB::table('pos_transactions')
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
@@ -581,7 +630,7 @@ class SettlementController extends Controller
                 return $query->where('online_transactions.platform_name', 'tiktok');
             })
             ->when($pm_id != 0 && !in_array($pm_id, ['DEPOSIT SHOPEE', 'DEPOSIT TIKTOK']), function ($query) use ($pm_id) {
-                return $query->where('pm_name',$pm_id); // Return no results when pm_id is not DEPOSIT SHOPEE or DEPOSIT TIKTOK
+                return $query->where('pm_name', $pm_id); // Return no results when pm_id is not DEPOSIT SHOPEE or DEPOSIT TIKTOK
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
@@ -717,6 +766,4 @@ class SettlementController extends Controller
         $fileName = 'settlement_detail_transactions_' . date('Ymd_His') . '.xlsx';
         return Excel::download($export, $fileName);
     }
-
-
 }
