@@ -86,8 +86,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                                         COALESCE(ts_pos_transactions.pos_total_discount, 0)
                                             -
                                         SUM(COALESCE(pos_td_discount_number, 0)) OVER (PARTITION BY ts_pos_transactions.id)
-                                        ) / NULLIF(COUNT(*) OVER (PARTITION BY ts_pos_transaction_details.pt_id), 0) +
-                            pos_td_discount_number
+                                        ) / NULLIF(COUNT(*) OVER (PARTITION BY ts_pos_transaction_details.pt_id), 0)
                         , 2) END                         AS total_diskon'),
                 'online_transaction_details.original_price as netsales_before_admin',
                 'pos_td_item_cogs as cogs',
