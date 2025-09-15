@@ -99,14 +99,17 @@ class UserDivisionController extends Controller
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
         $leader = DB::table('users')
-            ->select('users.id as user_id','users.u_name')
+            ->select('users.id as user_id', 'users.u_name')
             ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
-            ->where('user_positions.up_code', 'SUPERVISOR')->get();
+            ->whereIn('user_positions.up_code', ['SUPERVISOR', 'DIREKTUR'])
+            ->get();
 
         $manager = DB::table('users')
-            ->select('users.id as user_id','users.u_name')
+            ->select('users.id as user_id', 'users.u_name')
             ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
-            ->where('user_positions.up_code', 'MANAGER')->get();
+            ->whereIn('user_positions.up_code', ['MANAGER', 'DIREKTUR'])
+            ->get();
+
 
 
         $data = [
@@ -200,15 +203,17 @@ class UserDivisionController extends Controller
         }
 
         $leader = DB::table('users')
-            ->select('users.id as user_id','users.u_name')
+            ->select('users.id as user_id', 'users.u_name')
             ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
-            ->where('user_positions.up_code', 'SUPERVISOR')->get();
+            ->whereIn('user_positions.up_code', ['SUPERVISOR', 'DIREKTUR'])
+            ->get();
 
         $manager = DB::table('users')
-            ->select('users.id as user_id','users.u_name')
+            ->select('users.id as user_id', 'users.u_name')
             ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
-            ->where('user_positions.up_code', 'MANAGER')
+            ->whereIn('user_positions.up_code', ['MANAGER', 'DIREKTUR'])
             ->get();
+
 
         $data = [
             'title' => $title,
