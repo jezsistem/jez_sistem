@@ -269,7 +269,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('export_transfer_draft', [StockTransferController::class, 'exportData']);
     Route::post('change_transfer_qty', [StockTransferController::class, 'changeTransferQty']);
     Route::post('import_compare_done_transfer', [StockTransferController::class, 'importCompareDoneTransfer']);
-//    Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
+    // Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
 
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');

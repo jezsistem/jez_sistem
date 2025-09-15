@@ -793,10 +793,10 @@ class LeaveRequestController extends Controller
             ->where('id', $leaveRequester->ud_id)
             ->first();
 
-        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
-            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
-            return $this->deny($request, 'You can only approve leave requests within your division');
-        }
+//        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
+//            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
+//            return $this->deny($request, 'You can only approve leave requests within your division');
+//        }
 
         // 🟢 3. Cek apakah current user leader/manager dari divisi ini
         $isDivisionLead = $requesterDivision && $currentUser->id == $requesterDivision->lead_id;
