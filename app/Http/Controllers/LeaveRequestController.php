@@ -261,6 +261,7 @@ class LeaveRequestController extends Controller
             ->whereBetween('daily_schedules.ds_date', [$leaveRequest->lr_start_date, $leaveRequest->lr_end_date])
             ->get();
 
+
         $data = [
             'title' => $title,
             'subtitle' => 'Leave Request Detail',
@@ -507,264 +508,343 @@ class LeaveRequestController extends Controller
     }
 
     // Admin approval methods
+//    public function approve(Request $request, $id)
+//    {
+//        \Log::info('Leave Request Approval Attempt', [
+//            'request_id' => $id,
+//            'user_id' => auth()->user()->id,
+//            'request_data' => $request->all(),
+//            'is_ajax' => $request->ajax()
+//        ]);
+//
+//        // $this->validateAccess();
+//
+//        $leaveRequest = LeaveRequest::findOrFail($id);
+//
+//        // Check if user can approve (must be supervisor or higher in same division)
+//        $currentUser = auth()->user();
+//
+////        dd($approver_div);
+//        \Log::info('Current user info', [
+//            'user_id' => $currentUser->id,
+//            'position_id' => $currentUser->up_id,
+//            'division_id' => $currentUser->ud_id
+//        ]);
+//
+//        // Get leave requester info first to check if they're trying to approve their own request
+//        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
+//
+//        $approver_div = DB::table('store_types')->where('id', $leaveRequester->ud_id)->first();
+//
+//
+//        // Check if user is trying to approve their own leave request
+//        if ($currentUser->id == $leaveRequest->user_id) {
+//            \Log::warning('User trying to approve their own leave request');
+//            if ($request->ajax()) {
+//                return response()->json([
+//                    'success' => false,
+//                    'message' => 'You cannot approve your own leave request'
+//                ]);
+//            }
+//            return back()->with('error', 'You cannot approve your own leave request');
+//        }
+//
+//        $currentUserPosition = DB::table('user_positions')
+//            ->where('id', $currentUser->up_id ?? 0)
+//            ->where('up_is_active', true)
+//            ->where('up_can_approve_leave', true)
+//            ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
+//            ->first();
+//
+//        \Log::info('Position check result', [
+//            'position_found' => $currentUserPosition ? true : false,
+//            'position_data' => $currentUserPosition,
+//            'required_level' => 'Supervisor (level 2) or above'
+//        ]);
+//
+//        if (!$currentUserPosition) {
+//            \Log::warning('User does not have approval permission - must be Supervisor or above');
+//            if ($request->ajax()) {
+//                return response()->json([
+//                    'success' => false,
+//                    'message' => 'Only Supervisor level and above can approve leave requests'
+//                ]);
+//            }
+//            return back()->with('error', 'Only Supervisor level and above can approve leave requests');
+//        }
+//
+//        $countSpvOnDivision = DB::table('users')
+//            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+//            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+//            ->where('users.ud_id', $leaveRequester->ud_id)
+//            ->where('user_positions.up_level', '>=', 2)
+//            ->where('user_positions.up_can_approve_leave', true)
+//            ->where('user_positions.up_is_active', true)
+//            ->count();
+//
+//        if ($countSpvOnDivision > 0) {
+//            // Leave requester already retrieved above for self-approval check
+//
+//            \Log::info('Division check', [
+//                'current_user_division' => $currentUser->ud_id,
+//                'requester_division' => $leaveRequester->ud_id,
+//                'same_division' => $currentUser->ud_id == $leaveRequester->ud_id
+//            ]);
+//
+//            // Check if user is in same division as the leave requester
+//            if ($currentUser->ud_id != $leaveRequester->ud_id) {
+//                \Log::warning('User not in same division as requester');
+//                if ($request->ajax()) {
+//                    return response()->json([
+//                        'success' => false,
+//                        'message' => 'You can only approve leave requests from your division'
+//                    ]);
+//                }
+//                return back()->with('error', 'You can only approve leave requests from your division');
+//            }
+//        }
+//        // Check hierarchy - user cannot approve someone with higher or equal level
+//        $requesterPosition = DB::table('user_positions')
+//            ->where('id', $leaveRequester->up_id ?? 0)
+//            ->where('up_is_active', true)
+//            ->first();
+//
+//        if ($requesterPosition) {
+//            $currentUserLevel = $currentUserPosition->up_level;
+//            $requesterLevel = $requesterPosition->up_level;
+//
+//            \Log::info('Hierarchy check', [
+//                'current_user_level' => $currentUserLevel,
+//                'requester_level' => $requesterLevel,
+//                'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
+//                'requester_position' => $requesterPosition->up_name ?? 'Unknown'
+//            ]);
+//
+//            // User can only approve someone with lower level
+//            if ($currentUserLevel <= $requesterLevel) {
+//                \Log::warning('User trying to approve someone with higher or equal level');
+//                if ($request->ajax()) {
+//                    return response()->json([
+//                        'success' => false,
+//                        'message' => 'You cannot approve leave requests from someone with higher or equal position level'
+//                    ]);
+//                }
+//                return back()->with('error', 'You cannot approve leave requests from someone with higher or equal position level');
+//            }
+//        }
+//
+//        // Check if leave request is pending
+//        \Log::info('Leave request status check', [
+//            'current_status' => $leaveRequest->lr_status,
+//            'is_pending' => $leaveRequest->lr_status === 'pending'
+//        ]);
+//
+//        if ($leaveRequest->lr_status !== 'pending') {
+//            \Log::warning('Leave request is not pending');
+//            if ($request->ajax()) {
+//                return response()->json([
+//                    'success' => false,
+//                    'message' => 'Only pending leave requests can be approved'
+//                ]);
+//            }
+//            return back()->with('error', 'Only pending leave requests can be approved');
+//        }
+//
+//        $request->validate([
+//            'lr_admin_notes' => 'nullable|string'
+//        ]);
+//
+//        try {
+//            DB::beginTransaction();
+//
+//            \Log::info('Updating leave request', [
+//                'old_status' => $leaveRequest->lr_status,
+//                'new_status' => 'approved',
+//                'admin_notes' => $request->lr_admin_notes,
+//                'approved_by' => $currentUser->id,
+//                'approved_at' => date('Y-m-d H:i:s')
+//            ]);
+//
+//            // Update leave request status
+//            $leaveRequest->lr_status = 'approved';
+//            $leaveRequest->lr_admin_notes = $request->lr_admin_notes;
+//            $leaveRequest->lr_approved_by = $currentUser->id;
+//            $leaveRequest->lr_approved_at = date('Y-m-d H:i:s');
+//            $leaveRequest->save();
+//
+//            \Log::info('Leave request updated successfully', [
+//                'leave_request_id' => $leaveRequest->id,
+//                'new_status' => $leaveRequest->lr_status
+//            ]);
+//
+//            // If it's annual leave, update leave balance
+//            if ($leaveRequest->leaveType->lt_code === 'ANNUAL') {
+//                $leaveBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
+//                    ->where('leave_type_id', $leaveRequest->leave_type_id)
+//                    ->where('lb_year', date('Y'))
+//                    ->first();
+//
+//                if ($leaveBalance) {
+//                    $leaveBalance->lb_used_balance += $leaveRequest->lr_total_days;
+//                    $leaveBalance->lb_remaining_balance = $leaveBalance->lb_initial_balance - $leaveBalance->lb_used_balance;
+//                    $leaveBalance->save();
+//                }
+//            }
+//
+//            // Create attendance records for each day of leave
+//            \Log::info('Creating attendance records for leave', [
+//                'leave_request_id' => $leaveRequest->id,
+//                'user_id' => $leaveRequest->user_id,
+//                'start_date' => $leaveRequest->lr_start_date,
+//                'end_date' => $leaveRequest->lr_end_date,
+//                'leave_type_code' => $leaveRequest->leaveType->lt_code
+//            ]);
+//
+//            $startDate = Carbon::parse($leaveRequest->lr_start_date);
+//            $endDate = $leaveRequest->lr_end_date ? Carbon::parse($leaveRequest->lr_end_date) : $startDate;
+//
+//            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+//                // Check if attendance record already exists for this date
+//                $existingAttendance = DB::table('attendance')
+//                    ->where('user_id', $leaveRequest->user_id)
+//                    ->where('at_date', $date->format('Y-m-d'))
+//                    ->first();
+//
+//                if (!$existingAttendance) {
+//                    // Create attendance record for leave
+//                    $attendanceId = DB::table('attendance')->insertGetId([
+//                        'user_id' => $leaveRequest->user_id,
+//                        'at_date' => $date->format('Y-m-d'),
+//                        'at_status' => 'leave_' . $leaveRequest->leaveType->lt_code,
+//                        'at_notes' => $leaveRequest->lr_reason,
+//                        'at_source' => 'system',
+//                        'created_by' => $currentUser->id,
+//                        'created_at' => now(),
+//                        'updated_at' => now()
+//                    ]);
+//
+//                    \Log::info('Attendance record created for leave', [
+//                        'attendance_id' => $attendanceId,
+//                        'user_id' => $leaveRequest->user_id,
+//                        'date' => $date->format('Y-m-d'),
+//                        'status' => 'leave_' . $leaveRequest->leaveType->lt_code
+//                    ]);
+//                } else {
+//                    \Log::info('Attendance record already exists for date', [
+//                        'user_id' => $leaveRequest->user_id,
+//                        'date' => $date->format('Y-m-d'),
+//                        'existing_status' => $existingAttendance->at_status
+//                    ]);
+//                }
+//            }
+//
+//            DB::commit();
+//            \Log::info('Database transaction committed successfully');
+//
+//            // Send notification to the requester
+//            $this->sendLeaveStatusChangeNotification($leaveRequest->id, 'approved', $currentUser->u_name);
+//
+//            if ($request->ajax()) {
+//                \Log::info('Sending AJAX response', ['success' => true]);
+//                return response()->json([
+//                    'success' => true,
+//                    'message' => 'Leave request approved successfully'
+//                ]);
+//            }
+//
+//            \Log::info('Sending redirect response');
+//            return redirect()->route('leave-requests.index')->with('success', 'Leave request approved successfully');
+//        } catch (\Exception $e) {
+//            \Log::error('Error approving leave request', [
+//                'error' => $e->getMessage(),
+//                'trace' => $e->getTraceAsString()
+//            ]);
+//
+//            DB::rollback();
+//
+//            if ($request->ajax()) {
+//                return response()->json([
+//                    'success' => false,
+//                    'message' => 'Failed to approve leave request: ' . $e->getMessage()
+//                ]);
+//            }
+//
+//            return back()->with('error', 'Failed to approve leave request: ' . $e->getMessage());
+//        }
+//    }
+
     public function approve(Request $request, $id)
     {
-        \Log::info('Leave Request Approval Attempt', [
-            'request_id' => $id,
-            'user_id' => auth()->user()->id,
-            'request_data' => $request->all(),
-            'is_ajax' => $request->ajax()
-        ]);
-
-        // $this->validateAccess();
-
-        $leaveRequest = LeaveRequest::findOrFail($id);
-
-        // Check if user can approve (must be supervisor or higher in same division)
         $currentUser = auth()->user();
-        \Log::info('Current user info', [
-            'user_id' => $currentUser->id,
-            'position_id' => $currentUser->up_id,
-            'division_id' => $currentUser->ud_id
-        ]);
 
-        // Get leave requester info first to check if they're trying to approve their own request
-        $leaveRequester = DB::table('users')->where('id', $leaveRequest->user_id)->first();
+        // Ambil leave request + relasi user
+        $leaveRequest = LeaveRequest::with('user')->findOrFail($id);
+        $leaveRequester = $leaveRequest->user;
 
-        // Check if user is trying to approve their own leave request
-        if ($currentUser->id == $leaveRequest->user_id) {
-            \Log::warning('User trying to approve their own leave request');
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You cannot approve your own leave request'
-                ]);
-            }
-            return back()->with('error', 'You cannot approve your own leave request');
+        // 🛑 1. Cegah self-approval
+        if ($currentUser->id === $leaveRequester->id) {
+            \Log::warning("User {$currentUser->id} mencoba self-approve");
+            return $this->deny($request, 'You cannot approve your own leave request');
         }
 
-        $currentUserPosition = DB::table('user_positions')
-            ->where('id', $currentUser->up_id ?? 0)
-            ->where('up_is_active', true)
-            ->where('up_can_approve_leave', true)
-            ->where('up_level', '>=', 2) // Level 2 = Supervisor and above
+        // Ambil data posisi (level)
+        $currentUserLevel = $currentUser->position->up_level ?? 0;
+        $requesterLevel = $leaveRequester->position->up_level ?? 0;
+
+        // Ambil divisi dari leave requester
+        $requesterDivision = DB::table('user_divisions')
+            ->where('id', $leaveRequester->ud_id)
             ->first();
 
-        \Log::info('Position check result', [
-            'position_found' => $currentUserPosition ? true : false,
-            'position_data' => $currentUserPosition,
-            'required_level' => 'Supervisor (level 2) or above'
-        ]);
-
-        if (!$currentUserPosition) {
-            \Log::warning('User does not have approval permission - must be Supervisor or above');
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Only Supervisor level and above can approve leave requests'
-                ]);
-            }
-            return back()->with('error', 'Only Supervisor level and above can approve leave requests');
+        // 🛑 2. Cek apakah sama divisi
+        if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
+            \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
+            return $this->deny($request, 'You can only approve leave requests within your division');
         }
 
-        $countSpvOnDivision = DB::table('users')
-            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
-            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
-            ->where('users.ud_id', $leaveRequester->ud_id)
-            ->where('user_positions.up_level', '>=', 2)
-            ->where('user_positions.up_can_approve_leave', true)
-            ->where('user_positions.up_is_active', true)
-            ->count();
+        // 🟢 3. Cek apakah current user leader/manager dari divisi ini
+        $isDivisionLead = $requesterDivision && $currentUser->id == $requesterDivision->lead_id;
+        $isDivisionManager = $requesterDivision && $currentUser->id == $requesterDivision->manager_id;
 
-        if ($countSpvOnDivision > 0) {
-            // Leave requester already retrieved above for self-approval check
-
-            \Log::info('Division check', [
-                'current_user_division' => $currentUser->ud_id,
-                'requester_division' => $leaveRequester->ud_id,
-                'same_division' => $currentUser->ud_id == $leaveRequester->ud_id
-            ]);
-
-            // Check if user is in same division as the leave requester
-            if ($currentUser->ud_id != $leaveRequester->ud_id) {
-                \Log::warning('User not in same division as requester');
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You can only approve leave requests from your division'
-                    ]);
-                }
-                return back()->with('error', 'You can only approve leave requests from your division');
-            }
-        }
-        // Check hierarchy - user cannot approve someone with higher or equal level
-        $requesterPosition = DB::table('user_positions')
-            ->where('id', $leaveRequester->up_id ?? 0)
-            ->where('up_is_active', true)
-            ->first();
-
-        if ($requesterPosition) {
-            $currentUserLevel = $currentUserPosition->up_level;
-            $requesterLevel = $requesterPosition->up_level;
-
-            \Log::info('Hierarchy check', [
-                'current_user_level' => $currentUserLevel,
-                'requester_level' => $requesterLevel,
-                'current_user_position' => $currentUserPosition->up_name ?? 'Unknown',
-                'requester_position' => $requesterPosition->up_name ?? 'Unknown'
-            ]);
-
-            // User can only approve someone with lower level
+        if ($isDivisionLead) {
+            \Log::info("User {$currentUser->id} adalah LEADER divisi, boleh approve");
+        } elseif ($isDivisionManager) {
+            \Log::info("User {$currentUser->id} adalah MANAGER divisi, boleh approve");
+        } else {
+            // 🛑 4. Kalau bukan lead/manager → fallback ke aturan level
             if ($currentUserLevel <= $requesterLevel) {
-                \Log::warning('User trying to approve someone with higher or equal level');
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You cannot approve leave requests from someone with higher or equal position level'
-                    ]);
-                }
-                return back()->with('error', 'You cannot approve leave requests from someone with higher or equal position level');
+                \Log::warning("User {$currentUser->id} mencoba approve level >= dirinya ({$currentUserLevel} <= {$requesterLevel})");
+                return $this->deny($request, 'You cannot approve leave requests from someone with higher or equal position level');
             }
         }
 
-        // Check if leave request is pending
-        \Log::info('Leave request status check', [
-            'current_status' => $leaveRequest->lr_status,
-            'is_pending' => $leaveRequest->lr_status === 'pending'
+        // ✅ 5. Kalau lolos semua rules → set leave request approved
+        $leaveRequest->update([
+            'lr_status' => 'APPROVED',
+            'lr_approved_by' => $currentUser->id,
+            'lr_approved_at' => now(),
         ]);
 
-        if ($leaveRequest->lr_status !== 'pending') {
-            \Log::warning('Leave request is not pending');
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Only pending leave requests can be approved'
-                ]);
-            }
-            return back()->with('error', 'Only pending leave requests can be approved');
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Leave request approved successfully',
+            ]);
         }
 
-        $request->validate([
-            'lr_admin_notes' => 'nullable|string'
-        ]);
+        return back()->with('success', 'Leave request approved successfully');
+    }
 
-        try {
-            DB::beginTransaction();
-
-            \Log::info('Updating leave request', [
-                'old_status' => $leaveRequest->lr_status,
-                'new_status' => 'approved',
-                'admin_notes' => $request->lr_admin_notes,
-                'approved_by' => $currentUser->id,
-                'approved_at' => date('Y-m-d H:i:s')
+    protected function deny(Request $request, string $message)
+    {
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
             ]);
-
-            // Update leave request status
-            $leaveRequest->lr_status = 'approved';
-            $leaveRequest->lr_admin_notes = $request->lr_admin_notes;
-            $leaveRequest->lr_approved_by = $currentUser->id;
-            $leaveRequest->lr_approved_at = date('Y-m-d H:i:s');
-            $leaveRequest->save();
-
-            \Log::info('Leave request updated successfully', [
-                'leave_request_id' => $leaveRequest->id,
-                'new_status' => $leaveRequest->lr_status
-            ]);
-
-            // If it's annual leave, update leave balance
-            if ($leaveRequest->leaveType->lt_code === 'ANNUAL') {
-                $leaveBalance = LeaveBalance::where('user_id', $leaveRequest->user_id)
-                    ->where('leave_type_id', $leaveRequest->leave_type_id)
-                    ->where('lb_year', date('Y'))
-                    ->first();
-
-                if ($leaveBalance) {
-                    $leaveBalance->lb_used_balance += $leaveRequest->lr_total_days;
-                    $leaveBalance->lb_remaining_balance = $leaveBalance->lb_initial_balance - $leaveBalance->lb_used_balance;
-                    $leaveBalance->save();
-                }
-            }
-
-            // Create attendance records for each day of leave
-            \Log::info('Creating attendance records for leave', [
-                'leave_request_id' => $leaveRequest->id,
-                'user_id' => $leaveRequest->user_id,
-                'start_date' => $leaveRequest->lr_start_date,
-                'end_date' => $leaveRequest->lr_end_date,
-                'leave_type_code' => $leaveRequest->leaveType->lt_code
-            ]);
-
-            $startDate = Carbon::parse($leaveRequest->lr_start_date);
-            $endDate = $leaveRequest->lr_end_date ? Carbon::parse($leaveRequest->lr_end_date) : $startDate;
-
-            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
-                // Check if attendance record already exists for this date
-                $existingAttendance = DB::table('attendance')
-                    ->where('user_id', $leaveRequest->user_id)
-                    ->where('at_date', $date->format('Y-m-d'))
-                    ->first();
-
-                if (!$existingAttendance) {
-                    // Create attendance record for leave
-                    $attendanceId = DB::table('attendance')->insertGetId([
-                        'user_id' => $leaveRequest->user_id,
-                        'at_date' => $date->format('Y-m-d'),
-                        'at_status' => 'leave_' . $leaveRequest->leaveType->lt_code,
-                        'at_notes' => $leaveRequest->lr_reason,
-                        'at_source' => 'system',
-                        'created_by' => $currentUser->id,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-
-                    \Log::info('Attendance record created for leave', [
-                        'attendance_id' => $attendanceId,
-                        'user_id' => $leaveRequest->user_id,
-                        'date' => $date->format('Y-m-d'),
-                        'status' => 'leave_' . $leaveRequest->leaveType->lt_code
-                    ]);
-                } else {
-                    \Log::info('Attendance record already exists for date', [
-                        'user_id' => $leaveRequest->user_id,
-                        'date' => $date->format('Y-m-d'),
-                        'existing_status' => $existingAttendance->at_status
-                    ]);
-                }
-            }
-
-            DB::commit();
-            \Log::info('Database transaction committed successfully');
-
-            // Send notification to the requester
-            $this->sendLeaveStatusChangeNotification($leaveRequest->id, 'approved', $currentUser->u_name);
-
-            if ($request->ajax()) {
-                \Log::info('Sending AJAX response', ['success' => true]);
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Leave request approved successfully'
-                ]);
-            }
-
-            \Log::info('Sending redirect response');
-            return redirect()->route('leave-requests.index')->with('success', 'Leave request approved successfully');
-        } catch (\Exception $e) {
-            \Log::error('Error approving leave request', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            DB::rollback();
-
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to approve leave request: ' . $e->getMessage()
-                ]);
-            }
-
-            return back()->with('error', 'Failed to approve leave request: ' . $e->getMessage());
         }
+
+        return back()->with('error', $message);
     }
 
     public function reject(Request $request, $id)
@@ -779,6 +859,12 @@ class LeaveRequestController extends Controller
         // $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
+        dd($leaveRequest);
+
+        $user_req_divisions = DB::table('users')->first();
+
+//        $spv_id = DB::table('store_types')->where
+
 
         // Check if user can reject (must be supervisor or higher in same division)
         $currentUser = auth()->user();
@@ -816,27 +902,37 @@ class LeaveRequestController extends Controller
             return back()->with('error', 'Only Supervisor level and above can reject leave requests');
         }
 
-        $countSpvOnDivision = DB::table('users')
-            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
-            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
-            ->where('users.ud_id', $leaveRequester->ud_id)
-            ->where('user_positions.up_level', '>=', 2)
-            ->where('user_positions.up_can_approve_leave', true)
-            ->where('user_positions.up_is_active', true)
-            ->count();
 
-        if ($countSpvOnDivision > 0) {
-            // Check if user is in same division as the leave requester
-            if ($currentUser->ud_id != $leaveRequester->ud_id) {
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You can only reject leave requests from your division'
-                    ]);
-                }
-                return back()->with('error', 'You can only reject leave requests from your division');
+        if ($currentUser->ud_id != $leaveRequester->ud_id) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only reject leave requests from your division'
+                ]);
             }
+            return back()->with('error', 'You can only reject leave requests from your division');
         }
+//        $countSpvOnDivision = DB::table('users')
+//            ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+//            ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+//            ->where('users.ud_id', $leaveRequester->ud_id)
+//            ->where('user_positions.up_level', '>=', 2)
+//            ->where('user_positions.up_can_approve_leave', true)
+//            ->where('user_positions.up_is_active', true)
+//            ->count();
+
+//        if ($countSpvOnDivision > 0) {
+//            // Check if user is in same division as the leave requester
+//            if ($currentUser->ud_id != $leaveRequester->ud_id) {
+//                if ($request->ajax()) {
+//                    return response()->json([
+//                        'success' => false,
+//                        'message' => 'You can only reject leave requests from your division'
+//                    ]);
+//                }
+//                return back()->with('error', 'You can only reject leave requests from your division');
+//            }
+//        }
 
         // Check hierarchy - user cannot reject someone with higher or equal level
         $requesterPosition = DB::table('user_positions')
@@ -1278,7 +1374,7 @@ class LeaveRequestController extends Controller
 
             // Add status-based statistics
             foreach ($statusStats as $stat) {
-                $stats[] = (object) [
+                $stats[] = (object)[
                     'lr_status' => $stat->lr_status,
                     'total' => $stat->total
                 ];
@@ -1286,7 +1382,7 @@ class LeaveRequestController extends Controller
 
             // Add leave type statistics
             foreach ($typeStats as $stat) {
-                $stats[] = (object) [
+                $stats[] = (object)[
                     'lr_status' => 'leave_' . strtolower($stat->lt_code),
                     'total' => $stat->total
                 ];
@@ -1499,7 +1595,7 @@ class LeaveRequestController extends Controller
                 // Convert to array for DataTables
                 $data = [];
                 foreach ($summaryData as $index => $item) {
-                    $data[] = (array) $item;
+                    $data[] = (array)$item;
                     $data[$index]['DT_RowIndex'] = $index + 1;
                 }
 
@@ -2348,7 +2444,7 @@ class LeaveRequestController extends Controller
             $approvers = User::where('ud_id', $requestingUser->ud_id)
                 ->whereHas('userPosition', function ($query) {
                     $query->where('up_level', '>=', 2) // Supervisor level or higher
-                        ->where('up_can_approve_leave', true);
+                    ->where('up_can_approve_leave', true);
                 })
                 ->where('id', '!=', $userId) // Don't notify the requester
                 ->get();
