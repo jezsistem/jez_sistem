@@ -781,22 +781,18 @@ class LeaveRequestController extends Controller
         $leaveRequest = LeaveRequest::with('user')->findOrFail($id);
         $leaveRequester = $leaveRequest->user;
 
-        // 🛑 1. Cegah self-approval
         if ($currentUser->id === $leaveRequester->id) {
             \Log::warning("User {$currentUser->id} mencoba self-approve");
             return $this->deny($request, 'You cannot approve your own leave request');
         }
 
-        // Ambil data posisi (level)
         $currentUserLevel = $currentUser->position->up_level ?? 0;
         $requesterLevel = $leaveRequester->position->up_level ?? 0;
 
-        // Ambil divisi dari leave requester
         $requesterDivision = DB::table('user_divisions')
             ->where('id', $leaveRequester->ud_id)
             ->first();
 
-        // 🛑 2. Cek apakah sama divisi
         if (!$requesterDivision || $currentUser->ud_id != $leaveRequester->ud_id) {
             \Log::warning("Divisi berbeda: User {$currentUser->id} mencoba approve {$leaveRequester->id}");
             return $this->deny($request, 'You can only approve leave requests within your division');
@@ -811,14 +807,13 @@ class LeaveRequestController extends Controller
         } elseif ($isDivisionManager) {
             \Log::info("User {$currentUser->id} adalah MANAGER divisi, boleh approve");
         } else {
-            // 🛑 4. Kalau bukan lead/manager → fallback ke aturan level
+
             if ($currentUserLevel <= $requesterLevel) {
                 \Log::warning("User {$currentUser->id} mencoba approve level >= dirinya ({$currentUserLevel} <= {$requesterLevel})");
                 return $this->deny($request, 'You cannot approve leave requests from someone with higher or equal position level');
             }
         }
 
-        // ✅ 5. Kalau lolos semua rules → set leave request approved
         $leaveRequest->update([
             'lr_status' => 'APPROVED',
             'lr_approved_by' => $currentUser->id,
