@@ -207,7 +207,7 @@ class SettlementController extends Controller
                     'stores.st_name as store_name',
                     'pos_status as trx_status',
                     'pos_real_price',
-                    'pos_payment',
+                    DB::raw('CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END as pos_payment'),
                     'pm_main.pm_name as payment_method_main',
                     'pm_partial.pm_name as payment_method_partial',
                     'pos_payment_partial',
@@ -379,8 +379,8 @@ class SettlementController extends Controller
             ->select(
                 'payment_methods.pm_name',
                 DB::raw('SUM(CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END) as total_payment'),
-                DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = TRUE THEN COALESCE(ts_pos_transactions.pos_payment, 0) ELSE 0 END)  AS settled_payment'),
-                DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = FALSE THEN COALESCE(ts_pos_transactions.pos_payment, 0) ELSE 0 END)  AS unsettled_payment')
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = TRUE THEN COALESCE(CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END, 0) ELSE 0 END)  AS settled_payment'),
+                DB::raw('SUM(CASE WHEN ts_pos_transactions.is_settle = FALSE THEN COALESCE(CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END, 0) ELSE 0 END)  AS unsettled_payment')
             )
             ->leftJoin('pos_transactions', function ($join) use ($start_date, $end_date, $st_id, $pm_id, $status_trx) {
                 $join->on('pos_transactions.pm_id', '=', 'payment_methods.id')
