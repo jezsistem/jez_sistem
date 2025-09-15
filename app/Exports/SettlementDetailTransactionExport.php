@@ -40,6 +40,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
             'NAMESET',
             'DISKON PER ITEM',
             'TOTAL DISKON',
+            'TOTAL TRANSACTION DISCOUNT',
             'NETSALES BEFORE ADMIN',
             'COGS',
             'SALES VOUCHER',
@@ -108,7 +109,27 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                 'pos_td_item_cogs as cogs',
                 'discount_seller as sales_voucher',
                 DB::raw('null as total_admin_fee'),
-                'pos_td_sell_price as net_sales_after_admin',
+                DB::raw('CASE
+                                WHEN ts_pos_transactions.pos_total_discount = SUM(CASE 
+                                        WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                                        THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
+                                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                                        ELSE 0 
+                                    END) OVER (PARTITION BY ts_pos_transactions.id) THEN pos_td_total_price - COALESCE(CASE 
+                                        WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                                        THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
+                                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                                        ELSE 0 
+                                    END, 0)
+                                WHEN ts_pos_transactions.pos_total_discount = 0 THEN pos_td_total_price - pos_td_discount_number
+                                ELSE
+                                    pos_td_total_price - ROUND(
+                                        COALESCE(pos_td_discount_number, 0)
+                                            + (pos_td_sell_price / NULLIF(SUM(pos_td_sell_price) OVER (PARTITION BY ts_pos_transactions.id), 0) 
+                                               * COALESCE(ts_pos_transactions.pos_total_discount, 0))
+                                    , 2) END AS net_sales_after_admin'),
                 DB::raw("CASE
                     WHEN ts_stores.st_name like 'ONLINE%' and pos_invoice not like 'INV%'
                         THEN CONCAT('DEPOSIT ', UPPER(ts_online_transactions.platform_name))
@@ -126,7 +147,8 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                 DB::raw("CASE
                     WHEN pos_status = 'DP' THEN 'PARTIAL PAID'
                     ELSE 'PAID' END as status_payment"),
-                'pos_note as note'
+                'pos_note as note',
+                'pos_total_discount as total_transaction_discount'
             ])
             ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
@@ -178,6 +200,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                 $row->nameset,
                 $row->diskon_per_item,
                 $row->total_diskon,
+                $row->total_transaction_discount,
                 $row->netsales_before_admin,
                 $row->cogs,
                 $row->sales_voucher,
