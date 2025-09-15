@@ -60,8 +60,6 @@
                 { data: 'ud_code', name: 'ud_code', width: '15%' },
                 { data: 'ud_name', name: 'ud_name', width: '25%' },
                 { data: 'ud_description', name: 'ud_description', width: '30%' },
-                { data: 'leader_name', name: 'leader_name', width: '30%' },
-                { data: 'manager_name', name: 'manager_name', width: '30%' },
                 { data: 'ud_status', name: 'ud_status', width: '10%' },
                 { data: 'action', name: 'action', orderable: false, searchable: false, width: '15%' },
             ],

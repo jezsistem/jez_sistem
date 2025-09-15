@@ -64,6 +64,13 @@
                                                     </a>
                                                 </li>
                                                 <li class="menu-item">
+                                                    <a href="{{ url('/user-divisions-v2') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">User Division V2</span>
+                                                    </a>
+                                                </li>
+                                                <li class="menu-item">
                                                     <a href="{{ url('/user-types') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>

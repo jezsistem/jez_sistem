@@ -30,6 +30,15 @@ class UserDivision extends Model
             if (isset($data['ud_description'])) {
                 $mappedData['stt_description'] = $data['ud_description'];
             }
+            if (isset($data['lead_id'])) {
+                $mappedData['lead_id'] = $data['lead_id'];
+            }
+            if (isset($data['manager_id'])) {
+                $mappedData['manager_id'] = $data['manager_id'];
+            }
+            if (isset($data['ud_description'])) {
+                $mappedData['stt_description'] = $data['ud_description'];
+            }
             if (isset($data['ud_status'])) {
                 $mappedData['stt_delete'] = $data['ud_status'] == 'active' ? '0' : '1';
             }

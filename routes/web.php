@@ -89,6 +89,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\UserTypeController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\UserDivisionController;
+use App\Http\Controllers\UserDivisionV2Controller;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnnouncementCategoryController;
 use App\Http\Controllers\AnnouncementReactionController;
@@ -936,6 +937,10 @@ Route::get('test-csrf', function() {
     Route::get('user-divisions/{id}/edit', [UserDivisionController::class, 'edit'])->name('user-divisions.edit');
     Route::put('user-divisions/{id}', [UserDivisionController::class, 'update'])->name('user-divisions.update');
     Route::delete('user-divisions/{id}', [UserDivisionController::class, 'destroy'])->name('user-divisions.destroy');
+
+    // UserDivisionController
+    Route::get('user-divisions-v2', [UserDivisionV2Controller::class, 'index'])->name('user-divisions-v2.index');
+    Route::get('user-divisions-v2/datatables', [UserDivisionV2Controller::class, 'getDatatables'])->name('user-divisions-v2.datatables');
 
     // UserTypeController
     Route::get('user-types', [UserTypeController::class, 'index'])->name('user-types.index');

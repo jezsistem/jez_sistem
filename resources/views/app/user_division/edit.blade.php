@@ -73,8 +73,41 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <!-- Empty column for balance -->
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="ud_status">Leader <span class="text-danger">*</span></label>
+                                            <select class="form-control @error('ud_status') is-invalid @enderror"
+                                                    id="lead_id" name="lead_id" required>
+                                                <option value="">Select Status</option>
+                                                @foreach($data['leader'] as $leader)
+                                                    <option value="{{ $leader->user_id }}"
+                                                            {{ old('lead_id', $division->lead_id ?? '') == $leader->user_id ? 'selected' : '' }}>
+                                                        {{ $leader->u_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('ud_status')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="ud_status">Manager <span class="text-danger">*</span></label>
+                                            <select class="form-control @error('ud_status') is-invalid @enderror"
+                                                    id="manager_id" name="manager_id" required>
+                                                <option value="">Select Status</option>
+                                                @foreach($data['manager'] as $manager)
+                                                    <option value="{{ $manager->user_id }}"
+                                                            {{ old('manager_id', $division->manager_id ?? '') == $manager->user_id ? 'selected' : '' }}>
+                                                        {{ $manager->u_name }}
+                                                    </option>
+                                                @endforeach
+                                                </select>
+                                            @error('ud_status')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -162,6 +195,8 @@ $(document).ready(function() {
         // Validate required fields
         const udCode = $('#ud_code').val().trim();
         const udName = $('#ud_name').val().trim();
+        const leadID = $('#lead_id').val().trim();
+        const managerID = $('#manager_id').val().trim();
         const udStatus = $('#ud_status').val();
         
         if (!udCode || !udName || !udStatus) {
@@ -179,6 +214,8 @@ $(document).ready(function() {
         const formData = {
             ud_code: udCode,
             ud_name: udName,
+            lead_id: leadID,
+            manager_id: managerID,
             ud_description: $('#ud_description').val(),
             ud_status: udStatus,
             _method: 'PUT',
