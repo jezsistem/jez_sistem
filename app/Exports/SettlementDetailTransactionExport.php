@@ -148,7 +148,8 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                     WHEN pos_status = 'DP' THEN 'PARTIAL PAID'
                     ELSE 'PAID' END as status_payment"),
                 'pos_note as note',
-                'pos_total_discount as total_transaction_discount'
+                'pos_total_discount as total_transaction_discount',
+                'is_settle as settlement_status'
             ])
             ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
@@ -212,6 +213,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                 $row->subpayment_2,
                 $row->status_trx,
                 $row->status_payment,
+                $row->settlement_status ? 'SETTLED' : 'UNSETTLED',
                 $row->note
             ];
         }

@@ -51,6 +51,7 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
             'TOTAL PAYMENT 2',
             'STATUS TRX',
             'STATUS PAYMENT',
+            'SETTLEMENT STATUS',
             'NOTE'
         ];
     }
@@ -101,7 +102,8 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
                 DB::raw("CASE
                 WHEN pos_status = 'DP' THEN 'PARTIAL PAID'
                 ELSE 'PAID' END as status_payment"),
-                'pos_note as note'
+                'pos_note as note',
+                'is_settle as settlement_status'
             ])
             ->join('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pos_transactions.pm_id')
@@ -158,6 +160,7 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
                 $row->total_payment_2,
                 $row->status_trx,
                 $row->status_payment,
+                $row->settlement_status ? 'SETTLED' : 'UNSETTLED',
                 $row->note
             ];
         }

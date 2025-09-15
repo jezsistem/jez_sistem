@@ -113,7 +113,7 @@
                                     <thead class="bg-light text-dark">
                                         <tr>
                                             <th> <input type="checkbox" name="check_all_data" id="check_all_data"></th>
-                                            <th class="text-dark">Tanggal Transaksi</th>
+                                            <th class="text-dark" style="min-width: 70px;">Tanggal Transaksi</th>
                                             <th class="text-dark">Receipt Number</th>
                                             <th class="text-dark">Outlet</th>
                                             <th class="text-dark">Qty</th>
