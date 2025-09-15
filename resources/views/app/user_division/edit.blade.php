@@ -75,9 +75,9 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label for="ud_status">Leader <span class="text-danger">*</span></label>
+                                            <label for="ud_status">Leader <span class="text-danger"></span></label>
                                             <select class="form-control @error('ud_status') is-invalid @enderror"
-                                                    id="lead_id" name="lead_id" required>
+                                                    id="lead_id" name="lead_id">
                                                 <option value="">Select Status</option>
                                                 @foreach($data['leader'] as $leader)
                                                     <option value="{{ $leader->user_id }}"
@@ -93,9 +93,9 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label for="ud_status">Manager <span class="text-danger">*</span></label>
+                                            <label for="ud_status">Manager <span class="text-danger"></span></label>
                                             <select class="form-control @error('ud_status') is-invalid @enderror"
-                                                    id="manager_id" name="manager_id" required>
+                                                    id="manager_id" name="manager_id">
                                                 <option value="">Select Status</option>
                                                 @foreach($data['manager'] as $manager)
                                                     <option value="{{ $manager->user_id }}"
