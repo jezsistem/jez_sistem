@@ -310,7 +310,7 @@ class SettlementController extends Controller
             $gross_sales = $transaction->gross_sales ?? 0;
             $total_discount = $transaction->total_discount ?? 0;
 
-            if (substr(trim((string) $receipt_number), 0, 3) !== 'INV' && str_contains(strtoupper($store_name), 'ONLINE')) {
+            if (str_contains(strtoupper($store_name), 'ONLINE')) {
                 $net_sales = $transaction->sell_price;
             } else {
                 $net_sales = $transaction->pos_real_price;

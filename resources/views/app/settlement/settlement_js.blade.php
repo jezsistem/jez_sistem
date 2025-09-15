@@ -87,6 +87,7 @@
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
                     d.status_trx = $('#status_trx').val();
+                    d.search_invoice = $('#search_invoice').val();
                 }
             },
             columns: [{
@@ -153,9 +154,15 @@
                 [10, 25, 50, 100, -1],
                 [10, 25, 50, 100, "Semua"]
             ],
-            language: {
-                "lengthMenu": "_MENU_",
+            searching: true,
+            search: {
+                return: true
             },
+            dom: '<"row"<"col-sm-2"l><"col-sm-4"f>>rtip',
+            initComplete: function() {
+                $('.dataTables_filter input').attr('placeholder', 'Search invoice...');
+                $('.dataTables_filter input').css('width', '300px');
+            }
         });
 
         $(document).ready(function() {
@@ -181,7 +188,8 @@
                 $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
                     checkedCount++;
                     var row = $(this).closest('tr');
-                    var netsalesText = row.find('td:eq(5)').text().replace(/Rp\s*/g, '').replace(/\./g, '');
+                    var netsalesText = row.find('td:eq(5)').text().replace(/Rp\s*/g, '')
+                        .replace(/\./g, '');
                     var netsalesValue = parseFloat(netsalesText) || 0;
                     totalNetsales += netsalesValue;
                 });
@@ -367,7 +375,7 @@
                 },
                 success: function(response) {
                     // Handle success response
-                    settlement_table.draw();
+                    settlement_table.draw(false);
                     loadNetSalesPerPaymentMethod();
                     resetSelected();
                     toastr.success('Selected transactions have been settled successfully.');
@@ -386,7 +394,8 @@
             $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
                 checkedCount++;
                 var row = $(this).closest('tr');
-                var netsalesText = row.find('td:eq(5)').text().replace(/Rp\s*/g, '').replace(/\./g, '');
+                var netsalesText = row.find('td:eq(5)').text().replace(/Rp\s*/g, '').replace(
+                    /\./g, '');
                 var netsalesValue = parseFloat(netsalesText) || 0;
                 totalNetsales += netsalesValue;
             });
@@ -413,7 +422,7 @@
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || ''
             });
-            
+
             window.open(url + '?' + params.toString(), '_blank');
         });
         $('#export_detail_trx').on('click', function() {
@@ -425,7 +434,7 @@
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || ''
             });
-            
+
             window.open(url + '?' + params.toString(), '_blank');
         });
     });
