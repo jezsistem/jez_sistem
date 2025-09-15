@@ -105,7 +105,10 @@ class TrackingController extends Controller
         $u_secret_code = $request->_u_secret_code;
         $cust_id = $request->_cust_id;
         $st_id_login = Auth::user()->st_id;
-        $check = User::where('u_secret_code', '=', $u_secret_code)->where('st_id', '=', $st_id_login)->exists();
+        $st_code_login = Store::select('st_code')->where('id', '=', $st_id_login)->get()->first()->st_code;
+        $check = User::where('u_secret_code', '=', $u_secret_code)
+        ->join('stores', 'stores.id', '=', 'users.st_id')
+        ->where('st_code', $st_code_login)->exists();
         $r = []; // Initialize response array
 
 
