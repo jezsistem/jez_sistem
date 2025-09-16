@@ -13,10 +13,11 @@ class Announcement extends Model
 
     protected $fillable = [
         'title',
-        'content', 
+        'content',
         'category_id',
         'created_by',
         'target_type',
+        'target_date',
         'is_pinned',
         'status',
         'published_at'
@@ -36,6 +37,19 @@ class Announcement extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+
+    public function scopeWithUserDivision($query)
+    {
+        return $query
+            ->leftJoin('users', 'announcements.created_by', '=', 'users.id')
+            ->leftJoin('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
+            ->select(
+                'announcements.*',
+                'users.u_name as user_name',
+                'user_divisions.ud_name as division_name'
+            );
     }
 
     public function recipients(): HasMany
@@ -67,7 +81,7 @@ class Announcement extends Model
     public function scopePublished($query)
     {
         return $query->whereNotNull('published_at')
-                    ->where('published_at', '<=', now());
+            ->where('published_at', '<=', now());
     }
 
     // Check if user can see this announcement
@@ -80,14 +94,14 @@ class Announcement extends Model
 
         // Check if user has specific access
         $hasAccess = $this->recipients()
-            ->where(function($query) use ($userId, $userDivisionId) {
+            ->where(function ($query) use ($userId, $userDivisionId) {
                 $query->where('recipient_type', 'user')
-                      ->where('recipient_id', $userId);
-                
+                    ->where('recipient_id', $userId);
+
                 if ($userDivisionId) {
-                    $query->orWhere(function($q) use ($userDivisionId) {
+                    $query->orWhere(function ($q) use ($userDivisionId) {
                         $q->where('recipient_type', 'division')
-                          ->where('recipient_id', $userDivisionId);
+                            ->where('recipient_id', $userDivisionId);
                     });
                 }
             })

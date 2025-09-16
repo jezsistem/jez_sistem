@@ -53,11 +53,11 @@ class User extends Authenticatable
     public function roles($id)
     {
         $roles = DB::table($this->table)
-        ->select('groups.id', 'groups.g_name')
-        ->leftJoin('user_groups' , 'user_groups.user_id', '=', 'users.id')
-        ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
-        ->where('user_groups.user_id', $id)
-        ->get()->first();
+            ->select('groups.id', 'groups.g_name')
+            ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
+            ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
+            ->where('user_groups.user_id', $id)
+            ->get()->first();
         return $roles;
     }
 
@@ -74,7 +74,7 @@ class User extends Authenticatable
     {
         $select = array_merge($select, ['stt_name', 'st_name']);
         $affected = DB::table($this->table)
-            ->leftJoin('user_groups' , 'user_groups.user_id', '=', 'users.id')
+            ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
             ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
             ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
             ->leftJoin('store_types', 'store_types.id', '=', 'users.stt_id')
@@ -123,7 +123,7 @@ class User extends Authenticatable
                 return false;
             }
         } catch (\Illuminate\Database\QueryException $ex) {
-            if($ex->getCode() === '23000') {
+            if ($ex->getCode() === '23000') {
                 return false;
             }
         }
@@ -165,10 +165,15 @@ class User extends Authenticatable
         return $this->hasMany(DailySchedule::class, 'user_id');
     }
 
+    public function division()
+    {
+        return $this->belongsTo(UserDivision::class, 'ud_id');
+    }
+
     /**
      * Google OAuth Helper Methods
      */
-    
+
     /**
      * Check if user has Google account linked
      */
@@ -176,7 +181,7 @@ class User extends Authenticatable
     {
         return !empty($this->google_id);
     }
-    
+
     /**
      * Check if user has local password
      */
@@ -184,7 +189,7 @@ class User extends Authenticatable
     {
         return !empty($this->password) && $this->password !== '';
     }
-    
+
     /**
      * Check if user can use Google login
      */
@@ -192,7 +197,7 @@ class User extends Authenticatable
     {
         return $this->hasGoogleAccount();
     }
-    
+
     /**
      * Check if user can use password login
      */
@@ -200,7 +205,7 @@ class User extends Authenticatable
     {
         return $this->hasLocalPassword();
     }
-    
+
     /**
      * Get user's avatar (Google or local)
      */
@@ -208,7 +213,7 @@ class User extends Authenticatable
     {
         return $this->avatar ?: $this->u_photo;
     }
-    
+
     /**
      * Get user's display name
      */
@@ -216,5 +221,4 @@ class User extends Authenticatable
     {
         return $this->u_name ?: $this->name;
     }
-    
 }
