@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserDivision;
+use Yajra\DataTables\Html\Editor\Fields\Select;
 
 class UserDivisionController extends Controller
 {
@@ -97,11 +98,27 @@ class UserDivisionController extends Controller
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user->id)->first();
 
+        $leader = DB::table('users')
+            ->select('users.id as user_id', 'users.u_name')
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->whereIn('user_positions.up_code', ['SUPERVISOR', 'DIREKTUR'])
+            ->get();
+
+        $manager = DB::table('users')
+            ->select('users.id as user_id', 'users.u_name')
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->whereIn('user_positions.up_code', ['MANAGER', 'DIREKTUR'])
+            ->get();
+
+
+
         $data = [
             'title' => $title,
             'subtitle' => 'Create User Division',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'leader' => $leader,
+            'manager' => $manager,
             'segment' => request()->segment(1)
         ];
 
@@ -122,6 +139,8 @@ class UserDivisionController extends Controller
         $data = [
             'ud_code' => strtoupper($request->ud_code),
             'ud_name' => $request->ud_name,
+            'lead_id' => $request->lead_id,
+            'manager_id' => $request->manager_id,
             'ud_description' => $request->ud_description,
             'ud_status' => $request->ud_status
         ];
@@ -183,11 +202,26 @@ class UserDivisionController extends Controller
             return redirect()->route('user-divisions.index')->with('error', 'Division not found');
         }
 
+        $leader = DB::table('users')
+            ->select('users.id as user_id', 'users.u_name')
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->whereIn('user_positions.up_code', ['SUPERVISOR', 'DIREKTUR'])
+            ->get();
+
+        $manager = DB::table('users')
+            ->select('users.id as user_id', 'users.u_name')
+            ->leftJoin('user_positions', 'user_positions.id', '=', 'users.up_id')
+            ->whereIn('user_positions.up_code', ['MANAGER', 'DIREKTUR'])
+            ->get();
+
+
         $data = [
             'title' => $title,
             'subtitle' => 'Edit User Division',
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
+            'leader' => $leader,
+            'manager' => $manager,
             'segment' => request()->segment(1)
         ];
 
@@ -209,6 +243,8 @@ class UserDivisionController extends Controller
             'ud_code' => strtoupper($request->ud_code),
             'ud_name' => $request->ud_name,
             'ud_description' => $request->ud_description,
+            'lead_id' => $request->lead_id,
+            'manager_id' => $request->manager_id,
             'ud_status' => $request->ud_status
         ];
 
@@ -257,12 +293,16 @@ class UserDivisionController extends Controller
         if(request()->ajax()) {
             $query = DB::table('user_divisions')
                 ->select([
-                    'id',
+                    'user_divisions.id',
                     'ud_name',
                     'ud_code',
                     'ud_description',
+                    'leader_users.u_name as leader_name',
+                    'manager_users.u_name as manager_name',
                     'ud_status'
                 ])
+                ->leftJoin('users as leader_users', 'leader_users.id', '=', 'user_divisions.lead_id')
+                ->leftJoin('users as manager_users', 'manager_users.id', '=', 'user_divisions.manager_id')
                 ->where('ud_status', '!=', 'inactive');
             
             // Apply search filter
@@ -322,6 +362,12 @@ class UserDivisionController extends Controller
                     $btn .= '</div>';
                     
                     return $btn;
+                })
+                ->editColumn('leader_name', function ($row) {
+                    return $row->leader_name ?? '-';
+                })
+                ->editColumn('manager_name', function ($row) {
+                    return $row->manager_name ?? '-';
                 })
                 ->rawColumns(['action', 'ud_status'])
                 ->make(true);

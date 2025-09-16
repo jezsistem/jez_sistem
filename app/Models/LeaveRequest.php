@@ -10,7 +10,7 @@ class LeaveRequest extends Model
 {
     protected $table = 'leave_requests';
     protected $fillable = [
-        'user_id', 'leave_type_id', 'lr_start_date', 'lr_end_date',
+        'user_id','u_name' ,'leave_type_id', 'lr_start_date', 'lr_end_date',
         'lr_start_time', 'lr_end_time', 'lr_total_days', 'lr_total_hours',
         'lr_unit', 'lr_reason', 'lr_attachment_path', 'lr_attachment_name', 
         'lr_attachment_type', 'lr_attachment_size', 'lr_status', 'lr_admin_notes',

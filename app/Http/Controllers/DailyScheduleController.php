@@ -20,6 +20,7 @@ class DailyScheduleController extends Controller
 {
     protected function validateAccess()
     {
+<<<<<<< HEAD
         if (!auth()->check()) {
             return redirect()->route('login');
         }
@@ -46,6 +47,15 @@ class DailyScheduleController extends Controller
             if (!$validate) {
                 dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
             }
+=======
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         }
     }
 
@@ -160,8 +170,13 @@ class DailyScheduleController extends Controller
     public function index(Request $request)
     {
         // Temporarily comment out for testing
+<<<<<<< HEAD
         // $this->validateAccess();
 
+=======
+        // // $this->validateAccess();
+        
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $title = 'Daily Schedules';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
@@ -192,7 +207,7 @@ class DailyScheduleController extends Controller
 
     public function create()
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -262,7 +277,7 @@ class DailyScheduleController extends Controller
 
     public function show($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -284,7 +299,7 @@ class DailyScheduleController extends Controller
 
     public function edit($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -354,7 +369,7 @@ class DailyScheduleController extends Controller
 
     public function destroy($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
 
         try {
             $dailySchedule = DailySchedule::findOrFail($id);
@@ -381,7 +396,7 @@ class DailyScheduleController extends Controller
 
     public function bulkCreate()
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -468,7 +483,7 @@ class DailyScheduleController extends Controller
 
     public function createRange()
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         $user = new User;
         $select = ['*'];
         $where = [
@@ -749,7 +764,7 @@ class DailyScheduleController extends Controller
      */
     public function weeklySchedule(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         Log::info('Weekly Schedule');
         $user = new User;
         $select = ['*'];
@@ -960,8 +975,13 @@ class DailyScheduleController extends Controller
      */
     public function weeklyReport(Request $request)
     {
+<<<<<<< HEAD
         $this->validateAccess();
 
+=======
+        // $this->validateAccess();
+        
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $user = new User;
         $select = ['*'];
         $where = [
@@ -1242,8 +1262,13 @@ class DailyScheduleController extends Controller
      */
     public function getUsersByDivision(Request $request)
     {
+<<<<<<< HEAD
         $this->validateAccess();
 
+=======
+        // $this->validateAccess();
+        
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         Log::info('getUsersByDivision called', [
             'user' => Auth::user() ? Auth::user()->id : 'not authenticated',
             'division_id' => $request->get('division_id')
@@ -1279,8 +1304,13 @@ class DailyScheduleController extends Controller
      */
     public function saveWeeklySchedule(Request $request)
     {
+<<<<<<< HEAD
         $this->validateAccess();
 
+=======
+        // $this->validateAccess();
+        
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $request->validate([
             'start_date' => 'required|date',
             'schedules' => 'required|array',
@@ -2355,8 +2385,13 @@ class DailyScheduleController extends Controller
      */
     public function monthlyReport(Request $request)
     {
+<<<<<<< HEAD
         $this->validateAccess();
 
+=======
+        // $this->validateAccess();
+        
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $user = new User;
         $select = ['*'];
         $where = [
@@ -2649,8 +2684,13 @@ class DailyScheduleController extends Controller
     public function exportMonthlyExcel(Request $request)
     {
         try {
+<<<<<<< HEAD
             $this->validateAccess();
 
+=======
+            // $this->validateAccess();
+            
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
             // Get parameters from request - EXPORT EXCEL METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
@@ -2831,8 +2871,13 @@ class DailyScheduleController extends Controller
     public function exportMonthlyPDF(Request $request)
     {
         try {
+<<<<<<< HEAD
             $this->validateAccess();
 
+=======
+            // $this->validateAccess();
+            
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
             // Get parameters from request - EXPORT PDF METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
@@ -4472,8 +4517,13 @@ class DailyScheduleController extends Controller
      */
     public function importWeeklyExcel(Request $request)
     {
+<<<<<<< HEAD
         $this->validateAccess();
 
+=======
+        // $this->validateAccess();
+        
+>>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         \Log::info('Weekly Schedule Excel Import started', [
             'request_data' => $request->all(),
             'files' => $request->allFiles()

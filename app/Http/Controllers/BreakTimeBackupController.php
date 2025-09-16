@@ -19,32 +19,13 @@ class BreakTimeBackupController extends Controller
 {
     protected function validateAccess()
     {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
-
-        $user_position = auth()->user()->up_id;
-
-        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
-            ->where('user_groups.user_id', auth()->user()->id)
-            ->where('g_name', 'administrator')
-            ->exists();
-        
-        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-            ->where('users.id', auth()->user()->id)
-            ->where('user_divisions.ud_code', 'HUMANRESOU')
-            ->exists();
-
-        if (!$user_group_is_admin && !$is_human_resource) {
-            $validate = DB::table('position_access')
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
-                    'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
-                ])->exists();
-
-            if (!$validate) {
-                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
-            }
+        $validate = DB::table('user_menu_accesses')
+            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                'u_id' => Auth::user()->id,
+                'ma_slug' => request()->segment(1)
+            ])->exists();
+        if (!$validate) {
+            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
         }
     }
 
@@ -123,7 +104,7 @@ class BreakTimeBackupController extends Controller
     public function index(Request $request)
     {
         // Temporarily comment out for testing
-        // $this->validateAccess();
+          $this->validateAccess();
         
         $title = 'Backup Times';
         $user = auth()->user();
@@ -159,7 +140,7 @@ class BreakTimeBackupController extends Controller
     {
         try {
             \Log::info('Backup Time Summary Report - Starting method');
-            $this->validateAccess();
+//            // $this->validateAccess();
             \Log::info('Backup Time Summary Report - Access validated');
             
             $title = 'Backup Time Summary Report';
@@ -318,7 +299,7 @@ class BreakTimeBackupController extends Controller
     public function getSummaryReportStats(Request $request)
     {
         try {
-            $this->validateAccess();
+//            // $this->validateAccess();
             
             $dateFilter = $request->get('date_filter', 'this_week');
             $startDate = $request->get('start_date');
@@ -398,7 +379,7 @@ class BreakTimeBackupController extends Controller
         
         if(request()->ajax()) {
             try {
-                $this->validateAccess();
+//                // $this->validateAccess();
                 \Log::info('Backup Time Summary Report Datatables - Access validated');
                 
                 // Debug: Log request parameters
@@ -531,7 +512,7 @@ class BreakTimeBackupController extends Controller
     public function staffDetail($user_id, Request $request)
     {
         try {
-            $this->validateAccess();
+//            // $this->validateAccess();
             
             $title = 'Staff Backup Time Detail';
             $user = auth()->user();
@@ -592,7 +573,7 @@ class BreakTimeBackupController extends Controller
     {
         if(request()->ajax()) {
             try {
-                $this->validateAccess();
+//                // $this->validateAccess();
                 
                 // Get date range from request or default to current month
                 $startDate = $request->get('start_date', date('Y-m-01'));
@@ -704,7 +685,7 @@ class BreakTimeBackupController extends Controller
     public function staffStats($user_id, Request $request)
     {
         try {
-            $this->validateAccess();
+//            // $this->validateAccess();
             
             // Get date range from request or default to current month
             $startDate = $request->get('start_date', date('Y-m-01'));
@@ -777,7 +758,7 @@ class BreakTimeBackupController extends Controller
     public function report(Request $request)
     {
         // Temporarily comment out for testing
-        // $this->validateAccess();
+        // // $this->validateAccess();
         
         $title = 'Backup Time Report';
         $user = auth()->user();
@@ -835,7 +816,7 @@ class BreakTimeBackupController extends Controller
     public function getBreakTimeStats(Request $request)
     {
         try {
-            $this->validateAccess();
+//            // $this->validateAccess();
             
             // Get date range from request
             $startDate = $request->get('start_date', date('Y-m-d'));
@@ -1466,7 +1447,7 @@ class BreakTimeBackupController extends Controller
 
     public function create()
     {
-        $this->validateAccess();
+//        // $this->validateAccess();
         
         $title = 'Backup Times';
         $user_data = $this->getUserData();
@@ -1487,7 +1468,7 @@ class BreakTimeBackupController extends Controller
 
     public function store(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -1544,7 +1525,7 @@ class BreakTimeBackupController extends Controller
 
     public function show($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $title = 'Backup Times';
         $user_data = $this->getUserData();
@@ -1573,7 +1554,7 @@ class BreakTimeBackupController extends Controller
 
     public function edit($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $title = 'Backup Times';
         $user_data = $this->getUserData();
@@ -1600,7 +1581,7 @@ class BreakTimeBackupController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -1643,7 +1624,7 @@ class BreakTimeBackupController extends Controller
 
     public function destroy($id)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         $breakTime = DB::table('break_times_backup')->where('id', $id)->first();
         
@@ -2262,7 +2243,7 @@ class BreakTimeBackupController extends Controller
      */
     public function exportSummaryToExcel(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         try {
             $startDate = $request->get('start_date', date('Y-m-d'));
@@ -2307,7 +2288,7 @@ class BreakTimeBackupController extends Controller
      */
     public function exportSummaryToPDF(Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         try {
             $startDate = $request->get('start_date', date('Y-m-d'));
@@ -2462,7 +2443,7 @@ class BreakTimeBackupController extends Controller
      */
     public function exportStaffToExcel($user_id, Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         try {
             $startDate = $request->get('start_date', date('Y-m-01'));
@@ -2562,7 +2543,7 @@ class BreakTimeBackupController extends Controller
      */
     public function exportStaffToPDF($user_id, Request $request)
     {
-        $this->validateAccess();
+        // $this->validateAccess();
         
         try {
             $startDate = $request->get('start_date', date('Y-m-01'));
