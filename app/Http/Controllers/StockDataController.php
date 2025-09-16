@@ -258,20 +258,20 @@ class StockDataController extends Controller
                         ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                         ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
-//                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where('product_locations.st_id', '=', $st_id)
                         ->whereNotIn('pl_code', $exception)
                         ->where('p_name', $data->p_name)
                         ->where('br_name', $data->br_name)
-//                        ->where(function ($w) use ($sz_id) {
-//                            if (!empty($sz_id)) {
-//                                if (count($sz_id) > 0) {
-//                                    $w->whereIn('sz_name', $sz_id);
-//                                } else {
-//                                    $w->where('sz_name', $sz_id);
-//                                }
-//                            }
-//                        })
+                        ->where(function ($w) use ($sz_id) {
+                            if (!empty($sz_id)) {
+                                if (count($sz_id) > 0) {
+                                    $w->whereIn('sz_name', $sz_id);
+                                } else {
+                                    $w->where('sz_name', $sz_id);
+                                }
+                            }
+                        })
                         ->groupBy('p_color')->get();
                     if (!empty($item)) {
                         $item_list = '';
@@ -368,15 +368,15 @@ class StockDataController extends Controller
                                     ->where('pls_qty', '<>', 0)
                                     ->where('product_locations.st_id', '=', $st_id)
                                     ->where('p_id', $row->pid)
-//                                    ->where(function ($w) use ($sz_id) {
-//                                        if (!empty($sz_id)) {
-//                                            if (count($sz_id) > 0) {
-//                                                $w->whereIn('sz_name', $sz_id);
-//                                            } else {
-//                                                $w->where('sz_name', $sz_id);
-//                                            }
-//                                        }
-//                                    })
+                                    ->where(function ($w) use ($sz_id) {
+                                        if (!empty($sz_id)) {
+                                            if (count($sz_id) > 0) {
+                                                $w->whereIn('sz_name', $sz_id);
+                                            } else {
+                                                $w->where('sz_name', $sz_id);
+                                            }
+                                        }
+                                    })
                                     ->orderByRaw(
                                         'FIELD(sz_name, "XS", "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL","31","32","33","34","35" "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47")'
                                     )
@@ -390,15 +390,15 @@ class StockDataController extends Controller
                                     ->whereNotIn('pl_code', $exception)
                                     ->where('product_locations.st_id', '=', $st_id)
                                     ->where('p_id', $row->pid)
-//                                    ->where(function ($w) use ($sz_id) {
-//                                        if (!empty($sz_id)) {
-//                                            if (count($sz_id) > 0) {
-//                                                $w->whereIn('sz_name', $sz_id);
-//                                            } else {
-//                                                $w->where('sz_name', $sz_id);
-//                                            }
-//                                        }
-//                                    })
+                                    ->where(function ($w) use ($sz_id) {
+                                        if (!empty($sz_id)) {
+                                            if (count($sz_id) > 0) {
+                                                $w->whereIn('sz_name', $sz_id);
+                                            } else {
+                                                $w->where('sz_name', $sz_id);
+                                            }
+                                        }
+                                    })
                                     ->orderByRaw(
                                         'FIELD(sz_name, "S", "M", "L", "XL", "2XL", "XXL","3XL", "XXXL", "4XL", "XXXXL","5XL", "6XL", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46")'
                                     )
