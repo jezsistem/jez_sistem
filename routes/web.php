@@ -101,6 +101,7 @@ use App\Http\Controllers\DataPerusahaanController;
 use App\Http\Controllers\LockController;
 use App\Models\PositionAccessController;
 use Illuminate\Support\Facades\DB;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -168,10 +169,10 @@ Route::get('attendance/summary-report/export/pdf', [AttendanceController::class,
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
     Route::get('redirect', [RedirectController::class, 'index'])->name('redirect');
-    
+
     // Upcloud Balance
     Route::get('get_upcloud_balance', [UpcloudBalanceController::class, 'getBalance']);
-    
+
     // Tracking
     Route::get('tracking', [TrackingController::class, 'index'])->name('tracking');
     Route::get('check_invoice/{invoice}', [InvoiceController::class, 'checkInvoice'])->name('check_invoice');
@@ -332,19 +333,19 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('reload_store_type', [StoreTypeController::class, 'reloadStoreType']);
     Route::post('stt_save', [StoreTypeController::class, 'storeData']);
     Route::post('stt_delete', [StoreTypeController::class, 'deleteData']);
-    
+
     // Store Division
     Route::get('data_divisi', [StoreTypeDivisionController::class, 'index'])->name('store_type_division');
     Route::get('store_type_division_datatables', [StoreTypeDivisionController::class, 'getDatatables']);
     Route::post('dv_save', [StoreTypeDivisionController::class, 'storeData']);
     Route::post('dv_delete', [StoreTypeDivisionController::class, 'deleteData']);
-    
+
     // Store
     Route::get('data_store', [StoreController::class, 'index'])->name('store');
     Route::get('store_datatables', [StoreController::class, 'getDatatables']);
     Route::post('st_save', [StoreController::class, 'storeData']);
     Route::post('st_delete', [StoreController::class, 'deleteData']);
-    
+
     // Product Supplier
     Route::get('data_supplier', [ProductSupplierController::class, 'index'])->name('product_supplier');
     Route::get('product_supplier_datatables', [ProductSupplierController::class, 'getDatatables']);
@@ -352,7 +353,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ps_delete', [ProductSupplierController::class, 'deleteData']);
     Route::post('ps_import', [ProductSupplierController::class, 'importData']);
     Route::post('check_exists_supplier', [ProductSupplierController::class, 'checkExistsSupplier']);
-    
+
     // Brand
     Route::get('brands', [BrandController::class, 'index'])->name('brands');
     Route::get('brand_datatables', [BrandController::class, 'getDatatables']);
@@ -362,7 +363,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('delete_banner_brand', [BrandController::class, 'deleteBannerImage']);
     Route::post('br_import', [BrandController::class, 'importData']);
     Route::post('check_exists_brand', [BrandController::class, 'checkExistsBrand']);
-    
+
     // Product Unit
     Route::get('satuan_produk', [ProductUnitController::class, 'index'])->name('product_unit');
     Route::get('product_unit_datatables', [ProductUnitController::class, 'getDatatables']);
@@ -372,7 +373,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_product_unit', [ProductUnitController::class, 'checkExistsProductUnit']);
     //Product
     // Route::post('stock_data_search_product', [ProductController::class, 'searchProduct']);
-    
+
     // Gender
     Route::get('gender', [GenderController::class, 'index'])->name('gender');
     Route::get('gender_datatables', [GenderController::class, 'getDatatables']);
@@ -380,7 +381,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('gn_delete', [GenderController::class, 'deleteData']);
     Route::post('gn_import', [GenderController::class, 'importData']);
     Route::post('check_exists_gender', [GenderController::class, 'checkExistsGender']);
-    
+
     // Season
     Route::get('season', [SeasonController::class, 'index'])->name('season');
     Route::get('season_datatables', [SeasonController::class, 'getDatatables']);
@@ -388,7 +389,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ss_delete', [SeasonController::class, 'deleteData']);
     Route::post('ss_import', [SeasonController::class, 'importData']);
     Route::post('check_exists_season', [SeasonController::class, 'checkExistsSeason']);
-    
+
     // Product Category
     Route::get('kategori_produk', [ProductCategoryController::class, 'index'])->name('product_category');
     Route::get('product_category_datatables', [ProductCategoryController::class, 'getDatatables']);
@@ -396,7 +397,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pc_dele te', [ProductCategoryController::class, 'deleteData']);
     Route::post('pc_import', [ProductCategoryController::class, 'importData']);
     Route::post('check_exists_product_category', [ProductCategoryController::class, 'checkExistsProductCategory']);
-    
+
     // Product Sub Category
     Route::get('sub_kategori_produk', [ProductSubCategoryController::class, 'index'])->name('product_sub_category');
     Route::get('product_sub_category_datatables', [ProductSubCategoryController::class, 'getDatatables']);
@@ -405,7 +406,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('psc_delete', [ProductSubCategoryController::class, 'deleteData']);
     Route::post('psc_import', [ProductSubCategoryController::class, 'importData']);
     Route::post('check_exists_product_sub_category', [ProductSubCategoryController::class, 'checkExistsProductSubCategory']);
-    
+
     // Product Sub Sub Category
     Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryController::class, 'index'])->name('product_sub_sub_category');
     Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryController::class, 'getDatatables']);
@@ -434,14 +435,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('mc_delete', [MainColorController::class, 'autocomplete_customer']);
     Route::post('mc_import', [MainColorController::class, 'importData']);
     Route::post('check_exists_main_color', [MainColorController::class, 'checkExistsMainColor']);
-    
+
     // Product Sub Color
     Route::get('sub_warna_produk', [ColorController::class, 'index'])->name('color');
     Route::get('color_datatables', [ColorController::class, 'getDatatables']);
     Route::post('cl_save', [ColorController::class, 'storeData']);
     Route::post('cl_delete', [ColorController::class, 'deleteData']);
     Route::post('cl_import', [ColorController::class, 'importData']);
-    
+
     // Product Size
     Route::get('size_produk', [SizeController::class, 'index'])->name('size');
     Route::get('size_datatables', [SizeController::class, 'getDatatables']);
@@ -467,10 +468,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_barcode', [ProductController::class, 'checkExistsBarcode']);
     Route::post('check_exists_article_id', [ProductController::class, 'checkExistsArticleID']);
     Route::post('update_barcode', [ProductController::class, 'updateBarcode']);
-    
+
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
-    
+
     // Product Stock
     Route::post('check_product_stock', [ProductStockController::class, 'checkProductStock']);
     Route::post('update_sell_price', [ProductStockController::class, 'updateSellPrice']);
@@ -616,7 +617,6 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::get('rsdd_datatables', [ResellerDepositController::class, 'getDetailDatatables']);
     // Route::post('rsd_save', [ResellerDepositController::class, 'saveData']);
     // Route::post('rsdd_reload', [ResellerDepositController::class, 'reloadData']);
-
 
 
     // ResellerLevelController
@@ -794,13 +794,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::delete('attendance/{id}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
 
     Route::post('attendance/reprocess-all', [AttendanceController::class, 'reprocessAll'])->name('attendance.reprocess-all');
-Route::get('attendance/debug-status', [AttendanceController::class, 'debugAttendanceStatus'])->name('attendance.debug-status');
+    Route::get('attendance/debug-status', [AttendanceController::class, 'debugAttendanceStatus'])->name('attendance.debug-status');
     Route::post('attendance/reprocess-status', [AttendanceController::class, 'reprocessAttendanceStatus'])->name('attendance.reprocess-status');
-Route::post('attendance/reprocess-single', [AttendanceController::class, 'reprocessSingleAttendance'])->name('attendance.reprocess-single');
+    Route::post('attendance/reprocess-single', [AttendanceController::class, 'reprocessSingleAttendance'])->name('attendance.reprocess-single');
     Route::get('attendance/staff/{user_id}', [AttendanceController::class, 'staffDetail'])->name('attendance.staff-detail');
     Route::get('attendance/staff/{user_id}/datatables', [AttendanceController::class, 'staffDatatables'])->name('attendance.staff-datatables');
-Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
-Route::get('attendance/staff/{user_id}/alpha-dates', [AttendanceController::class, 'getStaffAlphaDates'])->name('attendance.staff-alpha-dates');
+    Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
+    Route::get('attendance/staff/{user_id}/alpha-dates', [AttendanceController::class, 'getStaffAlphaDates'])->name('attendance.staff-alpha-dates');
 
     // Export routes
     Route::get('attendance/export/excel', [AttendanceController::class, 'exportToExcel'])->name('attendance.export-excel');
@@ -813,7 +813,7 @@ Route::get('attendance/staff/{user_id}/alpha-dates', [AttendanceController::clas
     Route::get('break-times/report', [BreakTimeController::class, 'report'])->name('break-times.report');
     Route::get('break-times/summary-report', [BreakTimeController::class, 'summaryReport'])->name('break-times.summary-report');
     Route::get('break-times/summary-report/datatables', [BreakTimeController::class, 'getSummaryReportDatatables'])->name('break-times.summary-report-datatables');
-Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'getSummaryReportStats'])->name('break-times.summary-report-stats');
+    Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'getSummaryReportStats'])->name('break-times.summary-report-stats');
     Route::get('break-times/datatables', [BreakTimeController::class, 'getDatatables'])->name('break-times.datatables');
     Route::get('break-times/export/pdf', [BreakTimeController::class, 'exportToPDF'])->name('break-times.export-pdf');
     Route::get('break-times/summary-report/export/excel', [BreakTimeController::class, 'exportSummaryToExcel'])->name('break-times.summary-report-export-excel');
@@ -833,14 +833,14 @@ Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'get
     Route::post('break-times/clock-in', [BreakTimeController::class, 'clockIn'])->name('break-times.clock-in');
     Route::post('break-times/clock-out', [BreakTimeController::class, 'clockOut'])->name('break-times.clock-out');
     Route::post('break-times/{id}/cancel', [BreakTimeController::class, 'cancelBreakTime'])->name('break-times.cancel');
-Route::post('break-times/cleanup', [BreakTimeController::class, 'cleanupInvalidBreaks'])->name('break-times.cleanup');
+    Route::post('break-times/cleanup', [BreakTimeController::class, 'cleanupInvalidBreaks'])->name('break-times.cleanup');
 
     // BreakTimeBackupController
     Route::get('break-times-backup', [BreakTimeBackupController::class, 'index'])->name('break-times-backup.index');
     Route::get('break-times-backup/report', [BreakTimeBackupController::class, 'report'])->name('break-times-backup.report');
     Route::get('break-times-backup/summary-report', [BreakTimeBackupController::class, 'summaryReport'])->name('break-times-backup.summary-report');
     Route::get('break-times-backup/summary-report/datatables', [BreakTimeBackupController::class, 'getSummaryReportDatatables'])->name('break-times-backup.summary-report-datatables');
-Route::get('break-times-backup/summary-report/stats', [BreakTimeBackupController::class, 'getSummaryReportStats'])->name('break-times-backup.summary-report-stats');
+    Route::get('break-times-backup/summary-report/stats', [BreakTimeBackupController::class, 'getSummaryReportStats'])->name('break-times-backup.summary-report-stats');
     Route::get('break-times-backup/datatables', [BreakTimeBackupController::class, 'getDatatables'])->name('break-times-backup.datatables');
     Route::get('break-times-backup/export/pdf', [BreakTimeBackupController::class, 'exportToPDF'])->name('break-times-backup.export-pdf');
     Route::get('break-times-backup/summary-report/export/excel', [BreakTimeBackupController::class, 'exportSummaryToExcel'])->name('break-times-backup.summary-report-export-excel');
@@ -859,8 +859,7 @@ Route::get('break-times-backup/summary-report/stats', [BreakTimeBackupController
     Route::delete('break-times-backup/{id}', [BreakTimeBackupController::class, 'destroy'])->name('break-times-backup.destroy');
     Route::post('break-times-backup/clock-in', [BreakTimeBackupController::class, 'clockIn'])->name('break-times-backup.clock-in');
     Route::post('break-times-backup/clock-out', [BreakTimeBackupController::class, 'clockOut'])->name('break-times-backup.clock-out');
-Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cleanupInvalidBreaks'])->name('break-times-backup.cleanup');
-
+    Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cleanupInvalidBreaks'])->name('break-times-backup.cleanup');
 
 
 // LeaveTypeController
@@ -886,16 +885,16 @@ Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cl
     Route::get('leave-requests/staff/{user_id}/stats', [LeaveRequestController::class, 'staffStats'])->name('leave-requests.staff-stats');
     Route::get('leave-requests/staff/{user_id}/export/excel', [LeaveRequestController::class, 'exportStaffToExcel'])->name('leave-requests.staff-export-excel');
     Route::get('leave-requests/staff/{user_id}/export/pdf', [LeaveRequestController::class, 'exportStaffToPDF'])->name('leave-requests.staff-export-pdf');
-    
+
     // Leave Balance Route
     Route::get('leave-requests/balance/{leaveTypeId}', [LeaveRequestController::class, 'getLeaveBalance'])->name('leave-requests.balance');
-    
+
     // Leave Request Specific Routes (MUST be before {id} routes to avoid conflicts)
     Route::get('leave-requests/datatables', [LeaveRequestController::class, 'getDatatables'])->name('leave-requests.datatables');
     Route::get('leave-requests/stats', [LeaveRequestController::class, 'getStats'])->name('leave-requests.stats');
     Route::get('leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
     Route::post('leave-requests/reprocess-all', [LeaveRequestController::class, 'reprocessAll'])->name('leave-requests.reprocess-all');
-    
+
     // Leave Request CRUD Routes (with {id} parameter)
     Route::get('leave-requests/{id}', [LeaveRequestController::class, 'show'])->name('leave-requests.show');
     Route::get('leave-requests/{id}/edit', [LeaveRequestController::class, 'edit'])->name('leave-requests.edit');
@@ -904,19 +903,19 @@ Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cl
     Route::get('leave-requests/{id}/process-status', [LeaveRequestController::class, 'processStatus'])->name('leave-requests.process-status');
     Route::post('leave-requests/{id}/approve', [LeaveRequestController::class, 'approve'])->name('leave-requests.approve');
     Route::post('leave-requests/{id}/reject', [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
-    
+
     // Leave Request Index and Store Routes (MUST be AFTER {id} routes to avoid conflicts)
     Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
     Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
 
 // Debug route for testing CSRF
-Route::get('test-csrf', function() {
-    return response()->json([
-        'csrf_token' => csrf_token(),
-        'session_id' => session()->getId(),
-        'user_id' => auth()->id()
-    ]);
-})->middleware('auth');
+    Route::get('test-csrf', function () {
+        return response()->json([
+            'csrf_token' => csrf_token(),
+            'session_id' => session()->getId(),
+            'user_id' => auth()->id()
+        ]);
+    })->middleware('auth');
 
     // UserPositionController
     Route::get('user-positions', [UserPositionController::class, 'index'])->name('user-positions.index');
@@ -975,7 +974,7 @@ Route::get('test-csrf', function() {
     Route::get('announcements/{id}/reactions', [AnnouncementController::class, 'getReactionDetails'])->name('announcements.reaction-details');
     Route::post('announcements/{id}/view', [AnnouncementController::class, 'trackView'])->name('announcements.track-view');
     Route::get('announcements/{id}/viewers', [AnnouncementController::class, 'getViewers'])->name('announcements.viewers');
-Route::delete('announcements/attachment/{id}/remove', [AnnouncementController::class, 'removeAttachment'])->name('announcements.remove-attachment');
+    Route::delete('announcements/attachment/{id}/remove', [AnnouncementController::class, 'removeAttachment'])->name('announcements.remove-attachment');
 
 
     // Announcement Categories
