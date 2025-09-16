@@ -613,7 +613,6 @@ class AnnouncementController extends Controller
 
     protected function validateAccess()
     {
-<<<<<<< HEAD
         if (!auth()->check()) {
             return redirect()->route('login');
         }
@@ -640,15 +639,6 @@ class AnnouncementController extends Controller
             if (!$validate) {
                 dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
             }
-=======
-        $validate = DB::table('user_menu_accesses')
-            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-                'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
-            ])->exists();
-        if (!$validate) {
-            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         }
     }
 
