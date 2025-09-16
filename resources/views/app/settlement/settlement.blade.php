@@ -118,6 +118,7 @@
                                     </div>
                                     <div class="h-100 d-flex align-items-center">
                                         <button class="btn btn-primary px-6" id="settlement_btn"><i class="fas fa-check mr-2"></i>Settlement</button>
+                                        <button class="btn btn-info px-6 ml-6" id="calc_cogs_tag_btn"><i class="fas fa-check mr-2"></i>Calc Cogs & Price Tag</button>
                                     </div>
                                 </div>
                                 <hr>

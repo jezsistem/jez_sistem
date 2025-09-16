@@ -76,7 +76,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
         } else {
             $status_cogs = null;
         }
-        
+
         $query = DB::table('pos_transaction_details')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
@@ -94,27 +94,27 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                 'p_name as article_name',
                 'br_name as brand',
                 'pos_td_qty as qty',
-                'ps_price_tag as gross_sales',
+                'pos_td_item_price_tag as gross_sales',
                 'pos_td_nameset_price as nameset',
                 DB::raw('CASE 
                         WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
                         THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
-                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                         ELSE 0 
                     END as diskon_per_item'),
                 DB::raw('CASE
                 WHEN ts_pos_transactions.pos_total_discount = SUM(CASE 
                         WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
                         THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
-                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                         ELSE 0 
                     END) OVER (PARTITION BY ts_pos_transactions.id) THEN COALESCE(CASE 
                         WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
                         THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
-                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                         ELSE 0 
                     END, 0)
                 WHEN ts_pos_transactions.pos_total_discount = 0 THEN pos_td_discount_number
@@ -132,14 +132,14 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                                 WHEN ts_pos_transactions.pos_total_discount = SUM(CASE 
                                         WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
                                         THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
-                                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                                         ELSE 0 
                                     END) OVER (PARTITION BY ts_pos_transactions.id) THEN pos_td_total_price - COALESCE(CASE 
                                         WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
                                         THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
-                                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                                         ELSE 0 
                                     END, 0)
                                 WHEN ts_pos_transactions.pos_total_discount = 0 THEN pos_td_total_price - pos_td_discount_number

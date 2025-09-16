@@ -336,7 +336,7 @@
                                 '<td>' + item.ps_barcode + '</td>' +
                                 '<td>' + item.pos_td_qty + '</td>' +
                                 '<td>Rp ' + new Intl.NumberFormat('id-ID').format(
-                                    item.ps_price_tag) + '</td>' +
+                                    item.pos_td_item_price_tag) + '</td>' +
                                 '<td>' + item.is_nameset + '</td>' +
                                 '<td>' + (item.discount ? 'Rp ' + new Intl
                                     .NumberFormat('id-ID').format(item.discount) :
@@ -402,6 +402,58 @@
                         loadNetSalesPerPaymentMethod();
                         resetSelected();
                         toastr.success('Selected transactions have been settled successfully.');
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle error
+                        console.log('Error: ' + error);
+                    }
+                });
+            });
+        });
+
+        $('#calc_cogs_tag_btn').on('click', function() {
+            // Check if items are selected first
+            var checkedIds = [];
+            $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
+                var checkId = $(this).attr('id');
+                var numberPart = checkId.replace('check_', '');
+                checkedIds.push(numberPart);
+            });
+
+            if (checkedIds.length === 0) {
+                alert('Please select at least one item to calc.');
+                return;
+            }
+
+            // Show SweetAlert confirmation
+            var selectedCount = $('#selected').text();
+            Swal.fire({
+                title: 'Confirm Settlement',
+                text: `Are you sure you want to calc ${selectedCount} selected transactions?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, settle them!'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                // Execute AJAX only after confirmation
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('settlement_calc_cogs_price_tag') }}",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        checked_ids: checkedIds
+                    },
+                    success: function(response) {
+                        // Handle success response
+                        settlement_table.draw(false);
+                        loadNetSalesPerPaymentMethod();
+                        resetSelected();
+                        toastr.success('Selected transactions have been calculated successfully.');
                     },
                     error: function(xhr, status, error) {
                         // Handle error

@@ -109,4 +109,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settlement_detail/{id}', [SettlementController::class, 'getDetailSettlement'])->name('settlement_detail');
     Route::get('settlement_export_transaction', [SettlementController::class, 'exportTransaction'])->name('settlement.export_transaction');
     Route::get('settlement_export_transaction_detail', [SettlementController::class, 'exportTransactionDetail'])->name('settlement.export_transaction_detail');
+    Route::post('settlement_calc_cogs_price_tag', [SettlementController::class, 'calcCogsPriceTag'])->name('settlement.calc_cogs_price_tag');
 });

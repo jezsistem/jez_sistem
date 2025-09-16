@@ -90,7 +90,7 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
                 'pos_invoice as receipt_number',
                 'pos_transactions.pos_order_number as order_number',
                 DB::raw('SUM(pos_td_qty) as total_items'),
-                DB::raw('SUM(pos_td_qty * ps_price_tag) as gross_sales'),
+                DB::raw('SUM(pos_td_qty * pos_td_item_price_tag) as gross_sales'),
                 DB::raw('SUM(pos_td_nameset_price) as nameset'),
                 'pos_total_discount as total_discount',
                 DB::raw('MAX(final_price) as net_sales_before_admin'),

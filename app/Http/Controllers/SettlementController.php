@@ -185,18 +185,33 @@ class SettlementController extends Controller
         DB::beginTransaction();
 
         try {
-            $transaction_items = PosTransactionDetail::where('pt_id', $id)->where('pos_td_item_cogs', 0)->get();
+            $transaction_items = PosTransactionDetail::where('pt_id', $id)
+                ->where(function ($query) {
+                    $query->where('pos_td_item_cogs', 0)
+                        ->orWhere('pos_td_item_price_tag', 0);
+                })
+                ->get();
+
             foreach ($transaction_items as $transaction_item) {
+                $product_stock = ProductStock::query()->where('id', $transaction_item->pst_id)->first();
+
+                $update_data = [];
+
+                // Check if COGS is 0 and needs update
                 if ($transaction_item->pos_td_item_cogs == 0) {
-                    $item_cogs = ProductStock::query()->where('id', $transaction_item->pst_id)->pluck('ps_purchase_price')->first();
+                    $update_data['pos_td_item_cogs'] = $product_stock->ps_purchase_price ?? 0;
+                }
 
-                    $update_data = [
-                        'pos_td_item_cogs' => $item_cogs ?? 0,
-                    ];
+                // Check if price tag is null or 0 and needs update
+                if (is_null($transaction_item->pos_td_item_price_tag) || $transaction_item->pos_td_item_price_tag == 0) {
+                    $update_data['pos_td_item_price_tag'] = $product_stock->ps_price_tag ?? 0;
+                }
 
+                // Only update if there's data to update
+                if (!empty($update_data)) {
                     $item_update = PosTransactionDetail::where('id', $transaction_item->id)->update($update_data);
                     if (!$item_update) {
-                        throw new \Exception('Failed to update item COGS for transaction item ID: ' . $transaction_item->id);
+                        throw new \Exception('Failed to update transaction item ID: ' . $transaction_item->id);
                     }
                 }
             }
@@ -214,14 +229,14 @@ class SettlementController extends Controller
                     'pm_partial.pm_name as payment_method_partial',
                     'pos_payment_partial',
                     'pos_transactions.sub_payment',
-                    DB::raw('SUM(pos_td_total_price) as gross_sales'),
+                    DB::raw('SUM(pos_td_item_price_tag) as gross_sales'),
                     DB::raw('CASE 
                                         WHEN pos_invoice NOT LIKE \'INV%\' 
                                         THEN SUM(CASE 
                                             WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
                                             THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                                            WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
-                                            THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                                            WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                                            THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                                             ELSE 0 
                                         END)
                                         ELSE ts_pos_transactions.pos_total_discount 
@@ -250,13 +265,13 @@ class SettlementController extends Controller
                     'products.p_name',
                     'ps_barcode',
                     'pos_td_qty',
-                    'ps_price_tag',
+                    'pos_td_item_price_tag',
                     DB::raw('CASE WHEN ts_pos_transaction_details.pos_td_nameset_price>0 THEN \'YES\' ELSE \'NO\' END as is_nameset'),
                     DB::raw('CASE 
                         WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
                         THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                        WHEN ps_price_tag * pos_td_qty > pos_td_sell_price 
-                        THEN (ps_price_tag - pos_td_sell_price) / pos_td_qty
+                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                         ELSE 0 
                     END as discount'),
                     'pos_td_sell_price as price_after_discount'
@@ -678,6 +693,73 @@ class SettlementController extends Controller
         foreach ($settled_transaction_id as $key => $value) {
             PosTransaction::query()->where('id', $value)->update(['is_settle' => 1]);
         }
+
+        return response()->json(['message' => 'Selected transactions have been marked as settled.']);
+    }
+
+    public function calcCogsPriceTag(Request $request)
+    {
+
+        $calc_transaction_id = $request->checked_ids;
+
+        DB::beginTransaction();
+
+        try {
+            // Get transactions that have details with missing COGS or price tags
+            $transactions = PosTransaction::whereIn('id', $calc_transaction_id)
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('pos_transaction_details')
+                        ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                        ->where(function ($subQuery) {
+                            $subQuery->where('pos_td_item_cogs', 0)
+                                ->orWhere('pos_td_item_price_tag', 0)
+                                ->orWhereNull('pos_td_item_cogs')
+                                ->orWhereNull('pos_td_item_price_tag');
+                        });
+                })->get();
+
+            // Get transaction details that need updating
+            $transactionDetails = PosTransactionDetail::whereIn('pt_id', $transactions->pluck('id'))
+                ->where(function ($query) {
+                    $query->where('pos_td_item_cogs', 0)
+                        ->orWhere('pos_td_item_price_tag', 0)
+                        ->orWhereNull('pos_td_item_cogs')
+                        ->orWhereNull('pos_td_item_price_tag');
+                })->get();
+
+            foreach ($transactionDetails as $detail) {
+                $productStock = ProductStock::find($detail->pst_id);
+                if ($productStock) {
+                    $updateData = [];
+
+                    // Check if COGS is 0 or null and needs update
+                    if ($detail->pos_td_item_cogs == 0 || is_null($detail->pos_td_item_cogs)) {
+                        $updateData['pos_td_item_cogs'] = $productStock->ps_purchase_price ?? 0;
+                    }
+
+                    // Check if price tag is 0 or null and needs update
+                    if ($detail->pos_td_item_price_tag == 0 || is_null($detail->pos_td_item_price_tag)) {
+                        $updateData['pos_td_item_price_tag'] = $productStock->ps_price_tag ?? 0;
+                    }
+
+                    // Only update if there's data to update
+                    if (!empty($updateData)) {
+                        $updated = PosTransactionDetail::where('id', $detail->id)->update($updateData);
+                        if (!$updated) {
+                            throw new \Exception('Failed to update transaction detail ID: ' . $detail->id);
+                        }
+                    }
+                }
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+        return response()->json(['message' => 'COGS and Price Tag recalculation completed.']);
     }
 
     private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)
