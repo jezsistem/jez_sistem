@@ -41,15 +41,18 @@
                                     <h5>Employee Information</h5>
                                     <table class="table table-borderless">
                                         <tr>
-                                            <td width="150"><strong>Name:</strong></td>
-                                            <td>{{ $leaveRequest->u_name }}</td>
+                                            <td><strong>Name</strong></td>
+                                            <td><strong>:</strong></td>
+                                            <td>{{ $leaveRequest->user->u_name }}</td>
                                         </tr>
                                         <tr>
                                             <td><strong>NIP:</strong></td>
-                                            <td>{{ $leaveRequest->u_nip }}</td>
+                                            <td><strong>:</strong></td>
+                                            <td>{{ $leaveRequest->user->u_nip }}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Division:</strong></td>
+                                            <td><strong>Division</strong></td>
+                                            <td><strong>:</strong></td>
                                             <td>{{ $leaveRequest->ud_name ?: '-' }}</td>
                                         </tr>
                                     </table>
@@ -61,8 +64,8 @@
                                         <tr>
                                             <td width="150"><strong>Leave Type:</strong></td>
                                             <td>
-                                                <span class="badge" style="background-color: {{ $leaveRequest->lt_color }}; color: white;">
-                                                    {{ $leaveRequest->lt_name }} ({{ $leaveRequest->lt_code }})
+                                                <span>
+                                                    {{ $leaveRequest->leaveType->lt_name }} ({{ $leaveRequest->leaveType->lt_code }})
                                                 </span>
                                             </td>
                                         </tr>

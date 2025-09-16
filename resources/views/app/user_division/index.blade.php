@@ -145,6 +145,8 @@
                                         <th class="text-dark">Code</th>
                                         <th class="text-dark">Name</th>
                                         <th class="text-dark">Description</th>
+                                        <th class="text-dark">SPV</th>
+                                        <th class="text-dark">Manager</th>
                                         <th class="text-dark">Status</th>
                                         <th class="text-dark">Actions</th>
                                         </tr>
