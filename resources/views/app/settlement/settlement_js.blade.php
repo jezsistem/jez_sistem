@@ -29,8 +29,8 @@
                 start_date: $('#start_date').val(),
                 end_date: $('#end_date').val(),
                 status_trx: $('#status_trx').val(),
-                status_settle : $('#status_settle').val(),
-                status_cogs : $('#status_cogs').val()
+                status_settle: $('#status_settle').val(),
+                status_cogs: $('#status_cogs').val()
             },
             success: function(response) {
                 $('#payment_calc_cards').html(response);
@@ -49,8 +49,8 @@
                 start_date: $('#start_date').val(),
                 end_date: $('#end_date').val(),
                 status_trx: $('#status_trx').val(),
-                status_settle : $('#status_settle').val(),
-                status_cogs : $('#status_cogs').val()
+                status_settle: $('#status_settle').val(),
+                status_cogs: $('#status_cogs').val()
             },
             success: function(response) {
                 var formattedAmount = new Intl.NumberFormat('id-ID', {
@@ -360,6 +360,7 @@
         });
 
         $('#settlement_btn').on('click', function() {
+            // Check if items are selected first
             var checkedIds = [];
             $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
                 var checkId = $(this).attr('id');
@@ -372,24 +373,41 @@
                 return;
             }
 
-            $.ajax({
-                type: "POST",
-                url: "{{ url('settlement_bulk_status') }}",
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    checked_ids: checkedIds
-                },
-                success: function(response) {
-                    // Handle success response
-                    settlement_table.draw(false);
-                    loadNetSalesPerPaymentMethod();
-                    resetSelected();
-                    toastr.success('Selected transactions have been settled successfully.');
-                },
-                error: function(xhr, status, error) {
-                    // Handle error
-                    console.log('Error: ' + error);
+            // Show SweetAlert confirmation
+            var selectedCount = $('#selected').text();
+            Swal.fire({
+                title: 'Confirm Settlement',
+                text: `Are you sure you want to settle ${selectedCount} selected transactions?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, settle them!'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
                 }
+
+                // Execute AJAX only after confirmation
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('settlement_bulk_status') }}",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        checked_ids: checkedIds
+                    },
+                    success: function(response) {
+                        // Handle success response
+                        settlement_table.draw(false);
+                        loadNetSalesPerPaymentMethod();
+                        resetSelected();
+                        toastr.success('Selected transactions have been settled successfully.');
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle error
+                        console.log('Error: ' + error);
+                    }
+                });
             });
         });
 
@@ -427,8 +445,8 @@
                 start_date: $('#start_date').val() || '',
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || '',
-                status_settle : $('#status_settle').val(),
-                status_cogs : $('#status_cogs').val()
+                status_settle: $('#status_settle').val(),
+                status_cogs: $('#status_cogs').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');
@@ -441,8 +459,8 @@
                 start_date: $('#start_date').val() || '',
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || '',
-                status_settle : $('#status_settle').val(),
-                status_cogs : $('#status_cogs').val()
+                status_settle: $('#status_settle').val(),
+                status_cogs: $('#status_cogs').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');
