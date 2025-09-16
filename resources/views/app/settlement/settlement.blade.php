@@ -66,9 +66,25 @@
                                             @endforelse
                                         </select>
                                     </div>
+                                    <div class="col-md-2 mb-4">
+                                        <label class="form-label">Status Settlement</label>
+                                        <select class="form-control border border-secondary" id="status_settle">
+                                            <option value="">-- Pilih Status --</option>
+                                            <option value="Settled">Settled</option>
+                                            <option value="Unsettled">Unsettled</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-4">
+                                        <label class="form-label">Status COGS</label>
+                                        <select class="form-control border border-secondary" id="status_cogs">
+                                            <option value="">-- Pilih Status --</option>
+                                            <option value="Calculated">Calculated</option>
+                                            <option value="Uncalculated">Uncalculated</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-12 mb-4">
+                                    <div class="col-md-12 mb-4 mt-4">
                                         <button type="button" class="btn btn-primary mr-2" id="filter_btn">
                                             <i class="fas fa-filter mr-2"></i>Filter
                                         </button>

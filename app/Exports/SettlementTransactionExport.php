@@ -16,14 +16,18 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
     protected $st_id;
     protected $pm_id;
     protected $status_trx;
+    protected $status_settle;
+    protected $status_cogs;
 
-    public function __construct($start_date, $end_date, $st_id, $pm_id, $status_trx)
+    public function __construct($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)
     {
         $this->start_date = $start_date;
         $this->end_date = $end_date;
         $this->st_id = $st_id;
         $this->pm_id = $pm_id;
         $this->status_trx = $status_trx;
+        $this->status_settle = $status_settle;
+        $this->status_cogs = $status_cogs;
     }
 
     public function headings(): array
@@ -58,6 +62,20 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
 
     public function collection()
     {
+        if ($this->status_settle === 'Settled') {
+            $status_settle = true;
+        } elseif ($this->status_settle === 'Unsettled') {
+            $status_settle = false;
+        } else {
+            $status_settle = null;
+        }
+        if ($this->status_cogs === 'Calculated') {
+            $status_cogs = true;
+        } elseif ($this->status_cogs === 'Uncalculated') {
+            $status_cogs = false;
+        } else {
+            $status_cogs = null;
+        }
         // Build the query with conditional filters
         $query = DB::table('pos_transactions')
             ->select([
@@ -130,6 +148,34 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
         if ($this->status_trx) {
             $query->where('pos_transactions.pos_status', $this->status_trx);
         }
+
+        if (!is_null($status_settle)) {
+            $query->where('pos_transactions.is_settle', $status_settle);
+        }
+
+        $query->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+            if ($status_cogs) {
+                return $query->whereExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('pos_transaction_details')
+                        ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                        ->where(function ($subQuery) {
+                            $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                        });
+                });
+            } else {
+                return $query->whereNotExists(function ($q) {
+                    $q->select(DB::raw(1))
+                        ->from('pos_transaction_details')
+                        ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                        ->where(function ($subQuery) {
+                            $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                        });
+                });
+            }
+        });
 
         $data = $query->groupBy('pos_transactions.id')
             ->orderByDesc(DB::raw('COUNT(pos_invoice)'))

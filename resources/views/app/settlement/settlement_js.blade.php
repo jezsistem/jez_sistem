@@ -28,7 +28,9 @@
                 pm_id: $('#payment_method_select').val(),
                 start_date: $('#start_date').val(),
                 end_date: $('#end_date').val(),
-                status_trx: $('#status_trx').val()
+                status_trx: $('#status_trx').val(),
+                status_settle : $('#status_settle').val(),
+                status_cogs : $('#status_cogs').val()
             },
             success: function(response) {
                 $('#payment_calc_cards').html(response);
@@ -46,7 +48,9 @@
                 pm_id: $('#payment_method_select').val(),
                 start_date: $('#start_date').val(),
                 end_date: $('#end_date').val(),
-                status_trx: $('#status_trx').val()
+                status_trx: $('#status_trx').val(),
+                status_settle : $('#status_settle').val(),
+                status_cogs : $('#status_cogs').val()
             },
             success: function(response) {
                 var formattedAmount = new Intl.NumberFormat('id-ID', {
@@ -88,6 +92,8 @@
                     d.end_date = $('#end_date').val();
                     d.status_trx = $('#status_trx').val();
                     d.search_invoice = $('#search_invoice').val();
+                    d.status_settle = $('#status_settle').val();
+                    d.status_cogs = $('#status_cogs').val();
                 }
             },
             columns: [{
@@ -420,7 +426,9 @@
                 pm_id: $('#payment_method_select').val() || '',
                 start_date: $('#start_date').val() || '',
                 end_date: $('#end_date').val() || '',
-                status_trx: $('#status_trx').val() || ''
+                status_trx: $('#status_trx').val() || '',
+                status_settle : $('#status_settle').val(),
+                status_cogs : $('#status_cogs').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');
@@ -432,7 +440,9 @@
                 pm_id: $('#payment_method_select').val() || '',
                 start_date: $('#start_date').val() || '',
                 end_date: $('#end_date').val() || '',
-                status_trx: $('#status_trx').val() || ''
+                status_trx: $('#status_trx').val() || '',
+                status_settle : $('#status_settle').val(),
+                status_cogs : $('#status_cogs').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');

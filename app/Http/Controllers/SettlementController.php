@@ -124,8 +124,10 @@ class SettlementController extends Controller
         $st_id = $request->input('st_id') ?? 0;
         $pm_id = $request->input('pm_id') ?? 0;
         $status_trx = $request->input('status_trx') ?? '';
+        $status_settle = $request->input('status_settle') ?? null;
+        $status_cogs = $request->input('status_cogs') ?? null;
 
-        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx);
+        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs);
 
         $combinedData = $data->sortBy('pos_invoice');
 
@@ -374,6 +376,24 @@ class SettlementController extends Controller
         $st_id = $request->input('st_id') ?? 0;
         $pm_id = $request->input('pm_id') ?? 0;
         $status_trx = $request->input('status_trx') ?? '';
+        $status_settle = $request->input('status_settle') ?? null;
+        $status_cogs = $request->input('status_cogs') ?? null;
+
+        if ($status_settle === 'Settled') {
+            $status_settle = true;
+        } elseif ($status_settle === 'Unsettled') {
+            $status_settle = false;
+        } else {
+            $status_settle = null;
+        }
+
+        if ($status_cogs === 'Calculated') {
+            $status_cogs = true;
+        } elseif ($status_cogs === 'Uncalculated') {
+            $status_cogs = false;
+        } else {
+            $status_cogs = null;
+        }
 
         $main = DB::table('payment_methods')
             ->select(
@@ -405,6 +425,32 @@ class SettlementController extends Controller
             })
             ->when($pm_id != 0, function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
+            })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
             })
             ->groupBy('payment_methods.pm_name')
             ->get();
@@ -440,6 +486,32 @@ class SettlementController extends Controller
             ->when($pm_id != 0, function ($query) use ($pm_id) {
                 return $query->where('payment_methods.pm_name', $pm_id);
             })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
+            })
             ->groupBy('payment_methods.pm_name')
             ->get();
 
@@ -466,6 +538,32 @@ class SettlementController extends Controller
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
+            })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
             })
             ->where(function ($query) {
                 $query->where('pm_main.pm_name', 'CASH')
@@ -501,6 +599,32 @@ class SettlementController extends Controller
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
             })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
+            })
             ->groupBy('platform_name')
             ->get();
 
@@ -529,13 +653,17 @@ class SettlementController extends Controller
         $st_id = $request->input('st_id') ?? 0;
         $pm_id = $request->input('pm_id') ?? 0;
         $status_trx = $request->input('status_trx') ?? '';
+        $status_settle = $request->input('status_settle') ?? null;
+        $status_cogs = $request->input('status_cogs') ?? null;
 
         $transactions = $this->getAllTransactions(
             $start_date,
             $end_date,
             $st_id,
             0,
-            $status_trx
+            $status_trx,
+            $status_settle,
+            $status_cogs
         );
 
         $totalNetsales = $transactions->sum('netsales');
@@ -552,10 +680,25 @@ class SettlementController extends Controller
         }
     }
 
-    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx)
+    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)
     {
         $start_date = $start_date . ' 00:00:00';
         $end_date = $end_date . ' 23:59:59';
+
+        if ($status_settle === 'Settled') {
+            $status_settle = true;
+        } elseif ($status_settle === 'Unsettled') {
+            $status_settle = false;
+        } else {
+            $status_settle = null;
+        }
+        if ($status_cogs === 'Calculated') {
+            $status_cogs = true;
+        } elseif ($status_cogs === 'Uncalculated') {
+            $status_cogs = false;
+        } else {
+            $status_cogs = null;
+        }
 
         $main = DB::table('pos_transactions')
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
@@ -583,6 +726,32 @@ class SettlementController extends Controller
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
+            })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
             })
             ->where(function ($query) {
                 $query->where('payment_methods.pm_name', '!=', 'CASH')
@@ -635,6 +804,32 @@ class SettlementController extends Controller
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
             })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -666,6 +861,32 @@ class SettlementController extends Controller
             })
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
+            })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
             })
             ->where(function ($query) {
                 $query->where('payment_methods.pm_name', '!=', 'CASH')
@@ -714,6 +935,32 @@ class SettlementController extends Controller
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
             })
+            ->when(!is_null($status_settle), function ($query) use ($status_settle) {
+                return $query->where('pos_transactions.is_settle', $status_settle);
+            })
+            ->when(!is_null($status_cogs), function ($query) use ($status_cogs) {
+                if ($status_cogs) {
+                    return $query->whereExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                } else {
+                    return $query->whereNotExists(function ($q) {
+                        $q->select(DB::raw(1))
+                            ->from('pos_transaction_details')
+                            ->whereRaw('ts_pos_transaction_details.pt_id = ts_pos_transactions.id')
+                            ->where(function ($subQuery) {
+                                $subQuery->where('pos_transaction_details.pos_td_item_cogs', '>', 0)
+                                    ->orWhereNull('pos_transaction_details.pos_td_item_cogs');
+                            });
+                    });
+                }
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -731,13 +978,17 @@ class SettlementController extends Controller
         $st_id = $request->input('st_id') ?? 0;
         $pm_id = $request->input('pm_id') ?? 0;
         $status_trx = $request->input('status_trx') ?? '';
+        $status_settle = $request->input('status_settle') ?? null;
+        $status_cogs = $request->input('status_cogs') ?? null;
 
         $export = new SettlementTransactionExport(
             $start_date,
             $end_date,
             $st_id,
             $pm_id,
-            $status_trx
+            $status_trx,
+            $status_settle,
+            $status_cogs
         );
 
         // Get current date and time (format: YYYYMMDD_HHmm)
@@ -752,13 +1003,17 @@ class SettlementController extends Controller
         $st_id = $request->input('st_id') ?? 0;
         $pm_id = $request->input('pm_id') ?? 0;
         $status_trx = $request->input('status_trx') ?? '';
+        $status_settle = $request->input('status_settle') ?? null;
+        $status_cogs = $request->input('status_cogs') ?? null;
 
         $export = new SettlementDetailTransactionExport(
             $start_date,
             $end_date,
             $st_id,
             $pm_id,
-            $status_trx
+            $status_trx,
+            $status_settle,
+            $status_cogs
         );
 
         // Get current date and time (format: YYYYMMDD_HHmm)
