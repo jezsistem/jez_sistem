@@ -90,8 +90,10 @@
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                         <select class="form-control col-md-12" id="sz_id">
-                                            @foreach ($data['sz_id'] as $key => $value)
-                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            @foreach ($data['sizes'] as $value)
+                                                <option value="{{ $value->sz_name }}">
+                                                    {{ $value->sz_name }} ({{ $value->pc_name }})
+                                                </option>
                                             @endforeach
                                         </select>
                                         <div id="sz_id_parent"></div>
@@ -189,7 +191,7 @@
                                         </button>
 
                                         <button style="white-space: nowrap;" type="button"
-                                                class="btn btn-warning font-weight-bolder mb-2" id="waiting_list_btn"
+                                                class="btn btn-warning font-weight-bolder mb-2" id="filter_list_btn"
                                                 aria-haspopup="true" aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->

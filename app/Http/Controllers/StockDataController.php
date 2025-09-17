@@ -87,10 +87,25 @@ class StockDataController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
-            'sz_id' => Size::selectRaw('ts_sizes.id as sz_id, CONCAT(sz_name," (",psc_name,")") as sz')
-                ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
-                ->where('sz_delete', '!=', '1')
-                ->orderBy('sz_name')->pluck('sz', 'sz_id'),
+//            'sz_name' => Size::selectRaw('ts_sizes.id as sz_id, CONCAT(sz_name," (",psc_name,")") as sz')
+//                ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+//                ->where('sz_delete', '!=', '1')
+//                ->orderBy('sz_name')->pluck('sz', 'sz_id'),
+            'sizes' => collect(DB::select("
+                            SELECT DISTINCT
+                                ts_sizes.sz_name,
+                                ts_product_categories.pc_name
+                            FROM ts_sizes
+                            INNER JOIN ts_product_sub_categories
+                                ON ts_product_sub_categories.id = ts_sizes.psc_id
+                            JOIN ts_product_categories
+                                ON ts_product_categories.id = ts_product_sub_categories.pc_id
+                            WHERE ts_sizes.sz_delete != '1'
+                              AND sz_name != ''
+                              AND pc_name NOT IN ('UNKNOWN')
+                            ORDER BY FIELD(ts_product_categories.pc_name, 'FOOTWEAR', 'APPAREL', 'ACCESSORIES'),
+                                     ts_sizes.sz_name ASC
+                        ")),
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
@@ -100,6 +115,8 @@ class StockDataController extends Controller
             'main_color_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
+//        dd($data['sizes']);
 
 //        dd(Auth::user()->st_id);
         return view('app.stock_data.stock_data', compact('data'));
@@ -241,6 +258,7 @@ class StockDataController extends Controller
                         ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                         ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where('product_locations.st_id', '=', $st_id)
                         ->whereNotIn('pl_code', $exception)
                         ->where('p_name', $data->p_name)
@@ -248,9 +266,9 @@ class StockDataController extends Controller
                         ->where(function ($w) use ($sz_id) {
                             if (!empty($sz_id)) {
                                 if (count($sz_id) > 0) {
-                                    $w->whereIn('sz_id', $sz_id);
+                                    $w->whereIn('sz_name', $sz_id);
                                 } else {
-                                    $w->where('sz_id', $sz_id);
+                                    $w->where('sz_name', $sz_id);
                                 }
                             }
                         })
@@ -353,9 +371,9 @@ class StockDataController extends Controller
                                     ->where(function ($w) use ($sz_id) {
                                         if (!empty($sz_id)) {
                                             if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
+                                                $w->whereIn('sz_name', $sz_id);
                                             } else {
-                                                $w->where('sz_id', $sz_id);
+                                                $w->where('sz_name', $sz_id);
                                             }
                                         }
                                     })
@@ -375,9 +393,9 @@ class StockDataController extends Controller
                                     ->where(function ($w) use ($sz_id) {
                                         if (!empty($sz_id)) {
                                             if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
+                                                $w->whereIn('sz_name', $sz_id);
                                             } else {
-                                                $w->where('sz_id', $sz_id);
+                                                $w->where('sz_name', $sz_id);
                                             }
                                         }
                                     })
@@ -761,11 +779,11 @@ class StockDataController extends Controller
                                 for ($i = 0; $i < $count; $i++) {
                                     $where[] = $sz_id[$i];
                                 }
-                                $w->orWhereIn('sz_id', $where);
+                                $w->orWhereIn('sz_name', $where);
                             } else {
-                                $w->orWhere('sz_id', '=', $sz_id[0]);
+                                $w->orWhere('sz_name', '=', $sz_id[0]);
                             }
-                            $w->where('pls_qty', '>', 0); // Added condition
+                            $w->where('pls_qty', '>=', 0); // Added condition
                         });
                     }
 

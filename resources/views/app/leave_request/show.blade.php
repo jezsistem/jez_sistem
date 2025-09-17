@@ -41,19 +41,16 @@
                                     <h5>Employee Information</h5>
                                     <table class="table table-borderless">
                                         <tr>
-                                            <td><strong>Name</strong></td>
-                                            <td><strong>:</strong></td>
+                                            <td width="150"><strong>Name:</strong></td>
                                             <td>{{ $leaveRequest->user->u_name }}</td>
                                         </tr>
                                         <tr>
                                             <td><strong>NIP:</strong></td>
-                                            <td><strong>:</strong></td>
                                             <td>{{ $leaveRequest->user->u_nip }}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Division</strong></td>
-                                            <td><strong>:</strong></td>
-                                            <td>{{ $leaveRequest->ud_name ?: '-' }}</td>
+                                            <td><strong>Division:</strong></td>
+                                            <td>{{ $leaveRequest->user->division->ud_name ?? '-' }}</td>
                                         </tr>
                                     </table>
                                 </div>

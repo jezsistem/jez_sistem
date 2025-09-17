@@ -204,6 +204,13 @@
                                     </select>
                                 </div>
                                 
+                            <div class="col-md-5">
+                                <!-- Target Type -->
+                                <div class="form-group">
+                                    <label for="target_date">Target Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="target_date" name="target_date" required>
+                                </div>
+                                
                                 <!-- Division Selection (hidden by default) -->
                                 <div class="form-group" id="divisionGroup" style="display: none;">
                                     <label for="division_id">Select Division <span class="text-danger">*</span></label>
