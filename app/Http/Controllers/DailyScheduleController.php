@@ -141,13 +141,8 @@ class DailyScheduleController extends Controller
     public function index(Request $request)
     {
         // Temporarily comment out for testing
-<<<<<<< HEAD
-        // $this->validateAccess();
-
-=======
         // // $this->validateAccess();
         
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $title = 'Daily Schedules';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
