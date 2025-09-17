@@ -337,8 +337,8 @@ class SettlementController extends Controller
             $seller_voucher = $transaction->total_seller_discount ?? 0;
             $total_admin_fee = $transaction->total_admin_fee ?? 0;
             $total_dana_cair = $transaction->total_dana_cair ?? 0;
-            $gross_margin = $gross_sales - $cogs;
-            $margin_percentage = $gross_sales != 0 ? round(($gross_margin / $gross_sales) * 100, 2) : 0;
+            $gross_margin = $net_sales - $cogs;
+            $margin_percentage = $net_sales != 0 ? round(($gross_margin / $net_sales) * 100, 2) : 0;
 
             if ($store_name && str_contains(strtoupper($store_name), 'ONLINE') && substr(trim((string) $receipt_number), 0, 3) !== 'INV') {
                 $print_receipt_url = url('/') . '/print_online_nota/' . $receipt_number;
