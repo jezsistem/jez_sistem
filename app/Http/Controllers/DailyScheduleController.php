@@ -20,34 +20,6 @@ class DailyScheduleController extends Controller
 {
     protected function validateAccess()
     {
-<<<<<<< HEAD
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
-
-        $user_position = auth()->user()->up_id;
-
-        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
-            ->where('user_groups.user_id', auth()->user()->id)
-            ->where('g_name', 'administrator')
-            ->exists();
-
-        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
-            ->where('users.id', auth()->user()->id)
-            ->where('user_divisions.ud_code', 'HUMANRESOU')
-            ->exists();
-
-        if (!$user_group_is_admin && !$is_human_resource) {
-            $validate = DB::table('position_access')
-                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
-                    'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
-                ])->exists();
-
-            if (!$validate) {
-                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
-            }
-=======
         $validate = DB::table('user_menu_accesses')
             ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
                 'u_id' => Auth::user()->id,
@@ -55,7 +27,6 @@ class DailyScheduleController extends Controller
             ])->exists();
         if (!$validate) {
             dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         }
     }
 
@@ -975,13 +946,8 @@ class DailyScheduleController extends Controller
      */
     public function weeklyReport(Request $request)
     {
-<<<<<<< HEAD
-        $this->validateAccess();
-
-=======
         // $this->validateAccess();
         
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $user = new User;
         $select = ['*'];
         $where = [
@@ -1262,13 +1228,8 @@ class DailyScheduleController extends Controller
      */
     public function getUsersByDivision(Request $request)
     {
-<<<<<<< HEAD
-        $this->validateAccess();
-
-=======
         // $this->validateAccess();
         
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         Log::info('getUsersByDivision called', [
             'user' => Auth::user() ? Auth::user()->id : 'not authenticated',
             'division_id' => $request->get('division_id')
@@ -1304,13 +1265,8 @@ class DailyScheduleController extends Controller
      */
     public function saveWeeklySchedule(Request $request)
     {
-<<<<<<< HEAD
-        $this->validateAccess();
-
-=======
         // $this->validateAccess();
         
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $request->validate([
             'start_date' => 'required|date',
             'schedules' => 'required|array',
@@ -2385,13 +2341,8 @@ class DailyScheduleController extends Controller
      */
     public function monthlyReport(Request $request)
     {
-<<<<<<< HEAD
-        $this->validateAccess();
-
-=======
         // $this->validateAccess();
         
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         $user = new User;
         $select = ['*'];
         $where = [
@@ -2684,13 +2635,8 @@ class DailyScheduleController extends Controller
     public function exportMonthlyExcel(Request $request)
     {
         try {
-<<<<<<< HEAD
-            $this->validateAccess();
-
-=======
             // $this->validateAccess();
             
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
             // Get parameters from request - EXPORT EXCEL METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
@@ -2871,13 +2817,8 @@ class DailyScheduleController extends Controller
     public function exportMonthlyPDF(Request $request)
     {
         try {
-<<<<<<< HEAD
-            $this->validateAccess();
-
-=======
             // $this->validateAccess();
             
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
             // Get parameters from request - EXPORT PDF METHOD
             $month = $request->get('month', date('Y-m'));
             $divisionId = $request->get('division_id');
@@ -4517,13 +4458,8 @@ class DailyScheduleController extends Controller
      */
     public function importWeeklyExcel(Request $request)
     {
-<<<<<<< HEAD
-        $this->validateAccess();
-
-=======
         // $this->validateAccess();
         
->>>>>>> dff16940a9bdafcaf8986109c7d90d0a805d2791
         \Log::info('Weekly Schedule Excel Import started', [
             'request_data' => $request->all(),
             'files' => $request->allFiles()
