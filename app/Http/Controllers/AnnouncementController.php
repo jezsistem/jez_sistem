@@ -633,7 +633,7 @@ class AnnouncementController extends Controller
             $validate = DB::table('position_access')
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
                     'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
+//                    'position_access.route' => request()->path()
                 ])->exists();
 
             if (!$validate) {
