@@ -37,10 +37,10 @@ class AttendanceController extends Controller
             ->exists();
 
         if (!$user_group_is_admin  && !$is_human_resource) {
-            $check = DB::table('position_access')
+            $check = DB::table('positposition_access.routeion_access')
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
                     'position_access.position_id' => $user_position,
-                    'position_access.route' => request()->path()
+//                    'position_access.route' => request()->path()
                 ])->exists();
 
             if (!$check) {
