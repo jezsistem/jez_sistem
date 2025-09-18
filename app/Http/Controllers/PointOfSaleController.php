@@ -959,7 +959,7 @@ class PointOfSaleController extends Controller
         $count_b1g1 = ProductDiscountDetail::join('product_stocks', 'product_stocks.id', '=', 'product_discount_details.pst_id')
             ->where('product_discount_details.pst_id', '=', $pst_id)->count();
 
-        $current_price = DB::table('product_stocks')->where('id', $pst_id)->first();
+        $current_price = DB::table('product_stocks')->where('id', '=', $pst_id)->first();
 
         $pos_td_description = null;
         if (session()->get('voc_item') != Auth::user()->id . '-' . $pst_id) {
