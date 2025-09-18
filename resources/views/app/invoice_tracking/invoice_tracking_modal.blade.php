@@ -106,40 +106,155 @@
 
 <!-- Modal-->
 <div class="modal fade" id="DPPaymentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <form id="f_payment_dp">
                 @csrf
                 <input type="hidden" name="_pt_id" id="_pt_id" value="" />
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title text-dark" id="exampleModalLabel">DP Payment</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="exampleModalLabel">
+                        <i class="fas fa-money-bill-wave mr-2"></i>DP Payment
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <i aria-hidden="true" class="ki ki-close"></i>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="card-body">
-                        <div class="form-group mb-1 pb-1 justify-content-between d-flex">
-                                <span>Harga Total : </span>
-                                <span class="btn btn-primary" id="total_payment_real_price"></span>
+                    <div class="card-body p-0">
+                        <!-- Payment Summary Section -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-calculator mr-2"></i>Ringkasan Pembayaran
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted">Harga Total:</label>
+                                            <div class="bg-light p-2 rounded">
+                                                <span class="text-primary font-weight-bold h5" id="total_payment_real_price">Rp 0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted">Total Pembayaran Pertama:</label>
+                                            <div class="bg-light p-2 rounded">
+                                                <span class="text-success font-weight-bold h5" id="first_payment_amount">Rp 0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted">Sisa Pembayaran:</label>
+                                            <div class="bg-warning p-2 rounded">
+                                                <span class="text-dark font-weight-bold h5" id="difference_payment">Rp 0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted">DP Dilakukan:</label>
+                                            <div class="bg-light p-2 rounded">
+                                                <span class="text-info font-weight-bold" id="dp_date">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted">Method Pembayaran:</label>
+                                            <div class="bg-light p-2 rounded">
+                                                <span class="text-info font-weight-bold" id="dp_method">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold text-muted">Catatan:</label>
+                                            <div class="bg-light p-2 rounded">
+                                                <span class="text-info font-weight-bold" id="dp_notes">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group mb-1 pb-1 justify-content-between d-flex">
-                            <span>Kurang : </span>
-                            <span class="btn btn-primary" id="difference_payment"></span>
-                        </div>
-                        <div class="form-group mb-1 pb-1">
-                            <label for="exampleTextarea">Payment</label>
-                            <input type="number" class="form-control" id="payment_dp" name="payment_dp" required />
-                        </div>
-                        <div class="form-group mb-1 pb-1">
-                            <label for="exampleTextarea">Tanggal Pembayaran</label>
-                            <input type="date" class="form-control" id="payment_dp_date" name="payment_dp_date" required />
+
+                        <!-- Payment Form Section -->
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-credit-card mr-2"></i>Detail Pembayaran
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Payment Method <span class="text-danger">*</span></label>
+                                            <select class="form-control form-control-lg" id="payment_method" name="payment_method" required>
+                                                <option value="">- Pilih Metode Pembayaran -</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Sub Payment</label>
+                                            <select class="form-control form-control-lg" id="sub_payment" name="sub_payment" >
+                                                <option value="">- Pilih Sub Payment -</option>
+                                                <option value="3">On Us</option>
+                                                <option value="4">Off Us</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Jumlah Pembayaran <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp</span>
+                                                </div>
+                                                <input type="number" class="form-control form-control-lg" id="payment_dp" name="payment_dp" placeholder="0" required />
+                                            </div>
+                                            <small class="form-text text-muted">Masukkan jumlah pembayaran yang akan dibayar</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Tanggal Pembayaran <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control form-control-lg" id="payment_dp_date" name="payment_dp_date" required />
+                                            <small class="form-text text-muted">Pilih tanggal pembayaran</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold">Catatan</label>
+                                            <textarea class="form-control" id="payment_notes" name="payment_notes" rows="3" placeholder="Masukkan catatan pembayaran (opsional)"></textarea>
+                                            <small class="form-text text-muted">Catatan tambahan untuk pembayaran ini</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-dark font-weight-bold" id="save_payment_dp_btn">Simpan</button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Tutup
+                    </button>
+                    <button type="submit" class="btn btn-primary font-weight-bold" id="save_payment_dp_btn">
+                        <i class="fas fa-save mr-2"></i>Simpan Pembayaran
+                    </button>
                 </div>
             </form>
         </div>

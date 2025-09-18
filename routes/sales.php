@@ -97,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('shipping_number_save', [InvoiceTrackingController::class, 'updateData']);
     Route::post('waybill_tracking', [InvoiceTrackingController::class, 'waybillTracking']);
     Route::post('all_waybill_tracking', [InvoiceTrackingController::class, 'allWaybillTracking']);
+    Route::get('invoice_dp_repayment_details/{id}', [InvoiceTrackingController::class, 'invoiceDpRepaymentDetails']);
     Route::post('invoice_dp_repayment', [InvoiceTrackingController::class, 'invoiceDpRepayment']);
 
     // Artikel Promo

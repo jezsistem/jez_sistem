@@ -147,15 +147,46 @@
 
         $(document).delegate('#dp_payment_btn', 'click', function() {
             var pt_id = $(this).attr('data-pt_id');
-            var total_payment_real_price = $(this).attr('data-pos_real_price');
-            var pos_payment = $(this).attr('data-pos_payment');
-            var difference = total_payment_real_price - pos_payment;
-            $('#_pt_id').val(pt_id);
-            $('#total_payment_real_price').text(total_payment_real_price);
-            $('#difference_payment').text(difference);
 
-            $('#DPPaymentModal').modal('show');
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: "{{ url('invoice_dp_repayment_details') }}/" + pt_id,
+                dataType: 'json',
+                success: function(data) {
+                    $('#_pt_id').val(pt_id);
+                    $('#total_payment_real_price').text('Rp ' + number_format(data.data.total_sales));
+                    $('#first_payment_amount').text('Rp ' + number_format(data.data.payment_1));
+                    $('#difference_payment').text('Rp ' + number_format(data.data.outstanding));
+                    $('#dp_date').text(data.data.paydate);
+                    $('#dp_method').text(data.data.payment_method_1);
+                    $('#dp_notes').text(data.data.notes || '-');
+                    
+                    // Populate payment methods dropdown
+                    $('#payment_method').empty().append('<option value="">- Pilih Metode Pembayaran -</option>');
+                    
+                    $.each(data.data.payment_methods, function(key, value) {
+                        $('#payment_method').append('<option value="' + key + '">' + value + '</option>');
+                    });
+
+                    jQuery.noConflict();
+                    $('#DPPaymentModal').modal('show');
+                },
+                error: function(data) {
+                    swal('Error', 'Failed to load payment details', 'error');
+                }
+            });
         });
+
+        // Helper function to format numbers with thousand separators
+        function number_format(number) {
+            return new Intl.NumberFormat('id-ID').format(number);
+        }
 
         $('#payment_dp').on('input', function() {
             // Get the values of payment_dp and difference_payment
