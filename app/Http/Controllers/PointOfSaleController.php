@@ -998,7 +998,7 @@ class PointOfSaleController extends Controller
             'pos_td_price_item_discount' => $price_item_discount,
             'pos_td_total_price' => $pos_td_discount_price + $nameset_price,
             'pos_td_item_cogs' => $current_price->ps_purchase_price,
-            'ps_td_item_price_tag' => $current_price->ps_tag_price,
+            'pos_td_item_price_tag' => $current_price->ps_tag_price,
             'created_at' => date('Y-m-d H:i:s')
         ]);
         if (!empty($create)) {
