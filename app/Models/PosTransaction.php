@@ -26,7 +26,13 @@ class PosTransaction extends Model
         'pos_paid_dp_date',
         'pos_resi',
         'pos_resi_file',
-        'created_at'
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'pos_status',
+        'pos_note',
+        'pos_notes_settle',
+        'pos_notes_dp'
     ];
 
     public function checkData($select, $where)

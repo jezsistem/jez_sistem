@@ -323,6 +323,9 @@
                     $('#margin_percentage').text(response.margin_percentage);
                     $('#btn_print_receipt').attr('href', response.print_receipt_url);
                     $('#note').text(response.note || '-');
+                    $('#note_settlement').val(response.note_settlement || '').attr(
+                        'data-id', response.id);
+                    $('#note_dp').text(response.note_dp || '-');
 
                     // Clear existing table data
                     $('#SettlementItemsTable tbody').empty();
@@ -353,6 +356,40 @@
                 }
             });
         });
+
+        var noteSettlementTimeout;
+
+        $('#note_settlement').on('input', function() {
+            var id = $(this).attr('data-id');
+            if (!id) {
+                return;
+            }
+
+            // Clear existing timeout
+            clearTimeout(noteSettlementTimeout);
+
+            // Set new timeout for 2 seconds
+            noteSettlementTimeout = setTimeout(function() {
+                var note_settlement = $('#note_settlement').val() || '';
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('settlement_update_note') }}",
+                    data: {
+                        id: id,
+                        note_settlement: note_settlement,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        toastr.success('Note settlement updated successfully.');
+                    },
+                    error: function(xhr, status, error) {
+                        toastr.error('Failed to update note settlement.');
+                        console.log('Error: ' + error);
+                    }
+                });
+            }, 2000);
+        })
 
         // Add stop propagation for checkbox clicks
         $('#SettlementTable tbody').on('click', 'input[id^="check_"]', function(e) {
@@ -401,7 +438,9 @@
                         settlement_table.draw(false);
                         loadNetSalesPerPaymentMethod();
                         resetSelected();
-                        toastr.success('Selected transactions have been settled successfully.');
+                        toastr.success(
+                            'Selected transactions have been settled successfully.'
+                            );
                     },
                     error: function(xhr, status, error) {
                         // Handle error
@@ -453,7 +492,9 @@
                         settlement_table.draw(false);
                         loadNetSalesPerPaymentMethod();
                         resetSelected();
-                        toastr.success('Selected transactions have been calculated successfully.');
+                        toastr.success(
+                            'Selected transactions have been calculated successfully.'
+                            );
                     },
                     error: function(xhr, status, error) {
                         // Handle error

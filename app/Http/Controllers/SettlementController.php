@@ -244,9 +244,12 @@ class SettlementController extends Controller
                     DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
                     'seller_voucher_discount AS total_seller_discount',
                     'pos_transactions.pos_note as note',
+                    'pos_transactions.pos_notes_settle as note_settlement',
+                    'pos_transactions.pos_notes_dp as note_dp',
                     'total_disburshed_amount as total_dana_cair',
                     'total_online_cut as total_admin_fee',
-                    DB::raw('SUM(pos_td_sell_price) as sell_price')
+                    DB::raw('SUM(pos_td_sell_price) as sell_price'),
+                    'pos_transactions.id as id',
                 )
                 ->leftJoin('stores', 'stores.id', '=', 'st_id')
                 ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
@@ -350,6 +353,10 @@ class SettlementController extends Controller
                 $print_receipt_url = url('/') . '/print_offline_invoice/' . $receipt_number;
             }
 
+            $notes_settlement = $transaction->note_settlement ?? '';
+            $notes_dp = $transaction->note_dp ?? '';
+            $id = $transaction->id;
+
             $result = [
                 'transaction_date' => $transaction_date,
                 'receipt_number' => $receipt_number,
@@ -378,6 +385,9 @@ class SettlementController extends Controller
                 'print_receipt_url' => $print_receipt_url,
                 'items' => $items,
                 'note' => $transaction->note,
+                'note_settlement' => $notes_settlement,
+                'note_dp' => $notes_dp,
+                'id' => $id,
             ];
 
             DB::commit();
@@ -764,6 +774,30 @@ class SettlementController extends Controller
         }
 
         return response()->json(['message' => 'COGS and Price Tag recalculation completed.']);
+    }
+
+    public function updateNote(Request $request)
+    {
+        try {
+            $id = $request->id;
+            $notes = $request->note_settlement;
+
+            $pt_update = DB::table('pos_transactions')->where('id', $id)->update([
+                'pos_notes_settle' => $notes
+            ]);
+
+            if ($pt_update) {
+                $r['status'] = '200';
+                $r['message'] = 'Notes Berhasil Disimpan';
+            } else {
+                $r['status'] = '400';
+                $r['message'] = 'Gagal menyimpan notes';
+            }
+
+            return json_encode($r);
+        } catch (\Exception $e) {
+            return json_encode($e->getMessage());
+        }
     }
 
     private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)

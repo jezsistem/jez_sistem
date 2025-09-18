@@ -81,8 +81,16 @@
                     </div>
 
                     <div class="mb-3 mr-64">
-                        <p class="text-muted mb-1">Notes</p>
+                        <p class="text-muted mb-1">Notes Transaction</p>
                         <p class="font-weight-bold h8" id="note">Notes </p>
+                    </div>
+                    <div class="mb-3 mr-64">
+                        <p class="text-muted mb-1">Notes Down Payment</p>
+                        <p class="font-weight-bold h8" id="note_dp">Notes </p>
+                    </div>
+                    <div class="mb-3 mr-64">
+                        <p class="text-muted mb-1">Notes Settlement</p>
+                        <textarea name="note_settlement" id="note_settlement" cols="30" rows="2" class="form-control border-secondary rounded font-weight-bold h8" style="width: 100%;"></textarea>
                     </div>
 
                     <hr>
