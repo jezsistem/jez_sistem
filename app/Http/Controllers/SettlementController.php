@@ -332,7 +332,11 @@ class SettlementController extends Controller
             } else {
                 $net_sales = $transaction->pos_real_price;
             }
-            $total_payment = $transaction->pos_real_price;
+            if ($transaction->trx_status == 'DP') {
+                $total_payment = $transaction->pos_payment;
+            } else {
+                $total_payment = $transaction->pos_real_price;
+            }
             $cogs = $transaction->total_cogs ?? 0;
             $seller_voucher = $transaction->total_seller_discount ?? 0;
             $total_admin_fee = $transaction->total_admin_fee ?? 0;
