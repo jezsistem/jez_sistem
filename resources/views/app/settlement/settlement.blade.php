@@ -82,6 +82,10 @@
                                             <option value="Uncalculated">Uncalculated</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-2 mb-4">
+                                        <label class="form-label">Invoice / Order Number</label>
+                                        <input type="text" id="search" class="form-control border border-secondary" placeholder="Search...">
+                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12 mb-4 mt-4">

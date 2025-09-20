@@ -126,8 +126,9 @@ class SettlementController extends Controller
         $status_trx = $request->input('status_trx') ?? '';
         $status_settle = $request->input('status_settle') ?? null;
         $status_cogs = $request->input('status_cogs') ?? null;
+        $search = $request->input('search') ?? null;
 
-        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs);
+        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs, $search);
 
         $combinedData = $data->sortBy('pos_invoice');
 
@@ -800,7 +801,7 @@ class SettlementController extends Controller
         }
     }
 
-    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)
+    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null, $search = null)
     {
         $start_date = $start_date . ' 00:00:00';
         $end_date = $end_date . ' 23:59:59';
@@ -872,6 +873,12 @@ class SettlementController extends Controller
                             });
                     });
                 }
+            })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                });
             })
             ->where(function ($query) {
                 $query->where('payment_methods.pm_name', '!=', 'CASH')
@@ -950,6 +957,12 @@ class SettlementController extends Controller
                     });
                 }
             })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                });
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -1014,6 +1027,12 @@ class SettlementController extends Controller
                         $q->where('payment_methods.pm_name', 'CASH')
                             ->whereNotNull('pos_payment_partial');
                     });
+            })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                });
             })
             ->groupBy([
                 'pos_transactions.id',
@@ -1080,6 +1099,12 @@ class SettlementController extends Controller
                             });
                     });
                 }
+            })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                });
             })
             ->groupBy([
                 'pos_transactions.id',
