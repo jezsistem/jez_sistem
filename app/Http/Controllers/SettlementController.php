@@ -877,7 +877,8 @@ class SettlementController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('pos_invoice', 'like', '%' . $search . '%')
-                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');
                 });
             })
             ->where(function ($query) {
@@ -960,7 +961,8 @@ class SettlementController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('pos_invoice', 'like', '%' . $search . '%')
-                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
                 });
             })
             ->groupBy([
@@ -1031,7 +1033,8 @@ class SettlementController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('pos_invoice', 'like', '%' . $search . '%')
-                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
                 });
             })
             ->groupBy([
@@ -1103,7 +1106,8 @@ class SettlementController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('pos_invoice', 'like', '%' . $search . '%')
-                        ->orWhere('pos_order_number', 'like', '%' . $search . '%');
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
                 });
             })
             ->groupBy([
