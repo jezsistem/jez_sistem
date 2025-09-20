@@ -40,7 +40,7 @@ class AttendanceController extends Controller
             $check = DB::table('position_access')
                 ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
                     'position_access.position_id' => $user_position,
-//                    'position_access.route' => request()->path()
+                    //                    'position_access.route' => request()->path()
                 ])->exists();
 
             if (!$check) {
@@ -54,19 +54,19 @@ class AttendanceController extends Controller
                 'segment_1' => request()->segment(1),
                 'segment_2' => request()->segment(2)
             ]);
-            
-        $validate = DB::table('user_menu_accesses')
-        ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-            'u_id' => Auth::user()->id,
-            'ma_slug' => request()->segment(1)
-        ])->exists();
-            
+
+            $validate = DB::table('user_menu_accesses')
+                ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
+                    'u_id' => Auth::user()->id,
+                    'ma_slug' => request()->segment(1)
+                ])->exists();
+
             \Log::info('validateAccess - Result', [
                 'validate' => $validate
             ]);
-            
-        if (!$validate) {
-            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+
+            if (!$validate) {
+                dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
             }
         } catch (\Exception $e) {
             \Log::error('validateAccess - Error', [
@@ -80,7 +80,7 @@ class AttendanceController extends Controller
     protected function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -93,9 +93,9 @@ class AttendanceController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -108,23 +108,23 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         $this->validateAccess();
-        
+
         $title = 'Attendance';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-        
+
         // Handle date filter
         $startDate = $request->get('start_date', date('Y-m-d'));
         $endDate = $request->get('end_date', date('Y-m-d'));
         $dateFilter = $request->get('date_filter', 'this_week');
-        
+
         // If date filter is provided, calculate dates
         if ($dateFilter && $dateFilter !== 'custom') {
             $dateRange = $this->getDateRangeFromFilter($dateFilter);
             $startDate = $dateRange['startDate'];
             $endDate = $dateRange['endDate'];
         }
-        
+
         $attendance = new Attendance();
         $attendances = $attendance->getAttendanceByDateRange(
             $startDate,
@@ -165,14 +165,14 @@ class AttendanceController extends Controller
     public function create()
     {
         $this->validateAccess();
-        
+
         $title = 'Create Attendance';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-        
+
         $users = DB::table('users')->where('u_delete', '!=', '1')->get();
         $dailySchedules = DB::table('daily_schedules')->get();
-        
+
         $data = [
             'title' => $title,
             'subtitle' => 'Create New Attendance',
@@ -187,7 +187,7 @@ class AttendanceController extends Controller
     public function store(Request $request)
     {
         $this->validateAccess();
-        
+
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'at_date' => 'required|date',
@@ -213,7 +213,7 @@ class AttendanceController extends Controller
             ];
 
             $result = $attendance->storeData('add', null, $data);
-            
+
             if ($result) {
                 return redirect()->route('attendance.index')->with('success', 'Attendance created successfully');
             } else {
@@ -227,11 +227,11 @@ class AttendanceController extends Controller
     public function upload()
     {
         $this->validateAccess();
-        
+
         $title = 'Upload Attendance';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-        
+
         $data = [
             'title' => $title,
             'subtitle' => 'Upload Attendance Data',
@@ -246,12 +246,12 @@ class AttendanceController extends Controller
     public function processUpload(Request $request)
     {
         $this->validateAccess();
-        
+
         \Log::info('Attendance upload process started', [
             'request_data' => $request->all(),
             'files' => $request->allFiles()
         ]);
-        
+
         $request->validate([
             'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:2048'
         ]);
@@ -259,24 +259,24 @@ class AttendanceController extends Controller
         try {
             $file = $request->file('excel_file');
             $fileName = time() . '_' . $file->getClientOriginalName();
-            
+
             \Log::info('File upload details', [
                 'original_name' => $file->getClientOriginalName(),
                 'file_size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
                 'extension' => $file->getClientOriginalExtension()
             ]);
-            
+
             $file->move(storage_path('app/public/uploads'), $fileName);
-            
+
             // Process the file based on type
             $extension = $file->getClientOriginalExtension();
             $data = [];
-            
+
             if (in_array($extension, ['xlsx', 'xls'])) {
                 $data = Excel::toArray([], storage_path('app/public/uploads/' . $fileName))[0];
                 \Log::info('Excel file processed', ['rows_count' => count($data)]);
-                
+
                 // Log first few rows for debugging
                 if (count($data) > 0) {
                     \Log::info('First row (header):', ['header' => $data[0]]);
@@ -293,21 +293,21 @@ class AttendanceController extends Controller
                 fclose($handle);
                 \Log::info('CSV file processed', ['rows_count' => count($data)]);
             }
-            
+
             // Remove header row
             array_shift($data);
             \Log::info('Header removed, data rows count', ['data_rows_count' => count($data)]);
-            
+
             $successCount = 0;
             $errorCount = 0;
             $errors = [];
-            
+
             // Group data by user and date to handle multiple entries per day
             $groupedData = [];
             foreach ($data as $index => $row) {
                 try {
                     \Log::info('Processing row', ['row_index' => $index + 2, 'row_data' => $row]);
-                    
+
                     if (count($row) >= 7) {
                         $cloudId = $row[0];
                         $employeeId = $row[1]; // NIP
@@ -316,7 +316,7 @@ class AttendanceController extends Controller
                         $time = $row[4];
                         $verification = $row[5];
                         $type = $row[6]; // Absensi Masuk/Absensi Pulang
-                        
+
                         \Log::info('Raw data extracted', [
                             'cloud_id' => $cloudId,
                             'employee_id' => $employeeId,
@@ -326,7 +326,7 @@ class AttendanceController extends Controller
                             'verification' => $verification,
                             'type' => $type
                         ]);
-                        
+
                         // Smart date validation - only normalize if needed
                         $originalDate = $date;
                         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
@@ -344,7 +344,7 @@ class AttendanceController extends Controller
                             $date = $normalizedDate;
                             \Log::info('Date normalized', ['original' => $originalDate, 'normalized' => $normalizedDate]);
                         }
-                        
+
                         // Smart time validation - only normalize if needed
                         $originalTime = $time;
                         if (preg_match('/^\d{2}:\d{2}$/', $time)) {
@@ -362,19 +362,19 @@ class AttendanceController extends Controller
                             $time = $normalizedTime;
                             \Log::info('Time normalized', ['original' => $originalTime, 'normalized' => $normalizedTime]);
                         }
-                        
+
                         // Find user by NIP
                         $user = DB::table('users')->where('u_nip', $employeeId)->first();
-                        
+
                         if (!$user) {
                             \Log::warning('User not found by NIP', ['nip' => $employeeId, 'row_index' => $index + 2]);
                             $errorCount++;
                             $errors[] = "Row " . ($index + 2) . ": User with NIP {$employeeId} not found";
                             continue;
                         }
-                        
+
                         $key = $user->id . '_' . $date;
-                        
+
                         if (!isset($groupedData[$key])) {
                             $groupedData[$key] = [
                                 'user_id' => $user->id,
@@ -387,18 +387,18 @@ class AttendanceController extends Controller
                                 'created_by' => Auth::user()->id
                             ];
                         }
-                        
+
                         // Set time based on type
                         if (strpos(strtolower($type), 'masuk') !== false) {
                             $groupedData[$key]['at_time_in'] = $time;
                         } elseif (strpos(strtolower($type), 'pulang') !== false) {
                             $groupedData[$key]['at_time_out'] = $time;
                         }
-                        
+
                         // LOGIKA LENGKAP: Cek daily schedule dulu, kemudian set status
                         $hasTimeIn = !empty($groupedData[$key]['at_time_in']);
                         $hasTimeOut = !empty($groupedData[$key]['at_time_out']);
-                        
+
                         // Cek apakah ada daily schedule untuk user ini pada tanggal ini
                         $tempDailySchedule = DB::table('daily_schedules')
                             ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
@@ -413,7 +413,7 @@ class AttendanceController extends Controller
                                 'shift_codes.sc_end_time'
                             ])
                             ->first();
-                        
+
                         \Log::info('Daily schedule check during import', [
                             'key' => $key,
                             'user_id' => $user->id,
@@ -427,7 +427,7 @@ class AttendanceController extends Controller
                                 'sc_end_time' => $tempDailySchedule->sc_end_time
                             ] : null
                         ]);
-                        
+
                         if ($tempDailySchedule) {
                             // ADA SCHEDULE: Buat status akurat (late, early_leave, present)
                             \Log::info('Schedule found - creating accurate status', [
@@ -439,14 +439,14 @@ class AttendanceController extends Controller
                                 'has_time_in' => $hasTimeIn,
                                 'has_time_out' => $hasTimeOut
                             ]);
-                            
+
                             if ($hasTimeIn && $hasTimeOut) {
                                 // Kedua time records ada - cek apakah tepat waktu
                                 $timeInMinutes = $this->timeToMinutes($groupedData[$key]['at_time_in']);
                                 $timeOutMinutes = $this->timeToMinutes($groupedData[$key]['at_time_out']);
                                 $shiftStartMinutes = $this->timeToMinutes($tempDailySchedule->sc_start_time);
                                 $shiftEndMinutes = $this->timeToMinutes($tempDailySchedule->sc_end_time);
-                                
+
                                 // SAMAKAN LOGIKA DENGAN REPROCESS ALL
                                 // Check for late arrival FIRST (priority)
                                 if ($timeInMinutes > $shiftStartMinutes) {
@@ -472,7 +472,7 @@ class AttendanceController extends Controller
                                     $groupedData[$key]['at_status'] = 'present';
                                     $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Hadir tepat waktu";
                                 }
-                                
+
                                 \Log::info('Both time records with schedule - status determined', [
                                     'key' => $key,
                                     'time_in' => $groupedData[$key]['at_time_in'],
@@ -490,7 +490,7 @@ class AttendanceController extends Controller
                                     'final_status' => $groupedData[$key]['at_status'],
                                     'final_notes' => $groupedData[$key]['at_notes']
                                 ]);
-                                
+
                                 // Log untuk membandingkan Excel vs Database
                                 \Log::info('Excel vs Database comparison', [
                                     'key' => $key,
@@ -512,14 +512,13 @@ class AttendanceController extends Controller
                                         'is_early_leave' => ($timeOutMinutes < $shiftEndMinutes)
                                     ]
                                 ]);
-                                
                             } elseif ($hasTimeIn || $hasTimeOut) {
                                 // Hanya satu time record - cek apakah terlambat atau pulang awal
                                 if ($hasTimeIn && $tempDailySchedule->sc_start_time) {
                                     // Ada time in - cek terlambat
                                     $timeInMinutes = $this->timeToMinutes($groupedData[$key]['at_time_in']);
                                     $shiftStartMinutes = $this->timeToMinutes($tempDailySchedule->sc_start_time);
-                                    
+
                                     if ($timeInMinutes > $shiftStartMinutes) {
                                         // Terlambat - Status: LATE dengan keterangan scan once
                                         $lateMinutes = $timeInMinutes - $shiftStartMinutes;
@@ -534,7 +533,7 @@ class AttendanceController extends Controller
                                     // Ada time out - cek pulang awal
                                     $timeOutMinutes = $this->timeToMinutes($groupedData[$key]['at_time_out']);
                                     $shiftEndMinutes = $this->timeToMinutes($tempDailySchedule->sc_end_time);
-                                    
+
                                     if ($timeOutMinutes < $shiftEndMinutes) {
                                         // Pulang awal - Status: EARLY_LEAVE dengan keterangan scan once
                                         $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
@@ -550,7 +549,7 @@ class AttendanceController extends Controller
                                     $groupedData[$key]['at_status'] = 'scan_once';
                                     $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Partial attendance (scan once)";
                                 }
-                                
+
                                 \Log::info('Single time record with schedule - status determined', [
                                     'key' => $key,
                                     'has_time_in' => $hasTimeIn,
@@ -558,13 +557,11 @@ class AttendanceController extends Controller
                                     'final_status' => $groupedData[$key]['at_status'],
                                     'final_notes' => $groupedData[$key]['at_notes']
                                 ]);
-                                
                             } else {
                                 // Tidak ada time records - kemungkinan leave
                                 $groupedData[$key]['at_status'] = 'absent';
                                 $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - Tidak ada time records (kemungkinan leave)";
                             }
-                            
                         } else {
                             // TIDAK ADA SCHEDULE: Gunakan logika baru (scan_once, present, absent)
                             \Log::info('No schedule found - using basic status logic', [
@@ -572,7 +569,7 @@ class AttendanceController extends Controller
                                 'has_time_in' => $hasTimeIn,
                                 'has_time_out' => $hasTimeOut
                             ]);
-                            
+
                             if ($hasTimeIn && $hasTimeOut) {
                                 // Kedua time records ada - STATUS: PRESENT
                                 $groupedData[$key]['at_status'] = 'present';
@@ -587,7 +584,7 @@ class AttendanceController extends Controller
                                 $groupedData[$key]['at_notes'] = "Uploaded from fingerprint: {$employeeName} - No time records (no schedule)";
                             }
                         }
-                        
+
                         \Log::info('Final status determination', [
                             'key' => $key,
                             'has_time_in' => $hasTimeIn,
@@ -598,7 +595,7 @@ class AttendanceController extends Controller
                             'final_status' => $groupedData[$key]['at_status'],
                             'final_notes' => $groupedData[$key]['at_notes']
                         ]);
-                        
+
                         \Log::info('Row processed successfully', [
                             'row_index' => $index + 2,
                             'user_id' => $user->id,
@@ -607,7 +604,6 @@ class AttendanceController extends Controller
                             'type' => $type,
                             'time' => $time
                         ]);
-                        
                     } else {
                         \Log::warning('Row skipped - insufficient columns', ['row_index' => $index + 2, 'columns_count' => count($row)]);
                         $errorCount++;
@@ -619,19 +615,19 @@ class AttendanceController extends Controller
                     \Log::error('Row processing error', ['row_index' => $index + 2, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
                 }
             }
-            
+
             // Now save the grouped data with duplicate handling
             \Log::info('Starting to save grouped attendance data', ['total_records' => count($groupedData)]);
             foreach ($groupedData as $key => $attendanceData) {
                 try {
                     \Log::info('Saving grouped attendance data', ['attendance_data' => $attendanceData]);
-                    
+
                     // Cek apakah data sudah ada
                     $existingAttendance = DB::table('attendance')
                         ->where('user_id', $attendanceData['user_id'])
                         ->where('at_date', $attendanceData['at_date'])
                         ->first();
-                    
+
                     // Find daily schedule for this user and date
                     $dailySchedule = DB::table('daily_schedules')
                         ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
@@ -648,7 +644,7 @@ class AttendanceController extends Controller
                             'user_types.ut_name as user_type_name'
                         ])
                         ->first();
-                    
+
                     \Log::info('Daily schedule lookup during import', [
                         'user_id' => $attendanceData['user_id'],
                         'date' => $attendanceData['at_date'],
@@ -661,7 +657,7 @@ class AttendanceController extends Controller
                             'user_type' => $dailySchedule->user_type_name
                         ] : null
                     ]);
-                    
+
                     // Check shift code compatibility with user type if schedule found
                     if ($dailySchedule && $dailySchedule->user_type_name) {
                         $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
@@ -670,12 +666,12 @@ class AttendanceController extends Controller
                             $isCompatible = $shiftCodeModel->userTypes()
                                 ->where('ut_name', $dailySchedule->user_type_name)
                                 ->exists();
-                            
+
                             // Also check legacy compatibility for backward compatibility
                             if (!$isCompatible) {
                                 $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
                             }
-                            
+
                             if (!$isCompatible) {
                                 \Log::warning('Shift code not compatible with user type during import', [
                                     'user_id' => $attendanceData['user_id'],
@@ -693,14 +689,14 @@ class AttendanceController extends Controller
                             }
                         }
                     }
-                    
+
                     if ($existingAttendance) {
                         // Data sudah ada, UPDATE
                         \Log::info('Updating existing attendance data', [
                             'existing_id' => $existingAttendance->id,
                             'key' => $key
                         ]);
-                        
+
                         $updateData = [
                             'at_time_in' => $attendanceData['at_time_in'] ?: $existingAttendance->at_time_in,
                             'at_time_out' => $attendanceData['at_time_out'] ?: $existingAttendance->at_time_out,
@@ -709,7 +705,7 @@ class AttendanceController extends Controller
                             'updated_by' => Auth::user()->id,
                             'updated_at' => now()
                         ];
-                        
+
                         // Add daily_schedule_id if schedule found
                         if ($dailySchedule) {
                             $updateData['daily_schedule_id'] = $dailySchedule->id;
@@ -719,15 +715,15 @@ class AttendanceController extends Controller
                                 'shift_code' => $dailySchedule->sc_code
                             ]);
                         }
-                        
+
                         $result = DB::table('attendance')
                             ->where('id', $existingAttendance->id)
                             ->update($updateData);
-                            
+
                         if ($result) {
                             $successCount++;
                             \Log::info('Existing data updated successfully', [
-                                'key' => $key, 
+                                'key' => $key,
                                 'attendance_id' => $existingAttendance->id,
                                 'daily_schedule_id_updated' => isset($updateData['daily_schedule_id'])
                             ]);
@@ -739,7 +735,7 @@ class AttendanceController extends Controller
                     } else {
                         // Data baru, INSERT
                         $attendance = new Attendance();
-                        
+
                         // Add daily_schedule_id if schedule found
                         if ($dailySchedule) {
                             $attendanceData['daily_schedule_id'] = $dailySchedule->id;
@@ -748,13 +744,13 @@ class AttendanceController extends Controller
                                 'shift_code' => $dailySchedule->sc_code
                             ]);
                         }
-                        
+
                         $result = $attendance->storeData('add', null, $attendanceData);
-                        
+
                         if ($result) {
                             $successCount++;
                             \Log::info('New data inserted successfully', [
-                                'key' => $key, 
+                                'key' => $key,
                                 'result_id' => $result,
                                 'daily_schedule_id_added' => isset($attendanceData['daily_schedule_id'])
                             ]);
@@ -770,80 +766,79 @@ class AttendanceController extends Controller
                     \Log::error('Save error', ['key' => $key, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
                 }
             }
-            
+
             // Log summary of save operations
             \Log::info('Attendance data save operations completed', [
                 'total_records' => count($groupedData),
                 'success_count' => $successCount,
                 'error_count' => $errorCount
             ]);
-            
+
             // Process attendance status based on daily schedule
             \Log::info('Starting attendance status processing after upload');
-            
+
             // Initialize message variable
             $message = "Upload completed. Success: {$successCount}, Errors: {$errorCount}";
             if ($errorCount > 0) {
                 $message .= ". Check logs for details.";
             }
-            
+
             \Log::info('Upload summary before status processing', [
                 'success_count' => $successCount,
                 'error_count' => $errorCount,
                 'total_records' => count($groupedData)
             ]);
-            
+
             // Determine date range from uploaded data
             $uploadedDates = array_unique(array_column($groupedData, 'at_date'));
             if (!empty($uploadedDates)) {
                 $minDate = min($uploadedDates);
                 $maxDate = max($uploadedDates);
-                
+
                 \Log::info('Processing attendance status for date range', [
                     'min_date' => $minDate,
                     'max_date' => $maxDate
                 ]);
-                
+
                 $statusProcessResult = $this->processAttendanceStatusAfterUpload($minDate, $maxDate);
-                
+
                 if ($statusProcessResult['success']) {
                     \Log::info('Attendance status processing completed successfully', [
                         'processed_count' => $statusProcessResult['processed_count'],
                         'error_count' => $statusProcessResult['error_count']
                     ]);
-                    
+
                     $statusMessage = "Status processing: {$statusProcessResult['processed_count']} processed, {$statusProcessResult['error_count']} errors";
                     $message .= ". " . $statusMessage;
                 } else {
                     \Log::warning('Attendance status processing failed', [
                         'error' => $statusProcessResult['error']
                     ]);
-                    
+
                     $message .= ". Status processing failed: " . $statusProcessResult['error'];
                 }
             }
-            
+
             // Clean up uploaded file
             unlink(storage_path('app/public/uploads/' . $fileName));
-            
+
             \Log::info('Upload process completed', [
                 'success_count' => $successCount,
                 'error_count' => $errorCount,
                 'errors' => $errors,
                 'message' => $message
             ]);
-            
+
             \Log::info('Redirecting to attendance.index with success message', [
                 'route' => 'attendance.index',
                 'message' => $message
             ]);
-            
+
             // Store message in session before redirect
             session()->flash('success', $message);
             \Log::info('Session message stored', ['session_id' => session()->getId(), 'message' => $message]);
-            
+
             return redirect()->route('attendance.index');
-            
         } catch (\Exception $e) {
             return back()->with('error', 'Error processing upload: ' . $e->getMessage());
         }
@@ -852,10 +847,10 @@ class AttendanceController extends Controller
     public function export(Request $request)
     {
         $this->validateAccess();
-        
+
         $startDate = $request->get('start_date', date('Y-m-d'));
         $endDate = $request->get('end_date', date('Y-m-d'));
-        
+
         $attendance = new Attendance();
         $attendances = $attendance->getAttendanceByDateRange(
             $startDate,
@@ -864,20 +859,20 @@ class AttendanceController extends Controller
             $request->get('division_id'),
             $request->get('status')
         );
-        
+
         $fileName = 'attendance_report_' . $startDate . '_' . $endDate . '_' . date('YmdHis') . '.xlsx';
-        
+
         return Excel::download(new \App\Exports\AttendanceExport($attendances), $fileName);
     }
 
     public function show($id)
     {
         $this->validateAccess();
-        
+
         $title = 'Attendance Detail';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-        
+
         $attendance = DB::table('attendance')
             ->leftJoin('users', 'attendance.user_id', '=', 'users.id')
             ->leftJoin('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
@@ -895,7 +890,7 @@ class AttendanceController extends Controller
             ])
             ->where('attendance.id', $id)
             ->first();
-            
+
         if (!$attendance) {
             abort(404, 'Attendance not found');
         }
@@ -917,7 +912,7 @@ class AttendanceController extends Controller
                 ->where('daily_schedules.id', $attendance->daily_schedule_id)
                 ->first();
         }
-        
+
         $data = [
             'title' => $title,
             'subtitle' => 'Detail Attendance: ' . $attendance->u_name . ' - ' . date('d/m/Y', strtotime($attendance->at_date)),
@@ -932,11 +927,11 @@ class AttendanceController extends Controller
     public function edit($id)
     {
         $this->validateAccess();
-        
+
         $title = 'Edit Attendance';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-        
+
         $attendance = DB::table('attendance')
             ->select([
                 'attendance.*',
@@ -963,9 +958,9 @@ class AttendanceController extends Controller
         ]);
 
         $users = DB::table('users')
-            ->where(function($query) use ($attendance) {
+            ->where(function ($query) use ($attendance) {
                 $query->where('u_delete', '!=', '1')
-                      ->orWhere('id', $attendance->user_id); // Include current user even if deleted
+                    ->orWhere('id', $attendance->user_id); // Include current user even if deleted
             })
             ->get();
 
@@ -978,7 +973,7 @@ class AttendanceController extends Controller
         ]);
 
         $dailySchedules = DB::table('daily_schedules')->get();
-        
+
         $data = [
             'title' => $title,
             'subtitle' => 'Edit Attendance: ' . $attendance->u_name . ' - ' . date('d/m/Y', strtotime($attendance->at_date)),
@@ -993,7 +988,7 @@ class AttendanceController extends Controller
     public function update(Request $request, $id)
     {
         $this->validateAccess();
-        
+
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'at_date' => 'required|date',
@@ -1018,7 +1013,7 @@ class AttendanceController extends Controller
             ];
 
             $result = $attendance->storeData('edit', $id, $data);
-            
+
             if ($result) {
                 return redirect()->route('attendance.index')->with('success', 'Attendance updated successfully');
             } else {
@@ -1032,11 +1027,11 @@ class AttendanceController extends Controller
     public function destroy($id)
     {
         $this->validateAccess();
-        
+
         try {
             $attendance = Attendance::findOrFail($id);
             $result = $attendance->deleteData($id);
-            
+
             if ($result) {
                 return response()->json(['success' => true, 'message' => 'Attendance deleted successfully']);
             } else {
@@ -1050,11 +1045,11 @@ class AttendanceController extends Controller
     public function processStatus($id)
     {
         $this->validateAccess();
-        
+
         try {
             $attendance = new Attendance();
             $result = $attendance->processAttendanceStatus($id);
-            
+
             if ($result) {
                 return redirect()->back()->with('success', 'Attendance status processed successfully');
             } else {
@@ -1068,44 +1063,43 @@ class AttendanceController extends Controller
     public function reprocessAll(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
-            
+
             \Log::info('Reprocess all attendance requested', [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'user_id' => Auth::id()
             ]);
-            
+
             // Use the new comprehensive status processing logic
             \Log::info('Starting processAttendanceStatusAfterUpload', [
                 'start_date' => $startDate,
                 'end_date' => $endDate
             ]);
-            
+
             $result = $this->processAttendanceStatusAfterUpload($startDate, $endDate);
-            
+
             if ($result['success']) {
                 $message = "Reprocess completed successfully. Processed: {$result['processed_count']}, Errors: {$result['error_count']}";
                 \Log::info('Reprocess all completed', $result);
-                
-            return redirect()->back()->with('success', $message);
+
+                return redirect()->back()->with('success', $message);
             } else {
                 $message = "Reprocess failed: " . $result['error'];
                 \Log::error('Reprocess all failed', $result);
-                
+
                 return redirect()->back()->with('error', $message);
             }
-            
         } catch (\Exception $e) {
             $message = "Error during reprocess: " . $e->getMessage();
             \Log::error('Reprocess all exception', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return redirect()->back()->with('error', $message);
         }
     }
@@ -1113,21 +1107,21 @@ class AttendanceController extends Controller
     public function staffDetail($user_id)
     {
         $this->validateAccess();
-        
+
         $title = 'Staff Attendance Detail';
         $user = auth()->user();
         $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-        
+
         $staff = DB::table('users')
             ->leftJoin('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
             ->select('users.*', 'user_divisions.ud_name')
             ->where('users.id', $user_id)
             ->first();
-            
+
         if (!$staff) {
             abort(404, 'Staff not found');
         }
-        
+
         $data = [
             'title' => $title,
             'subtitle' => 'Attendance Details',
@@ -1142,7 +1136,7 @@ class AttendanceController extends Controller
     public function staffDatatables($user_id)
     {
         $this->validateAccess();
-        
+
         // Debug: Log request parameters
         \Log::info('Staff Datatables Request', [
             'user_id' => $user_id,
@@ -1154,7 +1148,7 @@ class AttendanceController extends Controller
             'start' => request('start'),
             'length' => request('length')
         ]);
-        
+
         $query = DB::table('attendance')
             ->leftJoin('users', 'attendance.user_id', '=', 'users.id')
             ->leftJoin('daily_schedules', 'attendance.daily_schedule_id', '=', 'daily_schedules.id')
@@ -1171,7 +1165,7 @@ class AttendanceController extends Controller
                 'shift_codes.sc_end_time'
             ])
             ->where('attendance.user_id', $user_id);
-        
+
         if (request('start_date')) {
             $query->where('attendance.at_date', '>=', request('start_date'));
         }
@@ -1181,37 +1175,37 @@ class AttendanceController extends Controller
         if (request('status')) {
             $query->where('attendance.at_status', request('status'));
         }
-        
+
         $total = $query->count();
-        
+
         if (request('search')['value']) {
             $searchValue = request('search')['value'];
-            $query->where(function($q) use ($searchValue) {
+            $query->where(function ($q) use ($searchValue) {
                 $q->where('attendance.at_date', 'like', "%{$searchValue}%")
-                  ->orWhere('shift_codes.sc_code', 'like', "%{$searchValue}%")
-                  ->orWhere('attendance.at_status', 'like', "%{$searchValue}%")
-                  ->orWhere('attendance.at_notes', 'like', "%{$searchValue}%");
+                    ->orWhere('shift_codes.sc_code', 'like', "%{$searchValue}%")
+                    ->orWhere('attendance.at_status', 'like', "%{$searchValue}%")
+                    ->orWhere('attendance.at_notes', 'like', "%{$searchValue}%");
             });
         }
-        
+
         $filtered = $query->count();
-        
+
         if (request('order')) {
             $columnIndex = request('order')[0]['column'];
             $columnName = request('columns')[$columnIndex]['data'];
             $columnDirection = request('order')[0]['dir'];
-            
+
             if ($columnName && in_array($columnName, ['at_date', 'sc_code', 'at_time_in', 'at_time_out', 'at_status'])) {
                 $query->orderBy($columnName, $columnDirection);
             }
         }
-        
+
         $start = request('start', 0);
         $length = request('length', 10);
         $query->skip($start)->take($length);
-        
+
         $data = $query->get();
-        
+
         $formattedData = [];
         foreach ($data as $index => $row) {
             $formattedData[] = [
@@ -1226,7 +1220,7 @@ class AttendanceController extends Controller
                 'action' => $this->getStaffActionButtons($row->id)
             ];
         }
-        
+
         // Debug: Log response data
         \Log::info('Staff Datatables Response', [
             'draw' => request('draw'),
@@ -1235,7 +1229,7 @@ class AttendanceController extends Controller
             'data_count' => count($formattedData),
             'sample_data' => array_slice($formattedData, 0, 2) // Log first 2 records
         ]);
-        
+
         return response()->json([
             'draw' => request('draw'),
             'recordsTotal' => $total,
@@ -1247,7 +1241,7 @@ class AttendanceController extends Controller
     public function staffStats($user_id)
     {
         $this->validateAccess();
-        
+
         // Debug: Log request parameters
         \Log::info('Staff Stats Request', [
             'user_id' => $user_id,
@@ -1255,10 +1249,10 @@ class AttendanceController extends Controller
             'end_date' => request('end_date'),
             'status' => request('status')
         ]);
-        
+
         $query = DB::table('attendance')
             ->where('user_id', $user_id);
-        
+
         if (request('start_date')) {
             $query->where('at_date', '>=', request('start_date'));
         }
@@ -1268,34 +1262,34 @@ class AttendanceController extends Controller
         if (request('status')) {
             $query->where('at_status', request('status'));
         }
-        
+
         // Debug: Log query before execution
         \Log::info('Staff Stats Query', [
             'sql' => $query->toSql(),
             'bindings' => $query->getBindings()
         ]);
-        
+
         // Get all schedules in the date range for weight calculation (INCLUDE libur for total shifts)
         // Use single query for both total shifts and present days calculation
         $allSchedulesQuery = DB::table('daily_schedules as ds')
             ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
             ->where('ds.user_id', $user_id)
             ->where('ds.ds_status', 'scheduled');
-        
+
         if (request('start_date')) {
             $allSchedulesQuery->where('ds.ds_date', '>=', request('start_date'));
         }
         if (request('end_date')) {
             $allSchedulesQuery->where('ds.ds_date', '<=', request('end_date'));
         }
-        
+
         $allSchedules = $allSchedulesQuery->select('ds.ds_date', 'sc.sc_code')->get();
-        
+
         // Calculate weighted total shifts using the same logic as getAttendanceSummary
         $pfSchedules = $allSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM'])->count();
         $nonPfSchedules = $allSchedules->count() - $pfSchedules;
         $totalShiftsCount = ($pfSchedules * 2) + $nonPfSchedules;
-        
+
         // Debug logging for total shifts calculation
         \Log::info('Staff Stats - Total Shifts Debug', [
             'user_id' => $user_id,
@@ -1305,27 +1299,27 @@ class AttendanceController extends Controller
             'pf_schedules' => $pfSchedules,
             'non_pf_schedules' => $nonPfSchedules,
             'calculated_total_shifts' => $totalShiftsCount,
-            'schedule_details' => $allSchedules->map(function($s) {
+            'schedule_details' => $allSchedules->map(function ($s) {
                 return ['date' => $s->ds_date, 'shift' => $s->sc_code];
             })->toArray()
         ]);
-        
+
         // Get total libur count
         $totalLibur = DB::table('daily_schedules as ds')
             ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
             ->where('ds.user_id', $user_id)
             ->where('ds.ds_status', 'scheduled')
             ->whereIn('sc.sc_code', ['L', 'LPH']); // Only libur (L) and libur per hari (LPH)
-        
+
         if (request('start_date')) {
             $totalLibur->where('ds.ds_date', '>=', request('start_date'));
         }
         if (request('end_date')) {
             $totalLibur->where('ds.ds_date', '<=', request('end_date'));
         }
-        
+
         $totalLiburCount = $totalLibur->count();
-        
+
         $stats = $query->selectRaw('
             SUM(CASE WHEN at_status = "present" THEN 1 ELSE 0 END) as present_days,
             SUM(CASE WHEN at_status = "late" THEN 1 ELSE 0 END) as late_days,
@@ -1334,27 +1328,27 @@ class AttendanceController extends Controller
             SUM(CASE WHEN at_status = "leave_SICK" THEN 1 ELSE 0 END) as sick_days,
             SUM(CASE WHEN at_status LIKE "leave_%" AND at_status != "leave_SICK" AND at_status != "leave_HALF_DAY" THEN 1 ELSE 0 END) as leave_days
         ')->first();
-        
+
         // Calculate weighted present days
         $presentStatuses = ['present', 'scan_once', 'late', 'early_leave'];
-        
+
         // Get attendance dates with present statuses
         $presentAttendanceQuery = DB::table('attendance')->where('user_id', $user_id);
-        
+
         if (request('start_date')) {
             $presentAttendanceQuery->where('at_date', '>=', request('start_date'));
         }
         if (request('end_date')) {
             $presentAttendanceQuery->where('at_date', '<=', request('end_date'));
         }
-        
+
         $presentAttendanceRecords = $presentAttendanceQuery->whereIn('at_status', $presentStatuses)->get();
-        
+
         // Calculate weighted present days using the same logic as getAttendanceSummary
         $weightedPresentDays = 0;
         foreach ($presentAttendanceRecords as $attendance) {
             $scheduleOnDate = $allSchedules->where('ds_date', $attendance->at_date)->first();
-            
+
             if ($scheduleOnDate) {
                 // Use schedule weight
                 if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM'])) {
@@ -1367,7 +1361,7 @@ class AttendanceController extends Controller
                 $weightedPresentDays += 1;
             }
         }
-        
+
         // Calculate alpha days (same logic as summary report)
         $presentDays = $stats->present_days ?? 0;
         $scanOnceDays = $stats->scan_once_days ?? 0;
@@ -1376,7 +1370,7 @@ class AttendanceController extends Controller
         $leaveDays = $stats->leave_days ?? 0;
         $sickDays = $stats->sick_days ?? 0;
         $alphaDays = max(0, $totalShiftsCount - $totalLiburCount - $weightedPresentDays - $sickDays - $leaveDays);
-        
+
         // Create final stats object
         $finalStats = (object) [
             'total_shifts' => $totalShiftsCount,
@@ -1389,13 +1383,13 @@ class AttendanceController extends Controller
             'late_days' => $lateDays,
             'alpha_days' => $alphaDays
         ];
-        
+
         // Debug: Log response data
         \Log::info('Staff Stats Response', [
             'user_id' => $user_id,
             'stats' => $finalStats
         ]);
-        
+
         return response()->json(['stats' => $finalStats]);
     }
 
@@ -1405,28 +1399,28 @@ class AttendanceController extends Controller
     public function getStaffAlphaDates($user_id, Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('-30 days')));
             $endDate = $request->get('end_date', date('Y-m-d'));
-            
+
             \Log::info('Getting alpha dates for staff', [
                 'user_id' => $user_id,
                 'start_date' => $startDate,
                 'end_date' => $endDate
             ]);
-            
+
             // Get dates where user has schedule (excluding libur/L) but no attendance or leave
             $alphaDates = DB::table('daily_schedules as ds')
                 ->leftJoin('shift_codes as sc', 'ds.sc_id', '=', 'sc.id')
-                ->leftJoin('attendance as a', function($join) use ($user_id) {
+                ->leftJoin('attendance as a', function ($join) use ($user_id) {
                     $join->on('ds.user_id', '=', 'a.user_id')
-                         ->on('ds.ds_date', '=', 'a.at_date');
+                        ->on('ds.ds_date', '=', 'a.at_date');
                 })
-                ->leftJoin('leave_requests as lr', function($join) use ($user_id) {
+                ->leftJoin('leave_requests as lr', function ($join) use ($user_id) {
                     $join->on('ds.user_id', '=', 'lr.user_id')
-                         ->where('lr.lr_status', '=', 'approved')
-                         ->whereRaw('ts_ds.ds_date BETWEEN ts_lr.lr_start_date AND ts_lr.lr_end_date');
+                        ->where('lr.lr_status', '=', 'approved')
+                        ->whereRaw('ts_ds.ds_date BETWEEN ts_lr.lr_start_date AND ts_lr.lr_end_date');
                 })
                 ->select([
                     'ds.ds_date',
@@ -1451,24 +1445,23 @@ class AttendanceController extends Controller
                 ->whereNull('lr.id') // No approved leave
                 ->orderBy('ds.ds_date', 'desc')
                 ->get();
-            
+
             \Log::info('Alpha dates query result', [
                 'alpha_dates_count' => $alphaDates->count(),
                 'sample_dates' => $alphaDates->take(5)->toArray()
             ]);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $alphaDates
             ]);
-            
         } catch (\Exception $e) {
             \Log::error('Error getting alpha dates', [
                 'user_id' => $user_id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -1502,31 +1495,31 @@ class AttendanceController extends Controller
         $btn .= '        </span>';
         $btn .= '    </button>';
         $btn .= '    <!--end::Toggle-->';
-        
+
         $btn .= '    <!--begin::Menu-->';
         $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
         $btn .= '        <!--begin::Menu item-->';
         $btn .= '        <div class="menu-item px-3">';
-        $btn .= '            <a href="'.route('attendance.show', $id).'" class="menu-link px-3">View</a>';
+        $btn .= '            <a href="' . route('attendance.show', $id) . '" class="menu-link px-3">View</a>';
         $btn .= '        </div>';
         $btn .= '        <!--end::Menu item-->';
-        
+
         $btn .= '        <!--begin::Menu item-->';
         $btn .= '        <div class="menu-item px-3">';
-        $btn .= '            <a href="'.route('attendance.edit', $id).'" class="menu-link px-3">Edit</a>';
+        $btn .= '            <a href="' . route('attendance.edit', $id) . '" class="menu-link px-3">Edit</a>';
         $btn .= '        </div>';
         $btn .= '        <!--end::Menu item-->';
         $btn .= '    </div>';
         $btn .= '    <!--end::Menu-->';
         $btn .= '</div>';
-        
+
         return $btn;
     }
 
 
     public function getDatatables(Request $request)
     {
-        if(request()->ajax()) {
+        if (request()->ajax()) {
             $query = DB::table('attendance')
                 ->select([
                     'attendance.*',
@@ -1569,12 +1562,12 @@ class AttendanceController extends Controller
             } else {
                 \Log::info('No status filter applied - showing all statuses');
             }
-            
+
             if ($request->filled('search')) {
                 $search = $request->search;
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('users.u_name', 'like', '%' . $search . '%')
-                      ->orWhere('users.u_nip', 'like', '%' . $search . '%');
+                        ->orWhere('users.u_nip', 'like', '%' . $search . '%');
                 });
             }
 
@@ -1585,11 +1578,11 @@ class AttendanceController extends Controller
             ]);
 
             $result = datatables()->of($query)
-            ->addIndexColumn()
-            ->addColumn('user_id', function($row) {
-                return $row->user_id;
-            })
-            ->addColumn('action', function($row){
+                ->addIndexColumn()
+                ->addColumn('user_id', function ($row) {
+                    return $row->user_id;
+                })
+                ->addColumn('action', function ($row) {
                     $btn = '<div class="dropdown">';
                     $btn .= '    <!--begin::Toggle-->';
                     $btn .= '    <button type="button" class="btn btn-sm text-dark btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start">';
@@ -1602,47 +1595,47 @@ class AttendanceController extends Controller
                     $btn .= '        </span>';
                     $btn .= '    </button>';
                     $btn .= '    <!--end::Toggle-->';
-                    
+
                     $btn .= '    <!--begin::Menu-->';
                     $btn .= '    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-auto min-w-150px" data-kt-menu="true">';
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="'.route('attendance.show', $row->id).'" class="menu-link px-3">View</a>';
+                    $btn .= '            <a href="' . route('attendance.show', $row->id) . '" class="menu-link px-3">View</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
-                    
+
                     $btn .= '        <!--begin::Menu item-->';
                     $btn .= '        <div class="menu-item px-3">';
-                    $btn .= '            <a href="javascript:void(0)" onclick="deleteAttendance('.$row->id.')" class="menu-link px-3 text-danger">Delete</a>';
+                    $btn .= '            <a href="javascript:void(0)" onclick="deleteAttendance(' . $row->id . ')" class="menu-link px-3 text-danger">Delete</a>';
                     $btn .= '        </div>';
                     $btn .= '        <!--end::Menu item-->';
                     $btn .= '    </div>';
                     $btn .= '    <!--end::Menu-->';
                     $btn .= '</div>';
-                    
-                return $btn;
-            })
-                ->editColumn('at_date', function($row) {
+
+                    return $btn;
+                })
+                ->editColumn('at_date', function ($row) {
                     return date('d/m/Y', strtotime($row->at_date));
                 })
-                ->editColumn('at_time_in', function($row) {
+                ->editColumn('at_time_in', function ($row) {
                     return $row->at_time_in ? date('H:i', strtotime($row->at_time_in)) : '-';
                 })
-                ->editColumn('at_time_out', function($row) {
+                ->editColumn('at_time_out', function ($row) {
                     return $row->at_time_out ? date('H:i', strtotime($row->at_time_out)) : '-';
                 })
-                ->editColumn('sc_code', function($row) {
+                ->editColumn('sc_code', function ($row) {
                     if ($row->sc_code) {
                         return $row->sc_code . ' (' . $row->sc_shift_name . ')';
                     }
                     return '-';
                 })
-                ->editColumn('at_status', function($row) {
+                ->editColumn('at_status', function ($row) {
                     $status = $row->at_status;
                     $badgeClass = '';
                     $statusText = '';
-                    
-                    switch($status) {
+
+                    switch ($status) {
                         case 'present':
                             $badgeClass = 'badge-light-blue';
                             $statusText = 'Hadir';
@@ -1673,25 +1666,25 @@ class AttendanceController extends Controller
                                 $statusText = ucfirst($status);
                             }
                     }
-                    
+
                     return '<span class="badge ' . $badgeClass . '">' . $statusText . '</span>';
                 })
                 ->rawColumns(['action', 'at_status'])
-            ->make(true);
+                ->make(true);
 
             return $result;
         }
-        
+
         return response()->json(['error' => 'Invalid request'], 400);
     }
-    
+
     /**
      * Helper method to get date range from filter
      */
     private function getDateRangeFromFilter($filter)
     {
         $today = Carbon::now();
-        
+
         switch ($filter) {
             case 'this_week':
                 $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
@@ -1721,13 +1714,13 @@ class AttendanceController extends Controller
                 $startDate = $today->copy()->startOfWeek()->format('Y-m-d');
                 $endDate = $today->copy()->endOfWeek()->format('Y-m-d');
         }
-        
+
         return [
             'startDate' => $startDate,
             'endDate' => $endDate
         ];
     }
-    
+
     /**
      * Normalize date from various formats to Y-m-d
      */
@@ -1737,7 +1730,7 @@ class AttendanceController extends Controller
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             return $date;
         }
-        
+
         // If it's an Excel serial number (like 45884)
         if (is_numeric($date) && $date > 1000) {
             // Excel serial number to date conversion
@@ -1749,7 +1742,7 @@ class AttendanceController extends Controller
                 return false;
             }
         }
-        
+
         // Try to parse various date formats
         try {
             $parsedDate = \Carbon\Carbon::parse($date);
@@ -1759,7 +1752,7 @@ class AttendanceController extends Controller
             return false;
         }
     }
-    
+
     /**
      * Normalize time to H:i format
      */
@@ -1769,7 +1762,7 @@ class AttendanceController extends Controller
         if (preg_match('/^\d{2}:\d{2}$/', $time)) {
             return $time;
         }
-        
+
         // Try to parse various time formats
         try {
             $parsedTime = \Carbon\Carbon::parse($time);
@@ -1786,7 +1779,7 @@ class AttendanceController extends Controller
     public function exportToExcel(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             // Debug: Log raw request data first
             \Log::info('Export Excel - Raw request data', [
@@ -1797,12 +1790,12 @@ class AttendanceController extends Controller
                 'end_date_raw' => $request->get('end_date'),
                 'url' => $request->fullUrl()
             ]);
-            
+
             // Get the same data as the index page with filters - EXPORT EXCEL METHOD
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_week');
-            
+
             // If date filter is provided, calculate dates
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
@@ -1812,30 +1805,30 @@ class AttendanceController extends Controller
                 // For custom date range, use the provided start_date and end_date
                 $startDate = $request->get('start_date', date('Y-m-d'));
                 $endDate = $request->get('end_date', date('Y-m-d'));
-                
+
                 // Validate dates
                 if (!$startDate || !$endDate) {
                     throw new \Exception('Start date and end date are required for custom date range');
                 }
-                
+
                 // Ensure start_date is before or equal to end_date
                 if ($startDate > $endDate) {
                     throw new \Exception('Start date must be before or equal to end date');
                 }
-                
+
                 // Validate date format
                 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
                     throw new \Exception('Invalid date format. Use YYYY-MM-DD format');
                 }
             }
-            
+
             \Log::info('Export Excel - Date parameters', [
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'is_custom' => $dateFilter === 'custom'
             ]);
-            
+
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
                 $startDate,
@@ -1844,7 +1837,7 @@ class AttendanceController extends Controller
                 $request->get('division_id'),
                 $request->get('status')
             );
-            
+
             \Log::info('Export Excel - Attendance data', [
                 'attendances_count' => $attendances->count(),
                 'start_date' => $startDate,
@@ -1853,7 +1846,7 @@ class AttendanceController extends Controller
                 'division_id' => $request->get('division_id'),
                 'status' => $request->get('status')
             ]);
-            
+
             // Debug: Check if data is empty and log sample data
             if ($attendances->count() === 0) {
                 \Log::warning('Export Excel - No attendance data found', [
@@ -1884,7 +1877,6 @@ class AttendanceController extends Controller
             $filename .= '.xlsx';
 
             return Excel::download(new AttendanceExport($attendances), $filename);
-            
         } catch (\Exception $e) {
             \Log::error('Export attendance error: ' . $e->getMessage());
             return back()->with('error', 'Export failed: ' . $e->getMessage());
@@ -1897,7 +1889,7 @@ class AttendanceController extends Controller
     public function exportToPDF(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             // Debug: Log raw request data first
             \Log::info('Export PDF - Raw request data', [
@@ -1908,12 +1900,12 @@ class AttendanceController extends Controller
                 'end_date_raw' => $request->get('end_date'),
                 'url' => $request->fullUrl()
             ]);
-            
+
             // Get the same data as the index page with filters - EXPORT PDF METHOD
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_week');
-            
+
             // If date filter is provided, calculate dates
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
@@ -1923,20 +1915,20 @@ class AttendanceController extends Controller
                 // For custom date range, use the provided start_date and end_date
                 $startDate = $request->get('start_date', date('Y-m-d'));
                 $endDate = $request->get('end_date', date('Y-m-d'));
-                
+
                 // Validate dates
                 if (!$startDate || !$endDate) {
                     throw new \Exception('Start date and end date are required for custom date range');
                 }
             }
-            
+
             \Log::info('Export PDF - Date parameters', [
                 'date_filter' => $dateFilter,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'is_custom' => $dateFilter === 'custom'
             ]);
-            
+
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
                 $startDate,
@@ -1945,7 +1937,7 @@ class AttendanceController extends Controller
                 $request->get('division_id'),
                 $request->get('status')
             );
-            
+
             \Log::info('Export PDF - Attendance data', [
                 'attendances_count' => $attendances->count(),
                 'start_date' => $startDate,
@@ -1954,7 +1946,7 @@ class AttendanceController extends Controller
                 'division_id' => $request->get('division_id'),
                 'status' => $request->get('status')
             ]);
-            
+
             // Debug: Check if data is empty and log sample data
             if ($attendances->count() === 0) {
                 \Log::warning('Export PDF - No attendance data found', [
@@ -1975,7 +1967,7 @@ class AttendanceController extends Controller
 
             // Generate HTML for PDF
             $html = $this->generateAttendanceHTML($attendances, $request);
-            
+
             // Generate filename
             $filename = 'attendance_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
@@ -1990,7 +1982,6 @@ class AttendanceController extends Controller
             $pdf = \PDF::loadHTML($html);
             $pdf->setPaper('A4', 'landscape');
             return $pdf->download($filename);
-            
         } catch (\Exception $e) {
             \Log::error('Export attendance PDF error: ' . $e->getMessage());
             return back()->with('error', 'Export PDF failed: ' . $e->getMessage());
@@ -2006,14 +1997,14 @@ class AttendanceController extends Controller
             \Log::info('Summary Report - Starting method');
             $this->validateAccess();
             \Log::info('Summary Report - Access validated');
-            
+
             $title = 'Attendance Summary Report';
             $user = auth()->user();
             $user_data = DB::table('users')->where('id', $user ? $user->id : 1)->first();
-            
+
             // Handle date filter
             $dateFilter = $request->get('date_filter', 'this_week');
-            
+
             if ($dateFilter === 'custom') {
                 // Use visible date inputs for custom range
                 $startDate = $request->get('start_date', date('Y-m-01'));
@@ -2022,7 +2013,7 @@ class AttendanceController extends Controller
                 // Use date inputs (which are set by JavaScript)
                 $startDate = $request->get('start_date');
                 $endDate = $request->get('end_date');
-                
+
                 // If date inputs are empty, calculate from filter
                 if (empty($startDate) || empty($endDate)) {
                     $dateRange = $this->getDateRangeFromFilter($dateFilter);
@@ -2030,19 +2021,19 @@ class AttendanceController extends Controller
                     $endDate = $dateRange['endDate'];
                 }
             }
-            
+
             // Get summary data
             $summaryData = $this->getAttendanceSummary($startDate, $endDate, $request->get('division_id'));
-            
+
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
-                $summaryData = $summaryData->filter(function($item) use ($search) {
-                    return stripos($item->u_name, $search) !== false || 
-                           stripos($item->u_nip, $search) !== false;
+                $summaryData = $summaryData->filter(function ($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false ||
+                        stripos($item->u_nip, $search) !== false;
                 });
             }
-            
+
             $users = DB::table('users')->where('u_delete', '!=', '1')->get();
             $divisions = DB::table('user_divisions')->where('ud_status', 'active')->get();
 
@@ -2056,7 +2047,7 @@ class AttendanceController extends Controller
                 'endDate' => $endDate,
                 'dateFilter' => $dateFilter
             ];
-            
+
             try {
                 \Log::info('Summary Report - Data structure', [
                     'data_type' => gettype($data),
@@ -2064,12 +2055,12 @@ class AttendanceController extends Controller
                     'sidebar_type' => gettype($data['sidebar']),
                     'user_type' => gettype($data['user'])
                 ]);
-                
+
                 \Log::info('Summary Report - Summary data sample', [
                     'first_item' => $summaryData->first(),
                     'total_count' => $summaryData->count()
                 ]);
-                
+
                 return view('app.attendance.summary_report', compact('summaryData', 'divisions', 'data'));
             } catch (\Exception $e) {
                 \Log::error('Summary Report - Error in view', [
@@ -2098,7 +2089,7 @@ class AttendanceController extends Controller
                 'endDate' => $endDate,
                 'divisionId' => $divisionId
             ]);
-            
+
             // First, get all users with their basic info
             $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
@@ -2148,16 +2139,29 @@ class AttendanceController extends Controller
                 ->get()
                 ->groupBy('user_id');
 
+
+            $leaveData = DB::table('leave_requests')
+                ->whereBetween('lr_start_date', [$startDate, $endDate])
+                ->select('user_id', DB::raw('SUM(lr_total_days) as lr_total_days'), DB::raw('SUM(lr_total_hours) as lr_total_hours'))
+                ->groupBy('user_id')
+                ->get()
+                ->keyBy('user_id');
+
             // Combine the data
-            $result = $users->map(function($user) use ($dailySchedulesData, $attendanceData, $startDate, $endDate) {
+            $result = $users->map(function ($user) use ($dailySchedulesData, $attendanceData, $leaveData, $startDate, $endDate) {
                 $userSchedules = $dailySchedulesData->get($user->user_id, collect());
                 $userAttendance = $attendanceData->get($user->user_id, collect());
+
+                $leaveDays = optional($leaveData->get($user->user_id))->lr_total_days ?? 0;
+                $leaveHours = optional($leaveData->get($user->user_id))->lr_total_hours ?? 0;
+
+                $leaveDisplay = "{$leaveDays} days {$leaveHours} hours";
 
                 // Calculate total shifts with weighting
                 $pfSchedules = $userSchedules->whereIn('sc_code', ['PF', 'PF0', 'PFM'])->count();
                 $nonPfSchedules = $userSchedules->count() - $pfSchedules;
                 $totalShifts = ($pfSchedules * 2) + $nonPfSchedules;
-                
+
                 // Debug logging for total shifts calculation (summary report)
                 if ($user->u_nip === '19070202') {
                     \Log::info('Summary Report - Total Shifts Debug for NIP 19070202', [
@@ -2168,7 +2172,7 @@ class AttendanceController extends Controller
                         'pf_schedules' => $pfSchedules,
                         'non_pf_schedules' => $nonPfSchedules,
                         'calculated_total_shifts' => $totalShifts,
-                        'schedule_details' => $userSchedules->map(function($s) {
+                        'schedule_details' => $userSchedules->map(function ($s) {
                             return ['date' => $s->ds_date, 'shift' => $s->sc_code];
                         })->toArray()
                     ]);
@@ -2176,17 +2180,17 @@ class AttendanceController extends Controller
 
                 // Calculate present days with weighting
                 $presentStatuses = ['present', 'scan_once', 'late', 'early_leave'];
-                
+
                 // Get all present attendance records (regardless of whether they have schedules)
                 $presentAttendanceRecords = $userAttendance->whereIn('at_status', $presentStatuses);
-                
+
                 // For each present attendance, determine the weight based on:
                 // 1. If there's a schedule on that date, use the schedule's weight
                 // 2. If no schedule, use weight 1 (default)
                 $presentDays = 0;
                 foreach ($presentAttendanceRecords as $attendance) {
                     $scheduleOnDate = $userSchedules->where('ds_date', $attendance->at_date)->first();
-                    
+
                     if ($scheduleOnDate) {
                         // Use schedule weight
                         if (in_array($scheduleOnDate->sc_code, ['PF', 'PF0', 'PFM'])) {
@@ -2199,13 +2203,13 @@ class AttendanceController extends Controller
                         $presentDays += 1;
                     }
                 }
-                
+
                 // Debug logging for weight calculation
                 if ($user->u_nip === '19070202') {
                     \Log::info('Weight calculation debug for NIP 19070202', [
                         'present_attendance_count' => $presentAttendanceRecords->count(),
                         'calculated_present_days' => $presentDays,
-                        'present_attendance_details' => $presentAttendanceRecords->map(function($a) use ($userSchedules) {
+                        'present_attendance_details' => $presentAttendanceRecords->map(function ($a) use ($userSchedules) {
                             $scheduleOnDate = $userSchedules->where('ds_date', $a->at_date)->first();
                             return [
                                 'date' => $a->at_date,
@@ -2244,22 +2248,22 @@ class AttendanceController extends Controller
                     'late_days' => $lateDays,
                     'scan_once_days' => $scanOnceDays,
                     'sick_days' => $sickDays,
-                    'leave_days' => $leaveDays,
+                    'leave_days' => $leaveDisplay,
                     'alpha_days' => $alphaDays
                 ];
             });
-            
+
             // Filter to show users with schedules OR users who attended without schedules
-            $filteredResult = $result->filter(function($item) {
+            $filteredResult = $result->filter(function ($item) {
                 return $item->total_shifts > 0 || $item->present_days > 0;
             });
-            
+
             \Log::info('getAttendanceSummary - Query completed', [
                 'result_count' => $result->count(),
                 'filtered_count' => $filteredResult->count(),
                 'first_item' => $filteredResult->first()
             ]);
-            
+
             return $filteredResult;
         } catch (\Exception $e) {
             \Log::error('getAttendanceSummary - Error', [
@@ -2276,20 +2280,20 @@ class AttendanceController extends Controller
     public function exportSummaryToExcel(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
             }
-            
+
             $summaryData = $this->getAttendanceSummary($startDate, $endDate, $request->get('division_id'));
-            
+
             $filename = 'attendance_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
                 $division = DB::table('user_divisions')->find($request->get('division_id'));
@@ -2299,7 +2303,7 @@ class AttendanceController extends Controller
                 $filename .= '_' . $request->get('start_date') . '_to_' . $request->get('end_date');
             }
             $filename .= '.xlsx';
-            
+
             return Excel::download(new AttendanceSummaryExport($summaryData), $filename);
         } catch (\Exception $e) {
             return back()->with('error', 'Error exporting data: ' . $e->getMessage());
@@ -2312,7 +2316,7 @@ class AttendanceController extends Controller
     public function exportStaffToExcel($user_id, Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             // Get staff info
             $staff = DB::table('users')
@@ -2328,7 +2332,7 @@ class AttendanceController extends Controller
             // Get attendance data for this staff
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('-30 days')));
             $endDate = $request->get('end_date', date('Y-m-d'));
-            
+
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
                 $startDate,
@@ -2342,7 +2346,6 @@ class AttendanceController extends Controller
             $filename = 'staff_attendance_' . $staff->u_nip . '_' . date('Y-m-d_H-i-s') . '.xlsx';
 
             return Excel::download(new StaffAttendanceExport($attendances, $staff->u_name), $filename);
-            
         } catch (\Exception $e) {
             \Log::error('Export staff attendance error: ' . $e->getMessage());
             return back()->with('error', 'Export failed: ' . $e->getMessage());
@@ -2355,7 +2358,7 @@ class AttendanceController extends Controller
     public function exportStaffToPDF($user_id, Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             // Get staff info
             $staff = DB::table('users')
@@ -2371,7 +2374,7 @@ class AttendanceController extends Controller
             // Get attendance data for this staff
             $startDate = $request->get('start_date', date('Y-m-d', strtotime('-30 days')));
             $endDate = $request->get('end_date', date('Y-m-d'));
-            
+
             $attendance = new Attendance();
             $attendances = $attendance->getAttendanceByDateRange(
                 $startDate,
@@ -2383,14 +2386,13 @@ class AttendanceController extends Controller
 
             // Generate HTML for PDF
             $html = $this->generateStaffAttendanceHTML($attendances, $staff, $request);
-            
+
             // Generate filename
             $filename = 'staff_attendance_' . $staff->u_nip . '_' . date('Y-m-d_H-i-s') . '.pdf';
 
             $pdf = \PDF::loadHTML($html);
             $pdf->setPaper('A4', 'landscape');
             return $pdf->download($filename);
-            
         } catch (\Exception $e) {
             \Log::error('Export staff attendance PDF error: ' . $e->getMessage());
             return back()->with('error', 'Export PDF failed: ' . $e->getMessage());
@@ -2450,7 +2452,7 @@ class AttendanceController extends Controller
         foreach ($attendances as $attendance) {
             $statusClass = 'status-' . ($attendance->at_status ?? 'unknown');
             $statusText = $this->getStatusTextForPDF($attendance->at_status);
-            
+
             $html .= '
                     <tr>
                         <td>' . ($attendance->u_nip ?? '-') . '</td>
@@ -2527,7 +2529,7 @@ class AttendanceController extends Controller
         foreach ($attendances as $attendance) {
             $statusClass = 'status-' . ($attendance->at_status ?? 'unknown');
             $statusText = $this->getStatusTextForPDF($attendance->at_status);
-            
+
             $html .= '
                     <tr>
                         <td>' . ($attendance->at_date ? date('d/m/Y', strtotime($attendance->at_date)) : '-') . '</td>
@@ -2585,11 +2587,11 @@ class AttendanceController extends Controller
             // 2. Records dengan status yang salah (perlu update status)
             $attendanceRecords = DB::table('attendance')
                 ->whereBetween('at_date', [$startDate, $endDate])
-                ->where(function($query) {
+                ->where(function ($query) {
                     $query->whereNull('daily_schedule_id')
-                          ->orWhere('at_status', 'present')  // Status yang kemungkinan salah
-                          ->orWhere('at_status', 'absent')   // Status yang kemungkinan salah
-                          ->orWhere('at_status', 'scan_once'); // Status yang mungkin perlu dikoreksi
+                        ->orWhere('at_status', 'present')  // Status yang kemungkinan salah
+                        ->orWhere('at_status', 'absent')   // Status yang kemungkinan salah
+                        ->orWhere('at_status', 'scan_once'); // Status yang mungkin perlu dikoreksi
                 })
                 ->get();
 
@@ -2598,28 +2600,28 @@ class AttendanceController extends Controller
                 'date_range' => [$startDate, $endDate],
                 'criteria' => 'daily_schedule_id NULL OR status present/absent/scan_once'
             ]);
-                
+
             // Jika tidak ada records yang perlu update dalam date range, ambil SEMUA records untuk update status
             if ($attendanceRecords->count() == 0) {
                 \Log::warning('No records need update in date range, processing ALL records for status update');
-                
+
                 // Debug: Cek semua kemungkinan nilai daily_schedule_id dan status
                 $allAttendance = DB::table('attendance')
                     ->select('id', 'user_id', 'at_date', 'daily_schedule_id', 'at_source', 'at_status')
                     ->get();
-                    
+
                 $uniqueValues = $allAttendance->pluck('daily_schedule_id')->unique()->values();
                 $uniqueStatuses = $allAttendance->pluck('at_status')->unique()->values();
-                
+
                 \Log::info('Debug: All unique values found', [
                     'daily_schedule_id_values' => $uniqueValues->toArray(),
                     'status_values' => $uniqueStatuses->toArray(),
                     'total_records' => $allAttendance->count()
                 ]);
-                
+
                 // Ambil SEMUA data untuk update status (tidak terbatas tanggal)
                 $attendanceRecords = DB::table('attendance')->get();
-                        
+
                 \Log::info('Retrieved ALL records for status update (across all dates)', [
                     'count' => $attendanceRecords->count(),
                     'date_range_requested' => [$startDate, $endDate],
@@ -2631,7 +2633,7 @@ class AttendanceController extends Controller
             \Log::info('Found attendance records to process', [
                 'count' => $attendanceRecords->count(),
                 'date_range' => [$startDate, $endDate],
-                'sample_records' => $attendanceRecords->take(3)->map(function($record) {
+                'sample_records' => $attendanceRecords->take(3)->map(function ($record) {
                     return [
                         'id' => $record->id,
                         'user_id' => $record->user_id,
@@ -2655,15 +2657,15 @@ class AttendanceController extends Controller
                         'time_in' => $attendance->at_time_in,
                         'time_out' => $attendance->at_time_out
                     ]);
-                    
+
                     $result = $this->processSingleAttendanceStatus($attendance);
-                    
+
                     \Log::info('Finished processing attendance record', [
                         'attendance_id' => $attendance->id,
                         'result' => $result,
                         'new_status' => $attendance->at_status ?? 'unknown'
                     ]);
-                    
+
                     if ($result) {
                         $processedCount++;
                     } else {
@@ -2689,7 +2691,6 @@ class AttendanceController extends Controller
                 'processed_count' => $processedCount,
                 'error_count' => $errorCount
             ];
-
         } catch (\Exception $e) {
             \Log::error('Error in batch attendance status processing', [
                 'error' => $e->getMessage(),
@@ -2712,7 +2713,7 @@ class AttendanceController extends Controller
             // Initialize status and notes variables
             $status = null;
             $notes = null;
-            
+
             \Log::info('Processing single attendance status', [
                 'attendance_id' => $attendance->id,
                 'user_id' => $attendance->user_id,
@@ -2736,7 +2737,7 @@ class AttendanceController extends Controller
             // PRIORITAS 0.5: Jangan ubah record yang tidak ada time records (kemungkinan leave approved)
             $hasTimeIn = !empty($attendance->at_time_in);
             $hasTimeOut = !empty($attendance->at_time_out);
-            
+
             // PRIORITAS 0.5a: Jangan ubah record dengan at_source="system" yang tidak ada time records
             if (!$hasTimeIn && !$hasTimeOut && $attendance->at_source === 'system') {
                 \Log::info('Skipping record with at_source="system" and no time records - likely system-generated leave', [
@@ -2748,7 +2749,7 @@ class AttendanceController extends Controller
                 ]);
                 return true; // Skip processing, return success
             }
-            
+
             if (!$hasTimeIn && !$hasTimeOut) {
                 // Cek apakah ada daily schedule untuk tanggal ini
                 $tempSchedule = DB::table('daily_schedules')
@@ -2756,7 +2757,7 @@ class AttendanceController extends Controller
                     ->where('ds_date', $attendance->at_date)
                     ->whereIn('ds_status', ['scheduled', 'active'])
                     ->first();
-                
+
                 if ($tempSchedule) {
                     \Log::info('Skipping record with schedule but no time records - likely approved leave', [
                         'attendance_id' => $attendance->id,
@@ -2768,7 +2769,7 @@ class AttendanceController extends Controller
                     ]);
                     return true; // Skip processing, return success
                 }
-                
+
                 // Cek apakah ada leave request yang approved untuk tanggal ini
                 $leaveRequest = DB::table('leave_requests')
                     ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
@@ -2778,7 +2779,7 @@ class AttendanceController extends Controller
                     ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
                     ->select('leave_types.lt_code', 'leave_types.lt_name')
                     ->first();
-                
+
                 if ($leaveRequest) {
                     \Log::info('Skipping record with no schedule and no time records - approved leave found', [
                         'attendance_id' => $attendance->id,
@@ -2790,7 +2791,7 @@ class AttendanceController extends Controller
                     ]);
                     return true; // Skip processing, return success
                 }
-                
+
                 // Jika tidak ada schedule dan tidak ada leave request, kemungkinan besar ini juga leave yang approved
                 // tapi tidak ter-record di leave_requests table (mungkin manual approval atau sistem lama)
                 \Log::info('Record with no schedule and no time records - likely approved leave but not in leave_requests table', [
@@ -2799,11 +2800,11 @@ class AttendanceController extends Controller
                     'date' => $attendance->at_date,
                     'reason' => 'No schedule, no time records, and no leave request - likely approved leave (manual/system), skip processing'
                 ]);
-                
+
                 // Skip processing untuk record ini karena kemungkinan besar leave yang approved
                 return true; // Skip processing, return success
             }
-            
+
             // PRIORITAS 0.6: Perbaiki status yang salah (yang seharusnya leave tapi sudah berubah)
             // Cek apakah status saat ini salah (bukan leave) tapi seharusnya leave
             if ($attendance->at_status !== 'absent' && strpos($attendance->at_status, 'leave_') !== 0) {
@@ -2816,7 +2817,7 @@ class AttendanceController extends Controller
                     ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
                     ->select('leave_types.lt_code', 'leave_types.lt_name')
                     ->first();
-                
+
                 if ($leaveRequest) {
                     \Log::info('Correcting wrong status - should be leave but current status is wrong', [
                         'attendance_id' => $attendance->id,
@@ -2828,22 +2829,22 @@ class AttendanceController extends Controller
                         'leave_name' => $leaveRequest->lt_name,
                         'reason' => 'Status correction needed - approved leave exists but status is wrong'
                     ]);
-                    
+
                     // Set status yang benar
                     $status = 'leave_' . $leaveRequest->lt_code;
                     $notes = 'Cuti: ' . $leaveRequest->lt_name . ' (status corrected)';
-                    
+
                     // Update langsung tanpa masuk ke case logic
                     $updateData = [
                         'at_status' => $status,
                         'at_notes' => $notes,
                         'updated_at' => now()
                     ];
-                    
+
                     $updateResult = DB::table('attendance')
                         ->where('id', $attendance->id)
                         ->update($updateData);
-                    
+
                     if ($updateResult) {
                         \Log::info('Status corrected successfully', [
                             'attendance_id' => $attendance->id,
@@ -2867,7 +2868,7 @@ class AttendanceController extends Controller
                 'user_id' => $attendance->user_id,
                 'date' => $attendance->at_date
             ]);
-            
+
             // Debug: Log the query parameters
             \Log::info('Daily schedule query parameters', [
                 'attendance_id' => $attendance->id,
@@ -2876,7 +2877,7 @@ class AttendanceController extends Controller
                 'date_type' => gettype($attendance->at_date),
                 'date_value' => $attendance->at_date
             ]);
-            
+
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
                 ->leftJoin('users', 'users.id', '=', 'daily_schedules.user_id')
@@ -2937,32 +2938,32 @@ class AttendanceController extends Controller
                 'time_out_value' => $attendance->at_time_out,
                 'case1_condition' => !$dailySchedule && !$hasTimeIn && !$hasTimeOut
             ]);
-            
+
             if (!$dailySchedule && !$hasTimeIn && !$hasTimeOut) {
                 \Log::info('Entering Case 1: No schedule AND no time records (LEAVE case)', [
                     'attendance_id' => $attendance->id,
                     'reason' => 'No schedule and no time records - likely LEAVE'
                 ]);
-                
+
                 // Jika tidak ada schedule dan tidak ada time in/out, kemungkinan besar LEAVE
                 if (!$hasTimeIn && !$hasTimeOut) {
-                                            // Cek apakah ada leave request yang approved
-                        \Log::info('Leave request query parameters', [
-                    'attendance_id' => $attendance->id,
-                    'user_id' => $attendance->user_id,
-                            'date' => $attendance->at_date,
-                            'date_type' => gettype($attendance->at_date)
-                        ]);
-                        
-                        $leaveRequest = DB::table('leave_requests')
-                            ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
-                            ->where('leave_requests.user_id', $attendance->user_id)
-                            ->where('leave_requests.lr_status', 'approved')
-                            ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
-                            ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
-                            ->select('leave_types.lt_code', 'leave_types.lt_name')
-                            ->first();
-                    
+                    // Cek apakah ada leave request yang approved
+                    \Log::info('Leave request query parameters', [
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
+                        'date_type' => gettype($attendance->at_date)
+                    ]);
+
+                    $leaveRequest = DB::table('leave_requests')
+                        ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+                        ->where('leave_requests.user_id', $attendance->user_id)
+                        ->where('leave_requests.lr_status', 'approved')
+                        ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
+                        ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
+                        ->select('leave_types.lt_code', 'leave_types.lt_name')
+                        ->first();
+
                     \Log::info('Leave request check for no-schedule case', [
                         'attendance_id' => $attendance->id,
                         'user_id' => $attendance->user_id,
@@ -2978,12 +2979,12 @@ class AttendanceController extends Controller
                             'lr_status_condition' => 'approved'
                         ]
                     ]);
-                    
+
                     if ($leaveRequest) {
                         // Ada leave request yang approved
                         $status = 'leave_' . $leaveRequest->lt_code;
                         $notes = 'Cuti: ' . $leaveRequest->lt_name;
-                        
+
                         \Log::info('Leave request found for no-schedule case', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
@@ -2997,7 +2998,7 @@ class AttendanceController extends Controller
                         // tapi tidak ter-record di leave_requests table (mungkin manual approval atau sistem lama)
                         $status = 'unknown_leave';
                         $notes = 'Tidak ada jadwal dan tidak ada cuti - kemungkinan leave approved (manual/system)';
-                        
+
                         \Log::info('No schedule and no leave request - likely approved leave but not in leave_requests table', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
@@ -3008,13 +3009,13 @@ class AttendanceController extends Controller
                     }
                 } else {
                     // Ada time in atau time out, set ke present
-                $status = 'present';
-                $notes = 'schedule unset - no daily schedule found for this date';
-                
+                    $status = 'present';
+                    $notes = 'schedule unset - no daily schedule found for this date';
+
                     \Log::info('No schedule found but has time records, setting status to present', [
-                    'attendance_id' => $attendance->id,
-                    'user_id' => $attendance->user_id,
-                    'date' => $attendance->at_date,
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user_id,
+                        'date' => $attendance->at_date,
                         'has_time_in' => $hasTimeIn,
                         'has_time_out' => $hasTimeOut,
                         'final_status' => 'present'
@@ -3030,11 +3031,11 @@ class AttendanceController extends Controller
                     'has_time_in' => $hasTimeIn,
                     'has_time_out' => $hasTimeOut
                 ]);
-                
+
                 // Set status ke present untuk record tanpa schedule tapi ada KEDUA time records
                 $status = 'present';
                 $notes = 'present - no schedule but has both time records';
-                
+
                 \Log::info('No schedule but has BOTH time records - setting to present', [
                     'attendance_id' => $attendance->id,
                     'user_id' => $attendance->user_id,
@@ -3055,11 +3056,11 @@ class AttendanceController extends Controller
                     'has_time_in' => $hasTimeIn,
                     'has_time_out' => $hasTimeOut
                 ]);
-                
+
                 // Set status ke scan_once untuk record tanpa schedule tapi hanya satu time record
                 $status = 'scan_once';
                 $notes = 'scan once - no schedule but has only one time record';
-                
+
                 \Log::info('No schedule but has only ONE time record - setting to scan_once', [
                     'attendance_id' => $attendance->id,
                     'user_id' => $attendance->user_id,
@@ -3085,12 +3086,12 @@ class AttendanceController extends Controller
                         'sc_end_time' => $dailySchedule->sc_end_time
                     ] : null
                 ]);
-                
+
                 // PRIORITAS 1: Jika ada schedule dan time in, cek apakah terlambat
                 if ($hasTimeIn && $dailySchedule && $dailySchedule->sc_start_time) {
                     $timeInMinutes = $this->timeToMinutes($attendance->at_time_in);
                     $shiftStartMinutes = $this->timeToMinutes($dailySchedule->sc_start_time);
-                    
+
                     \Log::info('Time comparison for scan once with time in', [
                         'attendance_id' => $attendance->id,
                         'time_in' => $attendance->at_time_in,
@@ -3100,13 +3101,13 @@ class AttendanceController extends Controller
                         'is_late' => $timeInMinutes > $shiftStartMinutes,
                         'difference_minutes' => $timeInMinutes - $shiftStartMinutes
                     ]);
-                    
+
                     if ($timeInMinutes > $shiftStartMinutes) {
                         // Scan once tapi terlambat - PRIORITAS: LATE
                         $status = 'late';
                         $lateMinutes = $timeInMinutes - $shiftStartMinutes;
                         $notes = "scan once - terlambat {$lateMinutes} menit (In: {$attendance->at_time_in}, Schedule: {$dailySchedule->sc_start_time})";
-                        
+
                         \Log::info('Scan once but LATE - Priority: LATE status', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
@@ -3120,7 +3121,7 @@ class AttendanceController extends Controller
                         // Scan once dan tepat waktu - STATUS: SCAN_ONCE
                         $status = 'scan_once';
                         $notes = 'scan once - hadir tepat waktu';
-                        
+
                         \Log::info('Scan once and on time - Status: SCAN_ONCE', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
@@ -3135,7 +3136,7 @@ class AttendanceController extends Controller
                 elseif ($hasTimeOut && $dailySchedule && $dailySchedule->sc_end_time) {
                     $timeOutMinutes = $this->timeToMinutes($attendance->at_time_out);
                     $shiftEndMinutes = $this->timeToMinutes($dailySchedule->sc_end_time);
-                    
+
                     \Log::info('Time comparison for scan once with time out', [
                         'attendance_id' => $attendance->id,
                         'time_out' => $attendance->at_time_out,
@@ -3145,13 +3146,13 @@ class AttendanceController extends Controller
                         'is_early' => $timeOutMinutes < $shiftEndMinutes,
                         'difference_minutes' => $shiftEndMinutes - $timeOutMinutes
                     ]);
-                    
+
                     if ($timeOutMinutes < $shiftEndMinutes) {
                         // Scan once tapi pulang awal - PRIORITAS: EARLY_LEAVE
                         $status = 'early_leave';
                         $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
                         $notes = "scan once - pulang awal {$earlyMinutes} menit (Out: {$attendance->at_time_out}, Schedule: {$dailySchedule->sc_end_time})";
-                        
+
                         \Log::info('Scan once but EARLY LEAVE - Priority: EARLY_LEAVE status', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
@@ -3165,7 +3166,7 @@ class AttendanceController extends Controller
                         // Scan once dan pulang tepat waktu - STATUS: SCAN_ONCE
                         $status = 'scan_once';
                         $notes = 'scan once - pulang tepat waktu';
-                        
+
                         \Log::info('Scan once and leave on time - Status: SCAN_ONCE', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
@@ -3176,25 +3177,25 @@ class AttendanceController extends Controller
                         ]);
                     }
                 } else {
-                                            // Tidak ada schedule atau tidak ada time in/out - CEK LEAVE REQUEST DULU
-                        if (!$hasTimeIn && !$hasTimeOut) {
-                            // Tidak ada time in dan time out, kemungkinan besar LEAVE
-                            \Log::info('Leave request query parameters for scan once case', [
-                                'attendance_id' => $attendance->id,
-                                'user_id' => $attendance->user_id,
-                                'date' => $attendance->at_date,
-                                'date_type' => gettype($attendance->at_date)
-                            ]);
-                            
-                            $leaveRequest = DB::table('leave_requests')
-                                ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
-                                ->where('leave_requests.user_id', $attendance->user_id)
-                                ->where('leave_requests.lr_status', 'approved')
-                                ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
-                                ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
-                                ->select('leave_types.lt_code', 'leave_types.lt_name')
-                                ->first();
-                        
+                    // Tidak ada schedule atau tidak ada time in/out - CEK LEAVE REQUEST DULU
+                    if (!$hasTimeIn && !$hasTimeOut) {
+                        // Tidak ada time in dan time out, kemungkinan besar LEAVE
+                        \Log::info('Leave request query parameters for scan once case', [
+                            'attendance_id' => $attendance->id,
+                            'user_id' => $attendance->user_id,
+                            'date' => $attendance->at_date,
+                            'date_type' => gettype($attendance->at_date)
+                        ]);
+
+                        $leaveRequest = DB::table('leave_requests')
+                            ->join('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
+                            ->where('leave_requests.user_id', $attendance->user_id)
+                            ->where('leave_requests.lr_status', 'approved')
+                            ->where('leave_requests.lr_start_date', '<=', $attendance->at_date)
+                            ->where('leave_requests.lr_end_date', '>=', $attendance->at_date)
+                            ->select('leave_types.lt_code', 'leave_types.lt_name')
+                            ->first();
+
                         \Log::info('Leave request check for scan once case', [
                             'attendance_id' => $attendance->id,
                             'user_id' => $attendance->user_id,
@@ -3210,12 +3211,12 @@ class AttendanceController extends Controller
                                 'lr_status_condition' => 'approved'
                             ]
                         ]);
-                        
+
                         if ($leaveRequest) {
                             // Ada leave request yang approved
                             $status = 'leave_' . $leaveRequest->lt_code;
                             $notes = 'Cuti: ' . $leaveRequest->lt_name;
-                            
+
                             \Log::info('Leave request found for scan once case', [
                                 'attendance_id' => $attendance->id,
                                 'user_id' => $attendance->user_id,
@@ -3228,7 +3229,7 @@ class AttendanceController extends Controller
                             // Tidak ada leave request, set ke absent
                             $status = 'absent';
                             $notes = 'Tidak hadir - tidak ada jadwal dan tidak ada cuti';
-                            
+
                             \Log::info('No leave request for scan once case - setting to absent', [
                                 'attendance_id' => $attendance->id,
                                 'user_id' => $attendance->user_id,
@@ -3242,13 +3243,13 @@ class AttendanceController extends Controller
                         if ($hasTimeIn && $dailySchedule && $dailySchedule->sc_start_time) {
                             $timeInMinutes = $this->timeToMinutes($attendance->at_time_in);
                             $shiftStartMinutes = $this->timeToMinutes($dailySchedule->sc_start_time);
-                            
+
                             if ($timeInMinutes > $shiftStartMinutes) {
                                 // Scan once tapi terlambat - PRIORITAS: LATE
                                 $status = 'late';
                                 $lateMinutes = $timeInMinutes - $shiftStartMinutes;
                                 $notes = "scan once - terlambat {$lateMinutes} menit (In: {$attendance->at_time_in}, Schedule: {$dailySchedule->sc_start_time})";
-                                
+
                                 \Log::info('Partial record with time in - LATE status', [
                                     'attendance_id' => $attendance->id,
                                     'old_status' => $attendance->at_status,
@@ -3259,7 +3260,7 @@ class AttendanceController extends Controller
                                 // Scan once dan tepat waktu - STATUS: SCAN_ONCE
                                 $status = 'scan_once';
                                 $notes = 'scan once - hadir tepat waktu';
-                                
+
                                 \Log::info('Partial record with time in - SCAN_ONCE status', [
                                     'attendance_id' => $attendance->id,
                                     'old_status' => $attendance->at_status,
@@ -3270,13 +3271,13 @@ class AttendanceController extends Controller
                         } elseif ($hasTimeOut && $dailySchedule && $dailySchedule->sc_end_time) {
                             $timeOutMinutes = $this->timeToMinutes($attendance->at_time_out);
                             $shiftEndMinutes = $this->timeToMinutes($dailySchedule->sc_end_time);
-                            
+
                             if ($timeOutMinutes < $shiftEndMinutes) {
                                 // Scan once tapi pulang awal - PRIORITAS: EARLY_LEAVE
                                 $status = 'early_leave';
                                 $earlyMinutes = $shiftEndMinutes - $timeOutMinutes;
                                 $notes = "scan once - pulang awal {$earlyMinutes} menit (Out: {$attendance->at_time_out}, Schedule: {$dailySchedule->sc_end_time})";
-                                
+
                                 \Log::info('Partial record with time out - EARLY_LEAVE status', [
                                     'attendance_id' => $attendance->id,
                                     'old_status' => $attendance->at_status,
@@ -3287,7 +3288,7 @@ class AttendanceController extends Controller
                                 // Scan once dan pulang tepat waktu - STATUS: SCAN_ONCE
                                 $status = 'scan_once';
                                 $notes = 'scan once - pulang tepat waktu';
-                                
+
                                 \Log::info('Partial record with time out - SCAN_ONCE status', [
                                     'attendance_id' => $attendance->id,
                                     'old_status' => $attendance->at_status,
@@ -3299,7 +3300,7 @@ class AttendanceController extends Controller
                             // Tidak ada schedule yang jelas, set ke scan_once
                             $status = 'scan_once';
                             $notes = 'scan once - incomplete attendance record';
-                            
+
                             \Log::info('Partial record without clear schedule - SCAN_ONCE status', [
                                 'attendance_id' => $attendance->id,
                                 'old_status' => $attendance->at_status,
@@ -3316,7 +3317,7 @@ class AttendanceController extends Controller
                     'attendance_id' => $attendance->id,
                     'reason' => 'Daily schedule exists and both time records present'
                 ]);
-                
+
                 // Check shift code compatibility with user type using new pivot table structure
                 if ($dailySchedule->sc_id && $dailySchedule->user_type_name) {
                     $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
@@ -3325,12 +3326,12 @@ class AttendanceController extends Controller
                         $isCompatible = $shiftCodeModel->userTypes()
                             ->where('ut_name', $dailySchedule->user_type_name)
                             ->exists();
-                        
+
                         // Also check legacy compatibility for backward compatibility
                         if (!$isCompatible) {
                             $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
                         }
-                        
+
                         if (!$isCompatible) {
                             \Log::warning('Shift code not compatible with user type', [
                                 'attendance_id' => $attendance->id,
@@ -3341,10 +3342,10 @@ class AttendanceController extends Controller
                         }
                     }
                 }
-                
+
                 $status = $this->calculateAttendanceStatus($attendance, $dailySchedule);
                 $notes = $this->generateAttendanceNotes($attendance, $dailySchedule, $status);
-                
+
                 \Log::info('Schedule found and both times present, calculated status', [
                     'attendance_id' => $attendance->id,
                     'user_id' => $attendance->user_id,
@@ -3365,7 +3366,7 @@ class AttendanceController extends Controller
                     'has_time_out' => $hasTimeOut,
                     'fallback_reason' => 'No case conditions matched'
                 ]);
-                
+
                 // Set default status for fallback
                 $status = 'unknown';
                 $notes = 'Status not determined - fallback case';
@@ -3382,7 +3383,7 @@ class AttendanceController extends Controller
                 'current_notes' => $attendance->at_notes,
                 'will_update' => ($status !== $attendance->at_status) || ($notes !== $attendance->at_notes)
             ]);
-            
+
             // Fallback: Ensure status and notes are set
             if (is_null($status)) {
                 $status = 'unknown';
@@ -3400,7 +3401,7 @@ class AttendanceController extends Controller
                 'at_notes' => $notes,
                 'updated_at' => now()
             ];
-            
+
             \Log::info('Preparing update data', [
                 'attendance_id' => $attendance->id,
                 'old_status' => $attendance->at_status,
@@ -3409,7 +3410,7 @@ class AttendanceController extends Controller
                 'new_notes' => $notes,
                 'update_data' => $updateData
             ]);
-            
+
             // Update daily_schedule_id if schedule found
             if ($dailySchedule) {
                 $updateData['daily_schedule_id'] = $dailySchedule->id;
@@ -3438,14 +3439,14 @@ class AttendanceController extends Controller
                     ]
                 ]);
             }
-            
+
             \Log::info('Executing database update', [
                 'attendance_id' => $attendance->id,
                 'update_data' => $updateData,
                 'sql_table' => 'attendance',
                 'where_condition' => ['id' => $attendance->id]
             ]);
-            
+
             $updateResult = DB::table('attendance')
                 ->where('id', $attendance->id)
                 ->update($updateData);
@@ -3478,7 +3479,6 @@ class AttendanceController extends Controller
                 ]);
                 return false;
             }
-
         } catch (\Exception $e) {
             \Log::error('Error processing single attendance status', [
                 'attendance_id' => $attendance->id,
@@ -3544,7 +3544,6 @@ class AttendanceController extends Controller
 
             // On time
             return 'present';
-
         } catch (\Exception $e) {
             \Log::error('Error calculating attendance status', [
                 'error' => $e->getMessage()
@@ -3565,26 +3564,25 @@ class AttendanceController extends Controller
             $shiftEnd = $dailySchedule->sc_end_time;
 
             $baseNotes = "Uploaded from fingerprint";
-            
+
             switch ($status) {
                 case 'late':
                     $lateMinutes = $this->timeToMinutes($timeIn) - $this->timeToMinutes($shiftStart);
                     return "{$baseNotes} - Late {$lateMinutes} minutes (In: {$timeIn}, Schedule: {$shiftStart})";
-                
+
                 case 'early_leave':
                     $earlyMinutes = $this->timeToMinutes($shiftEnd) - $this->timeToMinutes($timeOut);
                     return "{$baseNotes} - Early leave {$earlyMinutes} minutes (Out: {$timeOut}, Schedule: {$shiftEnd})";
-                
+
                 case 'late_early_leave':
                     $lateMinutes = $this->timeToMinutes($timeIn) - $this->timeToMinutes($shiftStart);
                     $earlyMinutes = $this->timeToMinutes($shiftEnd) - $this->timeToMinutes($timeOut);
                     return "{$baseNotes} - Late {$lateMinutes} min, Early leave {$earlyMinutes} min";
-                
+
                 case 'present':
                 default:
                     return "{$baseNotes} - On time (In: {$timeIn}, Out: {$timeOut})";
             }
-
         } catch (\Exception $e) {
             \Log::error('Error generating attendance notes', [
                 'error' => $e->getMessage()
@@ -3599,11 +3597,11 @@ class AttendanceController extends Controller
     private function timeToMinutes($time)
     {
         if (empty($time)) return 0;
-        
+
         $parts = explode(':', $time);
         // Handle both HH:MM and HH:MM:SS formats
         if (count($parts) < 2 || count($parts) > 3) return 0;
-        
+
         return (int)$parts[0] * 60 + (int)$parts[1];
     }
 
@@ -3613,29 +3611,29 @@ class AttendanceController extends Controller
     public function reprocessSingleAttendance(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $attendanceId = $request->get('attendance_id');
             $userId = $request->get('user_id');
             $date = $request->get('date');
-            
+
             if (!$attendanceId && !$userId) {
                 return response()->json(['error' => 'Please provide attendance_id or user_id and date']);
             }
-            
+
             $query = DB::table('attendance');
             if ($attendanceId) {
                 $query->where('id', $attendanceId);
             } else {
                 $query->where('user_id', $userId)->where('at_date', $date);
             }
-            
+
             $attendance = $query->first();
-            
+
             if (!$attendance) {
                 return response()->json(['error' => 'Attendance record not found']);
             }
-            
+
             // Get daily schedule
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
@@ -3654,7 +3652,7 @@ class AttendanceController extends Controller
                     'user_types.ut_name as user_type_name'
                 ])
                 ->first();
-            
+
             // Check shift code compatibility with user type using new pivot table structure
             if ($dailySchedule && $dailySchedule->sc_id && $dailySchedule->user_type_name) {
                 $shiftCodeModel = \App\Models\ShiftCode::find($dailySchedule->sc_id);
@@ -3663,12 +3661,12 @@ class AttendanceController extends Controller
                     $isCompatible = $shiftCodeModel->userTypes()
                         ->where('ut_name', $dailySchedule->user_type_name)
                         ->exists();
-                    
+
                     // Also check legacy compatibility for backward compatibility
                     if (!$isCompatible) {
                         $isCompatible = $shiftCodeModel->isCompatibleWithUserTypeLegacy($dailySchedule->user_type_name);
                     }
-                    
+
                     if (!$isCompatible) {
                         \Log::warning('Shift code not compatible with user type in reprocessSingleAttendance', [
                             'attendance_id' => $attendance->id,
@@ -3679,11 +3677,11 @@ class AttendanceController extends Controller
                     }
                 }
             }
-            
+
             // Calculate status manually
             $calculatedStatus = $this->calculateAttendanceStatus((object)$attendance, $dailySchedule);
             $notes = $this->generateAttendanceNotes((object)$attendance, $dailySchedule, $calculatedStatus);
-            
+
             // Update attendance record
             $updateResult = DB::table('attendance')
                 ->where('id', $attendance->id)
@@ -3692,13 +3690,13 @@ class AttendanceController extends Controller
                     'at_notes' => $notes,
                     'updated_at' => now()
                 ]);
-            
+
             if ($dailySchedule) {
                 DB::table('attendance')
                     ->where('id', $attendance->id)
                     ->update(['daily_schedule_id' => $dailySchedule->id]);
             }
-            
+
             $debugInfo = [
                 'attendance' => [
                     'id' => $attendance->id,
@@ -3727,13 +3725,12 @@ class AttendanceController extends Controller
                     'update_result' => $updateResult
                 ]
             ];
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Attendance status reprocessed successfully',
                 'data' => $debugInfo
             ]);
-            
         } catch (\Exception $e) {
             \Log::error('Error reprocessing single attendance status: ' . $e->getMessage());
             return response()->json([
@@ -3749,29 +3746,29 @@ class AttendanceController extends Controller
     public function debugAttendanceStatus(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $attendanceId = $request->get('attendance_id');
             $userId = $request->get('user_id');
             $date = $request->get('date');
-            
+
             if (!$attendanceId && !$userId) {
                 return response()->json(['error' => 'Please provide attendance_id or user_id and date']);
             }
-            
+
             $query = DB::table('attendance');
             if ($attendanceId) {
                 $query->where('id', $attendanceId);
             } else {
                 $query->where('user_id', $userId)->where('at_date', $date);
             }
-            
+
             $attendance = $query->first();
-            
+
             if (!$attendance) {
                 return response()->json(['error' => 'Attendance record not found']);
             }
-            
+
             // Get daily schedule
             $dailySchedule = DB::table('daily_schedules')
                 ->leftJoin('shift_codes', 'daily_schedules.sc_id', '=', 'shift_codes.id')
@@ -3790,11 +3787,11 @@ class AttendanceController extends Controller
                     'user_types.ut_name as user_type_name'
                 ])
                 ->first();
-            
+
             // Calculate status manually
             $calculatedStatus = $this->calculateAttendanceStatus($attendance, $dailySchedule);
             $notes = $this->generateAttendanceNotes($attendance, $dailySchedule, $calculatedStatus);
-            
+
             $debugInfo = [
                 'attendance' => [
                     'id' => $attendance->id,
@@ -3822,9 +3819,8 @@ class AttendanceController extends Controller
                     'calculated_notes' => $notes
                 ]
             ];
-            
+
             return response()->json($debugInfo);
-            
         } catch (\Exception $e) {
             return response()->json(['error' => 'Debug failed: ' . $e->getMessage()]);
         }
@@ -3836,18 +3832,18 @@ class AttendanceController extends Controller
     public function reprocessAttendanceStatus(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
-            
+
             \Log::info('Reprocessing attendance status', [
                 'start_date' => $startDate,
                 'end_date' => $endDate
             ]);
-            
+
             $result = $this->processAttendanceStatusAfterUpload($startDate, $endDate);
-            
+
             if ($result['success']) {
                 $message = "Reprocessing completed. Processed: {$result['processed_count']}, Errors: {$result['error_count']}";
                 \Log::info('Reprocessing completed successfully', $result);
@@ -3857,7 +3853,6 @@ class AttendanceController extends Controller
                 \Log::error('Reprocessing failed', $result);
                 return back()->with('error', $message);
             }
-            
         } catch (\Exception $e) {
             \Log::error('Error reprocessing attendance status: ' . $e->getMessage());
             return back()->with('error', 'Error reprocessing: ' . $e->getMessage());
@@ -3870,32 +3865,32 @@ class AttendanceController extends Controller
     public function exportSummaryToPDF(Request $request)
     {
         $this->validateAccess();
-        
+
         try {
             $startDate = $request->get('start_date', date('Y-m-d'));
             $endDate = $request->get('end_date', date('Y-m-d'));
             $dateFilter = $request->get('date_filter', 'this_month');
-            
+
             if ($dateFilter && $dateFilter !== 'custom') {
                 $dateRange = $this->getDateRangeFromFilter($dateFilter);
                 $startDate = $dateRange['startDate'];
                 $endDate = $dateRange['endDate'];
             }
-            
+
             $summaryData = $this->getAttendanceSummary($startDate, $endDate, $request->get('division_id'));
-            
+
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
-                $summaryData = $summaryData->filter(function($item) use ($search) {
-                    return stripos($item->u_name, $search) !== false || 
-                           stripos($item->u_nip, $search) !== false;
+                $summaryData = $summaryData->filter(function ($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false ||
+                        stripos($item->u_nip, $search) !== false;
                 });
             }
-            
+
             // Generate HTML for PDF
             $html = $this->generateSummaryReportHTML($summaryData, $request);
-            
+
             // Generate filename
             $filename = 'attendance_summary_' . date('Y-m-d_H-i-s');
             if ($request->get('division_id')) {
@@ -3910,7 +3905,6 @@ class AttendanceController extends Controller
             $pdf = \PDF::loadHTML($html);
             $pdf->setPaper('A4', 'landscape');
             return $pdf->download($filename);
-            
         } catch (\Exception $e) {
             \Log::error('Export summary report PDF error: ' . $e->getMessage());
             return back()->with('error', 'Export PDF failed: ' . $e->getMessage());
@@ -4056,12 +4050,12 @@ class AttendanceController extends Controller
             'url' => $request->url(),
             'headers' => $request->headers->all()
         ]);
-        
-        if(request()->ajax()) {
+
+        if (request()->ajax()) {
             try {
                 $this->validateAccess();
                 \Log::info('Summary Report Datatables - Access validated');
-                
+
                 // Debug: Log request parameters
                 \Log::info('Summary Report Datatables Request', [
                     'start_date' => $request->start_date,
@@ -4072,7 +4066,6 @@ class AttendanceController extends Controller
                     'start' => $request->start,
                     'length' => $request->length
                 ]);
-            
             } catch (\Exception $e) {
                 \Log::error('Summary Report Datatables - Error in access validation', [
                     'error' => $e->getMessage(),
@@ -4080,72 +4073,72 @@ class AttendanceController extends Controller
                 ]);
                 return response()->json(['error' => 'Access denied'], 403);
             }
-            
+
             // Get date range
             $startDate = $request->get('start_date', date('Y-m-01'));
             $endDate = $request->get('end_date', date('Y-m-t'));
             $divisionId = $request->get('division_id');
-            
+
             // Use the same method as summaryReport to get data
             $summaryData = $this->getAttendanceSummary($startDate, $endDate, $divisionId);
-            
+
             // Apply search filter if provided
             if ($request->filled('search')) {
                 $search = $request->get('search');
-                $summaryData = $summaryData->filter(function($item) use ($search) {
-                    return stripos($item->u_name, $search) !== false || 
-                           stripos($item->u_nip, $search) !== false;
+                $summaryData = $summaryData->filter(function ($item) use ($search) {
+                    return stripos($item->u_name, $search) !== false ||
+                        stripos($item->u_nip, $search) !== false;
                 });
             }
-            
+
             // Debug: Log data before DataTables processing
             \Log::info('Summary Report Data Before DataTables', [
                 'total_count' => $summaryData->count(),
                 'first_item' => $summaryData->first()
             ]);
-            
+
             \Log::info('Summary Report - About to create DataTable result');
-            
+
             $result = datatables()->of($summaryData)
                 ->addIndexColumn()
-                ->editColumn('u_nip', function($row) {
+                ->editColumn('u_nip', function ($row) {
                     return $row->u_nip ?? '-';
                 })
-                ->editColumn('u_name', function($row) {
+                ->editColumn('u_name', function ($row) {
                     return $row->u_name ?? '-';
                 })
-                ->editColumn('position_name', function($row) {
+                ->editColumn('position_name', function ($row) {
                     return $row->position_name ?? '-';
                 })
-                ->editColumn('division_name', function($row) {
+                ->editColumn('division_name', function ($row) {
                     return $row->division_name ?? '-';
                 })
-                ->editColumn('work_type', function($row) {
+                ->editColumn('work_type', function ($row) {
                     $workType = $row->work_type ?? '-';
                     $badgeClass = 'secondary';
                     if ($workType === 'Full Time') $badgeClass = 'primary';
                     else if ($workType === 'Part Time') $badgeClass = 'warning';
                     return '<span class="badge bg-' . $badgeClass . '">' . $row->work_type . '</span>';
                 })
-                ->editColumn('total_shifts', function($row) {
+                ->editColumn('total_shifts', function ($row) {
                     return $row->total_shifts ?? 0;
                 })
-                ->editColumn('present_days', function($row) {
+                ->editColumn('present_days', function ($row) {
                     return $row->present_days ?? 0;
                 })
-                ->editColumn('leave_days', function($row) {
+                ->editColumn('leave_days', function ($row) {
                     return $row->leave_days ?? 0;
                 })
-                ->editColumn('sick_days', function($row) {
+                ->editColumn('sick_days', function ($row) {
                     return $row->sick_days ?? 0;
                 })
-                ->editColumn('late_days', function($row) {
+                ->editColumn('late_days', function ($row) {
                     return $row->late_days ?? 0;
                 })
-                ->editColumn('scan_once_days', function($row) {
+                ->editColumn('scan_once_days', function ($row) {
                     return $row->scan_once_days ?? 0;
                 })
-                ->editColumn('alpha_days', function($row) {
+                ->editColumn('alpha_days', function ($row) {
                     return $row->alpha_days ?? 0;
                 })
                 ->rawColumns(['work_type'])
@@ -4153,8 +4146,7 @@ class AttendanceController extends Controller
 
             return $result;
         }
-        
+
         return response()->json(['error' => 'Invalid request'], 400);
     }
-
 }
