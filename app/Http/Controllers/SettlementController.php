@@ -827,7 +827,7 @@ class SettlementController extends Controller
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END) as netsales'),
@@ -905,7 +905,7 @@ class SettlementController extends Controller
             ->join('online_transactions', 'online_transactions.order_number', '=', 'pos_invoice')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(pos_real_price) as netsales'),
@@ -976,7 +976,7 @@ class SettlementController extends Controller
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id_partial')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(CASE WHEN st_name like \'ONLINE%\' THEN pos_real_price ELSE pos_payment_partial END) as netsales'),
@@ -1048,7 +1048,7 @@ class SettlementController extends Controller
             ->join('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(pos_real_price) as netsales'),
