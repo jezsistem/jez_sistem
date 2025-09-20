@@ -272,6 +272,18 @@
             $("#save_payment_dp_btn").html('Proses ..');
             $("#save_payment_dp_btn").attr("disabled", true);
 
+            // Validate payment amount
+            var paymentDpValue = parseFloat($('#payment_dp').val());
+            var differencePaymentText = $('#difference_payment').text().replace('Rp ', '').replace(/\./g, '');
+            var differencePaymentValue = parseFloat(differencePaymentText);
+
+            if (paymentDpValue !== differencePaymentValue) {
+                $("#save_payment_dp_btn").html('Simpan');
+                $("#save_payment_dp_btn").attr("disabled", false);
+                swal('Error', 'Pelunasan DP harus sama dengan sisa pembayaran', 'error');
+                return;
+            }
+
             var formData = new FormData(this);
             $.ajaxSetup({
                 headers: {
