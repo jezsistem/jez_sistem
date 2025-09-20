@@ -251,6 +251,7 @@ class SettlementController extends Controller
                     'total_online_cut as total_admin_fee',
                     DB::raw('SUM(pos_td_sell_price) as sell_price'),
                     'pos_transactions.id as id',
+                    'online_transactions.platform_name as platform_name',
                 )
                 ->leftJoin('stores', 'stores.id', '=', 'st_id')
                 ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
@@ -303,7 +304,12 @@ class SettlementController extends Controller
                 $payment_status = 'Unknown';
             }
 
-            $payment_method_1 = $transaction->payment_method_main ?? 'UNKNOWN';
+            if (is_null($transaction->payment_method_main) && str_contains(strtoupper($store_name), 'ONLINE') ){
+                $payment_method_1 = 'DEPOSIT ' . strtoupper($transaction->platform_name);
+            } else {
+                $payment_method_1 = $transaction->payment_method_main ?? 'UNKNOWN';
+            }
+
 
             if ($transaction->sub_payment == 1) {
                 $sub_payment_method_1 = 'CASH';
@@ -345,8 +351,18 @@ class SettlementController extends Controller
             $seller_voucher = $transaction->total_seller_discount ?? 0;
             $total_admin_fee = $transaction->total_admin_fee ?? 0;
             $total_dana_cair = $transaction->total_dana_cair ?? 0;
-            $gross_margin = $net_sales - $cogs;
-            $margin_percentage = $net_sales != 0 ? round(($gross_margin / $net_sales) * 100, 2) : 0;
+
+            if (!str_contains(strtoupper($store_name), 'ONLINE')) {
+                $gross_margin = $net_sales - $cogs;
+                $margin_percentage = $net_sales != 0 ? round(($gross_margin / $net_sales) * 100, 2) : 0;
+            } else {
+                if ($transaction->total_dana_cair == 0 || is_null($transaction->total_dana_cair)) {
+                    $gross_margin = $net_sales - $cogs;
+                } else {
+                    $gross_margin = $transaction->total_dana_cair - $cogs;
+                }
+                $margin_percentage = $transaction->total_dana_cair != 0 ? round(($gross_margin / $transaction->total_dana_cair) * 100, 2) : 0;
+            }
 
             if ($store_name && str_contains(strtoupper($store_name), 'ONLINE') && substr(trim((string) $receipt_number), 0, 3) !== 'INV') {
                 $print_receipt_url = url('/') . '/print_online_nota/' . $receipt_number;
