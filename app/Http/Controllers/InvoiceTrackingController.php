@@ -473,6 +473,7 @@ Balas pesan ini jika butuh bantuan :)";
     public function invoiceDpRepaymentDetails($id)
     {
         $pt = PosTransaction::where('pos_transactions.id', $id)
+        ->select('pos_transactions.pos_real_price', 'pos_transactions.pos_payment', 'pos_transactions.pos_note', 'pos_transactions.created_at', 'payment_methods.pm_name')
         ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
         ->first();
         $payment_methods = DB::table('payment_methods')->where('pm_delete', '!=', '1') ->where('st_id', $pt->st_id)->orderBy('pm_name')->pluck('pm_name', 'id')->toArray();
