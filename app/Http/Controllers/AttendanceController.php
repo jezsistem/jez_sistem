@@ -2141,9 +2141,10 @@ class AttendanceController extends Controller
 
 
             $leaveData = DB::table('leave_requests')
-                ->whereBetween('lr_start_date', [$startDate, $endDate])
+                ->whereBetween('lr_approved_at', [$startDate, $endDate])
                 ->select('user_id', DB::raw('SUM(lr_total_days) as lr_total_days'), DB::raw('SUM(lr_total_hours) as lr_total_hours'))
                 ->groupBy('user_id')
+                ->where('lr_approved_by', '!=', null)
                 ->get()
                 ->keyBy('user_id');
 
