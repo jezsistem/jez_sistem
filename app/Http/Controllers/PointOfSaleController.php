@@ -998,7 +998,7 @@ class PointOfSaleController extends Controller
             'pos_td_price_item_discount' => $price_item_discount,
             'pos_td_total_price' => $pos_td_discount_price + $nameset_price,
             'pos_td_item_cogs' => $current_price->ps_purchase_price,
-            'pos_td_item_price_tag' => $current_price->ps_tag_price,
+            'pos_td_item_price_tag' => $current_price->ps_price_tag,
             'created_at' => date('Y-m-d H:i:s')
         ]);
         if (!empty($create)) {
@@ -1284,6 +1284,8 @@ class PointOfSaleController extends Controller
                 $pos_td_discount_price = $item_qty * $new_price;
             }
 
+            $current_price = DB::table('product_stocks')->where('id', '=', $pst_id)->first();
+
             $create = PosTransactionDetail::create([
                 'pt_id' => $pt_id,
                 'pst_id' => $pst_id,
@@ -1299,6 +1301,8 @@ class PointOfSaleController extends Controller
                 'pos_td_nameset' => $nameset,
                 'pos_td_description' => $pos_td_description,
                 'pos_td_total_price' => $pos_td_discount_price + $nameset_price,
+                'pos_td_item_cogs' => $current_price->ps_purchase_price,
+                'pos_td_item_price_tag' => $current_price->ps_price_tag,
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
             $r['status'] = '200';
@@ -2408,6 +2412,7 @@ class PointOfSaleController extends Controller
                         // 'u_id' => Auth::user()->id,
                     ]);
                 if (!empty($update)) {
+                    $current_price = DB::table('product_stocks')->where('id', '=', $pst_id)->first();
                     $create = PosTransactionDetail::create([
                         'pt_id' => $pt_id,
                         'pst_id' => $pst_id,
@@ -2416,6 +2421,8 @@ class PointOfSaleController extends Controller
                         'pos_td_sell_price' => $sell_price,
                         'pos_td_discount_price' => $sell_price,
                         'pos_td_total_price' => $sell_price,
+                        'pos_td_item_cogs' => $current_price->ps_purchase_price,
+                        'pos_td_item_price_tag' => $current_price->ps_price_tag,
                         'created_at' => date('Y-m-d H:i:s'),
                     ]);
                     if (!empty($create)) {
