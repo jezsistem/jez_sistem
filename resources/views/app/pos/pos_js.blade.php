@@ -1403,6 +1403,8 @@
             var total_discount_side = jQuery('#total_discount_value_side').text();
             var discount_seller = jQuery('#discount_seller').val();
             var no_resi = jQuery('#no_resi').val();
+            var downpayment = jQuery('#dp_checkbox').val() || 0;
+            var dp_payment = jQuery('#dp_payment').val() || null;
 
             if (std_id == '14' || std_id == '13') {
                 if (pm_id == '2' && cp_id == '') {
@@ -1455,6 +1457,8 @@
             formData.append('_total_discount_side', replaceComma(total_discount_side));
             formData.append('_discount_seller', replaceComma(discount_seller));
             formData.append('_no_resi', replaceComma(no_resi));
+            formData.append('_downpayment', replaceComma(downpayment));
+            formData.append('_dp_payment', replaceComma(dp_payment));
 
             // File input for resi_pdf
             var fileInput = jQuery('#no_resi_upload')[0];
