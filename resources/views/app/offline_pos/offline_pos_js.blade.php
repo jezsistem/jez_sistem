@@ -1076,7 +1076,7 @@
 
         // Mendapatkan nilai diskon dari input dengan ID discount_percentage
         var discountPercentage = parseFloat(jQuery('#discount_percentage' + row).val()) || 0;
-        var discount = parseFloat((discountPercentage / 100) * originalSubtotal);
+        var discount = Math.floor((discountPercentage / 100) * originalSubtotal);
 
         // Menghitung subtotal setelah diskon untuk baris saat ini
         var subtotal = originalSubtotal - discount;
