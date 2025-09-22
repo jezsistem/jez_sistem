@@ -135,6 +135,10 @@
                         </select>
                     </div> --}}
                     <div class="form-group mb-1 pb-1">
+                        <label for="exampleTextarea">Tanggal Mulai Bekerja<span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="join_date" name="join_date" required />
+                    </div>
+                    <div class="form-group mb-1 pb-1">
                         <label for="exampleTextarea">Masa Aktif <span class="text-danger">*</span></label>
                         <input type="date" class="form-control" id="u_active" name="u_active" required />
                     </div>
