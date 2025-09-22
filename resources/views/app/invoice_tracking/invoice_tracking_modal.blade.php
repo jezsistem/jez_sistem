@@ -230,7 +230,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="font-weight-bold">Tanggal Pembayaran <span class="text-danger">*</span></label>
-                                            <input type="date" class="form-control form-control-lg" id="payment_dp_date" name="payment_dp_date" required />
+                                            <input type="datetime-local" class="form-control form-control-lg" id="payment_dp_date" name="payment_dp_date" required />
                                             <small class="form-text text-muted">Pilih tanggal pembayaran</small>
                                         </div>
                                     </div>

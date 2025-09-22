@@ -91,7 +91,7 @@
                     d.start_date = $('#start_date').val();
                     d.end_date = $('#end_date').val();
                     d.status_trx = $('#status_trx').val();
-                    d.search_invoice = $('#search_invoice').val();
+                    d.search = $('#search').val();
                     d.status_settle = $('#status_settle').val();
                     d.status_cogs = $('#status_cogs').val();
                 }
@@ -160,15 +160,22 @@
                 [10, 25, 50, 100, -1],
                 [10, 25, 50, 100, "Semua"]
             ],
-            searching: true,
-            search: {
-                return: true
-            },
             dom: '<"row"<"col-sm-2"l><"col-sm-4"f>>rtip',
             initComplete: function() {
                 $('.dataTables_filter input').attr('placeholder', 'Search invoice...');
                 $('.dataTables_filter input').css('width', '300px');
             }
+        });
+
+        var searchTimeout;
+
+        $('#search').on('input', function() {
+            clearTimeout(searchTimeout);
+            
+            searchTimeout = setTimeout(function() {
+                settlement_table.draw();
+                resetSelected();
+            }, 1000);
         });
 
         $(document).ready(function() {

@@ -126,8 +126,9 @@ class SettlementController extends Controller
         $status_trx = $request->input('status_trx') ?? '';
         $status_settle = $request->input('status_settle') ?? null;
         $status_cogs = $request->input('status_cogs') ?? null;
+        $search = $request->input('search') ?? null;
 
-        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs);
+        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs, $search);
 
         $combinedData = $data->sortBy('pos_invoice');
 
@@ -250,6 +251,7 @@ class SettlementController extends Controller
                     'total_online_cut as total_admin_fee',
                     DB::raw('SUM(pos_td_sell_price) as sell_price'),
                     'pos_transactions.id as id',
+                    'online_transactions.platform_name as platform_name',
                 )
                 ->leftJoin('stores', 'stores.id', '=', 'st_id')
                 ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
@@ -302,7 +304,12 @@ class SettlementController extends Controller
                 $payment_status = 'Unknown';
             }
 
-            $payment_method_1 = $transaction->payment_method_main ?? 'UNKNOWN';
+            if (is_null($transaction->payment_method_main) && str_contains(strtoupper($store_name), 'ONLINE') ){
+                $payment_method_1 = 'DEPOSIT ' . strtoupper($transaction->platform_name);
+            } else {
+                $payment_method_1 = $transaction->payment_method_main ?? 'UNKNOWN';
+            }
+
 
             if ($transaction->sub_payment == 1) {
                 $sub_payment_method_1 = 'CASH';
@@ -344,8 +351,18 @@ class SettlementController extends Controller
             $seller_voucher = $transaction->total_seller_discount ?? 0;
             $total_admin_fee = $transaction->total_admin_fee ?? 0;
             $total_dana_cair = $transaction->total_dana_cair ?? 0;
-            $gross_margin = $net_sales - $cogs;
-            $margin_percentage = $net_sales != 0 ? round(($gross_margin / $net_sales) * 100, 2) : 0;
+
+            if (!str_contains(strtoupper($store_name), 'ONLINE')) {
+                $gross_margin = $net_sales - $cogs;
+                $margin_percentage = $net_sales != 0 ? round(($gross_margin / $net_sales) * 100, 2) : 0;
+            } else {
+                if ($transaction->total_dana_cair == 0 || is_null($transaction->total_dana_cair)) {
+                    $gross_margin = $net_sales - $cogs;
+                } else {
+                    $gross_margin = $transaction->total_dana_cair - $cogs;
+                }
+                $margin_percentage = $transaction->total_dana_cair != 0 ? round(($gross_margin / $transaction->total_dana_cair) * 100, 2) : 0;
+            }
 
             if ($store_name && str_contains(strtoupper($store_name), 'ONLINE') && substr(trim((string) $receipt_number), 0, 3) !== 'INV') {
                 $print_receipt_url = url('/') . '/print_online_nota/' . $receipt_number;
@@ -800,7 +817,7 @@ class SettlementController extends Controller
         }
     }
 
-    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)
+    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null, $search = null)
     {
         $start_date = $start_date . ' 00:00:00';
         $end_date = $end_date . ' 23:59:59';
@@ -826,7 +843,7 @@ class SettlementController extends Controller
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(CASE WHEN pos_payment IS NULL THEN pos_real_price ELSE pos_payment END) as netsales'),
@@ -873,6 +890,13 @@ class SettlementController extends Controller
                     });
                 }
             })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');
+                });
+            })
             ->where(function ($query) {
                 $query->where('payment_methods.pm_name', '!=', 'CASH')
                     ->orWhere(function ($q) {
@@ -897,7 +921,7 @@ class SettlementController extends Controller
             ->join('online_transactions', 'online_transactions.order_number', '=', 'pos_invoice')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(pos_real_price) as netsales'),
@@ -950,6 +974,13 @@ class SettlementController extends Controller
                     });
                 }
             })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
+                });
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -961,7 +992,7 @@ class SettlementController extends Controller
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id_partial')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(CASE WHEN st_name like \'ONLINE%\' THEN pos_real_price ELSE pos_payment_partial END) as netsales'),
@@ -1015,6 +1046,13 @@ class SettlementController extends Controller
                             ->whereNotNull('pos_payment_partial');
                     });
             })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
+                });
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -1026,7 +1064,7 @@ class SettlementController extends Controller
             ->join('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
-                DB::raw('CASE WHEN pos_order_number IS NOT NULL THEN pos_order_number ELSE pos_invoice END as pos_invoice'),
+                'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(pos_real_price) as netsales'),
@@ -1080,6 +1118,13 @@ class SettlementController extends Controller
                             });
                     });
                 }
+            })
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('pos_invoice', 'like', '%' . $search . '%')
+                        ->orWhere('pos_order_number', 'like', '%' . $search . '%')
+                        ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
+                });
             })
             ->groupBy([
                 'pos_transactions.id',

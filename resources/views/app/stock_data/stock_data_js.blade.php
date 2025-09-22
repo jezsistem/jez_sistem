@@ -644,7 +644,7 @@
                     confirmButtonText: 'OK'
                 });
             } else {
-                @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
+                @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online' || $data['user']->pick_access == 1)
                 if (st_id == {{ $data['user']->st_id }}) {
                     // Fetch the articles_promo data first
                     let article_id = $(this).data('p_article');
