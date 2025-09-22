@@ -400,6 +400,7 @@
                 url: "{{ url('filter-products') }}",
                 type: "GET",
                 data: function (d) {
+                    d.st_id        = $('#st_id_filter').val();
                     d.pc_id        = $('#pc_id').val();
                     d.psc_id       = $('#psc_id').val();
                     d.pssc_id      = $('#pssc_id').val();
@@ -414,6 +415,7 @@
                 { data: 'article_id', name: 'article_id' },
                 { data: 'p_name', name: 'p_name' },
                 { data: 'SKU', name: 'ps_barcode' },
+                { data: 'sz_name', name: 'sizes.sz_name' },
                 { data: 'harga', orderable: false, searchable: false },
                 { data: 'bin', name: 'pl_code' },
                 { data: 'qty', name: 'qty' },

@@ -227,6 +227,7 @@
                             <th class="text-dark">Artikel ID</th>
                             <th class="text-dark">SKU</th>
                             <th class="text-dark">SKU</th>
+                            <th class="text-dark">Size</th>
                             <th class="text-dark">HB / HJ</th>
                             <th class="text-dark">Area</th>
                             <th class="text-dark">QTY</th>

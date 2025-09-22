@@ -1684,12 +1684,14 @@ class StockDataController extends Controller
                 'product_locations.pl_code as bin',
                 'product_location_setups.created_at as datetime',
                 'product_location_setups.pls_qty as qty',
+                'sizes.sz_name'
             ])
-            ->join('product_stocks', 'products.id', '=', 'product_stocks.p_id')
-            ->join('product_location_setups', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-            ->join('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id');
-
-        // tambahkan filter
+            ->leftJoin('product_stocks', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_location_setups', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->where('pls_qty', '>', 0)
+            ->where('product_locations.st_id', $request->st_id);
         if ($request->pc_id) {
             $query->where('products.pc_id', $request->pc_id);
         }
@@ -1702,8 +1704,13 @@ class StockDataController extends Controller
         if ($request->br_id) {
             $query->where('products.br_id', $request->br_id);
         }
-        if ($request->sz_id) {
-            $query->where('products.sz_id', $request->sz_id);
+        if ($request->filled('sz_id')) {
+            $szIds = (array)$request->input('sz_id');
+            $query->where(function ($q) use ($szIds) {
+                foreach ($szIds as $sz) {
+                    $q->orWhere('sizes.sz_name', 'like', '%' . $sz . '%');
+                }
+            });
         }
         if ($request->min_price) {
             $query->where('product_stocks.ps_sell_price', '>=', $request->min_price);
@@ -1718,14 +1725,13 @@ class StockDataController extends Controller
             $query->where('products.main_color_id', $request->main_color_id);
         }
 
-        // return DataTables
         return DataTables::of($query)
             ->addColumn('harga', function ($row) {
                 return number_format($row->ps_price_tag, 0, ',', '.') .
                     " / " . number_format($row->ps_sell_price, 0, ',', '.');
             })
             ->addColumn('action', function ($row) {
-                return '<button class="btn btn-sm btn-success pilih" data-id="'.$row->article_id.'">Pilih</button>';
+                return '<button class="btn btn-sm btn-success pilih" data-id="' . $row->article_id . '">Pilih</button>';
             })
             ->editColumn('datetime', function ($row) {
                 return $row->datetime ? date('d-m-Y H:i', strtotime($row->datetime)) : '-';
