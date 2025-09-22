@@ -681,6 +681,14 @@ class PointOfSaleController extends Controller
         $voc_id = $request->voc_id;
 
         $discount_seller = $request->_discount_seller;
+        $is_downpayment = $request->_downpayment;
+        $nominal_downpayment = $request->_dp_payment;
+
+        if ($is_downpayment == '1') {
+            $pos_payment = $nominal_downpayment;
+        } else {
+            $pos_payment = $real_price;
+        }
 
         $insert_get_id = DB::table('pos_transactions')->insertGetId([
             'u_id' => $u_id,
@@ -711,6 +719,7 @@ class PointOfSaleController extends Controller
             'st_id_ref' => $st_id_ref,
             'cross_order' => $cross_order,
             'pos_resi' => $no_resi,
+            'pos_payment' => $pos_payment,
         ]);
 
         // insert file pdf
