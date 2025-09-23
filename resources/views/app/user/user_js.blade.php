@@ -388,6 +388,7 @@
             jQuery('#u_delete').val(data.u_delete).trigger('change');
             jQuery('#pos_access').val(data.pos_access).trigger('change');
             jQuery('#pick_access').val(data.pick_access).trigger('change');
+            $('#join_date').val(data.join_date);
             $('#u_active').val(data.u_active);
             $('#_id').val(data.uid);
             $('#_mode').val('edit');
