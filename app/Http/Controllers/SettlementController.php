@@ -304,7 +304,7 @@ class SettlementController extends Controller
                 $payment_status = 'Unknown';
             }
 
-            if (is_null($transaction->payment_method_main) && str_contains(strtoupper($store_name), 'ONLINE') ){
+            if (is_null($transaction->payment_method_main) && str_contains(strtoupper($store_name), 'ONLINE')) {
                 $payment_method_1 = 'DEPOSIT ' . strtoupper($transaction->platform_name);
             } else {
                 $payment_method_1 = $transaction->payment_method_main ?? 'UNKNOWN';
@@ -582,6 +582,7 @@ class SettlementController extends Controller
                     return $query->whereRaw('1 = 0'); // Return no results when pm_id is not CASH
                 }
             })
+            ->where('pm_id_partial', null)
             ->when($status_trx != '', function ($query) use ($status_trx) {
                 return $query->where('pos_transactions.pos_status', $status_trx);
             })
@@ -1078,7 +1079,7 @@ class SettlementController extends Controller
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->where(function ($query) {
                 $query->where('pm_main.pm_name', 'CASH')
-                    ->orWhereNull('pm_id');
+                    ->where('pm_id_partial', null);
             })
             ->when($st_id != 0, function ($query) use ($st_id) {
                 return $query->where('pos_transactions.st_id', $st_id);
