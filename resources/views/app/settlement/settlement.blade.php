@@ -117,6 +117,18 @@
                                         <h1 class="text-success">Rp. <span id="total_netsales">0</span></h1>
                                     </div>
                                     <div class="">
+                                        <h3>Total COGS</h3>
+                                        <h1 class="text-success">Rp. <span id="total_cogs">0</span></h1>
+                                    </div>
+                                    <div class="">
+                                        <h3>Total Margin</h3>
+                                        <h1 class="text-success">Rp. <span id="total_margin">0</span></h1>
+                                    </div>
+                                    <div class="">
+                                        <h3>Presentase Margin</h3>
+                                        <h1 class="text-success"><span id="margin_percentage">0</span></h1>
+                                    </div>
+                                    <div class="">
                                         <p>Selected for settlement: <span id="selected">0</span> transaction</p>
                                         <p class="mb-2"><strong>Selected Net Sales:</strong> <span class="text-success font-weight-bold">Rp</span> <span class="text-success font-weight-bold" id="selected_netsales">0</span</p>
                                     </div>

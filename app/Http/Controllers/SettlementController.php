@@ -736,8 +736,11 @@ class SettlementController extends Controller
         );
 
         $totalNetsales = $transactions->sum('netsales');
+        $totalCogs = $transactions->sum('total_cogs');
+        $totalMargin = $totalNetsales - $totalCogs;
+        $marginPercentage = $totalNetsales != 0 ? round(($totalMargin / $totalNetsales) * 100, 2) : 0;
 
-        return response()->json(['total_netsales' => $totalNetsales]);
+        return response()->json(['total_netsales' => $totalNetsales, 'total_cogs' => $totalCogs, 'total_margin' => $totalMargin, 'margin_percentage' => $marginPercentage . '%']);
     }
 
     public function bulkUpdateStatus(Request $request)

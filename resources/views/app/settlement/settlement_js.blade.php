@@ -53,11 +53,20 @@
                 status_cogs: $('#status_cogs').val()
             },
             success: function(response) {
-                var formattedAmount = new Intl.NumberFormat('id-ID', {
+                var formattedNetSales = new Intl.NumberFormat('id-ID', {
                     minimumFractionDigits: 0
                 }).format(response.total_netsales);
+                var formattedCOGS = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.total_cogs);
+                var formattedMargin = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.total_margin);
 
-                $('#total_netsales').text(formattedAmount);
+                $('#total_netsales').text(formattedNetSales);
+                $('#total_cogs').text(formattedCOGS);
+                $('#total_margin').text(formattedMargin);
+                $('#margin_percentage').text(response.margin_percentage);
             }
         });
     }
