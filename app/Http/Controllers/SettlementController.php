@@ -279,8 +279,30 @@ class SettlementController extends Controller
                         THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
                         ELSE 0 
                     END as discount'),
-                    'pos_td_sell_price as price_after_discount'
+                    DB::raw("CASE
+                            WHEN ts_pos_transactions.pos_status not in('DONE', 'DP', 'NAMESET') THEN pos_td_sell_price
+                                WHEN ts_pos_transactions.pos_total_discount = SUM(CASE 
+                                        WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                                        THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
+                                        ELSE 0
+                                    END) OVER (PARTITION BY ts_pos_transactions.id) THEN pos_td_item_price_tag*pos_td_qty - COALESCE(CASE 
+                                        WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                                        THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
+                                        ELSE 0 
+                                    END, 0)* pos_td_qty
+                                WHEN ts_pos_transactions.pos_total_discount = 0 THEN pos_td_item_price_tag*pos_td_qty - pos_td_discount_number
+                                ELSE
+                                    pos_td_total_price - ROUND(
+                                        COALESCE(pos_td_discount_number, 0)
+                                            + (pos_td_sell_price / NULLIF(SUM(pos_td_sell_price) OVER (PARTITION BY ts_pos_transactions.id), 0) 
+                                               * COALESCE(ts_pos_transactions.pos_total_discount, 0))
+                                    , 2) END AS price_after_discount"),
                 )
+                ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pt_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                 ->where('pt_id', $id)

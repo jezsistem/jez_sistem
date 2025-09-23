@@ -123,7 +123,7 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
                 'pos_note as note',
                 'is_settle as settlement_status'
             ])
-            ->join('stores', 'stores.id', '=', 'st_id')
+            ->leftJoin('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('payment_methods as pm_main', 'pm_main.id', '=', 'pos_transactions.pm_id')
             ->leftJoin('payment_methods as pm_partial', 'pm_partial.id', '=', 'pos_transactions.pm_id_partial')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
@@ -140,7 +140,13 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
 
         if ($this->pm_id) {
             $query->where(function ($q) {
-                $q->where('pm_main.pm_name', $this->pm_id)
+                $q->when($this->pm_id == 'DEPOSIT SHOPEE', function ($query) {
+                    return $query->where('online_transactions.platform_name', 'shopee');
+                })
+                    ->when($this->pm_id == 'DEPOSIT TIKTOK', function ($query) {
+                        return $query->where('online_transactions.platform_name', 'tiktok');
+                    })
+                    ->orWhere('pm_main.pm_name', $this->pm_id)
                     ->orWhere('pm_partial.pm_name', $this->pm_id);
             });
         }
