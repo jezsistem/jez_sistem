@@ -379,6 +379,58 @@
             ],
         });
 
+        // let filters = {
+        //     pc_id: $('#pc_id').val(),
+        //     psc_id: $('#psc_id').val(),
+        //     pssc_id: $('#pssc_id').val(),
+        //     br_id: $('#br_id').val(),
+        //     sz_id: $('#sz_id').val(),
+        //     min_price: $('#min_price_filter').val(),
+        //     max_price: $('#max_price_filter').val(),
+        //     main_color_id: $('#main_color_id').val(),
+        // };
+
+        var filter_list_table = $('#FilterListtb').DataTable({
+            destroy: true,
+            processing: false,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('filter-products') }}",
+                type: "GET",
+                data: function (d) {
+                    d.st_id        = $('#st_id_filter').val();
+                    d.pc_id        = $('#pc_id').val();
+                    d.psc_id       = $('#psc_id').val();
+                    d.pssc_id      = $('#pssc_id').val();
+                    d.br_id        = $('#br_id').val();
+                    d.sz_id        = $('#sz_id').val();
+                    d.min_price    = $('#min_price_filter').val();
+                    d.max_price    = $('#max_price_filter').val();
+                    d.main_color_id= $('#main_color_id').val();
+                }
+            },
+            columns: [
+                { data: 'article_id', name: 'article_id' },
+                { data: 'p_name', name: 'p_name' },
+                { data: 'SKU', name: 'ps_barcode' },
+                { data: 'sz_name', name: 'sizes.sz_name' },
+                { data: 'harga', orderable: false, searchable: false },
+                { data: 'bin', name: 'pl_code' },
+                { data: 'qty', name: 'qty' },
+                { data: 'action', orderable: false, searchable: false },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-left",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         var waiting_list_table = $('#WaitingListtb').DataTable({
             destroy: true,
             processing: false,
@@ -868,9 +920,63 @@
         //         });
         // });
 
-        $('#filter_list_btn').on('click', function () {
-            stock_data_table.draw();
-        });
+        // $('#filter_list_btn').on('click', function () {
+        //     stock_data_table.draw();
+        // });
+
+        // $('#filter_list_btn').on('click', function () {
+        //     jQuery.noConflict();
+        //     $('#FilterListModal').on('show.bs.modal', function () {
+        //         waiting_list_table.draw();
+        //     }).modal('show');
+        // });
+
+
+
+
+
+
+        // disini yaaa
+        {{--$(document).on('click', '#filter_list_btn', function () {--}}
+
+        {{--    let filters = {--}}
+        {{--        pc_id: $('#pc_id').val(),--}}
+        {{--        psc_id: $('#psc_id').val(),--}}
+        {{--        pssc_id: $('#pssc_id').val(),--}}
+        {{--        br_id: $('#br_id').val(),--}}
+        {{--        sz_id: $('#sz_id').val(),--}}
+        {{--        min_price: $('#min_price_filter').val(),--}}
+        {{--        max_price: $('#max_price_filter').val(),--}}
+        {{--        main_color_id: $('#main_color_id').val(),--}}
+        {{--    };--}}
+
+        {{--    console.log(filters)--}}
+
+        {{--    $('#FilterListModal').modal('show');--}}
+
+        {{--    if ($.fn.DataTable.isDataTable('#FilterListtb')) {--}}
+        {{--        $('#FilterListtb').DataTable().destroy();--}}
+        {{--    }--}}
+
+        {{--    $('#FilterListtb').DataTable({--}}
+        {{--        processing: true,--}}
+        {{--        serverSide: true,--}}
+        {{--        ajax: {--}}
+        {{--            url: "{{ url('filter-products') }}",--}}
+        {{--            type: "GET",--}}
+        {{--            data: filters--}}
+        {{--        },--}}
+        {{--        columns: [--}}
+        {{--            { data: 'article_id', name: 'article_id' },--}}
+        {{--            { data: 'sku', name: 'sku' },--}}
+        {{--            { data: 'article', name: 'article' },--}}
+        {{--            { data: 'harga', name: 'harga' },--}}
+        {{--            { data: 'area', name: 'area' },--}}
+        {{--            { data: 'qty', name: 'qty' },--}}
+        {{--            { data: 'action', name: 'action', orderable: false, searchable: false }--}}
+        {{--        ]--}}
+        {{--    });--}}
+        {{--});--}}
 
         $('#br_id').select2({
             multiple: true,
@@ -936,11 +1042,43 @@
             placeholder: "SIZE / UKURAN",
             allowClear: true,
         });
+
         $('#sz_id').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
+
+        $('#min_price_filter').select2({
+            multiple: false,
+            width: "100%",
+            dropdownParent: $('#min_price_filter_parent'),
+            closeOnSelect: true,
+            placeholder: "MINIMUM PRICE",
+            allowClear: true,
+        });
+
+        $('#min_price_filter').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#max_price_filter').select2({
+            multiple: false,
+            width: "100%",
+            dropdownParent: $('#max_price_filter_parent'),
+            closeOnSelect: true,
+            placeholder: "MAX PRICE",
+            allowClear: true,
+        });
+
+        $('#max_price_filter').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
 
         // $('#p_name').select2({
         //     multiple: true,
@@ -1029,17 +1167,24 @@
             reloadCategory('brand', $(this).val());
         });
 
-        $('#pickup_list_btn').on('click', function () {
-            jQuery.noConflict();
-            $('#PickupListModal').on('show.bs.modal', function () {
-                pickup_list_table.draw();
-            }).modal('show');
-        });
+        // $('#pickup_list_btn').on('click', function () {
+        //     jQuery.noConflict();
+        //     $('#PickupListModal').on('show.bs.modal', function () {
+        //         pickup_list_table.draw();
+        //     }).modal('show');
+        // });
 
         $('#waiting_list_btn').on('click', function () {
             jQuery.noConflict();
             $('#WaitingListModal').on('show.bs.modal', function () {
                 waiting_list_table.draw();
+            }).modal('show');
+        });
+
+        $('#filter_list_btn').on('click', function () {
+            jQuery.noConflict();
+            $('#FilterListModal').on('show.bs.modal', function () {
+                filter_list_table.draw();
             }).modal('show');
         });
 
@@ -1279,6 +1424,8 @@
         $('#st_id_filter').on('change', function () {
             stock_data_table.draw();
         });
+
+
 
 
         var scanMode = false;

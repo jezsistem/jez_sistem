@@ -9,7 +9,7 @@ use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\CourierController;
 use App\Http\Controllers\DebtListController;
 use App\Http\Controllers\CekDanaOnlineController;
-
+use App\Http\Controllers\SettlementController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -99,4 +99,16 @@ Route::middleware(['auth'])->group(function () {
 //    Route::get('cek_dana_detail_datatables', [CekDanaOnlineController::class, 'getDetailDatatables']);
     Route::post('cek_dana_online_import', [CekDanaOnlineController::class, 'importData']);
     Route::get('export_transaction_settle', [CekDanaOnlineController::class, 'exportExcel'])->name('export_transaction_settle');
+
+    Route::get('settlement', [SettlementController::class, 'index'])->name('settlement');
+    Route::get('settlement_reload_payment_method', [SettlementController::class, 'reloadPaymentMethod'])->name('settlement.reload_payment_method');
+    Route::get('settlement_datatables', [SettlementController::class, 'getDatatables'])->name('settlement_datatables');
+    Route::get('settlement_netsales_per_payment_method', [SettlementController::class, 'getNetsalesPerPaymentMethod'])->name('settlement.netsales_per_payment_method');
+    Route::get('settlement_total_netsales', [SettlementController::class, 'getTotalNetsales'])->name('settlement.total_netsales');
+    Route::post('settlement_bulk_status', [SettlementController::class, 'bulkUpdateStatus'])->name('settlement.bulk_status');
+    Route::get('settlement_detail/{id}', [SettlementController::class, 'getDetailSettlement'])->name('settlement_detail');
+    Route::get('settlement_export_transaction', [SettlementController::class, 'exportTransaction'])->name('settlement.export_transaction');
+    Route::get('settlement_export_transaction_detail', [SettlementController::class, 'exportTransactionDetail'])->name('settlement.export_transaction_detail');
+    Route::post('settlement_calc_cogs_price_tag', [SettlementController::class, 'calcCogsPriceTag'])->name('settlement.calc_cogs_price_tag');
+    Route::post('settlement_update_note', [SettlementController::class, 'updateNote'])->name('settlement.update_note');
 });

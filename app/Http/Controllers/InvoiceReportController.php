@@ -192,7 +192,7 @@ class InvoiceReportController extends Controller
                     if (empty($data->pos_paid_dp_date)) {
                         return '';
                     }
-                    return date('d/m/Y', strtotime($data->pos_paid_dp_date));
+                    return date('d/m/Y H:i', strtotime($data->pos_paid_dp_date));
                 })
                 ->rawColumns(['pos_created', 'u_name', 'pos_invoice', 'cust_name'])
                 ->filter(function ($instance) use ($request) {

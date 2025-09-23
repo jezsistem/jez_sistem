@@ -315,6 +315,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('request_count_pickup', [StockDataController::class, 'requestCount']);
     Route::post('move_to_display_by_waiting_list', [StockDataController::class, 'moveToDisplayByWaitingList']);
 
+    Route::get('filter-products', [StockDataController::class, 'filter'])->name('filter.products');
 
     // Stock Data V1
     Route::get('data_stok_v1', [StockDataV1Controller::class, 'index'])->name('data_stok_v1');

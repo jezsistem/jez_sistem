@@ -306,6 +306,14 @@
                             <span id="payment_total"></span>
                         </td>
                     </tr>
+                    <tr class="d-flex align-items-center justify-content-between">
+                        <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
+                            Downpayment
+                        </th>
+                        <td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
+                            <input type="checkbox" name="dp_checkbox" id="dp_checkbox" value="0" onchange="this.value = this.checked ? 1 : 0"/>
+                        </td>
+                    </tr>
                     <tr class="d-flex align-items-center justify-content-between" id="payment_type_content">
                         <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
                             Tipe Pembayaran
@@ -422,6 +430,14 @@
                         </th>
                         <td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
                             <input type="text" placeholder="" id="another_cost" class="bg-light-primary"/>
+                        </td>
+                    </tr>
+                    <tr class="d-flex align-items-center justify-content-between">
+                        <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
+                            Nominal DP  (Jika ada)
+                        </th>
+                        <td class="border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
+                            <input type="text" placeholder="" id="dp_payment" class="bg-light-primary"/>
                         </td>
                     </tr>
                     <tr class="d-flex align-items-center justify-content-between">
