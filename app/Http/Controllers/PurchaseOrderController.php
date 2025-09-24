@@ -259,7 +259,7 @@ class PurchaseOrderController extends Controller
                         return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
                     } else if (!empty($data->u_id_approve)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->status_updated_at)) . '</span>';
+                        return '<span class="badge text-white" style="background-color: #16C47F;">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->status_updated_at)) . '</span>';
                     } else {
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
