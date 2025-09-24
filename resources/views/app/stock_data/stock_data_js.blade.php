@@ -1167,12 +1167,12 @@
             reloadCategory('brand', $(this).val());
         });
 
-        // $('#pickup_list_btn').on('click', function () {
-        //     jQuery.noConflict();
-        //     $('#PickupListModal').on('show.bs.modal', function () {
-        //         pickup_list_table.draw();
-        //     }).modal('show');
-        // });
+        $('#pickup_list_btn').on('click', function () {
+            jQuery.noConflict();
+            $('#PickupListModal').on('show.bs.modal', function () {
+                pickup_list_table.draw();
+            }).modal('show');
+        });
 
         $('#waiting_list_btn').on('click', function () {
             jQuery.noConflict();
