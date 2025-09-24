@@ -681,13 +681,15 @@
 
                                     promoData.push({
                                         promo_name: promo.promo_name,
+                                        discount: discount,
                                         discount_price: discountedPrice
                                     });
                                 });
 
                                 // Create display strings from the object array
                                 promoInfo = promoData.map(function(item) {
-                                    return 'Promo: ' + item.promo_name + '\nDiscount Price: Rp ' + item.discount_price.toLocaleString('id-ID');
+                                    return 'Promo: ' + item.discount + '% - ' +
+                                        item.promo_name + '\nDiscount Price: Rp ' + item.discount_price.toLocaleString('id-ID');
                                 }).join('\n\n');
 
                                 promoPrice = '';
