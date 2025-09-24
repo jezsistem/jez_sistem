@@ -1665,12 +1665,15 @@
                                         sell_price = sell_price;
                                         console.log('row : ', row);
                                         jQuery(row).find('.sell_price_item').text('0');
+                                        var bandrol_price = parseFloat(jQuery(row).find('.price_tag_item').text().replace(/,/g, '')) || 0;
+                                        jQuery(row).find('.discount_normal').text(addCommas(bandrol_price));
 
                                         console.log('BOGO CEK BOLO : ', sell_price);
                                     } else {
+                                        discount_normal = sell_price;
                                         sell_price = 0;
+                                        jQuery(row).find('.item_qty').trigger('change');
                                     }
-                                    jQuery(row).find('.item_qty').trigger('change');
 
                                 }
                             });

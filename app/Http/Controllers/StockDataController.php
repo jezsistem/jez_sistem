@@ -173,7 +173,6 @@ class StockDataController extends Controller
             ->where('date_start', '<=', $date_now) // Promo sudah berjalan atau dimulai hari ini
             ->where('date_end', '>=', $date_now)   // Promo masih berlaku
             ->orderBy('articles_promo.id', 'desc')
-            ->limit(1)
             ->get();
 
         return response()->json(['data' => $promoData]);
