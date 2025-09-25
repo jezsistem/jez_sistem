@@ -59,6 +59,10 @@
                     name: 'invoice_date'
                 },
                 {
+                    data: 'receive_at',
+                    name: 'receive_at'
+                },
+                {
                     data: 'receive_date_show',
                     name: 'received_date'
                 },

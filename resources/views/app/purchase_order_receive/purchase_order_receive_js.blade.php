@@ -414,6 +414,7 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var receive_at = $('#receive_at').val();
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
         var putaway = $('#putaway').val();
@@ -434,6 +435,10 @@
         }
         if (invoice_date == '') {
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
+            return false;
+        }
+        if (receive_at == '') {
+            swal("Tanggal Barang Datang", "Tentukan tanggal barang datang", "warning");
             return false;
         }
 
@@ -483,6 +488,7 @@
                 formData.append('receive_date', receive_date);
                 formData.append('receive_invoice', receive_invoice);
                 formData.append('invoice_date', invoice_date);
+                formData.append('receive_at', receive_at);
                 formData.append('shipping_cost', shipping_cost);
                 formData.append('_st_id', st_id);
                 formData.append('_stkt_id', stkt_id);
@@ -520,6 +526,7 @@
                             $('#receive_date').val('');
                             $('#receive_invoice').val('');
                             $('#invoice_date').val('');
+                            $('#receive_at').val('');
                             $('#invoiceImage').val('');
                             $('#packetImage').val('');
                             $('#shipping_cost').val('');
@@ -558,6 +565,7 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var receive_at = $('#receive_at').val();
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
         var status_dispute = $('#status_dispute').val();
@@ -569,6 +577,7 @@
         formData.append('receive_date', receive_date);
         formData.append('receive_invoice', receive_invoice);
         formData.append('invoice_date', invoice_date);
+        formData.append('receive_at', receive_at);
         formData.append('_st_id', st_id);
         formData.append('_stkt_id', stkt_id);
         formData.append('_tax_id', tax_id);
@@ -619,11 +628,13 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var receive_at = $('#receive_at').val();
         var shipping_cost = $('#shipping_cost').val();
 
         var today = new Date();
         var receiveDateObj = new Date(receive_date);
         var invoiceDateObj = new Date(invoice_date);
+        var receiveatObj = new Date(receive_at);
 
         if (receiveDateObj > today) {
             swal("Tanggal Terima", "Tanggal terima tidak boleh lebih dari hari ini", "warning");
@@ -632,6 +643,11 @@
 
         if (invoiceDateObj > today) {
             swal("Tanggal Invoice", "Tanggal invoice tidak boleh lebih dari hari ini", "warning");
+            return false;
+        }
+
+        if (receiveatObj > today) {
+            swal("Tanggal Invoice", "Tanggal barang datang tidak boleh lebih dari hari ini", "warning");
             return false;
         }
 
@@ -645,6 +661,10 @@
         }
         if (invoice_date == '') {
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
+            return false;
+        }
+        if (receive_at == '') {
+            swal("Tanggal Barang", "Tentukan tanggal barang datang", "warning");
             return false;
         }
 
