@@ -94,7 +94,7 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
                 DB::raw('SUM(pos_td_nameset_price) as nameset'),
                 'pos_total_discount as total_discount',
                 DB::raw('MAX(final_price) as net_sales_before_admin'),
-                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
+               DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
                 DB::raw('SUM(seller_voucher_discount) as seller_voucher'),
                 DB::raw('MAX(total_online_cut) as total_fee_admin'),
                 'pos_real_price as net_sales_after_admin',

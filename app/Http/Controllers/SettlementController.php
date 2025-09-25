@@ -878,7 +878,7 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
+               DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -956,7 +956,7 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
+               DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -1027,7 +1027,7 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
+               DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -1099,7 +1099,7 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-                DB::raw('SUM(pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->where(function ($query) {

@@ -125,7 +125,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                                * COALESCE(ts_pos_transactions.pos_total_discount, 0))
                     , 2) END AS total_diskon'),
                 'online_transaction_details.original_price as netsales_before_admin',
-                'pos_td_item_cogs as cogs',
+                DB::raw('(ts_pos_transaction_details.pos_td_qty * ts_pos_transaction_details.pos_td_item_cogs) as cogs'),
                 'discount_seller as sales_voucher',
                 DB::raw('null as total_admin_fee'),
                 DB::raw("CASE
@@ -149,7 +149,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                                         COALESCE(pos_td_discount_number, 0)
                                             + (pos_td_sell_price / NULLIF(SUM(pos_td_sell_price) OVER (PARTITION BY ts_pos_transactions.id), 0) 
                                                * COALESCE(ts_pos_transactions.pos_total_discount, 0))
-                                    , 2) END AS price_after_discount"),
+                                    , 2) END AS net_sales_after_admin"),
                 DB::raw("CASE
                     WHEN ts_stores.st_name like 'ONLINE%' and pos_invoice not like 'INV%'
                         THEN CONCAT('DEPOSIT ', UPPER(ts_online_transactions.platform_name))
