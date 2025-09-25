@@ -82,6 +82,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
     Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
+    Route::post('upload_file_delivery_note', [PurchaseOrderReceiveController::class, 'uploadFileDelivery']);
+    Route::get('file_delivery_note_datatables', [PurchaseOrderReceiveController::class, 'getFileDeliveryNoteDatatables']);
+    Route::post('delete_file_delivery_note', [PurchaseOrderReceiveController::class, 'deleteFileDelivery']);
     Route::get('purchase-order-receive/export', [PurchaseOrderController::class, 'exportpurchaseorderexport'])
             ->name('purchase_order_receive.export');
     Route::get('/export-purchase-order/{po_id}', function ($po_id) {
