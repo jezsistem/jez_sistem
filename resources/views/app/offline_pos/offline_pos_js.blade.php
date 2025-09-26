@@ -86,13 +86,18 @@
                 item_qty = Math.ceil(item_qty / 2);
             }
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))
+        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))        
 
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item' + row).text('-' + addCommas(subtotal));
 
         } else {
-            jQuery('#subtotal_item' + row).text(addCommas(subtotal));
+            // If B1G1 mode, use price_tag as subtotal, else use calculated subtotal
+            if (jQuery('#orderList' + row).hasClass('b1g1_mode')) {
+                jQuery('#subtotal_item' + row).text(addCommas(price_tag));
+            } else {
+                jQuery('#subtotal_item' + row).text(addCommas(subtotal));
+            }
             // jQuery('#sell_price_item' + row).text(addCommas(subtotal));
         }
         var final_price = 0;
@@ -124,7 +129,13 @@
         });
 
         new_price = originalPrice * item_qty;
-        new_discount = price_tag - originalPrice;
+        if (jQuery('#orderList' + row).hasClass('b1g1_mode')) 
+        {
+            new_discount = 0; 
+            originalPrice = price_tag;
+        } else {
+            new_discount = price_tag - originalPrice; 
+        }
 
         console.log('Ini Log Baru : ', originalPrice, price_tag);
 
@@ -550,10 +561,17 @@
                             shoes_voucher_temp.push(key);
                         }
                     }
+                    jQuery('#orderTable tr').each(function(_, rowElement) {
+                        // Only trigger change for rows except the one being deleted
+                        if (jQuery(rowElement).attr('id') !== 'orderList' + index) {
+                            jQuery(rowElement).find('.item_qty').trigger('change');
+                        }
+                    });
                     // console.log(shoes_voucher_temp);
                     jQuery('#orderList' + index).remove();
                     updateTotalHarga();
-                    updateTotalDiskon()
+                    updateTotalDiskon();
+                    updateGrandTotal();
                 } else if (r.status == '400') {
                     toast('Gagal',
                         'Item gagal dihapus, jika ingin menghapus, pilih terlebih dahulu LOKASI tempat barang diambil, coba kembali',
@@ -1665,6 +1683,7 @@
                                         sell_price = sell_price;
                                         console.log('row : ', row);
                                         jQuery(row).find('.sell_price_item').text('0');
+                                        jQuery(row).find('.subtotal_item').text('0');
                                         var bandrol_price = parseFloat(jQuery(row).find('.price_tag_item').text().replace(/,/g, '')) || 0;
                                         jQuery(row).find('.discount_normal').text(addCommas(bandrol_price));
 
