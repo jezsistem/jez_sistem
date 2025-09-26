@@ -1076,7 +1076,7 @@
         $('#max_price_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
-            $(window).off(evt);
+            $(window).off(evt);x
         });
 
 
