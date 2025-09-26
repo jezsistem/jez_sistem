@@ -670,25 +670,29 @@
                             let getTotalDiscountPrice = '';
 
                             if (response.data && response.data.length > 0) {
-                                promoInfo = '';
-                                promoPrice = '';
+                                let promoData = [];
 
                                 response.data.forEach(function (promo) {
-                                    let originalPrice = promo
-                                        .p_price_tag; // Harga asli
-                                    let discount = promo
-                                        .promo_disc; // Persentase diskon
+                                    let originalPrice = promo.p_price_tag; // Harga asli
+                                    let discount = promo.promo_disc; // Persentase diskon
 
                                     // Hitung harga setelah diskon
-                                    let discountedPrice = originalPrice - (
-                                        originalPrice * (discount / 100));
+                                    let discountedPrice = originalPrice - (originalPrice * (discount / 100));
 
-                                    promoInfo += 'Promo: ' + discount + '% - ' +
-                                        promo.promo_name + "";
-                                    promoPrice += 'Discount Price: ' +
-                                        discountedPrice.toLocaleString(
-                                            'id-ID') + "\n";
+                                    promoData.push({
+                                        promo_name: promo.promo_name,
+                                        discount: discount,
+                                        discount_price: discountedPrice
+                                    });
                                 });
+
+                                // Create display strings from the object array
+                                promoInfo = promoData.map(function(item) {
+                                    return 'Promo: ' + item.discount + '% - ' +
+                                        item.promo_name + '\nDiscount Price: Rp ' + item.discount_price.toLocaleString('id-ID');
+                                }).join('\n\n');
+
+                                promoPrice = '';
 
                             } else {
                                 promoInfo = 'No promo available for this article.';
@@ -1076,7 +1080,7 @@
         $('#max_price_filter').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
-            $(window).off(evt);
+            $(window).off(evt);x
         });
 
 
