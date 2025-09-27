@@ -120,6 +120,19 @@
             { data: 'ps_barcode', name: 'ps_barcode'},
             { data: 'p_color', name: 'p_color'},
             { data: 'sz_name', name: 'sz_name'},
+            { 
+                data: 'cogs', 
+                name: 'cogs',
+                render: function(data, type, row) {
+                    if (type === 'display' || type === 'filter') {
+                        if (data && !isNaN(data)) {
+                            return 'Rp ' + parseInt(data).toLocaleString('id-ID');
+                        }
+                        return '-';
+                    }
+                    return data;
+                }
+            },
             { data: 'ba_updated_at', name: 'ba_updated_at', orderable: false },
             { data: 'ba_old_qty', name: 'ba_old_qty', orderable: false },
             { data: 'ba_new_qty', name: 'ba_new_qty', orderable: false },
@@ -186,6 +199,7 @@
             $('#product_sku').text(response.data.ps_barcode ?? '-');
             $('#product_color').text(response.data.p_color ?? '-');
             $('#product_size').text(response.data.sz_name ?? '-');
+            $('#cogs').text(response.data.cogs ? 'Rp ' + parseInt(response.data.cogs).toLocaleString('id-ID') : '-');
             $('#warehouse').text(response.data.st_name ?? '-');
             $('#bin').text(response.data.pl_code ?? '-');
             $('#adj_note').text(response.data.ba_note ?? '-');
