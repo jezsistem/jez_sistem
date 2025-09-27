@@ -551,6 +551,13 @@
             <div class="modal-body">
                 <div class="card-body">
                     <div class="container">
+                        <!-- Tombol Add -->
+                        <div class="mb-3">
+                            <button id="addInvoiceImageBtn" class="btn btn-primary float-right mb-3">
+                                <i class="fas fa-plus"></i> Add Invoice
+                            </button>
+                        </div>
+
                         <table id="purchaseOrderInvoiceImagesTb" class="table table-bordered">
                             <thead>
                                 <tr>
@@ -573,6 +580,38 @@
     </div>
 </div>
 <!-- /Modal-->
+
+
+<!-- Modal-->
+<form id="f_upload_invoice_image" enctype="multipart/form-data">
+    @csrf
+    <div class="modal fade" id="UploadImageInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Upload Gambar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Pilih Gambar Invoice</label>
+                            <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="imageInvoices[]" id="imageInvoices" multiple required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="upload_image_invoice_btn">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- /Modal -->
 
 <!-- Modal-->
 <div class="modal fade" id="SuratJalanImageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
