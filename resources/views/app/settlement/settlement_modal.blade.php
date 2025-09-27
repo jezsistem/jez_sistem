@@ -118,57 +118,57 @@
                         <div class="flex-fill pr-3">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Down Payment</span>
-                                <span class="font-weight-bold" id="down_payment">Rp 200.000</span>
+                                <span class="font-weight-bold" id="down_payment">Rp Error</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Gross Sales</span>
-                                <span class="font-weight-bold" id="gross_sales">Rp 850.000</span>
+                                <span class="font-weight-bold" id="gross_sales">Rp Error</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Total Discount</span>
-                                <span class="font-weight-bold text-danger" id="total_discount">- Rp 25.000</span>
+                                <span class="font-weight-bold text-danger" id="total_discount">- Rp Error</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Net Sales</span>
-                                <span class="font-weight-bold" id="net_sales">Rp 825.000</span>
+                                <span class="font-weight-bold" id="net_sales">Rp Error</span>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span class="text-muted">Total Payments</span>
-                                <span class="font-weight-bold" id="total_payment">Rp 625.000</span>
+                                <span class="font-weight-bold" id="total_payment">Rp Error</span>
                             </div>
                         </div>
                         <div class="flex-fill pl-3">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">COGS</span>
-                                <span class="font-weight-bold" id="cogs">Rp 420.000</span>
+                                <span class="font-weight-bold" id="cogs">Rp Error</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Seller Voucher</span>
-                                <span class="font-weight-bold" id="seller_voucher">Rp 0</span>
+                                <span class="font-weight-bold" id="seller_voucher">Rp Error</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Total Admin Fees</span>
-                                <span class="font-weight-bold" id="total_admin_fee">Rp 0</span>
+                                <span class="font-weight-bold" id="total_admin_fee">Rp Error</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Outstanding Balance</span>
                                 <span class="font-weight-bold text-danger" id="outstanding_balance_summary">Rp
-                                    200.000</span>
+                                    Error</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Total Dana Cair</span>
-                                <span class="font-weight-bold" id="total_dana_cair">Rp 802.500</span>
+                                <span class="font-weight-bold" id="dana_cair">Rp Error</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Gross Margin</span>
-                                <span class="font-weight-bold text-success" id="gross_margin">Rp 405.000</span>
+                                <span class="font-weight-bold text-success" id="gross_margin">Rp Error</span>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span class="text-muted">Margin %</span>
-                                <span class="font-weight-bold text-success" id="margin_percentage">49.09%</span>
+                                <span class="font-weight-bold text-success" id="margin_percentage_detail">Error%</span>
                             </div>
                         </div>
                     </div>

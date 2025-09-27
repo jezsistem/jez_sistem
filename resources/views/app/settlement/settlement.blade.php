@@ -47,7 +47,8 @@
                                     </div>
                                     <div class="col-md-2 mb-4">
                                         <label class="form-label">Outlet</label>
-                                        <select class="form-control border border-secondary" id="st_id" onchange="loadPaymentMethods()">
+                                        <select class="form-control border border-secondary" id="st_id"
+                                            onchange="loadPaymentMethods()">
                                             <option value="">-- Pilih Outlet --</option>
                                             @forelse ($data['st_id'] as $storeId => $storeName)
                                                 <option value="{{ $storeId }}">{{ $storeName }}</option>
@@ -62,7 +63,6 @@
                                             @forelse ($data['statusses'] as $status)
                                                 <option value="{{ $status }}">{{ $status }}</option>
                                             @empty
-                                                
                                             @endforelse
                                         </select>
                                     </div>
@@ -84,7 +84,8 @@
                                     </div>
                                     <div class="col-md-2 mb-4">
                                         <label class="form-label">Invoice / Order Number</label>
-                                        <input type="text" id="search" class="form-control border border-secondary" placeholder="Search...">
+                                        <input type="text" id="search" class="form-control border border-secondary"
+                                            placeholder="Search...">
                                     </div>
                                 </div>
                                 <div class="row">
@@ -96,12 +97,15 @@
                                             <i class="fas fa-undo mr-2"></i>Reset
                                         </button>
                                         <div class="btn-group">
-                                            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                            <button type="button" class="btn btn-success dropdown-toggle"
+                                                data-toggle="dropdown" aria-expanded="false">
                                                 <i class="fas fa-download mr-2"></i>Export
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-right">
-                                                <a class="dropdown-item" id="export_trx" href="#">Export Transaction</a>
-                                                <a class="dropdown-item" id="export_detail_trx" href="#">Export Detail Transaction</a>
+                                                <a class="dropdown-item" id="export_trx" href="#">Export
+                                                    Transaction</a>
+                                                <a class="dropdown-item" id="export_detail_trx" href="#">Export Detail
+                                                    Transaction</a>
                                             </div>
                                         </div>
                                     </div>
@@ -113,29 +117,51 @@
                             <div class="card-body table-responsive">
                                 <div class="d-flex justify-content-between">
                                     <div class="">
-                                        <h3>Total Net Sales</h3>
-                                        <h1 class="text-success">Rp. <span id="total_netsales">0</span></h1>
+                                        <div class="">
+                                            <h3>Total Net Sales</h3>
+                                            <h1 class="text-success">Rp. <span id="total_netsales">0</span></h1>
+                                        </div>
+                                        <br>
+                                        <div class="">
+                                            <h3>Total COGS</h3>
+                                            <h1 class="text-success">Rp. <span id="total_cogs">0</span></h1>
+                                        </div>
                                     </div>
+
                                     <div class="">
-                                        <h3>Total COGS</h3>
-                                        <h1 class="text-success">Rp. <span id="total_cogs">0</span></h1>
+                                        <div class="">
+                                            <h3>Total Margin</h3>
+                                            <h1 class="text-success">Rp. <span id="total_margin">0</span></h1>
+                                        </div>
+                                        <br>
+                                        <div class="">
+                                            <h3>Presentase Margin</h3>
+                                            <h1 class="text-success"><span id="margin_percentage">0</span></h1>
+                                        </div>
                                     </div>
+
                                     <div class="">
-                                        <h3>Total Margin</h3>
-                                        <h1 class="text-success">Rp. <span id="total_margin">0</span></h1>
+                                        <div class="">
+                                            <h3>Dana Cair</h3>
+                                            <h1 class="text-success">Rp. <span id="total_dana_cair">0</span></h1>
+                                        </div>
                                     </div>
+
                                     <div class="">
-                                        <h3>Presentase Margin</h3>
-                                        <h1 class="text-success"><span id="margin_percentage">0</span></h1>
+                                        <div class="">
+                                            <p>Selected for settlement: <span id="selected">0</span> transaction</p>
+                                            <p class="mb-2"><strong>Selected Net Sales:</strong> <span
+                                                    class="text-success font-weight-bold">Rp</span> <span
+                                                    class="text-success font-weight-bold" id="selected_netsales">0</span></p>
+                                        </div>
+                                        <div class="mt-5 d-flex align-items-center">
+                                            <button class="btn btn-primary px-6" id="settlement_btn"><i
+                                                    class="fas fa-check mr-2"></i>Settlement</button>
+                                            <button class="btn btn-info px-6 ml-6" id="calc_cogs_tag_btn"><i
+                                                    class="fas fa-check mr-2"></i>Calc Cogs & Price Tag</button>
+                                        </div>
                                     </div>
-                                    <div class="">
-                                        <p>Selected for settlement: <span id="selected">0</span> transaction</p>
-                                        <p class="mb-2"><strong>Selected Net Sales:</strong> <span class="text-success font-weight-bold">Rp</span> <span class="text-success font-weight-bold" id="selected_netsales">0</span</p>
-                                    </div>
-                                    <div class="h-100 d-flex align-items-center">
-                                        <button class="btn btn-primary px-6" id="settlement_btn"><i class="fas fa-check mr-2"></i>Settlement</button>
-                                        <button class="btn btn-info px-6 ml-6" id="calc_cogs_tag_btn"><i class="fas fa-check mr-2"></i>Calc Cogs & Price Tag</button>
-                                    </div>
+                                    
                                 </div>
                                 <hr>
                                 <p class="text-dark font-weight-bold mt-5 mb-5">Net Sales by Payment Method</p>

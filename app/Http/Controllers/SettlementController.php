@@ -735,12 +735,13 @@ class SettlementController extends Controller
             $status_cogs
         );
 
-        $totalNetsales = $transactions->sum('netsales');
-        $totalCogs = $transactions->sum('total_cogs');
-        $totalMargin = $totalNetsales - $totalCogs;
+        $totalNetsales = round($transactions->sum('netsales'));
+        $totalCogs = round($transactions->sum('total_cogs'));
+        $totalMargin = round($totalNetsales - $totalCogs);
         $marginPercentage = $totalNetsales != 0 ? round(($totalMargin / $totalNetsales) * 100, 2) : 0;
+        $totalDanaCair = round($transactions->sum('total_dana_cair'));
 
-        return response()->json(['total_netsales' => $totalNetsales, 'total_cogs' => $totalCogs, 'total_margin' => $totalMargin, 'margin_percentage' => $marginPercentage . '%']);
+        return response()->json(['total_netsales' => $totalNetsales, 'total_cogs' => $totalCogs, 'total_margin' => $totalMargin, 'margin_percentage' => $marginPercentage . '%', 'total_dana_cair' => $totalDanaCair]);
     }
 
     public function bulkUpdateStatus(Request $request)
@@ -867,6 +868,7 @@ class SettlementController extends Controller
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id')
+            ->leftJoin('online_funds', 'online_funds.order_number', '=', 'pos_order_number')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
                 'pos_invoice',
@@ -878,7 +880,8 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-               DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                'total_disburshed_amount as total_dana_cair',
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -945,18 +948,20 @@ class SettlementController extends Controller
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
             ->join('online_transactions', 'online_transactions.order_number', '=', 'pos_invoice')
+            ->leftJoin('online_funds', 'online_funds.order_number', '=', 'pos_order_number')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
                 'pos_invoice',
                 'st_name',
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(pos_real_price) as netsales'),
-                DB::raw('CONCAT(\'DEPOSIT \', UPPER(platform_name)) as pm_name'),
+                DB::raw('CONCAT(\'DEPOSIT \', UPPER(ts_online_transactions.platform_name)) as pm_name'),
                 'sub_payment',
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-               DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                'total_disburshed_amount as total_dana_cair',
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -1016,6 +1021,7 @@ class SettlementController extends Controller
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pm_id_partial')
+            ->leftJoin('online_funds', 'online_funds.order_number', '=', 'pos_order_number')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
                 'pos_invoice',
@@ -1027,7 +1033,8 @@ class SettlementController extends Controller
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
-               DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                'total_disburshed_amount as total_dana_cair',
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->when($st_id != 0, function ($query) use ($st_id) {
@@ -1088,6 +1095,7 @@ class SettlementController extends Controller
             ->leftJoin('stores', 'stores.id', '=', 'st_id')
             ->leftJoin('pos_transaction_details', 'pos_transactions.id', '=', 'pt_id')
             ->join('payment_methods as pm_main', 'pm_main.id', '=', 'pm_id')
+            ->leftJoin('online_funds', 'online_funds.order_number', '=', 'pos_order_number')
             ->select([
                 DB::raw('DATE(ts_pos_transactions.created_at) as date'),
                 'pos_invoice',
@@ -1100,6 +1108,7 @@ class SettlementController extends Controller
                 'is_settle',
                 'pos_transactions.id',
                 DB::raw('SUM(pos_td_qty * pos_td_item_cogs) as total_cogs'),
+                'total_disburshed_amount as total_dana_cair',
             ])
             ->whereBetween('pos_transactions.created_at', [$start_date, $end_date])
             ->where(function ($query) {

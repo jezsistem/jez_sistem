@@ -62,11 +62,15 @@
                 var formattedMargin = new Intl.NumberFormat('id-ID', {
                     minimumFractionDigits: 0
                 }).format(response.total_margin);
+                var formattedDanaCair = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.total_dana_cair || 0);
 
                 $('#total_netsales').text(formattedNetSales);
                 $('#total_cogs').text(formattedCOGS);
                 $('#total_margin').text(formattedMargin);
                 $('#margin_percentage').text(response.margin_percentage);
+                $('#total_dana_cair').text(formattedDanaCair);
             }
         });
     }
@@ -332,11 +336,11 @@
                         .format(response.total_admin_fee || 0));
                     $('#outstanding_balance_summary').text('Rp ' + new Intl.NumberFormat(
                         'id-ID').format(response.outstanding_balance));
-                    $('#total_dana_cair').text('Rp ' + new Intl.NumberFormat('id-ID')
+                    $('#dana_cair').text('Rp ' + new Intl.NumberFormat('id-ID')
                         .format(response.total_dana_cair || 0));
                     $('#gross_margin').text('Rp ' + new Intl.NumberFormat('id-ID').format(
                         response.gross_margin));
-                    $('#margin_percentage').text(response.margin_percentage);
+                    $('#margin_percentage_detail').text(response.margin_percentage);
                     $('#btn_print_receipt').attr('href', response.print_receipt_url);
                     $('#note').text(response.note || '-');
                     $('#note_settlement').val(response.note_settlement || '').attr(
@@ -483,13 +487,13 @@
             // Show SweetAlert confirmation
             var selectedCount = $('#selected').text();
             Swal.fire({
-                title: 'Confirm Settlement',
+                title: 'Confirm Calculation',
                 text: `Are you sure you want to calc ${selectedCount} selected transactions?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, settle them!'
+                confirmButtonText: 'Yes, calc them!'
             }).then((result) => {
                 if (!result.isConfirmed) {
                     return;
