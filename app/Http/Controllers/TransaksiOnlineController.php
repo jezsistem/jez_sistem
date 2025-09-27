@@ -113,15 +113,15 @@ class TransaksiOnlineController extends Controller
                     'no_resi',
                     'platform_name',
                     'order_date_created',
-                    'sku',
+                    // 'sku',
                     'shipping_fee',
                     'total_payment',
                     'order_status',
                     'online_print'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-                    ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    // ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                    // ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
                     ->orderBy('online_transactions.created_at', 'DESC')
