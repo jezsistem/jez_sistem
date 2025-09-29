@@ -49,7 +49,7 @@
                                         <label class="form-label">Outlet</label>
                                         <select class="form-control border border-secondary" id="st_id"
                                             onchange="loadPaymentMethods()">
-                                            <option value="">-- Pilih Outlet --</option>
+                                            <option value="0">-- Pilih Outlet --</option>
                                             @forelse ($data['st_id'] as $storeId => $storeName)
                                                 <option value="{{ $storeId }}">{{ $storeName }}</option>
                                             @empty
@@ -59,7 +59,7 @@
                                     <div class="col-md-2 mb-4">
                                         <label class="form-label">Status TRX</label>
                                         <select class="form-control border border-secondary" id="status_trx">
-                                            <option value="">-- Pilih Status --</option>
+                                            <option value="0">-- Pilih Status --</option>
                                             @forelse ($data['statusses'] as $status)
                                                 <option value="{{ $status }}">{{ $status }}</option>
                                             @empty
@@ -69,7 +69,7 @@
                                     <div class="col-md-2 mb-4">
                                         <label class="form-label">Status Settlement</label>
                                         <select class="form-control border border-secondary" id="status_settle">
-                                            <option value="">-- Pilih Status --</option>
+                                            <option value="0">-- Pilih Status --</option>
                                             <option value="Settled">Settled</option>
                                             <option value="Unsettled">Unsettled</option>
                                         </select>
@@ -77,9 +77,19 @@
                                     <div class="col-md-2 mb-4">
                                         <label class="form-label">Status COGS</label>
                                         <select class="form-control border border-secondary" id="status_cogs">
-                                            <option value="">-- Pilih Status --</option>
+                                            <option value="0">-- Pilih Status --</option>
                                             <option value="Calculated">Calculated</option>
                                             <option value="Uncalculated">Uncalculated</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-4">
+                                        <label class="form-label">Sub Payment</label>
+                                        <select class="form-control border border-secondary" id="sub_payment_filter">
+                                            <option value="0">-- Pilih Sub Payment --</option>
+                                            <option value="1">CASH</option>
+                                            <option value="2">COD</option>
+                                            <option value="3">ON US</option>
+                                            <option value="4">OFF US</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2 mb-4">

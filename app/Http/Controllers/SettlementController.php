@@ -126,9 +126,22 @@ class SettlementController extends Controller
         $status_trx = $request->input('status_trx') ?? '';
         $status_settle = $request->input('status_settle') ?? null;
         $status_cogs = $request->input('status_cogs') ?? null;
-        $search = $request->input('search') ?? null;
 
-        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs, $search);
+        // If value is 0, set as null
+        if ($status_trx === '0' || $status_trx === 0) {
+            $status_trx = '';
+        }
+        if ($status_settle === '0' || $status_settle === 0) {
+            $status_settle = null;
+        }
+        if ($status_cogs === '0' || $status_cogs === 0) {
+            $status_cogs = null;
+        }
+
+        $search = $request->input('search') ?? null;
+        $sub_payment = $request->input('sub_payment') ?? null;
+
+        $data = $this->getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle, $status_cogs, $search, $sub_payment);
 
         $combinedData = $data->sortBy('pos_invoice');
 
@@ -270,7 +283,7 @@ class SettlementController extends Controller
                     'products.p_name',
                     'ps_barcode',
                     'pos_td_qty',
-                    'pos_td_item_price_tag',
+                    DB::raw("CASE WHEN UPPER('{$transaction->store_name}') LIKE '%ONLINE%' THEN pos_td_total_price ELSE pos_td_item_price_tag END as pos_td_item_price_tag"),
                     DB::raw('CASE WHEN ts_pos_transaction_details.pos_td_nameset_price>0 THEN \'YES\' ELSE \'NO\' END as is_nameset'),
                     DB::raw('CASE 
                         WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
@@ -280,27 +293,28 @@ class SettlementController extends Controller
                         ELSE 0 
                     END as discount'),
                     DB::raw("CASE
+                            WHEN UPPER('{$transaction->store_name}') LIKE '%ONLINE%' THEN pos_td_sell_price
                             WHEN ts_pos_transactions.pos_status not in('DONE', 'DP', 'NAMESET') THEN pos_td_sell_price
-                                WHEN ts_pos_transactions.pos_total_discount = SUM(CASE 
-                                        WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
-                                        THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
-                                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
-                                        ELSE 0
-                                    END) OVER (PARTITION BY ts_pos_transactions.id) THEN pos_td_item_price_tag*pos_td_qty - COALESCE(CASE 
-                                        WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
-                                        THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
-                                        WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
-                                        THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
-                                        ELSE 0 
-                                    END, 0)* pos_td_qty
-                                WHEN ts_pos_transactions.pos_total_discount = 0 THEN pos_td_item_price_tag*pos_td_qty - pos_td_discount_number
-                                ELSE
-                                    pos_td_total_price - ROUND(
-                                        COALESCE(pos_td_discount_number, 0)
-                                            + (pos_td_sell_price / NULLIF(SUM(pos_td_sell_price) OVER (PARTITION BY ts_pos_transactions.id), 0) 
-                                               * COALESCE(ts_pos_transactions.pos_total_discount, 0))
-                                    , 2) END AS price_after_discount"),
+                            WHEN ts_pos_transactions.pos_total_discount = SUM(CASE 
+                                    WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                                    THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                                    WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                                    THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
+                                    ELSE 0
+                                END) OVER (PARTITION BY ts_pos_transactions.id) THEN pos_td_item_price_tag*pos_td_qty - COALESCE(CASE 
+                                    WHEN (pos_td_discount_number + pos_td_sell_price) > pos_td_sell_price 
+                                    THEN ((pos_td_discount_number + pos_td_sell_price) - pos_td_sell_price) / pos_td_qty
+                                    WHEN pos_td_item_price_tag * pos_td_qty > pos_td_sell_price 
+                                    THEN (pos_td_item_price_tag - pos_td_sell_price) / pos_td_qty
+                                    ELSE 0 
+                                END, 0)* pos_td_qty
+                            WHEN ts_pos_transactions.pos_total_discount = 0 THEN pos_td_item_price_tag*pos_td_qty - pos_td_discount_number
+                            ELSE
+                                pos_td_total_price - ROUND(
+                                    COALESCE(pos_td_discount_number, 0)
+                                        + (pos_td_sell_price / NULLIF(SUM(pos_td_sell_price) OVER (PARTITION BY ts_pos_transactions.id), 0) 
+                                           * COALESCE(ts_pos_transactions.pos_total_discount, 0))
+                                , 2) END AS price_after_discount"),
                 )
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pt_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
@@ -374,7 +388,7 @@ class SettlementController extends Controller
             $total_admin_fee = $transaction->total_admin_fee ?? 0;
             $total_dana_cair = $transaction->total_dana_cair ?? 0;
 
-            if (!str_contains(strtoupper($store_name), 'ONLINE')) {
+            if (str_contains(strtoupper($store_name), 'ONLINE')) {
                 $gross_margin = $net_sales - $cogs;
                 $margin_percentage = $net_sales != 0 ? round(($gross_margin / $net_sales) * 100, 2) : 0;
             } else {
@@ -446,6 +460,18 @@ class SettlementController extends Controller
         $status_trx = $request->input('status_trx') ?? '';
         $status_settle = $request->input('status_settle') ?? null;
         $status_cogs = $request->input('status_cogs') ?? null;
+        $sub_payment = $request->input('sub_payment') ?? null;
+
+        // If value is 0, set as null
+        if ($status_trx === '0' || $status_trx === 0) {
+            $status_trx = '';
+        }
+        if ($status_settle === '0' || $status_settle === 0) {
+            $status_settle = null;
+        }
+        if ($status_cogs === '0' || $status_cogs === 0) {
+            $status_cogs = null;
+        }
 
         if ($status_settle === 'Settled') {
             $status_settle = true;
@@ -520,6 +546,9 @@ class SettlementController extends Controller
                     });
                 }
             })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where('pos_transactions.sub_payment', $sub_payment);
+            })
             ->groupBy('payment_methods.pm_name')
             ->get();
 
@@ -579,6 +608,9 @@ class SettlementController extends Controller
                             });
                     });
                 }
+            })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where('pos_transactions.sub_payment_partial', $sub_payment);
             })
             ->groupBy('payment_methods.pm_name')
             ->get();
@@ -641,6 +673,9 @@ class SettlementController extends Controller
                             ->whereNull('pos_payment_partial');
                     });
             })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where('pos_transactions.sub_payment', $sub_payment);
+            })
             ->get();
 
         $online = DB::table('pos_transactions')
@@ -694,6 +729,12 @@ class SettlementController extends Controller
                     });
                 }
             })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where(function ($q) use ($sub_payment) {
+                    $q->where('pos_transactions.sub_payment', $sub_payment)
+                      ->orWhere('pos_transactions.sub_payment_partial', $sub_payment);
+                });
+            })
             ->groupBy('platform_name')
             ->get();
 
@@ -724,6 +765,18 @@ class SettlementController extends Controller
         $status_trx = $request->input('status_trx') ?? '';
         $status_settle = $request->input('status_settle') ?? null;
         $status_cogs = $request->input('status_cogs') ?? null;
+        $sub_payment = $request->input('sub_payment') ?? null;
+
+         // If value is 0, set as null
+        if ($status_trx === '0' || $status_trx === 0) {
+            $status_trx = '';
+        }
+        if ($status_settle === '0' || $status_settle === 0) {
+            $status_settle = null;
+        }
+        if ($status_cogs === '0' || $status_cogs === 0) {
+            $status_cogs = null;
+        }
 
         $transactions = $this->getAllTransactions(
             $start_date,
@@ -732,7 +785,9 @@ class SettlementController extends Controller
             0,
             $status_trx,
             $status_settle,
-            $status_cogs
+            $status_cogs,
+            null,
+            $sub_payment
         );
 
         $totalNetsales = round($transactions->sum('netsales'));
@@ -844,7 +899,7 @@ class SettlementController extends Controller
         }
     }
 
-    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null, $search = null)
+    private function getAllTransactions($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null, $search = null, $sub_payment = null)
     {
         $start_date = $start_date . ' 00:00:00';
         $end_date = $end_date . ' 23:59:59';
@@ -938,6 +993,9 @@ class SettlementController extends Controller
                     ->from('online_transactions')
                     ->whereRaw('ts_online_transactions.order_number = ts_pos_transactions.pos_invoice');
             })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where('pos_transactions.sub_payment', $sub_payment);
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -1012,6 +1070,12 @@ class SettlementController extends Controller
                         ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
                 });
             })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where(function ($q) use ($sub_payment) {
+                    $q->where('pos_transactions.sub_payment', $sub_payment)
+                      ->orWhere('pos_transactions.sub_payment_partial', $sub_payment);
+                });
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -1029,7 +1093,7 @@ class SettlementController extends Controller
                 DB::raw('SUM(pos_td_qty) as qty'),
                 DB::raw('MAX(CASE WHEN st_name like \'ONLINE%\' THEN pos_real_price ELSE pos_payment_partial END) as netsales'),
                 'pm_name',
-                'sub_payment',
+                'sub_payment_partial as sub_payment',
                 'pos_status',
                 'is_settle',
                 'pos_transactions.id',
@@ -1085,6 +1149,9 @@ class SettlementController extends Controller
                         ->orWhere('pos_order_number', 'like', '%' . $search . '%')
                         ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
                 });
+            })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where('pos_transactions.sub_payment_partial', $sub_payment);
             })
             ->groupBy([
                 'pos_transactions.id',
@@ -1161,6 +1228,9 @@ class SettlementController extends Controller
                         ->orWhere('pos_shipping_number', 'like', '%' . $search . '%');;
                 });
             })
+            ->when(($sub_payment != 0), function ($query) use ($sub_payment) {
+                return $query->where('pos_transactions.sub_payment', $sub_payment);
+            })
             ->groupBy([
                 'pos_transactions.id',
             ])
@@ -1180,6 +1250,7 @@ class SettlementController extends Controller
         $status_trx = $request->input('status_trx') ?? '';
         $status_settle = $request->input('status_settle') ?? null;
         $status_cogs = $request->input('status_cogs') ?? null;
+        $sub_payment = $request->input('sub_payment') ?? null;
 
         $export = new SettlementTransactionExport(
             $start_date,
@@ -1188,7 +1259,8 @@ class SettlementController extends Controller
             $pm_id,
             $status_trx,
             $status_settle,
-            $status_cogs
+            $status_cogs,
+            $sub_payment
         );
 
         // Get current date and time (format: YYYYMMDD_HHmm)
@@ -1205,6 +1277,9 @@ class SettlementController extends Controller
         $status_trx = $request->input('status_trx') ?? '';
         $status_settle = $request->input('status_settle') ?? null;
         $status_cogs = $request->input('status_cogs') ?? null;
+        $sub_payment = $request->input('sub_payment') ?? null;
+
+         // If value is 0, set as null
 
         $export = new SettlementDetailTransactionExport(
             $start_date,
@@ -1213,7 +1288,8 @@ class SettlementController extends Controller
             $pm_id,
             $status_trx,
             $status_settle,
-            $status_cogs
+            $status_cogs,
+            $sub_payment
         );
 
         // Get current date and time (format: YYYYMMDD_HHmm)

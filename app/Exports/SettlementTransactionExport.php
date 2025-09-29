@@ -18,8 +18,9 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
     protected $status_trx;
     protected $status_settle;
     protected $status_cogs;
+    protected $sub_payment;
 
-    public function __construct($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)
+    public function __construct($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null, $sub_payment = null)
     {
         $this->start_date = $start_date;
         $this->end_date = $end_date;
@@ -28,11 +29,13 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
         $this->status_trx = $status_trx;
         $this->status_settle = $status_settle;
         $this->status_cogs = $status_cogs;
+        $this->sub_payment = $sub_payment;
     }
 
     public function headings(): array
     {
         return [
+            'STORE',
             'DATE',
             'TIME',
             'TRX TYPE',
@@ -62,6 +65,17 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
 
     public function collection()
     {
+                 // If value is 0, set as null
+        if ($this->status_trx === '0' || $this->status_trx === 0) {
+            $this->status_trx = '';
+        }
+        if ($this->status_settle === '0' || $this->status_settle === 0) {
+            $this->status_settle = null;
+        }
+        if ($this->status_cogs === '0' || $this->status_cogs === 0) {
+            $this->status_cogs = null;
+        }
+
         if ($this->status_settle === 'Settled') {
             $status_settle = true;
         } elseif ($this->status_settle === 'Unsettled') {
@@ -183,6 +197,13 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
             }
         });
 
+        $query->when(($this->sub_payment != 0), function ($query) {
+            return $query->where(function ($q) {
+            $q->where('pos_transactions.sub_payment', $this->sub_payment)
+              ->orWhere('pos_transactions.sub_payment_partial', $this->sub_payment);
+            });
+        });
+
         $data = $query->groupBy('pos_transactions.id')
             ->orderByDesc(DB::raw('COUNT(pos_invoice)'))
             ->get();
@@ -190,6 +211,7 @@ class SettlementTransactionExport implements FromCollection, WithHeadings
         $export_data = [];
         foreach ($data as $row) {
             $export_data[] = [
+                $row->store,
                 $row->date,
                 $row->time,
                 $row->trx_type,

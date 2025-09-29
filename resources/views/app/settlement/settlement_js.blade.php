@@ -30,7 +30,8 @@
                 end_date: $('#end_date').val(),
                 status_trx: $('#status_trx').val(),
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             },
             success: function(response) {
                 $('#payment_calc_cards').html(response);
@@ -50,7 +51,8 @@
                 end_date: $('#end_date').val(),
                 status_trx: $('#status_trx').val(),
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             },
             success: function(response) {
                 var formattedNetSales = new Intl.NumberFormat('id-ID', {
@@ -107,6 +109,7 @@
                     d.search = $('#search').val();
                     d.status_settle = $('#status_settle').val();
                     d.status_cogs = $('#status_cogs').val();
+                    d.sub_payment = $('#sub_payment_filter').val();
                 }
             },
             columns: [{
@@ -235,7 +238,7 @@
             var startDate = $('#start_date').val();
             var endDate = $('#end_date').val();
 
-            if (!stId || !startDate || !endDate) {
+            if (stId == 0 || startDate == 0 || endDate == 0) {
                 toastr.warning('Please select Store, Start Date, and End Date before filtering.');
                 return;
             }
@@ -252,6 +255,17 @@
             $('#start_date').val('');
             $('#end_date').val('');
             $('#status_trx').val('');
+            $('#status_settle').val('0');
+            $('#status_cogs').val('0');
+            $('#sub_payment_filter').val('0');
+            $('#search').val('');
+
+            $('#st_id').trigger('change');
+            $('#payment_method_select').trigger('change');
+            $('#status_trx').trigger('change');
+            $('#status_settle').trigger('change');
+            $('#status_cogs').trigger('change');
+            $('#sub_payment_filter').trigger('change');
             loadPaymentMethods();
             loadTotalNetsales();
             loadNetSalesPerPaymentMethod();
@@ -559,7 +573,8 @@
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || '',
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');
@@ -573,7 +588,8 @@
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || '',
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');
