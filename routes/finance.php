@@ -106,7 +106,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settlement_netsales_per_payment_method', [SettlementController::class, 'getNetsalesPerPaymentMethod'])->name('settlement.netsales_per_payment_method');
     Route::get('settlement_total_netsales', [SettlementController::class, 'getTotalNetsales'])->name('settlement.total_netsales');
     Route::post('settlement_bulk_status', [SettlementController::class, 'bulkUpdateStatus'])->name('settlement.bulk_status');
-    Route::get('settlement_detail/{id}', [SettlementController::class, 'getDetailSettlement'])->name('settlement_detail');
+    Route::get('settlement_detail/{id}/{is_partial}', [SettlementController::class, 'getDetailSettlement'])->name('settlement_detail');
     Route::get('settlement_export_transaction', [SettlementController::class, 'exportTransaction'])->name('settlement.export_transaction');
     Route::get('settlement_export_transaction_detail', [SettlementController::class, 'exportTransactionDetail'])->name('settlement.export_transaction_detail');
     Route::post('settlement_calc_cogs_price_tag', [SettlementController::class, 'calcCogsPriceTag'])->name('settlement.calc_cogs_price_tag');
