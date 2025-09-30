@@ -59,6 +59,10 @@
                     name: 'invoice_date'
                 },
                 {
+                    data: 'receive_at',
+                    name: 'receive_at'
+                },
+                {
                     data: 'receive_date_show',
                     name: 'received_date'
                 },
@@ -189,6 +193,34 @@
             columns: [{
                 data: 'file',
                 name: 'file_dispute',
+                searchable: false
+            }, ],
+            columnDefs: [{
+                "targets": [0],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        var PurchaseOrdersFileDispute = $('#FileDeliveryNoteTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('file_delivery_note_datatables') }}",
+                data: function(d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'file',
+                name: 'file_delivery_note',
                 searchable: false
             }, ],
             columnDefs: [{
@@ -486,6 +518,13 @@
         $(document).ready(function() {
             $("#DisputeFileBtn").click(function() {
                 $("#FileDisputeModal").modal("show");
+                console.log($('#po_id').val());
+            });
+        });
+
+        $(document).ready(function() {
+            $("#SuratJalanBtn").click(function() {
+                $("#FileDeliveryNoteModal").modal("show");
                 console.log($('#po_id').val());
             });
         });
