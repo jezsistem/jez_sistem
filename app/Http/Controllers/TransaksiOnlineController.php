@@ -245,7 +245,11 @@ class TransaksiOnlineController extends Controller
             DB::beginTransaction();
 
             $invoice = $request->orderNumber;
-            $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
+            // Check if the latest pos_status for this invoice is 'DONE'
+            $check = PosTransaction::where(['pos_invoice' => $invoice])
+                ->orderByDesc('id')
+                ->value('pos_status') === 'DONE' ? true : false;
+
             $get_invoice = array();
             $dropshipper = null;
             $st_id = Auth::user()->st_id;
@@ -354,9 +358,13 @@ class TransaksiOnlineController extends Controller
 
                     $sku_count = OnlineTransactionDetails::where('to_id', $cur_trx->id)->where('sku', $data->sku)->count();
                     if (count($online_transactions) >= $sku_count) {
-                        $pos_transaction_check = PosTransaction::where('pos_invoice', $invoice)->first();
+                        $pos_transaction_check = PosTransaction::where(['pos_invoice' => $invoice])
+                            ->orderByDesc('id')
+                            ->first();
+                        
+                        $is_trx_done = $pos_transaction_check && $pos_transaction_check->pos_status === 'DONE';
 
-                        if ($pos_transaction_check) {
+                        if ($is_trx_done) {
                             // If a POS transaction already exists, use its ID
                             $trx_id_new = $pos_transaction_check->id;
                         } else {
