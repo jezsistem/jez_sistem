@@ -442,26 +442,63 @@ Balas pesan ini jika butuh bantuan :)";
             $id = $request->_pt_id;
             $payment_dp = $request->payment_dp;
             $payment_dp_date = $request->payment_dp_date;
-
-
-            $pt = PosTransaction::where('id', $id)->first();
+            $payment_method = $request->payment_method;
+            $sub_payment = $request->sub_payment;
+            $notes = $request->payment_notes;
 
             $pt_update = PosTransaction::where('id', $id)->update([
-                'pos_payment' => $pt->pos_payment + $payment_dp,
+                'pm_id_partial' => $payment_method,
+                'pos_payment_partial' => $payment_dp,
+                'sub_payment_partial' => $sub_payment,
                 'pos_paid_dp' => $payment_dp,
                 'pos_paid_dp_date' => $payment_dp_date,
+                'pos_notes_dp' => $notes,
                 'pos_status' => 'DONE'
             ]);
 
             if ($pt_update) {
                 $r['status'] = '200';
+                $r['message'] = 'Pembayaran DP Berhasil Disimpan';
             } else {
                 $r['status'] = '400';
+                $r['message'] = 'Gagal menyimpan pembayaran DP';
             }
 
             return json_encode($r);
         } catch (\Exception $e) {
             return json_encode($e->getMessage());
+        }
+    }
+
+    public function invoiceDpRepaymentDetails($id)
+    {
+        $pt = PosTransaction::where('pos_transactions.id', $id)
+        ->select('pos_transactions.pos_real_price', 'pos_transactions.pos_payment', 'pos_transactions.pos_note', 'pos_transactions.created_at', 'payment_methods.pm_name', 'pos_transactions.st_id')
+        ->leftJoin('payment_methods', 'payment_methods.id', '=', 'pos_transactions.pm_id')
+        ->first();
+        $payment_methods = DB::table('payment_methods')->where('pm_delete', '!=', '1') ->where('st_id', $pt->st_id)->orderBy('pm_name')->pluck('pm_name', 'id')->toArray();
+
+        $data = [
+            'total_sales' => $pt->pos_real_price,
+            'payment_1' => $pt->pos_payment,
+            'outstanding' => $pt->pos_real_price - $pt->pos_payment,
+            'paydate' => date('d F Y H:i', strtotime($pt->created_at)),
+            'payment_method_1' => $pt->pm_name,
+            'notes' => $pt->pos_note,
+
+            'payment_methods' => $payment_methods
+        ];
+
+        if ($data) {
+            return response()->json([
+                'status' => '200',
+                'data' => $data
+            ]);
+        } else {
+            return response()->json([
+                'status' => '400',
+                'data' => null
+            ]);
         }
     }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\PhotoController;
 
 use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
+use App\Models\ExternalAssignmentType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTypeController;
+use App\Http\Controllers\ExternalAssignmentTypeController;
 
 use App\Http\Controllers\MainColorController;
 use App\Http\Controllers\ColorController;
@@ -76,12 +78,32 @@ use App\Http\Controllers\MenuAccessController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\SendNotificationController;
 
+// hris
+use App\Http\Controllers\ShiftCodeController;
+use App\Http\Controllers\DailyScheduleController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\BreakTimeController;
+use App\Http\Controllers\BreakTimeBackupController;
+use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\UserPositionController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\UserTypeController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\UserDivisionController;
+use App\Http\Controllers\UserDivisionV2Controller;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AnnouncementCategoryController;
+use App\Http\Controllers\AnnouncementReactionController;
+
 
 use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
 use App\Http\Controllers\LockController;
+use App\Models\PositionAccessController;
 use Illuminate\Support\Facades\DB;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -98,6 +120,10 @@ Route::get('', [AuthController::class, 'index'])->name('login');
 Route::get('login_amel', [AuthController::class, 'index_two'])->name('login_amel');
 Route::post('user_login', [AuthController::class, 'login']);
 
+// Google OAuth Routes
+Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
+
 Route::get('payment_check/88991703/show', [PaymentCheckController::class, 'checkData']);
 Route::get('auto/8899/close_data', [ArticleInformationController::class, 'getAutoUpdateArticleInformation']);
 Route::get('auto/9999/close_data', [DashboardV2Controller::class, 'closeData']);
@@ -108,14 +134,47 @@ Route::get('print_offline_invoice/{invoice}', [InvoiceController::class, 'printO
 Route::get('e_receipt/{invoice}', [InvoiceController::class, 'eReceiptInvoice'])->name('e_receipt');
 Route::post('/upload-photo', [PhotoController::class, 'upload'])->name('upload.photo');
 
+Route::get('daily-schedules/export-weekly-public', [DailyScheduleController::class, 'exportWeeklyPublic'])->name('daily-schedules.export-weekly-public');
+
+Route::get('break-times/allowance', [BreakTimeController::class, 'getBreakAllowance'])->name('break-times.allowance');
+Route::get('break-times/current-list', [BreakTimeController::class, 'getCurrentBreakList'])->name('break-times.current-list');
+Route::get('break-times/test-filter', [BreakTimeController::class, 'testFilter'])->name('break-times.test-filter');
+Route::get('break-times/debug-current-list', [BreakTimeController::class, 'debugCurrentBreakList'])->name('break-times.debug-current-list');
+Route::get('break-times/current', [BreakTimeController::class, 'getCurrentBreak'])->name('break-times.current');
+Route::post('break-times/start', [BreakTimeController::class, 'startBreak'])->name('break-times.start');
+Route::post('break-times/end', [BreakTimeController::class, 'endBreak'])->name('break-times.end');
+Route::get('daily-schedules/export-weekly-report-public', [DailyScheduleController::class, 'exportWeeklyReportPublic'])->name('daily-schedules.export-weekly-report-public');
+Route::get('daily-schedules/export-weekly-report-pdf', [DailyScheduleController::class, 'exportWeeklyReportPDF'])->name('daily-schedules.export-weekly-report-pdf');
+Route::get('daily-schedules/export-weekly-pdf', [DailyScheduleController::class, 'exportWeeklyPDF'])->name('daily-schedules.export-weekly-pdf');
+
+
+Route::get('break-times-backup/allowance', [BreakTimeBackupController::class, 'getBreakAllowance'])->name('break-times-backup.allowance');
+Route::get('break-times-backup/current-list', [BreakTimeBackupController::class, 'getCurrentBreakList'])->name('break-times-backup.current-list');
+Route::get('break-times-backup/test-filter', [BreakTimeBackupController::class, 'testFilter'])->name('break-times-backup.test-filter');
+Route::get('break-times-backup/debug-current-list', [BreakTimeBackupController::class, 'debugCurrentBreakList'])->name('break-times-backup.debug-current-list');
+Route::get('break-times-backup/current', [BreakTimeBackupController::class, 'getCurrentBreak'])->name('break-times-backup.current');
+Route::post('break-times-backup/start', [BreakTimeBackupController::class, 'startBreak'])->name('break-times-backup.start');
+Route::post('break-times-backup/end', [BreakTimeBackupController::class, 'endBreak'])->name('break-times-backup.end');
+
+// Public PDF export routes (no auth required)
+Route::get('daily-schedules/export-weekly-pdf-public', [DailyScheduleController::class, 'exportWeeklyPDFPublic'])->name('daily-schedules.export-weekly-pdf-public');
+Route::get('daily-schedules/export-weekly-report-pdf-public', [DailyScheduleController::class, 'exportWeeklyReportPDFPublic'])->name('daily-schedules.export-weekly-report-pdf-public');
+
+// Public Excel export routes (no auth required)
+Route::get('break-times/export/excel', [BreakTimeController::class, 'exportToExcel'])->name('break-times.export-excel');
+Route::get('break-times-backup/export/excel', [BreakTimeBackupController::class, 'exportToExcel'])->name('break-times-backup.export-excel');
+
+// Export routes (outside auth middleware)
+Route::get('attendance/summary-report/export/excel', [AttendanceController::class, 'exportSummaryToExcel'])->name('attendance.summary-report-export-excel');
+Route::get('attendance/summary-report/export/pdf', [AttendanceController::class, 'exportSummaryToPDF'])->name('attendance.summary-report-export-pdf');
 
 Route::group(['middleware' => 'auth'], function () {
     // Redirect
     Route::get('redirect', [RedirectController::class, 'index'])->name('redirect');
-    
+
     // Upcloud Balance
     Route::get('get_upcloud_balance', [UpcloudBalanceController::class, 'getBalance']);
-    
+
     // Tracking
     Route::get('tracking', [TrackingController::class, 'index'])->name('tracking');
     Route::get('check_invoice/{invoice}', [InvoiceController::class, 'checkInvoice'])->name('check_invoice');
@@ -276,19 +335,19 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('reload_store_type', [StoreTypeController::class, 'reloadStoreType']);
     Route::post('stt_save', [StoreTypeController::class, 'storeData']);
     Route::post('stt_delete', [StoreTypeController::class, 'deleteData']);
-    
+
     // Store Division
     Route::get('data_divisi', [StoreTypeDivisionController::class, 'index'])->name('store_type_division');
     Route::get('store_type_division_datatables', [StoreTypeDivisionController::class, 'getDatatables']);
     Route::post('dv_save', [StoreTypeDivisionController::class, 'storeData']);
     Route::post('dv_delete', [StoreTypeDivisionController::class, 'deleteData']);
-    
+
     // Store
     Route::get('data_store', [StoreController::class, 'index'])->name('store');
     Route::get('store_datatables', [StoreController::class, 'getDatatables']);
     Route::post('st_save', [StoreController::class, 'storeData']);
     Route::post('st_delete', [StoreController::class, 'deleteData']);
-    
+
     // Product Supplier
     Route::get('data_supplier', [ProductSupplierController::class, 'index'])->name('product_supplier');
     Route::get('product_supplier_datatables', [ProductSupplierController::class, 'getDatatables']);
@@ -296,7 +355,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ps_delete', [ProductSupplierController::class, 'deleteData']);
     Route::post('ps_import', [ProductSupplierController::class, 'importData']);
     Route::post('check_exists_supplier', [ProductSupplierController::class, 'checkExistsSupplier']);
-    
+
     // Brand
     Route::get('brands', [BrandController::class, 'index'])->name('brands');
     Route::get('brand_datatables', [BrandController::class, 'getDatatables']);
@@ -306,7 +365,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('delete_banner_brand', [BrandController::class, 'deleteBannerImage']);
     Route::post('br_import', [BrandController::class, 'importData']);
     Route::post('check_exists_brand', [BrandController::class, 'checkExistsBrand']);
-    
+
     // Product Unit
     Route::get('satuan_produk', [ProductUnitController::class, 'index'])->name('product_unit');
     Route::get('product_unit_datatables', [ProductUnitController::class, 'getDatatables']);
@@ -316,7 +375,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_product_unit', [ProductUnitController::class, 'checkExistsProductUnit']);
     //Product
     // Route::post('stock_data_search_product', [ProductController::class, 'searchProduct']);
-    
+
     // Gender
     Route::get('gender', [GenderController::class, 'index'])->name('gender');
     Route::get('gender_datatables', [GenderController::class, 'getDatatables']);
@@ -324,7 +383,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('gn_delete', [GenderController::class, 'deleteData']);
     Route::post('gn_import', [GenderController::class, 'importData']);
     Route::post('check_exists_gender', [GenderController::class, 'checkExistsGender']);
-    
+
     // Season
     Route::get('season', [SeasonController::class, 'index'])->name('season');
     Route::get('season_datatables', [SeasonController::class, 'getDatatables']);
@@ -332,7 +391,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ss_delete', [SeasonController::class, 'deleteData']);
     Route::post('ss_import', [SeasonController::class, 'importData']);
     Route::post('check_exists_season', [SeasonController::class, 'checkExistsSeason']);
-    
+
     // Product Category
     Route::get('kategori_produk', [ProductCategoryController::class, 'index'])->name('product_category');
     Route::get('product_category_datatables', [ProductCategoryController::class, 'getDatatables']);
@@ -340,7 +399,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('pc_dele te', [ProductCategoryController::class, 'deleteData']);
     Route::post('pc_import', [ProductCategoryController::class, 'importData']);
     Route::post('check_exists_product_category', [ProductCategoryController::class, 'checkExistsProductCategory']);
-    
+
     // Product Sub Category
     Route::get('sub_kategori_produk', [ProductSubCategoryController::class, 'index'])->name('product_sub_category');
     Route::get('product_sub_category_datatables', [ProductSubCategoryController::class, 'getDatatables']);
@@ -349,7 +408,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('psc_delete', [ProductSubCategoryController::class, 'deleteData']);
     Route::post('psc_import', [ProductSubCategoryController::class, 'importData']);
     Route::post('check_exists_product_sub_category', [ProductSubCategoryController::class, 'checkExistsProductSubCategory']);
-    
+
     // Product Sub Sub Category
     Route::get('sub_sub_kategori_produk', [ProductSubSubCategoryController::class, 'index'])->name('product_sub_sub_category');
     Route::get('product_sub_sub_category_datatables', [ProductSubSubCategoryController::class, 'getDatatables']);
@@ -378,14 +437,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('mc_delete', [MainColorController::class, 'autocomplete_customer']);
     Route::post('mc_import', [MainColorController::class, 'importData']);
     Route::post('check_exists_main_color', [MainColorController::class, 'checkExistsMainColor']);
-    
+
     // Product Sub Color
     Route::get('sub_warna_produk', [ColorController::class, 'index'])->name('color');
     Route::get('color_datatables', [ColorController::class, 'getDatatables']);
     Route::post('cl_save', [ColorController::class, 'storeData']);
     Route::post('cl_delete', [ColorController::class, 'deleteData']);
     Route::post('cl_import', [ColorController::class, 'importData']);
-    
+
     // Product Size
     Route::get('size_produk', [SizeController::class, 'index'])->name('size');
     Route::get('size_datatables', [SizeController::class, 'getDatatables']);
@@ -411,10 +470,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('check_exists_barcode', [ProductController::class, 'checkExistsBarcode']);
     Route::post('check_exists_article_id', [ProductController::class, 'checkExistsArticleID']);
     Route::post('update_barcode', [ProductController::class, 'updateBarcode']);
-    
+
     // User Activity
     Route::get('user_activity_datatables', [UserActivityController::class, 'getDatatables']);
-    
+
     // Product Stock
     Route::post('check_product_stock', [ProductStockController::class, 'checkProductStock']);
     Route::post('update_sell_price', [ProductStockController::class, 'updateSellPrice']);
@@ -562,7 +621,6 @@ Route::group(['middleware' => 'auth'], function () {
     // Route::post('rsdd_reload', [ResellerDepositController::class, 'reloadData']);
 
 
-
     // ResellerLevelController
     /**
      * NOTE: Open when needed
@@ -677,6 +735,271 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('export-perusahaan', [DataPerusahaanController::class, 'exportData']);
 
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'fetchNotifications']);
+    Route::post('/notifications/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markSingleAsRead']);
+
+    // HR Management Routes
+    // ShiftCodeController
+    Route::get('shift-codes', [ShiftCodeController::class, 'index'])->name('shift-codes.index');
+    Route::get('shift-codes/datatables', [ShiftCodeController::class, 'getDatatables'])->name('shift-codes.datatables');
+    Route::get('shift-codes/create', [ShiftCodeController::class, 'create'])->name('shift-codes.create');
+    Route::post('shift-codes', [ShiftCodeController::class, 'store'])->name('shift-codes.store');
+    Route::get('shift-codes/{id}', [ShiftCodeController::class, 'show'])->name('shift-codes.show');
+    Route::get('shift-codes/{id}/edit', [ShiftCodeController::class, 'edit'])->name('shift-codes.edit');
+    Route::put('shift-codes/{id}', [ShiftCodeController::class, 'update'])->name('shift-codes.update');
+    Route::delete('shift-codes/{id}', [ShiftCodeController::class, 'destroy'])->name('shift-codes.destroy');
+    Route::post('shift-codes/{id}/toggle-status', [ShiftCodeController::class, 'toggleStatus'])->name('shift-codes.toggle-status');
+    Route::get('shift-codes/type/{type}', [ShiftCodeController::class, 'getShiftCodesByType'])->name('shift-codes.by-type');
+
+    // DailyScheduleController
+    Route::get('daily-schedules', [DailyScheduleController::class, 'index'])->name('daily-schedules.index');
+    Route::get('daily-schedules/datatables', [DailyScheduleController::class, 'getDatatables'])->name('daily-schedules.datatables');
+    Route::get('daily-schedules/statistics', [DailyScheduleController::class, 'getStatistics'])->name('daily-schedules.statistics');
+    Route::get('daily-schedules/create', [DailyScheduleController::class, 'create'])->name('daily-schedules.create');
+    Route::post('daily-schedules', [DailyScheduleController::class, 'store'])->name('daily-schedules.store');
+    Route::get('daily-schedules/bulk/create', [DailyScheduleController::class, 'bulkCreate'])->name('daily-schedules.bulk-create');
+    Route::post('daily-schedules/bulk', [DailyScheduleController::class, 'bulkStore'])->name('daily-schedules.bulk-store');
+    Route::get('daily-schedules/create-range', [DailyScheduleController::class, 'createRange'])->name('daily-schedules.create-range');
+    Route::post('daily-schedules/store-range', [DailyScheduleController::class, 'storeRange'])->name('daily-schedules.store-range');
+    Route::get('daily-schedules/export', [DailyScheduleController::class, 'export'])->name('daily-schedules.export');
+    Route::get('daily-schedules/weekly', [DailyScheduleController::class, 'weeklySchedule'])->name('daily-schedules.weekly');
+    Route::get('daily-schedules/weekly-report', [DailyScheduleController::class, 'weeklyReport'])->name('daily-schedules.weekly-report');
+    Route::get('daily-schedules/monthly-report', [DailyScheduleController::class, 'monthlyReport'])->name('daily-schedules.monthly-report');
+    Route::get('daily-schedules/export-monthly-excel', [DailyScheduleController::class, 'exportMonthlyExcel'])->name('daily-schedules.export-monthly-excel');
+    Route::get('daily-schedules/export-monthly-pdf', [DailyScheduleController::class, 'exportMonthlyPDF'])->name('daily-schedules.export-monthly-pdf');
+    Route::get('daily-schedules/get-users-by-division', [DailyScheduleController::class, 'getUsersByDivision'])->name('daily-schedule.get-users-by-division');
+    Route::get('daily-schedules/get-weekly-schedules', [DailyScheduleController::class, 'getWeeklySchedules'])->name('daily-schedule.get-weekly-schedules');
+    Route::post('daily-schedules/save-weekly-schedule', [DailyScheduleController::class, 'saveWeeklySchedule'])->name('daily-schedule.save-weekly-schedule');
+
+    Route::get('daily-schedules/{id}', [DailyScheduleController::class, 'show'])->name('daily-schedules.show');
+    Route::get('daily-schedules/{id}/edit', [DailyScheduleController::class, 'edit'])->name('daily-schedules.edit');
+    Route::put('daily-schedules/{id}', [DailyScheduleController::class, 'update'])->name('daily-schedules.update');
+    Route::delete('daily-schedules/{id}', [DailyScheduleController::class, 'destroy'])->name('daily-schedules.destroy');
+    Route::post('daily-schedules/{id}/status', [DailyScheduleController::class, 'updateStatus'])->name('daily-schedules.update-status');
+
+
+    // AttendanceController
+    Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('attendance/datatables', [AttendanceController::class, 'getDatatables'])->name('attendance.datatables');
+    Route::get('attendance/create', [AttendanceController::class, 'create'])->name('attendance.create');
+    Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('attendance/upload', [AttendanceController::class, 'upload'])->name('attendance.upload');
+    Route::post('attendance/upload', [AttendanceController::class, 'processUpload'])->name('attendance.process-upload');
+
+    Route::get('attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
+    Route::get('attendance/summary-report', [AttendanceController::class, 'summaryReport'])->name('attendance.summary-report');
+    Route::get('attendance/summary-report/datatables', [AttendanceController::class, 'getSummaryReportDatatables'])->name('attendance.summary-report-datatables');
+
+    Route::get('attendance/{id}', [AttendanceController::class, 'show'])->name('attendance.show');
+    Route::get('attendance/{id}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::put('attendance/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
+    Route::delete('attendance/{id}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
+
+    Route::post('attendance/reprocess-all', [AttendanceController::class, 'reprocessAll'])->name('attendance.reprocess-all');
+    Route::get('attendance/debug-status', [AttendanceController::class, 'debugAttendanceStatus'])->name('attendance.debug-status');
+    Route::post('attendance/reprocess-status', [AttendanceController::class, 'reprocessAttendanceStatus'])->name('attendance.reprocess-status');
+    Route::post('attendance/reprocess-single', [AttendanceController::class, 'reprocessSingleAttendance'])->name('attendance.reprocess-single');
+    Route::get('attendance/staff/{user_id}', [AttendanceController::class, 'staffDetail'])->name('attendance.staff-detail');
+    Route::get('attendance/staff/{user_id}/datatables', [AttendanceController::class, 'staffDatatables'])->name('attendance.staff-datatables');
+    Route::get('attendance/staff/{user_id}/stats', [AttendanceController::class, 'staffStats'])->name('attendance.staff-stats');
+    Route::get('attendance/staff/{user_id}/alpha-dates', [AttendanceController::class, 'getStaffAlphaDates'])->name('attendance.staff-alpha-dates');
+
+    // Export routes
+    Route::get('attendance/export/excel', [AttendanceController::class, 'exportToExcel'])->name('attendance.export-excel');
+    Route::get('attendance/export/pdf', [AttendanceController::class, 'exportToPDF'])->name('attendance.export-pdf');
+    Route::get('attendance/staff/{user_id}/export/excel', [AttendanceController::class, 'exportStaffToExcel'])->name('attendance.staff-export-excel');
+    Route::get('attendance/staff/{user_id}/export/pdf', [AttendanceController::class, 'exportStaffToPDF'])->name('attendance.staff-export-pdf');
+
+    // BreakTimeController
+    Route::get('break-times', [BreakTimeController::class, 'index'])->name('break-times.index');
+    Route::get('break-times/report', [BreakTimeController::class, 'report'])->name('break-times.report');
+    Route::get('break-times/summary-report', [BreakTimeController::class, 'summaryReport'])->name('break-times.summary-report');
+    Route::get('break-times/summary-report/datatables', [BreakTimeController::class, 'getSummaryReportDatatables'])->name('break-times.summary-report-datatables');
+    Route::get('break-times/summary-report/stats', [BreakTimeController::class, 'getSummaryReportStats'])->name('break-times.summary-report-stats');
+    Route::get('break-times/datatables', [BreakTimeController::class, 'getDatatables'])->name('break-times.datatables');
+    Route::get('break-times/export/pdf', [BreakTimeController::class, 'exportToPDF'])->name('break-times.export-pdf');
+    Route::get('break-times/summary-report/export/excel', [BreakTimeController::class, 'exportSummaryToExcel'])->name('break-times.summary-report-export-excel');
+    Route::get('break-times/summary-report/export/pdf', [BreakTimeController::class, 'exportSummaryToPDF'])->name('break-times.summary-report-export-pdf');
+    Route::get('break-times/staff/{user_id}', [BreakTimeController::class, 'staffDetail'])->name('break-times.staff-detail');
+    Route::get('break-times/staff/{user_id}/datatables', [BreakTimeController::class, 'staffDatatables'])->name('break-times.staff-datatables');
+    Route::get('break-times/staff/{user_id}/stats', [BreakTimeController::class, 'staffStats'])->name('break-times.staff-stats');
+    Route::get('break-times/stats', [BreakTimeController::class, 'getBreakTimeStats'])->name('break-times.stats');
+    Route::get('break-times/staff/{user_id}/export/excel', [BreakTimeController::class, 'exportStaffToExcel'])->name('break-times.staff-export-excel');
+    Route::get('break-times/staff/{user_id}/export/pdf', [BreakTimeController::class, 'exportStaffToPDF'])->name('break-times.staff-export-pdf');
+    Route::get('break-times/create', [BreakTimeController::class, 'create'])->name('break-times.create');
+    Route::post('break-times', [BreakTimeController::class, 'store'])->name('break-times.store');
+    Route::get('break-times/{id}', [BreakTimeController::class, 'show'])->name('break-times.show');
+    Route::get('break-times/{id}/edit', [BreakTimeController::class, 'edit'])->name('break-times.edit');
+    Route::put('break-times/{id}', [BreakTimeController::class, 'update'])->name('break-times.update');
+    Route::delete('break-times/{id}', [BreakTimeController::class, 'destroy'])->name('break-times.destroy');
+    Route::post('break-times/clock-in', [BreakTimeController::class, 'clockIn'])->name('break-times.clock-in');
+    Route::post('break-times/clock-out', [BreakTimeController::class, 'clockOut'])->name('break-times.clock-out');
+    Route::post('break-times/{id}/cancel', [BreakTimeController::class, 'cancelBreakTime'])->name('break-times.cancel');
+    Route::post('break-times/cleanup', [BreakTimeController::class, 'cleanupInvalidBreaks'])->name('break-times.cleanup');
+
+    // BreakTimeBackupController
+    Route::get('break-times-backup', [BreakTimeBackupController::class, 'index'])->name('break-times-backup.index');
+    Route::get('break-times-backup/report', [BreakTimeBackupController::class, 'report'])->name('break-times-backup.report');
+    Route::get('break-times-backup/summary-report', [BreakTimeBackupController::class, 'summaryReport'])->name('break-times-backup.summary-report');
+    Route::get('break-times-backup/summary-report/datatables', [BreakTimeBackupController::class, 'getSummaryReportDatatables'])->name('break-times-backup.summary-report-datatables');
+    Route::get('break-times-backup/summary-report/stats', [BreakTimeBackupController::class, 'getSummaryReportStats'])->name('break-times-backup.summary-report-stats');
+    Route::get('break-times-backup/datatables', [BreakTimeBackupController::class, 'getDatatables'])->name('break-times-backup.datatables');
+    Route::get('break-times-backup/export/pdf', [BreakTimeBackupController::class, 'exportToPDF'])->name('break-times-backup.export-pdf');
+    Route::get('break-times-backup/summary-report/export/excel', [BreakTimeBackupController::class, 'exportSummaryToExcel'])->name('break-times-backup.summary-report-export-excel');
+    Route::get('break-times-backup/summary-report/export/pdf', [BreakTimeBackupController::class, 'exportSummaryToPDF'])->name('break-times-backup.summary-report-export-pdf');
+    Route::get('break-times-backup/staff/{user_id}', [BreakTimeBackupController::class, 'staffDetail'])->name('break-times-backup.staff-detail');
+    Route::get('break-times-backup/staff/{user_id}/datatables', [BreakTimeBackupController::class, 'staffDatatables'])->name('break-times-backup.staff-datatables');
+    Route::get('break-times-backup/staff/{user_id}/stats', [BreakTimeBackupController::class, 'staffStats'])->name('break-times-backup.staff-stats');
+    Route::get('break-times-backup/stats', [BreakTimeBackupController::class, 'getBreakTimeStats'])->name('break-times-backup.stats');
+    Route::get('break-times-backup/staff/{user_id}/export/excel', [BreakTimeBackupController::class, 'exportStaffToExcel'])->name('break-times-backup.staff-export-excel');
+    Route::get('break-times-backup/staff/{user_id}/export/pdf', [BreakTimeBackupController::class, 'exportStaffToPDF'])->name('break-times-backup.staff-export-pdf');
+    Route::get('break-times-backup/create', [BreakTimeBackupController::class, 'create'])->name('break-times-backup.create');
+    Route::post('break-times-backup', [BreakTimeBackupController::class, 'store'])->name('break-times-backup.store');
+    Route::get('break-times-backup/{id}', [BreakTimeBackupController::class, 'show'])->name('break-times-backup.show');
+    Route::get('break-times-backup/{id}/edit', [BreakTimeBackupController::class, 'edit'])->name('break-times-backup.edit');
+    Route::put('break-times-backup/{id}', [BreakTimeBackupController::class, 'update'])->name('break-times-backup.update');
+    Route::delete('break-times-backup/{id}', [BreakTimeBackupController::class, 'destroy'])->name('break-times-backup.destroy');
+    Route::post('break-times-backup/clock-in', [BreakTimeBackupController::class, 'clockIn'])->name('break-times-backup.clock-in');
+    Route::post('break-times-backup/clock-out', [BreakTimeBackupController::class, 'clockOut'])->name('break-times-backup.clock-out');
+    Route::post('break-times-backup/cleanup', [BreakTimeBackupController::class, 'cleanupInvalidBreaks'])->name('break-times-backup.cleanup');
+
+
+// LeaveTypeController
+    Route::get('leave-types', [LeaveTypeController::class, 'index'])->name('leave-types.index');
+    Route::get('leave-types/datatables', [LeaveTypeController::class, 'getDatatables'])->name('leave-types.datatables');
+    Route::get('leave-types/create', [LeaveTypeController::class, 'create'])->name('leave-types.create');
+    Route::post('leave-types', [LeaveTypeController::class, 'store'])->name('leave-types.store');
+    Route::get('leave-types/{id}', [LeaveTypeController::class, 'show'])->name('leave-types.show');
+    Route::get('leave-types/{id}/edit', [LeaveTypeController::class, 'edit'])->name('leave-types.edit');
+    Route::put('leave-types/{id}', [LeaveTypeController::class, 'update'])->name('leave-types.update');
+    Route::delete('leave-types/{id}', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
+    Route::get('leave-types/{id}/toggle-status', [LeaveTypeController::class, 'toggleStatus'])->name('leave-types.toggle-status');
+    Route::get('leave-types/type/{type}', [LeaveTypeController::class, 'getLeaveTypesByType'])->name('leave-types.by-type');
+
+    // LeaveRequestController
+    // Leave Summary Report Routes (MUST be before {id} routes to avoid conflicts)
+    Route::get('leave-requests/summary-report', [LeaveRequestController::class, 'summaryReport'])->name('leave-requests.summary-report');
+    Route::get('leave-requests/summary-report/datatables', [LeaveRequestController::class, 'getSummaryReportDatatables'])->name('leave-requests.summary-report-datatables');
+    Route::get('leave-requests/summary-report/export/excel', [LeaveRequestController::class, 'exportSummaryToExcel'])->name('leave-requests.summary-report-export-excel');
+    Route::get('leave-requests/summary-report/export/pdf', [LeaveRequestController::class, 'exportSummaryToPDF'])->name('leave-requests.summary-report-export-pdf');
+    Route::get('leave-requests/staff/{user_id}', [LeaveRequestController::class, 'staffDetail'])->name('leave-requests.staff-detail');
+    Route::get('leave-requests/staff/{user_id}/datatables', [LeaveRequestController::class, 'staffDatatables'])->name('leave-requests.staff-datatables');
+    Route::get('leave-requests/staff/{user_id}/stats', [LeaveRequestController::class, 'staffStats'])->name('leave-requests.staff-stats');
+    Route::get('leave-requests/staff/{user_id}/export/excel', [LeaveRequestController::class, 'exportStaffToExcel'])->name('leave-requests.staff-export-excel');
+    Route::get('leave-requests/staff/{user_id}/export/pdf', [LeaveRequestController::class, 'exportStaffToPDF'])->name('leave-requests.staff-export-pdf');
+
+    // Leave Balance Route
+    Route::get('leave-requests/balance/{leaveTypeId}', [LeaveRequestController::class, 'getLeaveBalance'])->name('leave-requests.balance');
+
+    // Leave Request Specific Routes (MUST be before {id} routes to avoid conflicts)
+    Route::get('leave-requests/datatables', [LeaveRequestController::class, 'getDatatables'])->name('leave-requests.datatables');
+    Route::get('leave-requests/stats', [LeaveRequestController::class, 'getStats'])->name('leave-requests.stats');
+    Route::get('leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
+    Route::post('leave-requests/reprocess-all', [LeaveRequestController::class, 'reprocessAll'])->name('leave-requests.reprocess-all');
+
+    // Leave Request CRUD Routes (with {id} parameter)
+    Route::get('leave-requests/{id}', [LeaveRequestController::class, 'show'])->name('leave-requests.show');
+    Route::get('leave-requests/{id}/edit', [LeaveRequestController::class, 'edit'])->name('leave-requests.edit');
+    Route::put('leave-requests/{id}', [LeaveRequestController::class, 'update'])->name('leave-requests.update');
+    Route::delete('leave-requests/{id}', [LeaveRequestController::class, 'destroy'])->name('leave-requests.destroy');
+    Route::get('leave-requests/{id}/process-status', [LeaveRequestController::class, 'processStatus'])->name('leave-requests.process-status');
+    Route::post('leave-requests/{id}/approve', [LeaveRequestController::class, 'approve'])->name('leave-requests.approve');
+    Route::post('leave-requests/{id}/reject', [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
+
+    // Leave Request Index and Store Routes (MUST be AFTER {id} routes to avoid conflicts)
+    Route::get('leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
+    Route::post('leave-requests', [LeaveRequestController::class, 'store'])->name('leave-requests.store');
+
+// Debug route for testing CSRF
+    Route::get('test-csrf', function () {
+        return response()->json([
+            'csrf_token' => csrf_token(),
+            'session_id' => session()->getId(),
+            'user_id' => auth()->id()
+        ]);
+    })->middleware('auth');
+
+    // UserPositionController
+    Route::get('user-positions', [UserPositionController::class, 'index'])->name('user-positions.index');
+    Route::get('user-positions/datatables', [UserPositionController::class, 'getDatatables'])->name('user-positions.datatables');
+    Route::get('user-positions/create', [UserPositionController::class, 'create'])->name('user-positions.create');
+    Route::post('user-positions', [UserPositionController::class, 'store'])->name('user-positions.store');
+    Route::get('user-positions/{id}', [UserPositionController::class, 'show'])->name('user-positions.show');
+    Route::get('user-positions/{id}/edit', [UserPositionController::class, 'edit'])->name('user-positions.edit');
+    Route::put('user-positions/{id}', [UserPositionController::class, 'update'])->name('user-positions.update');
+    Route::delete('user-positions/{id}', [UserPositionController::class, 'destroy'])->name('user-positions.destroy');
+
+    // UserDivisionController
+    Route::get('user-divisions', [UserDivisionController::class, 'index'])->name('user-divisions.index');
+    Route::get('user-divisions/datatables', [UserDivisionController::class, 'getDatatables'])->name('user-divisions.datatables');
+    Route::get('user-divisions/create', [UserDivisionController::class, 'create'])->name('user-divisions.create');
+    Route::post('user-divisions', [UserDivisionController::class, 'store'])->name('user-divisions.store');
+    Route::get('user-divisions/{id}', [UserDivisionController::class, 'show'])->name('user-divisions.show');
+    Route::get('user-divisions/{id}/edit', [UserDivisionController::class, 'edit'])->name('user-divisions.edit');
+    Route::put('user-divisions/{id}', [UserDivisionController::class, 'update'])->name('user-divisions.update');
+    Route::delete('user-divisions/{id}', [UserDivisionController::class, 'destroy'])->name('user-divisions.destroy');
+
+    // UserDivisionController
+    Route::get('user-divisions-v2', [UserDivisionV2Controller::class, 'index'])->name('user-divisions-v2.index');
+    Route::get('user-divisions-v2/datatables', [UserDivisionV2Controller::class, 'getDatatables'])->name('user-divisions-v2.datatables');
+
+    // UserTypeController
+    Route::get('user-types', [UserTypeController::class, 'index'])->name('user-types.index');
+    Route::get('user-types/datatables', [UserTypeController::class, 'getDatatables'])->name('user-types.datatables');
+    Route::get('user-types/{id}', [UserTypeController::class, 'show'])->name('user-types.show');
+    Route::post('user-types', [UserTypeController::class, 'store'])->name('user-types.store');
+    Route::put('user-types/{id}', [UserTypeController::class, 'update'])->name('user-types.update');
+    Route::delete('user-types/{id}', [UserTypeController::class, 'destroy'])->name('user-types.destroy');
+
+    // StaffController
+    Route::get('staff', [StaffController::class, 'index'])->name('staff.index');
+    Route::get('staff/datatables', [StaffController::class, 'getDatatables'])->name('staff.datatables');
+    Route::post('staff/{id}/position', [StaffController::class, 'updatePosition'])->name('staff.update-position');
+    Route::post('staff/{id}/division', [StaffController::class, 'updateDivision'])->name('staff.update-division');
+    Route::post('staff/{id}/user-type', [StaffController::class, 'updateUserType'])->name('staff.update-user-type');
+    Route::post('staff/{id}/leave-balance', [StaffController::class, 'updateLeaveBalance'])->name('staff.update-leave-balance');
+
+    // User Select for AJAX
+    Route::get('users/select', [UserController::class, 'select'])->name('users.select');
+
+    // Announcement System
+    Route::get('announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('announcements/manage', [AnnouncementController::class, 'manage'])->name('announcements.manage');
+    Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+    Route::get('announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
+    Route::post('announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::get('announcements/{id}/edit', [AnnouncementController::class, 'edit'])->name('announcements.edit');
+    Route::put('announcements/{id}', [AnnouncementController::class, 'update'])->name('announcements.update');
+    Route::delete('announcements/{id}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::post('announcements/react', [AnnouncementController::class, 'react'])->name('announcements.react');
+    Route::post('announcements/{id}/pin', [AnnouncementController::class, 'togglePin'])->name('announcements.toggle-pin');
+    Route::get('announcements/{id}/reactions', [AnnouncementController::class, 'getReactionDetails'])->name('announcements.reaction-details');
+    Route::post('announcements/{id}/view', [AnnouncementController::class, 'trackView'])->name('announcements.track-view');
+    Route::get('announcements/{id}/viewers', [AnnouncementController::class, 'getViewers'])->name('announcements.viewers');
+    Route::delete('announcements/attachment/{id}/remove', [AnnouncementController::class, 'removeAttachment'])->name('announcements.remove-attachment');
+
+
+    // Announcement Categories
+    Route::get('announcement-categories', [AnnouncementCategoryController::class, 'index'])->name('announcement-categories.index');
+    Route::post('announcement-categories', [AnnouncementCategoryController::class, 'store'])->name('announcement-categories.store');
+    Route::put('announcement-categories/{id}', [AnnouncementCategoryController::class, 'update'])->name('announcement-categories.update');
+    Route::delete('announcement-categories/{id}', [AnnouncementCategoryController::class, 'destroy'])->name('announcement-categories.destroy');
+
+    // Announcement Reactions
+    Route::get('announcement-reactions', [AnnouncementReactionController::class, 'index'])->name('announcement-reactions.index');
+    Route::post('announcement-reactions', [AnnouncementReactionController::class, 'store'])->name('announcement-reactions.store');
+    Route::put('announcement-reactions/{id}', [AnnouncementReactionController::class, 'update'])->name('announcement-reactions.update');
+    Route::delete('announcement-reactions/{id}', [AnnouncementReactionController::class, 'destroy'])->name('announcement-reactions.destroy');
+
+    Route::get('daily-schedules/get-weekly-schedules', [DailyScheduleController::class, 'getWeeklySchedules'])->name('daily-schedule.get-weekly-schedules');
+    Route::get('daily-schedules/test-data', [DailyScheduleController::class, 'testData'])->name('daily-schedule.test-data');
+
+    // Export routes for weekly schedule and report
+    Route::get('daily-schedules/export-weekly', [DailyScheduleController::class, 'exportWeekly'])->name('daily-schedules.export-weekly');
+    Route::post('daily-schedules/import-weekly-excel', [DailyScheduleController::class, 'importWeeklyExcel'])->name('daily-schedules.import-weekly-excel');
+    Route::get('daily-schedules/export-weekly-report', [DailyScheduleController::class, 'exportWeeklyReport'])->name('daily-schedules.export-weekly-report');
+
+    // Test export route for debugging
 
     // Grup rute untuk locking, hanya bisa diakses oleh user yang sudah login
     Route::prefix('lock')->controller(LockController::class)->group(function () {
@@ -684,6 +1007,22 @@ Route::group(['middleware' => 'auth'], function () {
         Route::put('/extend', 'extendLock')->name('lock.extend'); // Untuk heartbeat
         Route::delete('/release', 'releaseLock')->name('lock.release');
     });
+
+    Route::get('position-access', [PositionAccessController::class, 'index']);
+    Route::get('position-access-datatables', [PositionAccessController::class, 'getDatatables']);
+    Route::post('position-access-save', [PositionAccessController::class, 'storeData']);
+    Route::post('position-access-delete/{route}/{position_id}', [PositionAccessController::class, 'deleteData']);
+    Route::get('reload_position', [PositionAccessController::class, 'reloadPosition']);
+    Route::post('change_access', [PositionAccessController::class, 'changeAccess']);
+
+    //External Assignment Type
+    Route::get('external_assignment_type', [ExternalAssignmentTypeController::class, 'index'])->name('external_assignment_type');
+    Route::get('external_assignment_type_datatables', [ExternalAssignmentTypeController::class, 'getDatatables']);
+    Route::post('ea_save', [ExternalAssignmentTypeController::class, 'storeData']);
+    Route::post('ea_delete', [ExternalAssignmentTypeController::class, 'deleteData']);
+    Route::post('ea_import', [ExternalAssignmentTypeController::class, 'importData']);
+    Route::post('check_exists_external_assignment_type', [ExternalAssignmentTypeController::class, 'checkExistsExternalTypes']);
+    Route::get('export-perusahaan', [ExternalAssignmentTypeController::class, 'exportData']);
 });
 
 require __DIR__ . '/purchase_order.php';

@@ -1,0 +1,17 @@
+@echo off
+REM Additional Migrations
+php artisan migrate --path=database/migrations/2025_08_11_211656_alter_table_purchase_orders_add_column_dispute_status.php
+php artisan migrate --path=database/migrations/2025_08_18_152321_add_unique_constraint_to_announcement_views.php
+php artisan migrate --path=database/migrations/2025_08_20_031800_add_leave_status_to_attendance_table.php
+php artisan migrate --path=database/migrations/2025_08_21_130136_add_social_login_fields_to_users_table.php
+php artisan migrate --path=database/migrations/2025_08_25_085629_create_break_time_backups_table.php
+php artisan migrate --path=database/migrations/2025_08_26_100201_create_user_divisions_view.php
+php artisan migrate --path=database/migrations/2025_08_26_100307_update_users_table_use_stt_id_for_division.php
+php artisan migrate --path=database/migrations/2025_08_26_113510_add_hr_fields_to_notifications_table.php
+php artisan migrate --path=database/migrations/2025_08_26_113852_update_notifications_table_for_hr.php
+php artisan migrate --path=database/migrations/2025_08_26_125930_safe_create_user_divisions_view.php
+php artisan migrate --path=database/migrations/2025_08_26_130509_safe_update_users_table_add_ud_id.php
+
+php artisan migrate --path=database/migrations/2025_08_27_202533_add_attachment_to_leave_requests_table.php
+php artisan migrate --path=database/migrations/2025_08_28_135028_update_break_times_backup_bt_type_enum.php
+pause

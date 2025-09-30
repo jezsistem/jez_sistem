@@ -26,7 +26,9 @@ class PosTransactionDetail extends Model
         'pos_td_nameset_price',
         'pos_td_nameset',
         'pos_td_description',
-        'created_at'
+        'created_at',
+        'pos_td_item_cogs',
+        'pos_td_item_price_tag',
     ];
 
     public function productStock()
