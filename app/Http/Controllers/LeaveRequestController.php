@@ -854,7 +854,7 @@ class LeaveRequestController extends Controller
         // $this->validateAccess();
 
         $leaveRequest = LeaveRequest::findOrFail($id);
-        dd($leaveRequest);
+        // dd($leaveRequest);
 
         $user_req_divisions = DB::table('users')->first();
 
