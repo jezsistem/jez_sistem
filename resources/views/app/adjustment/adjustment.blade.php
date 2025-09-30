@@ -91,6 +91,7 @@
                                         <th class="text-dark">SKU</th>
                                         <th class="text-dark">Warna</th>
                                         <th class="text-dark">Size</th>
+                                        <th class="text-dark">COGS</th>
                                         <th class="text-dark">Updated</th>
                                         <th class="text-dark">Old Qty</th>
                                         <th class="text-dark">New Qty</th>
