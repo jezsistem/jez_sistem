@@ -28,7 +28,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light-primary font-weight-bold"
-                        data-dismiss="modal">Slose</button>
+                        data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-danger font-weight-bold" id="delete_external_assignment_type_btn"
                         style="display:none;">Hapus</button>
                     <button type="submit" class="btn btn-dark font-weight-bold"

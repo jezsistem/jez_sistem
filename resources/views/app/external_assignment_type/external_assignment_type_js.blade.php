@@ -56,12 +56,12 @@
             external_assignment_type_table.draw();
         });
 
-        $('#DataPerusahaantb tbody').on('click', 'tr', function() {
+        $('#ExternalAssignmenttb tbody').on('click', 'tr', function() {
             var id = external_assignment_type_table.row(this).data().id;
             var ea_name = external_assignment_type_table.row(this).data().ea_name;
             var ea_desc = external_assignment_type_table.row(this).data().ea_desc;
             jQuery.noConflict();
-            $('#DataPerusahaanModal').modal('show');
+            $('#ExternalAssignmentModal').modal('show');
             $('#ea_name').val(ea_name);
             $('#ea_desc').val(ea_desc);
             $('#_id').val(id);
@@ -170,16 +170,14 @@
                             _item: $('#ea_name').val()
                         },
                         dataType: 'json',
-                        url: "{{ url('dp_delete') }}",
+                        url: "{{ url('ea_delete') }}",
                         success: function(r) {
                             if (r.status == '200') {
-                                $('#external_assignment_typeModal').modal('hide');
-                                toastr.success(
-                                'Data berhasil dihapus'); // Change to Toastr success message
+                                $('#ExternalAssignmentModal').modal('hide');
+                                toastr.success('Data berhasil dihapus'); // Change to Toastr success message
                                 external_assignment_type_table.ajax.reload();
                             } else {
-                                toastr.error(
-                                'Gagal hapus data'); // Change to Toastr error message
+                                toastr.error('Gagal hapus data'); // Change to Toastr error message
                             }
                         },
                         error: function() {
