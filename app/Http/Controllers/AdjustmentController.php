@@ -121,7 +121,7 @@ class AdjustmentController extends Controller
     public function adjustmentHistoryDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name', 'ba_approve', 'ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.updated_at as ba_updated_at', 'ba_status')
+            return datatables()->of(BinAdjustment::select('bin_adjustments.id as ba_id', 'ps_barcode', 'pls_id', 'st_name', 'pl_code', 'u_name', 'ba_approve', 'ba_executor', 'br_name', 'p_name', 'p_color', 'sz_name', 'ba_code', 'ba_note', 'ba_old_qty', 'ba_new_qty', 'ba_adjust', 'ba_adjust_type', 'bin_adjustments.updated_at as ba_updated_at', 'ba_status','ba_cogs as cogs')
                 ->leftJoin('users', 'users.id', '=', 'bin_adjustments.u_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'bin_adjustments.pls_id')
                 ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
@@ -412,10 +412,14 @@ class AdjustmentController extends Controller
             $alias = $aliases[$st_name] ?? $st_name;
             $final_note = $alias . ' - ' . ($ba_note ?: '-');
 
+            $cogs = ProductStock::select('ps_purchase_price')->where('id', $pst_id)->get()->first()->ps_purchase_price;
+
             $bin_history = BinAdjustment::create([
                 'pls_id' => $pls_id,
+                'pst_id' => $pst_id,
                 'u_id' => Auth::user()->id,
                 'ba_code' => $ba_code,
+                'ba_cogs' => $cogs,
                 'ba_old_qty' => $pls_qty,
                 'ba_new_qty' => $ba_qty,
                 'ba_adjust' => $adjust_qty,
@@ -462,11 +466,13 @@ class AdjustmentController extends Controller
         $bin = $request->_bin;
         $pl_id = $bin;
         $check_location = ProductLocationSetup::where(['pst_id' => $pst_id, 'pl_id' => $pl_id])->exists();
+        $cogs = ProductStock::select('ps_purchase_price')->where('id', $pst_id)->get()->first()->ps_purchase_price;
         if ($check_location) {
             $pls = ProductLocationSetup::select('id', 'pls_qty')->where(['pst_id' => $pst_id, 'pl_id' => $pl_id])->get()->first();
             $pls_id = $pls->id;
             $pls_current_qty = $pls->pls_qty;
             $ba_code = 'ADJ' . date('YmdHis');
+
 
             $store = ProductLocation::select('st_name')
                 ->leftJoin('stores', 'stores.id', '=', 'product_locations.st_id')
@@ -490,8 +496,10 @@ class AdjustmentController extends Controller
 
             $bin_history = BinAdjustment::create([
                 'pls_id' => $pls_id,
+                'pst_id' => $pst_id,
                 'u_id' => Auth::user()->id,
                 'ba_code' => $ba_code,
+                'ba_cogs' => $cogs,
                 'ba_old_qty' => $pls_current_qty,
                 'ba_new_qty' => $pls_current_qty + $pls_qty,
                 'ba_adjust' => $pls_qty,
@@ -516,8 +524,10 @@ class AdjustmentController extends Controller
                 $ba_code = 'ADJ' . date('YmdHis');
                 $bin_history = BinAdjustment::create([
                     'pls_id' => $insert_id,
+                    'pst_id' => $pst_id,
                     'u_id' => Auth::user()->id,
                     'ba_code' => $ba_code,
+                    'ba_cogs' => $cogs,
                     'ba_old_qty' => '0',
                     'ba_new_qty' => $pls_qty,
                     'ba_adjust' => $pls_qty,
@@ -603,7 +613,8 @@ class AdjustmentController extends Controller
             'bin_adjustments.created_at as ba_created',
             'ba_status',
             'approved_at',
-            'execute_at'
+            'execute_at',
+            'ba_cogs as cogs'
         )
             ->leftJoin('users', 'users.id', '=', 'bin_adjustments.u_id')
             ->leftJoin('users as executor', 'executor.id', '=', 'bin_adjustments.ba_executor')
@@ -643,7 +654,8 @@ class AdjustmentController extends Controller
             'ba_created' => $data->ba_created ?? null,
             'ba_status' => $data->ba_status ?? null,
             'approved_at' => $data->approved_at ?? null,
-            'execute_at' => $data->execute_at ?? null
+            'execute_at' => $data->execute_at ?? null,
+            'cogs' => $data->cogs ?? null
         ];
 
         if ($data) {

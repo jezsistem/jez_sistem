@@ -274,8 +274,7 @@ class MassAdjustmentController extends Controller
         if (request()->ajax()) {
             return datatables()->of(
                 DB::table('mass_adjustment_details')
-                    ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date,br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,
-            avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode")
+                    ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date,br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff, ps_purchase_price as purchase, ps_sell_price as sell, ps_barcode")
                     ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
                     ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                     ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -289,21 +288,17 @@ class MassAdjustmentController extends Controller
                     ->groupBy('mass_adjustment_details.id')
             )
                 ->editColumn('purchase', function ($data) {
-                    if (!empty($data->purchase_1)) {
-                        return number_format($data->purchase_1);
-                    } else if (!empty($data->purchase_2)) {
-                        return number_format($data->purchase_2);
-                    } else if (!empty($data->ps_purchase_price)) {
-                        return number_format($data->ps_purchase_price);
+                    if (!empty($data->purchase)) {
+                        return number_format($data->purchase);
                     } else {
-                        return number_format($data->p_purchase_price);
+                        return number_format(0);
                     }
                 })
                 ->editColumn('sell', function ($data) {
-                    if (!empty($data->ps_sell_price)) {
-                        return number_format($data->ps_sell_price);
+                    if (!empty($data->sell)) {
+                        return number_format($data->sell);
                     } else {
-                        return number_format($data->p_sell_price);
+                        return number_format(0);
                     }
                 })
                 ->filter(function ($instance) use ($request) {
@@ -540,6 +535,25 @@ class MassAdjustmentController extends Controller
             'ma_approve_time' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
         ]);
+
+        $mads = DB::table('mass_adjustment_details')
+            ->join('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->where('mass_adjustment_details.ma_id', $ma_id)
+            ->select('mass_adjustment_details.id', 'product_stocks.ps_purchase_price', 'product_stocks.ps_sell_price')
+            ->get();
+
+        foreach ($mads as $mad) {
+            $mad_cogs = $mad->ps_purchase_price ?? 0;
+            $mad_sell_price = $mad->ps_sell_price ?? 0;
+            DB::table('mass_adjustment_details')
+                ->where('id', $mad->id)
+                ->update([
+                    'mad_cogs' => $mad_cogs,
+                    'mad_sell_price' => $mad_sell_price,
+                ]);
+        }
+
         if (!empty($update)) {
             $r['status'] = '200';
         } else {
@@ -659,7 +673,7 @@ class MassAdjustmentController extends Controller
         }
         $data = DB::table('mass_adjustment_details')
             ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,ts_mass_adjustments.ma_approve_time, ts_mass_adjustments.ma_executor_time,
-        avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code, ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time,ts_stores.st_name, ts_stores.st_code")
+            mad_cogs as purchase, mad_sell_price as sell, ps_barcode, ts_mass_adjustments.ma_code, ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type, ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time,ts_stores.st_name, ts_stores.st_code")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -689,18 +703,6 @@ class MassAdjustmentController extends Controller
             ->groupBy('mass_adjustment_details.id')
             ->get()
             ->map(function ($data) {
-                // Determine the purchase price by checking each field in order
-                $purchasePrice = !empty($data->purchase_1) ? round($data->purchase_1, 2) : (!empty($data->purchase_2) ? round($data->purchase_2, 2) : (!empty($data->ps_purchase_price) ? $data->ps_purchase_price :
-                    round($data->p_purchase_price, 2)));
-
-                // Round the purchase price to two decimal places
-                $roundedPurchasePrice = round($purchasePrice, 2);
-
-                // Format the rounded purchase price with two decimal places, using '.' as the decimal separator and ',' as the thousands separator
-                $data->purchase = number_format($roundedPurchasePrice, 2, '.', ',');
-
-                // Determine the sell price, handling the case where ps_sell_price might be empty
-                $data->sell = !empty($data->ps_sell_price) ? number_format($data->ps_sell_price) : number_format($data->p_sell_price);
 
                 $aliases = [
                     'MALANG' => 'MLG',
@@ -744,7 +746,7 @@ class MassAdjustmentController extends Controller
 
         $data = DB::table('mass_adjustment_details')
             ->selectRaw("ts_mass_adjustment_details.id as id, ts_mass_adjustment_details.created_at as adjustment_date, br_name, psc_name, p_name, p_color, sz_name, pl_code, qty_export, qty_so, mad_type, mad_diff,ts_mass_adjustments.ma_approve_time, ts_mass_adjustments.ma_executor_time,
-    avg(ts_purchase_order_article_details.poad_purchase_price) as purchase_2, avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase_1, ps_sell_price, p_sell_price, ps_purchase_price, p_purchase_price, ps_barcode, ts_mass_adjustments.ma_code,ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type,ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time, ts_stores.st_name, ts_stores.st_code")
+            mad_cogs as purchase, mad_sell_price as sell, ps_barcode, ts_mass_adjustments.ma_code,ts_mass_adjustments.note_adjustment as adjust_note, ts_mass_adjustments.tipe_adjustment as adjust_type,ts_mass_adjustments.ma_approve_time,ts_mass_adjustments.ma_executor_time, ts_stores.st_name, ts_stores.st_code")
             ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'mass_adjustment_details.pls_id')
             ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
             ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
@@ -774,11 +776,6 @@ class MassAdjustmentController extends Controller
             ->groupBy('mass_adjustment_details.id')
             ->get()
             ->map(function ($data) {
-                $purchasePrice = !empty($data->purchase_1) ? round($data->purchase_1) : (!empty($data->purchase_2) ? round($data->purchase_2) : (!empty($data->ps_purchase_price) ? round($data->ps_purchase_price) :
-                    round($data->p_purchase_price)));
-
-                $data->purchase = round($purchasePrice);
-                $data->sell = !empty($data->ps_sell_price) ? round($data->ps_sell_price) : round($data->p_sell_price);
 
                 $aliases = [
                     'MALANG' => 'MLG',
