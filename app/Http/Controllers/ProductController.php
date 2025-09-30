@@ -378,7 +378,10 @@ class ProductController extends Controller
                     'complement',
                     'consignment',
                     'mp_best_seller',
-                    'mp_stock_masking'
+                    'mp_stock_masking',
+                    'is_everlast',
+                    'is_supersale',
+                    'is_reguler'
                 )
                     ->join('brands', 'brands.id', '=', 'products.br_id')
                     ->join('main_colors', 'main_colors.id', '=', 'products.mc_id')
@@ -758,7 +761,6 @@ class ProductController extends Controller
             $id = $request->input('_id');
             $sz_barcode = $request->input('_sz_barcode');
             $sz_sell_price = $request->input('_sz_sell_price');
-
             $data = [
                 'br_id' => $request->input('br_id'),
                 'pc_id' => $request->input('pc_id'),
@@ -784,9 +786,12 @@ class ProductController extends Controller
                 'subcategory1'  => $request->input('subcatone'),
                 'subcategory2'  => $request->input('subcattwo'),
                 'consignment'    => $request->input('consignment'),
-                'complement'    => $request->input('complement'),
+                'complement'    => $request->input('complement') ?? 0,
                 'mp_best_seller'    => $request->input('mp_best_seller'),
                 'mp_stock_masking'    => $request->input('mp_stock_masking'),
+                'is_everlast'         => $request->input('is_everlast') ?? 0,
+                'is_supersale'       => $request->input('is_supersale') ?? 0,
+                'is_reguler'         => $request->input('is_reguler') ?? 0,
             ];
             $save = $product->storeData($mode, $id, $data);
 
