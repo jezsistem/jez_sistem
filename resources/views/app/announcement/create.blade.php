@@ -204,9 +204,8 @@
                                     </select>
                                 </div>
                                 
-                            <div class="col-md-5">
                                 <!-- Target Type -->
-                                <div class="form-group">
+                                <div class="form-group" style="width: 150px">
                                     <label for="target_date">Target Date <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="target_date" name="target_date" required>
                                 </div>

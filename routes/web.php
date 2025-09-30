@@ -8,6 +8,7 @@ use App\Http\Controllers\PhotoController;
 
 use App\Http\Controllers\TrackingV1Controller;
 use App\Http\Controllers\UserShiftController;
+use App\Models\ExternalAssignmentType;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceEditorController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTypeController;
+use App\Http\Controllers\ExternalAssignmentTypeController;
 
 use App\Http\Controllers\MainColorController;
 use App\Http\Controllers\ColorController;
@@ -1012,6 +1014,15 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('position-access-delete/{route}/{position_id}', [PositionAccessController::class, 'deleteData']);
     Route::get('reload_position', [PositionAccessController::class, 'reloadPosition']);
     Route::post('change_access', [PositionAccessController::class, 'changeAccess']);
+
+    //External Assignment Type
+    Route::get('external_assignment_type', [ExternalAssignmentTypeController::class, 'index'])->name('external_assignment_type');
+    Route::get('external_assignment_type_datatables', [ExternalAssignmentTypeController::class, 'getDatatables']);
+    Route::post('ea_save', [ExternalAssignmentTypeController::class, 'storeData']);
+    Route::post('ea_delete', [ExternalAssignmentTypeController::class, 'deleteData']);
+    Route::post('ea_import', [ExternalAssignmentTypeController::class, 'importData']);
+    Route::post('check_exists_external_assignment_type', [ExternalAssignmentTypeController::class, 'checkExistsExternalTypes']);
+    Route::get('export-perusahaan', [ExternalAssignmentTypeController::class, 'exportData']);
 });
 
 require __DIR__ . '/purchase_order.php';
