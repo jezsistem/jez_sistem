@@ -103,6 +103,7 @@ class POReceiveApprovalController extends Controller
                     st_name,
                     po_invoice,
                     poads_invoice,
+                    receive_at,
                     invoice_date,
                     ts_purchase_order_article_detail_statuses.created_at,
                     ts_purchase_order_article_detail_statuses.updated_at,
@@ -150,6 +151,9 @@ class POReceiveApprovalController extends Controller
                 })
                 ->editColumn('invoice_date_show', function ($data) {
                     return date('d/m/Y', strtotime($data->invoice_date));
+                })
+                ->editColumn('receive_at', function ($data) {
+                    return empty($data->receive_at) ? '-' : date('d/m/Y', strtotime($data->receive_at));
                 })
                 ->editColumn('receive_date_show', function ($data) {
                     if (empty($data->received_date)) {
@@ -285,7 +289,7 @@ class POReceiveApprovalController extends Controller
                     poad_purchase_price, ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty,
                     poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.pay_date,
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, ts_accounts.a_name, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute, ts_purchase_orders.putaway, ts_purchase_orders.status_dispute") // Added stkt_id and tax_id
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute, ts_purchase_orders.putaway, ts_purchase_orders.status_dispute, ts_purchase_order_article_detail_statuses.receive_at") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
