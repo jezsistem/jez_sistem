@@ -2,7 +2,7 @@
 <script src="{{ asset('app') }}/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
 <script src="{{ asset('cdn') }}/jquery.table2excel.js?v2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 <script>
     function format(d) {
         var str = '<table cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;" id="ProductItemtb' + d
@@ -637,6 +637,33 @@
         });
     });
 
+    $('#status_dispute').on('change', function() {
+        var status_disputeValue = $(this).val();
+        var no_order = $('#po_invoice_label').text();
+
+        if (status_disputeValue === "") {
+            return;
+        }
+
+        $.ajax({
+            url: "{{ url('status_dispute_save') }}",
+            type: 'POST',
+            data: {
+                status_dispute: status_disputeValue,
+                po_invoice: no_order,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                console.log(response);
+                toastr.success("Status Dispute berhasil disimpan", "Berhasil");
+            },
+            error: function(xhr) {
+                console.error(xhr);
+                toastr.error("Gagal menyimpan Status Dispute", "Gagal");
+            }
+        });
+    });
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -717,6 +744,11 @@
             order: [
                 [0, 'desc']
             ],
+            rowCallback: function(row, data, index) {
+                if (data.is_no_item == true) {
+                    $(row).css('background-color', '#f8d7da');
+                }
+            }
         });
 
         var product_table = $('#Producttb').DataTable({
@@ -1165,7 +1197,7 @@
             var po_id = purchase_order_table.row(this).data().po_id;
 
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id,'pembelian');
+            const lockResult = await openEditModal('purchase_order', po_id, 'pembelian');
             if (lockResult === false) {
                 return;
             }
@@ -1173,7 +1205,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id,'pembelian');
+                extendLock('purchase_order', po_id, 'pembelian');
             }, 60000);
 
             $.ajaxSetup({
@@ -1215,6 +1247,10 @@
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
                         jQuery('#dp_id').val(r.dp_id).trigger('change');
                         jQuery('#acc_id').val(r.acc_id).trigger('change');
+                        $('#status_dispute').val(r.status_dispute);
+                        $('#total_purchase').val(r.po_total_purchase);
+                        $('#payment_amount').val(r.po_payment_amount);
+                        $('#total_qty').val(r.po_total_qty);
                         reloadArticleDetail(po_id);
                     } else {
                         swal('Error', 'terjadi kesalahan', 'warning');
@@ -1239,8 +1275,15 @@
             });
         });
 
-        $('#add_po_btn').on('click', function() {
-            $('#add_po_btn').prop('disabled', true);
+        $('.add_po_btn').on('click', function() {
+            type = $(this).data('type');
+            if (type == 'with_item') {
+
+            } else if (type == 'without_item') {
+                $('#detail_po').addClass('d-none');
+                $('.without_item_input').removeClass('d-none');
+            }
+            $('.add_po_btn').prop('disabled', true);
             $('#purchase_order_detail_content').html('');
             $.ajaxSetup({
                 headers: {
@@ -1250,6 +1293,9 @@
             $.ajax({
                 type: "POST",
                 dataType: 'json',
+                data: {
+                    _type: type
+                },
                 url: "{{ url('create_po') }}",
                 success: function(r) {
                     if (r.status == '200') {
@@ -1266,7 +1312,10 @@
                         jQuery('#tax_id').val('').trigger('change');
                         jQuery('#dp_id').val('').trigger('change');
                         jQuery('#acc_id').val('').trigger('change');
-                        $('#add_po_btn').prop('disabled', false);
+                        jQuery('#total_purchase').val('');
+                        jQuery('#payment_amount').val('');
+                        jQuery('#total_qty').val('');
+                        $('.add_po_btn').prop('disabled', false);
                     } else if (r.status == '219') {
                         jQuery.noConflict();
                         $('#f_po')[0].reset();
@@ -1277,7 +1326,7 @@
                         jQuery('#st_id').val(r.st_id).trigger('change');
                         jQuery('#ps_id').val(r.ps_id).trigger('change');
                         jQuery('#stkt_id').val(r.stkt_id).trigger('change');
-                        $('#add_po_btn').prop('disabled', false);
+                        $('.add_po_btn').prop('disabled', false);
                         reloadArticleDetail(r.po_id);
                     } else {
                         swal('Gagal', 'Gagal membuat PO', 'warning');
@@ -1291,6 +1340,25 @@
             var id = $('#_po_id').val();
             reloadArticleDetail(id);
         });
+
+        function checkRequiredSelects() {
+            let tax_id = $('#tax_id').val();
+            let dp_id = $('#dp_id').val();
+            let acc_id = $('#acc_id').val();
+
+            if (tax_id && dp_id && acc_id) {
+                $('#save_purchase_order_btn').prop('disabled', false);
+            } else {
+                $('#save_purchase_order_btn').prop('disabled', true);
+            }
+        }
+
+        // panggil saat ganti select
+        $('#tax_id, #dp_id, #acc_id').on('change', checkRequiredSelects);
+
+        // panggil awal
+        checkRequiredSelects();
+
 
         $('#save_purchase_order_btn').on('click', function(e) {
             e.preventDefault();
@@ -1327,6 +1395,8 @@
                 }
             });
             purchase_order_table.draw(false);
+
+            $('#detail_po').removeClass('d-none');
         });
 
         $('#add_product_btn').on('click', function() {
@@ -1484,6 +1554,80 @@
                 }
             });
         });
+
+        $('#total_purchase').on('change', function() {
+            var total_purchase = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _total_purchase: total_purchase
+                },
+                url: "{{ url('po_total_purchase') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        //swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
+        $('#payment_amount').on('change', function() {
+            var payment_amount = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _payment_amount: payment_amount
+                },
+                url: "{{ url('po_payment_amount') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {}
+                }
+            });
+        });
+
+        $('#total_qty').on('change', function() {
+            var total_qty = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    _po_id: $('#_po_id').val(),
+                    _total_qty: total_qty
+                },
+                url: "{{ url('po_total_qty') }}",
+                success: function(r) {
+                    if (r.status == '200') {
+
+                    } else {
+                        swal('Gagal', 'Gagal mengubah data store', 'warning');
+                    }
+                }
+            });
+        });
+
 
         $('#po_description').on('change', function() {
             var po_description = $(this).val();

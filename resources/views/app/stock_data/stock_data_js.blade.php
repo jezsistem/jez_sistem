@@ -195,9 +195,9 @@
                     d.psc_id = $('#psc_id').val();
                     d.pssc_id = $('#pssc_id').val();
                     d.sz_id = $('#sz_id').val();
-                    // d.gender_id = $('#gender_id').val();
+                    d.gender_id = $('#gender_id').val();
                     d.p_name = $('#p_name').val();
-                    d.main_color_id = $('#main_color_id').val();
+                    // d.main_color_id = $('#main_color_id').val();
                     d.display_status = $('#display_status').val();
                     d.st_id = $('#st_id_filter').val();
                     d.is_zero = $('#is_zero').val();
@@ -339,9 +339,14 @@
                 name: 'p_name',
                 orderable: false
             },
+                // {
+                //     data: 'bin',
+                //     name: 'pl_code, orderable: false'
+                // },
                 {
-                    data: 'bin',
-                    name: 'pl_code, orderable: false'
+                    data: 'sa_name',
+                    name: 'sa_name',
+                    orderable: false
                 },
                 {
                     data: 'datetime',
@@ -374,6 +379,58 @@
             ],
         });
 
+        // let filters = {
+        //     pc_id: $('#pc_id').val(),
+        //     psc_id: $('#psc_id').val(),
+        //     pssc_id: $('#pssc_id').val(),
+        //     br_id: $('#br_id').val(),
+        //     sz_id: $('#sz_id').val(),
+        //     min_price: $('#min_price_filter').val(),
+        //     max_price: $('#max_price_filter').val(),
+        //     main_color_id: $('#main_color_id').val(),
+        // };
+
+        var filter_list_table = $('#FilterListtb').DataTable({
+            destroy: true,
+            processing: false,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('filter-products') }}",
+                type: "GET",
+                data: function (d) {
+                    d.st_id        = $('#st_id_filter').val();
+                    d.pc_id        = $('#pc_id').val();
+                    d.psc_id       = $('#psc_id').val();
+                    d.pssc_id      = $('#pssc_id').val();
+                    d.br_id        = $('#br_id').val();
+                    d.sz_id        = $('#sz_id').val();
+                    d.min_price    = $('#min_price_filter').val();
+                    d.max_price    = $('#max_price_filter').val();
+                    d.main_color_id= $('#main_color_id').val();
+                }
+            },
+            columns: [
+                { data: 'article_id', name: 'article_id' },
+                { data: 'p_name', name: 'p_name' },
+                { data: 'SKU', name: 'ps_barcode' },
+                { data: 'sz_name', name: 'sizes.sz_name' },
+                { data: 'harga', orderable: false, searchable: false },
+                { data: 'bin', name: 'pl_code' },
+                { data: 'qty', name: 'qty' },
+                { data: 'action', orderable: false, searchable: false },
+            ],
+            columnDefs: [{
+                "targets": 0,
+                "className": "text-left",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
         var waiting_list_table = $('#WaitingListtb').DataTable({
             destroy: true,
             processing: false,
@@ -383,15 +440,20 @@
             ajax: {
                 url: "{{ url('waiting_list_datatables') }}",
                 data: function (d) {
-                    d.search = $('#pick_data_search').val();
+                    d.search = $('#waiting_data_search').val();
                     d.st_id = "{{ $data['user']->st_id }}";
                 }
             },
             columns: [{
-                data: 'article',
-                name: 'p_name',
+                data: 'article_id',
+                name: 'article_id',
                 orderable: false
             },
+                {
+                    data: 'article',
+                    name: 'p_name',
+                    orderable: false
+                },
                 {
                     data: 'bin',
                     name: 'pl_code, orderable: false'
@@ -501,6 +563,10 @@
             pickup_list_table.draw();
         });
 
+        $('#waiting_data_search').on('keyup', function () {
+            waiting_list_table.draw();
+        });
+
         // $('#aging_search').on('keyup', function() {
         //     aging_table.draw();
         // });
@@ -545,8 +611,21 @@
 
         $(document).delegate('#pickup_item', 'click', function (e) {
             e.preventDefault();
-            var st_id = $('#st_id_filter').val();
 
+            var pick_access = $(this).attr('data-pick_access'); // ambil nilai pick_access
+
+            // 🔒 Validasi akses pickup
+            if (pick_access == 0 || pick_access === '' || pick_access === null) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak',
+                    text: 'Anda tidak memiliki izin untuk pickup item ini. Hubungi Administrator.',
+                    confirmButtonText: 'OK'
+                });
+                return false; // hentikan proses
+            }
+
+            var st_id = $('#st_id_filter').val();
             var pst_id = $(this).attr('data-pst_id');
             var pl_id = $(this).attr('data-pl_id');
             var qty = $(this).attr('data-qty');
@@ -567,7 +646,7 @@
                     confirmButtonText: 'OK'
                 });
             } else {
-                @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online')
+                @if (strtolower($data['user']->stt_name) == 'offline' || strtolower($data['user']->stt_name) == 'online' || $data['user']->pick_access == 1)
                 if (st_id == {{ $data['user']->st_id }}) {
                     // Fetch the articles_promo data first
                     let article_id = $(this).data('p_article');
@@ -591,25 +670,29 @@
                             let getTotalDiscountPrice = '';
 
                             if (response.data && response.data.length > 0) {
-                                promoInfo = '';
-                                promoPrice = '';
+                                let promoData = [];
 
                                 response.data.forEach(function (promo) {
-                                    let originalPrice = promo
-                                        .p_price_tag; // Harga asli
-                                    let discount = promo
-                                        .promo_disc; // Persentase diskon
+                                    let originalPrice = promo.p_price_tag; // Harga asli
+                                    let discount = promo.promo_disc; // Persentase diskon
 
                                     // Hitung harga setelah diskon
-                                    let discountedPrice = originalPrice - (
-                                        originalPrice * (discount / 100));
+                                    let discountedPrice = originalPrice - (originalPrice * (discount / 100));
 
-                                    promoInfo += 'Promo: ' + discount + '% - ' +
-                                        promo.promo_name + "";
-                                    promoPrice += 'Discount Price: ' +
-                                        discountedPrice.toLocaleString(
-                                            'id-ID') + "\n";
+                                    promoData.push({
+                                        promo_name: promo.promo_name,
+                                        discount: discount,
+                                        discount_price: discountedPrice
+                                    });
                                 });
+
+                                // Create display strings from the object array
+                                promoInfo = promoData.map(function(item) {
+                                    return 'Promo: ' + item.discount + '% - ' +
+                                        item.promo_name + '\nDiscount Price: Rp ' + item.discount_price.toLocaleString('id-ID');
+                                }).join('\n\n');
+
+                                promoPrice = '';
 
                             } else {
                                 promoInfo = 'No promo available for this article.';
@@ -621,7 +704,8 @@
                                 title: sa_name,
                                 text: "Yakin pickup item " + p_name +
                                     " dari area  " +
-                                    sa_name + " ?\n\nPromotions:\n" + promoInfo +
+                                    sa_name + " ?\n\nPromotions:\n" +
+                                    promoInfo +
                                     "\n" +
                                     promoPrice,
                                 icon: "warning",
@@ -655,10 +739,29 @@
                                                 pickup_list_table
                                                     .draw();
                                             } else {
-                                                toast('Gagal',
-                                                    'Gagal pickup item',
-                                                    'error');
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: r
+                                                            .title ??
+                                                        'Gagal',
+                                                    text: r
+                                                            .message ??
+                                                        'Gagal pickup item'
+                                                });
                                             }
+                                        },
+                                        error: function (xhr) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: xhr
+                                                        .responseJSON
+                                                        ?.title ??
+                                                    'Error',
+                                                text: xhr
+                                                        .responseJSON
+                                                        ?.message ??
+                                                    'Terjadi kesalahan'
+                                            });
                                         }
                                     });
                                     return false;
@@ -707,9 +810,23 @@
                                         stock_data_table.draw();
                                         pickup_list_table.draw();
                                     } else {
-                                        toast('Gagal', 'Gagal pickup item',
-                                            'error');
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: r.title ?? 'Gagal',
+                                            text: r.message ??
+                                                'Gagal pickup item'
+                                        });
                                     }
+                                },
+                                error: function (xhr) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: xhr.responseJSON
+                                            ?.title ?? 'Error',
+                                        text: xhr.responseJSON
+                                                ?.message ??
+                                            'Terjadi kesalahan'
+                                    });
                                 }
                             });
                             return false;
@@ -718,8 +835,6 @@
                 }
                 @endif
             }
-
-
         });
 
         $(document).delegate('#pickup_approval_item', 'click', function (e) {
@@ -798,10 +913,74 @@
             // stock_data_table.draw();
         });
 
-        $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').on('change',
-            function () {
-                stock_data_table.draw();
-            });
+        // $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id').on('change',
+        //     function () {
+        //         stock_data_table.draw();
+        //     });
+        // $('#filter_list_btn').on('click', function () {
+        //     $('#br_id, #pc_id, #psc_id, #pssc_id, #sz_id, #gender_id, #p_name, #main_color_id')
+        //         .on('change', function () {
+        //             stock_data_table.draw();
+        //         });
+        // });
+
+        // $('#filter_list_btn').on('click', function () {
+        //     stock_data_table.draw();
+        // });
+
+        // $('#filter_list_btn').on('click', function () {
+        //     jQuery.noConflict();
+        //     $('#FilterListModal').on('show.bs.modal', function () {
+        //         waiting_list_table.draw();
+        //     }).modal('show');
+        // });
+
+
+
+
+
+
+        // disini yaaa
+        {{--$(document).on('click', '#filter_list_btn', function () {--}}
+
+        {{--    let filters = {--}}
+        {{--        pc_id: $('#pc_id').val(),--}}
+        {{--        psc_id: $('#psc_id').val(),--}}
+        {{--        pssc_id: $('#pssc_id').val(),--}}
+        {{--        br_id: $('#br_id').val(),--}}
+        {{--        sz_id: $('#sz_id').val(),--}}
+        {{--        min_price: $('#min_price_filter').val(),--}}
+        {{--        max_price: $('#max_price_filter').val(),--}}
+        {{--        main_color_id: $('#main_color_id').val(),--}}
+        {{--    };--}}
+
+        {{--    console.log(filters)--}}
+
+        {{--    $('#FilterListModal').modal('show');--}}
+
+        {{--    if ($.fn.DataTable.isDataTable('#FilterListtb')) {--}}
+        {{--        $('#FilterListtb').DataTable().destroy();--}}
+        {{--    }--}}
+
+        {{--    $('#FilterListtb').DataTable({--}}
+        {{--        processing: true,--}}
+        {{--        serverSide: true,--}}
+        {{--        ajax: {--}}
+        {{--            url: "{{ url('filter-products') }}",--}}
+        {{--            type: "GET",--}}
+        {{--            data: filters--}}
+        {{--        },--}}
+        {{--        columns: [--}}
+        {{--            { data: 'article_id', name: 'article_id' },--}}
+        {{--            { data: 'sku', name: 'sku' },--}}
+        {{--            { data: 'article', name: 'article' },--}}
+        {{--            { data: 'harga', name: 'harga' },--}}
+        {{--            { data: 'area', name: 'area' },--}}
+        {{--            { data: 'qty', name: 'qty' },--}}
+        {{--            { data: 'action', name: 'action', orderable: false, searchable: false }--}}
+        {{--        ]--}}
+        {{--    });--}}
+        {{--});--}}
 
         $('#br_id').select2({
             multiple: true,
@@ -867,11 +1046,43 @@
             placeholder: "SIZE / UKURAN",
             allowClear: true,
         });
+
         $('#sz_id').on('select2:open', function (e) {
             const evt = "scroll.select2";
             $(e.target).parents().off(evt);
             $(window).off(evt);
         });
+
+        $('#min_price_filter').select2({
+            multiple: false,
+            width: "100%",
+            dropdownParent: $('#min_price_filter_parent'),
+            closeOnSelect: true,
+            placeholder: "MINIMUM PRICE",
+            allowClear: true,
+        });
+
+        $('#min_price_filter').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);
+        });
+
+        $('#max_price_filter').select2({
+            multiple: false,
+            width: "100%",
+            dropdownParent: $('#max_price_filter_parent'),
+            closeOnSelect: true,
+            placeholder: "MAX PRICE",
+            allowClear: true,
+        });
+
+        $('#max_price_filter').on('select2:open', function (e) {
+            const evt = "scroll.select2";
+            $(e.target).parents().off(evt);
+            $(window).off(evt);x
+        });
+
 
         // $('#p_name').select2({
         //     multiple: true,
@@ -971,6 +1182,13 @@
             jQuery.noConflict();
             $('#WaitingListModal').on('show.bs.modal', function () {
                 waiting_list_table.draw();
+            }).modal('show');
+        });
+
+        $('#filter_list_btn').on('click', function () {
+            jQuery.noConflict();
+            $('#FilterListModal').on('show.bs.modal', function () {
+                filter_list_table.draw();
             }).modal('show');
         });
 
@@ -1188,15 +1406,17 @@
                             _pl_code: pl_code
                         },
                         dataType: 'json',
-                        url: "{{ url('cancel_pickup_item') }}",
-                        success: function (r) {
-                            if (r.status == '200') {
-                                toast("Berhasil", "Pickup item berhasil dibatalkan",
-                                    "success");
+                        url: "{{ url('move_to_display_by_waiting_list') }}",
+                        success: function (response) {
+                            if (response.status == '200') {
+                                swal('Berhasil',
+                                    'Pickup item berhasil dipindahkan ke display',
+                                    'success');
+                                waiting_list_table.draw();
                                 pickup_list_table.draw();
                                 stock_data_table.draw();
                             } else {
-                                toast('Gagal', 'Gagal batalkan pickup', 'error');
+                                swal('Gagal', response.message, 'error');
                             }
                         }
                     });
@@ -1208,6 +1428,8 @@
         $('#st_id_filter').on('change', function () {
             stock_data_table.draw();
         });
+
+
 
 
         var scanMode = false;

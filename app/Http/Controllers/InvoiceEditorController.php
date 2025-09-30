@@ -10,6 +10,7 @@ use App\Models\StoreType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\UserActivity;
@@ -98,11 +99,6 @@ class InvoiceEditorController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         $title = WebConfig::select('config_value')->where('config_name', 'app_title')->get()->first()->config_value;
-        if ($user_data->g_name != 'administrator') {
-            if ($this->checkAccess() != 1) {
-                dd("Anda tidak memiliki akses ke fitur ini");
-            }
-        }
         $data = [
             'title' => $title,
             'subtitle' => DB::table('menu_accesses')->where('ma_slug', '=', request()->segment(1))->first()->ma_title,
@@ -629,12 +625,7 @@ class InvoiceEditorController extends Controller
             return datatables()->of(DB::table('invoice_editors')
                 ->select("invoice_editors.id", "pos_invoice", "u_name", "activity", "note", "invoice_editors.created_at", "invoice_editors.updated_at")
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'invoice_editors.pt_id')
-                ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id')
-                ->where(function ($w) use ($user_data) {
-                    if ($user_data->g_name != 'administrator') {
-                        $w->where('invoice_editors.u_id', '=', Auth::user()->id);
-                    }
-                }))
+                ->leftJoin('users', 'users.id', '=', 'invoice_editors.u_id'))
                 ->editColumn('created_at', function ($d) {
                     return date('d/m/Y H:i:s', strtotime($d->created_at));
                 })
@@ -690,6 +681,16 @@ class InvoiceEditorController extends Controller
             if ($value == 'REFUND' || $value == 'CANCEL') {
                 $pos_invoice = PosTransaction::where('id', $id)->get()->first()->pos_invoice;
 
+                $existing = PosTransaction::where('id', $id)->first();
+
+                // Tambahan: Cegah jika status sebelumnya belum 'DONE'
+                if ($existing->pos_status !== 'DONE') {
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'Transaksi belum selesai, tidak dapat di-refund atau cancel.'
+                    ]);
+                }
+
                 $ref_check = PosTransaction::where('pos_invoice', $pos_invoice)
                     ->where('pos_refund', 1)
                     ->whereIn('pos_status', ['REFUND', 'CANCEL'])
@@ -731,7 +732,7 @@ class InvoiceEditorController extends Controller
                         'pos_payment' => -abs($pos_trx_selected->pos_payment)
                     ]);
 
-//                    $bin_refund = DB::table('product_locations')->where('st_id', '=', $pos_trx_selected->st_id)->where('pl_default_refund', 1)->get()->first()->id;
+                    //                    $bin_refund = DB::table('product_locations')->where('st_id', '=', $pos_trx_selected->st_id)->where('pl_default_refund', 1)->get()->first()->id;
 
                     foreach ($pos_details as $detail) {
 
@@ -785,7 +786,7 @@ class InvoiceEditorController extends Controller
                         // Prepare notification parameters
                         $paramsNotif = [
                             'stt_id' => $logisticDivision->id,
-                            'message' => "Refund on order number ". $pos_trx_selected->pos_invoice,
+                            'message' => "Refund on order number " . $pos_trx_selected->pos_invoice,
                             'is_read' => false
                         ];
 
@@ -906,27 +907,62 @@ class InvoiceEditorController extends Controller
         $pt_id = $request->post('pt_id');
         $note = $request->post('note');
 
-        $st_id = PosTransaction::where('id', '=', $pt_id)->get()->first();
+        // Ambil transaksi
+        $transaction = PosTransaction::where('id', $pt_id)->first();
 
-        $store_name = Store::where('id', '=', $st_id->st_id)->get()->first()->st_name;
+        if (!$transaction) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Transaksi tidak ditemukan.'
+            ], 404);
+        }
+
+        // Hentikan proses jika status belum DONE
+        if ($transaction->pos_status !== 'DONE') {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Transaksi belum selesai, status transaksi belum DONE.'
+            ], 422); // proses berhenti DI SINI
+        }
+
+        $store = Store::where('id', $transaction->st_id)->first();
+        $store_name = $store ? $store->st_name : 'UNKNOWN';
 
         $newNote = $store_name . ' - ' . $note;
 
-        $update = DB::table('invoice_editors')->where('pt_id', '=', $pt_id)
+        // Cek apakah data invoice_editors sudah ada untuk pt_id
+        $editor = DB::table('invoice_editors')->where('pt_id', $pt_id)->first();
+
+        if (!$editor) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data invoice_editors belum ada, tidak bisa update.'
+            ], 404);
+        }
+
+        // Hanya update jika data sudah ada
+        $update = DB::table('invoice_editors')
+            ->where('pt_id', $pt_id)
             ->update([
                 'note' => $newNote,
                 'status' => '1',
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => now(),
             ]);
 
-        if (!empty($update)) {
-            $r['status'] = 200;
+        if ($update) {
+            return response()->json([
+                'status' => 200,
+                'message' => 'Sesi berhasil diselesaikan.'
+            ]);
         } else {
-            $r['status'] = 400;
+            return response()->json([
+                'status' => 400,
+                'message' => 'Gagal menyimpan perubahan.'
+            ], 400);
         }
-
-        return json_encode($r);
     }
+
+
 
     public function checkInvoice(Request $request)
     {
@@ -934,18 +970,7 @@ class InvoiceEditorController extends Controller
         $check = DB::table('pos_transactions')
             ->select('id')
             ->where('pos_invoice', '=', $pos_invoice)
-            ->where('pos_status', '!=', 'CANCEL')
-            ->where(function ($w) {
-                $user = new User;
-                $select = ['g_name'];
-                $where = [
-                    'users.id' => Auth::user()->id
-                ];
-                $user_data = $user->checkJoinData($select, $where)->first();
-                if ($user_data->g_name != 'administrator') {
-                    $w->whereRaw('ts_pos_transactions.created_at  >= now() - INTERVAL 30 DAY');
-                }
-            })->orderBy('id', 'desc')->first();
+            ->where('pos_status', '!=', 'CANCEL')->orderBy('id', 'desc')->first();
         if (!empty($check)) {
             $is_edited = DB::table('invoice_editors')->where([
                 'u_id' => Auth::user()->id,
@@ -992,35 +1017,44 @@ class InvoiceEditorController extends Controller
         $mode = $request->input('_mode');
         $id = $request->input('_id');
 
+        $st_id = $request->post('st_id');
+        $stt_id = $request->post('stt_id');
+        $u_id = $request->post('u_id');
+
+        $unfinished = DB::table('pos_transactions')
+            ->where('st_id', $st_id)
+            ->where('pos_status', '!=', 'DONE')
+            ->exists();
+
+        if ($unfinished) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Masih ada transaksi yang belum selesai untuk store ini. Tidak bisa menambahkan izin editor.'
+            ], 422);
+        }
+
         $data = [
-            'st_id' => $request->post('st_id'),
-            'stt_id' => $request->post('stt_id'),
-            'u_id' => $request->post('u_id'),
+            'st_id' => $st_id,
+            'stt_id' => $stt_id,
+            'u_id' => $u_id,
         ];
 
-        $created = [
-            'created_at' => date('Y-m-d H:i:s')
-        ];
-
-        $updated = [
-            'updated_at' => date('Y-m-d H:i:s')
-        ];
+        $timestamp = ['updated_at' => now()];
 
         if ($mode == 'add') {
-            $data = array_merge($data, $created, $updated);
+            $data = array_merge($data, ['created_at' => now()], $timestamp);
             $save = DB::table('invoice_editor_permissions')->insert($data);
         } else {
-            $data = array_merge($data, $updated);
-            $save = DB::table('invoice_editor_permissions')->where('id', '=', $id)->update($data);
+            $data = array_merge($data, $timestamp);
+            $save = DB::table('invoice_editor_permissions')->where('id', $id)->update($data);
         }
 
-        if ($save) {
-            $r['status'] = '200';
-        } else {
-            $r['status'] = '400';
-        }
-        return json_encode($r);
+        return response()->json([
+            'status' => $save ? 200 : 400,
+            'message' => $save ? 'Data berhasil disimpan.' : 'Gagal menyimpan data.'
+        ], $save ? 200 : 400);
     }
+
 
     public function deletePermissionData(Request $request)
     {
@@ -1033,5 +1067,4 @@ class InvoiceEditorController extends Controller
         }
         return json_encode($r);
     }
-
 }

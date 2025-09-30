@@ -368,28 +368,34 @@ class StockTrackingController extends Controller
         $status = array();
         $status = ['WAITING TO TAKE', 'INSTOCK APPROVAL'];
         if (request()->ajax()) {
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'product_location_setup_transactions.pst_id', 'pl_id', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created')
-                ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'product_location_setup_transactions.pst_id',  'u_name', 'p_name', 'p_color', 'sz_name', 'storage_areas.name as sa_name', 'product_location_setup_transactions.created_at as plst_created')
+                // ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setup_transactions.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                // ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
                 ->leftJoin('users', 'users.id', '=', 'product_location_setup_transactions.u_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                ->leftJoin('storage_areas', 'storage_areas.id', '=', 'product_location_setup_transactions.sa_id')
                 ->whereIn('plst_status', $status)
-                ->where('product_locations.st_id', '=', $st_id)
-                ->where('users.stt_id', '=', Auth::user()->stt_id))
+                ->where('product_location_setup_transactions.pst_id', '!=', null)
+                ->where('product_location_setup_transactions.st_id', '=', $st_id)
+                // ->where('users.stt_id', '=', Auth::user()->stt_id)
+                ->orderBy('product_location_setup_transactions.created_at', 'asc'))
                 ->editColumn('article', function ($data) {
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })
                 ->editColumn('qty', function ($data) {
                     return $data->plst_qty;
                 })
-                ->editColumn('bin', function ($data) {
-                    if (!empty($data->pl_description)) {
-                        return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">[' . $data->pl_code . '] ' . $data->pl_name . ' ' . $data->pl_description . '</span>';
-                    } else {
-                        return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">[' . $data->pl_code . '] ' . $data->pl_name . '</span>';
-                    }
+                // ->editColumn('bin', function ($data) {
+                //     if (!empty($data->pl_description)) {
+                //         return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">[' . $data->pl_code . '] ' . $data->pl_name . ' ' . $data->pl_description . '</span>';
+                //     } else {
+                //         return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">[' . $data->pl_code . '] ' . $data->pl_name . '</span>';
+                //     }
+                // })
+                ->editColumn('sa_name', function ($data) {
+                    return '<span style="white-space: nowrap;">' . $data->sa_name . '</span>';
                 })
                 ->editColumn('datetime', function ($data) {
                     return '<span style="white-space: nowrap;">' . date('d-m-Y H:i:s', strtotime($data->plst_created)) . '</span>';
@@ -414,7 +420,7 @@ class StockTrackingController extends Controller
                         return '<a class="btn btn-sm btn-danger" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-plst_id="' . $data->plst_id . '" data-pls_id="' . $data->pls_id . '" data-pst_id="' . $data->pst_id . '" data-pl_code="' . $data->pl_code . '" data-pl_id="' . $data->pl_id . '" id="cancel_pickup_btn">Batal</a>';
                     }
                 })
-                ->rawColumns(['article', 'qty', 'bin', 'datetime', 'user', 'status', 'action'])
+                ->rawColumns(['article', 'qty', 'sa_name', 'datetime', 'user', 'status', 'action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -438,7 +444,7 @@ class StockTrackingController extends Controller
         $status = array();
         $status = ['WAITING OFFLINE'];
         if (request()->ajax()) {
-            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'product_location_setups.pst_id', 'pl_id', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created')
+            return datatables()->of(ProductLocationSetupTransaction::select('product_location_setup_transactions.id as plst_id', 'plst_qty', 'plst_status', 'pls_id', 'product_location_setups.pst_id', 'pl_id', 'u_name', 'p_name', 'p_color', 'sz_name', 'pl_code', 'pl_name', 'pl_description', 'product_location_setup_transactions.created_at as plst_created', 'products.article_id')
                 ->leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
                 ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
@@ -447,8 +453,11 @@ class StockTrackingController extends Controller
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->whereIn('plst_status', $status)
                 ->where('product_locations.st_id', '=', $st_id)
-                ->where('users.stt_id', '=', Auth::user()->stt_id)
-                ->orderBy('product_location_setups.created_at', 'desc'))
+                // ->where('users.stt_id', '=', Auth::user()->stt_id)
+                ->orderBy('product_location_setup_transactions.created_at', 'desc'))
+                ->editColumn('article_id', function ($data) {
+                    return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->article_id . '</span>';
+                })
                 ->editColumn('article', function ($data) {
                     return '<span style="white-space: nowrap; font-weight:bold;" class="btn btn-sm btn-primary">' . $data->p_name . ' ' . $data->p_color . ' [' . $data->sz_name . ']</span>';
                 })
@@ -485,12 +494,12 @@ class StockTrackingController extends Controller
                         return '<a class="btn btn-sm btn-info" data-p_name="' . $data->p_name . ' ' . $data->p_color . ' ' . $data->sz_name . '" data-plst_id="' . $data->plst_id . '" data-pls_id="' . $data->pls_id . '" data-pst_id="' . $data->pst_id . '" data-pl_code="' . $data->pl_code . '" data-pl_id="' . $data->pl_id . '" id="pick_diplay_btn">Pick Display</a>';
                     }
                 })
-                ->rawColumns(['article', 'qty', 'bin', 'datetime', 'user', 'status', 'action'])
+                ->rawColumns(['article', 'qty', 'bin', 'datetime', 'user', 'status', 'action', 'article_id'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
-                            $w->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name) LIKE ?', "%$search%");
+                            $w->orWhereRaw('CONCAT(p_name," ", p_color," ", sz_name, " ", article_id) LIKE ?', "%$search%");
                         });
                     }
                 })
@@ -520,23 +529,36 @@ class StockTrackingController extends Controller
 
     public function pickupItem(Request $request)
     {
-//        dd($request->_sa_id);
-//        $pls_id = $request->_pls_id;
+        //        dd($request->_sa_id);
+        //        $pls_id = $request->_pls_id;
         $pst_id = $request->_pst_id;
-//        $pl_id = $request->_pl_id;
-//        $pl_code = $request->_pl_code;
-//        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
+        //        $pl_id = $request->_pl_id;
+        //        $pl_code = $request->_pl_code;
+        //        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->get()->first();
         $st_id = $request->_st_id;
         $sa_id = $request->_sa_id;
 
-//        dd($request);
+        $user = DB::table('users')
+            ->select('pick_access')
+            ->where('id', Auth::user()->id)
+            ->first();
 
-//        dd($pls_id);
+        if (!$user || $user->pick_access != 1) {
+            return response()->json([
+                'status'  => '403',
+                'title' => 'Akses Ditolak',
+                'message' => 'Anda tidak memiliki Pick Up Access. Hubungi Administrator.'
+            ], 403);
+        }
 
-//        $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
-////            'pls_qty' => ($pls->pls_qty - 1),
-//            'updated_at' => date('Y-m-d H:i:s')
-//        ]);
+        //        dd($request);
+
+        //        dd($pls_id);
+
+        //        $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
+        ////            'pls_qty' => ($pls->pls_qty - 1),
+        //            'updated_at' => date('Y-m-d H:i:s')
+        //        ]);
 
         $insert = DB::table('product_location_setup_transactions')->insert([
             'pls_id' => null,
@@ -551,74 +573,74 @@ class StockTrackingController extends Controller
         ]);
 
 
-//        if ($insert) {
-//            dd($insert);
-//        }
+        //        if ($insert) {
+        //            dd($insert);
+        //        }
 
-//        if (!empty($update)) {
-//            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
-//                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-//                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-//                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-//                ->where('product_stocks.id', $pst_id)
-//                ->get()->first();
-//            $this->UserActivity('melakukan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
-//
-//            $st_user = Auth::user()->st_id;
-//            $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
-//            $st_city = $st_name->st_code;
+        //        if (!empty($update)) {
+        //            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+        //                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+        //                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+        //                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+        //                ->where('product_stocks.id', $pst_id)
+        //                ->get()->first();
+        //            $this->UserActivity('melakukan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
+        //
+        //            $st_user = Auth::user()->st_id;
+        //            $st_name = Store::select('st_name', 'st_code')->where('id', $st_user)->first();
+        //            $st_city = $st_name->st_code;
 
-//            $insert = DB::table('product_location_setup_transactions')->insert([
-//                'pls_id' => NULL,
-//                'sa_id'     => $sa_id,
-//                'st_id' => $st_id,
-//                'u_id' => Auth::user()->id,
-//                'plst_qty' => '1',
-//                'plst_type' => 'OUT',
-//                'plst_status' => 'WAITING OFFLINE',
-//                'created_at' => date('Y-m-d H:i:s')
+        //            $insert = DB::table('product_location_setup_transactions')->insert([
+        //                'pls_id' => NULL,
+        //                'sa_id'     => $sa_id,
+        //                'st_id' => $st_id,
+        //                'u_id' => Auth::user()->id,
+        //                'plst_qty' => '1',
+        //                'plst_type' => 'OUT',
+        //                'plst_status' => 'WAITING OFFLINE',
+        //                'created_at' => date('Y-m-d H:i:s')
 
 
-//            if (strtoupper($pl_code) == 'TOKO' && stripos($st_name->st_name, 'ONLINE') === true) {
-//                $insert = DB::table('product_location_setup_transactions')->insert([
-//                    'pls_id' => $pls_id,
-//                    'st_id'  => $st_id,
-//                    'u_id' => Auth::user()->id,
-//                    'plst_qty' => '1',
-//                    'plst_type' => 'OUT',
-//                    'plst_status' => 'WAITING OFFLINE',
-//                    'created_at' => date('Y-m-d H:i:s')
-//                ]);
-//            } else {
-//                if ($st_name && stripos($st_name->st_name, 'ONLINE') === false) {
-//                    $insert = DB::table('product_location_setup_transactions')->insert([
-//                        'pls_id' => $pls_id,
-//                        'st_id'  => $st_id,
-//                        'u_id' => Auth::user()->id,
-//                        'plst_qty' => '1',
-//                        'plst_type' => 'OUT',
-//                        'plst_status' => 'WAITING TO TAKE',
-//                        'created_at' => date('Y-m-d H:i:s')
-//                    ]);
-//                } else {
-//                    dd($pls_id);
-//                    $insert = DB::table('product_location_setup_transactions')->insert([
-//                        'pls_id' => $pls_id,
-//                        'st_id'  => $st_id,
-//                        'u_id' => Auth::user()->id,
-//                        'plst_qty' => '1',
-//                        'plst_type' => 'OUT',
-//                        'plst_status' => 'WAITING ONLINE',
-//                        'created_at' => date('Y-m-d H:i:s')
-//                    ]);
-//                }
-//            }
-//            if (!empty($insert)) {
-//                $r['status'] = '200';
-//            } else {
-//                $r['status'] = '400';
-//            }
-//        }
+        //            if (strtoupper($pl_code) == 'TOKO' && stripos($st_name->st_name, 'ONLINE') === true) {
+        //                $insert = DB::table('product_location_setup_transactions')->insert([
+        //                    'pls_id' => $pls_id,
+        //                    'st_id'  => $st_id,
+        //                    'u_id' => Auth::user()->id,
+        //                    'plst_qty' => '1',
+        //                    'plst_type' => 'OUT',
+        //                    'plst_status' => 'WAITING OFFLINE',
+        //                    'created_at' => date('Y-m-d H:i:s')
+        //                ]);
+        //            } else {
+        //                if ($st_name && stripos($st_name->st_name, 'ONLINE') === false) {
+        //                    $insert = DB::table('product_location_setup_transactions')->insert([
+        //                        'pls_id' => $pls_id,
+        //                        'st_id'  => $st_id,
+        //                        'u_id' => Auth::user()->id,
+        //                        'plst_qty' => '1',
+        //                        'plst_type' => 'OUT',
+        //                        'plst_status' => 'WAITING TO TAKE',
+        //                        'created_at' => date('Y-m-d H:i:s')
+        //                    ]);
+        //                } else {
+        //                    dd($pls_id);
+        //                    $insert = DB::table('product_location_setup_transactions')->insert([
+        //                        'pls_id' => $pls_id,
+        //                        'st_id'  => $st_id,
+        //                        'u_id' => Auth::user()->id,
+        //                        'plst_qty' => '1',
+        //                        'plst_type' => 'OUT',
+        //                        'plst_status' => 'WAITING ONLINE',
+        //                        'created_at' => date('Y-m-d H:i:s')
+        //                    ]);
+        //                }
+        //            }
+        //            if (!empty($insert)) {
+        //                $r['status'] = '200';
+        //            } else {
+        //                $r['status'] = '400';
+        //            }
+        //        }
 
         if ($insert) {
             $r['status'] = '200';
@@ -632,33 +654,30 @@ class StockTrackingController extends Controller
     public
     function cancelPickupItem(Request $request)
     {
-        $plst_id = $request->_plst_id;
-        $pls_id = $request->_pls_id;
-        $pst_id = $request->_pst_id;
-        $pl_id = $request->_pl_id;
-        $pl_code = $request->_pl_code;
+        try {
+            DB::beginTransaction();
 
-        $is_approval = DB::table('product_location_setup_transactions')
-            ->where('id', '=', $plst_id)
-            ->where('is_approval', '=', '1')->first();
-        if (!empty($is_approval)) {
-            $update = DB::table('product_location_setup_transactions')
-                ->where('id', '=', $plst_id)
-                ->update([
-                    'plst_status' => 'INSTOCK APPROVAL',
-                    'is_approval' => '0'
-                ]);
-            $r['status'] = 200;
-            return json_encode($r);
-        }
+            $plst_id = $request->_plst_id;
+            $pls_id = $request->_pls_id;
+            $pst_id = $request->_pst_id;
+            $pl_id = $request->_pl_id;
+            $pl_code = $request->_pl_code;
 
-        $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->first();
-        $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
-            'pls_qty' => ($pls->pls_qty + 1),
-            'updated_at' => now()
-        ]);
+            // $pls = ProductLocationSetup::select('pst_id', 'pls_qty')->where('id', $pls_id)->first();
+            // $update = DB::table('product_location_setups')->where('id', $pls_id)->update([
+            //     'pls_qty' => ($pls->pls_qty + 1),
+            //     'updated_at' => now()
+            // ]);
 
-        if (!empty($update)) {
+            // Simulasi update, jika ingin mengaktifkan update qty, uncomment kode di atas dan baris di bawah ini
+            // if (!empty($update)) {
+            //     // lanjut
+            // } else {
+            //     $r['status'] = '400';
+            //     DB::rollBack();
+            //     return json_encode($r);
+            // }
+
             // Ambil data transaksi sebelum update
             $plst = DB::table('product_location_setup_transactions')->where('id', $plst_id)->first();
 
@@ -671,7 +690,7 @@ class StockTrackingController extends Controller
             ];
 
             // Tambahkan cancel_pickup_time jika status sebelumnya adalah WAITING TO TAKE
-            if ($plst->plst_status === 'WAITING TO TAKE') {
+            if ($plst && $plst->plst_status === 'WAITING TO TAKE') {
                 $updateData['cancel_pickup_time'] = now();
             }
 
@@ -681,18 +700,26 @@ class StockTrackingController extends Controller
                 ->whereIn('plst_status', ['WAITING TO TAKE', 'WAITING ONLINE', 'WAITING OFFLINE', 'EXCHANGE', 'REFUND'])
                 ->update($updateData);
 
-            // Logging
-            $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
-                ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
-                ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
-                ->where('product_stocks.id', $pst_id)
-                ->first();
+            if ($update_plst) {
+                // Logging
+                $item = ProductStock::select('p_name', 'br_name', 'sz_name', 'p_color')
+                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
+                    ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+                    ->where('product_stocks.id', $pst_id)
+                    ->first();
 
-            $this->UserActivity('membatalkan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
-            $r['status'] = '200';
-        } else {
+                $this->UserActivity('membatalkan pickup [' . $item->br_name . '] ' . $item->p_name . ' ' . $item->p_color . ' ' . $item->sz_name . ' pada BIN ' . $pl_code);
+                DB::commit();
+                $r['status'] = '200';
+            } else {
+                DB::rollBack();
+                $r['status'] = '400';
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
             $r['status'] = '400';
+            $r['error'] = $e->getMessage();
         }
 
         return json_encode($r);

@@ -41,6 +41,13 @@
                                     </select>
                                     <div id="st_id_filter_parent"></div>
                                 </div>
+                                <div class="form-group" style="padding-top:22px;">
+                                    <select class="form-control" id="po_status_filter" name="bin_kl_filter" required style="border: 1px solid #ced4da;">
+                                        <option value="">-- Pilih Status Pre Order --</option>
+                                        <option value="0">REPEAT</option>
+                                        <option value="1">LAUNCHING</option>
+                                    </select>
+                                </div>
                                 <!--end: Datatable-->
                                 <div class="card-toolbar">
                                     <!--begin::Dropdown-->

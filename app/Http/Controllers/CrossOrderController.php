@@ -120,6 +120,7 @@ class CrossOrderController extends Controller
             ->leftJoin('pos_transaction_details', 'pos_transaction_details.pt_id', '=', 'pos_transactions.id')
             ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
             ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
+            ->leftJoin('product_stocks', 'product_stocks.id', '=', 'pos_transaction_details.pst_id')
             ->where('pos_transactions.cross_order', '=', '1')
             ->where(function($w) use ($st_id) {
                 $w->where('pos_transactions.st_id_ref', '=', $st_id);
@@ -179,7 +180,7 @@ class CrossOrderController extends Controller
             })
             ->editColumn('pos_status', function($data){
                 $ref_invoice = '';
-                if ($data->pos_status == 'DONE') {
+                if ($data->pos_status == 'DONE' || $data->pos_status == 'DP') {
                     if (!empty($data->pt_id_ref)) {
                         $ref_invoice = PosTransaction::select('pos_invoice')->where('id', $data->pt_id_ref)->get()->first()->pos_invoice;
                         $btn = 'btn-warning';
@@ -257,7 +258,8 @@ class CrossOrderController extends Controller
                         $search = $request->get('search');
                         $w->orWhere('pos_invoice', 'LIKE', "%$search%")
                         ->orWhere('pos_shipping_number', 'LIKE', "%$search%")
-                        ->orWhere('cust_name', 'LIKE', "%$search%");
+                        ->orWhere('cust_name', 'LIKE', "%$search%")
+                        ->orWhere('ps_barcode', 'LIKE', "%$search%");
                     });
                 }
             })
@@ -528,7 +530,7 @@ class CrossOrderController extends Controller
                     'plst_status' => 'INSTOCK'
                 ]);
             } else {
-                $pos = PosTransaction::where('id', '=', $pt_id)->whereNotIn('pos_status', ['CANCEL', 'DONE'])->update([
+                $pos = PosTransaction::where('id', '=', $pt_id)->whereNotIn('pos_status', ['CANCEL', 'DONE', 'DP'])->update([
                     'pos_status' => 'SHIPPING NUMBER'
                 ]);
                 ProductLocationSetupTransaction::where('pt_id', '=', $pt_id)->where('plst_status', '=', 'WAITING ONLINE')->update([
@@ -570,10 +572,19 @@ class CrossOrderController extends Controller
             return response()->json(['status' => '404', 'message' => 'File not found']);
         }
 
-        PosTransaction::where('id', $pt_id)
-            ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
+        $is_dp = PosTransaction::where('id', $pt_id)->whereColumn('pos_payment', '<', 'pos_real_price')->exists();
+
+        if (!$is_dp){
+            PosTransaction::where('id', $pt_id)
+            ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
                 'pos_status' => 'DONE'
             ]);
+        } else{
+            PosTransaction::where('id', $pt_id)
+            ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
+                'pos_status' => 'DP'
+            ]);
+        }
 
         return response()->json(['status' => '200', 'resi_id' => $transaction->pos_resi_file]);
     }
@@ -691,17 +702,20 @@ class CrossOrderController extends Controller
             $waybill = $this->shipmentracking(str_replace(' ', '', $shipping_number), $courier, $pt_id);
             if ($waybill['status'] == '200') {
                 $description = $waybill['data']['summary']['status'];
-                if ($description == 'DELIVERED') {
+                $is_dp = PosTransaction::where('id', $pt_id)->whereColumn('pos_payment', '<', 'pos_real_price')->exists();
+
+                if (!$is_dp){
                     PosTransaction::where('id', $pt_id)
-                    ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
+                    ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
                         'pos_status' => 'DONE'
                     ]);
                 } else {
                     PosTransaction::where('id', $pt_id)
-                    ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
-                        'pos_status' => 'DONE'
+                    ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
+                        'pos_status' => 'DP'
                     ]);
                 }
+                    
                 if ($check) {
                     PosShippingInformation::where('pt_id', $pt_id)->update([
                         'psi_courier' => $courier,
@@ -716,10 +730,20 @@ class CrossOrderController extends Controller
                 }
                 $r['status'] = '200';
             } else {
-                PosTransaction::where('id', $pt_id)
-                ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
-                    'pos_status' => 'DONE'
-                ]);
+                $is_dp = PosTransaction::where('id', $pt_id)->whereColumn('pos_payment', '<', 'pos_real_price')->exists();
+
+                if (!$is_dp){
+                    PosTransaction::where('id', $pt_id)
+                    ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
+                        'pos_status' => 'DONE'
+                    ]);
+                } else {
+                        PosTransaction::where('id', $pt_id)
+                    ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
+                        'pos_status' => 'DP'
+                    ]);
+                }
+                
                 $r['status'] = '200';
             }
         } else {
@@ -743,17 +767,20 @@ class CrossOrderController extends Controller
         if ($waybill['status'] == '200') {
             $description = $waybill['data']['summary']['status'];
             $pt_id = PosTransaction::select('id')->where('pos_shipping_number', $waybill_number)->get()->first()->id;
-            if ($description == 'DELIVERED') {
+            $is_dp = PosTransaction::where('id', $pt_id)->whereColumn('pos_payment', '<', 'pos_real_price')->exists();
+
+            if (!$is_dp){
                 PosTransaction::where('id', $pt_id)
-                ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
+                ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
                     'pos_status' => 'DONE'
                 ]);
             } else {
                 PosTransaction::where('id', $pt_id)
-                ->whereNotIn('pos_status', ['DONE', 'EXCHANGE', 'REFUND'])->update([
-                    'pos_status' => 'DONE'
+                ->whereNotIn('pos_status', ['DONE','DP', 'EXCHANGE', 'REFUND'])->update([
+                    'pos_status' => 'DP'
                 ]);
             }
+            
             PosShippingInformation::leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_shipping_information.pt_id')
             ->where('pos_shipping_number', '=', $waybill_number)->update([
                 'psi_description' => $description

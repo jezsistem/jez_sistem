@@ -118,6 +118,10 @@
                           <td></td>
                        </tr>
                        <tr>
+                          <td><strong>Dynamic Commission</strong></td>
+                          <td></td>
+                       </tr>
+                       <tr>
                           <td><strong>Voucher Xtra Service Fee</strong></td>
                           <td></td>
                        </tr>

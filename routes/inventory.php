@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\B1g1Controller;
+use App\Http\Controllers\CycleCountController;
 use App\Http\Controllers\ExceptionLocationController;
 use App\Http\Controllers\InstockApprovalController;
 use App\Http\Controllers\InstockListController;
@@ -110,6 +111,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('mass_adjustment_cancel', [MassAdjustmentController::class, 'cancelAdjustment']);
 
 
+    //cycle count
+    Route::get('cycle_counts', [CycleCountController::class, 'index']);
+    Route::get('scan_get_item_details', [CycleCountController::class, 'getItemDetails']);
+    Route::get('cycle_counts_insert', [CycleCountController::class, 'createCycleCount']);
+
+
     Route::post('mass_stock_datatables_filter', [MassAdjustmentController::class, 'adjustmentDatatablesFilter']);
 
     // ScanAdjustmentController
@@ -144,6 +151,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('export_start_scan_adjustment_bin', [ScanAdjustmentController::class, 'exportBIN']);
     Route::post('scan_adjustment_qty_update', [ScanAdjustmentController::class, 'updateQty']);
     Route::post('pos_barcode_scan', [PointOfSaleController::class, 'scanBarcode']);
+    Route::get('has_waiting_status', [PointOfSaleController::class, 'hasWaitingStatus']);
 
     // Adjustment
     Route::get('adjustment', [AdjustmentController::class, 'index'])->name('adjustment');
@@ -160,6 +168,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('finish_adjustment', [AdjustmentController::class, 'finishAdjustment']);
     Route::post('add_article_adjustment', [AdjustmentController::class, 'addArticle']);
     Route::post('autocomplete_article', [AdjustmentController::class, 'fetchArticle']);
+    Route::get('get_adjustment_detail/{id}', [AdjustmentController::class, 'getDetailAdjustment']);
+    Route::post('approve_adjustment/{id}', [AdjustmentController::class, 'approveAdjustment']);
+    Route::post('execute_adjustment/{id}', [AdjustmentController::class, 'executeAdjustment']);
+    Route::post('cancel_adjustment/{id}', [AdjustmentController::class, 'cancelAdjustment']);
+    Route::post('reject_adjustment/{id}', [AdjustmentController::class, 'rejectAdjustment']);
 
     // Exception Location
     Route::get('exception_location', [ExceptionLocationController::class, 'index']);
@@ -256,7 +269,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('export_transfer_draft', [StockTransferController::class, 'exportData']);
     Route::post('change_transfer_qty', [StockTransferController::class, 'changeTransferQty']);
     Route::post('import_compare_done_transfer', [StockTransferController::class, 'importCompareDoneTransfer']);
-//    Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
+    // Route::post('sv_transfer_v2', [ProductLocationSetupV2Controller::class, 'productMutation']);
 
     // Stock Transfer Data
     Route::get('data_transfer_stok', [StockTransferDataController::class, 'index'])->name('stock_transfer_data');
@@ -300,7 +313,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('stock_data_reload_brand', [StockDataController::class, 'reloadBrand']);
     Route::post('stock_data_reload_size', [StockDataController::class, 'reloadSize']);
     Route::post('request_count_pickup', [StockDataController::class, 'requestCount']);
+    Route::post('move_to_display_by_waiting_list', [StockDataController::class, 'moveToDisplayByWaitingList']);
 
+    Route::get('filter-products', [StockDataController::class, 'filter'])->name('filter.products');
 
     // Stock Data V1
     Route::get('data_stok_v1', [StockDataV1Controller::class, 'index'])->name('data_stok_v1');
@@ -362,4 +377,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('storage_area_update', [StorageAreaController::class, 'updateData']);
     Route::post('storage_area_link', [StorageAreaController::class, 'linkBinToStorageArea']);
     Route::post('storage_area_unlink', [StorageAreaController::class, 'unlinkBinToStorageArea']);
+    Route::get('reload_storage_area', [StorageAreaController::class, 'reloadStorageArea']);
 });

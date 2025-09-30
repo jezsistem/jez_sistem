@@ -215,6 +215,19 @@
                             <div id="pm_id_offline_parent"></div>
                         </td>
                     </tr>
+                    <tr class="d-none align-items-center justify-content-between" id="sub_payment_offline_content">
+                        <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
+                            <span class="btn-sm btn-primary">Sub Pembayaran</span>
+                        </th>
+                        <td
+                                class=" col-4 border-0 justify-content-end d-flex text-primary font-size-lg font-size-bold px-0 font-size-lg mb-0 font-size-bold text-primary">
+                                <select id="sub_payment_offline" name="sub_payment_offline"> 
+                                    <option value="">- Pilih -</option>
+                                    <option value="3">On Us</option>
+                                    <option value="4">Off Us</option>
+                                </select>
+                        </td>
+                    </tr>
                     <tr class="d-flex align-items-center justify-content-between" id="card_provider_content">
                         <th class="border-0 px-0 font-size-lg mb-0 font-size-bold text-primary">
                             <span class="btn-sm btn-primary">Mesin EDC</span>

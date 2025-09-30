@@ -30,6 +30,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\PreOrderFile;
 
 class PreOrderController extends Controller
 {
@@ -125,7 +126,7 @@ class PreOrderController extends Controller
         ];
         $user_data = $user->checkJoinData($select, $where)->first();
         if (request()->ajax()) {
-            return datatables()->of(PreOrder::select('pre_orders.id as po_id', 'st_name', 'ps_name', 'pre_order_code', 'po_draft', 'pre_orders.created_at as po_created_at')
+            return datatables()->of(PreOrder::select('pre_orders.id as po_id', 'st_name', 'ps_name', 'pre_order_code', 'po_draft', 'po_type', 'preorder_description', 'pre_orders.created_at as po_created_at')
                 ->leftJoin('pre_order_articles', 'pre_order_articles.po_id', '=', 'pre_orders.id')
                 ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                 ->join('stores', 'stores.id', '=', 'pre_orders.st_id')
@@ -196,14 +197,25 @@ class PreOrderController extends Controller
                 })
                 ->rawColumns(['po_status'])
                 ->filter(function ($instance) use ($request) {
+                    // Search input
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
                             $search = $request->get('search');
                             $w->orWhere('pre_order_code', 'LIKE', "%$search%")
                                 ->orWhere('st_name', 'LIKE', "%$search%")
                                 ->orWhere('ps_name', 'LIKE', "%$search%")
-                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', "%$search%");
+                                ->orWhereRaw('CONCAT(p_name," ",p_color) LIKE ?', ["%$search%"]);
                         });
+                    }
+                
+                    // Filter po_type (0 = REPEAT, 1 = LAUNCHING)
+                    if ($request->filled('po_type')) {
+                        $instance->where('po_type', $request->po_type);
+                    }
+                
+                    // Jika kamu juga ingin filter berdasarkan st_id
+                    if ($request->filled('st_id')) {
+                        $instance->where('st_id', $request->st_id);
                     }
                 })
                 ->addIndexColumn()
@@ -297,7 +309,7 @@ class PreOrderController extends Controller
                 $po_id = $draft->id;
                 $po_st_id = $draft->st_id;
 
-                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder')
+                $poa_data = PreOrderArticle::select('pre_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_reminder', 'poa_status')
                     ->leftJoin('products', 'products.id', '=', 'pre_order_articles.pr_id')
                     ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                     ->where(['po_id' => $po_id])->get();
@@ -435,6 +447,9 @@ class PreOrderController extends Controller
             $r['br_id'] = $draft->br_id;
             $r['ss_id'] = $draft->ss_id;
             $r['pre_order_code'] = $draft->pre_order_code;
+            $r['po_type'] = $draft->po_type;
+            $r['preorder_description'] = $draft->preorder_description;
+            $r['po_done'] = $draft->po_done;
         } else {
             $r['status'] = '400';
         }
@@ -733,5 +748,126 @@ class PreOrderController extends Controller
         }
 
         return json_encode($r);
+    }
+
+    public function chooseTypePo(Request $request)
+    {
+        $check = DB::table('pre_orders')->where(['id' => $request->_po_id])->update(['po_type' => $request->_po_type]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function descriptionPreOrder(Request $request)
+    {
+        $check = DB::table('pre_orders')->where(['id' => $request->_po_id])->update(['preorder_description' => $request->_preorder_description]);
+        if (!empty($check)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
+    public function uploadFilePreOrder(Request $request)
+    {
+        $po_id = $request->_po_id;
+        $check = PreOrder::where('id', $po_id)->exists();
+        $success = false;
+
+        if ($check && $request->hasFile('filepreorder')) {
+            $files = $request->file('filepreorder');
+
+            if (is_array($files)) {
+                foreach ($files as $file) {
+                    if ($file->isValid()) {
+                        $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)
+                            . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+                        $destinationPath = public_path('/upload/pre_order_files');
+                        $file->move($destinationPath, $name);
+
+                        PreOrderFile::create([
+                            'pre_order_id' => $po_id,
+                            'file_pre_orders' => $name,
+                        ]);
+
+                        $success = true;
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => $check && $success ? '200' : '400'
+        ]);
+    }
+
+    public function getFilePreOrderDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = $request->get('_po_id');
+
+            $query = PreOrderFile::where('pre_order_id', $po_id)
+                ->whereNotNull('file_pre_orders')
+                ->where('file_pre_orders', '!=', '');
+
+            return datatables()->of($query)
+                ->addColumn('file', function ($data) {
+                    $fileUrl = asset('/upload/pre_order_files/' . $data->file_pre_orders);
+                    return '<a href="' . $fileUrl . '" target="_blank">' . e($data->file_pre_orders) . '</a>';
+                })
+                ->addColumn('action', function ($data) {
+                    return '<button class="btn btn-danger btn-sm delete-file-preorder" data-id="' . $data->id . '">Delete</button>';
+                })
+                ->rawColumns(['file', 'action'])
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
+
+    public function deleteFilePreOrder(Request $request)
+    {
+        $id = $request->id;
+
+        $file = PreOrderFile::find($id);
+
+        if (!$file) {
+            return response()->json([
+                'status' => '404',
+                'message' => 'Data tidak ditemukan'
+            ]);
+        }
+
+        // Hapus file dari folder (opsional)
+        $path = public_path('/upload/pre_order_files/' . $file->file_pre_orders);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+
+        // Hapus dari DB
+        $file->delete();
+
+        return response()->json([
+            'status' => '200',
+            'message' => 'Berhasil dihapus'
+        ]);
+    }
+
+    public function updatePoaDoneStatus($poa_id, Request $request)
+    {
+        $poa = PreOrderArticle::find($poa_id);
+        if ($poa) {
+            $status = $request->input('status'); // Default to 0 if not provided
+
+            $poa->update(['poa_status' => $status]);
+            $this->UserActivity('mengubah status POA ' . $poa->id . ' menjadi ' . ($status ? 'Done' : 'Not Done'));
+            return response()->json(['status' => '200', 'message' => 'Status updated successfully']);
+        }
+        return response()->json(['status' => '404', 'message' => 'Pre Order Article not found']);
     }
 }

@@ -61,7 +61,7 @@
                         </div>
                         <div class="card-body table-responsive">
                             <!--begin: Datatable-->
-                            <input type="search" class="form-control  col-6" id="invoice_tracking_search" placeholder="Cari invoice / nomor resi / customer"/><br/>
+                            <input type="search" class="form-control  col-6" id="invoice_tracking_search" placeholder="Cari invoice / nomor resi / customer / Sku"/><br/>
                             <table class="table table-hover table-checkable" id="CrossOrdertb">
                                 <thead class="bg-light text-dark">
                                     <tr>

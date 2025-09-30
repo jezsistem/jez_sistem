@@ -1,4 +1,17 @@
 <script>
+
+
+    function loadStorageAreas() {
+        $.ajax({
+            type: "GET",
+            dataType: 'html',
+            url: "{{ url('reload_storage_area') }}",
+            success: function(r) {
+                $("#storage_area_select").html(r);
+            }
+        });
+        return false;
+    }
     modal_opened = null;
     function reloadOrderList() {
         var qr = $('#invoice_number').text();
@@ -788,7 +801,7 @@
     let scanner_scan_in_refund = initializeScanner('reader_scan_in_refund');
     let scanner_pick_online = initializeScanner('reader_pick_online');
     let scanner_take_transfer = initializeScanner('reader_take_transfer');
-
+    let scanner_scan_default = initializeScanner('reader_default');
     //
 
     var scan_timer = null;
@@ -821,8 +834,18 @@
                 scan_in_refund_table.ajax.reload();
 
             } else if (modal_opened == 'binModal') {
-                alert(hasil);
-                $('#bin_out_search').val(hasil);
+                // alert(hasil);
+                $('#sku_search').focus().val(hasil);
+
+                // Trigger keyup event with ENTER key using native KeyboardEvent
+                var event = new KeyboardEvent('keyup', {
+                    key: 'Enter',
+                    keyCode: 13,
+                    which: 13,
+                    bubbles: true,
+                    cancelable: true
+                });
+                document.getElementById('sku_search').dispatchEvent(event);
                 // scan_in_refund_table.ajax.reload();
 
             } else if (modal_opened == 'PickOnModal') {
@@ -1397,6 +1420,31 @@
     //     // }
     // });
 
+    $('#close_scan_out_modal').on('click', function() {
+        $('#sku_send').val('');
+        $('#bin_out_search').val('');
+        $('#binTable tbody').empty();
+        $('#sku_search').remove();
+        $('#bin_out_search').prop('disabled', false);
+    });
+
+    $(document).on('click', '.ambil-dari-bin', function(e) {
+        // e.preventDefault();
+        var pl_code = $(this).data('pl_code');
+        var bin_id = $(this).data('bin_id');
+        $('#bin_out_search').focus().val(pl_code).data('bin_id', bin_id);
+
+        // Trigger keyup event with ENTER key using native KeyboardEvent
+        var event = new KeyboardEvent('keyup', {
+            key: 'Enter',
+            keyCode: 13,
+            which: 13,
+            bubbles: true,
+            cancelable: true
+        });
+        document.getElementById('bin_out_search').dispatchEvent(event);
+    });
+
     $(document).on('click', '#pick_get_bin_products', function (e) {
         e.preventDefault();
 
@@ -1431,7 +1479,7 @@
                             <td>${bin.pls_qty}</td>
                             <td>
                                 <button class="btn btn-primary btn-sm ambil-dari-bin"
-                                        data-bin_id="${bin.id}"
+                                        data-bin_id="${bin.pls_id}"
                                         data-pl_code="${bin.pl_code}">
                                     Ambil
                                 </button>
@@ -1448,7 +1496,6 @@
                 modal_opened = 'binModal';
                                 // Tampilkan modal
                 $('#binModal').modal('show');
-
                 // scan_in_table.draw();
                 scanner_scan_bin_out.render(success, error);
 
@@ -1459,6 +1506,7 @@
     $('#bin_out_search').on('keyup', function (event) {
         let searchText = $(this).val().toLowerCase();
         let bin_search = $(this).val();
+        let bin_id = $(this).data('bin_id');
         let matchingRows = [];
 
         let bin = bin_search;
@@ -1524,6 +1572,7 @@
                                             // cari ini
                                             _sku: enteredSku,
                                             _bin: bin,
+                                            _bin_id: bin_id,
                                             _plst_qty: 1,
                                             _plst_id: plst_id,
                                             _status: status
@@ -1585,6 +1634,7 @@
 
 
     $(document).ready(function () {
+        scanner_scan_default.render(success, error);
         $('#binModal').on('shown.bs.modal', function () {
 
             if ($('#bin_out_search').val().trim() === '') {
@@ -1839,6 +1889,7 @@
 
     $(document).delegate('#get_transfer_item', 'click', function() {
         jQuery.noConflict();
+        scanner_scan_default.clear();
 
         var stfd_id = $(this).attr('data-stfd_id');
         var p_name = $(this).attr('data-p_name');
@@ -1849,9 +1900,11 @@
         $('#take_transfer_bin_info').text(bin);
         $('#take_transfer_sku_info').text(barcode);
         $('#take_transfer_qty_info').text(qty);
+        $('#take_transfer_p_name_info').text(p_name);
 
         modal_opened = 'TakeTransferItemModal';
         $('#TakeTransferItemModal').modal('show');
+        $('#_stfd_id').val(stfd_id);
         scanner_take_transfer.render(success, error);
         localStorage.removeItem('take_transfer_item_form_data');
         loadTakeTransferItemFormData();
@@ -1862,7 +1915,6 @@
 
         var cacheKey = 'take_transfer_item_form_data';
         var data = localStorage.getItem(cacheKey);
-        var stfd_id = $('#get_transfer_item').data('stfd_id'); // or get from modal context
 
         if (!data) {
             swal('Kosong', 'Tidak ada data yang akan dikirim', 'warning');
@@ -1898,7 +1950,10 @@
                     url: "{{ url('get_transfer_item') }}",
                     type: "POST",
                     data: {
-                        stfd_id: stfd_id,
+                        stfd_id: $('#_stfd_id').val(),
+                        bin: $('#take_transfer_bin_info').text(),
+                        sku: $('#take_transfer_sku_info').text(),
+                        qty: $('#take_transfer_qty_info').text(),
                     },
                     dataType: 'json',
                     success: function(r) {
@@ -2024,6 +2079,7 @@
     // Clear take_transfer_item_form_data when modal closed
     // Make sure this binding is outside of any other event or function and only bound once
     $(document).ready(function() {
+        loadStorageAreas();
         $('#TakeTransferItemModal').off('hide.bs.modal').on('hide.bs.modal', function() {
             modal_opened = '';
             $('#take_transfer_bin').val('');
@@ -2373,6 +2429,7 @@
 
     jQuery.noConflict();
     $('#out_btn').on('click', function(e) {
+        scanner_scan_bin_out.clear();
         e.preventDefault();
         modal_opened = 'ScanOutModal';
         $('#st_id').val('');
@@ -2401,6 +2458,7 @@
     });
 
     $('#scan_in_btn').on('click', function(e) {
+        scanner_scan_bin_out.clear();
         e.preventDefault();
         modal_opened = 'ScanInModal';
         $('#st_id').val('');
@@ -2414,6 +2472,7 @@
     });
 
     $('#scan_in_refund_btn').on('click', function(e) {
+        scanner_scan_default.clear();
         e.preventDefault();
         modal_opened = 'ScanInRefundModal';
         $('#st_id').val('');
@@ -2438,6 +2497,7 @@
     });
 
     $('#take_online_btn').on('click', function(e) {
+        scanner_scan_default.clear();
         e.preventDefault();
         modal_opened = 'PickOnModal';
         $('#st_id').val('');

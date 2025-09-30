@@ -24,7 +24,7 @@ class InvoiceReportController extends Controller
                 'pos_transactions.id as pt_id', 'pos_transactions.created_at as pos_created', 'pos_invoice', 'pos_shipping', 'pos_unique_code',
                 'pos_admin_cost', 'pos_discount_seller', 'pos_another_cost', 'dv_name', 'cross_order', 'u_name', 'pos_payment', 'pos_payment_partial',
                 'pos_note', 'pm_id', 'pm_id_partial', 'cp_id', 'cp_id_partial', 'cust_name', 'pos_refund', 'pos_status',
-                'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'st_name', 'pos_paid_dp', 'pos_paid_dp_date', 'pos_status', 'pos_order_number')
+                'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'st_name', 'pos_paid_dp', 'pos_paid_dp_date', 'sub_payment','pos_status', 'pos_order_number')
                 ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
                 ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
                 ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
@@ -102,10 +102,10 @@ class InvoiceReportController extends Controller
                     if (!empty($data->pm_id)) {
                         $payment_one = PaymentMethod::select('pm_name')->where('id', '=', $data->pm_id)->get()->first()->pm_name;
                     }
-                    if (!empty($data->cp_id)) {
-                        $card_provider_one = CardProvider::select('cp_name')->where('id', '=', $data->cp_id)->get()->first()->cp_name;
-                    }
-                    return $payment_one . ' ' . $card_provider_one;
+                    // if (!empty($data->cp_id)) {
+                    //     $card_provider_one = CardProvider::select('cp_name')->where('id', '=', $data->cp_id)->get()->first()->cp_name;
+                    // }
+                    return $payment_one;
                 })
                 ->editColumn('payment_two', function ($data) {
                     $payment_two = '';
@@ -113,10 +113,10 @@ class InvoiceReportController extends Controller
                     if (!empty($data->pm_id_partial)) {
                         $payment_two = PaymentMethod::select('pm_name')->where('id', '=', $data->pm_id_partial)->get()->first()->pm_name;
                     }
-                    if (!empty($data->cp_id_partial)) {
-                        $card_provider_two = CardProvider::select('cp_name')->where('id', '=', $data->cp_id_partial)->get()->first()->cp_name;
-                    }
-                    return $payment_two . ' ' . $card_provider_two;
+                    // if (!empty($data->cp_id_partial)) {
+                    //     $card_provider_two = CardProvider::select('cp_name')->where('id', '=', $data->cp_id_partial)->get()->first()->cp_name;
+                    // }
+                    return $payment_two;
                 })
                 ->editColumn('value_admin', function ($data) {
                     $total = 0;
@@ -174,11 +174,25 @@ class InvoiceReportController extends Controller
                         return '-';
                     }
                 })
+                ->editColumn('sub_payment', function ($data) {
+                    switch ($data->sub_payment) {
+                        case 1:
+                            return 'CASH';
+                        case 2:
+                            return 'COD';
+                        case 3:
+                            return 'ON US';
+                        case 4:
+                            return 'OFF US';
+                        default:
+                            return '';
+                    }
+                })
                 ->editColumn('pos_paid_dp_date', function ($data) {
                     if (empty($data->pos_paid_dp_date)) {
                         return '';
                     }
-                    return date('d/m/Y', strtotime($data->pos_paid_dp_date));
+                    return date('d/m/Y H:i', strtotime($data->pos_paid_dp_date));
                 })
                 ->rawColumns(['pos_created', 'u_name', 'pos_invoice', 'cust_name'])
                 ->filter(function ($instance) use ($request) {

@@ -1,4 +1,4 @@
-<script src="{{asset('app') }}/assets/js/modal_lock.js"></script>
+<script src="{{ asset('app') }}/assets/js/modal_lock.js"></script>
 
 <script>
     var approval = '';
@@ -28,6 +28,7 @@
                     d.filter_status = $('#filter_status').val();
                     d.filter_cabang = $('#filter_cabang').val();
                     d.filter_dispute = $('#filter_dispute').val();
+                    d.filter_status_dispute = $('#filter_status_dispute').val();
                     d.date = $('#po_date').val();
 
                 }
@@ -76,9 +77,8 @@
                 // },
             ],
             rowCallback: function(row, data, index) {
-                console.log('Dispute:', data.dispute);
-                if (data.dispute == 1) {
-                    $(row).css('background-color', '#f8d7da'); // Bootstrap's light red alert bg
+                if (data.dispute == 1 && (data.status_dispute == null || data.status_dispute == 1)) {
+                    $(row).css('background-color', '#f8d7da');
                 }
             },
             columnDefs: [{
@@ -106,6 +106,11 @@
 
         $('#filter_dispute').on('change', function() {
             console.log($('#filter_dispute').val())
+            po_approval_table.draw();
+        });
+
+        $('#filter_status_dispute').on('change', function() {
+            console.log($('#filter_status_dispute').val())
             po_approval_table.draw();
         });
 
@@ -196,6 +201,7 @@
             ],
         });
 
+        
         var apd_table = $('#APDtb').DataTable({
             destroy: true,
             processing: true,
@@ -328,8 +334,9 @@
             var stkt_name = po_approval_table.row(this).data().stkt_name;
             var tax_id = po_approval_table.row(this).data().tax_id;
             var a_name = po_approval_table.row(this).data().a_name;
-            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table.row(
-                this).data().created_at.split(' ')[0];
+            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table
+                .row(
+                    this).data().created_at.split(' ')[0];
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
@@ -338,6 +345,7 @@
             var dispute = po_approval_table.row(this).data().dispute;
             var putaway = po_approval_table.row(this).data().putaway;
             var dispute_description = po_approval_table.row(this).data().dispute_description;
+            var status_dispute = po_approval_table.row(this).data().status_dispute;
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
             approval = po_approval_table.row(this).data().u_receive;
@@ -345,6 +353,7 @@
 
             let dispute_text = '';
             let putaway_text = '';
+            let status_dispute_text = '';
 
             if (dispute === 1) {
                 dispute_text = 'Yes';
@@ -361,9 +370,17 @@
             } else {
                 putaway_text = 'Empty';
             }
- 
+
+            if (status_dispute === 1) {
+                status_dispute_text = 'Progress';
+            } else if (status_dispute === 0) {
+                status_dispute_text = 'Closed';
+            } else {
+                status_dispute_text = '';
+            }
+
             // Coba dapatkan lock sebelum buka modal
-            const lockResult = await openEditModal('purchase_order', po_id,'approval_penerimaan');
+            const lockResult = await openEditModal('purchase_order', po_id, 'approval_penerimaan');
             if (lockResult === false) {
                 return;
             }
@@ -371,7 +388,7 @@
             // Mulai interval untuk extend lock setiap 60 detik
             if (window.lockExtendInterval) clearInterval(window.lockExtendInterval);
             window.lockExtendInterval = setInterval(function() {
-                extendLock('purchase_order', po_id,'approval_penerimaan');
+                extendLock('purchase_order', po_id, 'approval_penerimaan');
             }, 60000);
 
             console.log('STORES : ', tgl_terima);
@@ -429,6 +446,7 @@
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
                     $('#putaway').val(putaway_text);
+                    $('#status_dispute').val(status_dispute_text);
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
@@ -595,6 +613,12 @@
                         url: "{{ url('apd_approve') }}",
                         success: function(r) {
                             if (r.status == '200') {
+                                const po_id = $('#_po_id')
+                            .val();
+                                if (po_id) {
+                                    closeEditModal('purchase_order', po_id,
+                                        'approval_penerimaan'); // ✅ panggil fungsi
+                                }
                                 $('#ApproveModal').modal('hide');
                                 po_approval_table.draw(false);
                                 swal("Berhasil", "Data berhasil diapprove",
@@ -613,6 +637,16 @@
                     return false;
                 }
             })
+        });
+
+        $('#close_modal_approve_btn').on('click', function(e) {
+            e.preventDefault();
+            $('#ApproveModal').modal('hide');
+            var po_id = $('#_po_id').val();
+            if (po_id) {
+                closeEditModal('purchase_order', po_id, 'approval_penerimaan');
+            }
+            po_approval_table.draw(false);
         });
 
         jQuery.noConflict();
@@ -672,5 +706,4 @@
 
         cb(start, end, '');
     });
-
 </script>

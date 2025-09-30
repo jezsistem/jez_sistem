@@ -103,7 +103,7 @@ class UserController extends Controller
     {
         if (request()->ajax()) {
             return datatables()->of(User::selectRaw("ts_users.id as uid, ts_groups.id as gr_id, ts_stores.id as st_id, stt_id, u_nip, u_ktp, u_secret_code
-            , u_name, stt_name, st_name, u_email, u_phone, u_address, u_active, delete_access, g_name, u_delete,
+            , u_name, stt_name, st_name, u_email, u_phone, u_address, join_date, u_active, delete_access, g_name, u_delete, pos_access, pick_access,
             count(ts_user_menu_accesses.id) as uma")
                 ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
                 ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
@@ -138,11 +138,27 @@ class UserController extends Controller
                             <span class='slider round'></span>
                         </label>";
                 })
+                ->editColumn('pos_access', function ($data) {
+                    $checked = $data->pos_access == 1 ? 'checked' : '';
+                    return "
+                        <label class='switch'>
+                            <input type='checkbox' $checked data-id='{$data->uid}' class='toggle-posaccesss'>
+                            <span class='slider round'></span>
+                        </label>";
+                })
+                ->editColumn('pick_access', function ($data) {
+                    $checked = $data->pick_access == 1 ? 'checked' : '';
+                    return "
+                        <label class='switch'>
+                            <input type='checkbox' $checked data-id='{$data->uid}' class='toggle-pickaccess'>
+                            <span class='slider round'></span>
+                        </label>";
+                })
                 ->editColumn('action', function ($data) {
                     return '<button type="button" class="btn btn-primary btn-detail " data-uid="' . $data->uid . '">Detail</button>';
                 })
 
-                ->rawColumns(['st_name', 'menu_access', 'delete_access_show', 'u_delete', 'action'])
+                ->rawColumns(['st_name', 'menu_access', 'delete_access_show', 'u_delete', 'pos_access','pick_access','action'])
                 ->filter(function ($instance) use ($request) {
                     if (!empty($request->get('search'))) {
                         $instance->where(function ($w) use ($request) {
@@ -189,6 +205,7 @@ class UserController extends Controller
             'u_email' => $request->u_email,
             'u_phone' => $request->u_phone,
             'u_address' => $request->u_address,
+            'join_date' => $request->join_date,
             'u_active' => $request->u_active,
             'delete_access' => $request->delete_access,
         ];
@@ -344,6 +361,34 @@ class UserController extends Controller
         DB::table('users') // Updated table name
             ->where('id', $request->uid)
             ->update(['u_delete' => $request->u_delete]);
+    
+        return response()->json(['message' => 'Status berhasil diperbarui.']);
+    }
+
+    public function updatePickAccess(Request $request)
+    {
+        $request->validate([
+            'uid' => 'required|exists:users,id', // Removed Rule facade
+            'pick_access' => 'required|in:0,1',
+        ]);
+    
+        DB::table('users') // Updated table name
+            ->where('id', $request->uid)
+            ->update(['pick_access' => $request->pick_access]);
+    
+        return response()->json(['message' => 'Status berhasil diperbarui.']);
+    }
+
+    public function updatePosAccess(Request $request)
+    {
+        $request->validate([
+            'uid' => 'required|exists:users,id', // Removed Rule facade
+            'pos_access' => 'required|in:0,1',
+        ]);
+    
+        DB::table('users') // Updated table name
+            ->where('id', $request->uid)
+            ->update(['pos_access' => $request->pos_access]);
     
         return response()->json(['message' => 'Status berhasil diperbarui.']);
     }

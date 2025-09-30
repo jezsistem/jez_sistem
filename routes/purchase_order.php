@@ -60,6 +60,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_transfer_image', [PurchaseOrderController::class, 'uploadImageTransfer']);
     Route::get('po_invoice_image_datatable', [PurchaseOrderController::class, 'getImageInvoiceDatatables']);
     Route::post('po_transfer_image_delete', [PurchaseOrderController::class, 'deleteImageTransfer']);
+    Route::post('po_total_purchase', [PurchaseOrderController::class, 'totalPurchasePo']);
+    Route::post('po_total_qty', [PurchaseOrderController::class, 'totalQtyPo']);
+    Route::post('po_payment_amount', [PurchaseOrderController::class, 'paymentAmountPo']);
+    Route::post('status_dispute_save', [PurchaseOrderController::class, 'statusdisputeSave']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
@@ -78,6 +82,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
     Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
+    Route::get('purchase-order-receive/export', [PurchaseOrderController::class, 'exportpurchaseorderexport'])
+            ->name('purchase_order_receive.export');
     Route::get('/export-purchase-order/{po_id}', function ($po_id) {
         $timestamp = Carbon::now()->format('Ymd_His');
         $fileName = 'purchase_order_' . $timestamp . '.xlsx';
@@ -120,6 +126,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_receive_detail', [POReceiveApprovalController::class, 'poReceiveDetail']);
     Route::get('apd_export', [POReceiveApprovalController::class, 'exportData']);
 
+    // Pre Order
     Route::get('pre_order', [PreOrderController::class, 'index']);
     Route::get('pre_order_datatables', [PreOrderController::class, 'getDatatables']);
     Route::post('create_pre_order', [PreOrderController::class, 'createPreOrder']);
@@ -136,6 +143,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('check_pre_order_purchase_order', [PreOrderController::class, 'checkPreOrderPurchaseOrder']);
     Route::get('pre_order_article_export', [PreOrderController::class, 'exportPreOrderArticleData']);
     Route::post('pre_order_import', [PreOrderController::class, 'importPreOrderExcel']);
+    Route::post('pre_order_choose_type', [PreOrderController::class, 'chooseTypePo']);
+    Route::post('preorder_description', [PreOrderController::class, 'descriptionPreOrder']);
+    Route::post('upload_file_preorder', [PreOrderController::class, 'uploadFilePreOrder']);
+    Route::get('file_preorder_datatable', [PreOrderController::class, 'getFilePreOrderDatatables']);
+    Route::post('delete_file_preorder', [PreOrderController::class, 'deleteFilePreOrder']);
+    Route::patch('update_poa_done_status/{poa_id}', [PreOrderController::class, 'updatePoaDoneStatus']);
 
     // Purchase Order Article
     Route::post('proa_delete', [PreOrderArticleController::class, 'deleteData']);

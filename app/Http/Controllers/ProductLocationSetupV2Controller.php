@@ -183,10 +183,10 @@ class ProductLocationSetupV2Controller extends Controller
                             $sz_name = '';
                             foreach ($check_pst as $row) {
                                 if (!empty($row->ps_barcode)) {
-                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-2" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a> <a style="white-space: nowrap;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a></div>';
+                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-2" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a> <a style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a></div>';
                                 } else {
-                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;">' . $row->sz_name . '</a> 
-                                                <a class="btn btn-sm btn-primary col-4" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
+                                    $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a> 
+                                                <a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
                                 }
                             }
                             return $sz_name;
@@ -217,8 +217,8 @@ class ProductLocationSetupV2Controller extends Controller
                                 $this->table_row += 1;
                                 $action .= '
                                     <div class="d-flex align-items-center mb-2">
-                                        <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
-                                        <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%;" placeholder="Note" title="Note" value="' . $initial_note . '"/>
+                                        <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%; min-width:150px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                                        <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%; min-width:150px;" placeholder="Note" title="Note" value="' . $initial_note . '"/>
                                     </div>
                                     <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ', document.querySelector(\'.mutation_note' . $this->table_row . '\').value)" id="saveMutation' . $this->table_row . '"></i>';
                             }
@@ -311,9 +311,16 @@ class ProductLocationSetupV2Controller extends Controller
                                 $sz_name = '';
                                 foreach ($check_pst as $row) {
                                     if (!empty($row->ps_barcode)) {
-                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-2" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a> <a style="white-space: nowrap;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a></div>';
+                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;">
+                                            <a class="btn btn-sm btn-primary col-3" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a>
+                                            <a class="btn btn-sm btn-primary col-2" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a>
+                                            <a style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" class="btn btn-sm btn-primary col-7" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->ps_barcode . '</a>
+                                        </div>';
                                     } else {
-                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;"><a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;">' . $row->sz_name . '</a> <a class="btn btn-sm btn-primary col-4" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a></div>';
+                                        $sz_name .= '<div class="pb-2" style="white-space: nowrap;">
+                                            <a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;">' . $row->sz_name . '</a>
+                                            <a class="btn btn-sm btn-primary col-4" style="white-space: nowrap;padding-bottom: 10px;padding-top: 10px;" onclick="return mutation(' . $row->pst_id . ', 0, \'' . $data->p_name . '\', \'' . $data->p_color . '\', \'' . $row->sz_name . '\', ' . $row->pls_qty . ')">' . $row->pls_qty . '</a>
+                                        </div>';
                                     }
                                 }
                                 return $sz_name;
@@ -337,15 +344,15 @@ class ProductLocationSetupV2Controller extends Controller
                             if (!empty($check_pst)) {
                                 $action = '';
                                 foreach ($check_pst as $row) {
-                                    $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->first();
+                                    $initial_pst_get = TempMutasi::where('ps_barcode', $row->ps_barcode)->where('u_id', Auth::user()->id)->first();
                                     $initial_pst = $initial_pst_get ? $initial_pst_get->pls_qty : "";
                                     $initial_note = $initial_pst_get ? $initial_pst_get->notes : "";
 
                                     $this->table_row += 1;
                                     $action .= '
                                 <div class="d-flex align-items-center mb-2">
-                                    <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
-                                    <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%;" placeholder="Note" title="Note" value="' . $initial_note . '"/>                                
+                                    <input data-mutation-qty data-qty="' . $row->pls_qty . '" id="mutation_qty" type="text" class="form-control mutation_qty' . $this->table_row . '" style="padding:10px; margin-right:5px; width: 50%; min-width:150px;" value="' . $initial_pst . '" title="' . $data->p_name . ' ' . $data->p_color . ' ' . $row->sz_name . '"/>
+                                    <input type="text" class="form-control mutation_note' . $this->table_row . '" style="padding:10px; width: 50%; min-width:150px;" placeholder="Note" title="Note" value="' . $initial_note . '"/>
                                 </div>
                                 <i class="fa fa-eye d-none" onclick="return saveMutation(' . $row->pls_id . ', ' . $this->table_row . ', ' . $row->pst_id . ', ' . $row->pls_qty . ', document.querySelector(\'.mutation_note' . $this->table_row . '\').value)" id="saveMutation' . $this->table_row . '"></i>';
                                 }
@@ -443,7 +450,13 @@ class ProductLocationSetupV2Controller extends Controller
                 $notes = $item[3];
                 // get id from barcode
                 $product_id = ProductStock::where('ps_barcode', '=', $barcode)->get()->first();
-                $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->get()->first();
+
+                if (!$product_id) {
+                    $missingBarcode[] = [$start_bin, $barcode];
+                    continue; // Skip to the next item if product_id is not found
+                }
+
+                $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->where('st_id', Auth::user()->st_id)->get()->first();
                 $pls_id = ProductLocationSetup::where('pst_id', '=', $product_id->id)
                     ->where('pl_id', '=', $start_bin_id->id)->get()->first();
 
@@ -1023,7 +1036,7 @@ class ProductLocationSetupV2Controller extends Controller
                 continue; // Skip to the next item if barcode is not found
             }
 
-            $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->get()->first();
+            $start_bin_id = ProductLocation::where('pl_code', '=', $start_bin)->where('st_id', Auth::user()->st_id)->get()->first();
             if (empty($start_bin_id)) {
                 if (!in_array([$start_bin, $barcode], $missingBins)) {
                     $missingBins[] = [$start_bin, $barcode];
@@ -1031,7 +1044,7 @@ class ProductLocationSetupV2Controller extends Controller
                 continue; // Skip to the next item if start bin is not found
             }
 
-            $end_bin_id = ProductLocation::where('pl_code', '=', $end_bin)->get()->first();
+            $end_bin_id = ProductLocation::where('pl_code', '=', $end_bin)->where('st_id', Auth::user()->st_id)->get()->first();
             if (empty($end_bin_id)) {
                 if (!in_array([$end_bin, $barcode], $missingBins)) {
                     $missingBins[] = [$end_bin, $barcode];
@@ -1165,8 +1178,9 @@ class ProductLocationSetupV2Controller extends Controller
             foreach ($processedData as $data) {
                 $pls = ProductLocationSetup::find($data['pls_id']);
                 if ($pls) {
-                    $pls->pls_qty -= $data['pls_qty'];
-                    $pls->save();
+                    $pls->update(['pls_qty' => $pls->pls_qty - $data['pls_qty']]);
+                } else {
+                    return response()->json(['status' => '404', 'message' => 'Data setup tidak ditemukan untuk SKU: ' . $data['ps_barcode']]);
                 }
 
                 $plEnd = ProductLocation::find($data['pl_end']);
@@ -1176,8 +1190,9 @@ class ProductLocationSetupV2Controller extends Controller
                         ->first();
 
                     if ($setup) {
-                        $setup->pls_qty += $data['pls_qty'];
-                        $setup->save();
+                        $setup->update([
+                            'pls_qty' => $setup->pls_qty + $data['pls_qty']
+                        ]);
                     } else {
                         ProductLocationSetup::create([
                             'pl_id' => $plEnd->id,
@@ -1185,6 +1200,8 @@ class ProductLocationSetupV2Controller extends Controller
                             'pls_qty' => $data['pls_qty']
                         ]);
                     }
+                } else {
+                    return response()->json(['status' => '404', 'message' => 'Lokasi tujuan tidak ditemukan untuk SKU: ' . $data['ps_barcode']]);
                 }
 
                 ProductMutation::create([

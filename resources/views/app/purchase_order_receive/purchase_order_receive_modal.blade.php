@@ -102,8 +102,8 @@
                             <label>Deskripsi</label>
                             <textarea class="form-control" name="po_description" id="po_description" rows="3" readonly></textarea>
                         </div>
-                        <div class="col-4">
-                            <label>Tipe Stok * otomatis dari master PO jika diisi oleh tim terkait</label>
+                        <div class="col-4 mt-2">
+                            <label>Tipe Stok</label>
                             <select class="form-control" id="stkt_id" name="stkt_id" required disabled>
                                 <option value="">- Pilih Tipe Stok -</option>
                                 @foreach ($data['stkt_id'] as $key => $value)
@@ -112,7 +112,7 @@
                             </select>
                             <div id="stkt_id_parent"></div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-4 mt-2">
                             <label>Pajak</label>
                             <select class="form-control" id="tax_id" name="tax_id" required disabled>
                                 <option value="">- Pajak -</option>
@@ -122,8 +122,8 @@
                             </select>
                             <div id="tax_id_parent"></div>
                         </div>
-                        <div class="col-4">
-                            <label>Tanggal Terima</label>
+                        <div class="col-4 mt-2">
+                            <label>Tanggal Proses Terima</label>
                             <input type="date" id="receive_date" class="form-control" value=""
                                 max="{{ date('Y-m-d') }}" />
                         </div>
@@ -311,6 +311,14 @@
                             <label> * diisi setelah mengisi kolom terima </label>
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                 onchange="updateCogs()" required />
+                        </div>
+                        <div class="col-4 mt-4">
+                            <label class="badge badge-primary">Status Dispute</label>
+                            <select class="form-control" name="status_dispute" id="status_dispute" required>
+                                <option value="">- Pilih Status -</option>
+                                <option value="1">Progress</option>
+                                <option value="0">Closed</option>
+                            </select>
                         </div>
                         <div class="col-4 mt-4">
                             <label class="badge badge-primary">Putaway</label>
@@ -538,6 +546,13 @@
             <div class="modal-body">
                 <div class="card-body">
                     <div class="container">
+                        <!-- Tombol Add -->
+                        <div class="mb-3">
+                            <button id="addInvoiceImageBtn" class="btn btn-primary float-right mb-3">
+                                <i class="fas fa-plus"></i> Add Invoice
+                            </button>
+                        </div>
+
                         <table id="purchaseOrderInvoiceImagesTb" class="table table-bordered">
                             <thead>
                                 <tr>
@@ -560,6 +575,38 @@
     </div>
 </div>
 <!-- /Modal-->
+
+
+<!-- Modal-->
+<form id="f_upload_invoice_image" enctype="multipart/form-data">
+    @csrf
+    <div class="modal fade" id="UploadImageInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">Upload Gambar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Pilih Gambar Invoice</label>
+                            <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="imageInvoices[]" id="imageInvoices" multiple required/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light-primary font-weight-bold" id="close_import_btn" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-dark font-weight-bold" id="upload_image_invoice_btn">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- /Modal -->
 
 <!-- Modal-->
 <div class="modal fade" id="SuratJalanImageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"

@@ -82,7 +82,8 @@
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_cabang" name="filter_cabang">
+                                            <select class="form-control" id="filter_cabang" name="filter_cabang"
+                                                style="border: 1px solid #ced4da;">
                                                 <option value="">- Pilih Cabang -</option>
                                                 <option value="SURABAYA">Surabaya</option>
                                                 <option value="MALANG">Malang</option>
@@ -93,7 +94,8 @@
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_status" name="filter_status">
+                                            <select class="form-control" id="filter_status" name="filter_status"
+                                                style="border: 1px solid #ced4da;">
                                                 <option value="">- Pilih Status transaksi -</option>
                                                 <option value="approve">Approve</option>
                                                 <option value="wait_cod">Menunggu Pembayaran</option>
@@ -103,12 +105,20 @@
                                         </div>
 
                                         <div class="form-group ml-4" style="padding-top:22px;">
-                                            <select class="form-control" id="filter_dispute" name="filter_dispute">
-                                                <option value="">- Pilih Status Dispute -</option>
+                                            <select class="form-control" id="filter_dispute" name="filter_dispute"
+                                                style="border: 1px solid #ced4da;">
+                                                <option value="">- It Is Dispute? -</option>
                                                 <option value="1">Yes</option>
                                                 <option value="0">No</option>
                                             </select>
-                                            <div id="st_id_filter_parent"></div>
+                                        </div>
+
+                                        <div class="form-group ml-4" style="padding-top:22px;">
+                                            <select class="form-control" name="filter_status_dispute" id="filter_status_dispute" style="border: 1px solid #ced4da;">
+                                                <option value="">- Pilih Status Dispute -</option>
+                                                <option value="1">Progress</option>
+                                                <option value="0">Closed</option>
+                                            </select>
                                         </div>
 
                                         <div class="col text-center">
@@ -122,7 +132,7 @@
                                                         id="kt_dashboard_daterangepicker_date"></span>
                                                     <input type="hidden" id="po_date" />
                                                 </a>
-                                            </div>                                            
+                                            </div>
                                         </div>
 
                                     </div>
@@ -139,7 +149,7 @@
                                             <th class="text-dark">Tgl Terima</th>
                                             <th class="text-dark">Penerima</th>
                                             <th class="text-dark">Approval</th>
-{{--                                            <th class="text-dark">Qty</th>--}}
+                                            {{--                                            <th class="text-dark">Qty</th> --}}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -179,16 +189,31 @@
 
 
         @keyframes dots {
-            0%, 100% { content: ""; }
-            25% { content: "."; }
-            50% { content: ".."; }
-            75% { content: "..."; }
+
+            0%,
+            100% {
+                content: "";
+            }
+
+            25% {
+                content: ".";
+            }
+
+            50% {
+                content: "..";
+            }
+
+            75% {
+                content: "...";
+            }
         }
     </style>
 
 
-    <div id="loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
-        <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%" style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:10px; border-radius:10px;">
+    <div id="loader"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center;">
+        <img src="{{ asset('pos') }}/jez.gif" alt="loading" width="20%"
+            style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); background-color:white; padding:10px; border-radius:10px;">
         <div class="loading-text">Loading<span class="dots">...</span></div>
     </div>
 

@@ -22,7 +22,7 @@
                                     <!--end::Svg Icon-->
                                 </span>Export</a>
                     </div>
-                    <div class="dropdown dropdown-inline mr-2">
+                    <div class="dropdown dropdown-inline mr-10">
                         <a type="button" class="btn btn-light-primary font-weight-bolder" id="ImportModalBtn" aria-haspopup="true" aria-expanded="false">
                                 <span class="svg-icon svg-icon-md">
                                     <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -36,6 +36,9 @@
                                     <!--end::Svg Icon-->
                                 </span>Import</a>
                     </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i aria-hidden="true" class="ki ki-close"></i>
+                    </button>
                     <!--begin::Dropdown Menu-->
                     <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
                         <!--begin::Navigation-->
@@ -230,13 +233,20 @@
                             </div>
                         </div>
                     </div>
-                    
+                    <div class="col-4 mt-5">
+                        <label>Status Dispute</label>
+                        <select class="form-control" name="status_dispute" id="status_dispute" required>
+                            <option value="">- Pilih Status -</option>
+                            <option value="1">Progress</option>
+                            <option value="0">Closed</option>
+                        </select>
+                    </div>
                     <div class="col-4 mt-5">
                         <label>Dispute</label>
                         <textarea class="form-control" placeholder="Deskripsi / Catatan" name="dispute_description" id="dispute_description" rows="3"></textarea>
                     </div>
-                    <div class="col-4 mt-5"></div>
-                    <div class="col-4 mt-5">
+                    {{-- <div class="col-4 mt-5"></div> --}}
+                    <div class="col-4 mt-3 d-flex flex-column">
                         <label class="badge badge-primary">Bukti Gambar Invoice dan Paket                               </label>
                         <div class="row justify-content-start">
                             <a class="input-group col-5" type="button" id="InvoiceImagesBtn" aria-haspopup="true" aria-expanded="false">
@@ -273,11 +283,23 @@
                             </a>
                         </div>
                     </div>
+                    <div class="col-4 mt-5 without_item_input">
+                        <label>Total Pembelian</label>
+                        <input type="number" class="form-control " placeholder="Total Pembelian" name="total_purchase" id="total_purchase" min="0" />
+                    </div>
+                    <div class="col-4 mt-5 without_item_input">
+                        <label>Total Quantity</label>
+                        <input type="number" class="form-control " placeholder="Total Quantity" name="total_qty" id="total_qty" min="0"/>
+                    </div>
+                    <div class="col-4 mt-5 without_item_input">
+                        <label>Nominal Payment</label>
+                        <input type="number" class="form-control " placeholder="Nominal Payment" name="payment_amount" id="payment_amount" min="0" />
+                    </div>
                 </div>
                     
                 <!--end::Row-->
                 <!--begin::Row-->
-                <div class="row mt-4">
+                <div class="row mt-4" id="detail_po">
                     <!--begin::Button-->
                     <div class="col-2 mb-2 mt-4">
                     <a href="#" class="btn-sm btn-primary font-weight-bolder" id="add_product_btn">
@@ -299,7 +321,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light-danger font-weight-bold" style="margin-right: 20px" id="cancel_purchase_order_btn">Hapus PO</button>
-                <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn">Tutup</button>
+                <button type="submit" class="btn btn-dark font-weight-bold" id="save_purchase_order_btn" disabled>Tutup</button>
             </div>
             </form>
         </div>

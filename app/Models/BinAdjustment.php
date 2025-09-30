@@ -20,5 +20,29 @@ class BinAdjustment extends Model
         'ba_adjust_type',
         'ba_note',
         'created_at',
+        'ba_status',
+        'ba_approve',
+        'ba_executor',
+        'approved_at',
+        'execute_at',
     ];
+
+    const UNKNOWN = 0;
+    const NEED_APPROVAL = 1;
+    const NEED_EXECUTION = 2;
+    const CANCEL = 3;
+    const DONE = 4;
+    const REJECTED = 5;
+
+    public static function getStatusOptions()
+    {
+        return [
+            self::UNKNOWN => 'Unknown',
+            self::NEED_APPROVAL => 'Need Approval',
+            self::NEED_EXECUTION => 'Need Execution',
+            self::CANCEL => 'Cancel',
+            self::DONE => 'Done',
+            self::REJECTED => 'Rejected',
+        ];
+    }
 }

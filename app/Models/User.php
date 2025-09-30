@@ -23,7 +23,12 @@ class User extends Authenticatable
         'u_name',
         'u_email',
         'password',
-        'u_photo'
+        'u_photo',
+        'google_id',
+        'avatar',
+        'provider',
+        'google_linked',
+        'google_linked_at'
     ];
 
     /**
@@ -48,11 +53,11 @@ class User extends Authenticatable
     public function roles($id)
     {
         $roles = DB::table($this->table)
-        ->select('groups.id', 'groups.g_name')
-        ->leftJoin('user_groups' , 'user_groups.user_id', '=', 'users.id')
-        ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
-        ->where('user_groups.user_id', $id)
-        ->get()->first();
+            ->select('groups.id', 'groups.g_name')
+            ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
+            ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
+            ->where('user_groups.user_id', $id)
+            ->get()->first();
         return $roles;
     }
 
@@ -69,7 +74,7 @@ class User extends Authenticatable
     {
         $select = array_merge($select, ['stt_name', 'st_name']);
         $affected = DB::table($this->table)
-            ->leftJoin('user_groups' , 'user_groups.user_id', '=', 'users.id')
+            ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
             ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
             ->leftJoin('stores', 'stores.id', '=', 'users.st_id')
             ->leftJoin('store_types', 'store_types.id', '=', 'users.stt_id')
@@ -118,9 +123,102 @@ class User extends Authenticatable
                 return false;
             }
         } catch (\Illuminate\Database\QueryException $ex) {
-            if($ex->getCode() === '23000') {
+            if ($ex->getCode() === '23000') {
                 return false;
             }
         }
+    }
+
+    public static function isAdmin($u_id)
+    {
+        $adminGroupId = DB::table('groups')
+            ->where('g_name', 'administrator')
+            ->value('id');
+
+        if (!$adminGroupId) {
+            return false;
+        }
+
+        return DB::table('user_groups')
+            ->where('user_id', $u_id)
+            ->where('group_id', $adminGroupId)
+            ->exists();
+    }
+
+    public function userDivision()
+    {
+        return $this->belongsTo(UserDivision::class, 'ud_id');
+    }
+
+    public function userPosition()
+    {
+        return $this->belongsTo(UserPosition::class, 'up_id');
+    }
+
+    public function userType()
+    {
+        return $this->belongsTo(UserType::class, 'ut_id');
+    }
+
+    public function dailySchedules()
+    {
+        return $this->hasMany(DailySchedule::class, 'user_id');
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(UserDivision::class, 'ud_id');
+    }
+
+    /**
+     * Google OAuth Helper Methods
+     */
+
+    /**
+     * Check if user has Google account linked
+     */
+    public function hasGoogleAccount()
+    {
+        return !empty($this->google_id);
+    }
+
+    /**
+     * Check if user has local password
+     */
+    public function hasLocalPassword()
+    {
+        return !empty($this->password) && $this->password !== '';
+    }
+
+    /**
+     * Check if user can use Google login
+     */
+    public function canUseGoogleLogin()
+    {
+        return $this->hasGoogleAccount();
+    }
+
+    /**
+     * Check if user can use password login
+     */
+    public function canUsePasswordLogin()
+    {
+        return $this->hasLocalPassword();
+    }
+
+    /**
+     * Get user's avatar (Google or local)
+     */
+    public function getAvatar()
+    {
+        return $this->avatar ?: $this->u_photo;
+    }
+
+    /**
+     * Get user's display name
+     */
+    public function getDisplayName()
+    {
+        return $this->u_name ?: $this->name;
     }
 }

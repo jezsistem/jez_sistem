@@ -28,6 +28,7 @@ use App\Models\ProductLocation;
 use App\Models\ProductMutation;
 use duncan3dc\Speaker\Providers\GoogleProvider;
 use duncan3dc\Speaker\TextToSpeech;
+use Yajra\DataTables\Facades\DataTables;
 
 class StockDataController extends Controller
 {
@@ -87,10 +88,25 @@ class StockDataController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
-            'sz_id' => Size::selectRaw('ts_sizes.id as sz_id, CONCAT(sz_name," (",psc_name,")") as sz')
-                ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
-                ->where('sz_delete', '!=', '1')
-                ->orderBy('sz_name')->pluck('sz', 'sz_id'),
+//            'sz_name' => Size::selectRaw('ts_sizes.id as sz_id, CONCAT(sz_name," (",psc_name,")") as sz')
+//                ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+//                ->where('sz_delete', '!=', '1')
+//                ->orderBy('sz_name')->pluck('sz', 'sz_id'),
+            'sizes' => collect(DB::select("
+                            SELECT DISTINCT
+                                ts_sizes.sz_name,
+                                ts_product_categories.pc_name
+                            FROM ts_sizes
+                            INNER JOIN ts_product_sub_categories
+                                ON ts_product_sub_categories.id = ts_sizes.psc_id
+                            JOIN ts_product_categories
+                                ON ts_product_categories.id = ts_product_sub_categories.pc_id
+                            WHERE ts_sizes.sz_delete != '1'
+                              AND sz_name != ''
+                              AND pc_name NOT IN ('UNKNOWN')
+                            ORDER BY FIELD(ts_product_categories.pc_name, 'FOOTWEAR', 'APPAREL', 'ACCESSORIES'),
+                                     ts_sizes.sz_name ASC
+                        ")),
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
@@ -100,6 +116,8 @@ class StockDataController extends Controller
             'main_color_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
+//        dd($data['sizes']);
 
 //        dd(Auth::user()->st_id);
         return view('app.stock_data.stock_data', compact('data'));
@@ -155,7 +173,6 @@ class StockDataController extends Controller
             ->where('date_start', '<=', $date_now) // Promo sudah berjalan atau dimulai hari ini
             ->where('date_end', '>=', $date_now)   // Promo masih berlaku
             ->orderBy('articles_promo.id', 'desc')
-            ->limit(1)
             ->get();
 
         return response()->json(['data' => $promoData]);
@@ -241,6 +258,7 @@ class StockDataController extends Controller
                         ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                         ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where('product_locations.st_id', '=', $st_id)
                         ->whereNotIn('pl_code', $exception)
                         ->where('p_name', $data->p_name)
@@ -248,9 +266,9 @@ class StockDataController extends Controller
                         ->where(function ($w) use ($sz_id) {
                             if (!empty($sz_id)) {
                                 if (count($sz_id) > 0) {
-                                    $w->whereIn('sz_id', $sz_id);
+                                    $w->whereIn('sz_name', $sz_id);
                                 } else {
-                                    $w->where('sz_id', $sz_id);
+                                    $w->where('sz_name', $sz_id);
                                 }
                             }
                         })
@@ -353,9 +371,9 @@ class StockDataController extends Controller
                                     ->where(function ($w) use ($sz_id) {
                                         if (!empty($sz_id)) {
                                             if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
+                                                $w->whereIn('sz_name', $sz_id);
                                             } else {
-                                                $w->where('sz_id', $sz_id);
+                                                $w->where('sz_name', $sz_id);
                                             }
                                         }
                                     })
@@ -375,9 +393,9 @@ class StockDataController extends Controller
                                     ->where(function ($w) use ($sz_id) {
                                         if (!empty($sz_id)) {
                                             if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
+                                                $w->whereIn('sz_name', $sz_id);
                                             } else {
-                                                $w->where('sz_id', $sz_id);
+                                                $w->where('sz_name', $sz_id);
                                             }
                                         }
                                     })
@@ -398,7 +416,7 @@ class StockDataController extends Controller
                                     }
 
                                     // place to new array
-                                    $areas = DB::table('storage_areas')->pluck('name', 'id')->toArray();
+                                    $areas = DB::table('storage_areas')->where('st_id', $st_id)->pluck('name', 'id')->toArray();
 
 //                                    dd($areas);
 
@@ -530,7 +548,6 @@ class StockDataController extends Controller
 //                                            ->get();
 
 
-
                                         // sampai sini belum bisa mengurangin stok y
                                         $query = DB::table('product_location_setups')
                                             ->select(
@@ -612,16 +629,16 @@ class StockDataController extends Controller
 //                                                    $bin .= '<span title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '" class="btn-sm-custom btn-success" data-p_article="' . $row->article_id . '" data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" data-pl_code="' . $lrow->pl_code . '" data-bin="' . $lrow->ps_barcode . ' ' . $lrow->ps_barcode . '" data-qty="' . $lrow->qty_normal . '" data-pst_id="' . $srow->pst_id . '"  data-pls_id="' . $lrow->pls_id . '" id="pickup_item">' .  $lrow->qty_normal . '</span> ';
 //                                                }
 
-                                                if ($lrow->qty_toko > 0) {
-                                                    $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"  
-                                                    data-p_article="' . $row->article_id . '" 
-                                                    data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
-                                                    data-ps_barcode="' . $lrow->ps_barcode . '"  
-                                                    data-qty="' . $lrow->qty_toko . '" 
-                                                    data-pst_id="' . $srow->pst_id . '" 
-                                                    data-pls_id="' . $lrow->pst_id . '" 
-                                                    id="pickup_item">' . $lrow->qty_toko . '</span> ';
-                                                }
+                                                // if ($lrow->qty_toko > 0) {
+                                                //     $bin .= '<span class="btn-sm-custom btn-info" title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"  
+                                                //     data-p_article="' . $row->article_id . '" 
+                                                //     data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
+                                                //     data-ps_barcode="' . $lrow->ps_barcode . '"  
+                                                //     data-qty="' . $lrow->qty_toko . '" 
+                                                //     data-pst_id="' . $srow->pst_id . '" 
+                                                //     data-pls_id="' . $lrow->pst_id . '" 
+                                                //     id="pickup_item">' . $lrow->qty_toko . '</span> ';
+                                                // }
 //                                                else if ($lrow->qty_normal > 0) {
 //                                                    $bin .= '<span title="[' . $lrow->ps_barcode . '] ' . $lrow->ps_barcode . '"
 //                                                    class="btn-sm-custom btn-success"
@@ -636,18 +653,28 @@ class StockDataController extends Controller
                                                 // Render kolom dinamis per storage area
                                                 foreach ($areas as $idsa => $area) {
                                                     $key = 'qty_' . str_replace([' ', '-'], '_', strtolower($area));
-
                                                     if (isset($lrow->$key) && $lrow->$key > 0) {
-                                                        $bin .= '<span class="btn-sm-custom btn-success" title="Gudang - ' . $area . ' - ' . $idsa .'"  
-                                                        data-p_article="' . $row->article_id . '" 
-                                                        data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
-                                                        data-ps_barcode="' . $lrow->ps_barcode . '"  
-                                                        data-qty="' . $lrow->$key . '" 
-                                                        data-pst_id="' . $srow->pst_id . '" 
-                                                        data-storage_area="' . $area . '" 
-                                                        data-sa_id="' . $idsa . '"
-                                                        data-sa_name = "Gudang - ' . $area . '"
-                                                        id="pickup_item">' . $lrow->$key . '</span> ';
+                                                        // Use blue btn color if sa_name is DISPLAY
+//                                                        $btnClass = (isset($area) && strtoupper($area) === 'STORAGE DISPLAY') ? 'btn-info' : 'btn-success';
+
+                                                        if (isset($area) && strtoupper($area) === 'STORAGE GL3 DEFECT REJECT') {
+                                                            $btnClass = 'custom-defect';
+                                                        } elseif (isset($area) && strtoupper($area) === 'STORAGE DISPLAY') {
+                                                            $btnClass = 'btn-info';
+                                                        } else {
+                                                            $btnClass = 'btn-success';
+                                                        }
+
+                                                        $bin .= '<span class="btn-sm-custom ' . $btnClass . '" title="Gudang - ' . $area . ' - ' . $idsa . '"  
+                                                            data-p_article="' . $row->article_id . '" 
+                                                            data-p_name="' . $row->p_name . ' ' . $row->p_color . ' ' . $srow->sz_name . '" 
+                                                            data-ps_barcode="' . $lrow->ps_barcode . '"  
+                                                            data-qty="' . $lrow->$key . '" 
+                                                            data-pst_id="' . $srow->pst_id . '" 
+                                                            data-storage_area="' . $area . '" 
+                                                            data-sa_id="' . $idsa . '"
+                                                            data-sa_name="Gudang - ' . $area . '"
+                                                            id="pickup_item">' . $lrow->$key . '</span> ';
                                                     }
                                                 }
                                             } else {
@@ -751,11 +778,11 @@ class StockDataController extends Controller
                                 for ($i = 0; $i < $count; $i++) {
                                     $where[] = $sz_id[$i];
                                 }
-                                $w->orWhereIn('sz_id', $where);
+                                $w->orWhereIn('sz_name', $where);
                             } else {
-                                $w->orWhere('sz_id', '=', $sz_id[0]);
+                                $w->orWhere('sz_name', '=', $sz_id[0]);
                             }
-                            $w->where('pls_qty', '>', 0); // Added condition
+                            $w->where('pls_qty', '>=', 0); // Added condition
                         });
                     }
 
@@ -1398,10 +1425,9 @@ class StockDataController extends Controller
 
         $status = ['WAITING TO TAKE', 'INSTOCK APPROVAL'];
 
-        $count = ProductLocationSetupTransaction::leftJoin('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+        $count = ProductLocationSetupTransaction::query()
             ->whereIn('plst_status', $status)
-            ->where('product_locations.st_id', '=', $st_id)->count();
+            ->where('product_location_setup_transactions.st_id', '=', $st_id)->count();
 //            ->where('users.stt_id', '=', Auth::user()->stt_id);
 
 //        var_dump($count);
@@ -1644,6 +1670,75 @@ class StockDataController extends Controller
         ], 200);
     }
 
+    public function filter(Request $request)
+    {
+        // base query pakai Query Builder
+        $query = DB::table('products')
+            ->select([
+                'products.article_id',
+                'products.p_name',
+                'product_stocks.ps_barcode as SKU',
+                'product_stocks.ps_price_tag',
+                'product_stocks.ps_sell_price',
+                'product_locations.pl_code as bin',
+                'product_location_setups.created_at as datetime',
+                'product_location_setups.pls_qty as qty',
+                'sizes.sz_name'
+            ])
+            ->leftJoin('product_stocks', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_location_setups', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->where('pls_qty', '>', 0)
+            ->where('product_locations.st_id', $request->st_id);
+        if ($request->pc_id) {
+            $query->where('products.pc_id', $request->pc_id);
+        }
+        if ($request->psc_id) {
+            $query->where('products.psc_id', $request->psc_id);
+        }
+        if ($request->pssc_id) {
+            $query->where('products.pssc_id', $request->pssc_id);
+        }
+        if ($request->br_id) {
+            $query->where('products.br_id', $request->br_id);
+        }
+        if ($request->filled('sz_id')) {
+            $szIds = (array)$request->input('sz_id');
+            $query->where(function ($q) use ($szIds) {
+                foreach ($szIds as $sz) {
+                    $q->orWhere('sizes.sz_name', 'like', '%' . $sz . '%');
+                }
+            });
+        }
+        if ($request->min_price) {
+            $query->where('product_stocks.ps_sell_price', '>=', $request->min_price);
+        }
+        if ($request->max_price && $request->max_price != '>1000000') {
+            $query->where('product_stocks.ps_sell_price', '<=', $request->max_price);
+        }
+        if ($request->max_price == '>1000000') {
+            $query->where('product_stocks.ps_sell_price', '>', 1000000);
+        }
+        if ($request->main_color_id) {
+            $query->where('products.main_color_id', $request->main_color_id);
+        }
+
+        return DataTables::of($query)
+            ->addColumn('harga', function ($row) {
+                return number_format($row->ps_price_tag, 0, ',', '.') .
+                    " / " . number_format($row->ps_sell_price, 0, ',', '.');
+            })
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-sm btn-success pilih" data-id="' . $row->article_id . '">Pilih</button>';
+            })
+            ->editColumn('datetime', function ($row) {
+                return $row->datetime ? date('d-m-Y H:i', strtotime($row->datetime)) : '-';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
     public function changeDisplayStockData(Request $request)
     {
         DB::beginTransaction();
@@ -1795,6 +1890,231 @@ class StockDataController extends Controller
             $r['status'] = '500';
             $r['message'] = $e->getMessage();
             return json_encode($r);
+        }
+    }
+
+    public function moveToDisplayByWaitingList(Request $request)
+    {
+        $plst_id = $request->input('_plst_id');
+        $user = Auth::user();
+
+        $product_category = ProductLocationSetupTransaction::query()
+            ->select('product_categories.pc_name')
+            ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setup_transactions.pst_id')
+            ->join('products', 'products.id', '=', 'product_stocks.p_id')
+            ->join('product_categories', 'product_categories.id', '=', 'products.pc_id')
+            ->where('product_location_setup_transactions.id', $plst_id)
+            ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+            ->where('product_location_setup_transactions.plst_type', 'OUT')
+            ->where('product_location_setup_transactions.st_id', $user->st_id)
+            ->first();
+
+        if (!$product_category) {
+            return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+        }
+
+        if ($product_category->pc_name != 'FOOTWEAR') {
+            return $this->moveToDisplayApparelAndAcc($plst_id, $user);
+        } else {
+            return $this->moveToDisplayFootware($plst_id, $user);
+        }
+    }
+
+    // harus scan masuk dulu baru tampil ke display
+    private function moveToDisplayFootware($plst_id, $user)
+    {
+        DB::beginTransaction();
+        try {
+            $plst = ProductLocationSetupTransaction::query()
+                ->select('product_location_setup_transactions.id as plst_id', 'product_location_setup_transactions.pls_id', 'product_location_setup_transactions.st_id', 'product_location_setup_transactions.plst_type', 'product_location_setup_transactions.plst_status', 'product_location_setups.pst_id')
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->where('product_location_setup_transactions.id', $plst_id)
+                ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+                ->where('product_location_setup_transactions.plst_type', 'OUT')
+                ->where('product_location_setup_transactions.st_id', $user->st_id)
+                ->first();
+
+            $pls_before = ProductLocationSetup::query()
+                ->where('id', $plst->pls_id)
+                ->first();
+
+            if (!$plst) {
+                return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+            }
+
+            //check toko or display product location setup
+            $pl_id_toko = ProductLocation::select('id')->where('st_id', $user->st_id)->where('pl_code', 'TOKO')->first();
+            if (!$pl_id_toko) {
+                return response()->json(['status' => '404', 'message' => 'Store location not found.']);
+            }
+
+            $check_pls = ProductLocationSetup::where('pl_id', $pl_id_toko->id)
+                ->where('pst_id', $plst->pst_id)
+                ->first();
+
+            if (!$check_pls) {
+                $pls_toko_item = ProductLocationSetup::create([
+                    'pl_id' => $pl_id_toko->id,
+                    'pst_id' => $plst->pst_id,
+                    'pls_qty' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                ProductLocationSetup::where('id', $check_pls->id)
+                    ->where('pl_id', $pl_id_toko->id)
+                    ->where('pst_id', $plst->pst_id)
+                    ->get()->first();
+
+                $pls_toko_item = ProductLocationSetup::find($check_pls->id);
+            }
+
+            if (!$pls_toko_item) {
+                DB::rollBack();
+                return response()->json(['status' => '500', 'message' => 'Failed to update or create product location setup for display.']);
+            }
+
+            //change pl on plst
+            ProductLocationSetupTransaction::where('id', $plst->plst_id)
+                ->update([
+                    'pls_id' => $pls_toko_item->id,
+                ]);
+
+            ProductMutation::create([
+                'pls_id' => $pls_before->id,
+                'pl_id' => $pl_id_toko->id,
+                'u_id' => $user->id,
+                'pmt_old_qty' => $pls_before->pls_qty,
+                'pmt_qty' => 1,
+                'notes' => 'Ganti Display dari data stock',
+                'created_at' => now(),
+            ]);
+
+
+            DB::commit();
+            return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => $e->getMessage()]);
+        }
+    }
+
+    // langsung pindah ke display
+    private function moveToDisplayApparelAndAcc($plst_id, $user)
+    {
+        DB::beginTransaction();
+        try {
+
+            $plst = ProductLocationSetupTransaction::query()
+                ->select(
+                    'product_location_setup_transactions.id as plst_id',
+                    'product_location_setup_transactions.pls_id',
+                    'product_location_setup_transactions.st_id',
+                    'product_location_setup_transactions.plst_type',
+                    'product_location_setup_transactions.plst_status',
+                    'product_location_setups.pst_id'
+                )
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->where('product_location_setup_transactions.id', $plst_id)
+                ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+                ->where('product_location_setup_transactions.plst_type', 'OUT')
+                ->where('product_location_setup_transactions.st_id', $user->st_id)
+                ->first();
+
+            if (!$plst) {
+                return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+            }
+
+            $pl_id_toko = ProductLocation::where('st_id', $user->st_id)->where('pl_code', 'TOKO')->value('id');
+            if (!$pl_id_toko) {
+                return response()->json(['status' => '404', 'message' => 'Store location not found.']);
+            }
+
+            // Update transaction status and type
+            ProductLocationSetupTransaction::where('id', $plst->plst_id)
+                ->update([
+                    'plst_type' => 'IN',
+                    'plst_status' => 'INSTOCK',
+                    'in_stock_time' => now()
+                ]);
+
+            // Update quantity by adding 1
+            ProductLocationSetup::where('id', $plst->pls_id)->increment('pls_qty', 1);
+
+            $pls_id = $plst->pls_id;
+            $pmt_old_qty = ProductLocationSetup::where('id', $pls_id)->value('pls_qty') ?? 0;
+            $pmt_qty = 1;
+            $pst_id = $plst->pst_id;
+
+            $destination = ProductLocationSetup::where(['pl_id' => $pl_id_toko, 'pst_id' => $pst_id])->first();
+
+            if ($destination) {
+                $or_qty = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                if ($pmt_qty > $or_qty) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400']);
+                }
+                $update_destination = ProductLocationSetup::where(['pl_id' => $pl_id_toko, 'pst_id' => $pst_id])
+                    ->update(['pls_qty' => $destination->pls_qty + $pmt_qty]);
+                if ($update_destination) {
+                    $qty_origin = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_origin = ProductLocationSetup::where('id', $pls_id)->update(['pls_qty' => $remain]);
+                    if ($update_origin) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_toko,
+                            'u_id' => $user->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'notes' => 'Ganti Display dari data stock',
+                            'created_at' => now()
+                        ]);
+                        if ($mutation) {
+                            DB::commit();
+                            return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
+                        }
+                    }
+                }
+            } else {
+                $or_qty = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                if ($pmt_qty > $or_qty) {
+                    DB::rollBack();
+                    return response()->json(['status' => '400']);
+                }
+                $insert_destination = ProductLocationSetup::create([
+                    'pls_qty' => $pmt_qty,
+                    'pl_id' => $pl_id_toko,
+                    'pst_id' => $pst_id,
+                    'created_at' => now()
+                ]);
+                if ($insert_destination) {
+                    $qty_origin = ProductLocationSetup::where('id', $pls_id)->value('pls_qty');
+                    $remain = $qty_origin - $pmt_qty;
+                    $update_origin = ProductLocationSetup::where('id', $pls_id)->update(['pls_qty' => $remain]);
+                    if ($update_origin) {
+                        $mutation = ProductMutation::create([
+                            'pls_id' => $pls_id,
+                            'pl_id' => $pl_id_toko,
+                            'u_id' => $user->id,
+                            'pmt_old_qty' => $pmt_old_qty,
+                            'pmt_qty' => $pmt_qty,
+                            'notes' => 'Ganti Display dari data stock',
+                            'created_at' => now(),
+                        ]);
+                        if ($mutation) {
+                            DB::commit();
+                            return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
+                        }
+                    }
+                }
+            }
+
+            DB::rollBack();
+            return response()->json(['status' => '400']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => '500', 'message' => $e->getMessage()]);
         }
     }
 }

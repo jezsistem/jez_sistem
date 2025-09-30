@@ -201,6 +201,10 @@
                             </div>
                         </div>
                         <div class="col-4 mt-3">
+                            <label>Status Dispute</label>
+                            <input type="text" id="status_dispute" class="form-control" name="status_dispute" disabled/>
+                        </div>
+                        <div class="col-4 mt-3">
                             <label>Putaway</label>
                             <input type="text" id="putaway" class="form-control" name="putaway" disabled />
                         </div>
@@ -235,7 +239,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal" id="close_modal_approve_btn">Tutup
                 </button>
                 <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
             </div>

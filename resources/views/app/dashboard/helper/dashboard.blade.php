@@ -12,15 +12,6 @@
                         <h5 class="text-white font-weight-bold mt-2 mb-2 mr-5 ml-5">{{ $data['user']->u_name }}</h5>
                         <!--end::Page Title-->
                     </div>
-                    <select class="form-control form-control-sm ml-3" style="width: auto;" id="storage_area">
-                        <option value="">--- Pilih Lokasi Penyimpanan ---</option>
-                        @forelse ($data['storage_areas'] as $storage_area)
-                            <option value="{{ $storage_area->id }}">
-                                {{ $storage_area->name }}</option>
-                        @empty
-                            
-                        @endforelse
-                    </select>
                 </div>
                 <!--end::Info-->
                 <!--begin::Toolbar-->
@@ -49,6 +40,21 @@
                 <!--begin::Dashboard-->
                 <!--begin::Row-->
                 <div class="row">
+
+                    <div class="col-lg-12 col-xxl-12" id="user_activity_reload">
+                        <!--begin::List Widget 9-->
+                        <div class="card card-custom card-stretch gutter-b">
+                            <!--begin::Header-->
+                            <div class="d-flex align-items-center border-0 mx-4 my-6">
+                                <h3 class="d-flex align-items-center" >Pilih Storage Area :</h3>
+                                <div id="storage_area_select" class=" ml-5" style="width: 80%; font-size: 1.2rem"></div>
+
+                            </div>
+                            <!--end::Header-->
+                        </div>
+                        <!--end: List Widget 9-->
+                    </div>
+                    
                     <div class="col-lg-12 col-xxl-12" id="user_activity_reload">
                         <!--begin::List Widget 9-->
                         <div class="card card-custom card-stretch gutter-b">
@@ -58,14 +64,10 @@
                                 {{--                                <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"  id="data_stok_btn">Data stok</span> --}}
                                 {{--                                <!-- <span class="text-muted mt-3 font-weight-bold font-size-sm">112 Aktifitas terbaru</span> --> --}}
                                 {{--                            </h3> --}}
+                                
                                 <h3 class="card-title align-items-start flex-column">
                                     <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"
                                         id="out_btn">Keluar Rak</span>
-
-                                </h3>
-                                <h3 class="card-title align-items-start flex-column">
-                                    <span class="font-weight-bolder font-size-h3 btn bg-dark text-white"
-                                        id="display_btn">Ganti Display</span>
 
                                 </h3>
                                 {{--                            <h3 class="card-title align-items-start flex-column"> --}}
@@ -181,6 +183,7 @@
         </div>
         <!--end::Entry-->
     </div>
+    <div id="reader_default" style="visibility: hidden;width:50px; height:50px; position:fixed; z-index:-1; left:0; top:0;"></div>
     <!--end::Content-->
     @include('app.dashboard.helper.dashboard_modal')
     @include('app._partials.js')

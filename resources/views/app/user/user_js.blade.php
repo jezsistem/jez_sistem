@@ -314,32 +314,20 @@
                     name: 'st_name'
                 },
                 {
-                    data: 'u_nip',
-                    name: 'u_nip'
-                },
-                {
-                    data: 'u_ktp',
-                    name: 'u_ktp'
-                },
-                {
                     data: 'u_secret_code',
                     name: 'u_secret_code'
                 },
                 {
-                    data: 'u_phone',
-                    name: 'u_phone'
-                },
-                {
-                    data: 'u_email',
-                    name: 'u_email'
-                },
-                {
-                    data: 'u_address',
-                    name: 'u_address'
-                },
-                {
                     data: 'u_delete',
                     name: 'u_delete'
+                },
+                {
+                    data: 'pos_access',
+                    name: 'pos_access'
+                },
+                {
+                    data: 'pick_access',
+                    name: 'pick_access',
                 },
                 {
                     data: 'action',
@@ -398,6 +386,9 @@
             $('#u_password').val('');
             $('#u_address').val(data.u_address);
             jQuery('#u_delete').val(data.u_delete).trigger('change');
+            jQuery('#pos_access').val(data.pos_access).trigger('change');
+            jQuery('#pick_access').val(data.pick_access).trigger('change');
+            $('#join_date').val(data.join_date);
             $('#u_active').val(data.u_active);
             $('#_id').val(data.uid);
             $('#_mode').val('edit');
@@ -732,6 +723,7 @@
             })
 
         });
+
         $(document).on('change', '.toggle-delete', function() {
             let uid = $(this).data('id');
             let isChecked = $(this).is(':checked') ? '0' : '1';
@@ -747,6 +739,50 @@
                 success: function(response) {
                     toastr.success('Data berhasil diubah', 'Berhasil');
                     user_table.draw(false);
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengubah status.', 'Gagal');
+                }
+            });
+        });
+
+        $(document).on('change', '.toggle-posaccesss', function() {
+            let uid = $(this).data('id');
+            let isChecked = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: '/update-pos-access',
+                method: 'POST',
+                data: {
+                    uid: uid,
+                    pos_access: isChecked,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('Data berhasil diubah', 'Berhasil');
+                    // user_table.draw(false);
+                },
+                error: function(xhr) {
+                    toastr.error('Gagal mengubah status.', 'Gagal');
+                }
+            });
+        });
+        
+        $(document).on('change', '.toggle-pickaccess', function() {
+            let uid = $(this).data('id');
+            let isChecked = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: '/update-pick-access',
+                method: 'POST',
+                data: {
+                    uid: uid,
+                    pick_access: isChecked,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toastr.success('Data berhasil diubah', 'Berhasil');
+                    // user_table.draw(false);
                 },
                 error: function(xhr) {
                     toastr.error('Gagal mengubah status.', 'Gagal');

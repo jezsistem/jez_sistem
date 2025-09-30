@@ -33,7 +33,7 @@ class ArticleReportExport implements FromCollection, withHeadings
         if ($this->type == 'article' || $this->type == 'cross') {
             return ["Tanggal", "STORE", "POS Invoice", "Cross", "Customer", "Kasir", "Divisi", "Tipe Stok", "Brand", "SKU", "Artikel", "Warna", "Size", "Kategori", "Sub Kategori", "Sub Sub Kategori", "Qty", "Bandrol", "Harga Beli", "Harga Jual", "Discount", "Total Price", "Total Invoice", "B1G1"];
         } else {
-            return ["Tanggal", "STORE", "POS Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Total before Discount", "Total Discount", "Total", "Jumlah Bayar 1", "Tipe Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Tanggal Bayar Sisa DP", "Status", "Note"];
+            return ["Tanggal", "STORE", "POS Invoice", "Customer", "Cross", "User", "Divisi", "Item Qty", "Item Value", "Ongkir", "Kode Unik", "Biaya Admin", "Biaya Lain", "Nameset", "Total before Discount", "Total Discount", "Total", "Jumlah Bayar 1", "Tipe Bayar 1", "Kartu 1", "Ref 1", "Tipe Bayar 2", "Jumlah Bayar 2", "Kartu 2", "Ref 2", "Sisa DP", "Sub Payment", "Tanggal Bayar Sisa DP", "Status", "Note"];
         }
     }
 
@@ -41,10 +41,43 @@ class ArticleReportExport implements FromCollection, withHeadings
     {
         $export = array();
         if ($this->type == 'article') {
-            $data = DB::table('pos_transaction_details')->select('pos_transaction_details.id as ptd_id', 'st_name', 'pos_transaction_details.created_at as ptd_created', 'pos_transaction_details.pst_id as pst_id', 'pos_invoice', 'cross_order', 'u_name',
-                'dv_name', 'br_name', 'ps_barcode', 'pc_name', 'psc_name', 'pssc_name', 'cust_name', 'p_name', 'p_color', 'pos_td_sell_price', 'sz_name', 'pos_td_qty', 'stkt_name', 'p_purchase_price', 'p_price_tag', 'std_id', 'ps_sell_price', 'pos_td_discount_price',
-                'pos_td_discount_price', 'pos_td_discount','pos_td_marketplace_price', 'pos_status', 'pos_note', 'pos_refund', 'pt_id',
-                'p_purchase_price', 'ps_purchase_price', DB::raw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase", 'poad_total_price', 'poad_qty'))
+            $data = DB::table('pos_transaction_details')->select(
+                'pos_transaction_details.id as ptd_id',
+                'st_name',
+                'pos_transaction_details.created_at as ptd_created',
+                'pos_transaction_details.pst_id as pst_id',
+                'pos_invoice',
+                'cross_order',
+                'u_name',
+                'dv_name',
+                'br_name',
+                'ps_barcode',
+                'pc_name',
+                'psc_name',
+                'pssc_name',
+                'cust_name',
+                'p_name',
+                'p_color',
+                'pos_td_sell_price',
+                'sz_name',
+                'pos_td_qty',
+                'stkt_name',
+                'p_purchase_price',
+                'p_price_tag',
+                'std_id',
+                'ps_sell_price',
+                'pos_td_discount_price',
+                'pos_td_discount_price',
+                'pos_td_discount',
+                'pos_td_marketplace_price',
+                'pos_status',
+                'pos_note',
+                'pos_refund',
+                'pt_id',
+                'p_purchase_price',
+                'ps_purchase_price',
+                DB::raw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase", 'poad_total_price', 'poad_qty')
+            )
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                 ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
                 ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
@@ -111,7 +144,7 @@ class ArticleReportExport implements FromCollection, withHeadings
                     }
 
                     $purchase = 0;
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->poad_total_price)) {
@@ -136,10 +169,40 @@ class ArticleReportExport implements FromCollection, withHeadings
             }
         }
         if ($this->type == 'cross') {
-            $data = DB::table('pos_transaction_details')->select('pos_transaction_details.id as ptd_id', 'st_name', 'pos_transaction_details.created_at as ptd_created', 'pos_transaction_details.pst_id as pst_id', 'pos_invoice', 'cross_order', 'u_name',
-                'dv_name', 'br_name', 'pc_name', 'psc_name', 'pssc_name', 'cust_name', 'p_name', 'p_color', 'pos_td_sell_price', 'sz_name', 'pos_td_qty', 'stkt_name', 'ps_price_tag', 'p_price_tag', 'std_id', 'ps_sell_price', 'pos_td_discount_price',
-                'pos_td_discount_price', 'pos_td_marketplace_price', 'pos_status', 'pos_refund', 'pt_id',
-                'p_purchase_price', 'ps_purchase_price', DB::raw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase", 'poad_total_price', 'poad_qty'))
+            $data = DB::table('pos_transaction_details')->select(
+                'pos_transaction_details.id as ptd_id',
+                'st_name',
+                'pos_transaction_details.created_at as ptd_created',
+                'pos_transaction_details.pst_id as pst_id',
+                'pos_invoice',
+                'cross_order',
+                'u_name',
+                'dv_name',
+                'br_name',
+                'pc_name',
+                'psc_name',
+                'pssc_name',
+                'cust_name',
+                'p_name',
+                'p_color',
+                'pos_td_sell_price',
+                'sz_name',
+                'pos_td_qty',
+                'stkt_name',
+                'ps_price_tag',
+                'p_price_tag',
+                'std_id',
+                'ps_sell_price',
+                'pos_td_discount_price',
+                'pos_td_discount_price',
+                'pos_td_marketplace_price',
+                'pos_status',
+                'pos_refund',
+                'pt_id',
+                'p_purchase_price',
+                'ps_purchase_price',
+                DB::raw("avg(ts_purchase_order_article_detail_statuses.poads_purchase_price) as purchase", 'poad_total_price', 'poad_qty')
+            )
                 ->leftJoin('pos_transactions', 'pos_transactions.id', '=', 'pos_transaction_details.pt_id')
                 ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
                 ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
@@ -197,7 +260,7 @@ class ArticleReportExport implements FromCollection, withHeadings
                     }
 
                     $purchase = 0;
-                    if (!empty ($row->purchase)) {
+                    if (!empty($row->purchase)) {
                         $purchase = round($row->purchase);
                     } else {
                         if (!empty($row->poad_total_price)) {
@@ -216,8 +279,38 @@ class ArticleReportExport implements FromCollection, withHeadings
             }
         }
         if ($this->type == 'invoice') {
-            $data = DB::table('pos_transactions')->select('pos_transactions.id as pt_id', 'st_name', 'pos_transactions.created_at as pos_created', 'pos_invoice', 'pos_shipping', 'pos_unique_code', 'pos_admin_cost', 'pos_another_cost',
-                'dv_name', 'cross_order', 'u_name', 'pos_payment', 'pos_payment_partial', 'pos_note', 'pm_id', 'pm_id_partial', 'cp_id', 'cp_id_partial', 'cust_name', 'pos_refund', 'pos_status', 'pos_card_number', 'pos_ref_number', 'pos_card_number_two', 'pos_ref_number_two', 'pos_paid_dp', 'pos_paid_dp_date', 'pos_total_discount', 'pos_real_price')
+            $data = DB::table('pos_transactions')->select(
+                'pos_transactions.id as pt_id',
+                'st_name',
+                'pos_transactions.created_at as pos_created',
+                'pos_invoice',
+                'pos_shipping',
+                'pos_unique_code',
+                'pos_admin_cost',
+                'pos_another_cost',
+                'dv_name',
+                'cross_order',
+                'u_name',
+                'pos_payment',
+                'pos_payment_partial',
+                'pos_note',
+                'pm_id',
+                'pm_id_partial',
+                'cp_id',
+                'cp_id_partial',
+                'cust_name',
+                'pos_refund',
+                'pos_status',
+                'pos_card_number',
+                'pos_ref_number',
+                'pos_card_number_two',
+                'pos_ref_number_two',
+                'pos_paid_dp',
+                'sub_payment',
+                'pos_paid_dp_date',
+                'pos_total_discount',
+                'pos_real_price'
+            )
                 ->leftJoin('customers', 'customers.id', '=', 'pos_transactions.cust_id')
                 ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
                 ->leftJoin('users', 'users.id', '=', 'pos_transactions.u_id')
@@ -279,7 +372,13 @@ class ArticleReportExport implements FromCollection, withHeadings
                     if (!empty($row->cp_id_partial)) {
                         $cp_two = DB::table('card_providers')->select('cp_name')->where('id', '=', $row->cp_id_partial)->get()->first()->cp_name;
                     }
-                    $export[] = [date('d/m/Y H:i:s', strtotime($row->pos_created)), $row->st_name, $row->pos_invoice, $row->cust_name, $row->cross_order, $row->u_name, $row->dv_name, $item_qty, $item_value, $row->pos_shipping, $row->pos_unique_code, $row->pos_admin_cost, $row->pos_another_cost, $nameset, $value_admin, $row->pos_total_discount, $row->pos_real_price, $total, $pm_one . ' ' . $cp_one, $row->pos_payment, $row->pos_card_number, $row->pos_ref_number, $pm_two . ' ' . $cp_two, $row->pos_payment_partial, $row->pos_card_number_two, $row->pos_ref_number_two, $row->pos_paid_dp, $row->pos_paid_dp_date, $row->pos_status, $row->pos_note];
+                    $export[] = [date('d/m/Y H:i:s', strtotime($row->pos_created)), $row->st_name, $row->pos_invoice, $row->cust_name, $row->cross_order, $row->u_name, $row->dv_name, $item_qty, $item_value, $row->pos_shipping, $row->pos_unique_code, $row->pos_admin_cost, $row->pos_another_cost, $nameset, $value_admin, $row->pos_total_discount, $row->pos_real_price, $total, $pm_one . ' ' . $cp_one, $row->pos_payment, $row->pos_card_number, $row->pos_ref_number, $pm_two . ' ' . $cp_two, $row->pos_payment_partial, $row->pos_card_number_two, $row->pos_ref_number_two, match ($row->sub_payment) {
+                        1 => 'CASH',
+                        2 => 'COD',
+                        3 => 'ON US',
+                        4 => 'OFF US',
+                        default => '',
+                    }, $row->pos_paid_dp, $row->pos_status, $row->pos_note,$row->pos_paid_dp_date];
                 }
             }
         }

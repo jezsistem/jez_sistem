@@ -275,14 +275,11 @@
                                             <th class="text-dark">Delete Access</th>
                                             <th class="text-dark">Divisi</th>
                                             <th class="text-dark">Store</th>
-                                            <th class="text-dark">NIP</th>
-                                            <th class="text-dark">KTP</th>
                                             <th class="text-dark">Kode</th>
-                                            <th class="text-dark">No Telp</th>
-                                            <th class="text-dark">Email</th>
-                                            <th class="text-dark">Alamat</th>
                                             <th class="text-dark">Status</th>
-                                            <th class="text-dark">Action</th>
+                                            <th class="text-dark">POS Access</th>
+                                            <th class="text-dark">Pick Access</th>
+                                            <th class="text-dark">Detail</th>
                                         </tr>
                                     </thead>
                                     <tbody>

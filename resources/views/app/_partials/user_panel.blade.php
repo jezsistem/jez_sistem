@@ -28,7 +28,7 @@
                 </button>
             </div>
             <div class="d-flex flex-column">
-                <div class="font-weight-semibold fs-5 text-black mt-1">{{ $data['user']->g_name }}</div>
+                <div class="font-weight-semibold fs-5 text-black mt-1">{{ $data['user']->u_name }}</div>
                 <div class="navi mt-1">
                     <a href="#" class="navi-item">
                         <span class="navi-link p-0 pb-2">
@@ -196,6 +196,15 @@
         <!--begin::Nav-->
         <div class="navi navi-spacer-x-0 p-0">
             <!--begin::Item-->
+            <a href="#" data-toggle="modal" data-target="#staffModal" class="navi-item">
+                <div class="navi-link">
+                    <i class="ki-outline ki-document bg-icon-sm fs-2 mr-2"></i>
+                    <div class="navi-text">
+                        <div class="font-weight-bold">Data Pribadi</div>
+                    </div>
+                </div>
+            </a>
+
             <a href="#" data-toggle="modal" data-target="#ChangePasswordModal" class="navi-item">
                 <div class="navi-link">
                     <i class="ki-outline ki-key bg-icon-sm fs-2 mr-2"></i>
@@ -272,3 +281,122 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Modal -->
+<div class="modal fade" id="staffModal" tabindex="-1" role="dialog" aria-labelledby="staffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <form action="#" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="staffModalLabel">Tambah Data Staf</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span>&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+
+                            <!-- Kiri -->
+                            <div class="col-md-6">
+                                <div class="card shadow-sm mb-3">
+                                    <div class="card-header bg-light">
+                                        <strong>Identitas</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label>NIK KTP</label>
+                                            <input type="text" name="nik_ktp" class="form-control" required>
+                                            <input type="file" name="foto_ktp" class="form-control mt-2" accept="image/*">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>NPWP</label>
+                                            <input type="text" name="npwp" class="form-control">
+                                            <input type="file" name="foto_npwp" class="form-control mt-2" accept="image/*">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tanggal Lahir</label>
+                                            <input type="date" name="tanggal_lahir" class="form-control">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Alamat Domisili</label>
+                                            <textarea name="alamat_domisili" class="form-control" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kanan -->
+                            <div class="col-md-6">
+                                <div class="card shadow-sm mb-3">
+                                    <div class="card-header bg-light">
+                                        <strong>Data Tambahan</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label>Foto Formal Staf</label>
+                                            <input type="file" name="foto_staf" class="form-control" accept="image/*">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>No. BPJS Kesehatan</label>
+                                            <input type="text" name="bpjs_kesehatan" class="form-control">
+                                            <input type="file" name="foto_bpjs_kesehatan" class="form-control mt-2" accept="image/*">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>No. BPJS Ketenagakerjaan</label>
+                                            <input type="text" name="bpjs_ketenagakerjaan" class="form-control">
+                                            <input type="file" name="foto_bpjs_ketenagakerjaan" class="form-control mt-2" accept="image/*">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Full Width -->
+                            <div class="col-12">
+                                <div class="card shadow-sm mb-3">
+                                    <div class="card-header bg-light">
+                                        <strong>Kontak & Rekening</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-4">
+                                                <label>Nama Bank</label>
+                                                <input type="text" name="bank_name" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label>No. Rekening</label>
+                                                <input type="text" name="bank_no" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <label>a.n Rekening</label>
+                                                <input type="text" name="bank_owner" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label>No. HP / WA</label>
+                                                <input type="text" name="no_hp" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div><!-- row -->
+                    </div><!-- container -->
+                </div><!-- modal-body -->
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Simpan</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -31,7 +31,9 @@
                         <div id="st_id_filter_parent"></div>
                     </div>
                     <div class="form-group ml-5" style="padding-top:22px;">
-                        <button class="btn btn-info" style="white-space: nowrap;" id="change_display_btn">Ganti Display</button>
+                        <button class="btn btn-info" style="white-space: nowrap;" id="change_display_btn">Ganti
+                            Display
+                        </button>
                     </div>
                 </div>
             </div>
@@ -90,11 +92,37 @@
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                         <select class="form-control col-md-12" id="sz_id">
-                                            @foreach ($data['sz_id'] as $key => $value)
-                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            @foreach ($data['sizes'] as $value)
+                                                <option value="{{ $value->sz_name }}">
+                                                    {{ $value->sz_name }} ({{ $value->pc_name }})
+                                                </option>
                                             @endforeach
                                         </select>
                                         <div id="sz_id_parent"></div>
+                                    </div>
+
+                                    {{-- Dropdown filter harga --}}
+                                    <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                        <select class="form-control col-md-12" id="min_price_filter">
+                                            <option></option> {{-- option kosong untuk placeholder --}}
+                                            @for ($i = 100000; $i <= 1000000; $i += 100000)
+                                                <option value="{{ $i }}">{{ number_format($i, 0, ',', '.') }}</option>
+                                            @endfor
+                                            {{--                                            <option value=">1000000">&gt; 1.000.000</option>--}}
+                                        </select>
+                                        <div id="min_price_filter_parent"></div>
+                                    </div>
+
+                                    {{-- Dropdown filter harga --}}
+                                    <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                        <select class="form-control col-md-12" id="max_price_filter">
+                                            <option></option> {{-- option kosong untuk placeholder --}}
+                                            @for ($i = 100000; $i <= 1000000; $i += 100000)
+                                                <option value="{{ $i }}">{{ number_format($i, 0, ',', '.') }}</option>
+                                            @endfor
+                                            <option value=">1000000">&gt; 1.000.000</option>
+                                        </select>
+                                        <div id="max_price_filter_parent"></div>
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
@@ -116,6 +144,7 @@
                                         </select>
                                         <div id="main_color_id_parent"></div>
                                     </div>
+                                    <div class="w-100"></div>
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-2">
@@ -166,7 +195,7 @@
                                         </button>
 
                                         <button style="white-space: nowrap;" type="button"
-                                                class="btn btn-primary font-weight-bolder mb-2" id="waiting_list_btn"
+                                                class="btn btn-warning font-weight-bolder mb-2" id="waiting_list_btn"
                                                 aria-haspopup="true" aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -187,6 +216,29 @@
                                                 <!--end::Svg Icon-->
                                             </span>Waiting List
                                         </button>
+
+                                        <button style="white-space: nowrap;" type="button"
+                                                class="btn btn-warning font-weight-bolder mb-2" id="filter_list_btn"
+                                                aria-haspopup="true" aria-expanded="false">
+                                            <span class="svg-icon svg-icon-md">
+                                                <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
+                                                     height="24px"
+                                                     viewBox="0 0 24 24" version="1.1">
+                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                        <rect x="0" y="0" width="24" height="24"/>
+                                                        <path
+                                                                d="M3,16 L5,16 C5.55228475,16 6,15.5522847 6,15 C6,14.4477153 5.55228475,14 5,14 L3,14 L3,12 L5,12 C5.55228475,12 6,11.5522847 6,11 C6,10.4477153 5.55228475,10 5,10 L3,10 L3,8 L5,8 C5.55228475,8 6,7.55228475 6,7 C6,6.44771525 5.55228475,6 5,6 L3,6 L3,4 C3,3.44771525 3.44771525,3 4,3 L10,3 C10.5522847,3 11,3.44771525 11,4 L11,19 C11,19.5522847 10.5522847,20 10,20 L4,20 C3.44771525,20 3,19.5522847 3,19 L3,16 Z"
+                                                                fill="#000000" opacity="0.3"/>
+                                                        <path
+                                                                d="M16,3 L19,3 C20.1045695,3 21,3.8954305 21,5 L21,15.2485298 C21,15.7329761 20.8241635,16.200956 20.5051534,16.565539 L17.8762883,19.5699562 C17.6944473,19.7777745 17.378566,19.7988332 17.1707477,19.6169922 C17.1540423,19.602375 17.1383289,19.5866616 17.1237117,19.5699562 L14.4948466,16.565539 C14.1758365,16.200956 14,15.7329761 14,15.2485298 L14,5 C14,3.8954305 14.8954305,3 16,3 Z"
+                                                                fill="#000000"/>
+                                                    </g>
+                                                </svg>
+                                                <!--end::Svg Icon-->
+                                            </span>Filter Product
+                                        </button>
                                         {{--                                    @endif --}}
                                     </div>
                                     <!--end::Dropdown-->
@@ -200,12 +252,18 @@
                                     <div id="result"></div>
                                     <div class="row">
                                         <div class="col-12">
-                                            <b style="font-size: 16px">Request count:</b> <b style="font-size: 16px;" id="request_count">0</b>
+                                            <b style="font-size: 16px">Request count:</b> <b style="font-size: 16px;"
+                                                                                             id="request_count">0</b>
                                         </div>
                                     </div>
 
-                                    <div class="alert-danger running-text" style="padding: 15px; border-radius:5px; margin-top:10px; margin-bottom:10px;" role="alert">
-                                        <h5><strong>Important!</strong> Menu (Data Stok V2 Beta) masih dalam tahap pengembangan dan pengujian. Jika kamu menemukan error atau kejanggalan, jangan ragu untuk <a href="https://wa.me/6285649888272">hubungi saya via WhatsApp</a> 🤘🤘🤘🤘</h5>
+                                    <div class="alert-danger running-text"
+                                         style="padding: 15px; border-radius:5px; margin-top:10px; margin-bottom:10px;"
+                                         role="alert">
+                                        <h5><strong>Important!</strong> Menu (Data Stok V2 Beta) masih dalam tahap
+                                            pengembangan dan pengujian. Jika kamu menemukan error atau kejanggalan,
+                                            jangan ragu untuk <a href="https://wa.me/6285649888272">hubungi saya via
+                                                WhatsApp</a> 🤘🤘🤘🤘</h5>
 
                                     </div>
 
@@ -225,12 +283,19 @@
                                     </div>
                                 </form>
                                 <h5>Keterangan</h5>
+                                <style>
+                                    .custom-defect {
+                                        background-color: #784800;
+                                        color: #fff; /* supaya teks terlihat jelas */
+                                    }
+                                </style>
                                 <div class="mt-3">
                                     <button class="btn btn-sm btn-info">•</button>
                                     : Stok Toko |
                                     <button class="btn btn-sm btn-success ml-2">•</button>
                                     : Stok gudang |
-                                    <button class="btn btn-sm ml-2" style="background-color: green; color: white;">•</button>
+                                    <button class="btn btn-sm ml-2" style="background-color: #784800; color: white;">•
+                                    </button>
                                     : Stok Defect |
                                     <button class="btn btn-sm btn-warning ml-2">•</button>
                                     : Stok Special Sale

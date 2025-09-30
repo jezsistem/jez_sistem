@@ -137,16 +137,15 @@
                 </div>
                 <div class="head-desc">
                     <div class="date">
-                        {{ now()->format('d F Y') }}<br/>
+                        {{ \Carbon\Carbon::parse($row->time_print)->format('d F Y') }}<br/>
                         Kasir<br/>
                         Customer<br/>
                         Pembayaran
                     </div>
                     <div class="user">
-                        {{ now()->format('H:i') }}<br/>
+                        {{ \Carbon\Carbon::parse($row->time_print)->format('H:i') }}<br/>
                         @php
-                            $kasir = \Illuminate\Support\Facades\Auth::user()->u_name;
-                            $kasirLimited = substr($kasir, 0, 15);
+                            $kasirLimited = substr($data['cashier'], 0, 15);
 
                             echo $kasirLimited;
                         @endphp<br>
