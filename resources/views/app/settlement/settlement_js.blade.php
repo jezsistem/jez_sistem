@@ -115,8 +115,7 @@
             columns: [{
                     data: null,
                     render: function(data, type, row, meta) {
-                        return '<input type="checkbox" class="row-checkbox" id="check_' + row
-                            .id + '">';
+                        return '<input type="checkbox" class="row-checkbox" id="check_' + row.id + '" data-is-partial="' + row.is_partial + '">';
                     },
                     orderable: false,
                     searchable: false,
@@ -276,10 +275,11 @@
         $('#SettlementTable tbody').on('click', 'tr', function() {
             var data = settlement_table.row(this).data();
             var id = data.id;
+            var is_partial = data.is_partial;
 
             $.ajax({
                 type: "GET",
-                url: "{{ url('settlement_detail') }}/" + id,
+                url: "{{ url('settlement_detail') }}/" + id + "/" + is_partial,
                 success: function(response) {
                     // Handle the response here
                     // You can display the data in a modal, update a section of the page, etc.
@@ -359,6 +359,7 @@
                     $('#note').text(response.note || '-');
                     $('#note_settlement').val(response.note_settlement || '').attr(
                         'data-id', response.id);
+                    $('#note_settlement').attr('data-is-partial', is_partial);
                     $('#note_dp').text(response.note_dp || '-');
 
                     // Clear existing table data
@@ -395,6 +396,7 @@
 
         $('#note_settlement').on('input', function() {
             var id = $(this).attr('data-id');
+            var is_partial = $(this).attr('data-is-partial');
             if (!id) {
                 return;
             }
@@ -411,6 +413,7 @@
                     url: "{{ url('settlement_update_note') }}",
                     data: {
                         id: id,
+                        is_partial: is_partial,
                         note_settlement: note_settlement,
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
@@ -435,8 +438,12 @@
             var checkedIds = [];
             $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
                 var checkId = $(this).attr('id');
+                var is_partial = $(this).attr('data-is-partial');
                 var numberPart = checkId.replace('check_', '');
-                checkedIds.push(numberPart);
+                checkedIds.push({
+                    id: numberPart,
+                    is_partial: is_partial
+                });
             });
 
             if (checkedIds.length === 0) {
