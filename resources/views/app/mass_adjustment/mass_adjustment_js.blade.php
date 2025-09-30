@@ -454,8 +454,8 @@
                     name: 'psc_name'
                 },
                 {
-                    data: 'p_purchase_price',
-                    name: 'p_purchase_price',
+                    data: 'purchase',
+                    name: 'purchase',
                     orderable: false
                 },
                 {
@@ -1148,9 +1148,9 @@
                     console.log(r)
                     $('#loader').hide();
                     $('#MassAdjustmentExportModal').modal('show');
-                    $('#MassAdjustmentDetailtb tbody').empty(); // Clear existing rows
+                    $('#MassAdjustmentDetailExporttb tbody').empty(); // Clear existing rows
                     $(r.data).each(function(index, row) {
-                        $('#MassAdjustmentDetailtb tbody').append(
+                        $('#MassAdjustmentDetailExporttb tbody').append(
                             "<tr><td>" + (index + 1) +
                             "</td><td>" + formatTanggal(row.adjustment_date) +
                             "</td><td>" + row.ma_code +
@@ -1162,13 +1162,8 @@
                             "</td><td>" + row.p_color +
                             "</td><td>" + row.sz_name +
                             "</td><td>" + row.psc_name +
-                            "</td><td>" + (addCommas(Math.round(row
-                                .purchase_1)) || addCommas(Math.round(row
-                                .purchase_2)) || addCommas(Math.round(row
-                                .ps_purchase_price)) || addCommas(Math
-                                .round(row.p_purchase_price)) || '-') +
-                            "</td><td>" + (addCommas(row.ps_sell_price) ||
-                                addCommas(row.p_sell_price) || '-') +
+                            "</td><td>" + (addCommas(Math.round(row.purchase)) || '-') +
+                            "</td><td>" + (addCommas(Math.round(row.sell)) || '-') +
                             "</td><td>" + row.qty_export +
                             "</td><td>" + row.qty_so +
                             "</td><td>" + row.mad_type +

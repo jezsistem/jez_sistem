@@ -128,10 +128,13 @@ class MassImport implements ToCollection, WithStartRow
                 $this->ma_id_throw = $ma_id;
             }
 
+            $pls = ProductLocationSetup::find($pls_id);
+
             if ($type != '=') {
                 $detail[] = [
                     'ma_id' => $ma_id,
                     'pls_id' => $pls_id,
+                    'pst_id' => $pls->pst_id,
                     'qty_export' => $qty_export,
                     'qty_so' => $qty_so,
                     'mad_type' => $type,
