@@ -9,7 +9,8 @@ use Illuminate\Support\Str;
 use App\Models\WebConfig;
 use App\Models\User;
 use App\Models\DataPerusahaan;
-use App\Models\UserActivity;use App\Exports\DataPerusahaanExport;
+use App\Models\UserActivity;
+use App\Exports\DataPerusahaanExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 
