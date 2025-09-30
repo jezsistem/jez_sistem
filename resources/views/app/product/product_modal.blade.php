@@ -154,7 +154,7 @@
                                 <div id="gn_id_parent"></div>
                             </div>
                             <div class="col-lg-4 pt-1">
-                                <label>Season </label>
+                                <label>Season <span class="text-danger">*</span></label>
                                 <select class="form-control" id="ss_id" name="ss_id" required>
                                     <option value="">- Pilih Season -</option>
                                     @foreach ($data['ss_id'] as $key => $value)
@@ -218,7 +218,7 @@
                         <div class="form-group row">
                             <div class="col-lg-4 pt-1">
                                 <label>Complement</label> <span class="text-danger">*</span></label>
-                                <select class="form-control" id="complement" name="complement">
+                                <select class="form-control" id="complement" name="complement" required>
                                     <option value="">- Is Complement -</option>
                                     <option value="1">Yes</option>
                                     <option value="0">No</option>
@@ -227,9 +227,9 @@
                                 {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
                             </div>
                             <div class="col-lg-4 pt-1">
-                                <label>MP Best Seller</label>
+                                <label>MP Best Seller <span class="text-danger">*</span></label> 
                                 <select class="form-control" id="mp_best_seller"
-                                        name="mp_best_seller">
+                                        name="mp_best_seller" required>
                                     <option value="">- Is MP Best Seller -</option>
                                     <option value="1">Yes</option>
                                     <option value="0">No</option>
@@ -238,10 +238,10 @@
                                 {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
                             </div>
                             <div class="col-lg-4 pt-1">
-                                <label>MP Stock Masking</label>
+                                <label>Impairment <span class="text-danger">*</span></label>
                                 <select class="form-control" id="mp_stock_masking"
-                                        name="mp_stock_masking">
-                                    <option value="">- MP Stock Masking -</option>
+                                        name="mp_stock_masking" required>
+                                    <option value="">- Impairment -</option>
                                     <option value="1">Yes</option>
                                     <option value="0">No</option>
 
@@ -300,6 +300,32 @@
                             {{--                            </div>--}}
 
 
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-lg-4 pt-1">
+                                <label>Everlast <span class="text-danger">*</span></label>
+                                <select class="form-control" id="is_everlast" name="is_everlast" required>
+                                    <option value="">- Pilih -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-4 pt-1">
+                                <label>Super Sale <span class="text-danger">*</span></label>
+                                <select class="form-control" id="is_supersale" name="is_supersale" required>
+                                    <option value="">- Pilih -</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class="custom-control custom-checkbox my-auto">
+                                    <input class="custom-control-input" type="checkbox" id="is_reguler" name="is_reguler" value="1">
+                                    <label class="custom-control-label" for="is_reguler">
+                                        Reguler
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-lg-6 pt-1">

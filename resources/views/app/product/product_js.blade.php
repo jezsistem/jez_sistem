@@ -1034,6 +1034,9 @@
             var complement = product_table.row(this).data().complement;
             var consignment = product_table.row(this).data().consignment;
             var check_pc_id = $('#pc_id').val();
+            var is_everlast = product_table.row(this).data().is_everlast;
+            var is_supersale = product_table.row(this).data().is_supersale;
+            var is_reguler = product_table.row(this).data().is_reguler;
 
             console.log(product_table.row(this).data())
             console.log(subcategory1)
@@ -1125,6 +1128,15 @@
             $('#subcattwo').text(subcategory2);
             $('#consignment').val(consignment);
             $('#complement').val(complement);
+            $('#mp_best_seller').val(mp_best_seller);
+            $('#mp_stock_masking').val(mp_stock_masking);
+            $('#is_everlast').val(is_everlast);
+            $('#is_supersale').val(is_supersale);
+            if (is_reguler == '1') {
+                $('#is_reguler').prop('checked', true);
+            } else {
+                $('#is_reguler').prop('checked', false);
+            }
             jQuery('#br_id').val(br_id).trigger('change');
             jQuery('#ps_id').val(ps_id).trigger('change');
             jQuery('#pu_id').val(pu_id).trigger('change');
@@ -1132,6 +1144,10 @@
             jQuery('#ss_id').val(ss_id).trigger('change');
             jQuery('#mc_id').val(mc_id).trigger('change');
             jQuery('#sz_schema_modal_id').val(schema_size).trigger('change');
+            jQuery('#mp_best_seller').val(mp_best_seller).trigger('change');
+            jQuery('#mp_stock_masking').val(mp_stock_masking).trigger('change');
+            jQuery('#is_everlast').val(is_everlast).trigger('change');
+            jQuery('#is_supersale').val(is_supersale).trigger('change');
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ($data['user']->delete_access == '1')

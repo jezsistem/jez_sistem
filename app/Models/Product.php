@@ -36,7 +36,12 @@ class Product extends Model
         'mp_best_seller',
         'mp_stock_masking',
         'complement',
-        'consignment'
+        'consignment',
+        'is_everlast',
+        'is_supersale',
+        'is_reguler',
+        'created_at',
+        'updated_at'
     ];
 
 
