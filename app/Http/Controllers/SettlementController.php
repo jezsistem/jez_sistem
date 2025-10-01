@@ -388,7 +388,7 @@ class SettlementController extends Controller
             $total_admin_fee = $transaction->total_admin_fee ?? 0;
             $total_dana_cair = $transaction->total_dana_cair ?? 0;
 
-            if (str_contains(strtoupper($store_name), 'ONLINE')) {
+            if (!str_contains(strtoupper($store_name), 'ONLINE')) {
                 $gross_margin = $net_sales - $cogs;
                 $margin_percentage = $net_sales != 0 ? round(($gross_margin / $net_sales) * 100, 2) : 0;
             } else {
