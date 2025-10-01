@@ -359,39 +359,41 @@ class POReceiveApprovalController extends Controller
                     ->where('pst_id', '=', $row->pst_id)
                     ->where('pl_id', '=', $bin)->first();
 
+                // get old stok and old cogs
+                $all_store_stock = DB::table('product_location_setups')->where('pst_id', '=', $row->pst_id)->sum('pls_qty');
+
+                $old_stock = $all_store_stock;
+                $old_cogs = $check_product_stock->ps_purchase_price;
+
+                if ($old_stock == null || $old_stock <= 0) {
+                    $old_stock_current = 0;
+                } else {
+                    $old_stock_current = $old_stock;
+                }
+
+                if ($old_cogs == null) {
+                    $old_cogs_current = 0;
+                } else {
+                    $old_cogs_current = $old_cogs;
+                }
+
+                // total old cogs
+                $total_cogs_old = $old_cogs_current * $old_stock_current;
+
+                //get new stok and old cogs
+                $new_stock = $row->poads_qty;
+                $new_price = ceil($row->poad_purchase_price);
+
+                // total new cogs
+                $total_cogs_new = $new_price * $new_stock;
+
+                $total_cogs_merge = ceil($total_cogs_old + $total_cogs_new);
+                $total_qty_merge = $old_stock + $new_stock;
+
+                // new cogs
+                $new_cogs = ceil($total_cogs_merge / $total_qty_merge);
+
                 if (!empty($check_pl)) {
-                    // get old stok and old cogs
-                    $old_stock = $check_pl->pls_qty;
-                    $old_cogs = $check_product_stock->ps_purchase_price;
-
-                    if ($old_stock == null) {
-                        $old_stock_current = 0;
-                    } else {
-                        $old_stock_current = $old_stock;
-                    }
-
-                    if ($old_cogs == null) {
-                        $old_cogs_current = 0;
-                    } else {
-                        $old_cogs_current = $old_cogs;
-                    }
-
-                    // total old cogs
-                    $total_cogs_old = $old_cogs_current * $old_stock_current;
-
-                    //get new stok and old cogs
-                    $new_stock = $row->poads_qty;
-                    $new_price = ceil($row->poad_purchase_price);
-
-                    // total new cogs
-                    $total_cogs_new = $new_price * $new_stock;
-
-                    $total_cost_merge = ceil($total_cogs_old + $total_cogs_new);
-                    $total_qty_merge = $old_stock + $new_stock;
-
-                    // new cogs
-                    $new_cogs = ceil($total_cost_merge / $total_qty_merge);
-
                     $pls_qty = $check_pl->pls_qty;
                     $pl_id = $check_pl->pl_id;
                     $update_setup = DB::table('product_location_setups')->where('id', '=', $check_pl->id)->update([
@@ -420,6 +422,11 @@ class POReceiveApprovalController extends Controller
                     if (!empty($update_setup)) {
                         DB::table('purchase_order_article_detail_statuses')->where('id', '=', $row->id)->update([
                             'u_id_approve' => Auth::user()->id,
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+
+                        DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                            'ps_purchase_price' => $new_cogs,
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
                     }
