@@ -101,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);
     Route::post('poa_save_discount', [PurchaseOrderArticleController::class, 'saveDiscount']);
     Route::post('poa_save_extra_discount', [PurchaseOrderArticleController::class, 'saveExtraDiscount']);
+    Route::post('poa_save_sub_discount', [PurchaseOrderArticleController::class, 'saveSubDiscount']);
     Route::post('poa_save_reminder', [PurchaseOrderArticleController::class, 'saveReminder']);
 
     // Purchase Order Article Detail
