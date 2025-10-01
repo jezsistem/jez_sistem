@@ -405,6 +405,7 @@ class PurchaseOrderReceiveController extends Controller
                 'p_color',
                 'poa_discount',
                 'poa_extra_discount',
+                'poa_sub_discount',
                 'poa_reminder',
                 'products.article_id as articleid',
                 'products.created_at as item_added'

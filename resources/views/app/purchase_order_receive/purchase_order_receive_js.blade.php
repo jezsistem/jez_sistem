@@ -1284,7 +1284,7 @@
 
         var purchase_order_table = $('#PurchaseOrdertb').DataTable({
             destroy: true,
-            processing: false,
+            processing: true,
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
