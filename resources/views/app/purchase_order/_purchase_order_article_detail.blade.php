@@ -54,8 +54,8 @@
                                 name="poa_extra_discount" id="poa_extra_discount{{ $row->poa_id }}"
                                 style="width:33px;" value="{{ $row->poa_extra_discount }}"
                                 onchange="return extraDiscount( {{ $row->poa_id }} )" /><br />
-                            <input type="text" disabled style="width:65px;" value="Sub. Disc" readonly /><input
-                                disabled type="text" name="poa_sub_discount"
+                            <input type="text" style="width:65px;" value="Sub. Disc" readonly /><input
+                                type="text" name="poa_sub_discount"
                                 id="poa_sub_discount{{ $row->poa_id }}" style="width:33px;"
                                 value="{{ $row->poa_sub_discount }}"
                                 onchange="return subDiscount( {{ $row->poa_id }} )" />
