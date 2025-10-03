@@ -434,11 +434,16 @@ class POReceiveApprovalController extends Controller
                 // Update COGS article level
                 $check_product_stock = DB::table('product_stocks')->where('id', $row->pst_id)->get()->first();
 
-                $avg_cogs = DB::table('product_stocks')
+                $total_qty_new = DB::table('product_location_setups')
+                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->where('product_stocks.p_id', $check_product_stock->p_id)
+                    ->sum('pls_qty');
+
+                $hpp_avg_new = DB::table('product_stocks')
                     ->where('p_id', $check_product_stock->p_id)
                     ->avg('ps_purchase_price');
 
-                $avg_cogs = ceil($avg_cogs);
+                $avg_cogs = ceil($hpp_avg_new * $total_qty_new / ($total_qty_new > 0 ? $total_qty_new : 1));
 
                 DB::table('products')
                     ->where('id', $check_product_stock->p_id)
