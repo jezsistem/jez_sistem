@@ -37,6 +37,19 @@ class PurchaseOrderArticleController extends Controller
         return json_encode($r);
     }
 
+    public function saveSubDiscount(Request $request)
+    {
+        $sub_discount = $request->_sub_discount;
+        $id = $request->_id;
+        $save = PurchaseOrderArticle::where(['id' => $id])->update(['poa_sub_discount' => $sub_discount]);
+        if (!empty($save)) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
+
     public function saveReminder(Request $request)
     {
         $reminder = $request->_reminder;
