@@ -822,6 +822,7 @@ class PurchaseOrderController extends Controller
             $r['po_total_purchase'] = $draft->po_total_purchase;
             $r['po_total_qty'] = $draft->po_total_qty;
             $r['po_payment_amount'] = $draft->po_payment_amount;
+            $r['bank_general'] = $draft->bank_general;
         } else {
             $r['status'] = '400';
         }
@@ -1010,6 +1011,19 @@ class PurchaseOrderController extends Controller
     public function exportpurchaseorderexport(Request $request)
     {
         return Excel::download(new PurchaseOrderRecevieExport($request), 'purchase_order_receive.xlsx');
+    }
+    
+    public function changeBankGeneral(Request $request)
+    {
+        $po_id = $request->po_id;
+        $bank_general = $request->bg_id;
+        $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['bank_general' => $bank_general]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
     }
 
 }
