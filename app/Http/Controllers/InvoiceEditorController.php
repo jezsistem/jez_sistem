@@ -753,6 +753,8 @@ class InvoiceEditorController extends Controller
                             'pos_td_description' => $detail->pos_td_description,
                             'pos_td_price_item_discount' => 0,
                             'pos_td_total_price' => -abs($detail->pos_td_discount_price),
+                            'pos_td_item_cogs' => -abs($detail->pos_td_item_cogs),
+                            'pos_td_item_price_tag' => -abs($detail->pos_td_item_price_tag),
                             'created_at' => date('Y-m-d H:i:s')
                         ]);
 
