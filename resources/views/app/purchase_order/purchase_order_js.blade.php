@@ -732,6 +732,33 @@
         });
     });
 
+    $(document).delegate('#bank_general', 'change', function() {
+        var bg_id = $(this).val();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('po_change_bank_general') }}",
+            data: {
+                bg_id: bg_id,
+                po_id: $('#_po_id').val()
+            },
+            success: function(r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+
+                } else if (response.status == '500') {
+                    swal('Error', response.message);
+                } else {
+
+                }
+            },
+        });
+    });
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -1315,6 +1342,7 @@
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
                         jQuery('#dp_id').val(r.dp_id).trigger('change');
                         jQuery('#acc_id').val(r.acc_id).trigger('change');
+                        jQuery('#bank_general').val(r.bank_general).trigger('change');
                         $('#status_dispute').val(r.status_dispute);
                         $('#total_purchase').val(r.po_total_purchase);
                         $('#payment_amount').val(r.po_payment_amount);

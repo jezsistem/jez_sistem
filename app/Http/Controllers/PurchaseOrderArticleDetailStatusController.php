@@ -34,7 +34,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $receive_date = $request->receive_date;
         $receive_invoice = $request->receive_invoice;
         $invoice_date = $request->invoice_date;
-        $receive_at = $request->receive_at;
+        $arrived_at = $request->arrived_at;
         $shipping_cost = $request->shipping_cost ?? 0;
         $invoice_note = $request->invoice_note;
         $dispute = $request->dispute;
@@ -63,7 +63,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             'u_id_receive' => Auth::user()->id,
             'poads_invoice' => $receive_invoice,
             'invoice_date' => $invoice_date,
-            'receive_at' => $receive_at,
+            'arrived_at' => $arrived_at,
             'notes' => $invoice_note,
             'COGS' => $poads_cogs,
             'shipping_cost' => $shipping_cost,
