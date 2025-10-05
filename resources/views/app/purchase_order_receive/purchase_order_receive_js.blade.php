@@ -1304,6 +1304,7 @@
                     d.po_status_filter = $('#po_status_filter').val();
                     d.filter_dispute = $('#filter_dispute').val();
                     d.date = $('#po_date').val();
+                    d.filter_delivery_note = $('#filter_delivery_note').val();
                 }
             },
             columns: [{
@@ -1763,6 +1764,10 @@
             purchase_order_table.draw(false);
         });
 
+        $('#filter_delivery_note').on('change', function() {
+            purchase_order_table.draw();
+        });
+
         $('#product_search').on('keyup', function() {
             product_table.draw(false);
         });
@@ -1778,6 +1783,7 @@
         $('#sz_id_filter_item').on('change', function() {
             product_table.draw(false);
         });
+        
 
         $('#ps_id').select2({
             width: "100%",
