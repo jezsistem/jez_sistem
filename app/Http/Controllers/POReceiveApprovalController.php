@@ -153,7 +153,7 @@ class POReceiveApprovalController extends Controller
                     return date('d/m/Y', strtotime($data->invoice_date));
                 })
                 ->editColumn('arrived_at', function ($data) {
-                    return empty($data->arrived_at) ? '-' : date('d/m/Y', strtotime($data->arrived_at));
+                    return empty($data->arrived_at) ? '-' : date('d/m/Y H:i', strtotime($data->arrived_at));
                 })
                 ->editColumn('receive_date_show', function ($data) {
                     if (empty($data->received_date)) {
