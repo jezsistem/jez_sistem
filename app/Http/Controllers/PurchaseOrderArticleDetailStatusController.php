@@ -28,6 +28,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $poads_discount = $request->_poads_discount;
         $poads_cogs = $request->_poads_cogs;
         $poads_extra_discount = $request->_poads_extra_discount;
+        $poads_sub_discount = $request->_poads_sub_discount;
         $poads_purchase_price = $request->_poads_purchase_price;
         $poads_total_price = $poads_qty * $poads_purchase_price;
 
@@ -57,6 +58,7 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             'poads_qty' => $poads_qty,
             'poads_discount' => $poads_discount,
             'poads_extra_discount' => $poads_extra_discount,
+            'poads_sub_discount' => $poads_sub_discount,
             'poads_purchase_price' => $poads_purchase_price,
             'poads_total_price' => $poads_total_price,
             'poads_type' => 'IN',

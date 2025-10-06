@@ -512,6 +512,7 @@
                 var po_id = $('#_po_id').val();
                 var poads_discount = $('#poa_discount' + poa_id).val();
                 var poads_extra_discount = $('#poa_extra_discount' + poa_id).val();
+                var poads_sub_discount = $('#poa_sub_discount' + poa_id).val();
                 var poads_purchase_price = replaceComma($('#poad_purchase_price_' + poa_id + '_' + index)
                     .val());
                 var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
@@ -540,6 +541,7 @@
                 formData.append('_poads_extra_discount', poads_extra_discount);
                 formData.append('_poads_purchase_price', poads_purchase_price);
                 formData.append('_poads_cogs', poads_cogs);
+                formData.append('_poads_sub_discount', poads_sub_discount);
                 // formData.append('dispute', dispute);
                 // formData.append('dispute_description', dispute_description);
 
@@ -600,6 +602,7 @@
         var po_id = $('#_po_id').val();
         var poads_discount = $('#poa_discount' + poa_id).val();
         var poads_extra_discount = $('#poa_extra_discount' + poa_id).val();
+        var poads_sub_discount = $('#poa_sub_discount' + poa_id).val();
         var poads_purchase_price = replaceComma($('#poad_purchase_price_' + poa_id + '_' + index).val());
         var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
         var receive_date = $('#receive_date').val();
@@ -626,6 +629,7 @@
         formData.append('_poads_qty', poads_qty);
         formData.append('_poads_discount', poads_discount);
         formData.append('_poads_extra_discount', poads_extra_discount);
+        formData.append('_poads_sub_discount', poads_sub_discount);
         formData.append('_poads_purchase_price', poads_purchase_price);
         formData.append('_poads_cogs', poads_cogs);
         formData.append('shipping_cost', shipping_cost);
