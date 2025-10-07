@@ -1,0 +1,360 @@
+@extends('app.structure')
+@section('content')
+
+    <div class="container">
+        <h4 class="mb-4">Detail External Assignment Request</h4>
+
+        <!-- Card Gabungan Header Information + History -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Header Information</h5>
+                <span class="badge bg-light text-dark">{{ $detail->ear_status }}</span>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <!-- Kolom Kiri: Informasi Utama -->
+                    <div class="col-md-8">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <th>Staff</th>
+                                <td>{{ $detail->requester->u_name ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Division</th>
+                                <td>{{ $detail->requester->division->ud_name ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Assignment Type</th>
+                                <td>{{ $detail->type->ea_name ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Start</th>
+                                <td>{{ $detail->ear_date_start }} {{ $detail->ear_time_start }}</td>
+                            </tr>
+                            <tr>
+                                <th>End</th>
+                                <td>{{ $detail->ear_date_end }} {{ $detail->ear_time_end }}</td>
+                            </tr>
+                            <tr>
+                                <th>Location</th>
+                                <td>{{ $detail->ear_locations ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Cash Advance</th>
+                                <td>Rp {{ number_format($detail->ear_cash_advance, 0, ',', '.') }}</td>
+                            </tr>
+                        </table>
+
+                        <!-- Tombol Approval Dinamis -->
+                        <hr>
+                        @if($canApprove)
+                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="mt-3"
+                                  onsubmit="return confirm('Yakin ingin melanjutkan ke tahap berikutnya?')">
+                                @csrf
+                                <button type="submit" class="btn btn-success">
+                                    Approve to Next Step ({{ ucfirst($approvalStep) }})
+                                </button>
+                            </form>
+                        @elseif($detail->ear_status === 'Completed')
+                            <div class="alert alert-success mt-3 mb-0">
+                                <i class="bi bi-check-circle"></i> Request ini sudah <strong>Completed</strong>.
+                            </div>
+                        @else
+                            <div class="alert alert-secondary mt-3 mb-0">
+                                <i class="bi bi-hourglass-split"></i> Menunggu proses approval berikutnya.
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Kolom Kanan: Timeline History -->
+                    <div class="col-md-4 border-start">
+                        <h6 class="mb-3 text-primary"><i class="bi bi-clock-history"></i> Approval History</h6>
+                        <ul class="timeline">
+                            <li class="timeline-item {{ $detail->ear_approved_by ? 'text-success' : 'text-muted' }}">
+                                <strong>Supervisor / Manager:</strong><br>
+                                @if($detail->ear_approved_by)
+                                    {{ $detail->approver->u_name ?? '-' }}<br>
+                                    <small>{{ $detail->ear_approved_at ? \Carbon\Carbon::parse($detail->ear_approved_at)->format('d M Y H:i') : '-' }}</small>
+                                @else
+                                    <em>Menunggu persetujuan</em>
+                                @endif
+                            </li>
+
+                            <li class="timeline-item {{ $detail->ear_hr_checked_by ? 'text-success' : 'text-muted' }}">
+                                <strong>HR Checked:</strong><br>
+                                @if($detail->ear_hr_checked_by)
+                                    {{ $detail->hrChecker->u_name ?? '-' }}<br>
+                                    <small>{{ $detail->ear_hr_checked_at ? \Carbon\Carbon::parse($detail->ear_hr_checked_at)->format('d M Y H:i') : '-' }}</small>
+                                @else
+                                    <em>Menunggu pemeriksaan HR</em>
+                                @endif
+                            </li>
+
+                            <li class="timeline-item {{ $detail->ear_finance_by ? 'text-success' : 'text-muted' }}">
+                                <strong>Finance Processed:</strong><br>
+                                @if($detail->ear_finance_by)
+                                    {{ $detail->financeProcessor->u_name ?? '-' }}<br>
+                                    <small>{{ $detail->ear_finance_at ? \Carbon\Carbon::parse($detail->ear_finance_at)->format('d M Y H:i') : '-' }}</small>
+                                @else
+                                    <em>Menunggu verifikasi Finance</em>
+                                @endif
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rundown -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light"><h5 class="mb-0">Rundown</h5></div>
+            <div class="card-body">
+                @if($detail->rundowns && $detail->rundowns->count() > 0)
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Description</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($detail->rundowns as $r)
+                            <tr>
+                                <td>{{ $r->rundown_date }}</td>
+                                <td>{{ $r->start_time }}</td>
+                                <td>{{ $r->end_time }}</td>
+                                <td>{{ $r->notes }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <p class="text-muted mb-0">Tidak ada rundown.</p>
+                @endif
+            </div>
+        </div>
+
+        <!-- Cash Details -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Cash Details</h5>
+
+            </div>
+            <div class="card-body">
+                @if($detail->cashDetails && $detail->cashDetails->count() > 0)
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Purpose</th>
+                            <th>Amount</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($detail->cashDetails as $c)
+                            <tr>
+                                <td>{{ $c->cash_purpose }}</td>
+                                <td>Rp {{ number_format($c->cash_amount, 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <p class="text-muted mb-0">Tidak ada cash details.</p>
+                @endif
+            </div>
+        </div>
+
+        <!-- Reports -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Reports</h5>
+            </div>
+
+            <div class="card-body">
+                @if($detail->ear_status === 'Approved' && Auth::id() === $detail->request_by)
+                    <!-- Form Input Report -->
+                    <form action="{{ route('ear.report.store', $detail->id) }}" method="POST">
+                        @csrf
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm align-middle" id="reportTable">
+                                <thead class="table-light text-center">
+                                <tr>
+                                    <th style="width: 120px;">Tanggal</th>
+                                    <th style="width: 90px;">Start</th>
+                                    <th style="width: 90px;">End</th>
+                                    <th>Detail Kegiatan</th>
+                                    <th style="width: 140px;">Cash (Rp)</th>
+                                    <th style="width: 50px;">#</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td><input type="date" name="reports[0][earr_date]" class="form-control form-control-sm" required></td>
+                                    <td><input type="time" name="reports[0][earr_time_start]" class="form-control form-control-sm" required></td>
+                                    <td><input type="time" name="reports[0][earr_time_end]" class="form-control form-control-sm" required></td>
+                                    <td><textarea name="reports[0][earr_detail]" class="form-control form-control-sm" rows="1" required></textarea></td>
+                                    <td><input type="number" name="reports[0][cash_amount]" class="form-control form-control-sm text-end" placeholder="0"></td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-danger btn-sm btn-remove-row">&times;</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <button type="submit" class="btn btn-success btn-sm px-4">
+                                <i class="fa fa-save"></i> Simpan Report
+                            </button>
+
+                            <button type="button" class="btn btn-primary btn-sm" id="addRowBtn">
+                                <i class="fa fa-plus"></i> Tambah Baris
+                            </button>
+                        </div>
+                    </form>
+
+                    {{-- Jika sudah ada report sebelumnya, tampilkan di bawah form --}}
+                    @if($detail->reports && $detail->reports->count() > 0)
+                        <hr class="my-4">
+                        <h6 class="fw-bold mb-2">Report Dinas Sebelumnya:</h6>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm align-middle mb-0">
+                                <thead class="table-light text-center">
+                                <tr>
+                                    <th style="width: 120px;">Tanggal</th>
+                                    <th style="width: 90px;">Start</th>
+                                    <th style="width: 90px;">End</th>
+                                    <th>Detail</th>
+                                    <th style="width: 140px;" class="text-end">Cash (Rp)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($detail->reports as $rep)
+                                    <tr>
+                                        <td>{{ $rep->earr_date }}</td>
+                                        <td>{{ $rep->earr_time_start }}</td>
+                                        <td>{{ $rep->earr_time_end }}</td>
+                                        <td>{{ $rep->earr_detail }}</td>
+                                        <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+
+                @else
+                    <!-- View Only -->
+                    @if($detail->reports && $detail->reports->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm align-middle mb-0">
+                                <thead class="table-light text-center">
+                                <tr>
+                                    <th style="width: 120px;">Tanggal</th>
+                                    <th style="width: 90px;">Start</th>
+                                    <th style="width: 90px;">End</th>
+                                    <th>Detail</th>
+                                    <th style="width: 140px;" class="text-end">Cash (Rp)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($detail->reports as $rep)
+                                    <tr>
+                                        <td>{{ $rep->earr_date }}</td>
+                                        <td>{{ $rep->earr_time_start }}</td>
+                                        <td>{{ $rep->earr_time_end }}</td>
+                                        <td>{{ $rep->earr_detail }}</td>
+                                        <td class="text-end">Rp {{ number_format($rep->cash_amount, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">Belum ada laporan dinas.</p>
+                    @endif
+                @endif
+            </div>
+        </div>
+
+    </div>
+
+
+    <style>
+        .timeline {
+            position: relative;
+            list-style: none;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10px;
+            width: 2px;
+            height: 100%;
+            background: #0d6efd;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 5px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #0d6efd;
+        }
+
+        .timeline-item strong {
+            color: #212529;
+        }
+
+        .timeline-item small {
+            color: #6c757d;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let rowIndex = 1;
+
+            // Tambah baris
+            document.getElementById('addRowBtn').addEventListener('click', function () {
+                let newRow = `
+            <tr>
+                <td><input type="date" name="reports[${rowIndex}][earr_date]" class="form-control" required></td>
+                <td><input type="time" name="reports[${rowIndex}][earr_time_start]" class="form-control" required></td>
+                <td><input type="time" name="reports[${rowIndex}][earr_time_end]" class="form-control" required></td>
+                <td><textarea name="reports[${rowIndex}][earr_detail]" class="form-control" rows="1" required></textarea></td>
+                <td><input type="number" name="reports[${rowIndex}][cash_amount]" class="form-control" placeholder="0"></td>
+                <td><button type="button" class="btn btn-danger btn-sm btn-remove-row">&times;</button></td>
+            </tr>
+        `;
+                $('#reportTable tbody').append(newRow);
+                rowIndex++;
+            });
+
+            // Hapus baris
+            $(document).on('click', '.btn-remove-row', function () {
+                $(this).closest('tr').remove();
+            });
+        });
+    </script>
+@endsection
+
+@include('app._partials.js')

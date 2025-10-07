@@ -135,6 +135,7 @@ class Attendance extends Model
             })
             ->leftJoin('leave_types', 'leave_types.id', '=', 'leave_requests.leave_type_id')
             ->whereBetween('at_date', [$startDate, $endDate])
+            ->groupBy('attendance.id')
             ->orderBy('at_date', 'desc')
             ->orderBy('users.u_name');
 

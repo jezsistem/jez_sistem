@@ -95,6 +95,7 @@ use App\Http\Controllers\UserDivisionV2Controller;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AnnouncementCategoryController;
 use App\Http\Controllers\AnnouncementReactionController;
+use App\Http\Controllers\ExternalAssignmentRequestController;
 
 
 use App\Http\Controllers\WebConfigController;
@@ -1023,6 +1024,48 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('ea_import', [ExternalAssignmentTypeController::class, 'importData']);
     Route::post('check_exists_external_assignment_type', [ExternalAssignmentTypeController::class, 'checkExistsExternalTypes']);
     Route::get('export-perusahaan', [ExternalAssignmentTypeController::class, 'exportData']);
+
+
+    //External Assignment Request
+    Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index']);
+    Route::get('external-assignment/summary-report', [ExternalAssignmentRequestController::class, 'summaryReport'])->name('external-assignment.summary-report');
+    Route::get('external-assignment/summary-report/datatables', [ExternalAssignmentRequestController::class, 'getSummaryReportDatatables'])->name('external-assignment.summary-report-datatables');
+    Route::get('external-assignment/summary-report/export/excel', [ExternalAssignmentRequestController::class, 'exportSummaryToExcel'])->name('external-assignment.summary-report-export-excel');
+    Route::get('external-assignment/summary-report/export/pdf', [ExternalAssignmentRequestController::class, 'exportSummaryToPDF'])->name('external-assignment.summary-report-export-pdf');
+    Route::get('external-assignment/staff/{user_id}', [ExternalAssignmentRequestController::class, 'staffDetail'])->name('external-assignment.staff-detail');
+    Route::get('external-assignment/staff/{user_id}/datatables', [ExternalAssignmentRequestController::class, 'staffDatatables'])->name('external-assignment.staff-datatables');
+    Route::get('external-assignment/staff/{user_id}/stats', [ExternalAssignmentRequestController::class, 'staffStats'])->name('external-assignment.staff-stats');
+    Route::get('external-assignment/staff/{user_id}/export/excel', [ExternalAssignmentRequestController::class, 'exportStaffToExcel'])->name('external-assignment.staff-export-excel');
+    Route::get('external-assignment/staff/{user_id}/export/pdf', [ExternalAssignmentRequestController::class, 'exportStaffToPDF'])->name('external-assignment.staff-export-pdf');
+
+    // Leave Balance Route
+    Route::get('external-assignment/balance/{leaveTypeId}', [ExternalAssignmentRequestController::class, 'getLeaveBalance'])->name('external-assignment.balance');
+
+    // Leave Request Specific Routes (MUST be before {id} routes to avoid conflicts)
+    Route::get('external-assignment/datatables', [ExternalAssignmentRequestController::class, 'getDatatables'])->name('external-assignment.datatables');
+    Route::get('external-assignment/stats', [ExternalAssignmentRequestController::class, 'getStats'])->name('external-assignment.stats');
+    Route::get('external-assignment/create', [ExternalAssignmentRequestController::class, 'create'])->name('external-assignment.create');
+    Route::post('external-assignment/reprocess-all', [ExternalAssignmentRequestController::class, 'reprocessAll'])->name('external-assignment.reprocess-all');
+
+    // Leave Request CRUD Routes (with {id} parameter)
+    Route::get('external-assignment/{id}', [ExternalAssignmentRequestController::class, 'show'])->name('external-assignment.show');
+    Route::get('external-assignment/{id}/edit', [ExternalAssignmentRequestController::class, 'edit'])->name('external-assignment.edit');
+    Route::put('external-assignment/{id}', [ExternalAssignmentRequestController::class, 'update'])->name('external-assignment.update');
+    Route::delete('external-assignment/{id}', [ExternalAssignmentRequestController::class, 'destroy'])->name('external-assignment.destroy');
+    Route::get('external-assignment/{id}/process-status', [ExternalAssignmentRequestController::class, 'processStatus'])->name('external-assignment.process-status');
+    Route::post('external-assignment/{id}/approve', [ExternalAssignmentRequestController::class, 'approve'])->name('external-assignment.approve');
+    Route::post('external-assignment/{id}/reject', [ExternalAssignmentRequestController::class, 'reject'])->name('external-assignment.reject');
+
+    // Leave Request Index and Store Routes (MUST be AFTER {id} routes to avoid conflicts)
+//    Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index'])->name('external-assignment.index');
+//    Route::post('external-assignment', [ExternalAssignmentRequestController::class, 'store'])->name('external-assignment.store');
+    Route::post('/external-assignment-requests/create', [ExternalAssignmentRequestController::class, 'store'])->name('external-assignment-requests.store');
+    Route::get('/external-assignment-requests/{id}', [ExternalAssignmentRequestController::class, 'show'])
+        ->name('external-assignment-requests.show');
+    Route::post('/ear/{id}/approve', [ExternalAssignmentRequestController::class, 'approve'])
+        ->name('ear.approve');
+    Route::post('/ear/{id}/report/store', [ExternalAssignmentRequestController::class, 'storeReport'])
+        ->name('ear.report.store');
 });
 
 require __DIR__ . '/purchase_order.php';
