@@ -158,10 +158,8 @@ class POReceiveApprovalController extends Controller
                 ->editColumn('receive_date_show', function ($data) {
                     if (empty($data->received_date)) {
                         return date('d/m/Y', strtotime($data->created_at));
-
                     }
                     return date('d/m/Y', strtotime($data->received_date));
-
                 })
                 ->editColumn('u_receive', function ($data) {
                     if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
@@ -347,6 +345,8 @@ class POReceiveApprovalController extends Controller
             return json_encode($r);
         }
 
+        $p_ids = array();
+
         if (!empty($poads->first())) {
             foreach ($poads as $row) {
                 $bin = DB::table('product_locations')->select('id')->where('st_id', '=', $row->st_id)->where('pl_default', '=', '1')->get()->first()->id;
@@ -406,10 +406,17 @@ class POReceiveApprovalController extends Controller
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
 
-                        DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
-                            'ps_purchase_price' => $new_cogs,
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
+                        if ($old_stock > 0) {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => $new_cogs,
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        } else {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => $new_price,
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        }
                     }
                 } else {
                     $update_setup = DB::table('product_location_setups')->insert([
@@ -425,28 +432,39 @@ class POReceiveApprovalController extends Controller
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
 
-                        DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
-                            'ps_purchase_price' => $new_cogs,
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
+                        if ($old_stock > 0) {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => $new_cogs,
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        } else {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => $new_price,
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        }
                     }
                 }
-                // Update COGS article level
-                $check_product_stock = DB::table('product_stocks')->where('id', $row->pst_id)->get()->first();
 
+                if (!in_array($check_product_stock->p_id, $p_ids)) {
+                    $p_ids[] = $check_product_stock->p_id;
+                }
+            }
+
+            foreach ($p_ids as $p_id) {
                 $total_qty_new = DB::table('product_location_setups')
-                ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
-                    ->where('product_stocks.p_id', $check_product_stock->p_id)
+                    ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->where('product_stocks.p_id', $p_id)
                     ->sum('pls_qty');
 
                 $hpp_avg_new = DB::table('product_stocks')
-                    ->where('p_id', $check_product_stock->p_id)
+                    ->where('p_id', $p_id)
                     ->avg('ps_purchase_price');
 
                 $avg_cogs = ceil($hpp_avg_new * $total_qty_new / ($total_qty_new > 0 ? $total_qty_new : 1));
 
                 DB::table('products')
-                    ->where('id', $check_product_stock->p_id)
+                    ->where('id', $p_id)
                     ->update([
                         'p_purchase_price' => $avg_cogs,
                         'updated_at' => now()
