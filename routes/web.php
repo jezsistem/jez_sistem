@@ -1027,7 +1027,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 
     //External Assignment Request
-    Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index']);
+    Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index'])->name('external-assignments.index');
     Route::get('external-assignment/summary-report', [ExternalAssignmentRequestController::class, 'summaryReport'])->name('external-assignment.summary-report');
     Route::get('external-assignment/summary-report/datatables', [ExternalAssignmentRequestController::class, 'getSummaryReportDatatables'])->name('external-assignment.summary-report-datatables');
     Route::get('external-assignment/summary-report/export/excel', [ExternalAssignmentRequestController::class, 'exportSummaryToExcel'])->name('external-assignment.summary-report-export-excel');

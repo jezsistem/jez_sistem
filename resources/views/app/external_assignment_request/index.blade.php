@@ -336,7 +336,6 @@
                                             <option value="Pending Approval" {{ ($status === null || $status == 'Pending Approval') ? 'selected' : '' }}>Pending Approval</option>
                                             <option value="Approved" {{ $status == 'Approved' ? 'selected' : '' }}>Approved</option>
                                             <option value="Rejected" {{ $status == 'Rejected' ? 'selected' : '' }}>Rejected</option>
-                                            <option value="Reporting" {{ $status == 'Reporting' ? 'selected' : '' }}>Reporting</option>
                                             <option value="HR Check" {{ $status == 'HR Check' ? 'selected' : '' }}>HR Check</option>
                                             <option value="Finance Process" {{ $status == 'Finance Process' ? 'selected' : '' }}>Finance Process</option>
                                             <option value="DONE" {{ $status == 'DONE' ? 'selected' : '' }}>Done</option>

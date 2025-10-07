@@ -134,110 +134,6 @@ class ExternalAssignmentRequestController extends Controller
         return view('app.external_assignment_request.create', compact('types', 'data'));
     }
 
-//    public function store(Request $request)
-//    {
-//        // $this->validateAccess();
-//
-//        $request->validate([
-//            'leave_type_id' => 'required|exists:leave_types,id',
-//            'lr_start_date' => 'required|date',
-//            'lr_end_date' => 'nullable|date|after_or_equal:lr_start_date',
-//            'lr_start_time' => 'nullable|date_format:H:i',
-//            'lr_end_time' => 'nullable|date_format:H:i|after:lr_start_time',
-//            'lr_unit' => 'required|in:days,hours',
-//            'lr_reason' => 'required|string',
-//            'lr_attachments.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240' // Max 10MB per file
-//        ]);
-//
-//        $userId = auth()->user()->id;
-//        $startDate = $request->lr_start_date;
-//        $endDate = $request->lr_end_date ?: $startDate;
-//
-//        // Check if user can request leave for this period
-//        $leaveRequest = new LeaveRequest();
-//        if (!$leaveRequest->canRequestLeave($userId, $startDate, $endDate)) {
-//            return back()->with('error', 'You already have a leave request for this period')->withInput();
-//        }
-//
-//        // Calculate total days/hours
-//        $startDateObj = Carbon::parse($startDate);
-//        $endDateObj = Carbon::parse($endDate);
-//
-//        if ($request->lr_unit == 'hours') {
-//            $startTime = $request->lr_start_time ? Carbon::parse($request->lr_start_time) : Carbon::parse('00:00:00');
-//            $endTime = $request->lr_end_time ? Carbon::parse($request->lr_end_time) : Carbon::parse('23:59:59');
-//
-//            $totalHours = $startDateObj->diffInDays($endDateObj) * 24;
-//            $totalHours += $startTime->diffInHours($endTime);
-//            $totalDays = 0;
-//        } else {
-//            $totalDays = $startDateObj->diffInDays($endDateObj) + 1;
-//            $totalHours = 0;
-//        }
-//
-//        // Handle multiple file uploads
-//        $attachmentData = null;
-//        if ($request->hasFile('lr_attachments')) {
-//            $files = $request->file('lr_attachments');
-//            $attachmentData = [];
-//
-//            foreach ($files as $file) {
-//                $fileName = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
-//                $filePath = $file->storeAs('leave_attachments', $fileName, 'public');
-//
-//                $attachmentData[] = [
-//                    'file_path' => $filePath,
-//                    'original_name' => $file->getClientOriginalName(),
-//                    'file_type' => $file->getClientMimeType(),
-//                    'file_size' => $file->getSize()
-//                ];
-//            }
-//        }
-//
-//        $data = [
-//            'user_id' => $userId,
-//            'leave_type_id' => $request->leave_type_id,
-//            'lr_start_date' => $startDate,
-//            'lr_end_date' => $endDate,
-//            'lr_start_time' => $request->lr_start_time,
-//            'lr_end_time' => $request->lr_end_time,
-//            'lr_total_days' => $totalDays,
-//            'lr_total_hours' => $totalHours,
-//            'lr_unit' => $request->lr_unit,
-//            'lr_reason' => $request->lr_reason,
-//            'lr_status' => 'pending'
-//        ];
-//
-//        // Use Eloquent to create leave request and get the ID
-//        $newLeaveRequest = LeaveRequest::create($data);
-//
-//        // Handle attachments if leave request was created successfully
-//        if ($newLeaveRequest && $attachmentData) {
-//            foreach ($attachmentData as $attachment) {
-//                DB::table('leave_request_attachments')->insert([
-//                    'leave_request_id' => $newLeaveRequest->id,
-//                    'file_path' => $attachment['file_path'],
-//                    'original_name' => $attachment['original_name'],
-//                    'file_type' => $attachment['file_type'],
-//                    'file_size' => $attachment['file_size'],
-//                    'created_at' => now(),
-//                    'updated_at' => now()
-//                ]);
-//            }
-//        }
-//
-//        $result = $newLeaveRequest ? true : false;
-//
-//        if ($result) {
-//            // Send notification to supervisors and managers in the same division
-//            $this->sendLeaveRequestNotification($userId, $data);
-//
-//            return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully');
-//        } else {
-//            return back()->with('error', 'Failed to submit leave request')->withInput();
-//        }
-//    }
-
     public function store(Request $request)
     {
 
@@ -255,7 +151,6 @@ class ExternalAssignmentRequestController extends Controller
                 'created_at'       => Carbon::now(),
             ]);
 
-            // Simpan Rundowns
             if ($request->has('rundowns')) {
                 foreach ($request->rundowns as $r) {
                     ExternalAssignmentRequestDetail::create([
@@ -269,7 +164,6 @@ class ExternalAssignmentRequestController extends Controller
                 }
             }
 
-            // Simpan Cash Details
             if ($request->has('cashDetails')) {
                 foreach ($request->cashDetails as $c) {
                     ExternalAssignmentRequestCashDetail::create([
@@ -294,48 +188,6 @@ class ExternalAssignmentRequestController extends Controller
         }
     }
 
-//    public function show($id)
-//    {
-//        // $this->validateAccess();
-//
-////        var_dump('kontol');
-//
-//        $title = 'Leave Request Detail';
-//        $user = auth()->user();
-//        $user_data = DB::table('users')->where('id', $user->id)->first();
-//
-////        $leaveRequest = LeaveRequest::with(['attachments', 'user', 'leaveType', 'approver'])
-////            ->findOrFail($id);
-//
-////        if (!$leaveRequest) {
-////            return redirect()->route('leave-requests.index')->with('error', 'Leave request not found');
-////        }
-//
-//        // Get related daily schedules
-////        $dailySchedules = DB::table('daily_schedules')
-////            ->select([
-////                'daily_schedules.*',
-////                'shift_codes.sc_code',
-////                'shift_codes.sc_shift_name',
-////                'user_divisions.ud_name'
-////            ])
-////            ->leftJoin('shift_codes', 'shift_codes.id', '=', 'daily_schedules.sc_id')
-////            ->leftJoin('user_divisions', 'user_divisions.id', '=', 'daily_schedules.ud_id')
-////            ->where('daily_schedules.user_id', $leaveRequest->user_id)
-////            ->whereBetween('daily_schedules.ds_date', [$leaveRequest->lr_start_date, $leaveRequest->lr_end_date])
-////            ->get();
-//
-//
-//        $data = [
-//            'title' => $title,
-//            'subtitle' => 'Leave Request Detail',
-//            'sidebar' => $this->sidebar(),
-//            'user' => $user_data,
-//            'segment' => request()->segment(1)
-//        ];
-//
-//        return view('app.external_assignment_request.show', compact(  'data'));
-//    }
 
     public function show($id)
     {
@@ -352,12 +204,11 @@ class ExternalAssignmentRequestController extends Controller
             'cashDetails',
         ])->findOrFail($id);
 
-        // Tentukan step approval & hak akses
         $userId = $user->id;
         $canApprove = false;
         $approvalStep = null;
 
-        // STEP 1: Supervisor / Manager
+        //  Supervisor / Manager
         if (is_null($detail->ear_approved_by)) {
             $approvalStep = 'supervisor';
             $canApprove = DB::table('users')
@@ -366,7 +217,7 @@ class ExternalAssignmentRequestController extends Controller
                 ->whereIn('user_positions.up_code', ['SUPERVISOR', 'MANAGER', 'DIREKTUR'])
                 ->exists();
         }
-        // STEP 2: HR
+        // HR
         elseif (is_null($detail->ear_hr_checked_by)) {
             $approvalStep = 'hr';
             $canApprove = DB::table('users')
@@ -375,13 +226,13 @@ class ExternalAssignmentRequestController extends Controller
                 ->where('user_divisions.ud_code', 'HUMANRESOU')
                 ->exists();
         }
-        // STEP 3: Finance
+        // Finance
         elseif (is_null($detail->ear_finance_by)) {
             $approvalStep = 'finance';
             $canApprove = DB::table('users')
-                ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
+                ->join('user_divisions', 'users.ud_id', '=', 'user_divisions.id')
                 ->where('users.id', $userId)
-                ->where('user_positions.up_code', 'FINANCETEC')
+                ->where('user_divisions.ud_code', 'FINANCETEC')
                 ->exists();
         }
 
@@ -412,6 +263,7 @@ class ExternalAssignmentRequestController extends Controller
         elseif (is_null($ear->ear_hr_checked_by) && $ear->ear_status === 'HR Check') {
             $ear->ear_hr_checked_by = $user->id;
             $ear->ear_hr_checked_at = now();
+            $ear->ear_hr_note = $ear->ear_note;
             $ear->ear_status = 'Finance Process';
         }
 
@@ -419,6 +271,7 @@ class ExternalAssignmentRequestController extends Controller
         elseif (is_null($ear->ear_finance_by) && $ear->ear_status === 'Finance Process') {
             $ear->ear_finance_by = $user->id;
             $ear->ear_finance_at = now();
+            $ear->ear_finance_note = $ear->ear_note;
             $ear->ear_status = 'DONE';
         }
 
