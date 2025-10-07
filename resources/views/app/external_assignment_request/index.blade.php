@@ -488,6 +488,5 @@
 
 @endsection
 
-
-@include('app.external_assignment_request.external_assignment_request_js')
 @include('app._partials.js')
+@include('app.external_assignment_request.external_assignment_request_js')
