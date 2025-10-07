@@ -25,8 +25,10 @@ class ExternalAssignmentRequest extends Model
         'ear_approved_at',
         'ear_hr_checked_by',
         'ear_hr_checked_at',
+        'ear_hr_note',
         'ear_finance_by',
         'ear_finance_at',
+        'ear_finance_note',
     ];
 
     /**

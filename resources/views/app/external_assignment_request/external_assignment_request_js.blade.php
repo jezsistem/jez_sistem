@@ -1,3 +1,4 @@
+
 <script>
     // Global reference for DataTable
     window.leaveRequestTable = null;
