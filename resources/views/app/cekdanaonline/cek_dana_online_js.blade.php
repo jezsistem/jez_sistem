@@ -25,6 +25,10 @@
                 "text": 'Excel',
                 "className": 'btn btn-primary btn-xs'
             }],
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
             ajax: {
                 url: "{{ route('cek_dana_online_datatables') }}",
                 data: function(d) {
