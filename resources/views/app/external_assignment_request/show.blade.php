@@ -49,13 +49,83 @@
                         <!-- Tombol Approval Dinamis -->
                         <hr>
                         @if($canApprove)
-                            <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="mt-3"
-                                  onsubmit="return confirm('Yakin ingin melanjutkan ke tahap berikutnya?')">
-                                @csrf
-                                <button type="submit" class="btn btn-success">
-                                    Approve to Next Step ({{ ucfirst($approvalStep) }})
+                            @if($approvalStep === 'hr')
+                                <!-- Tombol untuk HR -->
+                                <button type="button" class="btn btn-success mt-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#hrNoteModal">
+                                    Approve By HR
                                 </button>
-                            </form>
+
+                                <!-- Modal HR Note -->
+                                <div class="modal fade" id="hrNoteModal" tabindex="-1" aria-labelledby="hrNoteModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form method="POST" action="{{ route('ear.approve', $detail->id) }}">
+                                            @csrf
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title" id="hrNoteModalLabel" style="color: #fff;">Note HR</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Catatan HR</label>
+                                                        <textarea name="ear_hr_note" class="form-control" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-success">Submit Approval</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                            @elseif($approvalStep === 'finance')
+                                <!-- Tombol untuk Finance -->
+                                <button type="button" class="btn btn-success mt-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#financeNoteModal">
+                                    Approve By Finance
+                                </button>
+
+                                <!-- Modal Finance Note -->
+                                <div class="modal fade" id="financeNoteModal" tabindex="-1" aria-labelledby="financeNoteModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <form method="POST" action="{{ route('ear.approve', $detail->id) }}">
+                                            @csrf
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title" id="financeNoteModalLabel" style="color: #fff;">Note Finance</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Catatan Finance</label>
+                                                        <textarea name="ear_finance_note" class="form-control" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-success">Submit Approval</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                            @else
+                                <!-- Default untuk Supervisor / Manager -->
+                                <form action="{{ route('ear.approve', $detail->id) }}" method="POST" class="mt-3"
+                                      onsubmit="return confirm('Yakin ingin melanjutkan ke tahap berikutnya?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success">
+                                        Approve By {{ ucfirst($approvalStep) }}
+                                    </button>
+                                </form>
+                            @endif
+
                         @elseif($detail->ear_status === 'Completed')
                             <div class="alert alert-success mt-3 mb-0">
                                 <i class="bi bi-check-circle"></i> Request ini sudah <strong>Completed</strong>.
@@ -355,6 +425,13 @@
             });
         });
     </script>
+
+    <!-- Bootstrap JS -->
+{{--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">--}}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 @endsection
 
+@include('app.external_assignment_request.modal')
 @include('app._partials.js')

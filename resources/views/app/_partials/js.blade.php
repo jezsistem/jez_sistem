@@ -58,6 +58,8 @@
         "font-family": "Poppins"
     };
 </script>
+<!-- Bootstrap CSS -->
+
 <script src="{{ asset('app') }}/assets/plugins/global/plugins.bundle.js"></script>
 <script src="{{ asset('app') }}/assets/js/scripts.bundle.js?v1"></script>
 <script src="{{ asset('app') }}/assets/plugins/custom/datatables/datatables.bundle.js"></script>
