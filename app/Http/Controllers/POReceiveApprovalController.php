@@ -413,7 +413,7 @@ class POReceiveApprovalController extends Controller
                             ]);
                         } else {
                             DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
-                                'ps_purchase_price' => $new_price,
+                                'ps_purchase_price' => ceil($new_price),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
                         }
@@ -439,7 +439,7 @@ class POReceiveApprovalController extends Controller
                             ]);
                         } else {
                             DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
-                                'ps_purchase_price' => $new_price,
+                                'ps_purchase_price' => ceil($new_price),
                                 'updated_at' => date('Y-m-d H:i:s')
                             ]);
                         }
