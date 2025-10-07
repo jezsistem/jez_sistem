@@ -146,7 +146,7 @@
                                             <th class="text-dark">Supplier</th>
                                             <th class="text-dark">Invoice</th>
                                             <th class="text-dark">Tgl Invoice</th>
-                                            <th class="text-dark">Tgl Barang Terima</th>
+                                            <th class="text-dark">Tgl Barang Datang</th>
                                             <th class="text-dark">Tgl Terima</th>
                                             <th class="text-dark">Penerima</th>
                                             <th class="text-dark">Approval</th>
