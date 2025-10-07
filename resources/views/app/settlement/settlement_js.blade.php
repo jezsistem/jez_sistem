@@ -30,7 +30,8 @@
                 end_date: $('#end_date').val(),
                 status_trx: $('#status_trx').val(),
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             },
             success: function(response) {
                 $('#payment_calc_cards').html(response);
@@ -50,7 +51,8 @@
                 end_date: $('#end_date').val(),
                 status_trx: $('#status_trx').val(),
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             },
             success: function(response) {
                 var formattedNetSales = new Intl.NumberFormat('id-ID', {
@@ -62,11 +64,15 @@
                 var formattedMargin = new Intl.NumberFormat('id-ID', {
                     minimumFractionDigits: 0
                 }).format(response.total_margin);
+                var formattedDanaCair = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.total_dana_cair || 0);
 
                 $('#total_netsales').text(formattedNetSales);
                 $('#total_cogs').text(formattedCOGS);
                 $('#total_margin').text(formattedMargin);
                 $('#margin_percentage').text(response.margin_percentage);
+                $('#total_dana_cair').text(formattedDanaCair);
             }
         });
     }
@@ -103,13 +109,13 @@
                     d.search = $('#search').val();
                     d.status_settle = $('#status_settle').val();
                     d.status_cogs = $('#status_cogs').val();
+                    d.sub_payment = $('#sub_payment_filter').val();
                 }
             },
             columns: [{
                     data: null,
                     render: function(data, type, row, meta) {
-                        return '<input type="checkbox" class="row-checkbox" id="check_' + row
-                            .id + '">';
+                        return '<input type="checkbox" class="row-checkbox" id="check_' + row.id + '" data-is-partial="' + row.is_partial + '">';
                     },
                     orderable: false,
                     searchable: false,
@@ -231,7 +237,7 @@
             var startDate = $('#start_date').val();
             var endDate = $('#end_date').val();
 
-            if (!stId || !startDate || !endDate) {
+            if (stId == 0 || startDate == 0 || endDate == 0) {
                 toastr.warning('Please select Store, Start Date, and End Date before filtering.');
                 return;
             }
@@ -248,6 +254,17 @@
             $('#start_date').val('');
             $('#end_date').val('');
             $('#status_trx').val('');
+            $('#status_settle').val('0');
+            $('#status_cogs').val('0');
+            $('#sub_payment_filter').val('0');
+            $('#search').val('');
+
+            $('#st_id').trigger('change');
+            $('#payment_method_select').trigger('change');
+            $('#status_trx').trigger('change');
+            $('#status_settle').trigger('change');
+            $('#status_cogs').trigger('change');
+            $('#sub_payment_filter').trigger('change');
             loadPaymentMethods();
             loadTotalNetsales();
             loadNetSalesPerPaymentMethod();
@@ -258,10 +275,11 @@
         $('#SettlementTable tbody').on('click', 'tr', function() {
             var data = settlement_table.row(this).data();
             var id = data.id;
+            var is_partial = data.is_partial;
 
             $.ajax({
                 type: "GET",
-                url: "{{ url('settlement_detail') }}/" + id,
+                url: "{{ url('settlement_detail') }}/" + id + "/" + is_partial,
                 success: function(response) {
                     // Handle the response here
                     // You can display the data in a modal, update a section of the page, etc.
@@ -332,15 +350,16 @@
                         .format(response.total_admin_fee || 0));
                     $('#outstanding_balance_summary').text('Rp ' + new Intl.NumberFormat(
                         'id-ID').format(response.outstanding_balance));
-                    $('#total_dana_cair').text('Rp ' + new Intl.NumberFormat('id-ID')
+                    $('#dana_cair').text('Rp ' + new Intl.NumberFormat('id-ID')
                         .format(response.total_dana_cair || 0));
                     $('#gross_margin').text('Rp ' + new Intl.NumberFormat('id-ID').format(
                         response.gross_margin));
-                    $('#margin_percentage').text(response.margin_percentage);
+                    $('#margin_percentage_detail').text(response.margin_percentage);
                     $('#btn_print_receipt').attr('href', response.print_receipt_url);
                     $('#note').text(response.note || '-');
                     $('#note_settlement').val(response.note_settlement || '').attr(
                         'data-id', response.id);
+                    $('#note_settlement').attr('data-is-partial', is_partial);
                     $('#note_dp').text(response.note_dp || '-');
 
                     // Clear existing table data
@@ -377,6 +396,7 @@
 
         $('#note_settlement').on('input', function() {
             var id = $(this).attr('data-id');
+            var is_partial = $(this).attr('data-is-partial');
             if (!id) {
                 return;
             }
@@ -393,6 +413,7 @@
                     url: "{{ url('settlement_update_note') }}",
                     data: {
                         id: id,
+                        is_partial: is_partial,
                         note_settlement: note_settlement,
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
@@ -417,8 +438,12 @@
             var checkedIds = [];
             $('#SettlementTable tbody input[id^="check_"]:checked').each(function() {
                 var checkId = $(this).attr('id');
+                var is_partial = $(this).attr('data-is-partial');
                 var numberPart = checkId.replace('check_', '');
-                checkedIds.push(numberPart);
+                checkedIds.push({
+                    id: numberPart,
+                    is_partial: is_partial
+                });
             });
 
             if (checkedIds.length === 0) {
@@ -483,13 +508,13 @@
             // Show SweetAlert confirmation
             var selectedCount = $('#selected').text();
             Swal.fire({
-                title: 'Confirm Settlement',
+                title: 'Confirm Calculation',
                 text: `Are you sure you want to calc ${selectedCount} selected transactions?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, settle them!'
+                confirmButtonText: 'Yes, calc them!'
             }).then((result) => {
                 if (!result.isConfirmed) {
                     return;
@@ -555,7 +580,8 @@
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || '',
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');
@@ -569,7 +595,8 @@
                 end_date: $('#end_date').val() || '',
                 status_trx: $('#status_trx').val() || '',
                 status_settle: $('#status_settle').val(),
-                status_cogs: $('#status_cogs').val()
+                status_cogs: $('#status_cogs').val(),
+                sub_payment: $('#sub_payment_filter').val()
             });
 
             window.open(url + '?' + params.toString(), '_blank');

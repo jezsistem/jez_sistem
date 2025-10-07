@@ -153,6 +153,7 @@ class PurchaseOrderController extends Controller
                 ->leftJoin('purchase_order_article_detail_statuses', 'purchase_order_article_detail_statuses.poad_id', '=', 'purchase_order_article_details.id')
                 ->join('stores', 'stores.id', '=', 'purchase_orders.st_id')
                 ->join('product_suppliers', 'product_suppliers.id', '=', 'purchase_orders.ps_id')
+                ->leftJoin('purchase_order_file_delivery_note', 'purchase_order_file_delivery_note.purchase_order_id', '=', 'purchase_orders.id')
                 ->where('po_delete', '!=', '1')
                 ->where(function ($w) use ($user_data, $st_id) {
                     if ($user_data->g_name != 'administrator') {
@@ -161,6 +162,19 @@ class PurchaseOrderController extends Controller
                         if (!empty($st_id)) {
                             $w->where('purchase_orders.st_id', '=', $st_id);
                         }
+                    }
+                })
+                ->when($request->get('filter_delivery_note') === "1", function ($query) {
+                    $query->whereNotNull('purchase_order_file_delivery_note.id')
+                          ->where('purchase_order_file_delivery_note.id', '!=', '')
+                          ->whereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) > 0');
+                }, function ($query) use ($request) {
+                    if ($request->get('filter_delivery_note') === "0") {
+                        $query->where(function ($q) {
+                            $q->whereNull('purchase_order_file_delivery_note.id')
+                              ->orWhere('purchase_order_file_delivery_note.id', '')
+                              ->orWhereRaw('CAST(ts_purchase_order_file_delivery_note.id AS UNSIGNED) = 0');
+                        });
                     }
                 })
                 ->groupBy('po_id'))
@@ -259,7 +273,7 @@ class PurchaseOrderController extends Controller
                         return '<span class="badge badge-primary">' . $name . '<br/> Diterima, Belum Dibayar</span>';
                     } else if (!empty($data->u_id_approve)) {
                         $name = DB::table('users')->where('id', '=', $data->u_id_approve)->first()->u_name;
-                        return '<span class="badge badge-success">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->status_updated_at)) . '</span>';
+                        return '<span class="badge text-white" style="background-color: #16C47F;">' . $name . '<br/>' . date('d/m/Y H:i:s', strtotime($data->status_updated_at)) . '</span>';
                     } else {
                         return '<span class="badge badge-warning">Menunggu Approval</span>';
                     }
@@ -686,7 +700,7 @@ class PurchaseOrderController extends Controller
             $po_id = $draft->id;
             $po_st_id = $draft->st_id;
 
-            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_reminder', 'article_id', 'article_id', 'products.created_at as item_added')
+            $poa_data = PurchaseOrderArticle::select('purchase_order_articles.id as poa_id', 'po_id', 'products.id as pid', 'br_name', 'p_price_tag', 'p_purchase_price', 'p_name', 'p_color', 'poa_discount', 'poa_extra_discount', 'poa_sub_discount', 'poa_reminder', 'article_id', 'article_id', 'products.created_at as item_added')
                 ->leftJoin('products', 'products.id', '=', 'purchase_order_articles.p_id')
                 //                ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
@@ -822,6 +836,7 @@ class PurchaseOrderController extends Controller
             $r['po_total_purchase'] = $draft->po_total_purchase;
             $r['po_total_qty'] = $draft->po_total_qty;
             $r['po_payment_amount'] = $draft->po_payment_amount;
+            $r['bank_general'] = $draft->bank_general;
         } else {
             $r['status'] = '400';
         }
@@ -1012,4 +1027,16 @@ class PurchaseOrderController extends Controller
         return Excel::download(new PurchaseOrderRecevieExport($request), 'purchase_order_receive.xlsx');
     }
 
+    public function changeBankGeneral(Request $request)
+    {
+        $po_id = $request->po_id;
+        $bank_general = $request->bg_id;
+        $check = DB::table('purchase_orders')->where(['id' => $po_id])->update(['bank_general' => $bank_general]);
+        if ($check) {
+            $r['status'] = '200';
+        } else {
+            $r['status'] = '400';
+        }
+        return json_encode($r);
+    }
 }

@@ -57,6 +57,14 @@
                                         <option value="0">No</option>
                                     </select>
                                 </div>
+                                <div class="form-group ml-4" style="padding-top:22px;">
+                                    <select class="form-control" id="filter_delivery_note" name="filter_delivery_note"
+                                        style="border: 1px solid #ced4da;">
+                                        <option value="">- Upload Surat Jalan? -</option>
+                                        <option value="1">Sudah</option>
+                                        <option value="0">Belum</option>
+                                    </select>
+                                </div>
                                 <div class="form-group" style="padding-top:22px;">
                                     <div class="row">
                                         <a href="#" class="btn btn-date-info font-weight-bold mr-2"

@@ -221,6 +221,7 @@
     function discount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
+        var sub_discount = $('#poa_sub_discount' + id).val();
         var total_row = $('span[data-poa-' + id + ']').length;
         var poad_total_price = 0;
         var po_id = $('#_po_id').val();
@@ -235,23 +236,27 @@
         // Handle extra discount if empty or 0
         if (extra_discount == '' || extra_discount == 0) extra_discount = 0;
 
+        // Handle sub discount if empty or 0
+        if (sub_discount == '' || sub_discount == 0) sub_discount = 0;
+
         for (let i = 0; i < total_row; ++i) {
             var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
             var qty = $('#poad_qty_' + id + '_' + i).val() || 1; // Default qty to 1 if not entered
             var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
             var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
+            var final_total = total - (total / 100 * parseFloat(sub_discount));
 
             // Update purchase price for this row
-            $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
+            $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
 
             // Calculate and update total purchase price
-            var total_purchase_price = total * parseFloat(qty);
+            var total_purchase_price = final_total * parseFloat(qty);
             $('#total_purchase_price_' + id + '_' + i).val(addCommas(total_purchase_price));
 
             poad_total_price += total_purchase_price;
 
             // Update total for this row
-            poadPurchasePrice(id, i, total);
+            poadPurchasePrice(id, i, final_total);
         }
 
         $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
@@ -274,9 +279,9 @@
             url: "{{ url('poa_save_discount') }}",
             success: function(r) {
                 if (r.status == '200') {
-                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                    toast('Disimpan', 'Diskon berhasil disimpan', 'success');
                 } else {
-                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                    toast('Gagal', 'Diskon gagal disimpan', 'warning');
                 }
             }
         });
@@ -285,6 +290,7 @@
     function extraDiscount(id) {
         var discount = $('#poa_discount' + id).val();
         var extra_discount = $('#poa_extra_discount' + id).val();
+        var sub_discount = $('#poa_sub_discount' + id).val();
         var total_row = $('span[data-poa-' + id + ']').length;
         var total = 0;
         var poad_total_price = 0;
@@ -297,15 +303,21 @@
             if (extra_discount == '' || extra_discount == 0) {
                 extra_discount = 0;
             }
+
+            if (sub_discount == '' || sub_discount == 0) {
+                sub_discount = 0;
+            }
+
             for (let i = 0; i < total_row; ++i) {
                 var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
                 var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
                 var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
                 var total = subtotal - (subtotal / 100 * parseFloat(extra_discount));
-                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
-                $('#total_purchase_price_' + id + '_' + i).val(addCommas(total * qty));
-                poad_total_price += total * qty;
-                poadPurchasePrice(id, i, total);
+                var final_total = total - (total / 100 * parseFloat(sub_discount));
+                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(final_total));
+                $('#total_purchase_price_' + id + '_' + i).val(addCommas(final_total * qty));
+                poad_total_price += final_total * qty;
+                poadPurchasePrice(id, i, final_total);
             }
 
             $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
@@ -327,9 +339,65 @@
             url: "{{ url('poa_save_extra_discount') }}",
             success: function(r) {
                 if (r.status == '200') {
-                    toast('Disimpan', 'Informasi berhasil disimpan', 'success');
+                    toast('Disimpan', 'Diskon Extra berhasil disimpan', 'success');
                 } else {
-                    toast('Gagal', 'Informasi gagal disimpan', 'warning');
+                    toast('Gagal', 'Diskon Extra gagal disimpan', 'warning');
+                }
+            }
+        });
+    }
+
+    function subDiscount(id)
+    {
+        var discount = $('#poa_discount' + id).val();
+        var extra_discount = $('#poa_extra_discount' + id).val();
+        var sub_discount = $('#poa_sub_discount' + id).val();
+        var total_row = $('span[data-poa-' + id + ']').length;
+        var total = 0;
+        var poad_total_price = 0;
+        var po_id = $('#_po_id').val();
+
+        if (discount == 0 || discount == null) {
+            swal('Diskon', 'Diskon kosong, silahkan isi terlebih dahulu', 'warning');
+            $('#poa_sub_discount' + id).val('');
+        } else {
+            if (sub_discount == '' || sub_discount == 0) {
+                sub_discount = 0;
+            }
+            for (let i = 0; i < total_row; ++i) {
+                var price_tag = parseFloat(replaceComma($('#price_tag_' + id + '_' + i).val()));
+                var qty = parseFloat($('#poad_qty_' + id + '_' + i).val()) || 0; // Ensure qty is a number
+                var subtotal = price_tag - (price_tag / 100 * parseFloat(discount));
+                var subtotal_after_extra = subtotal - (subtotal / 100 * parseFloat(extra_discount));
+                var total = subtotal_after_extra - (subtotal_after_extra / 100 * parseFloat(sub_discount));
+                $('#poad_purchase_price_' + id + '_' + i).val(addCommas(total));
+                $('#total_purchase_price_' + id + '_' + i).val(addCommas(total * qty));
+                poad_total_price += total * qty;
+                poadPurchasePrice(id, i, total);
+            }
+
+            $('#poad_total_price_' + id).text(addCommas(poad_total_price)); // Ensure this updates correctly
+            reloadPoTotalPrice(po_id)
+        }
+
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            data: {
+                _id: id,
+                _sub_discount: sub_discount
+            },
+            dataType: 'json',
+            url: "{{ url('poa_save_sub_discount') }}",
+            success: function(r) {
+                if (r.status == '200') {
+                    toast('Disimpan', 'Sub Diskon berhasil disimpan', 'success');
+                } else {
+                    toast('Gagal', 'Sub Diskon gagal disimpan', 'warning');
                 }
             }
         });
@@ -664,6 +732,33 @@
         });
     });
 
+    $(document).delegate('#bank_general', 'change', function() {
+        var bg_id = $(this).val();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            type: "POST",
+            url: "{{ url('po_change_bank_general') }}",
+            data: {
+                bg_id: bg_id,
+                po_id: $('#_po_id').val()
+            },
+            success: function(r) {
+                let response = typeof r === "string" ? JSON.parse(r) : r;
+                if (response.status == '200') {
+
+                } else if (response.status == '500') {
+                    swal('Error', response.message);
+                } else {
+
+                }
+            },
+        });
+    });
+
     $(document).ready(function() {
         $.ajaxSetup({
             headers: {
@@ -675,7 +770,7 @@
 
         var purchase_order_table = $('#PurchaseOrdertb').DataTable({
             destroy: true,
-            processing: false,
+            processing: true,
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
@@ -1247,6 +1342,7 @@
                         jQuery('#tax_id').val(r.tax_id).trigger('change');
                         jQuery('#dp_id').val(r.dp_id).trigger('change');
                         jQuery('#acc_id').val(r.acc_id).trigger('change');
+                        jQuery('#bank_general').val(r.bank_general).trigger('change');
                         $('#status_dispute').val(r.status_dispute);
                         $('#total_purchase').val(r.po_total_purchase);
                         $('#payment_amount').val(r.po_payment_amount);

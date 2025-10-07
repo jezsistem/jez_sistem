@@ -28,12 +28,14 @@ class PurchaseOrderArticleDetailStatusController extends Controller
         $poads_discount = $request->_poads_discount;
         $poads_cogs = $request->_poads_cogs;
         $poads_extra_discount = $request->_poads_extra_discount;
+        $poads_sub_discount = $request->_poads_sub_discount;
         $poads_purchase_price = $request->_poads_purchase_price;
         $poads_total_price = $poads_qty * $poads_purchase_price;
 
         $receive_date = $request->receive_date;
         $receive_invoice = $request->receive_invoice;
         $invoice_date = $request->invoice_date;
+        $arrived_at = $request->arrived_at;
         $shipping_cost = $request->shipping_cost ?? 0;
         $invoice_note = $request->invoice_note;
         $dispute = $request->dispute;
@@ -56,12 +58,14 @@ class PurchaseOrderArticleDetailStatusController extends Controller
             'poads_qty' => $poads_qty,
             'poads_discount' => $poads_discount,
             'poads_extra_discount' => $poads_extra_discount,
+            'poads_sub_discount' => $poads_sub_discount,
             'poads_purchase_price' => $poads_purchase_price,
             'poads_total_price' => $poads_total_price,
             'poads_type' => 'IN',
             'u_id_receive' => Auth::user()->id,
             'poads_invoice' => $receive_invoice,
             'invoice_date' => $invoice_date,
+            'arrived_at' => $arrived_at,
             'notes' => $invoice_note,
             'COGS' => $poads_cogs,
             'shipping_cost' => $shipping_cost,

@@ -34,6 +34,7 @@ use App\Models\Product;
 use App\Models\PurchaseOrderTransferImage;
 use App\Models\UserActivity;
 use App\Models\PurchaseOrderDisputeFile;
+use App\Models\PurchaseOrderFileDeliveryNote;
 
 
 class PurchaseOrderReceiveController extends Controller
@@ -404,6 +405,7 @@ class PurchaseOrderReceiveController extends Controller
                 'p_color',
                 'poa_discount',
                 'poa_extra_discount',
+                'poa_sub_discount',
                 'poa_reminder',
                 'products.article_id as articleid',
                 'products.created_at as item_added'
@@ -1027,6 +1029,75 @@ class PurchaseOrderReceiveController extends Controller
         }
 
         $path = public_path('upload/purchase_order_dispute/' . $file->file_dispute);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+
+        $file->delete();
+
+        return response()->json(['status' => '200']);
+    }
+
+    public function uploadFileDelivery(Request $request)
+    {
+        $po_id = $request->_po_id;
+        $check = PurchaseOrder::where('id', $po_id)->exists();
+        $success = false;
+
+        if ($check && $request->hasFile('filedeliverynote')) {
+            foreach ($request->file('filedeliverynote') as $file) {
+                $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $destinationPath = public_path('/upload/purchase_order_delivery_note');
+                $file->move($destinationPath, $name);
+
+                PurchaseOrderFileDeliveryNote::create([
+                    'purchase_order_id' => $po_id,
+                    'file_delivery_note' => $name,
+                ]);
+
+                $success = true;
+            }
+        }
+
+        return response()->json([
+            'status' => $check && $success ? '200' : '400'
+        ]);
+    }
+
+    public function getFileDeliveryNoteDatatables(Request $request)
+    {
+        if ($request->ajax()) {
+            $po_id = $request->get('_po_id');
+
+            $query = PurchaseOrderFileDeliveryNote::select('id', 'file_delivery_note')
+                ->where('purchase_order_id', $po_id)
+                ->whereNotNull('file_delivery_note')
+                ->where('file_delivery_note', '!=', '');
+
+            return datatables()->of($query)
+                ->addColumn('file', function ($data) {
+                    $fileUrl = asset('upload/purchase_order_delivery_note/' . $data->file_delivery_note);
+                    return '<a href="' . $fileUrl . '" target="_blank">' . e($data->file_delivery_note) . '</a>';
+                })
+                ->addColumn('action', function ($data) {
+                    return '<a href="#" class="btn btn-danger btn-sm delete-file-delivery-note" data-id="' . $data->id . '">Delete</a>';
+                })
+                ->rawColumns(['file', 'action'])
+                ->addIndexColumn()
+                ->make(true);
+        }
+    }
+
+    public function deleteFileDelivery(Request $request)
+    {
+        $id = $request->id;
+        $file = PurchaseOrderFileDeliveryNote::find($id);
+
+        if (!$file) {
+            return response()->json(['status' => '404', 'message' => 'Data tidak ditemukan']);
+        }
+
+        $path = public_path('upload/purchase_order_delivery_note/' . $file->file_delivery_note);
         if (file_exists($path)) {
             unlink($path);
         }

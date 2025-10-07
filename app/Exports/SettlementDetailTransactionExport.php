@@ -15,8 +15,9 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
     protected $status_trx;
     protected $status_settle;
     protected $status_cogs;
+    protected $sub_payment;
 
-    public function __construct($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null)
+    public function __construct($start_date, $end_date, $st_id, $pm_id, $status_trx, $status_settle = null, $status_cogs = null, $sub_payment = null)
     {
         $this->start_date = $start_date;
         $this->end_date = $end_date;
@@ -25,6 +26,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
         $this->status_trx = $status_trx;
         $this->status_settle = $status_settle;
         $this->status_cogs = $status_cogs;
+        $this->sub_payment = $sub_payment;
     }
 
     public function headings(): array
@@ -62,6 +64,17 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
 
     public function collection()
     {
+        if ($this->status_trx === '0' || $this->status_trx === 0) {
+            $this->status_trx = '';
+        }
+        if ($this->status_settle === '0' || $this->status_settle === 0) {
+            $this->status_settle = null;
+        }
+        if ($this->status_cogs === '0' || $this->status_cogs === 0) {
+            $this->status_cogs = null;
+        }
+
+
         if ($this->status_settle === 'Settled') {
             $status_settle = true;
         } elseif ($this->status_settle === 'Unsettled') {
@@ -125,7 +138,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                                * COALESCE(ts_pos_transactions.pos_total_discount, 0))
                     , 2) END AS total_diskon'),
                 'online_transaction_details.original_price as netsales_before_admin',
-                'pos_td_item_cogs as cogs',
+                DB::raw('(ts_pos_transaction_details.pos_td_qty * ts_pos_transaction_details.pos_td_item_cogs) as cogs'),
                 'discount_seller as sales_voucher',
                 DB::raw('null as total_admin_fee'),
                 DB::raw("CASE
@@ -149,7 +162,7 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                                         COALESCE(pos_td_discount_number, 0)
                                             + (pos_td_sell_price / NULLIF(SUM(pos_td_sell_price) OVER (PARTITION BY ts_pos_transactions.id), 0) 
                                                * COALESCE(ts_pos_transactions.pos_total_discount, 0))
-                                    , 2) END AS price_after_discount"),
+                                    , 2) END AS net_sales_after_admin"),
                 DB::raw("CASE
                     WHEN ts_stores.st_name like 'ONLINE%' and pos_invoice not like 'INV%'
                         THEN CONCAT('DEPOSIT ', UPPER(ts_online_transactions.platform_name))
@@ -234,6 +247,13 @@ class SettlementDetailTransactionExport implements FromCollection, WithHeadings
                         });
                 });
             }
+        });
+
+        $query->when(($this->sub_payment != 0), function ($query) {
+            return $query->where(function ($q) {
+            $q->where('pos_transactions.sub_payment', $this->sub_payment)
+              ->orWhere('pos_transactions.sub_payment_partial', $this->sub_payment);
+            });
         });
 
         $data = $query->get();
