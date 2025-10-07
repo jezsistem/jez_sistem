@@ -127,13 +127,23 @@ class CekDanaOnlineController extends Controller
         $filter_platform_name = '%' . $request->platform . '%' ?? '%%';
         $filter_status = (int) $request->status;
 
-        $exp_trx_date = explode('|', $request_filter_trx_date);
-        $filter_trx_date_start = $exp_trx_date[0];
-        $filter_trx_date_end = $exp_trx_date[1];
+        if ($request->filter_trx_date == null) {
+            $filter_trx_date_start = null;
+            $filter_trx_date_end = null;
+        } else {
+            $exp_trx_date = explode('|', $request_filter_trx_date);
+            $filter_trx_date_start = $exp_trx_date[0];
+            $filter_trx_date_end = $exp_trx_date[1];
+        }
 
-        $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
-        $filter_cash_out_date_start = $exp_cash_out_date[0];
-        $filter_cash_out_date_end = $exp_cash_out_date[1];
+        if ($request->filter_cash_out_date == null) {
+            $filter_cash_out_date_start = null;
+            $filter_cash_out_date_end = null;
+        } else {
+            $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+            $filter_cash_out_date_start = $exp_cash_out_date[0];
+            $filter_cash_out_date_end = $exp_cash_out_date[1];
+        }
 
         $data = $this->getAllCekDanaTransactions(
             $filter_order_number,
@@ -166,7 +176,7 @@ class CekDanaOnlineController extends Controller
             })
             ->addColumn('status', function ($collection) {
                 if (
-                    $collection->total_settle
+                    $collection->total_settle && $collection->trx_date
                 ) {
                     return '<button class="btn btn-sm btn-success">Done</button>';
                 }
@@ -186,7 +196,14 @@ class CekDanaOnlineController extends Controller
                     return '<button class="btn btn-sm btn-dark">Not Refund</button>';
                 }
             })
-            ->rawColumns(['status', 'status_refund'])
+            ->editColumn('is_settle', function ($collection) {
+                if ($collection->is_settle) {
+                    return '<button class="btn btn-sm btn-success">SETTLED</button>';
+                } else {
+                    return '<button class="btn btn-sm btn-secondary">UNSETTLED</button>';
+                }
+            })
+            ->rawColumns(['status', 'status_refund', 'is_settle'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -235,13 +252,23 @@ class CekDanaOnlineController extends Controller
         $filter_platform_name = '%' . $request->platform . '%' ?? '%%';
         $filter_status = (int) $request->status;
 
-        $exp_trx_date = explode('|', $request_filter_trx_date);
-        $filter_trx_date_start = $exp_trx_date[0];
-        $filter_trx_date_end = $exp_trx_date[1];
+        if ($request->filter_trx_date == null) {
+            $filter_trx_date_start = null;
+            $filter_trx_date_end = null;
+        } else {
+            $exp_trx_date = explode('|', $request_filter_trx_date);
+            $filter_trx_date_start = $exp_trx_date[0];
+            $filter_trx_date_end = $exp_trx_date[1];
+        }
 
-        $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
-        $filter_cash_out_date_start = $exp_cash_out_date[0];
-        $filter_cash_out_date_end = $exp_cash_out_date[1];
+        if ($request->filter_cash_out_date == null) {
+            $filter_cash_out_date_start = null;
+            $filter_cash_out_date_end = null;
+        } else {
+            $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+            $filter_cash_out_date_start = $exp_cash_out_date[0];
+            $filter_cash_out_date_end = $exp_cash_out_date[1];
+        }
 
         $data = $this->getAllCekDanaTransactions(
             $filter_order_number,
@@ -255,18 +282,18 @@ class CekDanaOnlineController extends Controller
         );
 
         $collection = collect($data)->map(function ($item) {
-            $item->fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0
+            $item->fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0 && $item->revenue != 0
                 ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
                 : '0.00%';
-            $item->seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0
+            $item->seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0 && $item->revenue != 0
                 ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
                 : '0.00%';
             $item->diff_jezpro_mp = isset($item->jezpro_price, $item->revenue)
                 ? $item->jezpro_price - $item->revenue
                 : null;
-            $item->status = $item->total_settle
+            $item->status = $item->total_settle && $item->trx_date
                 ? 'Done'
-                : (!$item->total_settle
+                : (!$item->total_settle && $item->trx_date
                     ? 'Belum Cair'
                     : (!$item->trx_date
                         ? 'Belum Trx'
@@ -594,6 +621,19 @@ class CekDanaOnlineController extends Controller
 
     private function getAllCekDanaTransactions($order_number, $st_id, $platform_name, $status, $trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end)
     {
+        // Add time to start and end dates if they exist
+        if ($trx_date_start) {
+            $trx_date_start .= ' 00:00:00';
+        }
+        if ($trx_date_end) {
+            $trx_date_end .= ' 23:59:59';
+        }
+        if ($cash_out_start) {
+            $cash_out_start .= ' 00:00:00';
+        }
+        if ($cash_out_end) {
+            $cash_out_end .= ' 23:59:59';
+        }
         // Query for "Belum Cair" & "Done"
         // Get only the latest pos_transaction for each pos_order_number
         $latestPosTransactionIds = DB::table('pos_transactions')
@@ -626,7 +666,9 @@ class CekDanaOnlineController extends Controller
                 'service_fee AS service_fee',
                 'dynamic_commission AS dynamic_commission',
                 'voucher_xtra_service_fee AS voucher_xtra_service_fee',
-                'cashback_service_fee AS cashback_service_fee'
+                'cashback_service_fee AS cashback_service_fee',
+                'pos_transactions.id as pos_id',
+                'pos_transactions.is_settle as is_settle'
             );
 
         // Apply filters for query1
@@ -638,6 +680,8 @@ class CekDanaOnlineController extends Controller
         }
         if ($platform_name && $platform_name != '%%') {
             $query1->whereIn('store_type_divisions.dv_name', explode(',', str_replace('%', '', $platform_name)));
+        } else {
+            $query1->whereIn('store_type_divisions.dv_name', ['TIKTOK', 'SHOPEE']);
         }
         if (($trx_date_start && $trx_date_end) || ($cash_out_start && $cash_out_end)) {
             $query1->where(function ($q) use ($trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end) {
@@ -645,7 +689,7 @@ class CekDanaOnlineController extends Controller
                     $q->whereBetween('pos_transactions.created_at', [$trx_date_start, $trx_date_end]);
                 }
                 if ($cash_out_start && $cash_out_end) {
-                    $q->orWhereBetween('online_funds.cashout_date', [$cash_out_start, $cash_out_end]);
+                    $q->whereBetween('online_funds.cashout_date', [$cash_out_start, $cash_out_end]);
                 }
             });
         }
@@ -681,7 +725,9 @@ class CekDanaOnlineController extends Controller
                 'service_fee AS service_fee',
                 'dynamic_commission AS dynamic_commission',
                 'voucher_xtra_service_fee AS voucher_xtra_service_fee',
-                'cashback_service_fee AS cashback_service_fee'
+                'cashback_service_fee AS cashback_service_fee',
+                'pos_transactions.id as pos_id',
+                'pos_transactions.is_settle as is_settle'
             )
             ->whereNull('pos_transactions.created_at');
 
@@ -696,12 +742,12 @@ class CekDanaOnlineController extends Controller
             $query2->whereIn('online_funds.platform_name', explode(',', str_replace('%', '', $platform_name)));
         }
         if (($trx_date_start && $trx_date_end) || ($cash_out_start && $cash_out_end)) {
-            $query1->where(function ($q) use ($trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end) {
+            $query2->where(function ($q) use ($trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end) {
                 if ($trx_date_start && $trx_date_end) {
                     $q->whereBetween('pos_transactions.created_at', [$trx_date_start, $trx_date_end]);
                 }
                 if ($cash_out_start && $cash_out_end) {
-                    $q->orWhereBetween('online_funds.cashout_date', [$cash_out_start, $cash_out_end]);
+                    $q->whereBetween('online_funds.cashout_date', [$cash_out_start, $cash_out_end]);
                 }
             });
         }
@@ -719,6 +765,6 @@ class CekDanaOnlineController extends Controller
             $results = $query1->get()->merge($query2->get());
         }
 
-        return $results;
+        return $results->sortBy('order_number')->values();
     }
 }
