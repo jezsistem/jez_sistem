@@ -25,7 +25,7 @@ class TransactionOnlineSettleExport implements FromCollection, WithHeadings, Wit
         return [
             'Order Number', 'Platform', 'Store', 'Final Price', 'Total Fee', 'Voucher Discount', 'Affiliate Cut',
             'Commission Fee', 'Service Fee', 'Xtra Voucher Fee', 'Cashback Fee', 'Cashout Date',
-            'Total Settlement', 'Jezpro Date', 'Online Print', 'Fee %', 'Seller Voucher %', 'Net Sales Jezpro','Diff Jezpro & MP', 'Status TRX', 'Status Refund'
+            'Total Settlement', 'Jezpro Date', 'Fee %', 'Seller Voucher %', 'Net Sales Jezpro','Diff Jezpro & MP', 'Status TRX', 'Status Refund'
         ];
     }
 
@@ -46,7 +46,6 @@ class TransactionOnlineSettleExport implements FromCollection, WithHeadings, Wit
             $row->settle_date,
             $row->total_settle,
             $row->trx_date,
-            $row->status_print,
             $row->fee_persentage,
             $row->seller_voucher_persentage,
             $row->jezpro_price,
