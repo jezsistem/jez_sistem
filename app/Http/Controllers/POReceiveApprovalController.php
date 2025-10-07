@@ -457,11 +457,16 @@ class POReceiveApprovalController extends Controller
                     ->where('product_stocks.p_id', $p_id)
                     ->sum('pls_qty');
 
-                $hpp_avg_new = DB::table('product_stocks')
-                    ->where('p_id', $p_id)
-                    ->avg('ps_purchase_price');
+                $hpp_avg_new = 0;
 
-                $avg_cogs = ceil($hpp_avg_new * $total_qty_new / ($total_qty_new > 0 ? $total_qty_new : 1));
+                $product_stocks = DB::table('product_stocks')->where('p_id', $p_id)->get();
+
+                foreach ($product_stocks as $ps) {
+                    $pls_qty = DB::table('product_location_setups')->where('pst_id', $ps->id)->sum('pls_qty');
+                    $hpp_avg_new += $ps->ps_purchase_price * $pls_qty;
+                }
+
+                $avg_cogs = ceil($hpp_avg_new / ($total_qty_new > 0 ? $total_qty_new : 1));
 
                 DB::table('products')
                     ->where('id', $p_id)
