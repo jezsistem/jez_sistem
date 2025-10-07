@@ -103,7 +103,7 @@ class POReceiveApprovalController extends Controller
                     st_name,
                     po_invoice,
                     poads_invoice,
-                    receive_at,
+                    arrived_at,
                     invoice_date,
                     ts_purchase_order_article_detail_statuses.created_at,
                     ts_purchase_order_article_detail_statuses.updated_at,
@@ -152,16 +152,14 @@ class POReceiveApprovalController extends Controller
                 ->editColumn('invoice_date_show', function ($data) {
                     return date('d/m/Y', strtotime($data->invoice_date));
                 })
-                ->editColumn('receive_at', function ($data) {
-                    return empty($data->receive_at) ? '-' : date('d/m/Y', strtotime($data->receive_at));
+                ->editColumn('arrived_at', function ($data) {
+                    return empty($data->arrived_at) ? '-' : date('d/m/Y H:i', strtotime($data->arrived_at));
                 })
                 ->editColumn('receive_date_show', function ($data) {
                     if (empty($data->received_date)) {
                         return date('d/m/Y', strtotime($data->created_at));
-
                     }
                     return date('d/m/Y', strtotime($data->received_date));
-
                 })
                 ->editColumn('u_receive', function ($data) {
                     if (!empty($data->u_id_approve) && $data->acc_id == 93 && $data->is_paid == 0) {
@@ -289,7 +287,7 @@ class POReceiveApprovalController extends Controller
                     poad_purchase_price, ts_product_stocks.ps_barcode,  ts_product_stocks.id as pst_id,ts_product_stocks.ps_qty,
                     poad_total_price, ts_purchase_order_article_detail_statuses.created_at, ts_purchase_orders.pay_date,
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, ts_accounts.a_name, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute, ts_purchase_orders.putaway, ts_purchase_orders.status_dispute, ts_purchase_order_article_detail_statuses.receive_at") // Added stkt_id and tax_id
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.acc_id,ts_purchase_orders.st_id as st_id, ts_purchase_orders.dispute, ts_purchase_orders.putaway, ts_purchase_orders.status_dispute, ts_purchase_order_article_detail_statuses.arrived_at") // Added stkt_id and tax_id
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
@@ -347,6 +345,8 @@ class POReceiveApprovalController extends Controller
             return json_encode($r);
         }
 
+        $p_ids = array();
+
         if (!empty($poads->first())) {
             foreach ($poads as $row) {
                 $bin = DB::table('product_locations')->select('id')->where('st_id', '=', $row->st_id)->where('pl_default', '=', '1')->get()->first()->id;
@@ -359,39 +359,41 @@ class POReceiveApprovalController extends Controller
                     ->where('pst_id', '=', $row->pst_id)
                     ->where('pl_id', '=', $bin)->first();
 
+                // get old stok and old cogs
+                $all_store_stock = DB::table('product_location_setups')->where('pst_id', '=', $row->pst_id)->sum('pls_qty');
+
+                $old_stock = $all_store_stock;
+                $old_cogs = $check_product_stock->ps_purchase_price;
+
+                if ($old_stock == null || $old_stock <= 0) {
+                    $old_stock_current = 0;
+                } else {
+                    $old_stock_current = $old_stock;
+                }
+
+                if ($old_cogs == null) {
+                    $old_cogs_current = 0;
+                } else {
+                    $old_cogs_current = $old_cogs;
+                }
+
+                // total old cogs
+                $total_cogs_old = $old_cogs_current * $old_stock_current;
+
+                //get new stok and old cogs
+                $new_stock = $row->poads_qty;
+                $new_price = ceil($row->poad_purchase_price);
+
+                // total new cogs
+                $total_cogs_new = $new_price * $new_stock;
+
+                $total_cogs_merge = ceil($total_cogs_old + $total_cogs_new);
+                $total_qty_merge = $old_stock + $new_stock;
+
+                // new cogs
+                $new_cogs = ceil($total_cogs_merge / $total_qty_merge);
+
                 if (!empty($check_pl)) {
-                    // get old stok and old cogs
-                    $old_stock = $check_pl->pls_qty;
-                    $old_cogs = $check_product_stock->ps_purchase_price;
-
-                    if ($old_stock == null) {
-                        $old_stock_current = 0;
-                    } else {
-                        $old_stock_current = $old_stock;
-                    }
-
-                    if ($old_cogs == null) {
-                        $old_cogs_current = 0;
-                    } else {
-                        $old_cogs_current = $old_cogs;
-                    }
-
-                    // total old cogs
-                    $total_cogs_old = $old_cogs_current * $old_stock_current;
-
-                    //get new stok and old cogs
-                    $new_stock = $row->poads_qty;
-                    $new_price = ceil($row->poad_purchase_price);
-
-                    // total new cogs
-                    $total_cogs_new = $new_price * $new_stock;
-
-                    $total_cost_merge = ceil($total_cogs_old + $total_cogs_new);
-                    $total_qty_merge = $old_stock + $new_stock;
-
-                    // new cogs
-                    $new_cogs = ceil($total_cost_merge / $total_qty_merge);
-
                     $pls_qty = $check_pl->pls_qty;
                     $pl_id = $check_pl->pl_id;
                     $update_setup = DB::table('product_location_setups')->where('id', '=', $check_pl->id)->update([
@@ -404,10 +406,17 @@ class POReceiveApprovalController extends Controller
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
 
-                        DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
-                            'ps_purchase_price' => $new_cogs,
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
+                        if ($old_stock > 0) {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => $new_cogs,
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        } else {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => ceil($new_price),
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        }
                     }
                 } else {
                     $update_setup = DB::table('product_location_setups')->insert([
@@ -422,19 +431,45 @@ class POReceiveApprovalController extends Controller
                             'u_id_approve' => Auth::user()->id,
                             'updated_at' => date('Y-m-d H:i:s')
                         ]);
+
+                        if ($old_stock > 0) {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => $new_cogs,
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        } else {
+                            DB::table('product_stocks')->where('id', '=', $row->pst_id)->update([
+                                'ps_purchase_price' => ceil($new_price),
+                                'updated_at' => date('Y-m-d H:i:s')
+                            ]);
+                        }
                     }
                 }
-                // Update COGS article level
-                $check_product_stock = DB::table('product_stocks')->where('id', $row->pst_id)->get()->first();
 
-                $avg_cogs = DB::table('product_stocks')
-                    ->where('p_id', $check_product_stock->p_id)
-                    ->avg('ps_purchase_price');
+                if (!in_array($check_product_stock->p_id, $p_ids)) {
+                    $p_ids[] = $check_product_stock->p_id;
+                }
+            }
 
-                $avg_cogs = ceil($avg_cogs);
+            foreach ($p_ids as $p_id) {
+                $total_qty_new = DB::table('product_location_setups')
+                    ->join('product_stocks', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+                    ->where('product_stocks.p_id', $p_id)
+                    ->sum('pls_qty');
+
+                $hpp_avg_new = 0;
+
+                $product_stocks = DB::table('product_stocks')->where('p_id', $p_id)->get();
+
+                foreach ($product_stocks as $ps) {
+                    $pls_qty = DB::table('product_location_setups')->where('pst_id', $ps->id)->sum('pls_qty');
+                    $hpp_avg_new += $ps->ps_purchase_price * $pls_qty;
+                }
+
+                $avg_cogs = ceil($hpp_avg_new / ($total_qty_new > 0 ? $total_qty_new : 1));
 
                 DB::table('products')
-                    ->where('id', $check_product_stock->p_id)
+                    ->where('id', $p_id)
                     ->update([
                         'p_purchase_price' => $avg_cogs,
                         'updated_at' => now()

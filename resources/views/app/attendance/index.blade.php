@@ -581,6 +581,8 @@ function exportToExcel() {
     
     if (dateFilter && dateFilter !== 'custom') {
         url.searchParams.append('date_filter', dateFilter);
+    } else if (dateFilter === 'custom') {
+        url.searchParams.append('date_filter', 'custom');
     }
     if (startDate) {
         url.searchParams.append('start_date', startDate);

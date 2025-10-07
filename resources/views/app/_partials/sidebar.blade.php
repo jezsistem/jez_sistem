@@ -285,7 +285,7 @@
                                             </li>
 
                                             <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
-                                                <a href="{{ url('/leave-requests') }}" class="menu-link">
+                                                <a href="{{ url('/external-assignment') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
                                                     <span class="menu-text">External Assignment Request</span>

@@ -59,8 +59,8 @@
                     name: 'invoice_date'
                 },
                 {
-                    data: 'receive_at',
-                    name: 'receive_at'
+                    data: 'arrived_at',
+                    name: 'arrived_at'
                 },
                 {
                     data: 'receive_date_show',
@@ -380,6 +380,7 @@
             var status_dispute = po_approval_table.row(this).data().status_dispute;
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
+            var arrived_at = po_approval_table.row(this).data().arrived_at;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
 
@@ -479,6 +480,20 @@
                     $('#due_date').val(due_date);
                     $('#putaway').val(putaway_text);
                     $('#status_dispute').val(status_dispute_text);
+                    // Format arrived_at to 'YYYY-MM-DDTHH:mm'
+                    let formattedArrivedAt = '';
+                    if (arrived_at) {
+                        const dateObj = new Date(arrived_at);
+                        if (!isNaN(dateObj.getTime())) {
+                            const year = dateObj.getFullYear();
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const hours = String(dateObj.getHours()).padStart(2, '0');
+                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                            formattedArrivedAt = `${year}-${month}-${day}T${hours}:${minutes}`;
+                        }
+                    }
+                    $('#arrived_at').val(formattedArrivedAt).prop('readonly', true);
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();

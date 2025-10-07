@@ -1,5 +1,6 @@
 <!-- Modal-->
-<div class="modal fade" id="ApproveModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false" style="overflow-y: auto;">
+<div class="modal fade" id="ApproveModal" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false" style="overflow-y: auto;">
     <div class="modal-dialog modal-xl" role="document" style="width: 100%; max-width: 1300px;">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -102,7 +103,11 @@
                             <label>Tanggal Terima (mm/dd/yy) </label>
                             <input type="date" id="receive_date" class="form-control" value="" />
                         </div>
-                                                <div class="col-4 mt-3">
+                        <div class="col-4 mt-3">
+                            <label>Tanggal Barang Datang </label>
+                            <input type="datetime-local" id="arrived_at" class="form-control" value="" />
+                        </div>
+                        <div class="col-4 mt-3">
                             <label>Ongkos Kirim</label>
                             <input type="number" id="shipping_cost" class="form-control" name="shipping_cost"
                                 disabled />
@@ -226,7 +231,8 @@
                         </div>
                         <div class="col-4 mt-3">
                             <label>Status Dispute</label>
-                            <input type="text" id="status_dispute" class="form-control" name="status_dispute" disabled/>
+                            <input type="text" id="status_dispute" class="form-control" name="status_dispute"
+                                disabled />
                         </div>
                         <div class="col-4 mt-3">
                             <label>Putaway</label>
@@ -263,7 +269,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal" id="close_modal_approve_btn">Tutup
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal"
+                    id="close_modal_approve_btn">Tutup
                 </button>
                 <button type="submit" class="btn btn-dark font-weight-bold" id="approve_btn">Approve</button>
             </div>
@@ -385,8 +392,8 @@
 <!-- /Modal-->
 
 <!-- Modal-->
-<div class="modal fade" id="FileDeliveryNoteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+<div class="modal fade" id="FileDeliveryNoteModal" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -420,5 +427,3 @@
     </div>
 </div>
 <!-- /Modal-->
-
-

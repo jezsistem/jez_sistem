@@ -454,7 +454,7 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
-        var receive_at = $('#receive_at').val();
+        var arrived_at = $('#arrived_at').val();
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
         var putaway = $('#putaway').val();
@@ -477,7 +477,7 @@
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
             return false;
         }
-        if (receive_at == '') {
+        if (arrived_at == '') {
             swal("Tanggal Barang Datang", "Tentukan tanggal barang datang", "warning");
             return false;
         }
@@ -512,6 +512,7 @@
                 var po_id = $('#_po_id').val();
                 var poads_discount = $('#poa_discount' + poa_id).val();
                 var poads_extra_discount = $('#poa_extra_discount' + poa_id).val();
+                var poads_sub_discount = $('#poa_sub_discount' + poa_id).val();
                 var poads_purchase_price = replaceComma($('#poad_purchase_price_' + poa_id + '_' + index)
                     .val());
                 var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
@@ -528,7 +529,7 @@
                 formData.append('receive_date', receive_date);
                 formData.append('receive_invoice', receive_invoice);
                 formData.append('invoice_date', invoice_date);
-                formData.append('receive_at', receive_at);
+                formData.append('arrived_at', arrived_at);
                 formData.append('shipping_cost', shipping_cost);
                 formData.append('_st_id', st_id);
                 formData.append('_stkt_id', stkt_id);
@@ -540,6 +541,7 @@
                 formData.append('_poads_extra_discount', poads_extra_discount);
                 formData.append('_poads_purchase_price', poads_purchase_price);
                 formData.append('_poads_cogs', poads_cogs);
+                formData.append('_poads_sub_discount', poads_sub_discount);
                 // formData.append('dispute', dispute);
                 // formData.append('dispute_description', dispute_description);
 
@@ -566,7 +568,7 @@
                             $('#receive_date').val('');
                             $('#receive_invoice').val('');
                             $('#invoice_date').val('');
-                            $('#receive_at').val('');
+                            $('#arrived_at').val('');
                             $('#invoiceImage').val('');
                             $('#packetImage').val('');
                             $('#shipping_cost').val('');
@@ -600,12 +602,13 @@
         var po_id = $('#_po_id').val();
         var poads_discount = $('#poa_discount' + poa_id).val();
         var poads_extra_discount = $('#poa_extra_discount' + poa_id).val();
+        var poads_sub_discount = $('#poa_sub_discount' + poa_id).val();
         var poads_purchase_price = replaceComma($('#poad_purchase_price_' + poa_id + '_' + index).val());
         var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
-        var receive_at = $('#receive_at').val();
+        var arrived_at = $('#arrived_at').val();
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
         var status_dispute = $('#status_dispute').val();
@@ -617,7 +620,7 @@
         formData.append('receive_date', receive_date);
         formData.append('receive_invoice', receive_invoice);
         formData.append('invoice_date', invoice_date);
-        formData.append('receive_at', receive_at);
+        formData.append('arrived_at', arrived_at);
         formData.append('_st_id', st_id);
         formData.append('_stkt_id', stkt_id);
         formData.append('_tax_id', tax_id);
@@ -626,6 +629,7 @@
         formData.append('_poads_qty', poads_qty);
         formData.append('_poads_discount', poads_discount);
         formData.append('_poads_extra_discount', poads_extra_discount);
+        formData.append('_poads_sub_discount', poads_sub_discount);
         formData.append('_poads_purchase_price', poads_purchase_price);
         formData.append('_poads_cogs', poads_cogs);
         formData.append('shipping_cost', shipping_cost);
@@ -668,13 +672,13 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
-        var receive_at = $('#receive_at').val();
+        var arrived_at = $('#arrived_at').val();
         var shipping_cost = $('#shipping_cost').val();
 
         var today = new Date();
         var receiveDateObj = new Date(receive_date);
         var invoiceDateObj = new Date(invoice_date);
-        var receiveatObj = new Date(receive_at);
+        var receiveatObj = new Date(arrived_at);
 
         if (receiveDateObj > today) {
             swal("Tanggal Terima", "Tanggal terima tidak boleh lebih dari hari ini", "warning");
@@ -703,7 +707,7 @@
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
             return false;
         }
-        if (receive_at == '') {
+        if (arrived_at == '') {
             swal("Tanggal Barang", "Tentukan tanggal barang datang", "warning");
             return false;
         }
@@ -1304,6 +1308,7 @@
                     d.po_status_filter = $('#po_status_filter').val();
                     d.filter_dispute = $('#filter_dispute').val();
                     d.date = $('#po_date').val();
+                    d.filter_delivery_note = $('#filter_delivery_note').val();
                 }
             },
             columns: [{
@@ -1763,6 +1768,10 @@
             purchase_order_table.draw(false);
         });
 
+        $('#filter_delivery_note').on('change', function() {
+            purchase_order_table.draw();
+        });
+
         $('#product_search').on('keyup', function() {
             product_table.draw(false);
         });
@@ -1778,6 +1787,7 @@
         $('#sz_id_filter_item').on('change', function() {
             product_table.draw(false);
         });
+        
 
         $('#ps_id').select2({
             width: "100%",

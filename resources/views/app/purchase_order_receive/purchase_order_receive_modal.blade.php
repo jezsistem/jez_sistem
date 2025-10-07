@@ -143,9 +143,9 @@
                                 max="{{ date('Y-m-d') }}" />
                         </div>
                         <div class="col-4 mt-4">
-                            <label class="badge badge-primary">Tanggal Barang Terima</label>
-                            <input type="date" id="receive_at" class="form-control" value=""
-                                max="{{ date('Y-m-d') }}" />
+                            <label class="badge badge-primary">Tanggal Barang Datang</label>
+                            <input type="datetime-local" id="arrived_at" class="form-control" value=""
+                                max="{{ date('Y-m-d\TH:i') }}" />
                         </div>
 
                         <div class="col-4 mt-4">

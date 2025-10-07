@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderInvoiceImage;
 use App\Models\PurchaseOrderTransferImage;
@@ -71,7 +72,8 @@ class PurchaseOrderReceiveCODController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'tax_id' => Tax::where('tx_delete', '!=', '1')->orderByDesc('id')->pluck('tx_code', 'id'),
-            'segment' => request()->segment(1)
+            'segment' => request()->segment(1),
+            'acc_id' => Account::where('a_delete', '!=', '1')->orderByDesc('id')->pluck('a_name', 'id'),
         ];
         return view('app.purchase_order_receive_cod.purchase_order_receive_cod', compact('data'));
     }
@@ -81,7 +83,7 @@ class PurchaseOrderReceiveCODController extends Controller
         if ($request->ajax()) {
             $query = DB::table('purchase_order_article_detail_statuses')
                 ->selectRaw("ts_purchase_order_article_detail_statuses.id as id, st_name, po_invoice, poads_invoice, invoice_date, ts_purchase_order_article_detail_statuses.created_at, u_name, u_id_approve, ts_purchase_order_article_detail_statuses.received_date,
-                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ps_name, po_description, po_shipping_cost, pay_date, due_date,
+                sum(ts_purchase_order_article_detail_statuses.poads_qty) as qty, acc_id, is_paid, ts_stores.id as st_id, ts_purchase_orders.id as po_id, ts_purchase_orders.bank_general as bank_general, ps_name, po_description, po_shipping_cost, pay_date, due_date,
                     ts_purchase_orders.stkt_id,
                     ts_purchase_orders.tax_id,
                     ts_stock_types.stkt_name,
@@ -153,7 +155,7 @@ class PurchaseOrderReceiveCODController extends Controller
                     poad_purchase_price, ts_product_stocks.ps_barcode, ts_product_stocks.ps_qty,
                     poad_total_price, ts_purchase_order_article_detail_statuses.created_at, 
                     ts_purchase_orders.id as po_id, ts_product_suppliers.ps_name as ps_name, poads_purchase_price, poads_total_price, 
-                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id") // Ensure all fields are included
+                    ts_purchase_orders.stkt_id, ts_purchase_orders.tax_id, ts_purchase_orders.bank_general, ts_purchase_orders.acc_id") // Ensure all fields are included
                 ->leftJoin('purchase_order_article_details', 'purchase_order_article_details.id', '=', 'purchase_order_article_detail_statuses.poad_id')
                 ->leftJoin('product_stocks', 'product_stocks.id', '=', 'purchase_order_article_details.pst_id')
                 ->join('purchase_order_articles', 'purchase_order_articles.id', '=', 'purchase_order_article_details.poa_id')
@@ -163,6 +165,7 @@ class PurchaseOrderReceiveCODController extends Controller
                 ->leftJoin('brands', 'brands.id', '=', 'products.br_id')
                 ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                 ->leftJoin('stock_types', 'stock_types.id', '=', 'purchase_order_article_detail_statuses.stkt_id')
+                ->leftJoin('accounts', 'accounts.id', '=', 'purchase_orders.acc_id')
                 ->where('poads_invoice', '=', $request->get('poads_invoice')))
                 ->editColumn('delete', function ($d) {
                     if (empty($d->u_id_approve)) {
