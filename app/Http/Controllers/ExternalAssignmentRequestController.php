@@ -381,7 +381,7 @@ class ExternalAssignmentRequestController extends Controller
             $canApprove = DB::table('users')
                 ->join('user_positions', 'users.up_id', '=', 'user_positions.id')
                 ->where('users.id', $userId)
-                ->where('user_positions.up_code', 'FINANCETEC')
+                ->where('user_divisions.ud_code', 'FINANCETEC')
                 ->exists();
         }
 
