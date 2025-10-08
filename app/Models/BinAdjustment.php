@@ -12,8 +12,10 @@ class BinAdjustment extends Model
     protected $table = 'bin_adjustments';
     protected $fillable = [
         'pls_id',
+        'pst_id',
         'u_id',
         'ba_code',
+        'ba_cogs',
         'ba_old_qty',
         'ba_new_qty',
         'ba_adjust',

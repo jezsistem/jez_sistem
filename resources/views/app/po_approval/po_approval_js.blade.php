@@ -59,6 +59,10 @@
                     name: 'invoice_date'
                 },
                 {
+                    data: 'arrived_at',
+                    name: 'arrived_at'
+                },
+                {
                     data: 'receive_date_show',
                     name: 'received_date'
                 },
@@ -189,6 +193,34 @@
             columns: [{
                 data: 'file',
                 name: 'file_dispute',
+                searchable: false
+            }, ],
+            columnDefs: [{
+                "targets": [0],
+                "className": "text-center",
+                "width": "0%"
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        var PurchaseOrdersFileDispute = $('#FileDeliveryNoteTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('file_delivery_note_datatables') }}",
+                data: function(d) {
+                    d._po_id = $('#_po_id').val();
+                },
+            },
+
+            columns: [{
+                data: 'file',
+                name: 'file_delivery_note',
                 searchable: false
             }, ],
             columnDefs: [{
@@ -348,6 +380,7 @@
             var status_dispute = po_approval_table.row(this).data().status_dispute;
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
+            var arrived_at = po_approval_table.row(this).data().arrived_at;
             approval = po_approval_table.row(this).data().u_receive;
             jQuery.noConflict();
 
@@ -447,6 +480,20 @@
                     $('#due_date').val(due_date);
                     $('#putaway').val(putaway_text);
                     $('#status_dispute').val(status_dispute_text);
+                    // Format arrived_at to 'YYYY-MM-DDTHH:mm'
+                    let formattedArrivedAt = '';
+                    if (arrived_at) {
+                        const dateObj = new Date(arrived_at);
+                        if (!isNaN(dateObj.getTime())) {
+                            const year = dateObj.getFullYear();
+                            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const day = String(dateObj.getDate()).padStart(2, '0');
+                            const hours = String(dateObj.getHours()).padStart(2, '0');
+                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                            formattedArrivedAt = `${year}-${month}-${day}T${hours}:${minutes}`;
+                        }
+                    }
+                    $('#arrived_at').val(formattedArrivedAt).prop('readonly', true);
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
@@ -486,6 +533,13 @@
         $(document).ready(function() {
             $("#DisputeFileBtn").click(function() {
                 $("#FileDisputeModal").modal("show");
+                console.log($('#po_id').val());
+            });
+        });
+
+        $(document).ready(function() {
+            $("#SuratJalanBtn").click(function() {
+                $("#FileDeliveryNoteModal").modal("show");
                 console.log($('#po_id').val());
             });
         });

@@ -56,6 +56,7 @@
                                 <option value="DONE">DONE</option>
                                 <option value="IN PROGRESS">IN PROGRESS</option>
                                 <option value="WAITING FOR CONFIRMATION">WAITING FOR CONFIRMATION</option>
+                                <option value="SHIPPING NUMBER">SHIPPING NUMBER</option>
                             </select>
                             <!--end::Button-->
                         </div>

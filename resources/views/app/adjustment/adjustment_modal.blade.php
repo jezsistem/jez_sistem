@@ -182,6 +182,7 @@
                         <div><strong>Warna:</strong> <span id="product_color"></span>
                         </div>
                         <div><strong>Size:</strong> <span id="product_size"></span></div>
+                        <div><strong>COGS:</strong> <span id="cogs"></span></div>
                     </div>
                 </div>
                 <div class="mb-5">

@@ -63,6 +63,13 @@
                                                         <span class="menu-text">User Division</span>
                                                     </a>
                                                 </li>
+                                                {{--                                                <li class="menu-item">--}}
+                                                {{--                                                    <a href="{{ url('/user-divisions-v2') }}" class="menu-link">--}}
+                                                {{--                                                    <span class="menu-bullet"><span--}}
+                                                {{--                                                                class="bullet bullet-dot"></span></span>--}}
+                                                {{--                                                        <span class="menu-text">User Division V2</span>--}}
+                                                {{--                                                    </a>--}}
+                                                {{--                                                </li>--}}
                                                 <li class="menu-item">
                                                     <a href="{{ url('/user-types') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
@@ -113,7 +120,8 @@
                                     </li> -->
                                                 @if(hasAccess(auth()->user()->up_id, 'read'))
                                                     <li class="menu-item">
-                                                        <a href="{{ url('/daily-schedules/weekly') }}" class="menu-link">
+                                                        <a href="{{ url('/daily-schedules/weekly') }}"
+                                                           class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
                                                             <span class="menu-text">Weekly Input</span>
@@ -141,11 +149,11 @@
                                     </li>
                                 @endif
 
-{{--                                @php--}}
-{{--                                    $hasLeaveType = $row->ma->contains(function ($item) {--}}
-{{--                                      return $item->ma_slug === 'leave-types';--}}
-{{--                                    });--}}
-{{--                                @endphp--}}
+                                {{--                                @php--}}
+                                {{--                                    $hasLeaveType = $row->ma->contains(function ($item) {--}}
+                                {{--                                      return $item->ma_slug === 'leave-types';--}}
+                                {{--                                    });--}}
+                                {{--                                @endphp--}}
 
                                 <li class="menu-item menu-accordion {{ request()->is('leave-types*') || request()->is('leave-requests*') ? 'active' : '' }}"
                                     data-menu-toggle="hover" aria-haspopup="true">
@@ -199,6 +207,90 @@
                                                     </a>
                                                 </li>
                                             @endif
+                                        </ul>
+                                    </div>
+                                </li>
+
+                                <li class="menu-item menu-accordion {{ request()->is('overtime-types*') || request()->is('overtime-requests*') ? 'active' : '' }}"
+                                    data-menu-toggle="hover" aria-haspopup="true">
+                                    <a href="javascript:;" class="menu-link menu-toggle">
+                                        <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                        <span class="menu-text">Overtime</span>
+                                        <span class="menu-arrow"></span>
+                                    </a>
+                                    <div class="menu-sub menu-sub-accordion">
+                                        <ul class="menu-subnav">
+
+                                            @php
+                                                $hasLeaveType = $row->ma->contains(function ($item) {
+                                                  return $item->ma_slug === 'overtime-types';
+                                                });
+                                            @endphp
+
+                                            @if($hasLeaveType)
+                                                <li class="menu-item {{ request()->is('leave-types*') ? 'active' : '' }}">
+                                                    <a href="{{ url('/leave-types') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Overtime Type</span>
+                                                    </a>
+                                                </li>
+                                            @endif
+
+                                            @php
+                                                $hasLeaveRequest = $row->ma->contains(function ($item) {
+                                                   return $item->ma_slug === 'leave-requests';
+                                                });
+                                            @endphp
+
+                                            @if($hasLeaveRequest)
+                                                <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
+                                                    <a href="{{ url('/leave-requests') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Overtime Request</span>
+                                                    </a>
+                                                </li>
+                                            @endif
+
+                                            @if($hasLeaveType)
+                                                <li class="menu-item {{ request()->is('leave-requests/summary-report*') ? 'active' : '' }}">
+                                                    <a href="{{ url('/leave-requests/summary-report') }}"
+                                                       class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Overtime Report</span>
+                                                    </a>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                </li>
+
+                                <li class="menu-item menu-accordion {{ request()->is('overtime-types*') || request()->is('overtime-requests*') ? 'active' : '' }}"
+                                    data-menu-toggle="hover" aria-haspopup="true">
+                                    <a href="javascript:;" class="menu-link menu-toggle">
+                                        <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                        <span class="menu-text">External Assignment</span>
+                                        <span class="menu-arrow"></span>
+                                    </a>
+                                    <div class="menu-sub menu-sub-accordion">
+                                        <ul class="menu-subnav">
+                                            <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
+                                                <a href="{{ url('/external_assignment_type') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-text">External Assignment Type</span>
+                                                </a>
+                                            </li>
+
+                                            <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
+                                                <a href="{{ url('/external-assignment') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-text">External Assignment Request</span>
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </li>

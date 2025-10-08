@@ -14,6 +14,7 @@ use App\Models\AnnouncementAttachment;
 use App\Models\AnnouncementView;
 use App\Models\User;
 use App\Models\Notification;
+use App\Models\UserDivision;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
@@ -33,52 +34,52 @@ class AnnouncementController extends Controller
             ->withCount(['views as views_count'])
             ->where('status', 'active')
             ->whereNotNull('published_at')
-            
+
             // Add search functionality
-            ->when($request->get('search'), function($query, $search) {
-                return $query->where(function($q) use ($search) {
+            ->when($request->get('search'), function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', '%' . $search . '%')
-                      ->orWhere('content', 'like', '%' . $search . '%')
-                      ->orWhereHas('creator', function($creatorQuery) use ($search) {
-                          $creatorQuery->where('u_name', 'like', '%' . $search . '%');
-                      });
+                        ->orWhere('content', 'like', '%' . $search . '%')
+                        ->orWhereHas('creator', function ($creatorQuery) use ($search) {
+                            $creatorQuery->where('u_name', 'like', '%' . $search . '%');
+                        });
                 });
             })
-            ->where(function($query) use ($user) {
+            ->where(function ($query) use ($user) {
                 // Always show announcements targeted to "all"
                 $query->where('target_type', 'all');
-                
+
                 // Show announcements created by current user (creator can always see their own announcements)
                 if ($user) {
                     $query->orWhere('created_by', $user->id);
                 }
-                
+
                 // Include announcements targeted to user's division or individual
                 if ($user) {
-                    $query->orWhereHas('recipients', function($q) use ($user) {
-                        $q->where(function($subQuery) use ($user) {
+                    $query->orWhereHas('recipients', function ($q) use ($user) {
+                        $q->where(function ($subQuery) use ($user) {
                             // Individual targeting
                             $subQuery->where('recipient_type', 'user')
-                                     ->where('recipient_id', $user->id);
-                            
+                                ->where('recipient_id', $user->id);
+
                             // Division targeting
                             if ($user->ud_id) {
-                                $subQuery->orWhere(function($divQuery) use ($user) {
+                                $subQuery->orWhere(function ($divQuery) use ($user) {
                                     $divQuery->where('recipient_type', 'division')
-                                             ->where('recipient_id', $user->ud_id);
+                                        ->where('recipient_id', $user->ud_id);
                                 });
                             }
                         });
                     });
                 }
             })
-            ->whereDoesntHave('userReactions', function($query) use ($user) {
+            ->whereDoesntHave('userReactions', function ($query) use ($user) {
                 // Hide announcements where user reacted with "Done" or "OK"
                 if ($user) {
                     $query->where('user_id', $user->id)
-                          ->whereHas('reaction', function($q) {
-                              $q->where('hide_announcement', true);
-                          });
+                        ->whereHas('reaction', function ($q) {
+                            $q->where('hide_announcement', true);
+                        });
                 }
             });
 
@@ -99,7 +100,7 @@ class AnnouncementController extends Controller
 
         // Get categories for filter
         $categories = AnnouncementCategory::active()->orderBy('name')->get();
-        
+
         // Get reactions for users to select
         $reactions = AnnouncementReaction::active()->get();
 
@@ -123,9 +124,9 @@ class AnnouncementController extends Controller
         ];
 
         return view('app.announcement.index', compact(
-            'pinnedAnnouncements', 
-            'regularAnnouncements', 
-            'categories', 
+            'pinnedAnnouncements',
+            'regularAnnouncements',
+            'categories',
             'reactions',
             'data'
         ));
@@ -138,27 +139,33 @@ class AnnouncementController extends Controller
     {
         $this->validateAccess();
         $user = Auth::user();
-        
-        $announcements = Announcement::with(['category', 'creator'])
-            ->when($request->get('search'), function($query, $search) {
-                return $query->where(function($q) use ($search) {
+
+        $announcements = Announcement::with(['category', 'creator.division'])
+            ->when($request->get('search'), function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', '%' . $search . '%')
-                      ->orWhere('content', 'like', '%' . $search . '%')
-                      ->orWhereHas('creator', function($creatorQuery) use ($search) {
-                          $creatorQuery->where('u_name', 'like', '%' . $search . '%');
-                      });
+                        ->orWhere('content', 'like', '%' . $search . '%')
+                        ->orWhereHas('creator', function ($creatorQuery) use ($search) {
+                            $creatorQuery->where('u_name', 'like', '%' . $search . '%');
+                        });
                 });
             })
-            ->when($request->get('category_id'), function($query, $categoryId) {
+            ->when($request->get('category_id'), function ($query, $categoryId) {
                 return $query->where('category_id', $categoryId);
             })
-            ->when($request->get('status'), function($query, $status) {
+            ->when($request->get('division_id'), function ($query, $divisionId) {
+                return $query->whereHas('creator', function ($creatorQuery) use ($divisionId) {
+                    $creatorQuery->where('ud_id', $divisionId);
+                });
+            })
+            ->when($request->get('status'), function ($query, $status) {
                 return $query->where('status', $status);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         $categories = AnnouncementCategory::active()->orderBy('name')->get();
+        $divisions = DB::table('user_divisions')->where('ud_status', 'active')->orderBy('ud_name')->get();
 
         $data = [
             'title' => 'JEZ SYSTEM',
@@ -170,6 +177,7 @@ class AnnouncementController extends Controller
 
         return view('app.announcement.manage', compact(
             'announcements',
+            'divisions',
             'categories',
             'data'
         ));
@@ -196,7 +204,7 @@ class AnnouncementController extends Controller
 
         return view('app.announcement.create', compact(
             'categories',
-            'divisions', 
+            'divisions',
             'users',
             'data'
         ));
@@ -212,6 +220,7 @@ class AnnouncementController extends Controller
             'content' => 'required|string',
             'category_id' => 'required|exists:announcement_categories,id',
             'target_type' => 'required|in:all,division,individual',
+            'target_date' => 'nullable|date',
             'status' => 'nullable|in:active,inactive',
             'is_pinned' => 'boolean',
             'publish_now' => 'boolean',
@@ -232,6 +241,7 @@ class AnnouncementController extends Controller
                 'category_id' => $request->category_id,
                 'created_by' => Auth::id(),
                 'target_type' => $request->target_type,
+                'target_date' => $request->target_date,
                 'is_pinned' => $request->boolean('is_pinned'),
                 'status' => $request->input('status', 'active'),
                 'published_at' => $request->boolean('publish_now', true) ? Carbon::now() : ($request->published_at ?: Carbon::now())
@@ -261,7 +271,7 @@ class AnnouncementController extends Controller
                     $originalName = $file->getClientOriginalName();
                     $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('announcements', $fileName, 'public');
-                    
+
                     $fileType = strtolower($file->getClientOriginalExtension());
                     $mimeType = $file->getMimeType();
                     $fileSize = $file->getSize();
@@ -281,10 +291,10 @@ class AnnouncementController extends Controller
             }
 
             DB::commit();
-            
+
             // Send notifications to recipients
             $this->sendAnnouncementNotifications($announcement);
-            
+
             return redirect()->route('announcements.index')->with('success', 'Announcement created successfully!');
         } catch (\Exception $e) {
             DB::rollback();
@@ -297,16 +307,16 @@ class AnnouncementController extends Controller
      */
     public function show($id)
     {
-        $announcement = Announcement::with(['category', 'creator', 'recipients', 'attachments', 'userReactions.reaction', 'userReactions.user'])
+        $announcement = Announcement::withUserDivision() // <── ini yang penting
+            ->with(['category', 'creator', 'recipients', 'attachments', 'userReactions.reaction', 'userReactions.user'])
             ->withCount(['views as views_count'])
             ->findOrFail($id);
-        
+
         // Track view
         $this->trackView($id);
-        
-        // Get reactions for the announcement
+
         $reactions = DB::table('announcement_reactions')->orderBy('name')->get();
-        
+
         $data = [
             'title' => 'JEZ SYSTEM',
             'subtitle' => 'Announcement Details',
@@ -317,6 +327,7 @@ class AnnouncementController extends Controller
 
         return view('app.announcement.show', compact('announcement', 'reactions', 'data'));
     }
+
 
     /**
      * Show edit form for announcement
@@ -340,7 +351,7 @@ class AnnouncementController extends Controller
         return view('app.announcement.edit', compact(
             'announcement',
             'categories',
-            'divisions', 
+            'divisions',
             'users',
             'data'
         ));
@@ -352,12 +363,13 @@ class AnnouncementController extends Controller
     public function update(Request $request, $id)
     {
         $announcement = Announcement::findOrFail($id);
-        
+
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'category_id' => 'required|exists:announcement_categories,id',
             'target_type' => 'required|in:all,division,individual',
+            'target_date' => 'nullable|date',
             'status' => 'nullable|in:active,inactive',
             'is_pinned' => 'boolean',
             'publish_now' => 'boolean',
@@ -377,6 +389,7 @@ class AnnouncementController extends Controller
                 'content' => $request->content,
                 'category_id' => $request->category_id,
                 'target_type' => $request->target_type,
+                'target_date' => $request->target_date,
                 'is_pinned' => $request->boolean('is_pinned'),
                 'status' => $request->input('status', 'active'),
                 'published_at' => $request->boolean('publish_now', true) ? Carbon::now() : ($request->published_at ?: Carbon::now())
@@ -408,7 +421,7 @@ class AnnouncementController extends Controller
                     $originalName = $file->getClientOriginalName();
                     $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                     $filePath = $file->storeAs('announcements', $fileName, 'public');
-                    
+
                     $fileType = strtolower($file->getClientOriginalExtension());
                     $mimeType = $file->getMimeType();
                     $fileSize = $file->getSize();
@@ -441,7 +454,7 @@ class AnnouncementController extends Controller
     public function destroy($id)
     {
         $announcement = Announcement::findOrFail($id);
-        
+
         try {
             $announcement->delete();
             return response()->json([
@@ -484,7 +497,7 @@ class AnnouncementController extends Controller
 
             // Get updated reaction counts for this announcement
             $announcement = Announcement::with('userReactions')->findOrFail($announcementId);
-            $reactionCounts = $announcement->userReactions->groupBy('reaction_id')->map(function($reactions) {
+            $reactionCounts = $announcement->userReactions->groupBy('reaction_id')->map(function ($reactions) {
                 return $reactions->count();
             });
 
@@ -509,29 +522,29 @@ class AnnouncementController extends Controller
     public function getReactionDetails($id)
     {
         $announcement = Announcement::with([
-            'userReactions' => function($query) {
+            'userReactions' => function ($query) {
                 $query->with(['user', 'reaction']);
             }
         ])->findOrFail($id);
-        
-        $reactionDetails = $announcement->userReactions->groupBy('reaction_id')->map(function($reactions, $reactionId) {
+
+        $reactionDetails = $announcement->userReactions->groupBy('reaction_id')->map(function ($reactions, $reactionId) {
             $reaction = $reactions->first()->reaction;
-            $users = $reactions->map(function($userReaction) {
+            $users = $reactions->map(function ($userReaction) {
                 return (object)[
                     'u_name' => $userReaction->user->u_name ?? 'Unknown',
                     'u_nip' => $userReaction->user->u_nip ?? 'N/A'
                 ];
             });
-            
+
             return [
                 'reaction' => $reaction,
                 'users' => $users,
                 'count' => $reactions->count()
             ];
         });
-        
+
         $html = view('app.announcement._reaction_details', compact('announcement', 'reactionDetails'))->render();
-        
+
         return response()->json([
             'success' => true,
             'html' => $html
@@ -544,7 +557,7 @@ class AnnouncementController extends Controller
     public function togglePin($id)
     {
         $announcement = Announcement::findOrFail($id);
-        
+
         try {
             $announcement->update([
                 'is_pinned' => !$announcement->is_pinned
@@ -600,13 +613,32 @@ class AnnouncementController extends Controller
 
     protected function validateAccess()
     {
-        $validate = DB::table('user_menu_accesses')
-            ->leftJoin('menu_accesses', 'menu_accesses.id', '=', 'user_menu_accesses.ma_id')->where([
-                'u_id' => Auth::user()->id,
-                'ma_slug' => request()->segment(1)
-            ])->exists();
-        if (!$validate) {
-            dd("Anda tidak memiliki akses ke menu ini, hubungi Administrator");
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user_position = auth()->user()->up_id;
+
+        $user_group_is_admin = DB::table('user_groups')->join('groups', 'groups.id', '=', 'user_groups.group_id')
+            ->where('user_groups.user_id', auth()->user()->id)
+            ->where('g_name', 'administrator')
+            ->exists();
+
+        $is_human_resource = DB::table('users')->join('user_divisions', 'user_divisions.id', '=', 'users.ud_id')
+            ->where('users.id', auth()->user()->id)
+            ->where('user_divisions.ud_code', 'HUMANRESOU')
+            ->exists();
+
+        if (!$user_group_is_admin && !$is_human_resource) {
+            $validate = DB::table('position_access')
+                ->leftJoin('user_positions', 'user_positions.id', '=', 'position_access.position_id')->where([
+                    'position_access.position_id' => $user_position,
+//                    'position_access.route' => request()->path()
+                ])->exists();
+
+            if (!$validate) {
+                dd("Anda tidak memiliki akses ke menu ini, level Anda tidak dizinkan, hubungi Administrator");
+            }
         }
     }
 
@@ -616,7 +648,7 @@ class AnnouncementController extends Controller
     public function sidebar()
     {
         $ma_id = DB::table('user_menu_accesses')->select('ma_id')
-        ->where('u_id', Auth::user()->id)->get();
+            ->where('u_id', Auth::user()->id)->get();
         $ma_id_arr = array();
         if (!empty($ma_id)) {
             foreach ($ma_id as $row) {
@@ -629,9 +661,9 @@ class AnnouncementController extends Controller
         if (!empty($mt->first())) {
             foreach ($mt as $row) {
                 $ma = DB::table('menu_accesses')
-                ->where('mt_id', '=', $row->id)
-                ->whereIn('id', $ma_id_arr)
-                ->orderBy('ma_sort')->get();
+                    ->where('mt_id', '=', $row->id)
+                    ->whereIn('id', $ma_id_arr)
+                    ->orderBy('ma_sort')->get();
                 if (!empty($ma->first())) {
                     $row->ma = $ma;
                     array_push($sidebar, $row);
@@ -672,7 +704,7 @@ class AnnouncementController extends Controller
             }
         }
     }
-    
+
     /**
      * Track individual announcement view when user expands content
      */
@@ -683,14 +715,14 @@ class AnnouncementController extends Controller
             if (!$user) {
                 return response()->json(['success' => false, 'message' => 'User not authenticated'], 401);
             }
-            
+
             $announcement = Announcement::findOrFail($id);
-            
+
             // Check if user already viewed this announcement (ever)
             $existingView = AnnouncementView::where('announcement_id', $id)
                 ->where('user_id', $user->id)
                 ->first();
-            
+
             if (!$existingView) {
                 // Create new view record - first time viewing
                 AnnouncementView::create([
@@ -700,7 +732,7 @@ class AnnouncementController extends Controller
                     'ip_address' => request()->ip(),
                     'user_agent' => request()->userAgent()
                 ]);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'View tracked successfully (first time)'
@@ -711,7 +743,6 @@ class AnnouncementController extends Controller
                     'message' => 'View already tracked previously'
                 ]);
             }
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -719,7 +750,7 @@ class AnnouncementController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Get list of viewers for a specific announcement
      */
@@ -730,16 +761,16 @@ class AnnouncementController extends Controller
             if (!$user) {
                 return response()->json(['success' => false, 'message' => 'User not authenticated'], 401);
             }
-            
+
             $announcement = Announcement::with(['category', 'creator.userPosition'])->findOrFail($id);
-            
+
             // Get unique viewers with user details (1 user = 1 view)
             $viewers = AnnouncementView::with(['user.userPosition', 'user.userDivision'])
                 ->where('announcement_id', $id)
                 ->orderBy('viewed_at', 'desc')
                 ->get()
                 ->unique('user_id') // Remove duplicate users
-                ->map(function($view) {
+                ->map(function ($view) {
                     return [
                         'user_name' => $view->user->u_name ?? 'Unknown',
                         'user_nip' => $view->user->u_nip ?? null,
@@ -752,14 +783,13 @@ class AnnouncementController extends Controller
                         'user_agent' => $view->user_agent
                     ];
                 });
-            
+
             $html = view('app.announcement._view_details', compact('announcement', 'viewers'))->render();
-            
+
             return response()->json([
                 'success' => true,
                 'html' => $html
             ]);
-            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -776,9 +806,9 @@ class AnnouncementController extends Controller
         try {
             $creator = User::find($announcement->created_by);
             $creatorName = $creator ? $creator->u_name : 'System';
-            
+
             $message = "New announcement: {$announcement->title}";
-            
+
             $notificationData = [
                 'announcement_id' => $announcement->id,
                 'title' => $announcement->title,
@@ -790,7 +820,7 @@ class AnnouncementController extends Controller
             if ($announcement->target_type === 'all') {
                 // Send to all active users
                 $users = User::where('u_delete', '0')->get();
-                
+
                 foreach ($users as $user) {
                     if ($user->ud_id) {
                         Notification::createHRNotification(
@@ -802,18 +832,17 @@ class AnnouncementController extends Controller
                         );
                     }
                 }
-                
             } elseif ($announcement->target_type === 'division') {
                 // Send to users in specific division
                 $recipients = $announcement->recipients()
                     ->where('recipient_type', 'division')
                     ->get();
-                
+
                 foreach ($recipients as $recipient) {
                     $users = User::where('ud_id', $recipient->recipient_id)
                         ->where('u_delete', '0')
                         ->get();
-                    
+
                     foreach ($users as $user) {
                         Notification::createHRNotification(
                             $user->ud_id,
@@ -824,13 +853,12 @@ class AnnouncementController extends Controller
                         );
                     }
                 }
-                
             } elseif ($announcement->target_type === 'individual') {
                 // Send to specific users
                 $recipients = $announcement->recipients()
                     ->where('recipient_type', 'user')
                     ->get();
-                
+
                 foreach ($recipients as $recipient) {
                     $user = User::find($recipient->recipient_id);
                     if ($user && $user->ud_id) {
@@ -850,7 +878,6 @@ class AnnouncementController extends Controller
                 'target_type' => $announcement->target_type,
                 'title' => $announcement->title
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Failed to send announcement notifications', [
                 'announcement_id' => $announcement->id,
@@ -866,7 +893,7 @@ class AnnouncementController extends Controller
     {
         try {
             $attachment = AnnouncementAttachment::findOrFail($id);
-            
+
             // Check if user has permission to remove this attachment
             $announcement = $attachment->announcement;
             if ($announcement->created_by !== Auth::id()) {
@@ -875,20 +902,19 @@ class AnnouncementController extends Controller
                     'message' => 'You do not have permission to remove this attachment'
                 ], 403);
             }
-            
+
             // Delete file from storage
             if (Storage::disk('public')->exists($attachment->file_path)) {
                 Storage::disk('public')->delete($attachment->file_path);
             }
-            
+
             // Delete attachment record
             $attachment->delete();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Attachment removed successfully'
             ]);
-            
         } catch (\Exception $e) {
             \Log::error('Error removing attachment: ' . $e->getMessage());
             return response()->json([

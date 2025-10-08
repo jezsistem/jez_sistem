@@ -26,7 +26,13 @@ class PosTransaction extends Model
         'pos_paid_dp_date',
         'pos_resi',
         'pos_resi_file',
-        'created_at'
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'pos_status',
+        'pos_note',
+        'pos_notes_settle',
+        'pos_notes_dp'
     ];
 
     public function checkData($select, $where)
@@ -77,5 +83,9 @@ class PosTransaction extends Model
                 return false;
             }
         }
+    }
+
+    public static function statusList(){
+        return PosTransaction::query()->select('pos_status')->groupBy('pos_status')->orderBy('pos_status','asc')->pluck('pos_status')->toArray();
     }
 }

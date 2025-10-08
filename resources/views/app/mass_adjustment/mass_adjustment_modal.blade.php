@@ -232,7 +232,7 @@
 
             <div class="modal-body table-responsive">
                 <a class="btn-sm btn-primary float-left" id="excel_report">Excel</a><br />
-                <table class="table table-hover" id="MassAdjustmentDetailtb" style="width: 100%;">
+                <table class="table table-hover" id="MassAdjustmentDetailExporttb" style="width: 100%;">
                     <thead class="text-dark">
                         <tr>
                             <th class="text-dark">No</th>

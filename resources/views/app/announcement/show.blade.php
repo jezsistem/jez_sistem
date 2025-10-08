@@ -212,7 +212,32 @@
                                     </div>
                                     <div class="d-flex flex-column">
                                         <span class="text-dark fw-bold fs-6">{{ $announcement->creator->u_name ?? 'Unknown' }}</span>
-                                        <span class="text-muted fs-8">{{ $announcement->created_at->format('d M Y, H:i') }}</span>
+                                        <span class="text-muted fs-8">{{ $announcement->division_name ?? 'Unknown' }}</span>
+                                        <span class="text-muted fs-8">Created at: {{ $announcement->created_at->format('d M Y, H:i') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card card-custom mb-4">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <h3 class="card-label">Target Date</h3>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="d-flex flex-column">
+                                        <span class="text-dark fw-bold fs-6">
+                                            {{ 
+                                                $announcement->target_date 
+                                                    ? \Carbon\Carbon::parse($announcement->target_date)->translatedFormat('l, d F Y') 
+                                                    : ($announcement->published_at 
+                                                        ? \Carbon\Carbon::parse($announcement->published_at)->translatedFormat('l, d F Y') 
+                                                        : 'Unknown'
+                                                    ) 
+                                            }}
+                                        </span>                                        
                                     </div>
                                 </div>
                             </div>

@@ -31,7 +31,9 @@
                         <div id="st_id_filter_parent"></div>
                     </div>
                     <div class="form-group ml-5" style="padding-top:22px;">
-                        <button class="btn btn-info" style="white-space: nowrap;" id="change_display_btn">Ganti Display</button>
+                        <button class="btn btn-info" style="white-space: nowrap;" id="change_display_btn">Ganti
+                            Display
+                        </button>
                     </div>
                 </div>
             </div>
@@ -90,11 +92,37 @@
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
                                         <select class="form-control col-md-12" id="sz_id">
-                                            @foreach ($data['sz_id'] as $key => $value)
-                                                <option value="{{ $key }}">{{ $value }}</option>
+                                            @foreach ($data['sizes'] as $value)
+                                                <option value="{{ $value->sz_name }}">
+                                                    {{ $value->sz_name }} ({{ $value->pc_name }})
+                                                </option>
                                             @endforeach
                                         </select>
                                         <div id="sz_id_parent"></div>
+                                    </div>
+
+                                    {{-- Dropdown filter harga --}}
+                                    <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                        <select class="form-control col-md-12" id="min_price_filter">
+                                            <option></option> {{-- option kosong untuk placeholder --}}
+                                            @for ($i = 100000; $i <= 1000000; $i += 100000)
+                                                <option value="{{ $i }}">{{ number_format($i, 0, ',', '.') }}</option>
+                                            @endfor
+                                            {{--                                            <option value=">1000000">&gt; 1.000.000</option>--}}
+                                        </select>
+                                        <div id="min_price_filter_parent"></div>
+                                    </div>
+
+                                    {{-- Dropdown filter harga --}}
+                                    <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-5">
+                                        <select class="form-control col-md-12" id="max_price_filter">
+                                            <option></option> {{-- option kosong untuk placeholder --}}
+                                            @for ($i = 100000; $i <= 1000000; $i += 100000)
+                                                <option value="{{ $i }}">{{ number_format($i, 0, ',', '.') }}</option>
+                                            @endfor
+                                            <option value=">1000000">&gt; 1.000.000</option>
+                                        </select>
+                                        <div id="max_price_filter_parent"></div>
                                     </div>
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
@@ -116,6 +144,7 @@
                                         </select>
                                         <div id="main_color_id_parent"></div>
                                     </div>
+                                    <div class="w-100"></div>
                                     <!--end::Dropdown-->
                                     <!--begin::Dropdown-->
                                     <div class="dropdown dropdown-inline col-xl-4 col-xxl-4 mt-2">
@@ -189,7 +218,7 @@
                                         </button>
 
                                         <button style="white-space: nowrap;" type="button"
-                                                class="btn btn-warning font-weight-bolder mb-2" id="waiting_list_btn"
+                                                class="btn btn-warning font-weight-bolder mb-2" id="filter_list_btn"
                                                 aria-haspopup="true" aria-expanded="false">
                                             <span class="svg-icon svg-icon-md">
                                                 <!--begin::Svg Icon | path:assets/media/svg/icons/Design/PenAndRuller.svg-->
@@ -223,12 +252,18 @@
                                     <div id="result"></div>
                                     <div class="row">
                                         <div class="col-12">
-                                            <b style="font-size: 16px">Request count:</b> <b style="font-size: 16px;" id="request_count">0</b>
+                                            <b style="font-size: 16px">Request count:</b> <b style="font-size: 16px;"
+                                                                                             id="request_count">0</b>
                                         </div>
                                     </div>
 
-                                    <div class="alert-danger running-text" style="padding: 15px; border-radius:5px; margin-top:10px; margin-bottom:10px;" role="alert">
-                                        <h5><strong>Important!</strong> Menu (Data Stok V2 Beta) masih dalam tahap pengembangan dan pengujian. Jika kamu menemukan error atau kejanggalan, jangan ragu untuk <a href="https://wa.me/6285649888272">hubungi saya via WhatsApp</a> 🤘🤘🤘🤘</h5>
+                                    <div class="alert-danger running-text"
+                                         style="padding: 15px; border-radius:5px; margin-top:10px; margin-bottom:10px;"
+                                         role="alert">
+                                        <h5><strong>Important!</strong> Menu (Data Stok V2 Beta) masih dalam tahap
+                                            pengembangan dan pengujian. Jika kamu menemukan error atau kejanggalan,
+                                            jangan ragu untuk <a href="https://wa.me/6285649888272">hubungi saya via
+                                                WhatsApp</a> 🤘🤘🤘🤘</h5>
 
                                     </div>
 
@@ -259,7 +294,8 @@
                                     : Stok Toko |
                                     <button class="btn btn-sm btn-success ml-2">•</button>
                                     : Stok gudang |
-                                    <button class="btn btn-sm ml-2" style="background-color: #784800; color: white;">•</button>
+                                    <button class="btn btn-sm ml-2" style="background-color: #784800; color: white;">•
+                                    </button>
                                     : Stok Defect |
                                     <button class="btn btn-sm btn-warning ml-2">•</button>
                                     : Stok Special Sale

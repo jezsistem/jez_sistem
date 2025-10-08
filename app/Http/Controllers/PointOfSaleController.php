@@ -681,6 +681,14 @@ class PointOfSaleController extends Controller
         $voc_id = $request->voc_id;
 
         $discount_seller = $request->_discount_seller;
+        $is_downpayment = $request->_downpayment;
+        $nominal_downpayment = $request->_dp_payment;
+
+        if ($is_downpayment == '1') {
+            $pos_payment = $nominal_downpayment;
+        } else {
+            $pos_payment = $real_price;
+        }
 
         $insert_get_id = DB::table('pos_transactions')->insertGetId([
             'u_id' => $u_id,
@@ -711,6 +719,7 @@ class PointOfSaleController extends Controller
             'st_id_ref' => $st_id_ref,
             'cross_order' => $cross_order,
             'pos_resi' => $no_resi,
+            'pos_payment' => $pos_payment,
         ]);
 
         // insert file pdf
@@ -959,6 +968,8 @@ class PointOfSaleController extends Controller
         $count_b1g1 = ProductDiscountDetail::join('product_stocks', 'product_stocks.id', '=', 'product_discount_details.pst_id')
             ->where('product_discount_details.pst_id', '=', $pst_id)->count();
 
+        $current_price = DB::table('product_stocks')->where('id', '=', $pst_id)->first();
+
         $pos_td_description = null;
         if (session()->get('voc_item') != Auth::user()->id . '-' . $pst_id) {
             if ($pst_id == $voc_pst_id) {
@@ -975,7 +986,7 @@ class PointOfSaleController extends Controller
                 $pos_td_discount_price = $item_qty * $price;
             }
         } else {
-            $pos_td_discount_price = $item_qty * $price;
+            $pos_td_discount_price = $item_qty * $price ;
         }
 
         $pos_td_description = ($count_b1g1 > 0) ? 'B1G1' : null;
@@ -995,6 +1006,8 @@ class PointOfSaleController extends Controller
             'pos_td_description' => $pos_td_description,
             'pos_td_price_item_discount' => $price_item_discount,
             'pos_td_total_price' => $pos_td_discount_price + $nameset_price,
+            'pos_td_item_cogs' => $current_price->ps_purchase_price,
+            'pos_td_item_price_tag' => $current_price->ps_price_tag,
             'created_at' => date('Y-m-d H:i:s')
         ]);
         if (!empty($create)) {
@@ -1280,6 +1293,8 @@ class PointOfSaleController extends Controller
                 $pos_td_discount_price = $item_qty * $new_price;
             }
 
+            $current_price = DB::table('product_stocks')->where('id', '=', $pst_id)->first();
+
             $create = PosTransactionDetail::create([
                 'pt_id' => $pt_id,
                 'pst_id' => $pst_id,
@@ -1295,6 +1310,8 @@ class PointOfSaleController extends Controller
                 'pos_td_nameset' => $nameset,
                 'pos_td_description' => $pos_td_description,
                 'pos_td_total_price' => $pos_td_discount_price + $nameset_price,
+                'pos_td_item_cogs' => $current_price->ps_purchase_price,
+                'pos_td_item_price_tag' => $current_price->ps_price_tag,
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
             $r['status'] = '200';
@@ -2404,6 +2421,7 @@ class PointOfSaleController extends Controller
                         // 'u_id' => Auth::user()->id,
                     ]);
                 if (!empty($update)) {
+                    $current_price = DB::table('product_stocks')->where('id', '=', $pst_id)->first();
                     $create = PosTransactionDetail::create([
                         'pt_id' => $pt_id,
                         'pst_id' => $pst_id,
@@ -2412,6 +2430,8 @@ class PointOfSaleController extends Controller
                         'pos_td_sell_price' => $sell_price,
                         'pos_td_discount_price' => $sell_price,
                         'pos_td_total_price' => $sell_price,
+                        'pos_td_item_cogs' => $current_price->ps_purchase_price,
+                        'pos_td_item_price_tag' => $current_price->ps_price_tag,
                         'created_at' => date('Y-m-d H:i:s'),
                     ]);
                     if (!empty($create)) {

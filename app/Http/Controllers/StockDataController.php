@@ -28,6 +28,7 @@ use App\Models\ProductLocation;
 use App\Models\ProductMutation;
 use duncan3dc\Speaker\Providers\GoogleProvider;
 use duncan3dc\Speaker\TextToSpeech;
+use Yajra\DataTables\Facades\DataTables;
 
 class StockDataController extends Controller
 {
@@ -87,10 +88,25 @@ class StockDataController extends Controller
             'sidebar' => $this->sidebar(),
             'user' => $user_data,
             'br_id' => Brand::where('br_delete', '!=', '1')->orderByDesc('id')->pluck('br_name', 'id'),
-            'sz_id' => Size::selectRaw('ts_sizes.id as sz_id, CONCAT(sz_name," (",psc_name,")") as sz')
-                ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
-                ->where('sz_delete', '!=', '1')
-                ->orderBy('sz_name')->pluck('sz', 'sz_id'),
+//            'sz_name' => Size::selectRaw('ts_sizes.id as sz_id, CONCAT(sz_name," (",psc_name,")") as sz')
+//                ->join('product_sub_categories', 'product_sub_categories.id', '=', 'sizes.psc_id')
+//                ->where('sz_delete', '!=', '1')
+//                ->orderBy('sz_name')->pluck('sz', 'sz_id'),
+            'sizes' => collect(DB::select("
+                            SELECT DISTINCT
+                                ts_sizes.sz_name,
+                                ts_product_categories.pc_name
+                            FROM ts_sizes
+                            INNER JOIN ts_product_sub_categories
+                                ON ts_product_sub_categories.id = ts_sizes.psc_id
+                            JOIN ts_product_categories
+                                ON ts_product_categories.id = ts_product_sub_categories.pc_id
+                            WHERE ts_sizes.sz_delete != '1'
+                              AND sz_name != ''
+                              AND pc_name NOT IN ('UNKNOWN')
+                            ORDER BY FIELD(ts_product_categories.pc_name, 'FOOTWEAR', 'APPAREL', 'ACCESSORIES'),
+                                     ts_sizes.sz_name ASC
+                        ")),
             'st_id' => Store::where('st_delete', '!=', '1')->orderByDesc('id')->pluck('st_name', 'id'),
             'pc_id' => ProductCategory::where('pc_delete', '!=', '1')->orderByDesc('id')->pluck('pc_name', 'id'),
             'psc_id' => ProductSubCategory::where('psc_delete', '!=', '1')->orderByDesc('id')->pluck('psc_name', 'id'),
@@ -100,6 +116,8 @@ class StockDataController extends Controller
             'main_color_id' => MainColor::where('mc_delete', '!=', '1')->orderByDesc('id')->pluck('mc_name', 'id'),
             'segment' => request()->segment(1),
         ];
+
+//        dd($data['sizes']);
 
 //        dd(Auth::user()->st_id);
         return view('app.stock_data.stock_data', compact('data'));
@@ -155,7 +173,6 @@ class StockDataController extends Controller
             ->where('date_start', '<=', $date_now) // Promo sudah berjalan atau dimulai hari ini
             ->where('date_end', '>=', $date_now)   // Promo masih berlaku
             ->orderBy('articles_promo.id', 'desc')
-            ->limit(1)
             ->get();
 
         return response()->json(['data' => $promoData]);
@@ -241,6 +258,7 @@ class StockDataController extends Controller
                         ->leftJoin('product_stocks', 'product_stocks.p_id', '=', 'products.id')
                         ->leftJoin('product_location_setups', 'product_location_setups.pst_id', '=', 'product_stocks.id')
                         ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+                        ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
                         ->where('product_locations.st_id', '=', $st_id)
                         ->whereNotIn('pl_code', $exception)
                         ->where('p_name', $data->p_name)
@@ -248,9 +266,9 @@ class StockDataController extends Controller
                         ->where(function ($w) use ($sz_id) {
                             if (!empty($sz_id)) {
                                 if (count($sz_id) > 0) {
-                                    $w->whereIn('sz_id', $sz_id);
+                                    $w->whereIn('sz_name', $sz_id);
                                 } else {
-                                    $w->where('sz_id', $sz_id);
+                                    $w->where('sz_name', $sz_id);
                                 }
                             }
                         })
@@ -353,9 +371,9 @@ class StockDataController extends Controller
                                     ->where(function ($w) use ($sz_id) {
                                         if (!empty($sz_id)) {
                                             if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
+                                                $w->whereIn('sz_name', $sz_id);
                                             } else {
-                                                $w->where('sz_id', $sz_id);
+                                                $w->where('sz_name', $sz_id);
                                             }
                                         }
                                     })
@@ -375,9 +393,9 @@ class StockDataController extends Controller
                                     ->where(function ($w) use ($sz_id) {
                                         if (!empty($sz_id)) {
                                             if (count($sz_id) > 0) {
-                                                $w->whereIn('sz_id', $sz_id);
+                                                $w->whereIn('sz_name', $sz_id);
                                             } else {
-                                                $w->where('sz_id', $sz_id);
+                                                $w->where('sz_name', $sz_id);
                                             }
                                         }
                                     })
@@ -528,7 +546,6 @@ class StockDataController extends Controller
 //                                            ->where('product_location_setups.pst_id', $srow->pst_id)
 //                                            ->groupBy('product_stocks.id', 'product_stocks.ps_barcode')
 //                                            ->get();
-
 
 
                                         // sampai sini belum bisa mengurangin stok y
@@ -761,11 +778,11 @@ class StockDataController extends Controller
                                 for ($i = 0; $i < $count; $i++) {
                                     $where[] = $sz_id[$i];
                                 }
-                                $w->orWhereIn('sz_id', $where);
+                                $w->orWhereIn('sz_name', $where);
                             } else {
-                                $w->orWhere('sz_id', '=', $sz_id[0]);
+                                $w->orWhere('sz_name', '=', $sz_id[0]);
                             }
-                            $w->where('pls_qty', '>', 0); // Added condition
+                            $w->where('pls_qty', '>=', 0); // Added condition
                         });
                     }
 
@@ -1653,6 +1670,75 @@ class StockDataController extends Controller
         ], 200);
     }
 
+    public function filter(Request $request)
+    {
+        // base query pakai Query Builder
+        $query = DB::table('products')
+            ->select([
+                'products.article_id',
+                'products.p_name',
+                'product_stocks.ps_barcode as SKU',
+                'product_stocks.ps_price_tag',
+                'product_stocks.ps_sell_price',
+                'product_locations.pl_code as bin',
+                'product_location_setups.created_at as datetime',
+                'product_location_setups.pls_qty as qty',
+                'sizes.sz_name'
+            ])
+            ->leftJoin('product_stocks', 'products.id', '=', 'product_stocks.p_id')
+            ->leftJoin('product_location_setups', 'product_stocks.id', '=', 'product_location_setups.pst_id')
+            ->leftJoin('product_locations', 'product_locations.id', '=', 'product_location_setups.pl_id')
+            ->leftJoin('sizes', 'sizes.id', '=', 'product_stocks.sz_id')
+            ->where('pls_qty', '>', 0)
+            ->where('product_locations.st_id', $request->st_id);
+        if ($request->pc_id) {
+            $query->where('products.pc_id', $request->pc_id);
+        }
+        if ($request->psc_id) {
+            $query->where('products.psc_id', $request->psc_id);
+        }
+        if ($request->pssc_id) {
+            $query->where('products.pssc_id', $request->pssc_id);
+        }
+        if ($request->br_id) {
+            $query->where('products.br_id', $request->br_id);
+        }
+        if ($request->filled('sz_id')) {
+            $szIds = (array)$request->input('sz_id');
+            $query->where(function ($q) use ($szIds) {
+                foreach ($szIds as $sz) {
+                    $q->orWhere('sizes.sz_name', 'like', '%' . $sz . '%');
+                }
+            });
+        }
+        if ($request->min_price) {
+            $query->where('product_stocks.ps_sell_price', '>=', $request->min_price);
+        }
+        if ($request->max_price && $request->max_price != '>1000000') {
+            $query->where('product_stocks.ps_sell_price', '<=', $request->max_price);
+        }
+        if ($request->max_price == '>1000000') {
+            $query->where('product_stocks.ps_sell_price', '>', 1000000);
+        }
+        if ($request->main_color_id) {
+            $query->where('products.main_color_id', $request->main_color_id);
+        }
+
+        return DataTables::of($query)
+            ->addColumn('harga', function ($row) {
+                return number_format($row->ps_price_tag, 0, ',', '.') .
+                    " / " . number_format($row->ps_sell_price, 0, ',', '.');
+            })
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-sm btn-success pilih" data-id="' . $row->article_id . '">Pilih</button>';
+            })
+            ->editColumn('datetime', function ($row) {
+                return $row->datetime ? date('d-m-Y H:i', strtotime($row->datetime)) : '-';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
+    }
+
     public function changeDisplayStockData(Request $request)
     {
         DB::beginTransaction();
@@ -1822,15 +1908,15 @@ class StockDataController extends Controller
             ->where('product_location_setup_transactions.plst_type', 'OUT')
             ->where('product_location_setup_transactions.st_id', $user->st_id)
             ->first();
-        
+
         if (!$product_category) {
             return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
         }
-        
+
         if ($product_category->pc_name != 'FOOTWEAR') {
-            return $this->moveToDisplayApparelAndAcc($plst_id,$user);
+            return $this->moveToDisplayApparelAndAcc($plst_id, $user);
         } else {
-            return $this->moveToDisplayFootware($plst_id,$user);
+            return $this->moveToDisplayFootware($plst_id, $user);
         }
     }
 
@@ -1839,32 +1925,32 @@ class StockDataController extends Controller
     {
         DB::beginTransaction();
         try {
-        $plst = ProductLocationSetupTransaction::query()
-            ->select('product_location_setup_transactions.id as plst_id', 'product_location_setup_transactions.pls_id','product_location_setup_transactions.st_id', 'product_location_setup_transactions.plst_type', 'product_location_setup_transactions.plst_status','product_location_setups.pst_id')
-            ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
-            ->where('product_location_setup_transactions.id', $plst_id)
-            ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
-            ->where('product_location_setup_transactions.plst_type', 'OUT')
-            ->where('product_location_setup_transactions.st_id', $user->st_id)
-            ->first();
+            $plst = ProductLocationSetupTransaction::query()
+                ->select('product_location_setup_transactions.id as plst_id', 'product_location_setup_transactions.pls_id', 'product_location_setup_transactions.st_id', 'product_location_setup_transactions.plst_type', 'product_location_setup_transactions.plst_status', 'product_location_setups.pst_id')
+                ->join('product_location_setups', 'product_location_setups.id', '=', 'product_location_setup_transactions.pls_id')
+                ->where('product_location_setup_transactions.id', $plst_id)
+                ->where('product_location_setup_transactions.plst_status', 'WAITING OFFLINE')
+                ->where('product_location_setup_transactions.plst_type', 'OUT')
+                ->where('product_location_setup_transactions.st_id', $user->st_id)
+                ->first();
 
-        $pls_before = ProductLocationSetup::query()
-            ->where('id', $plst->pls_id)
-            ->first();
+            $pls_before = ProductLocationSetup::query()
+                ->where('id', $plst->pls_id)
+                ->first();
 
-        if (!$plst) {
-            return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
-        }
-        
-        //check toko or display product location setup
-        $pl_id_toko = ProductLocation::select('id')->where('st_id', $user->st_id)->where('pl_code', 'TOKO')->first();
-        if (!$pl_id_toko) {
-            return response()->json(['status' => '404', 'message' => 'Store location not found.']);
-        }
+            if (!$plst) {
+                return response()->json(['status' => '404', 'message' => 'Waiting list transaction not found.']);
+            }
 
-        $check_pls = ProductLocationSetup::where('pl_id', $pl_id_toko->id)
-            ->where('pst_id', $plst->pst_id)
-            ->first();
+            //check toko or display product location setup
+            $pl_id_toko = ProductLocation::select('id')->where('st_id', $user->st_id)->where('pl_code', 'TOKO')->first();
+            if (!$pl_id_toko) {
+                return response()->json(['status' => '404', 'message' => 'Store location not found.']);
+            }
+
+            $check_pls = ProductLocationSetup::where('pl_id', $pl_id_toko->id)
+                ->where('pst_id', $plst->pst_id)
+                ->first();
 
             if (!$check_pls) {
                 $pls_toko_item = ProductLocationSetup::create([
@@ -1903,7 +1989,7 @@ class StockDataController extends Controller
                 'notes' => 'Ganti Display dari data stock',
                 'created_at' => now(),
             ]);
-            
+
 
             DB::commit();
             return response()->json(['status' => '200', 'message' => 'Successfully moved to display waiting list.']);
@@ -1914,7 +2000,7 @@ class StockDataController extends Controller
     }
 
     // langsung pindah ke display
-    private function moveToDisplayApparelAndAcc($plst_id ,$user)
+    private function moveToDisplayApparelAndAcc($plst_id, $user)
     {
         DB::beginTransaction();
         try {

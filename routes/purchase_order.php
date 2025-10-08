@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('po_total_qty', [PurchaseOrderController::class, 'totalQtyPo']);
     Route::post('po_payment_amount', [PurchaseOrderController::class, 'paymentAmountPo']);
     Route::post('status_dispute_save', [PurchaseOrderController::class, 'statusdisputeSave']);
+    Route::post('po_change_bank_general', [PurchaseOrderController::class, 'changeBankGeneral']);
 
     // Purchase Order Receive
     Route::get('penerimaan', [PurchaseOrderReceiveController::class, 'index'])->name('purchase_order_receive');
@@ -82,6 +83,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('po_delivery_order_image_datatable', [PurchaseOrderReceiveController::class, 'getImageDeliveryOrdersDatatables']);
     Route::post('po_delivery_order_image_delete', [PurchaseOrderReceiveController::class, 'deleteImagePOSuratJalan']);
     Route::post('check_barcode_import', [PurchaseOrderReceiveController::class, 'checkBarcodeImport']);
+    Route::post('upload_file_delivery_note', [PurchaseOrderReceiveController::class, 'uploadFileDelivery']);
+    Route::get('file_delivery_note_datatables', [PurchaseOrderReceiveController::class, 'getFileDeliveryNoteDatatables']);
+    Route::post('delete_file_delivery_note', [PurchaseOrderReceiveController::class, 'deleteFileDelivery']);
     Route::get('purchase-order-receive/export', [PurchaseOrderController::class, 'exportpurchaseorderexport'])
             ->name('purchase_order_receive.export');
     Route::get('/export-purchase-order/{po_id}', function ($po_id) {
@@ -98,6 +102,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('poa_delete', [PurchaseOrderArticleController::class, 'deleteData']);
     Route::post('poa_save_discount', [PurchaseOrderArticleController::class, 'saveDiscount']);
     Route::post('poa_save_extra_discount', [PurchaseOrderArticleController::class, 'saveExtraDiscount']);
+    Route::post('poa_save_sub_discount', [PurchaseOrderArticleController::class, 'saveSubDiscount']);
     Route::post('poa_save_reminder', [PurchaseOrderArticleController::class, 'saveReminder']);
 
     // Purchase Order Article Detail
@@ -173,5 +178,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('po_invoice_image_datatable_cod', [PurchaseOrderReceiveCODController::class, 'getImageInvoiceDatatables']);
     Route::get('po_transfer_image_datatable_cod', [PurchaseOrderReceiveCODController::class, 'getImageTransferDatatables']);
     Route::post('poc_change_pay_date', [PurchaseOrderReceiveCODController::class, 'changePayDate']);
+
 
 });

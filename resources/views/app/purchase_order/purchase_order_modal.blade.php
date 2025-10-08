@@ -196,8 +196,7 @@
                         </select>
                         <div id="dp_id_parent"></div>
                     </div>
-
-                    <div class="col-4 mt-5">
+                    <div class="col-2 mt-5">
                         <label>Payment</label>
                         <select class="form-control" id="acc_id" name="acc_id" required>
                             <option value="">- Payment -</option>
@@ -206,6 +205,15 @@
                             @endforeach
                         </select>
                         <div id="acc_id_parent"></div>
+                    </div>
+                    <div class="col-2 mt-5">
+                        <label>Bank General</label>
+                        <select class="form-control" id="bank_general" name="bank_general">
+                            <option value="">- Bank General -</option>
+                            <option value="BCA 002">BCA 002</option>
+                            <option value="BCA 004">BCA 004</option>
+                            <option value="BCA 005">BCA 005</option>
+                        </select>
                     </div>
                     <div class="col-4 mt-5">
                         <label>Dispute</label>

@@ -206,3 +206,46 @@
     </div>
 </div>
 <!-- /Modal -->
+
+<!-- Filter List Modal -->
+<div class="modal fade" id="FilterListModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document" style="width:100%; max-width:1400px;">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-dark" id="exampleModalLabel">Filter List Product</h5>
+                <button type="button" class="c  lose" data-dismiss="modal" aria-label="Close">
+                    <i aria-hidden="true" class="ki ki-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body table-responsive">
+                    <!--begin: Datatable-->
+                    <input type="search" class="form-control bg-light-primary" id="waiting_data_search" placeholder="Cari artikel"/><br/>
+                    <table class="table table-hover table-checkable" id="FilterListtb">
+                        <thead class="bg-light text-dark">
+                        <tr>
+                            <th class="text-dark">Artikel ID</th>
+                            <th class="text-dark">SKU</th>
+                            <th class="text-dark">SKU</th>
+                            <th class="text-dark">Size</th>
+                            <th class="text-dark">HB / HJ</th>
+                            <th class="text-dark">Area</th>
+                            <th class="text-dark">QTY</th>
+                            <th class="text-dark">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                    <!--end: Datatable-->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light-primary font-weight-bold" data-dismiss="modal">Tutup</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Modal -->

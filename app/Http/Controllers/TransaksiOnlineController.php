@@ -114,15 +114,15 @@ class TransaksiOnlineController extends Controller
                     'no_resi',
                     'platform_name',
                     'order_date_created',
-                    'sku',
+                    // 'sku',
                     'shipping_fee',
                     'total_payment',
                     'order_status',
                     'online_print'
                 ])
                     ->leftJoin('online_transaction_details', 'online_transactions.id', '=', 'online_transaction_details.to_id')
-                    ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
-                    ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
+                    // ->leftJoin('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
+                    // ->leftJoin('products', 'products.id', '=', 'product_stocks.p_id')
                     ->where('no_resi', '!=', '')
                     ->where('st_id', '=', $st_id)
                     ->orderBy('online_transactions.created_at', 'DESC')
@@ -293,7 +293,11 @@ class TransaksiOnlineController extends Controller
             DB::beginTransaction();
 
             $invoice = $request->orderNumber;
-            $check = PosTransaction::where(['pos_invoice' => $invoice])->exists();
+            // Check if the latest pos_status for this invoice is 'DONE'
+            $check = PosTransaction::where(['pos_invoice' => $invoice])
+                ->orderByDesc('id')
+                ->value('pos_status') === 'DONE' ? true : false;
+
             $get_invoice = array();
             $dropshipper = null;
             $st_id = Auth::user()->st_id;
@@ -402,9 +406,13 @@ class TransaksiOnlineController extends Controller
 
                     $sku_count = OnlineTransactionDetails::where('to_id', $cur_trx->id)->where('sku', $data->sku)->count();
                     if (count($online_transactions) >= $sku_count) {
-                        $pos_transaction_check = PosTransaction::where('pos_invoice', $invoice)->first();
+                        $pos_transaction_check = PosTransaction::where(['pos_invoice' => $invoice])
+                            ->orderByDesc('id')
+                            ->first();
+                        
+                        $is_trx_done = $pos_transaction_check && $pos_transaction_check->pos_status === 'DONE';
 
-                        if ($pos_transaction_check) {
+                        if ($is_trx_done) {
                             // If a POS transaction already exists, use its ID
                             $trx_id_new = $pos_transaction_check->id;
                         } else {
@@ -493,13 +501,13 @@ class TransaksiOnlineController extends Controller
                         ];
 
                         foreach ($keep_online_details as $key => $cko) {
-                            $barcode_id = ProductStock::where('ps_barcode', $data->sku)->first()->id;
+                            $product_stock = ProductStock::where('ps_barcode', $data->sku)->first();
 
-                            if (!$barcode_id) {
+                            if (!$product_stock->id) {
                                 throw new \Exception('Product stock not found for barcode: ' . $data->sku);
                             }
 
-                            $item_detail_checks = PosTransactionDetail::where('pst_id', $barcode_id)->where('pt_id', $trx_id_new)->exists();
+                            $item_detail_checks = PosTransactionDetail::where('pst_id', $product_stock->id)->where('pt_id', $trx_id_new)->exists();
 
                             $price_before_discount = $data->original_price * $data->qty;
                             $price_after_discount = $data->price_after_discount * $data->qty;
@@ -507,7 +515,7 @@ class TransaksiOnlineController extends Controller
                             if (!$item_detail_checks) {
                                 $insert_details = PosTransactionDetail::create([
                                     'pt_id' => $trx_id_new,
-                                    'pst_id' => $barcode_id,
+                                    'pst_id' => $product_stock->id,
                                     'pl_id' => $data->pl_id,
                                     'pos_td_qty' => $data->qty,
                                     'pos_td_sell_price' => $price_after_discount,
@@ -520,6 +528,8 @@ class TransaksiOnlineController extends Controller
                                     'pos_td_description' => '',
                                     'pos_td_price_item_discount' => 0,
                                     'pos_td_total_price' => $price_before_discount,
+                                    'pos_td_item_cogs' => $product_stock->ps_purchase_price,
+                                    'pos_td_item_price_tag' => $product_stock->ps_price_tag,
                                     'created_at' => date('Y-m-d H:i:s')
                                 ]);
 

@@ -103,7 +103,7 @@ class UserController extends Controller
     {
         if (request()->ajax()) {
             return datatables()->of(User::selectRaw("ts_users.id as uid, ts_groups.id as gr_id, ts_stores.id as st_id, stt_id, u_nip, u_ktp, u_secret_code
-            , u_name, stt_name, st_name, u_email, u_phone, u_address, u_active, delete_access, g_name, u_delete, pos_access, pick_access,
+            , u_name, stt_name, st_name, u_email, u_phone, u_address, join_date, u_active, delete_access, g_name, u_delete, pos_access, pick_access,
             count(ts_user_menu_accesses.id) as uma")
                 ->leftJoin('user_groups', 'user_groups.user_id', '=', 'users.id')
                 ->leftJoin('groups', 'groups.id', '=', 'user_groups.group_id')
@@ -205,6 +205,7 @@ class UserController extends Controller
             'u_email' => $request->u_email,
             'u_phone' => $request->u_phone,
             'u_address' => $request->u_address,
+            'join_date' => $request->join_date,
             'u_active' => $request->u_active,
             'delete_access' => $request->delete_access,
         ];

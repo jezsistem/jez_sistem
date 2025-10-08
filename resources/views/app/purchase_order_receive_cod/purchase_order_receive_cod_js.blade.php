@@ -177,17 +177,17 @@
             dom: 'rt<"text-right"ip>',
             ajax: {
                 url: "{{ url('po_transfer_image_datatable_cod') }}",
-                data: function (d) {
+                data: function(d) {
                     d._po_id = $('#_po_id').val();
                 },
             },
 
             columns: [{
-                data: 'image',
-                name: 'transfer_image',
-                searchable: false
-            },
-            {
+                    data: 'image',
+                    name: 'transfer_image',
+                    searchable: false
+                },
+                {
                     data: 'action',
                     name: 'action',
                     orderable: false,
@@ -234,12 +234,12 @@
 
         $('#BuktitfImagesTb tbody').on('click', '#delete-image-transfer', function() {
             var id = $(this).data('id');
-            
+
             if (!id) {
                 toastr.error('ID tidak ditemukan', 'Error');
                 return;
             }
-            
+
             swal({
                 title: "Hapus..?",
                 text: "Yakin hapus data ini?",
@@ -254,7 +254,9 @@
                     $.ajax({
                         type: "POST",
                         url: "{{ url('po_transfer_image_delete') }}",
-                        data: { id: id },
+                        data: {
+                            id: id
+                        },
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -264,11 +266,13 @@
                                 toastr.success("Data berhasil dihapus", "Berhasil");
                                 purchaseOrderBuktitfTable.draw();
                             } else {
-                                toastr.error(r.message || 'Gagal hapus data', 'Gagal');
+                                toastr.error(r.message || 'Gagal hapus data',
+                                    'Gagal');
                             }
                         },
                         error: function(xhr, status, error) {
-                            toastr.error('Terjadi kesalahan saat menghapus data: ' + error, 'Error');
+                            toastr.error('Terjadi kesalahan saat menghapus data: ' +
+                                error, 'Error');
                         }
                     });
                 }
@@ -393,6 +397,8 @@
         });
 
         $('#APtb tbody').on('click', 'tr', function() {
+            console.log('Row clicked',po_approval_table.row(this).data());
+            
 
             var id = po_approval_table.row(this).data().id;
             var po_id = po_approval_table.row(this).data().po_id;
@@ -404,7 +410,8 @@
             var tax_id = po_approval_table.row(this).data().tax_id; // Access tax_id
             var stkt_name = po_approval_table.row(this).data().stkt_name; // Access stkt_name
             var tx_name = po_approval_table.row(this).data().tx_name; // Access tx_name
-            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table.row(this).data().created_at.split(' ')[0];
+            var tgl_terima = po_approval_table.row(this).data().received_date || po_approval_table.row(
+                this).data().created_at.split(' ')[0];
             var po_description = po_approval_table.row(this).data().po_description;
             var shipping_cost = po_approval_table.row(this).data().po_shipping_cost;
             var poads_invoice = po_approval_table.row(this).data().poads_invoice;
@@ -412,7 +419,9 @@
             var po_invoice = po_approval_table.row(this).data().po_invoice;
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
-            approval = po_approval_table.row(this).data().u_receive;
+            var approval = po_approval_table.row(this).data().u_receive;
+            var bank_general = po_approval_table.row(this).data().bank_general;
+            var payment = po_approval_table.row(this).data().acc_id;
             jQuery.noConflict();
 
             console.log('STORES : ', tgl_terima);
@@ -468,6 +477,19 @@
                     $('#tax_name').val(tx_name);
                     $('#pay_date').val(pay_date);
                     $('#due_date').val(due_date);
+                    console.log('BANK GENERAL : ', bank_general, 'PAYMENT : ', payment);
+                    jQuery('#bank_general').val(bank_general).trigger('change');
+                    jQuery('#acc_id').val(payment).trigger('change');
+                    if (bank_general != null && String(bank_general).trim() !== "") {
+                        jQuery('#bank_general').prop('disabled', true);
+                    } else {
+                        jQuery('#bank_general').prop('disabled', false);
+                    }
+                    if (payment != null && String(payment).trim() !== "") {
+                        jQuery('#acc_id').prop('disabled', true);
+                    } else {
+                        jQuery('#acc_id').prop('disabled', false);
+                    }
 
                     purchaseOrderInvoiceTable.draw();
                     purchaseOrderBuktitfTable.draw();
@@ -480,8 +502,39 @@
             apd_table.draw();
         });
 
-        $(document).ready(function () {
-            $("#BuktitfImagesBtn").click(function () {
+        $(document).delegate('#bank_general', 'change', function() {
+            var bg_id = $(this).val();
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                url: "{{ url('po_change_bank_general') }}",
+                data: {
+                    bg_id: bg_id,
+                    po_id: $('#_po_id').val()
+                },
+                success: function(r) {
+                    let response = typeof r === "string" ? JSON.parse(r) : r;
+                    if (response.status == '200') {
+
+                    } else if (response.status == '500') {
+                        swal('Error', response.message);
+                    } else {
+
+                    }
+                },
+            });
+        });
+
+        $(document).on('click', '.close_detail', function() {
+            po_approval_table.draw(false);
+        });
+
+        $(document).ready(function() {
+            $("#BuktitfImagesBtn").click(function() {
                 $("#BuktitfImagesModal").modal("show");
                 console.log($('#po_id').val());
             });
@@ -610,11 +663,11 @@
                 success: function(r) {
                     let response = typeof r === "string" ? JSON.parse(r) : r;
                     if (response.status == '200') {
-                    toastr.success("Tanggal bayar berhasil di Update", "Success");
-                } else {
-                    toastr.error("Gagal update tanggal bayar", "Error");
-                    console.log(response);
-                }
+                        toastr.success("Tanggal bayar berhasil di Update", "Success");
+                    } else {
+                        toastr.error("Gagal update tanggal bayar", "Error");
+                        console.log(response);
+                    }
                 },
             });
         });

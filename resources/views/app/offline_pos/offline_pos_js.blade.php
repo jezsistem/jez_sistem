@@ -86,13 +86,18 @@
                 item_qty = Math.ceil(item_qty / 2);
             }
         }
-        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))
+        var subtotal = parseFloat(item_qty) * (parseFloat(sell_price_item))        
 
         if (parseFloat(item_qty) < 0) {
             jQuery('#subtotal_item' + row).text('-' + addCommas(subtotal));
 
         } else {
-            jQuery('#subtotal_item' + row).text(addCommas(subtotal));
+            // If B1G1 mode, use price_tag as subtotal, else use calculated subtotal
+            if (jQuery('#orderList' + row).hasClass('b1g1_mode')) {
+                jQuery('#subtotal_item' + row).text(addCommas(price_tag));
+            } else {
+                jQuery('#subtotal_item' + row).text(addCommas(subtotal));
+            }
             // jQuery('#sell_price_item' + row).text(addCommas(subtotal));
         }
         var final_price = 0;
@@ -124,7 +129,13 @@
         });
 
         new_price = originalPrice * item_qty;
-        new_discount = price_tag - originalPrice;
+        if (jQuery('#orderList' + row).hasClass('b1g1_mode')) 
+        {
+            new_discount = 0; 
+            originalPrice = price_tag;
+        } else {
+            new_discount = price_tag - originalPrice; 
+        }
 
         console.log('Ini Log Baru : ', originalPrice, price_tag);
 
@@ -550,10 +561,17 @@
                             shoes_voucher_temp.push(key);
                         }
                     }
+                    jQuery('#orderTable tr').each(function(_, rowElement) {
+                        // Only trigger change for rows except the one being deleted
+                        if (jQuery(rowElement).attr('id') !== 'orderList' + index) {
+                            jQuery(rowElement).find('.item_qty').trigger('change');
+                        }
+                    });
                     // console.log(shoes_voucher_temp);
                     jQuery('#orderList' + index).remove();
                     updateTotalHarga();
-                    updateTotalDiskon()
+                    updateTotalDiskon();
+                    updateGrandTotal();
                 } else if (r.status == '400') {
                     toast('Gagal',
                         'Item gagal dihapus, jika ingin menghapus, pilih terlebih dahulu LOKASI tempat barang diambil, coba kembali',
@@ -1076,7 +1094,7 @@
 
         // Mendapatkan nilai diskon dari input dengan ID discount_percentage
         var discountPercentage = parseFloat(jQuery('#discount_percentage' + row).val()) || 0;
-        var discount = parseFloat((discountPercentage / 100) * originalSubtotal);
+        var discount = Math.floor((discountPercentage / 100) * originalSubtotal);
 
         // Menghitung subtotal setelah diskon untuk baris saat ini
         var subtotal = originalSubtotal - discount;
@@ -1665,12 +1683,16 @@
                                         sell_price = sell_price;
                                         console.log('row : ', row);
                                         jQuery(row).find('.sell_price_item').text('0');
+                                        jQuery(row).find('.subtotal_item').text('0');
+                                        var bandrol_price = parseFloat(jQuery(row).find('.price_tag_item').text().replace(/,/g, '')) || 0;
+                                        jQuery(row).find('.discount_normal').text(addCommas(bandrol_price));
 
                                         console.log('BOGO CEK BOLO : ', sell_price);
                                     } else {
+                                        discount_normal = sell_price;
                                         sell_price = 0;
+                                        jQuery(row).find('.item_qty').trigger('change');
                                     }
-                                    jQuery(row).find('.item_qty').trigger('change');
 
                                 }
                             });
@@ -3286,6 +3308,52 @@
             jQuery('#real_price').val('');
             jQuery('#cross_order').val('');
             jQuery('#discount_seller').val('');
+        });
+
+        // Debounced input handler for integer-only inputs
+        const debouncedIntegerOnlyHandler = debounce(function(e) {
+            let value = e.target.value;
+            // Remove any non-digit characters
+            value = value.replace(/[^0-9]/g, '');
+            e.target.value = value;
+        }, 100);
+
+        // Apply integer-only restriction to all number inputs
+        jQuery(document).ready(function() {
+            // Target all input[type="number"] elements
+            jQuery(document).on('input', 'input[type="number"]', debouncedIntegerOnlyHandler);
+            
+            // Also target specific classes that should be integer-only
+            jQuery(document).on('input', '.qty-input, .discount-percent, .discount-number, .namset-input', debouncedIntegerOnlyHandler);
+            
+            // Specific handlers for individual inputs
+            jQuery(document).on('input', '#item_qty, #discount_percentage, #discount_number, #nameset_price', debouncedIntegerOnlyHandler);
+            
+            // Handle paste events to ensure pasted content is also integer-only
+            jQuery(document).on('paste', 'input[type="number"], .qty-input, .discount-percent, .discount-number, .namset-input', function(e) {
+                setTimeout(() => {
+                    let value = e.target.value;
+                    value = value.replace(/[^0-9]/g, '');
+                    e.target.value = value;
+                }, 1);
+            });
+            
+            // Prevent non-numeric key presses
+            jQuery(document).on('keypress', 'input[type="number"], .qty-input, .discount-percent, .discount-number, .namset-input', function(e) {
+                // Allow: backspace, delete, tab, escape, enter
+                if ([46, 8, 9, 27, 13].indexOf(e.keyCode) !== -1 ||
+                    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    (e.keyCode === 65 && e.ctrlKey === true) ||
+                    (e.keyCode === 67 && e.ctrlKey === true) ||
+                    (e.keyCode === 86 && e.ctrlKey === true) ||
+                    (e.keyCode === 88 && e.ctrlKey === true)) {
+                    return;
+                }
+                // Ensure that it is a number and stop the keypress
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
         });
 
         jQuery('#product_name_input').on('keyup', function() {

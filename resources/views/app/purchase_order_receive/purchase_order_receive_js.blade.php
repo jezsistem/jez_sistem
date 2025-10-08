@@ -374,6 +374,46 @@
         });
     });
 
+    $('#f_upload_suratjalan_file').on('submit', function(e) {
+        e.preventDefault();
+        $('#upload_file_delivery_note_btn').html('Proses...');
+        $('#upload_file_delivery_note_btn').attr('disabled', true);
+
+        var formData = new FormData(this);
+        var po_id = $('#_po_id').val();
+        formData.append('_po_id', po_id);
+
+        $.ajax({
+            type: 'POST',
+            url: "{{ url('upload_file_delivery_note') }}",
+            data: formData,
+            dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                $('#upload_file_delivery_note_btn').html('Upload');
+                $('#upload_file_delivery_note_btn').attr('disabled', false);
+                $('#UploadFileSuratJalanModal').modal('hide');
+
+                if (data.status == '200') {
+                    toastr.success('File berhasil diupload', 'Berhasil');
+                    $('#f_upload_dispute_file')[0].reset();
+                    PurchaseOrdersFileDispute.draw(); // refresh DataTable
+                } else if (data.status == '400') {
+                    toastr.warning('File kosong atau format salah', 'Gagal');
+                } else {
+                    toastr.warning('Format file tidak sesuai dengan sistem', 'Gagal');
+                }
+            },
+            error: function() {
+                $('#upload_file_delivery_note_btn').html('Upload');
+                $('#upload_file_delivery_note_btn').attr('disabled', false);
+                toastr.error('Terjadi kesalahan saat mengupload file', 'Error');
+            }
+        });
+    });
+
 
     // dispute description save
     $(document).ready(function() {
@@ -414,6 +454,7 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var arrived_at = $('#arrived_at').val();
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
         var putaway = $('#putaway').val();
@@ -434,6 +475,10 @@
         }
         if (invoice_date == '') {
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
+            return false;
+        }
+        if (arrived_at == '') {
+            swal("Tanggal Barang Datang", "Tentukan tanggal barang datang", "warning");
             return false;
         }
 
@@ -467,6 +512,7 @@
                 var po_id = $('#_po_id').val();
                 var poads_discount = $('#poa_discount' + poa_id).val();
                 var poads_extra_discount = $('#poa_extra_discount' + poa_id).val();
+                var poads_sub_discount = $('#poa_sub_discount' + poa_id).val();
                 var poads_purchase_price = replaceComma($('#poad_purchase_price_' + poa_id + '_' + index)
                     .val());
                 var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
@@ -483,6 +529,7 @@
                 formData.append('receive_date', receive_date);
                 formData.append('receive_invoice', receive_invoice);
                 formData.append('invoice_date', invoice_date);
+                formData.append('arrived_at', arrived_at);
                 formData.append('shipping_cost', shipping_cost);
                 formData.append('_st_id', st_id);
                 formData.append('_stkt_id', stkt_id);
@@ -494,6 +541,7 @@
                 formData.append('_poads_extra_discount', poads_extra_discount);
                 formData.append('_poads_purchase_price', poads_purchase_price);
                 formData.append('_poads_cogs', poads_cogs);
+                formData.append('_poads_sub_discount', poads_sub_discount);
                 // formData.append('dispute', dispute);
                 // formData.append('dispute_description', dispute_description);
 
@@ -520,6 +568,7 @@
                             $('#receive_date').val('');
                             $('#receive_invoice').val('');
                             $('#invoice_date').val('');
+                            $('#arrived_at').val('');
                             $('#invoiceImage').val('');
                             $('#packetImage').val('');
                             $('#shipping_cost').val('');
@@ -553,11 +602,13 @@
         var po_id = $('#_po_id').val();
         var poads_discount = $('#poa_discount' + poa_id).val();
         var poads_extra_discount = $('#poa_extra_discount' + poa_id).val();
+        var poads_sub_discount = $('#poa_sub_discount' + poa_id).val();
         var poads_purchase_price = replaceComma($('#poad_purchase_price_' + poa_id + '_' + index).val());
         var poads_qty = $('#poads_qty_' + poa_id + '_' + index).val();
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var arrived_at = $('#arrived_at').val();
         var shipping_cost = $('#shipping_cost').val();
         var dispute = $('#dispute').val();
         var status_dispute = $('#status_dispute').val();
@@ -569,6 +620,7 @@
         formData.append('receive_date', receive_date);
         formData.append('receive_invoice', receive_invoice);
         formData.append('invoice_date', invoice_date);
+        formData.append('arrived_at', arrived_at);
         formData.append('_st_id', st_id);
         formData.append('_stkt_id', stkt_id);
         formData.append('_tax_id', tax_id);
@@ -577,6 +629,7 @@
         formData.append('_poads_qty', poads_qty);
         formData.append('_poads_discount', poads_discount);
         formData.append('_poads_extra_discount', poads_extra_discount);
+        formData.append('_poads_sub_discount', poads_sub_discount);
         formData.append('_poads_purchase_price', poads_purchase_price);
         formData.append('_poads_cogs', poads_cogs);
         formData.append('shipping_cost', shipping_cost);
@@ -619,11 +672,13 @@
         var receive_date = $('#receive_date').val();
         var receive_invoice = $('#receive_invoice').val();
         var invoice_date = $('#invoice_date').val();
+        var arrived_at = $('#arrived_at').val();
         var shipping_cost = $('#shipping_cost').val();
 
         var today = new Date();
         var receiveDateObj = new Date(receive_date);
         var invoiceDateObj = new Date(invoice_date);
+        var receiveatObj = new Date(arrived_at);
 
         if (receiveDateObj > today) {
             swal("Tanggal Terima", "Tanggal terima tidak boleh lebih dari hari ini", "warning");
@@ -632,6 +687,11 @@
 
         if (invoiceDateObj > today) {
             swal("Tanggal Invoice", "Tanggal invoice tidak boleh lebih dari hari ini", "warning");
+            return false;
+        }
+
+        if (receiveatObj > today) {
+            swal("Tanggal Invoice", "Tanggal barang datang tidak boleh lebih dari hari ini", "warning");
             return false;
         }
 
@@ -645,6 +705,10 @@
         }
         if (invoice_date == '') {
             swal("Tanggal Invoice", "Tentukan tanggal invoice", "warning");
+            return false;
+        }
+        if (arrived_at == '') {
+            swal("Tanggal Barang", "Tentukan tanggal barang datang", "warning");
             return false;
         }
 
@@ -1224,7 +1288,7 @@
 
         var purchase_order_table = $('#PurchaseOrdertb').DataTable({
             destroy: true,
-            processing: false,
+            processing: true,
             serverSide: true,
             responsive: false,
             dom: '<"text-right"l>Brt<"text-right"ip>',
@@ -1244,6 +1308,7 @@
                     d.po_status_filter = $('#po_status_filter').val();
                     d.filter_dispute = $('#filter_dispute').val();
                     d.date = $('#po_date').val();
+                    d.filter_delivery_note = $('#filter_delivery_note').val();
                 }
             },
             columns: [{
@@ -1552,6 +1617,87 @@
             });
         });
 
+        var PurchaseOrderFileDeliveryNote = $('#FileDeliveryNoteTb').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            responsive: false,
+            dom: 'rt<"text-right"ip>',
+            ajax: {
+                url: "{{ url('file_delivery_note_datatables') }}", // URL sudah sesuai
+                data: function(d) {
+                    d._po_id = $('#_po_id').val(); // Ambil ID PO dari input hidden atau modal
+                },
+            },
+            columns: [{
+                    data: 'file',
+                    name: 'file',
+                    searchable: false,
+                    orderable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    searchable: false,
+                    orderable: false
+                }
+            ],
+            columnDefs: [{
+                targets: [0, 1],
+                className: 'text-center',
+            }],
+            order: [
+                [0, 'desc']
+            ],
+        });
+
+        $('#FileDeliveryNoteTb tbody').on('click', '.delete-file-delivery-note', function() {
+            var id = $(this).data('id');
+
+            if (!id) {
+                toastr.error('ID tidak ditemukan', 'Error');
+                return;
+            }
+
+            swal({
+                title: "Hapus File?",
+                text: "Yakin ingin menghapus file ini?",
+                icon: "warning",
+                buttons: [
+                    'Batalkan',
+                    'Hapus'
+                ],
+                dangerMode: true,
+            }).then(function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('delete_file_delivery_note') }}",
+                        data: {
+                            id: id
+                        },
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        dataType: 'json',
+                        success: function(r) {
+                            if (r.status === '200') {
+                                toastr.success("File berhasil dihapus", "Berhasil");
+                                PurchaseOrderFileDeliveryNote.draw();
+                            } else {
+                                toastr.error(r.message || 'Gagal menghapus file',
+                                    'Gagal');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            toastr.error('Terjadi kesalahan saat menghapus file: ' +
+                                error, 'Error');
+                        }
+                    });
+                }
+            });
+        });
+
 
 
         var purchaseOrderBuktitfTable = $('#BuktitfImagesTb').DataTable({
@@ -1622,6 +1768,10 @@
             purchase_order_table.draw(false);
         });
 
+        $('#filter_delivery_note').on('change', function() {
+            purchase_order_table.draw();
+        });
+
         $('#product_search').on('keyup', function() {
             product_table.draw(false);
         });
@@ -1637,6 +1787,7 @@
         $('#sz_id_filter_item').on('change', function() {
             product_table.draw(false);
         });
+        
 
         $('#ps_id').select2({
             width: "100%",
@@ -2130,39 +2281,39 @@
             });
         });
 
-        $('#f_take_photo').on('submit', function(e) {
-            e.preventDefault();
-            $('#take_photo_btn').html('Proses...');
-            $('#take_photo_btn').attr('disabled', true);
-            var formData = new FormData(this);
-            var po_id = $('#_po_id').val();
-            formData.append('po_id', po_id);
+        // $('#f_take_photo').on('submit', function(e) {
+        //     e.preventDefault();
+        //     $('#take_photo_btn').html('Proses...');
+        //     $('#take_photo_btn').attr('disabled', true);
+        //     var formData = new FormData(this);
+        //     var po_id = $('#_po_id').val();
+        //     formData.append('po_id', po_id);
 
-            $.ajax({
-                type: 'POST',
-                url: "{{ url('po_delivery_order_image') }}",
-                data: formData,
-                dataType: 'json',
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(r) {
+        //     $.ajax({
+        //         type: 'POST',
+        //         url: "{{ url('po_delivery_order_image') }}",
+        //         data: formData,
+        //         dataType: 'json',
+        //         cache: false,
+        //         contentType: false,
+        //         processData: false,
+        //         success: function(r) {
 
-                    $("#take_photo_btn").html('Submit');
-                    $("#take_photo_btn").attr("disabled", false);
-                    jQuery.noConflict();
-                    if (r.status == '200') {
-                        $("#SuratJalanModal").modal('hide');
-                        swal('Berhasil', 'Foto berhasil diupload', 'success');
-                        $('#f_take_photo')[0].reset();
-                        reloadArticleDetail(po_id);
-                    } else {
-                        $("#SuratJalanModal").modal('hide');
-                        swal('Gagal', 'Foto gagal diupload', 'error');
-                    }
-                }
-            });
-        });
+        //             $("#take_photo_btn").html('Submit');
+        //             $("#take_photo_btn").attr("disabled", false);
+        //             jQuery.noConflict();
+        //             if (r.status == '200') {
+        //                 $("#SuratJalanModal").modal('hide');
+        //                 swal('Berhasil', 'Foto berhasil diupload', 'success');
+        //                 $('#f_take_photo')[0].reset();
+        //                 reloadArticleDetail(po_id);
+        //             } else {
+        //                 $("#SuratJalanModal").modal('hide');
+        //                 swal('Gagal', 'Foto gagal diupload', 'error');
+        //             }
+        //         }
+        //     });
+        // });
 
         $('#save_purchase_order_btn').on('click', function(e) {
             e.preventDefault();
@@ -2236,7 +2387,14 @@
 
         $(document).ready(function() {
             $("#SuratJalanBtn").click(function() {
-                $("#SuratJalanModal").modal("show");
+                $("#UploadFileSuratJalanModal").modal("show");
+            });
+        });
+
+        $(document).ready(function() {
+            $("#SuratJalanImageBtn").click(function() {
+                $("#FileDeliveryModal").modal("show");
+                PurchaseOrderFileDeliveryNote.draw();
             });
         });
 
