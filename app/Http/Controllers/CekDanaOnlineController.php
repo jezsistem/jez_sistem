@@ -104,118 +104,6 @@ class CekDanaOnlineController extends Controller
 
     public function getDatatables(Request $request)
     {
-        $this->runStoredProcedureCekDanaOnline();
-        if (!empty($request->st_id)) {
-            $st_id = $request->st_id;
-        } else {
-            $st_id = -1;
-        }
-
-        if (!$request->filter_trx_date) {
-            $request_filter_trx_date = date('Y-m-d') . '|' . date('Y-m-d');
-        } else {
-            $request_filter_trx_date = $request->filter_trx_date;
-        }
-
-        if (!$request->filter_cash_out_date) {
-            $request_filter_cash_out_date = date('Y-m-d') . '|' . date('Y-m-d');
-        } else {
-            $request_filter_cash_out_date = $request->filter_cash_out_date;
-        }
-
-        $filter_order_number = '%'.$request->search.'%' ?? '%%';
-        $filter_st_id = $st_id;
-        $filter_platform_name = '%'.$request->platform.'%' ?? '%%';
-        $filter_status = (int) $request->status;
-        
-        $exp_trx_date = explode('|', $request_filter_trx_date);
-        $filter_trx_date_start = $exp_trx_date[0];
-        $filter_trx_date_end = $exp_trx_date[1];
-
-        $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
-        $filter_cash_out_date_start = $exp_cash_out_date[0];
-        $filter_cash_out_date_end = $exp_cash_out_date[1];
-
-        $data = DB::select("CALL cek_dana_online(?,?,?,?,?,?,?,?)",[
-            $filter_order_number,
-            $filter_st_id,
-            $filter_platform_name,
-            $filter_status,
-            $filter_trx_date_start,
-            $filter_trx_date_end,
-            $filter_cash_out_date_start,
-            $filter_cash_out_date_end
-        ]);
-
-        $collection = collect($data);
-
-        return DataTables::of($collection)
-            ->addColumn('fee_persentage', function ($collection) {
-                if ($collection->revenue && $collection->total_fee && $collection->total_fee != 0) {
-                    return number_format(($collection->total_fee / $collection->revenue * 100), 2) . '%';
-                }
-                return '0.00%';
-            })
-            ->addColumn('seller_voucher_persentage', function ($collection) {
-                if ($collection->revenue && $collection->seller_discount && $collection->seller_discount != 0) {
-                    return number_format(($collection->seller_discount / $collection->revenue * 100), 2) . '%';
-                }
-                return '0.00%';
-            })
-            ->addColumn('diff_jezpro_mp', function ($collection) {
-                return $collection->jezpro_price - $collection->revenue;
-            })
-            ->addColumn('status', function ($collection) {
-                if (
-                    $collection->settle_date && $collection->status_print == 1
-                ) {
-                    return '<button class="btn btn-sm btn-success">Done</button>';
-                }
-
-                if ($collection->status_print == 1 && !$collection->settle_date) {
-                    return '<button class="btn btn-sm btn-warning">Belum Cair</button>';
-                }
-                if ($collection->status_print == 0 && $collection->settle_date) {
-                    return '<button class="btn btn-sm btn-warning">Belum Trx</button>';
-                }
-                if ($collection->status_print == 0 && !$collection->settle_date) {
-                    return '<button class="btn btn-sm btn-dark">Belum Cair & Belum Trx</button>';
-                }
-                return '<button class="btn btn-sm btn-secondary">Unknown</button>';
-            })
-            ->addColumn('status_refund', function ($collection) {
-                if ($collection->status_trx === 'REFUND') {
-                    return '<button class="btn btn-sm btn-danger">Refund</button>';
-                } else {
-                    return '<button class="btn btn-sm btn-dark">Not Refund</button>';
-                }
-            })
-            ->rawColumns(['status','status_refund'])
-            ->addIndexColumn()
-            ->make(true);
-    }
-
-    public function exportExcel(Request $request)
-    {
-//        $filters = $request->all();
-//        return Excel::download(new TransactionOnlineSettleExport($filters), 'transactions.xlsx');
-
-        $data = $this->getQueryForExport($request);
-
-        if ($data->isEmpty()) {
-            return back()->with('error', 'Data kosong untuk diekspor');
-        }
-
-        $store_name = $data->first()->st_name ?? 'All Stores';
-        $platform_name = $request->platform_name ?? 'All Platforms';
-        $file_name = 'Cek Dana Online - ' . $store_name . ' - ' . $platform_name . ' - ' . date('Y-m-d') . '.xlsx';
-
-        return Excel::download(new TransactionOnlineSettleExport($data), $file_name);
-    }
-
-    public function getQueryForExport(Request $request) {
-        $this->runStoredProcedureCekDanaOnline();
-        
         if (!empty($request->st_id)) {
             $st_id = $request->st_id;
         } else {
@@ -239,15 +127,25 @@ class CekDanaOnlineController extends Controller
         $filter_platform_name = '%' . $request->platform . '%' ?? '%%';
         $filter_status = (int) $request->status;
 
-        $exp_trx_date = explode('|', $request_filter_trx_date);
-        $filter_trx_date_start = $exp_trx_date[0];
-        $filter_trx_date_end = $exp_trx_date[1];
+        if ($request->filter_trx_date == null) {
+            $filter_trx_date_start = null;
+            $filter_trx_date_end = null;
+        } else {
+            $exp_trx_date = explode('|', $request_filter_trx_date);
+            $filter_trx_date_start = $exp_trx_date[0];
+            $filter_trx_date_end = $exp_trx_date[1];
+        }
 
-        $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
-        $filter_cash_out_date_start = $exp_cash_out_date[0];
-        $filter_cash_out_date_end = $exp_cash_out_date[1];
+        if ($request->filter_cash_out_date == null) {
+            $filter_cash_out_date_start = null;
+            $filter_cash_out_date_end = null;
+        } else {
+            $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+            $filter_cash_out_date_start = $exp_cash_out_date[0];
+            $filter_cash_out_date_end = $exp_cash_out_date[1];
+        }
 
-        $data = DB::select("CALL cek_dana_online(?,?,?,?,?,?,?,?)", [
+        $data = $this->getAllCekDanaTransactions(
             $filter_order_number,
             $filter_st_id,
             $filter_platform_name,
@@ -256,27 +154,150 @@ class CekDanaOnlineController extends Controller
             $filter_trx_date_end,
             $filter_cash_out_date_start,
             $filter_cash_out_date_end
-        ]);
+        );
+
+        $collection = collect($data);
+
+        return DataTables::of($collection)
+            ->addColumn('fee_persentage', function ($collection) {
+                if ($collection->revenue && $collection->total_fee && $collection->total_fee != 0) {
+                    return number_format(($collection->total_fee / $collection->revenue * 100), 2) . '%';
+                }
+                return '0.00%';
+            })
+            ->addColumn('seller_voucher_persentage', function ($collection) {
+                if ($collection->revenue && $collection->seller_discount && $collection->seller_discount != 0) {
+                    return number_format(($collection->seller_discount / $collection->revenue * 100), 2) . '%';
+                }
+                return '0.00%';
+            })
+            ->addColumn('diff_jezpro_mp', function ($collection) {
+                return $collection->jezpro_price - $collection->revenue;
+            })
+            ->addColumn('status', function ($collection) {
+                if (
+                    $collection->total_settle && $collection->trx_date
+                ) {
+                    return '<button class="btn btn-sm btn-success">Done</button>';
+                }
+
+                if (!$collection->total_settle && $collection->trx_date) {
+                    return '<button class="btn btn-sm btn-warning">Belum Cair</button>';
+                }
+                if (!$collection->trx_date) {
+                    return '<button class="btn btn-sm btn-warning">Belum Trx</button>';
+                }
+                return '<button class="btn btn-sm btn-secondary">Unknown</button>';
+            })
+            ->addColumn('status_refund', function ($collection) {
+                if ($collection->status_trx === 'REFUND') {
+                    return '<button class="btn btn-sm btn-danger">Refund</button>';
+                } else {
+                    return '<button class="btn btn-sm btn-dark">Not Refund</button>';
+                }
+            })
+            ->editColumn('is_settle', function ($collection) {
+                if ($collection->is_settle) {
+                    return '<button class="btn btn-sm btn-success">SETTLED</button>';
+                } else {
+                    return '<button class="btn btn-sm btn-secondary">UNSETTLED</button>';
+                }
+            })
+            ->rawColumns(['status', 'status_refund', 'is_settle'])
+            ->addIndexColumn()
+            ->make(true);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        //        $filters = $request->all();
+        //        return Excel::download(new TransactionOnlineSettleExport($filters), 'transactions.xlsx');
+
+        $data = $this->getQueryForExport($request);
+
+        if ($data->isEmpty()) {
+            return back()->with('error', 'Data kosong untuk diekspor');
+        }
+
+        $store_name = $data->first()->st_name ?? 'All Stores';
+        $platform_name = $request->platform_name ?? 'All Platforms';
+        $file_name = 'Cek Dana Online - ' . $store_name . ' - ' . $platform_name . ' - ' . date('Y-m-d') . '.xlsx';
+
+        return Excel::download(new TransactionOnlineSettleExport($data), $file_name);
+    }
+
+    public function getQueryForExport(Request $request)
+    {
+
+        if (!empty($request->st_id)) {
+            $st_id = $request->st_id;
+        } else {
+            $st_id = -1;
+        }
+
+        if (!$request->filter_trx_date) {
+            $request_filter_trx_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_trx_date = $request->filter_trx_date;
+        }
+
+        if (!$request->filter_cash_out_date) {
+            $request_filter_cash_out_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_cash_out_date = $request->filter_cash_out_date;
+        }
+
+        $filter_order_number = '%' . $request->search . '%' ?? '%%';
+        $filter_st_id = $st_id;
+        $filter_platform_name = '%' . $request->platform . '%' ?? '%%';
+        $filter_status = (int) $request->status;
+
+        if ($request->filter_trx_date == null) {
+            $filter_trx_date_start = null;
+            $filter_trx_date_end = null;
+        } else {
+            $exp_trx_date = explode('|', $request_filter_trx_date);
+            $filter_trx_date_start = $exp_trx_date[0];
+            $filter_trx_date_end = $exp_trx_date[1];
+        }
+
+        if ($request->filter_cash_out_date == null) {
+            $filter_cash_out_date_start = null;
+            $filter_cash_out_date_end = null;
+        } else {
+            $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+            $filter_cash_out_date_start = $exp_cash_out_date[0];
+            $filter_cash_out_date_end = $exp_cash_out_date[1];
+        }
+
+        $data = $this->getAllCekDanaTransactions(
+            $filter_order_number,
+            $filter_st_id,
+            $filter_platform_name,
+            $filter_status,
+            $filter_trx_date_start,
+            $filter_trx_date_end,
+            $filter_cash_out_date_start,
+            $filter_cash_out_date_end
+        );
 
         $collection = collect($data)->map(function ($item) {
-            $item->fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0
-            ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
-            : '0.00%';
-            $item->seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0
-            ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
-            : '0.00%';
+            $item->fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0 && $item->revenue != 0
+                ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
+                : '0.00%';
+            $item->seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0 && $item->revenue != 0
+                ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
+                : '0.00%';
             $item->diff_jezpro_mp = isset($item->jezpro_price, $item->revenue)
-            ? $item->jezpro_price - $item->revenue
-            : null;
-            $item->status = $item->settle_date && $item->status_print == 1
-            ? 'Done'
-            : ($item->status_print == 1 && !$item->settle_date
-                ? 'Belum Cair'
-                : ($item->status_print == 0 && $item->settle_date
-                ? 'Belum Trx'
-                : ($item->status_print == 0 && !$item->settle_date
-                    ? 'Belum Cair & Belum Trx'
-                    : 'Unknown')));
+                ? $item->jezpro_price - $item->revenue
+                : null;
+            $item->status = $item->total_settle && $item->trx_date
+                ? 'Done'
+                : (!$item->total_settle && $item->trx_date
+                    ? 'Belum Cair'
+                    : (!$item->trx_date
+                        ? 'Belum Trx'
+                        : 'Unknown'));
             $item->status_refund = $item->status_trx === 'REFUND' ? 'Refund' : 'Not Refund';
             return $item;
         });
@@ -312,26 +333,18 @@ class CekDanaOnlineController extends Controller
     //         }
     //     }
 
-    public function getDetail($order_number, $store_id) {
-        $data = DB::select("CALL cek_dana_online(?,?,?,?,?,?,?,?)", [
-            $order_number,
-            $store_id,
-            '%%',
-            '0',
-            null,
-            null,
-            null,
-            null
-        ]);
+    public function getDetail($order_number, $store_id)
+    {
+        $data = $this->getAllCekDanaTransactions($order_number, $store_id, '%%', null, null, null, null, null);
 
         $collection = collect($data)->map(function ($item) {
             $item->diff = isset($item->jezpro_price, $item->revenue) ? $item->jezpro_price - $item->revenue : null;
             $item->fee_persentage = isset($item->revenue, $item->total_fee) && $item->total_fee != 0
-            ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
-            : '0.00%';
+                ? number_format(($item->total_fee / $item->revenue * 100), 2) . '%'
+                : '0.00%';
             $item->seller_voucher_persentage = isset($item->revenue, $item->seller_discount) && $item->seller_discount != 0
-            ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
-            : '0.00%';
+                ? number_format(($item->seller_discount / $item->revenue * 100), 2) . '%'
+                : '0.00%';
             return $item;
         });
 
@@ -381,6 +394,68 @@ class CekDanaOnlineController extends Controller
         }
     }
 
+    public function getTotalDanaCair(Request $request)
+    {
+
+        if (!empty($request->st_id)) {
+            $st_id = $request->st_id;
+        } else {
+            $st_id = -1;
+        }
+
+        if (!$request->filter_trx_date) {
+            $request_filter_trx_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_trx_date = $request->filter_trx_date;
+        }
+
+        if (!$request->filter_cash_out_date) {
+            $request_filter_cash_out_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_cash_out_date = $request->filter_cash_out_date;
+        }
+
+        $filter_order_number = '%' . $request->search . '%' ?? '%%';
+        $filter_st_id = $st_id;
+        $filter_platform_name = '%' . $request->platform . '%' ?? '%%';
+        $filter_status = (int) $request->status;
+
+        if ($request->filter_trx_date == null) {
+            $filter_trx_date_start = null;
+            $filter_trx_date_end = null;
+        } else {
+            $exp_trx_date = explode('|', $request_filter_trx_date);
+            $filter_trx_date_start = $exp_trx_date[0];
+            $filter_trx_date_end = $exp_trx_date[1];
+        }
+
+        if ($request->filter_cash_out_date == null) {
+            $filter_cash_out_date_start = null;
+            $filter_cash_out_date_end = null;
+        } else {
+            $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+            $filter_cash_out_date_start = $exp_cash_out_date[0];
+            $filter_cash_out_date_end = $exp_cash_out_date[1];
+        }
+
+        $data = $this->getAllCekDanaTransactions(
+            $filter_order_number,
+            $filter_st_id,
+            $filter_platform_name,
+            $filter_status,
+            $filter_trx_date_start,
+            $filter_trx_date_end,
+            $filter_cash_out_date_start,
+            $filter_cash_out_date_end
+        );
+
+        $collection = collect($data);
+
+        $totalDanaCair = $collection->sum('total_settle');
+
+        return response()->json(['totalDanaCair' => $totalDanaCair]);
+    }
+
     private function processImportData($data, $platform_name, $st_id_form)
     {
 
@@ -420,7 +495,7 @@ class CekDanaOnlineController extends Controller
             $dynamic_commission = (float) $item[8]; // Assuming dynamic_commission is at index 10
             $voucher_xtra_service_fee = (float) $item[9];
             $cashback_service_fee = (float) $item[10];
-            $total_online_cut = $affiliate_cut + $marketplace_commision_fee + $service_fee + $voucher_xtra_service_fee + $cashback_service_fee+$dynamic_commission;
+            $total_online_cut = $affiliate_cut + $marketplace_commision_fee + $service_fee + $voucher_xtra_service_fee + $cashback_service_fee + $dynamic_commission;
 
             DB::table('online_funds')->insert([
                 'st_id' => $st_id_form, // assuming $st_id_form passed from controller
@@ -446,7 +521,8 @@ class CekDanaOnlineController extends Controller
         ];
     }
 
-    public function runStoredProcedureCekDanaOnline() {
+    public function runStoredProcedureCekDanaOnline()
+    {
         DB::raw('
         DROP PROCEDURE IF EXISTS cek_dana_online;
 
@@ -603,5 +679,154 @@ class CekDanaOnlineController extends Controller
 
         DELIMITER ;
         ');
+    }
+
+    private function getAllCekDanaTransactions($order_number, $st_id, $platform_name, $status, $trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end)
+    {
+        // Add time to start and end dates if they exist
+        if ($trx_date_start) {
+            $trx_date_start .= ' 00:00:00';
+        }
+        if ($trx_date_end) {
+            $trx_date_end .= ' 23:59:59';
+        }
+        if ($cash_out_start) {
+            $cash_out_start .= ' 00:00:00';
+        }
+        if ($cash_out_end) {
+            $cash_out_end .= ' 23:59:59';
+        }
+        // Query for "Belum Cair" & "Done"
+        // Get only the latest pos_transaction for each pos_order_number
+        $latestPosTransactionIds = DB::table('pos_transactions')
+            ->select(DB::raw('MAX(id) as id'))
+            ->groupBy('pos_order_number');
+
+        $query1 = DB::table('pos_transactions')
+            ->joinSub($latestPosTransactionIds, 'latest', function ($join) {
+                $join->on('pos_transactions.id', '=', 'latest.id');
+            })
+            ->leftJoin('stores', 'stores.id', '=', 'pos_transactions.st_id')
+            ->leftJoin('online_funds', 'pos_transactions.pos_order_number', '=', 'online_funds.order_number')
+            ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+            ->select(
+                'stores.st_name as st_name',
+                'store_type_divisions.dv_name as platform_name',
+                'pos_transactions.pos_order_number as order_number',
+                'online_funds.cashout_date as settle_date',
+                'online_funds.final_price as revenue',
+                'online_funds.total_disburshed_amount as total_settle',
+                'online_funds.seller_voucher_discount as seller_discount',
+                'online_funds.total_online_cut as total_fee',
+                'pos_transactions.created_at as trx_date',
+                'pos_transactions.pos_real_price as jezpro_price',
+                DB::raw("CASE WHEN ts_online_funds.total_disburshed_amount IS NULL THEN 'Belum Cair' WHEN ts_online_funds.total_disburshed_amount IS NOT NULL THEN 'DONE' ELSE 'UNKNOWN' END as status"),
+                'pos_transactions.pos_status as status_trx',
+                'pos_transactions.st_id as st_id',
+                'affiliate_cut AS affiliate_cut',
+                'marketplace_commision_fee AS marketplace_commision_fee',
+                'service_fee AS service_fee',
+                'dynamic_commission AS dynamic_commission',
+                'voucher_xtra_service_fee AS voucher_xtra_service_fee',
+                'cashback_service_fee AS cashback_service_fee',
+                'pos_transactions.id as pos_id',
+                'pos_transactions.is_settle as is_settle'
+            );
+
+        // Apply filters for query1
+        if ($order_number) {
+            $query1->where('pos_transactions.pos_order_number', 'like', $order_number);
+        }
+        if ($st_id && $st_id != -1) {
+            $query1->where('pos_transactions.st_id', $st_id);
+        }
+        if ($platform_name && $platform_name != '%%') {
+            $query1->whereIn('store_type_divisions.dv_name', explode(',', str_replace('%', '', $platform_name)));
+        } else {
+            $query1->whereIn('store_type_divisions.dv_name', ['TIKTOK', 'SHOPEE']);
+        }
+        if (($trx_date_start && $trx_date_end) || ($cash_out_start && $cash_out_end)) {
+            $query1->where(function ($q) use ($trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end) {
+                if ($trx_date_start && $trx_date_end) {
+                    $q->whereBetween('pos_transactions.created_at', [$trx_date_start, $trx_date_end]);
+                }
+                if ($cash_out_start && $cash_out_end) {
+                    $q->whereBetween('online_funds.cashout_date', [$cash_out_start, $cash_out_end]);
+                }
+            });
+        }
+        if ($status !== null) {
+            if ($status == 1) { // DONE
+                $query1->whereNotNull('online_funds.total_disburshed_amount');
+            } elseif ($status == 2) { // Belum Cair
+                $query1->whereNull('online_funds.total_disburshed_amount');
+            }
+        }
+
+        // Query for "Belum Trx"
+        $query2 = DB::table('online_funds')
+            ->leftJoin('pos_transactions', 'pos_transactions.pos_order_number', '=', 'online_funds.order_number')
+            ->leftJoin('stores', 'stores.id', '=', 'online_funds.st_id')
+            ->leftJoin('store_type_divisions', 'store_type_divisions.id', '=', 'pos_transactions.std_id')
+            ->select(
+                'stores.st_name as st_name',
+                'online_funds.platform_name as platform_name',
+                'online_funds.order_number as order_number',
+                'online_funds.cashout_date as settle_date',
+                'online_funds.final_price as revenue',
+                'online_funds.total_disburshed_amount as total_settle',
+                'online_funds.seller_voucher_discount as seller_discount',
+                'online_funds.total_online_cut as total_fee',
+                'pos_transactions.created_at as trx_date',
+                'pos_transactions.pos_real_price as jezpro_price',
+                DB::raw("'Belum Trx' as status"),
+                'pos_transactions.pos_status as status_trx',
+                'online_funds.st_id as st_id',
+                'affiliate_cut AS affiliate_cut',
+                'marketplace_commision_fee AS marketplace_commision_fee',
+                'service_fee AS service_fee',
+                'dynamic_commission AS dynamic_commission',
+                'voucher_xtra_service_fee AS voucher_xtra_service_fee',
+                'cashback_service_fee AS cashback_service_fee',
+                'pos_transactions.id as pos_id',
+                'pos_transactions.is_settle as is_settle'
+            )
+            ->whereNull('pos_transactions.created_at');
+
+        // Apply filters for query2
+        if ($order_number) {
+            $query2->where('online_funds.order_number', 'like', $order_number);
+        }
+        if ($st_id && $st_id != -1) {
+            $query2->where('online_funds.st_id', $st_id);
+        }
+        if ($platform_name && $platform_name != '%%') {
+            $query2->whereIn('online_funds.platform_name', explode(',', str_replace('%', '', $platform_name)));
+        }
+        if (($trx_date_start && $trx_date_end) || ($cash_out_start && $cash_out_end)) {
+            $query2->where(function ($q) use ($trx_date_start, $trx_date_end, $cash_out_start, $cash_out_end) {
+                if ($trx_date_start && $trx_date_end) {
+                    $q->whereBetween('pos_transactions.created_at', [$trx_date_start, $trx_date_end]);
+                }
+                if ($cash_out_start && $cash_out_end) {
+                    $q->whereBetween('online_funds.cashout_date', [$cash_out_start, $cash_out_end]);
+                }
+            });
+        }
+        if ($status !== null && $status == 3) { // Belum Trx only
+            // already filtered by whereNull('pos_transactions.created_at')
+        }
+
+        // Merge results based on status
+        if ($status === 3) {
+            $results = $query2->get();
+        } elseif ($status === 1 || $status === 2) {
+            $results = $query1->get();
+        } else {
+            // If status is not selected (null), merge query1 and query2
+            $results = $query1->get()->merge($query2->get());
+        }
+
+        return $results->sortBy('order_number')->values();
     }
 }
