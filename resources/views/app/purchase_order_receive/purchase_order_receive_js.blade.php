@@ -2374,7 +2374,7 @@
         $(document).ready(function() {
             $("#InvoiceImagesBtn").click(function() {
                 $("#InvoiceImagesModal").modal("show");
-                purchaseOrderInvoiceTable.reload();
+                purchaseOrderInvoiceTable.draw();
             });
         });
 
@@ -2415,6 +2415,48 @@
             $("#DisputeFileBtn").click(function() {
                 $("#FileDisputeModal").modal("show");
                 PurchaseOrdersFileDispute.draw();
+            });
+        });
+
+        // Add Invoice Image Button functionality
+        $('#addInvoiceImageBtn').on('click', function() {
+            $('#imageInvoices').click();
+        });
+
+        // Ensure the input exists and is set up correctly
+        if (!$('#imageInvoices').length) {
+            $('<input type="file" class="form-control" name="imageInvoices[]" id="imageInvoices" multiple required style="display:none;">').appendTo('body');
+        }
+
+        $('#imageInvoices').attr('multiple', true);
+
+        $('#imageInvoices').on('change', function(e) {
+            var files = e.target.files;
+            if (!files.length) return;
+
+            var po_id = $('#_po_id').val();
+            var formData = new FormData();
+            for (var i = 0; i < files.length; i++) {
+            formData.append('imageInvoices[]', files[i]);
+            }
+            formData.append('_po_id', po_id);
+
+            $.ajax({
+            url: "{{ url('po_invoice_image') }}",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                toastr.success('Invoice image(s) uploaded successfully', 'Success');
+                purchaseOrderInvoiceTable.draw();
+            },
+            error: function(xhr) {
+                toastr.error('Failed to upload invoice image(s)', 'Error');
+            }
             });
         });
 
