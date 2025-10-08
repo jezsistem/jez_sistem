@@ -88,7 +88,7 @@ class ExternalAssignmentRequestController extends Controller
 
         $AssignmentRequest = new ExternalAssignmentRequest();
         $leaveRequests = $AssignmentRequest->getAssignmentRequestsByFilters($startDate, $endDate, $userId, $status, $leaveTypeId);
-
+//        dd($leaveRequests);
         // Get users for filter
         $users = DB::table('users')->where('u_delete', '0')->orderBy('u_name')->get();
 
@@ -110,6 +110,7 @@ class ExternalAssignmentRequestController extends Controller
         return view('app.external_assignment_request.index', compact('leaveRequests', 'users', 'leaveTypes', 'startDate', 'endDate', 'dateFilter', 'userId', 'status', 'leaveTypeId', 'data'));
 //        return view('app.external_assignment_request.index', compact('data'));
     }
+
 
     public function create()
     {
@@ -1334,7 +1335,7 @@ class ExternalAssignmentRequestController extends Controller
                         'Reporting'        => 'badge bg-info',
                         'HR Check'         => 'badge bg-warning',
                         'Finance Process'  => 'badge bg-secondary',
-                        'DONE'             => 'badge bg-dark',
+                        'DONE'             => 'badge bg-success',
                         default            => 'badge badge-light'
                     };
                     return '<span class="'.$class.'">'.$row->ear_status.'</span>';
@@ -1355,6 +1356,8 @@ class ExternalAssignmentRequestController extends Controller
     public function summaryReport(Request $request)
     {
         // $this->validateAccess();
+
+//        dd('kontol');
 
         $title = 'Leave Summary Report';
         $user = auth()->user();
@@ -1520,10 +1523,10 @@ class ExternalAssignmentRequestController extends Controller
     /**
      * Get leave summary data
      */
-    private function getLeaveSummary($startDate, $endDate, $divisionId = null)
+    private function getExternalAssignmentSummary($startDate, $endDate, $divisionId = null)
     {
         try {
-            // Get all active users with NIP only
+            // Ambil semua staff aktif
             $usersQuery = DB::table('users as u')
                 ->leftJoin('user_divisions as ud', 'u.ud_id', '=', 'ud.id')
                 ->leftJoin('user_positions as up', 'u.up_id', '=', 'up.id')
@@ -1546,58 +1549,38 @@ class ExternalAssignmentRequestController extends Controller
 
             $users = $usersQuery->orderBy('u.u_name')->get();
 
-            // Get leave types for dynamic columns
-            $leaveTypes = DB::table('leave_types')
-                ->where('lt_is_active', true)
-                ->orderBy('lt_name')
-                ->get();
+            // Daftar status yang digunakan
+            $statuses = [
+                'Pending Approval',
+                'Approved',
+                'Rejected',
+                'Reporting',
+                'HR Check',
+                'Finance Process',
+                'DONE'
+            ];
 
-            // Process each user to add leave data and balance
+            // Loop per user
             foreach ($users as $user) {
-                // Get leave requests for this user in date range
-                $leaveRequests = DB::table('leave_requests as lr')
-                    ->leftJoin('leave_types as lt', 'lr.leave_type_id', '=', 'lt.id')
-                    ->where('lr.user_id', $user->user_id)
-                    ->whereBetween('lr.lr_start_date', [$startDate, $endDate])
-                    ->where('lr.lr_status', 'approved')
-                    ->select([
-                        'lt.lt_code',
-                        'lt.lt_name',
-                        'lr.lr_unit',
-                        'lr.lr_total_days',
-                        'lr.lr_total_hours'
-                    ])
+                // Ambil data external assignment milik user dalam rentang tanggal
+                $requests = DB::table('external_assignment_requests as ear')
+                    ->where('ear.request_by', $user->user_id)
+                    ->whereBetween('ear.created_at', [$startDate, $endDate])
+                    ->select('ear.ear_status')
                     ->get();
 
-                // Calculate totals
-                $user->total_leave_requests = $leaveRequests->count();
-                $user->total_days = $leaveRequests->where('lr_unit', 'days')->sum('lr_total_days');
-                $user->total_hours = $leaveRequests->where('lr_unit', 'hours')->sum('lr_total_hours');
+                // Hitung total dan per status
+                $user->total_requests = $requests->count();
 
-                // Add leave type specific data
-                foreach ($leaveTypes as $leaveType) {
-                    $leaveData = $leaveRequests->where('lt_code', $leaveType->lt_code);
-                    $totalDays = $leaveData->where('lr_unit', 'days')->sum('lr_total_days');
-                    $totalHours = $leaveData->where('lr_unit', 'hours')->sum('lr_total_hours');
-
-                    $user->{'leave_' . strtolower($leaveType->lt_code)} = $totalDays > 0 ? $totalDays : $totalHours;
+                foreach ($statuses as $status) {
+                    $key = 'status_' . str_replace(' ', '_', strtolower($status));
+                    $user->{$key} = $requests->where('ear_status', $status)->count();
                 }
-
-                // Get leave balance for annual leave
-                $annualLeaveBalance = DB::table('leave_balances as lb')
-                    ->leftJoin('leave_types as lt', 'lb.leave_type_id', '=', 'lt.id')
-                    ->where('lb.user_id', $user->user_id)
-                    ->where('lt.lt_code', 'ANNUAL')
-                    ->where('lb.lb_year', date('Y'))
-                    ->select(['lb.lb_remaining_balance'])
-                    ->first();
-
-                $user->annual_leave_balance = $annualLeaveBalance ? $annualLeaveBalance->lb_remaining_balance : 0;
             }
 
             return $users;
         } catch (\Exception $e) {
-            \Log::error('Error in getLeaveSummary: ' . $e->getMessage(), [
+            \Log::error('Error in getExternalAssignmentSummary: ' . $e->getMessage(), [
                 'startDate' => $startDate,
                 'endDate' => $endDate,
                 'divisionId' => $divisionId,
@@ -1610,50 +1593,40 @@ class ExternalAssignmentRequestController extends Controller
     /**
      * Get leave summary report datatables
      */
-    public function getSummaryReportDatatables(Request $request)
+    public function getExternalAssignmentSummaryDatatables(Request $request)
     {
-        if (request()->ajax()) {
+        if ($request->ajax()) {
+
+//            $startDate = $request->get('start_date', date('Y-m-01'));
+//            $endDate = $request->get('end_date', date('Y-m-t'));
+//            $dateFilter = $request->get('date_filter', 'this_month');
+//
+//            if ($dateFilter && $dateFilter !== 'custom') {
+//                $dateRange = $this->getDateRangeFromFilter($dateFilter);
+//                $startDate = $dateRange['startDate'];
+//                $endDate = $dateRange['endDate'];
+//            }
+//            $divisionId = $request->get('division_id');
+//            $summaryData = $this->getExternalAssignmentSummary($startDate, $endDate, $divisionId);
+//
+//            dd($summaryData);
             try {
-                // $this->validateAccess();
-
-                \Log::info('Leave Summary Report Datatables Request', [
-                    'request_data' => $request->all()
-                ]);
-
-                // Get date range
                 $startDate = $request->get('start_date', date('Y-m-01'));
                 $endDate = $request->get('end_date', date('Y-m-t'));
                 $dateFilter = $request->get('date_filter', 'this_month');
-
-                \Log::info('Leave Summary Report - Initial date values', [
-                    'startDate' => $startDate,
-                    'endDate' => $endDate,
-                    'dateFilter' => $dateFilter
-                ]);
 
                 if ($dateFilter && $dateFilter !== 'custom') {
                     $dateRange = $this->getDateRangeFromFilter($dateFilter);
                     $startDate = $dateRange['startDate'];
                     $endDate = $dateRange['endDate'];
-
-                    \Log::info('Leave Summary Report - Date range calculated', [
-                        'startDate' => $startDate,
-                        'endDate' => $endDate
-                    ]);
                 }
 
                 $divisionId = $request->get('division_id');
 
-                \Log::info('Leave Summary Report - Getting data', [
-                    'startDate' => $startDate,
-                    'endDate' => $endDate,
-                    'divisionId' => $divisionId
-                ]);
+                $summaryData = $this->getExternalAssignmentSummary($startDate, $endDate, $divisionId);
 
-                // Use the same method as summaryReport to get data
-                $summaryData = $this->getLeaveSummary($startDate, $endDate, $divisionId);
-
-                // Apply search filter if provided
+//                dd($summaryData);
+                // Filter pencarian
                 if ($request->filled('search')) {
                     $search = $request->get('search');
                     $summaryData = $summaryData->filter(function ($item) use ($search) {
@@ -1662,14 +1635,13 @@ class ExternalAssignmentRequestController extends Controller
                     });
                 }
 
-                // Convert to array for DataTables
+                // Siapkan data untuk DataTables
                 $data = [];
                 foreach ($summaryData as $index => $item) {
                     $data[] = (array)$item;
                     $data[$index]['DT_RowIndex'] = $index + 1;
                 }
 
-                // Apply pagination manually for server-side processing
                 $totalRecords = count($data);
                 $start = $request->get('start', 0);
                 $length = $request->get('length', 25);
@@ -1682,7 +1654,7 @@ class ExternalAssignmentRequestController extends Controller
                     'data' => $paginatedData
                 ]);
             } catch (\Exception $e) {
-                \Log::error('Leave Summary Report Datatables Error', [
+                \Log::error('External Assignment Summary Error', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
@@ -1692,7 +1664,6 @@ class ExternalAssignmentRequestController extends Controller
             return response()->json(['error' => 'Invalid request'], 400);
         }
     }
-
     /**
      * Export summary report to Excel
      */

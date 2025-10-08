@@ -276,7 +276,7 @@
                                     </a>
                                     <div class="menu-sub menu-sub-accordion">
                                         <ul class="menu-subnav">
-                                            <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
+                                            <li class="menu-item {{ request()->is('external-assignment*') ? 'active' : '' }}">
                                                 <a href="{{ url('/external_assignment_type') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
@@ -284,11 +284,19 @@
                                                 </a>
                                             </li>
 
-                                            <li class="menu-item {{ request()->is('leave-requests*') ? 'active' : '' }}">
+                                            <li class="menu-item {{ request()->is('external-assignment*') ? 'active' : '' }}">
                                                 <a href="{{ url('/external-assignment') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>
                                                     <span class="menu-text">External Assignment Request</span>
+                                                </a>
+                                            </li>
+
+                                            <li class="menu-item {{ request()->is('external-assignment*') ? 'active' : '' }}">
+                                                <a href="{{ url('/external-assignment/summary-report') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-text">External Assignment Summary</span>
                                                 </a>
                                             </li>
                                         </ul>
