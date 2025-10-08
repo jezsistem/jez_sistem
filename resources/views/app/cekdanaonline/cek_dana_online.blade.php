@@ -61,9 +61,19 @@
                                                 </span>Export
                                             </button>
                                         </div>
+                                        <div class="">
+                                            <h3>Total Dana Cair</h3>
+                                            <h1 class="text-success">Rp. <span id="total_dana_cair">0</span></h1>
+                                        </div>
                                         <div class="d-flex align-items-center">
-                                            <p class="mr-8">Selected for settlement: <span id="selected">0</span>
+                                            <div class="mr-8">
+                                                <p>Selected for settlement: <span id="selected">0</span>
                                                 transaction</p>
+                                                <p class="mt-2"><strong>Selected Dana Cair:</strong> <span
+                                                    class="text-success font-weight-bold">Rp</span> <span
+                                                    class="text-success font-weight-bold" id="selected_dana_cair">0</span></p>
+                                            </div>
+                                            
                                             <button type="button" class="btn btn-dark mr-2" id="settlement_btn">
                                                 <i class="fas fa-check mr-2"></i>Settlement
                                             </button>

@@ -5,6 +5,29 @@
         $('#check_all_data').prop('checked', false);
     }
 
+    function loadTotalDanaCair() {
+        $.ajax({
+            type: "GET",
+            dataType: 'json',
+            url: "{{ url('cek_dana_online_total_dana_cair') }}",
+            data: {
+                search: $('#cek_dana_online_search').val(),
+                st_id: $('#st_id').val(),
+                platform: $('#filter_platform').val(),
+                status: $('#filter_status').val(),
+                filter_trx_date: $('#use_trx_date_filter').is(':checked') ? $('#trx_date').val() : null,
+                filter_cash_out_date: $('#use_cash_out_date_filter').is(':checked') ? $('#cash_out_date').val() : null
+            },
+            success: function(response) {
+                var formattedTotalDanaCair = new Intl.NumberFormat('id-ID', {
+                    minimumFractionDigits: 0
+                }).format(response.totalDanaCair || 0);
+
+                $('#total_dana_cair').text(formattedTotalDanaCair);
+            }
+        });
+    }
+
     $(document).ready(function() {
 
         $.ajaxSetup({
@@ -35,7 +58,6 @@
                     d.search = $('#cek_dana_online_search').val();
                     d.st_id = $('#st_id').val();
                     d.status = $('#filter_status').val();
-                    d.filter_trx_date = $('#trx_date').val();
                     if ($('#use_cash_out_date_filter').is(':checked')) {
                         d.filter_cash_out_date = $('#cash_out_date').val();
                     } else {
@@ -286,6 +308,7 @@
         $('#filter_btn').on('click', function() {
             if ($('#st_id').val()) {
                 cek_dana_online_table.draw();
+                loadTotalDanaCair();
             } else {
                 swal('Error', 'Silakan pilih Toko terlebih dahulu.', 'warning');
             }
@@ -502,24 +525,50 @@
             $('input[id^="check_"]').prop('checked', isChecked);
 
             var checkedCount = 0;
+            var totalDanaCair = 0;
 
             if (isChecked) {
                 $('#CekDanaOnlinetb tbody input[id^="check_"]:checked').each(function() {
                     checkedCount++;
+
+                    var row = $(this).closest('tr');
+                    var danaCairText = row.find('td:eq(7)').text().replace(/Rp\s*/g, '').replace(
+                        /\./g, '');
+                    var danaCairValue = parseFloat(danaCairText) || 0;
+                    totalDanaCair += danaCairValue;
                 });
             }
 
             $('#selected').text(checkedCount);
+
+            var formattedDanaCair = new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 0
+            }).format(totalDanaCair);
+
+            $('#selected_dana_cair').text(formattedDanaCair);
         });
 
         $('#CekDanaOnlinetb tbody').on('change', 'input[id^="check_"]', function() {
             var checkedCount = 0;
+            var totalDanaCair = 0;
 
             $('#CekDanaOnlinetb tbody input[id^="check_"]:checked').each(function() {
                 checkedCount++;
+
+                var row = $(this).closest('tr');
+                var danaCairText = row.find('td:eq(7)').text().replace(/Rp\s*/g, '').replace(
+                    /\./g, '');
+                var danaCairValue = parseFloat(danaCairText) || 0;
+                totalDanaCair += danaCairValue;
             });
 
             $('#selected').text(checkedCount);
+
+            var formattedDanaCair = new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 0
+            }).format(totalDanaCair);
+
+            $('#selected_dana_cair').text(formattedDanaCair);
         });
 
 

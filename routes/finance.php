@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('cek_dana_detail/{order_number}/{store_id}', [CekDanaOnlineController::class, 'getDetail'])->name('cek_dana_detail');
 //    Route::get('cek_dana_detail_datatables', [CekDanaOnlineController::class, 'getDetailDatatables']);
     Route::post('cek_dana_online_import', [CekDanaOnlineController::class, 'importData']);
+    Route::get('cek_dana_online_total_dana_cair', [CekDanaOnlineController::class, 'getTotalDanaCair'])->name('cek_dana_online_total_dana_cair');
     Route::get('export_transaction_settle', [CekDanaOnlineController::class, 'exportExcel'])->name('export_transaction_settle');
 
     Route::get('settlement', [SettlementController::class, 'index'])->name('settlement');

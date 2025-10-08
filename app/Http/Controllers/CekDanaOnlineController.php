@@ -394,6 +394,68 @@ class CekDanaOnlineController extends Controller
         }
     }
 
+    public function getTotalDanaCair(Request $request)
+    {
+
+        if (!empty($request->st_id)) {
+            $st_id = $request->st_id;
+        } else {
+            $st_id = -1;
+        }
+
+        if (!$request->filter_trx_date) {
+            $request_filter_trx_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_trx_date = $request->filter_trx_date;
+        }
+
+        if (!$request->filter_cash_out_date) {
+            $request_filter_cash_out_date = date('Y-m-d') . '|' . date('Y-m-d');
+        } else {
+            $request_filter_cash_out_date = $request->filter_cash_out_date;
+        }
+
+        $filter_order_number = '%' . $request->search . '%' ?? '%%';
+        $filter_st_id = $st_id;
+        $filter_platform_name = '%' . $request->platform . '%' ?? '%%';
+        $filter_status = (int) $request->status;
+
+        if ($request->filter_trx_date == null) {
+            $filter_trx_date_start = null;
+            $filter_trx_date_end = null;
+        } else {
+            $exp_trx_date = explode('|', $request_filter_trx_date);
+            $filter_trx_date_start = $exp_trx_date[0];
+            $filter_trx_date_end = $exp_trx_date[1];
+        }
+
+        if ($request->filter_cash_out_date == null) {
+            $filter_cash_out_date_start = null;
+            $filter_cash_out_date_end = null;
+        } else {
+            $exp_cash_out_date = explode('|', $request_filter_cash_out_date);
+            $filter_cash_out_date_start = $exp_cash_out_date[0];
+            $filter_cash_out_date_end = $exp_cash_out_date[1];
+        }
+
+        $data = $this->getAllCekDanaTransactions(
+            $filter_order_number,
+            $filter_st_id,
+            $filter_platform_name,
+            $filter_status,
+            $filter_trx_date_start,
+            $filter_trx_date_end,
+            $filter_cash_out_date_start,
+            $filter_cash_out_date_end
+        );
+
+        $collection = collect($data);
+
+        $totalDanaCair = $collection->sum('total_settle');
+
+        return response()->json(['totalDanaCair' => $totalDanaCair]);
+    }
+
     private function processImportData($data, $platform_name, $st_id_form)
     {
 
