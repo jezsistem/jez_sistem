@@ -267,7 +267,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: "{{ route('external-assignment.summary-report-datatables') }}",
+                    url: "{{ route('leave-requests.summary-report-datatables') }}",
                     data: function(d) {
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();

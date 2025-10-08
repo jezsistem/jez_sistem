@@ -362,21 +362,24 @@
                 <div class="card-body">
                     <!--begin::Table-->
                     <div class="table-responsive">
-                        <table class="table table-hover table-checkable" id="summaryTable">
+                        <table class="table table-hover" id="summaryTable">
                             <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>NIP</th>
-                                    <th>Staff</th>
-                                    <th>Position</th>
-                                    <th>Division</th>
-                                    <th>User Type</th>
-                                    @foreach($data['leaveTypes'] as $leaveType)
-                                        <th>{{ $leaveType->lt_name }}</th>
-                                    @endforeach
-                                    <th>Total Leave</th>
-                                    <th>Leave Allowance</th>
-                                </tr>
+                            <tr>
+                                <th>No.</th>
+                                <th>NIP</th>
+                                <th>Staff</th>
+                                <th>Position</th>
+                                <th>Division</th>
+                                <th>User Type</th>
+                                <th>Pending Approval</th>
+                                <th>Approved</th>
+                                <th>Rejected</th>
+                                <th>Reporting</th>
+                                <th>HR Check</th>
+                                <th>Finance Process</th>
+                                <th>Done</th>
+                                <th>Total</th>
+                            </tr>
                             </thead>
                         </table>
                     </div>
