@@ -20,6 +20,9 @@
         "maatwebsite/excel": "^3.1",
         "nesbot/carbon": "^2.72",
         "phpoffice/phpspreadsheet": "^1.29",
+        "setasign/fpdf": "*",
+        "setasign/fpdi": "*",
+        "smalot/pdfparser": "*",
         "yajra/laravel-datatables-buttons": "^4.13",
         "yajra/laravel-datatables-oracle": "^9.18"
     },

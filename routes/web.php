@@ -69,6 +69,7 @@ use App\Http\Controllers\DashboardV2Controller;
 use App\Http\Controllers\UpcloudBalanceController;
 
 use App\Http\Controllers\UpdatedDashboardController;
+use App\Http\Controllers\OvertimeRequestController;
 
 use App\Http\Controllers\AssetDetailController;
 
@@ -1066,6 +1067,13 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('ear.approve');
     Route::post('/ear/{id}/report/store', [ExternalAssignmentRequestController::class, 'storeReport'])
         ->name('ear.report.store');
+
+
+    // overtime
+    Route::get('/overtime', [OvertimeRequestController::class, 'index'])->name('overtime.index');
+    Route::get('/overtime/create', [OvertimeRequestController::class, 'create'])->name('overtime.create');
+    Route::post('/overtime/store', [OvertimeRequestController::class, 'store'])->name('overtime.store');
+    Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.data');
 });
 
 require __DIR__ . '/purchase_order.php';
