@@ -248,7 +248,7 @@ class ExternalAssignmentRequestController extends Controller
         return view('app.external_assignment_request.show', compact('data', 'detail', 'canApprove', 'approvalStep'));
     }
 
-    public function approve($id)
+    public function approve(Request $request, $id)
     {
         $ear = ExternalAssignmentRequest::findOrFail($id);
         $user = auth()->user();
@@ -260,19 +260,43 @@ class ExternalAssignmentRequestController extends Controller
             $ear->ear_status = 'Approved';
         }
 
-        // STEP 2: HR Check (setelah report diinput oleh user)
+        // STEP 2: HR Check
         elseif (is_null($ear->ear_hr_checked_by) && $ear->ear_status === 'HR Check') {
+            $request->validate([
+                'ear_hr_note' => 'nullable|string',
+            ]);
+
             $ear->ear_hr_checked_by = $user->id;
             $ear->ear_hr_checked_at = now();
-            $ear->ear_hr_note = $ear->ear_note;
+            $ear->ear_hr_note = $request->ear_hr_note ?? null;
             $ear->ear_status = 'Finance Process';
         }
 
         // STEP 3: Finance Process
         elseif (is_null($ear->ear_finance_by) && $ear->ear_status === 'Finance Process') {
+            $request->validate([
+                'ear_finance_note' => 'nullable|string',
+                'ear_finance_uploads' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            ]);
+
+            $filePath = null;
+            if ($request->hasFile('ear_finance_uploads')) {
+                $file = $request->file('ear_finance_uploads');
+                $filename = 'finance_upload_' . time() . '.' . $file->getClientOriginalExtension();
+
+                // Pastikan direktori ada
+                $uploadDir = storage_path('app/public/uploads/finance');
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0775, true);
+                }
+
+                $filePath = $file->storeAs('uploads/finance', $filename, 'public');
+            }
+
             $ear->ear_finance_by = $user->id;
             $ear->ear_finance_at = now();
-            $ear->ear_finance_note = $ear->ear_note;
+            $ear->ear_finance_note = $request->ear_finance_note ?? null;
+            $ear->ear_finance_uploads = $filePath;
             $ear->ear_status = 'DONE';
         }
 
@@ -284,6 +308,7 @@ class ExternalAssignmentRequestController extends Controller
 
         return back()->with('success', 'Approval berhasil dilanjutkan ke tahap berikutnya.');
     }
+
 
     public function storeReport(Request $request, $id)
     {

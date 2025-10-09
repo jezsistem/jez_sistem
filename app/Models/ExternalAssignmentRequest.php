@@ -29,6 +29,7 @@ class ExternalAssignmentRequest extends Model
         'ear_finance_by',
         'ear_finance_at',
         'ear_finance_note',
+        'ear_finance_uploads',
     ];
 
     /**
