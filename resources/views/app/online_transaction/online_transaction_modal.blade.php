@@ -75,6 +75,74 @@
 </div>
 
 
+<!-- Modal-->
+<div class="modal fade" id="ImportResiModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="splitForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Import & Split Resi</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="pdf_file">Pilih File PDF Resi</label>
+                            <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept=".pdf" required>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" id="uploadBtn" class="btn btn-primary mt-3">Upload & Split</button>
+                        <button type="button" class="btn btn-info mt-3" id="historyBtn">Upload History</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Riwayat -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="historyModalLabel">📜 Riwayat Upload Split Resi</h5>
+                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="historyContent">
+                <div class="text-center p-4">
+                    <div class="spinner-border text-info"></div>
+                    <p class="mt-2">Memuat data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    z-index:1050;
+    text-align:center;
+    color:white;
+">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);">
+        <div class="spinner-border text-light" style="width:3rem; height:3rem;" role="status"></div>
+        <p class="mt-3 font-weight-bold">Sedang memproses... mohon tunggu</p>
+    </div>
+</div>
+
+
 
 
 <!-- Modal-->

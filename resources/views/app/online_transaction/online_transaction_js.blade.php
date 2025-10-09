@@ -95,6 +95,68 @@
 
     }
 
+    document.getElementById('splitForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        let formData = new FormData(this);
+        let uploadBtn = document.getElementById('uploadBtn');
+        let loading = document.getElementById('loadingOverlay');
+
+        uploadBtn.disabled = true;
+        loading.style.display = 'block'; // tampilkan loading
+
+        fetch("{{ route('pdf.split') }}", {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                uploadBtn.disabled = false;
+                $('#ImportModal').modal('hide');
+
+                if (data.message) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    // ✅ reset form
+                    document.getElementById('splitForm').reset();
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                uploadBtn.disabled = false;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat memproses file.'
+                });
+            });
+    });
+
+
+    // ketika tombol history diklik
+    document.getElementById('historyBtn').addEventListener('click', function() {
+        const modal = $('#historyModal');
+        const content = $('#historyContent');
+
+        modal.modal('show');
+        content.html('<div class="text-center p-4"><div class="spinner-border text-info"></div><p class="mt-2">Memuat data...</p></div>');
+
+        fetch('{{ route("split.history.ajax") }}')
+            .then(res => res.text())
+            .then(html => content.html(html))
+            .catch(() => content.html('<div class="text-danger p-4 text-center">Gagal memuat data</div>'));
+    });
+
     function sendChatMessage() {
         var message = $('#text_input').val();
         var ot_id_new = ot_id; // Use JavaScript variable, not PHP variable

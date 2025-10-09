@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductLocationSetupV2Controller;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeliveryRecapController;
 use App\Models\TransaksiOnline;
+use App\Http\Controllers\PdfSplitController;
 
 Route::middleware(['auth'])->group(function () {
 
@@ -40,6 +41,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('delivery_recap', [DeliveryRecapController::class, 'index']);
     Route::get('delivery_recap_datatables', [DeliveryRecapController::class, 'getDatatables']);
     Route::get('add_delivery_recap', [DeliveryRecapController::class, 'add']);
+
+
+    Route::get('/pdf-import', [PdfSplitController::class, 'index'])->name('pdf.import');
+    Route::post('/pdf-split', [PdfSplitController::class, 'split'])->name('pdf.split');
+    Route::get('/split-resi/history', [PdfSplitController::class, 'getHistory'])->name('split.history.ajax');
 });
 
 
