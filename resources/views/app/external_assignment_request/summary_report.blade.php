@@ -397,4 +397,4 @@
 @endsection
 
 @include('app._partials.js')
-@include('app.leave_request.summary_report_js')
+@include('app.external_assignment_request.summary_report_js')

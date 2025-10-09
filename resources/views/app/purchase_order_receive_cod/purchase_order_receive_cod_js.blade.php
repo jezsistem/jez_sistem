@@ -419,7 +419,7 @@
             var po_invoice = po_approval_table.row(this).data().po_invoice;
             var pay_date = po_approval_table.row(this).data().pay_date;
             var due_date = po_approval_table.row(this).data().due_date;
-            var approval = po_approval_table.row(this).data().u_receive;
+            approval = po_approval_table.row(this).data().u_receive;
             var bank_general = po_approval_table.row(this).data().bank_general;
             var payment = po_approval_table.row(this).data().acc_id;
             jQuery.noConflict();
