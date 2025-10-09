@@ -176,12 +176,12 @@ class CekDanaOnlineController extends Controller
             })
             ->addColumn('status', function ($collection) {
                 if (
-                    $collection->total_settle && $collection->trx_date
+                    $collection->settle_date && $collection->trx_date
                 ) {
                     return '<button class="btn btn-sm btn-success">Done</button>';
                 }
 
-                if (!$collection->total_settle && $collection->trx_date) {
+                if (!$collection->settle_date && $collection->trx_date) {
                     return '<button class="btn btn-sm btn-warning">Belum Cair</button>';
                 }
                 if (!$collection->trx_date) {
@@ -291,9 +291,9 @@ class CekDanaOnlineController extends Controller
             $item->diff_jezpro_mp = isset($item->jezpro_price, $item->revenue)
                 ? $item->jezpro_price - $item->revenue
                 : null;
-            $item->status = $item->total_settle && $item->trx_date
+            $item->status = $item->settle_date && $item->trx_date
                 ? 'Done'
-                : (!$item->total_settle && $item->trx_date
+                : (!$item->settle_date && $item->trx_date
                     ? 'Belum Cair'
                     : (!$item->trx_date
                         ? 'Belum Trx'
@@ -719,7 +719,7 @@ class CekDanaOnlineController extends Controller
                 'online_funds.seller_voucher_discount as seller_discount',
                 'online_funds.total_online_cut as total_fee',
                 'pos_transactions.created_at as trx_date',
-                'pos_transactions.pos_real_price as jezpro_price',
+                DB::raw('(SELECT SUM(pos_td_sell_price) FROM ts_pos_transaction_details WHERE ts_pos_transaction_details.pt_id = ts_pos_transactions.id) as jezpro_price'),
                 DB::raw("CASE WHEN ts_online_funds.total_disburshed_amount IS NULL THEN 'Belum Cair' WHEN ts_online_funds.total_disburshed_amount IS NOT NULL THEN 'DONE' ELSE 'UNKNOWN' END as status"),
                 'pos_transactions.pos_status as status_trx',
                 'pos_transactions.st_id as st_id',
