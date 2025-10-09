@@ -232,7 +232,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="pending-requests">{{ $leaveRequests->where('lr_status', 'pending')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="pending-requests">{{ $leaveRequests->where('ear_status', 'Pending Approval')->count() }}</div>
                                     <div class="text-dark-50">Pending</div>
                                 </div>
                             </div>
@@ -249,7 +249,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="approved-requests">{{ $leaveRequests->where('lr_status', 'approved')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="approved-requests">{{ $leaveRequests->where('ear_status', 'Approved')->count() }}</div>
                                     <div class="text-dark-50">Approved</div>
                                 </div>
                             </div>
@@ -266,7 +266,7 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('lr_status', 'rejected')->count() }}</div>
+                                    <div class="text-dark font-weight-bold font-size-h5" id="rejected-requests">{{ $leaveRequests->where('ear_status', 'Rejected')->count() }}</div>
                                     <div class="text-dark-50">Rejected</div>
                                 </div>
                             </div>
@@ -332,8 +332,8 @@
                                     <div class="col-md-2">
                                         <label for="status">Status</label>
                                         <select class="form-control" id="status" name="status">
-                                            <option value="" {{ $status === '' && $status !== null ? 'selected' : '' }}>All Status</option>
-                                            <option value="Pending Approval" {{ ($status === null || $status == 'Pending Approval') ? 'selected' : '' }}>Pending Approval</option>
+                                            <option value="" {{ empty($status) ? 'selected' : '' }}>All Status</option>
+                                            <option value="Pending Approval" {{ $status == 'Pending Approval' ? 'selected' : '' }}>Pending Approval</option>
                                             <option value="Approved" {{ $status == 'Approved' ? 'selected' : '' }}>Approved</option>
                                             <option value="Rejected" {{ $status == 'Rejected' ? 'selected' : '' }}>Rejected</option>
                                             <option value="HR Check" {{ $status == 'HR Check' ? 'selected' : '' }}>HR Check</option>
@@ -365,7 +365,7 @@
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <!--begin::Button-->
-                                    <a href="{{ route('leave-requests.summary-report') }}" class="btn btn-primary font-weight-bolder mr-2">
+                                    <a href="{{ route('external-assignment.summary-report') }}" class="btn btn-primary font-weight-bolder mr-2">
                                     <span class="svg-icon svg-icon-md">
                                         <!--begin::Svg Icon | path:assets/media/svg/icons/Design/Flatten.svg-->
                                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">

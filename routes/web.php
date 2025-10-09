@@ -69,6 +69,7 @@ use App\Http\Controllers\DashboardV2Controller;
 use App\Http\Controllers\UpcloudBalanceController;
 
 use App\Http\Controllers\UpdatedDashboardController;
+use App\Http\Controllers\OvertimeRequestController;
 
 use App\Http\Controllers\AssetDetailController;
 
@@ -1029,7 +1030,7 @@ Route::group(['middleware' => 'auth'], function () {
     //External Assignment Request
     Route::get('external-assignment', [ExternalAssignmentRequestController::class, 'index'])->name('external-assignments.index');
     Route::get('external-assignment/summary-report', [ExternalAssignmentRequestController::class, 'summaryReport'])->name('external-assignment.summary-report');
-    Route::get('external-assignment/summary-report/datatables', [ExternalAssignmentRequestController::class, 'getSummaryReportDatatables'])->name('external-assignment.summary-report-datatables');
+    Route::get('external-assignment/summary-report/datatables', [ExternalAssignmentRequestController::class, 'getExternalAssignmentSummaryDatatables'])->name('external-assignment.summary-report-datatables');
     Route::get('external-assignment/summary-report/export/excel', [ExternalAssignmentRequestController::class, 'exportSummaryToExcel'])->name('external-assignment.summary-report-export-excel');
     Route::get('external-assignment/summary-report/export/pdf', [ExternalAssignmentRequestController::class, 'exportSummaryToPDF'])->name('external-assignment.summary-report-export-pdf');
     Route::get('external-assignment/staff/{user_id}', [ExternalAssignmentRequestController::class, 'staffDetail'])->name('external-assignment.staff-detail');
@@ -1066,6 +1067,13 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('ear.approve');
     Route::post('/ear/{id}/report/store', [ExternalAssignmentRequestController::class, 'storeReport'])
         ->name('ear.report.store');
+
+
+    // overtime
+    Route::get('/overtime', [OvertimeRequestController::class, 'index'])->name('overtime.index');
+    Route::get('/overtime/create', [OvertimeRequestController::class, 'create'])->name('overtime.create');
+    Route::post('/overtime/store', [OvertimeRequestController::class, 'store'])->name('overtime.store');
+    Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.data');
 });
 
 require __DIR__ . '/purchase_order.php';

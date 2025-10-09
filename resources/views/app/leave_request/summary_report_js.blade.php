@@ -5,19 +5,19 @@
     // Date filter functionality
     function handleDateFilterChange(value) {
         console.log('handleDateFilterChange called with value:', value);
-        
+
         const startDateContainer = document.getElementById('start_date_container');
         const endDateContainer = document.getElementById('end_date_container');
         const startDateInput = document.getElementById('start_date');
         const endDateInput = document.getElementById('end_date');
-        
+
         console.log('Found elements:', {
             startDateContainer: !!startDateContainer,
             endDateContainer: !!endDateContainer,
             startDateInput: !!startDateInput,
             endDateInput: !!endDateInput
         });
-        
+
         if (value === 'custom') {
             console.log('Setting custom mode - showing date inputs');
             startDateContainer.style.display = 'block';
@@ -26,11 +26,11 @@
             console.log('Setting predefined filter mode - hiding date inputs');
             startDateContainer.style.display = 'none';
             endDateContainer.style.display = 'none';
-            
+
             // Set default dates based on filter
             const today = new Date();
             let startDate, endDate;
-            
+
             switch (value) {
                 case 'this_week':
                     startDate = new Date(today.getTime());
@@ -63,9 +63,9 @@
                     endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0); // Last day of next month
                     break;
             }
-            
+
             console.log('Calculated dates for', value, ':', { startDate, endDate });
-            
+
             // Format dates for input fields
             if (startDate && endDate) {
                 const formatDate = (date) => {
@@ -74,25 +74,25 @@
                     const day = String(date.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
                 };
-                
+
                 const formattedStartDate = formatDate(startDate);
                 const formattedEndDate = formatDate(endDate);
-                
+
                 console.log('Setting input values for', value, ':', { formattedStartDate, formattedEndDate });
-                
+
                 startDateInput.value = formattedStartDate;
                 endDateInput.value = formattedEndDate;
-                
+
                 // Update breadcrumb display
                 updateBreadcrumbDates(formattedStartDate, formattedEndDate, value);
-                
+
                 // Reload DataTable with new filter dates
                 if (value !== 'custom' && window.summaryTable) {
                     console.log('Reloading DataTable for filter:', value);
                     console.log('Current start_date:', startDateInput.value);
                     console.log('Current end_date:', endDateInput.value);
                     console.log('Current date_filter:', value);
-                    
+
                     // Force DataTable to reload with new parameters
                     window.summaryTable.ajax.reload();
                 } else if (value !== 'custom') {
@@ -122,7 +122,7 @@
                     const year = date.getFullYear();
                     return `${day} ${month} ${year}`;
                 };
-                
+
                 const displayStartDate = formatDisplayDate(startDate);
                 const displayEndDate = formatDisplayDate(endDate);
                 breadcrumbElement.textContent = `${displayStartDate} to ${displayEndDate}`;
@@ -137,14 +137,14 @@
     // Export functions
     function exportToExcel() {
         const url = new URL('{{ route("leave-requests.summary-report-export-excel") }}');
-        
+
         // Add current filters to URL
         const dateFilter = document.getElementById('date_filter');
         const startDate = document.getElementById('start_date');
         const endDate = document.getElementById('end_date');
         const divisionId = document.getElementById('division_id');
         const summarySearch = document.getElementById('summary_search');
-        
+
         if (dateFilter && dateFilter.value && dateFilter.value !== 'custom') {
             url.searchParams.append('date_filter', dateFilter.value);
         }
@@ -160,9 +160,9 @@
         if (summarySearch && summarySearch.value) {
             url.searchParams.append('search', summarySearch.value);
         }
-        
+
         console.log('Export Excel URL:', url.toString());
-        
+
         // Create download link for Excel
         const link = document.createElement('a');
         link.href = url.toString();
@@ -174,14 +174,14 @@
 
     function exportToPDF() {
         const url = new URL('{{ route("leave-requests.summary-report-export-pdf") }}');
-        
+
         // Add current filters to URL
         const dateFilter = document.getElementById('date_filter');
         const startDate = document.getElementById('start_date');
         const endDate = document.getElementById('end_date');
         const divisionId = document.getElementById('division_id');
         const summarySearch = document.getElementById('summary_search');
-        
+
         if (dateFilter && dateFilter.value && dateFilter.value !== 'custom') {
             url.searchParams.append('date_filter', dateFilter.value);
         }
@@ -197,9 +197,9 @@
         if (summarySearch && summarySearch.value) {
             url.searchParams.append('search', summarySearch.value);
         }
-        
+
         console.log('Export PDF URL:', url.toString());
-        
+
         // Create download link for PDF
         const link = document.createElement('a');
         link.href = url.toString();
@@ -219,33 +219,33 @@
 
         try {
             console.log('Initializing leave summary report DataTable...');
-            
+
             // Get leave types for dynamic columns
             const leaveTypes = @json($data['leaveTypes']);
-            
+
             // Build columns configuration dynamically
             const columns = [
-                { 
-                    data: null, 
-                    name: 'DT_RowIndex', 
-                    orderable: false, 
-                    searchable: false, 
+                {
+                    data: null,
+                    name: 'DT_RowIndex',
+                    orderable: false,
+                    searchable: false,
                     width: '5%',
                     render: function (data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1;
                     }
                 },
-                { 
-                    data: 'u_nip', 
-                    name: 'u_nip', 
+                {
+                    data: 'u_nip',
+                    name: 'u_nip',
                     width: '10%',
                     render: function(data, type, row) {
                         return data || '-';
                     }
                 },
-                { 
-                    data: 'u_name', 
-                    name: 'u_name', 
+                {
+                    data: 'u_name',
+                    name: 'u_name',
                     width: '15%',
                     render: function(data, type, row) {
                         if (type === 'display') {
@@ -254,25 +254,25 @@
                         return data || '-';
                     }
                 },
-                { 
-                    data: 'position_name', 
-                    name: 'position_name', 
+                {
+                    data: 'position_name',
+                    name: 'position_name',
                     width: '12%',
                     render: function(data, type, row) {
                         return data || '-';
                     }
                 },
-                { 
-                    data: 'division_name', 
-                    name: 'division_name', 
+                {
+                    data: 'division_name',
+                    name: 'division_name',
                     width: '12%',
                     render: function(data, type, row) {
                         return data || '-';
                     }
                 },
-                { 
-                    data: 'work_type', 
-                    name: 'work_type', 
+                {
+                    data: 'work_type',
+                    name: 'work_type',
                     width: '15%',
                     render: function(data, type, row) {
                         if (type === 'display') {
@@ -285,7 +285,7 @@
                     }
                 }
             ];
-            
+
             // Add dynamic leave type columns
             leaveTypes.forEach(function(leaveType) {
                 const columnName = 'leave_' + leaveType.lt_code.toLowerCase();
@@ -302,13 +302,13 @@
                     }
                 });
             });
-            
+
             // Add total and balance columns
             columns.push(
-                { 
-                    data: 'total_leave_requests', 
-                    name: 'total_leave_requests', 
-                    width: '8%', 
+                {
+                    data: 'total_leave_requests',
+                    name: 'total_leave_requests',
+                    width: '8%',
                     className: 'text-center',
                     render: function(data, type, row) {
                         if (type === 'display') {
@@ -320,10 +320,10 @@
                         return (row.total_days || 0) + (row.total_hours || 0);
                     }
                 },
-                { 
-                    data: 'annual_leave_balance', 
-                    name: 'annual_leave_balance', 
-                    width: '8%', 
+                {
+                    data: 'annual_leave_balance',
+                    name: 'annual_leave_balance',
+                    width: '8%',
                     className: 'text-center',
                     render: function(data, type, row) {
                         if (type === 'display') {
@@ -333,7 +333,7 @@
                     }
                 }
             );
-            
+
             window.summaryTable = $('#summaryTable').DataTable({
                 destroy: true,
                 processing: true,
@@ -348,18 +348,18 @@
                         d.date_filter = $('#date_filter').val();
                         d.division_id = $('#division_id').val();
                         d.search = $('#summary_search').val();
-                        
+
                         console.log('Leave Summary Report AJAX Data sent:', d);
                     },
                     dataSrc: function(json) {
                         console.log('Leave Summary Report DataTables response:', json);
                         console.log('Data rows:', json.data);
-                        
+
                         // Log each row to see the structure
                         if (json.data && json.data.length > 0) {
                             console.log('First row structure:', json.data[0]);
                         }
-                        
+
                         return json.data || [];
                     }
                 },
@@ -388,7 +388,7 @@
             });
 
             console.log('Leave Summary Report DataTable initialized successfully');
-            
+
         } catch (error) {
             console.error('Error initializing Leave Summary Report DataTable:', error);
             // Retry after a delay
@@ -405,37 +405,37 @@
         if (filterForm) {
             filterForm.addEventListener('submit', function(e) {
                 e.preventDefault(); // Prevent form submission
-                
+
                 // Update breadcrumb before reloading DataTable
                 const dateFilter = document.getElementById('date_filter').value;
                 const startDate = document.getElementById('start_date').value;
                 const endDate = document.getElementById('end_date').value;
-                
+
                 if (dateFilter && dateFilter !== 'custom') {
                     updateBreadcrumbDates(startDate, endDate, dateFilter);
                 } else {
                     updateBreadcrumbDates(startDate, endDate, 'custom');
                 }
-                
+
                 // Reload DataTable
                 if (window.summaryTable) {
                     window.summaryTable.ajax.reload();
                 }
             });
         }
-        
+
         // Initialize breadcrumb with current values
         const dateFilter = document.getElementById('date_filter').value;
         const startDate = document.getElementById('start_date').value;
         const endDate = document.getElementById('end_date').value;
-        
+
         if (dateFilter && dateFilter !== 'custom') {
             updateBreadcrumbDates(startDate, endDate, dateFilter);
         }
-        
+
         // Initialize DataTable
         initDataTable();
-        
+
         // Search functionality for summary_search input with debounce
         var searchTimeout;
         $('#summary_search').on('keyup input', function() {

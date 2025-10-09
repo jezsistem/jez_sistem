@@ -91,24 +91,29 @@
                                 </button>
 
                                 <!-- Modal Finance Note -->
-                                <div class="modal fade" id="financeNoteModal" tabindex="-1" aria-labelledby="financeNoteModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="financeNoteModal" tabindex="-1" aria-labelledby="financeApproveModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
-                                        <form method="POST" action="{{ route('ear.approve', $detail->id) }}">
+                                        <form action="{{ route('ear.approve', $detail->id) }}" method="POST" enctype="multipart/form-data">
                                             @csrf
                                             <div class="modal-content">
-                                                <div class="modal-header bg-primary text-white">
-                                                    <h5 class="modal-title" id="financeNoteModalLabel" style="color: #fff;">Note Finance</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="financeApproveModalLabel">Finance Approval</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
-                                                        <label class="form-label">Catatan Finance</label>
-                                                        <textarea name="ear_finance_note" class="form-control" rows="3" required></textarea>
+                                                        <label for="ear_finance_note" class="form-label">Catatan Finance</label>
+                                                        <textarea class="form-control" name="ear_finance_note" id="ear_finance_note" rows="3"></textarea>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label for="ear_finance_uploads" class="form-label">Upload Bukti Transfer</label>
+                                                        <input type="file" class="form-control" name="ear_finance_uploads" id="ear_finance_uploads" accept="image/*" required>
+                                                        <small class="text-muted">Format: JPG, PNG, atau JPEG. Maksimal 2MB.</small>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                    <button type="submit" class="btn btn-success">Submit Approval</button>
+                                                    <button type="submit" class="btn btn-success">Approve</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -156,6 +161,8 @@
                                 @if($detail->ear_hr_checked_by)
                                     {{ $detail->hrChecker->u_name ?? '-' }}<br>
                                     <small>{{ $detail->ear_hr_checked_at ? \Carbon\Carbon::parse($detail->ear_hr_checked_at)->format('d M Y H:i') : '-' }}</small>
+                                    <br>
+                                    <small>{{ $detail->ear_hr_note  }}</small>
                                 @else
                                     <em>Menunggu pemeriksaan HR</em>
                                 @endif
@@ -166,6 +173,15 @@
                                 @if($detail->ear_finance_by)
                                     {{ $detail->financeProcessor->u_name ?? '-' }}<br>
                                     <small>{{ $detail->ear_finance_at ? \Carbon\Carbon::parse($detail->ear_finance_at)->format('d M Y H:i') : '-' }}</small>
+                                    <br>
+                                    <small>{{ $detail->ear_finance_note  }}</small>
+                                    @if($detail->ear_finance_uploads)
+                                        <div class="mt-2">
+                                            <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#financeProofModal">
+                                                <i class="fa fa-image"></i> Lihat Bukti Transfer
+                                            </a>
+                                        </div>
+                                    @endif
                                 @else
                                     <em>Menunggu verifikasi Finance</em>
                                 @endif
@@ -187,7 +203,7 @@
                             <th>Date</th>
                             <th>Start</th>
                             <th>End</th>
-                            <th>Description</th>
+                            <th>Activity</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -196,7 +212,7 @@
                                 <td>{{ $r->rundown_date }}</td>
                                 <td>{{ $r->start_time }}</td>
                                 <td>{{ $r->end_time }}</td>
-                                <td>{{ $r->notes }}</td>
+                                <td>{{ $r->activity }}</td>
                             </tr>
                         @endforeach
                         </tbody>
@@ -353,6 +369,25 @@
         </div>
 
     </div>
+
+    @if($detail->ear_finance_uploads)
+        <!-- Modal Preview Bukti Transfer -->
+        <div class="modal fade" id="financeProofModal" tabindex="-1" aria-labelledby="financeProofModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="financeProofModalLabel">Bukti Transfer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="{{ asset('storage/' . $detail->ear_finance_uploads) }}"
+                             alt="Bukti Transfer"
+                             class="img-fluid rounded shadow">
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
 
     <style>
