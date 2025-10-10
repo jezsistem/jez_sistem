@@ -103,6 +103,7 @@ use App\Http\Controllers\WebConfigController;
 
 use App\Http\Controllers\DataPerusahaanController;
 use App\Http\Controllers\LockController;
+use App\Http\Controllers\WarehouseIndexController;
 use App\Models\PositionAccessController;
 use Illuminate\Support\Facades\DB;
 
@@ -1074,6 +1075,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/overtime/create', [OvertimeRequestController::class, 'create'])->name('overtime.create');
     Route::post('/overtime/store', [OvertimeRequestController::class, 'store'])->name('overtime.store');
     Route::get('/overtime/data', [OvertimeRequestController::class, 'getData'])->name('overtime.data');
+
+    Route::get('/warehouse-index', [WarehouseIndexController::class, 'index'])->name('warehouse.index');
+    Route::get('/warehouse_index_datatables', [WarehouseIndexController::class, 'getDatatables'])->name('warehouse.index.datatables');
+    Route::post('/warehouse_index_save', [WarehouseIndexController::class, 'storeData'])->name('warehouse.index.store');
+    Route::post('/warehouse_index_delete', [WarehouseIndexController::class, 'deleteData'])->name('warehouse.index.delete');
 });
 
 require __DIR__ . '/purchase_order.php';
