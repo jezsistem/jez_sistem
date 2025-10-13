@@ -212,7 +212,7 @@ class TransaksiOnlineController extends Controller
     public function detailDatatables(Request $request)
     {
         if (request()->ajax()) {
-            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_price_tag as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller', 'platform_name')
+            return datatables()->of(OnlineTransactionDetails::select('online_transaction_details.id as otd_id', 'to_id', 'products.p_name', 'ps_barcode', 'online_transaction_details.sku', 'brands.br_name', 'p_color', 'sz_name', 'online_transaction_details.sku', 'online_transaction_details.qty as to_qty', 'original_price as shopee_price', 'products.p_price_tag as jez_price', 'total_discount', 'price_after_discount as final_price', 'discount_seller', 'platform_name', 'warehouse')
                 ->Join('product_stocks', 'product_stocks.ps_barcode', '=', 'online_transaction_details.sku')
                 ->Join('online_transactions', 'online_transactions.id', '=', 'online_transaction_details.to_id')
                 ->Join('products', 'products.id', '=', 'product_stocks.p_id')
@@ -675,7 +675,8 @@ class TransaksiOnlineController extends Controller
                     "Shipping Fee After Discount",
                     "Order Amount",
                     "Regency and City",
-                    "Province"
+                    "Province",
+                    "Warehouse"
                 ];
 
                 if (!isset($data[0][0]) || $data[0][0] !== $expectedHeaders) {
@@ -949,6 +950,7 @@ class TransaksiOnlineController extends Controller
                 $total_discount = str_replace('.', '', $item[13]);
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
+                $warehouse = $item[19];
 
 
                 try {
@@ -971,6 +973,7 @@ class TransaksiOnlineController extends Controller
                                 'discount_seller' => $discount_seller,
 //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
+                                'warehouse' => $warehouse,
                             ];
 
                             if (!$sku_exists) {
@@ -1083,6 +1086,7 @@ class TransaksiOnlineController extends Controller
                 $total_discount = str_replace(['IDR ', '.'], '', $item[13]);
                 $discount_seller = str_replace('.', '', $item[13]);
                 $discount_platform = str_replace('.', '', $item[14]);
+                $warehouse = $item[19];
 
 
                 try {
@@ -1105,6 +1109,7 @@ class TransaksiOnlineController extends Controller
                                 'discount_seller' => $discount_seller,
 //                                'ns_before_admin' => $ns_before_admin,
                                 'discount_platform' => $discount_platform,
+                                'warehouse' => $warehouse,
                             ];
 
                             if (!$sku_exists) {

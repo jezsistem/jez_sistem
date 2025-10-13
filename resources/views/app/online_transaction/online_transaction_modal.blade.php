@@ -232,7 +232,7 @@
                             <th class="text-dark">Discount Seller</th>
                             <th class="text-dark">N.S Before Admin</th>
                             <th class="text-dark">Final Price</th>
-                            <th class="text-dark">Status Pick</th>
+                            <th class="text-dark">Warehouse</th>
                             <th class="text-dark">Aksi</th>
 
                         </tr>

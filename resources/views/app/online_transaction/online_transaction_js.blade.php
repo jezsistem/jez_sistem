@@ -750,8 +750,8 @@
                     }
                 },
                 {
-                    data: 'status_pick',
-                    name: 'status_pick'
+                    data: 'warehouse',
+                    name: 'warehouse'
                 },
                 {
                     data: 'action',
