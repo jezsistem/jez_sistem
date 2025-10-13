@@ -164,4 +164,10 @@ class Product extends Model
         'is_reguler',
         'p_turnoverclass'
     ];
+
+    public const TURNOVER_CLASSES =[
+        'NON MOVING',
+        'SLOW MOVING',
+        'FAST MOVING'
+    ];
 }

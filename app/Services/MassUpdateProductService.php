@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
 class MassUpdateProductService
@@ -16,6 +17,13 @@ class MassUpdateProductService
 
                 $article_id = $products[0];
                 $new_value = $products[1];
+
+                if ($update_column == 'p_turnoverclass') {
+                    if (!in_array($new_value, Product::TURNOVER_CLASSES)) {
+                        $error_ids[] = $article_id; // Collect article IDs with errors
+                        continue; // Skip invalid turnover class values
+                    }
+                }
 
                 $update_data = DB::table('products')
                     ->where('article_id', $article_id)

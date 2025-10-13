@@ -1133,17 +1133,48 @@
             $('#_current_pssc_id').val(pssc_id);
             $('#subcatone').text(subcategory1);
             $('#subcattwo').text(subcategory2);
-            $('#consignment').val(consignment);
-            $('#complement').val(complement);
-            $('#mp_best_seller').val(mp_best_seller);
-            $('#mp_stock_masking').val(mp_stock_masking);
-            $('#is_everlast').val(is_everlast);
-            $('#is_supersale').val(is_supersale);
+            if (consignment == '1') {
+                $('#consignment').prop('checked', true);
+            } else {
+                $('#consignment').prop('checked', false);
+            }
+
+            if (complement == '1') {
+                $('#complement').prop('checked', true);
+            } else {
+                $('#complement').prop('checked', false);
+            }
+
+            if (mp_best_seller == '1') {
+                $('#mp_best_seller').prop('checked', true);
+            } else {
+                $('#mp_best_seller').prop('checked', false);
+            }
+
+            if (mp_stock_masking == '1') {
+                $('#mp_stock_masking').prop('checked', true);
+            } else {
+                $('#mp_stock_masking').prop('checked', false);
+            }
+
+            if (is_everlast == '1') {
+                $('#is_everlast').prop('checked', true);
+            } else {
+                $('#is_everlast').prop('checked', false);
+            }
+
+            if (is_supersale == '1') {
+                $('#is_supersale').prop('checked', true);
+            } else {
+                $('#is_supersale').prop('checked', false);
+            }
+
             if (is_reguler == '1') {
                 $('#is_reguler').prop('checked', true);
             } else {
                 $('#is_reguler').prop('checked', false);
             }
+
             $('#p_turnoverclass').val(p_turnoverclass);
             jQuery('#br_id').val(br_id).trigger('change');
             jQuery('#ps_id').val(ps_id).trigger('change');
@@ -1152,10 +1183,6 @@
             jQuery('#ss_id').val(ss_id).trigger('change');
             jQuery('#mc_id').val(mc_id).trigger('change');
             jQuery('#sz_schema_modal_id').val(schema_size).trigger('change');
-            jQuery('#mp_best_seller').val(mp_best_seller).trigger('change');
-            jQuery('#mp_stock_masking').val(mp_stock_masking).trigger('change');
-            jQuery('#is_everlast').val(is_everlast).trigger('change');
-            jQuery('#is_supersale').val(is_supersale).trigger('change');
             $('#_id').val(id);
             $('#_mode').val('edit');
             @if ($data['user']->delete_access == '1')

@@ -204,49 +204,39 @@
                                 <div id="sz_schema_modal_id_parent"></div>
                             </div>
 
-                            <div class="col-lg-4 pt-1">
-                                <label>Consigment</label> <span class="text-danger">*</span></label>
-                                <select class="form-control" id="consignment" name="consignment">
-                                    <option value="">- Is Consignment -</option>
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-
-                                </select>
-                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="consignment" name="consignment" value="1">
+                                    <label class="" for="consignment">
+                                        Is Consignment
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <div class="col-lg-4 pt-1">
-                                <label>Complement</label> <span class="text-danger">*</span></label>
-                                <select class="form-control" id="complement" name="complement" required>
-                                    <option value="">- Is Complement -</option>
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-
-                                </select>
-                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="complement" name="complement" value="1">
+                                    <label class="" for="complement">
+                                        Complement
+                                    </label>
+                                </div>
                             </div>
-                            <div class="col-lg-4 pt-1">
-                                <label>MP Best Seller <span class="text-danger">*</span></label> 
-                                <select class="form-control" id="mp_best_seller"
-                                        name="mp_best_seller" required>
-                                    <option value="">- Is MP Best Seller -</option>
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-
-                                </select>
-                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="mp_best_seller" name="mp_best_seller" value="1">
+                                    <label class="" for="mp_best_seller">
+                                        MP Best Seller
+                                    </label>
+                                </div>
                             </div>
-                            <div class="col-lg-4 pt-1">
-                                <label>Impairment <span class="text-danger">*</span></label>
-                                <select class="form-control" id="mp_stock_masking"
-                                        name="mp_stock_masking" required>
-                                    <option value="">- Impairment -</option>
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-
-                                </select>
-                                {{--                                <div id="sz_schema_modal_id_parent"></div>--}}
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="mp_stock_masking" name="mp_stock_masking" value="1">
+                                    <label class="" for="mp_stock_masking">
+                                        Impairment
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- resources/views/product_modal.blade.php -->
@@ -302,26 +292,26 @@
 
                         </div>
                         <div class="form-group row">
-                            <div class="col-lg-4 pt-1">
-                                <label>Everlast <span class="text-danger">*</span></label>
-                                <select class="form-control" id="is_everlast" name="is_everlast" required>
-                                    <option value="">- Pilih -</option>
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-                                </select>
-                            </div>
-                            <div class="col-lg-4 pt-1">
-                                <label>Super Sale <span class="text-danger">*</span></label>
-                                <select class="form-control" id="is_supersale" name="is_supersale" required>
-                                    <option value="">- Pilih -</option>
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-                                </select>
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="is_everlast" name="is_everlast" value="1">
+                                    <label class="" for="is_everlast">
+                                        Everlast
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
-                                <div class="custom-control custom-checkbox my-auto">
-                                    <input class="custom-control-input" type="checkbox" id="is_reguler" name="is_reguler" value="1">
-                                    <label class="custom-control-label" for="is_reguler">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="is_supersale" name="is_supersale" value="1">
+                                    <label class="" for="is_supersale">
+                                        Super Sale
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 d-flex align-items-center" style="min-height: 38px;">
+                                <div class=" my-auto">
+                                    <input class="" type="checkbox" id="is_reguler" name="is_reguler" value="1">
+                                    <label class="" for="is_reguler">
                                         Reguler
                                     </label>
                                 </div>
@@ -340,7 +330,12 @@
                             </div>
                             <div class="col-lg-4 pt-1 mt-2">
                                 <label>Turn Over Class </label>
-                                <input type="text" name="p_turnoverclass" id="p_turnoverclass" class="form-control"/>
+                                <select name="p_turnoverclass" id="p_turnoverclass" class="form-control">
+                                    <option value="">- Pilih Turn Over Class -</option>
+                                    <option value="NON MOVING">NON MOVING</option>
+                                    <option value="SLOW MOVING">SLOW MOVING</option>
+                                    <option value="FAST MOVING">FAST MOVING</option>
+                                </select>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -530,4 +525,9 @@
     .option-no {
         color: red;
     }
+
+    input[type="checkbox"] {
+            transform: scale(1.5);
+            margin: 10px;
+        }
 </style>
