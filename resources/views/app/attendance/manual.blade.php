@@ -195,6 +195,28 @@
         const centerLng = 112.61913974639859;
         const maxDistanceMeters = 100;
 
+        // Hitung ukuran kamera dinamis berdasarkan device
+        function getCameraSize() {
+            const isMobile = window.innerWidth <= 768;
+            const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+
+            let width, height;
+
+            if (isMobile) {
+                width = window.innerWidth;
+                height = window.innerHeight * 0.6; // 60% dari tinggi layar
+            } else if (isTablet) {
+                width = 800;
+                height = 500;
+            } else {
+                // laptop / desktop
+                width = 640;
+                height = 480;
+            }
+
+            return { width, height };
+        }
+
         function startCamera() {
             // Tampilkan overlay loading
             if (loadingOverlay) loadingOverlay.style.display = 'flex';
@@ -202,6 +224,8 @@
             Webcam.reset();
 
             const webcamContainer = document.querySelector('.webcam-capture');
+            const { width, height } = getCameraSize();
+
             if (!useFrontCamera) {
                 webcamContainer.classList.add('video-back');
             } else {
@@ -209,38 +233,61 @@
             }
 
             Webcam.set({
-                width: window.innerWidth,
-                height: window.innerHeight * 0.7,
+                width: width,
+                height: height,
                 image_format: 'jpeg',
-                jpeg_quality: 85,
+                jpeg_quality: 90,
                 constraints: {
                     facingMode: useFrontCamera ? "user" : "environment",
-                    aspectRatio: 16 / 9
+                    aspectRatio: width / height
                 }
             });
 
             Webcam.attach('.webcam-capture');
 
-            // Tunggu hingga video benar-benar siap
+            // Tunggu hingga kamera siap benar-benar tampil
             const checkVideoReady = setInterval(() => {
                 const video = document.querySelector('.webcam-capture video');
-                if (video && video.readyState === 4) { // HAVE_ENOUGH_DATA
+                if (video && video.readyState === 4) {
                     clearInterval(checkVideoReady);
-                    // Pastikan tampil proporsional
+
+                    // Atur style supaya proporsional dan center
                     video.style.objectFit = 'contain';
                     video.style.width = '100%';
                     video.style.height = 'auto';
+                    video.style.display = 'block';
+                    video.style.margin = '0 auto';
 
-                    // Sembunyikan overlay
+                    // Jika kamera depan, mirror (biar natural selfie)
+                    if (useFrontCamera) {
+                        video.style.transform = 'scaleX(-1)';
+                    } else {
+                        video.style.transform = 'scaleX(1)';
+                    }
+
                     if (loadingOverlay) loadingOverlay.style.display = 'none';
                 }
             }, 300);
 
-            // Timeout agar overlay tetap hilang meski gagal load
+            // Safety timeout (jika kamera gagal load)
             setTimeout(() => {
                 if (loadingOverlay) loadingOverlay.style.display = 'none';
             }, 6000);
         }
+
+        // Tombol untuk ganti kamera
+        document.getElementById('switchCamera').addEventListener('click', function () {
+            useFrontCamera = !useFrontCamera;
+            startCamera();
+        });
+
+        // Jalankan kamera pertama kali
+        startCamera();
+
+        // Responsif jika layar berubah (misal rotasi HP)
+        window.addEventListener('resize', () => {
+            startCamera();
+        });
 
         // --- Fungsi Error Lokasi ---
         function errorCallback(error) {
