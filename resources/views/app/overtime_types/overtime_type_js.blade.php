@@ -56,7 +56,7 @@
             overtime_type_table.draw();
         });
 
-        $('#ExternalAssignmenttb tbody').on('click', 'tr', function() {
+        $('#Overtimettb tbody').on('click', 'tr', function() {
             var id = overtime_type_table.row(this).data().id;
             var ot_name = overtime_type_table.row(this).data().ot_name;
             var ot_desc = overtime_type_table.row(this).data().ot_desc;
