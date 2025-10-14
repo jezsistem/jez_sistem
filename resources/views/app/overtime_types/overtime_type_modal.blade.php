@@ -18,11 +18,11 @@
                     <div class="card-body">
                         <div class="form-group mb-1 pb-1">
                             <label for="exampleTextarea">Type Name*</label>
-                            <input type="text" class="form-control" id="ea_name" name="ea_name" required />
+                            <input type="text" class="form-control" id="ot_name" name="ot_name" required />
                         </div>
                         <div class="form-group mb-1 pb-1">
                             <label for="exampleTextarea">Description</label>
-                            <textarea class="form-control" name="ea_desc" id="ea_desc" cols="10" rows="10"></textarea>
+                            <textarea class="form-control" name="ot_desc" id="ot_desc" cols="10" rows="10"></textarea>
                         </div>
                     </div>
                 </div>
