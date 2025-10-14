@@ -20,6 +20,11 @@ class OvertimeRequest extends Model
         'end_time',
         'details',
         'attachment',
+        'report_desc',
+        'report_attachment',
+        'hr_checked_by',
+        'hr_checked_at',
+        'status',
         'claim',
     ];
 

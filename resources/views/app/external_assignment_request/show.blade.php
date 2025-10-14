@@ -200,19 +200,19 @@
                     <table class="table table-bordered table-sm">
                         <thead class="table-light">
                         <tr>
+                            <th>Activity</th>
                             <th>Date</th>
                             <th>Start</th>
                             <th>End</th>
-                            <th>Activity</th>
                         </tr>
                         </thead>
                         <tbody>
                         @foreach($detail->rundowns as $r)
                             <tr>
+                                <td>{{ $r->activity }}</td>
                                 <td>{{ $r->rundown_date }}</td>
                                 <td>{{ $r->start_time }}</td>
                                 <td>{{ $r->end_time }}</td>
-                                <td>{{ $r->activity }}</td>
                             </tr>
                         @endforeach
                         </tbody>

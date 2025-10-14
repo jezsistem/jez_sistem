@@ -10,9 +10,13 @@ class CreateOvertimeRequestsTable extends Migration
     {
         Schema::create('overtime_requests', function (Blueprint $table) {
             $table->id();
+
+            // siapa yang mengajukan
             $table->unsignedBigInteger('request_by');
+
+            // data utama
             $table->date('submission_date');
-            $table->string('department');
+            $table->unsignedBigInteger('ud_id');
             $table->json('assigned_staff');
             $table->date('start_date');
             $table->time('start_time');
@@ -21,17 +25,18 @@ class CreateOvertimeRequestsTable extends Migration
             $table->text('details');
             $table->string('attachment')->nullable();
             $table->decimal('claim', 10, 2)->nullable();
+            // approval
+            $table->unsignedBigInteger('approved_by')->nullable();
+            $table->timestamp('approved_at')->nullable();
             $table->timestamps();
-
+            // foreign key
             $table->foreign('request_by')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
+            // Jika department terkait tabel user_divisions:
+            // $table->foreign('department')->references('id')->on('user_divisions')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('overtime_requests');
