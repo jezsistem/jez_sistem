@@ -168,4 +168,7 @@ $(document).ready(function() {
     }
 });
 </script>
+
+@include('app._partials.js')
+{{--@include('app.brand.brand_js')--}}
 @endsection 

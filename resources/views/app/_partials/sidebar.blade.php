@@ -304,6 +304,13 @@
                                         <div class="menu-sub menu-sub-accordion">
                                             <ul class="menu-subnav">
                                                 <li class="menu-item {{ request()->is('attendance*') ? 'active' : '' }}">
+                                                    <a href="{{ url('/manual-attendance') }}" class="menu-link">
+                                                    <span class="menu-bullet"><span
+                                                                class="bullet bullet-dot"></span></span>
+                                                        <span class="menu-text">Manual Attendance</span>
+                                                    </a>
+                                                </li>
+                                                <li class="menu-item {{ request()->is('attendance*') ? 'active' : '' }}">
                                                     <a href="{{ url('/attendance') }}" class="menu-link">
                                                     <span class="menu-bullet"><span
                                                                 class="bullet bullet-dot"></span></span>

@@ -1088,6 +1088,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/overtime/{id}/approve', [OvertimeRequestController::class, 'approve'])->name('overtime.approve');
     Route::post('/overtime/{id}/report', [OvertimeRequestController::class, 'reportSubmit'])->name('overtime.report.submit');
     Route::post('/overtime/{id}/approve-hr', [OvertimeRequestController::class, 'approveHr'])->name('overtime.approve.hr');
+
+
+    // absen manual
+    Route::get('/manual-attendance', [AttendanceController::class, 'manualAttendance'])->name('manual.absensi');
+    Route::post('/attendance/manualStore', [AttendanceController::class, 'manualStore'])->name('attendance.manual-store');
 });
 
 
